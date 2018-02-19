@@ -216,9 +216,9 @@ End Class
 <Code>
 Imports System
 
-&lt;$$Assembly: Foo(0,,Z:=42)&gt;
+&lt;$$Assembly: Goo(0,,Z:=42)&gt;
 
-Class FooAttribute
+Class GooAttribute
     Inherits Attribute
 
     Sub New(x As Integer, Optional y As Integer = 0)
@@ -258,9 +258,9 @@ End Class
 <Code>
 Imports System
 
-&lt;$$Assembly: Foo(0,,Z:=42)&gt;
+&lt;$$Assembly: Goo(0,,Z:=42)&gt;
 
-Class FooAttribute
+Class GooAttribute
     Inherits Attribute
 
     Sub New(x As Integer, Optional y As Integer = 0)
@@ -300,9 +300,9 @@ End Class
 <Code>
 Imports System
 
-&lt;$$Assembly: Foo(,Z:=42)&gt;
+&lt;$$Assembly: Goo(,Z:=42)&gt;
 
-Class FooAttribute
+Class GooAttribute
     Inherits Attribute
 
     Sub New(Optional y As Integer = 0)
@@ -342,9 +342,9 @@ End Class
 <Code>
 Imports System
 
-&lt;$$Assembly: Foo(,Z:=42)&gt;
+&lt;$$Assembly: Goo(,Z:=42)&gt;
 
-Class FooAttribute
+Class GooAttribute
     Inherits Attribute
 
     Sub New(Optional y As Integer = 0)
@@ -388,9 +388,9 @@ End Class
 <Code>
 Imports System
 
-&lt;$$Assembly: Foo(0,,Z:=42)&gt;
+&lt;$$Assembly: Goo(0,,Z:=42)&gt;
 
-Class FooAttribute
+Class GooAttribute
     Inherits Attribute
 
     Sub New(x As Integer, Optional y As Integer = 0)
@@ -430,9 +430,9 @@ End Class
 <Code>
 Imports System
 
-&lt;$$Assembly: Foo(0,,Z:=42)&gt;
+&lt;$$Assembly: Goo(0,,Z:=42)&gt;
 
-Class FooAttribute
+Class GooAttribute
     Inherits Attribute
 
     Sub New(x As Integer, Optional y As Integer = 0)
@@ -472,9 +472,9 @@ End Class
 <Code>
 Imports System
 
-&lt;$$Assembly: Foo(,Z:=42)&gt;
+&lt;$$Assembly: Goo(,Z:=42)&gt;
 
-Class FooAttribute
+Class GooAttribute
     Inherits Attribute
 
     Sub New(Optional y As Integer = 0)
@@ -514,9 +514,9 @@ End Class
 <Code>
 Imports System
 
-&lt;$$Assembly: Foo(,Z:=42)&gt;
+&lt;$$Assembly: Goo(,Z:=42)&gt;
 
-Class FooAttribute
+Class GooAttribute
     Inherits Attribute
 
     Sub New(Optional y As Integer = 0)
@@ -675,8 +675,8 @@ End Class
         Public Sub TestGetArguments5_Omitted()
             Dim code =
 <Code>
-&lt;$$Foo(, Baz:=True)&gt;
-Class FooAttribute
+&lt;$$Goo(, Baz:=True)&gt;
+Class GooAttribute
     Inherits Attribute
 
     Sub New(Optional bar As String = Nothing)
@@ -855,7 +855,7 @@ End Class
         Public Async Function TestDelete1() As Task
             Dim code =
 <Code><![CDATA[
-<$$Foo>
+<$$Goo>
 Class C
 End Class
 ]]></Code>
@@ -874,7 +874,7 @@ End Class
         Public Async Function TestDelete2() As Task
             Dim code =
 <Code><![CDATA[
-<$$Foo, Bar>
+<$$Goo, Bar>
 Class C
 End Class
 ]]></Code>
@@ -893,7 +893,7 @@ End Class
         Public Async Function TestDelete3() As Task
             Dim code =
 <Code><![CDATA[
-<Foo>
+<Goo>
 <$$Bar>
 Class C
 End Class
@@ -901,7 +901,7 @@ End Class
 
             Dim expected =
 <Code><![CDATA[
-<Foo>
+<Goo>
 Class C
 End Class
 ]]></Code>
@@ -913,7 +913,7 @@ End Class
         Public Async Function TestDelete4() As Task
             Dim code =
 <Code><![CDATA[
-<Assembly: $$Foo>
+<Assembly: $$Goo>
 ]]></Code>
 
             Dim expected =
@@ -927,7 +927,7 @@ End Class
         Public Async Function TestDelete5() As Task
             Dim code =
 <Code><![CDATA[
-<Assembly: $$Foo, Assembly: Bar>
+<Assembly: $$Goo, Assembly: Bar>
 ]]></Code>
 
             Dim expected =
@@ -942,13 +942,13 @@ End Class
         Public Async Function TestDelete6() As Task
             Dim code =
 <Code><![CDATA[
-<Assembly: Foo>
+<Assembly: Goo>
 <Assembly: $$Bar>
 ]]></Code>
 
             Dim expected =
 <Code><![CDATA[
-<Assembly: Foo>
+<Assembly: Goo>
 ]]></Code>
 
             Await TestDelete(code, expected)
@@ -961,7 +961,7 @@ End Class
 ''' <summary>
 ''' Doc comment
 ''' </summary>
-<$$Foo>
+<$$Goo>
 Class C
 End Class
 ]]></Code>
@@ -982,7 +982,7 @@ End Class
         Public Async Function TestDelete8() As Task
             Dim code =
 <Code><![CDATA[
-<$$Foo> ' Comment comment comment
+<$$Goo> ' Comment comment comment
 Class C
 End Class
 ]]></Code>
@@ -1065,10 +1065,10 @@ End Class
 
 #Region "Set Name tests"
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestSetName1() As Task
+        Public Async Function TestSetName_NewName() As Task
             Dim code =
 <Code><![CDATA[
-<$$Foo()>
+<$$Goo()>
 Class C
 End Class
 ]]></Code>
@@ -1081,6 +1081,44 @@ End Class
 ]]></Code>
 
             Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_SimpleNameToDottedName() As Task
+            Dim code =
+<Code><![CDATA[
+<$$Goo()>
+Class C
+End Class
+]]></Code>
+
+            Dim expected =
+<Code><![CDATA[
+<Bar.Baz()>
+Class C
+End Class
+]]></Code>
+
+            Await TestSetName(code, expected, "Bar.Baz", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_DottedNameToSimpleName() As Task
+            Dim code =
+<Code><![CDATA[
+<$$Goo()>
+Class C
+End Class
+]]></Code>
+
+            Dim expected =
+<Code><![CDATA[
+<Bar.Baz()>
+Class C
+End Class
+]]></Code>
+
+            Await TestSetName(code, expected, "Bar.Baz", NoThrow(Of String)())
         End Function
 #End Region
 

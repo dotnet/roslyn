@@ -229,18 +229,18 @@ using System;
 
 public class C
 {
-    public void Foo()
+    public void Goo()
     {
     {|stmt1:$$Bar|}:;
-    {|Conflict:Foo|}:;
+    {|Conflict:Goo|}:;
     }
 }
 
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Foo")
+                </Workspace>, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Foo", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -257,18 +257,18 @@ using System;
 
 public class C
 {
-    public void Foo()
+    public void Goo()
     {
     {|stmt1:$$Bar|}: ;
 
-        Action x = () => { {|Conflict:Foo|}:;};
+        Action x = () => { {|Conflict:Goo|}:;};
     }
 }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Foo")
+                </Workspace>, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Foo", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -287,15 +287,15 @@ public class C
 {
     Action x = () =>
         {
-        {|Conflict:Foo|}:;
+        {|Conflict:Goo|}:;
         {|stmt1:$$Bar|}: ;
         };
 }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Foo")
+                </Workspace>, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Foo", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -312,17 +312,17 @@ using System;
 
 public class C
 {
-    public void Foo()
+    public void Goo()
     {
-        Action x = () => { Foo:; };
+        Action x = () => { Goo:; };
         Action x = () => { {|stmt1:$$Bar|}:; };
     }
 }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Foo")
+                </Workspace>, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Foo", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo", RelatedLocationType.NoConflict)
             End Using
         End Sub
 

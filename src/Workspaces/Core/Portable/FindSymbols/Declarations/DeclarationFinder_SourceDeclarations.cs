@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -115,12 +116,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindSourceDeclarationsWithNormalQueryInRemoteProcessAsync(
             Solution solution, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var result = await solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+            var result = await solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableSymbolAndProjectId>>(
                 RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithNormalQueryAsync),
                 new object[] { name, ignoreCase, criteria }, cancellationToken).ConfigureAwait(false);
 
-            if (result.IsDefault)
+            if (result == null)
             {
                 return (false, ImmutableArray<SymbolAndProjectId>.Empty);
             }
@@ -139,12 +140,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return (false, ImmutableArray<SymbolAndProjectId>.Empty);
             }
 
-            var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+            var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableSymbolAndProjectId>>(
                 RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
                 new object[] { project.Id, name, ignoreCase, criteria }, cancellationToken).ConfigureAwait(false);
 
-            if (result.IsDefault)
+            if (result == null)
             {
                 return (false, ImmutableArray<SymbolAndProjectId>.Empty);
             }
@@ -163,12 +164,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return (false, ImmutableArray<SymbolAndProjectId>.Empty);
             }
 
-            var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+            var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableSymbolAndProjectId>>(
                 RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
                 new object[] { project.Id, pattern, criteria }, cancellationToken).ConfigureAwait(false);
 
-            if (result.IsDefault)
+            if (result == null)
             {
                 return (false, ImmutableArray<SymbolAndProjectId>.Empty);
             }

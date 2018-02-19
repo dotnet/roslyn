@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -7,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -22,21 +24,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var cancellationToken = context.CancellationToken;
-
-            var showSpeculativeT = await document.IsValidContextForDocumentOrLinkedDocumentsAsync(
-                (doc, ct) => ShouldShowSpeculativeTCompletionItemAsync(doc, position, ct),
-                cancellationToken).ConfigureAwait(false);
-
-            if (showSpeculativeT)
+            try
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var document = context.Document;
+                var position = context.Position;
+                var cancellationToken = context.CancellationToken;
 
-                const string T = nameof(T);
-                context.AddItem(CommonCompletionItem.Create(
-                    T, CompletionItemRules.Default, glyph: Glyph.TypeParameter));
+                var showSpeculativeT = await document.IsValidContextForDocumentOrLinkedDocumentsAsync(
+                    (doc, ct) => ShouldShowSpeculativeTCompletionItemAsync(doc, position, ct),
+                    cancellationToken).ConfigureAwait(false);
+
+                if (showSpeculativeT)
+                {
+                    var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                    const string T = nameof(T);
+                    context.AddItem(CommonCompletionItem.Create(
+                        T, CompletionItemRules.Default, glyph: Glyph.TypeParameter));
+                }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // nop
             }
         }
 
@@ -63,14 +72,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     testPosition = nameToken.SpanStart;
                 }
 
-                // If the user types Foo<T, automatic brace completion will insert the close brace
+                // If the user types Goo<T, automatic brace completion will insert the close brace
                 // and the generic won't be "partially written".
                 if (testPosition == position)
                 {
                     var typeArgumentList = leftToken.GetAncestor<TypeArgumentListSyntax>();
                     if (typeArgumentList != null)
                     {
-                        if (typeArgumentList.LessThanToken != default(SyntaxToken) && typeArgumentList.GreaterThanToken != default(SyntaxToken))
+                        if (typeArgumentList.LessThanToken != default && typeArgumentList.GreaterThanToken != default)
                         {
                             testPosition = typeArgumentList.LessThanToken.SpanStart;
                         }

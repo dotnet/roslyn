@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class SemanticAnlyzerTests : CompilingTestBase
+    public partial class SemanticAnalyzerTests : CompilingTestBase
     {
         [Fact]
         public void TestMethodGroupConversionError()
@@ -720,13 +720,8 @@ class C
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M").WithArguments("M", "int").WithLocation(35, 18),
                 // (36,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         this = null;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(36, 9),
-                // (6,23): warning CS0414: The field 'C.static_readonly' is assigned but its value is never used
-                //     static readonly S static_readonly;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "static_readonly").WithArguments("C.static_readonly").WithLocation(6, 23),
-                // (8,18): warning CS0414: The field 'C.instance_readonly' is assigned but its value is never used
-                //     readonly int instance_readonly;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "instance_readonly").WithArguments("C.instance_readonly").WithLocation(8, 18));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(36, 9)
+                );
         }
 
         [Fact]
@@ -903,7 +898,7 @@ class C
             string source = @"
 class Program
 {
-    void foo(dynamic d)
+    void goo(dynamic d)
     {
         d = (int)d;
     }

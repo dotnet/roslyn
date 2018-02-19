@@ -3,9 +3,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -240,6 +242,19 @@ namespace Roslyn.Utilities
             }
 
             return source.Where((Func<T, bool>)s_notNullTest);
+        }
+
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+        {
+            if (source == null)
+            {
+                return ImmutableArray<TResult>.Empty;
+            }
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            builder.AddRange(source.Select(selector));
+
+            return builder.ToImmutableAndFree();
         }
 
         public static bool All(this IEnumerable<bool> source)

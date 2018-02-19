@@ -633,12 +633,12 @@ using System.Runtime.CompilerServices;
 
 partial class D
 {
-    partial void Foo([CallerLineNumber] int x = 2);
+    partial void Goo([CallerLineNumber] int x = 2);
 }
 
 partial class D
 {
-    partial void Foo([CallerLineNumber] int x)
+    partial void Goo([CallerLineNumber] int x)
     {
     }
 
@@ -660,12 +660,12 @@ using System.Runtime.CompilerServices;
 
 partial class D
 {
-    partial void Foo(int line, string member, string path);
+    partial void Goo(int line, string member, string path);
 }
 
 partial class D
 {
-    partial void Foo(
+    partial void Goo(
         [CallerLineNumber] int line,
         [CallerMemberName] string member,
         [CallerFilePath] string path) { }
@@ -878,12 +878,12 @@ using System.Runtime.CompilerServices;
 
 partial class D
 {
-    partial void Foo(string x = """");
+    partial void Goo(string x = """");
 }
 
 partial class D
 {
-    partial void Foo([CallerLineNumber] string x)
+    partial void Goo([CallerLineNumber] string x)
     {
     }
 
@@ -907,19 +907,19 @@ using System;
 
 partial class D
 {
-    partial void Foo(string x = """");
+    partial void Goo(string x = """");
 }
 
 partial class D
 {
-    partial void Foo([CallerMemberName] string x)
+    partial void Goo([CallerMemberName] string x)
     {
         Console.WriteLine(x);
     }
 
     public static void Main()
     {
-        new D().Foo();
+        new D().Goo();
     }
 }";
 
@@ -927,7 +927,7 @@ partial class D
 
             compilation.VerifyEmitDiagnostics(
                 // (12,23): warning CS4026: The CallerMemberNameAttribute applied to parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
-                //     partial void Foo([CallerMemberName] string x)
+                //     partial void Goo([CallerMemberName] string x)
                 Diagnostic(ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation, "CallerMemberName").WithArguments("x").WithLocation(12, 23));
 
             CompileAndVerify(compilation, expectedOutput: "");
@@ -943,19 +943,19 @@ using System;
 
 partial class D
 {
-    partial void Foo([CallerMemberName] string x = """");
+    partial void Goo([CallerMemberName] string x = """");
 }
 
 partial class D
 {
-    partial void Foo(string x)
+    partial void Goo(string x)
     {
         Console.WriteLine(x);
     }
 
     public static void Main()
     {
-        new D().Foo();
+        new D().Goo();
     }
 }";
 
@@ -1297,10 +1297,10 @@ class A
 
     public static void Main()
     {
-        Action foo = new Action(() => { });
+        Action goo = new Action(() => { });
         var e = new E();
-        e.ThingHappened += foo;
-        e.ThingHappened -= foo;
+        e.ThingHappened += goo;
+        e.ThingHappened -= goo;
     }
 }";
 
@@ -1652,9 +1652,9 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-public class Foo: Attribute
+public class Goo: Attribute
 {
-    public Foo([Foo] int y = 0) {}
+    public Goo([Goo] int y = 0) {}
 }
 
 class Test
@@ -1674,14 +1674,14 @@ class Test
         public void TestRecursiveAttributeMetadata()
         {
             var iLSource = @"
-.class public auto ansi beforefieldinit Foo
+.class public auto ansi beforefieldinit Goo
        extends [mscorlib]System.Attribute
 {
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor([opt] int32 y) cil managed
   {
     .param [1] = int32(0x00000000)
-    .custom instance void Foo::.ctor(int32) = ( 01 00 00 00 00 00 00 00 ) 
+    .custom instance void Goo::.ctor(int32) = ( 01 00 00 00 00 00 00 00 ) 
     // Code size       10 (0xa)
     .maxstack  8
     IL_0000:  ldarg.0
@@ -1690,9 +1690,9 @@ class Test
     IL_0007:  nop
     IL_0008:  nop
     IL_0009:  ret
-  } // end of method Foo::.ctor
+  } // end of method Goo::.ctor
 
-} // end of class Foo
+} // end of class Goo
 ";
 
             var source = @"
@@ -1701,7 +1701,7 @@ using System;
 
 class Driver {
 
-    [Foo]
+    [Goo]
     public static void AttrTarget() { }
 
     public static void Main() { }
@@ -1756,7 +1756,7 @@ class Driver
         public void TestDuplicateCallerInfoMetadata()
         {
             var iLSource = @"
-.class public auto ansi beforefieldinit Foo
+.class public auto ansi beforefieldinit Goo
        extends [mscorlib]System.Object
 {
   .method public hidebysig static int32  Log([opt] int32 callerName) cil managed
@@ -1781,7 +1781,7 @@ class Driver
 
     IL_001b:  ldloc.0
     IL_001c:  ret
-  } // end of method Foo::Log
+  } // end of method Goo::Log
 
   .method public hidebysig static int32  Log2([opt] string callerName) cil managed
   {
@@ -1804,7 +1804,7 @@ class Driver
 
     IL_0016:  ldloc.0
     IL_0017:  ret
-  } // end of method Foo::Log2
+  } // end of method Goo::Log2
 
   .method public hidebysig static int32  Log3([opt] string callerName) cil managed
   {
@@ -1827,7 +1827,7 @@ class Driver
 
     IL_0016:  ldloc.0
     IL_0017:  ret
-  } // end of method Foo::Log3
+  } // end of method Goo::Log3
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -1837,9 +1837,9 @@ class Driver
     IL_0000:  ldarg.0
     IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
     IL_0006:  ret
-  } // end of method Foo::.ctor
+  } // end of method Goo::.ctor
 
-} // end of class Foo
+} // end of class Goo
 ";
 
             var source = @"
@@ -1848,9 +1848,9 @@ using System;
 
 class Driver {
     public static void Main() {
-        Foo.Log();
-        Foo.Log2();
-        Foo.Log3();
+        Goo.Log();
+        Goo.Log2();
+        Goo.Log3();
     }
 }
 ";
@@ -2630,11 +2630,11 @@ class Program
 {
   static void Main()
   {
-   var x = Foo.F1;
-   var y = new Foo().F2;
+   var x = Goo.F1;
+   var y = new Goo().F2;
   }
 }
-public class Foo
+public class Goo
 {
   static object Test([CallerMemberName] string bar = null)
   {
@@ -2666,11 +2666,11 @@ class Program
 {
   static void Main()
   {
-   var x = Foo.F1;
-   var y = new Foo().F2;
+   var x = Goo.F1;
+   var y = new Goo().F2;
   }
 }
-public class Foo
+public class Goo
 {
   static object Test([CallerMemberName] string bar = null)
   {
@@ -2702,7 +2702,7 @@ class Program
 {
   static void Main()
   {
-   var y = ((I1)new Foo()).F2;
+   var y = ((I1)new Goo()).F2;
   }
 }
 
@@ -2711,7 +2711,7 @@ interface I1
   object F2 {get;}
 }
 
-public class Foo : I1
+public class Goo : I1
 {
   static object Test([CallerMemberName] string bar = null)
   {

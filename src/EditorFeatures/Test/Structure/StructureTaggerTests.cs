@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 {
     public class StructureTaggerTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact(Skip="https://github.com/dotnet/roslyn/issues/22345"), Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task CSharpOutliningTagger_RegionIsDefinition()
         {
             var code =
@@ -155,7 +155,7 @@ End Module";
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 
                 var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().ToArray();
-                Assert.Equal("Sub Main(args As String())\r\nEnd Sub", hints[1].ToString()); // method
+                Assert.Equal("Sub Main(args As String())\r\nEnd Sub", hints[1].GetText_TestOnly()); // method
                 hints.Do(v => v.TextView_TestOnly.Close());
             }
         }
@@ -171,7 +171,7 @@ End Module";
             var provider = new VisualStudio14StructureTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                 textService, editorService, projectionService,
-                AggregateAsynchronousOperationListener.EmptyListeners);
+                AsynchronousOperationListenerProvider.NullProvider);
 
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
             var context = new TaggerContext<IOutliningRegionTag>(document, view.TextSnapshot);

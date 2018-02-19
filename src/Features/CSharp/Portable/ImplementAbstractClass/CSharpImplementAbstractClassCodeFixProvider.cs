@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass
     internal class CSharpImplementAbstractClassCodeFixProvider : 
         AbstractImplementAbstractClassCodeFixProvider<ClassDeclarationSyntax>
     {
-        private const string CS0534 = nameof(CS0534); // 'Program' does not implement inherited abstract member 'Foo.bar()'
+        private const string CS0534 = nameof(CS0534); // 'Program' does not implement inherited abstract member 'Goo.bar()'
 
         public CSharpImplementAbstractClassCodeFixProvider()
             : base(CS0534)

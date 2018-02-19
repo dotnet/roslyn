@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class AssetService
     {
-        // PREVIEW: unfortunately, I need dummy workspace since workspace services can be workspace specific
-        private static readonly Serializer s_serializer = new Serializer(new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: "dummy"));
+        private static readonly Serializer s_serializer = new Serializer(SolutionService.PrimaryWorkspace);
 
         private readonly int _scopeId;
         private readonly AssetStorage _assetStorage;
@@ -41,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
-            T asset;
-            if (_assetStorage.TryGetAsset(checksum, out asset))
+            if (_assetStorage.TryGetAsset(checksum, out T asset))
             {
                 return asset;
             }
@@ -115,8 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
             //
             // even if it got expired after this for whatever reason, functionality wise everything will still work, 
             // just perf will be impacted since we will fetch it from data source (VS)
-            object unused;
-            return _assetStorage.TryGetAsset(checksum, out unused);
+            return _assetStorage.TryGetAsset(checksum, out object unused);
         }
 
         public async Task SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)

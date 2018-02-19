@@ -373,14 +373,14 @@ struct $$S { }
 <Code>
 struct S
 {
-    void Foo()
+    void Goo()
     {
 
     }
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Foo", .Type = "void"})
+            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
         End Function
 
 #End Region
@@ -500,7 +500,7 @@ interface I { }
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
-struct $$Foo
+struct $$Goo
 {
 }
 </Code>

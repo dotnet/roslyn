@@ -2016,7 +2016,7 @@ Class Program
     Shared Sub Main()
         Dim x = 1
         Dim y = 1
-        [|Using foo, foo2 As New MyManagedClass(x), foo3, foo4 As New MyManagedClass(y)
+        [|Using goo, goo2 As New MyManagedClass(x), goo3, goo4 As New MyManagedClass(y)
         End Using|]
     End Sub
 End Class
@@ -2031,11 +2031,11 @@ Class MyManagedClass
 End Class
 </file>
     </compilation>)
-            Assert.Equal("foo, foo2, foo3, foo4", GetSymbolNamesJoined(analysis.VariablesDeclared))
-            Assert.Equal("foo, foo2, foo3, foo4", GetSymbolNamesJoined(analysis.AlwaysAssigned))
-            Assert.Equal("x, y, foo, foo2, foo3, foo4", GetSymbolNamesJoined(analysis.ReadInside))
+            Assert.Equal("goo, goo2, goo3, goo4", GetSymbolNamesJoined(analysis.VariablesDeclared))
+            Assert.Equal("goo, goo2, goo3, goo4", GetSymbolNamesJoined(analysis.AlwaysAssigned))
+            Assert.Equal("x, y, goo, goo2, goo3, goo4", GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Empty(analysis.ReadOutside)
-            Assert.Equal("foo, foo2, foo3, foo4", GetSymbolNamesJoined(analysis.WrittenInside))
+            Assert.Equal("goo, goo2, goo3, goo4", GetSymbolNamesJoined(analysis.WrittenInside))
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.WrittenOutside))
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Empty(analysis.DataFlowsOut)
@@ -2185,7 +2185,7 @@ Class C1
         Dim x as String = "Inside Using."    
 
         [|
-        Using foo1 As New MyDisposable(), foo2 As New MyDisposable()
+        Using goo1 As New MyDisposable(), goo2 As New MyDisposable()
             Console.WriteLine(x)
         End Using
         |]
@@ -2199,8 +2199,8 @@ End Class
             Assert.True(controlFlowAnalysisResults.Succeeded)
 
             Assert.Equal(2, dataFlowAnalysisResults.AlwaysAssigned.Count)
-            Assert.Equal("foo1", dataFlowAnalysisResults.AlwaysAssigned(0).ToDisplayString)
-            Assert.Equal("foo2", dataFlowAnalysisResults.AlwaysAssigned(1).ToDisplayString)
+            Assert.Equal("goo1", dataFlowAnalysisResults.AlwaysAssigned(0).ToDisplayString)
+            Assert.Equal("goo2", dataFlowAnalysisResults.AlwaysAssigned(1).ToDisplayString)
 
             Assert.Equal(0, dataFlowAnalysisResults.Captured.Count)
 
@@ -2211,18 +2211,18 @@ End Class
 
             Assert.Equal(3, dataFlowAnalysisResults.ReadInside.Count)
             Assert.Equal("x", dataFlowAnalysisResults.ReadInside(0).ToDisplayString)
-            Assert.Equal("foo1", dataFlowAnalysisResults.ReadInside(1).ToDisplayString)
-            Assert.Equal("foo2", dataFlowAnalysisResults.ReadInside(2).ToDisplayString)
+            Assert.Equal("goo1", dataFlowAnalysisResults.ReadInside(1).ToDisplayString)
+            Assert.Equal("goo2", dataFlowAnalysisResults.ReadInside(2).ToDisplayString)
 
             Assert.Equal(0, dataFlowAnalysisResults.ReadOutside.Count)
 
             Assert.Equal(2, dataFlowAnalysisResults.VariablesDeclared.Count)
-            Assert.Equal("foo1", dataFlowAnalysisResults.VariablesDeclared(0).ToDisplayString)
-            Assert.Equal("foo2", dataFlowAnalysisResults.VariablesDeclared(1).ToDisplayString)
+            Assert.Equal("goo1", dataFlowAnalysisResults.VariablesDeclared(0).ToDisplayString)
+            Assert.Equal("goo2", dataFlowAnalysisResults.VariablesDeclared(1).ToDisplayString)
 
             Assert.Equal(2, dataFlowAnalysisResults.WrittenInside.Count)
-            Assert.Equal("foo1", dataFlowAnalysisResults.WrittenInside(0).ToDisplayString)
-            Assert.Equal("foo2", dataFlowAnalysisResults.WrittenInside(1).ToDisplayString)
+            Assert.Equal("goo1", dataFlowAnalysisResults.WrittenInside(0).ToDisplayString)
+            Assert.Equal("goo2", dataFlowAnalysisResults.WrittenInside(1).ToDisplayString)
 
             Assert.Equal(1, dataFlowAnalysisResults.WrittenOutside.Count)
             Assert.Equal("x", dataFlowAnalysisResults.WrittenOutside(0).ToDisplayString)
@@ -2309,7 +2309,7 @@ Class C1
     Public Shared Sub Main()
         Dim x as String = "Inside Using."    
 
-        Using foo1 As New MyDisposable(x)
+        Using goo1 As New MyDisposable(x)
         [|
             Console.WriteLine(x)
         |]
@@ -2336,7 +2336,7 @@ End Class
 
             Assert.Equal(2, dataFlowAnalysisResults.ReadOutside.Count)
             Assert.Equal("x", dataFlowAnalysisResults.WrittenOutside(0).ToDisplayString)
-            Assert.Equal("foo1", dataFlowAnalysisResults.WrittenOutside(1).ToDisplayString)
+            Assert.Equal("goo1", dataFlowAnalysisResults.WrittenOutside(1).ToDisplayString)
 
             Assert.Equal(0, dataFlowAnalysisResults.VariablesDeclared.Count)
 
@@ -2344,7 +2344,7 @@ End Class
 
             Assert.Equal(2, dataFlowAnalysisResults.WrittenOutside.Count)
             Assert.Equal("x", dataFlowAnalysisResults.WrittenOutside(0).ToDisplayString)
-            Assert.Equal("foo1", dataFlowAnalysisResults.WrittenOutside(1).ToDisplayString)
+            Assert.Equal("goo1", dataFlowAnalysisResults.WrittenOutside(1).ToDisplayString)
         End Sub
 
         <Fact()>
@@ -2368,7 +2368,7 @@ Class C1
         Dim x as String = "Inside Using."    
 
         [|
-        Using foo1 As New MyDisposableStructure(), foo2 As New MyDisposableStructure()
+        Using goo1 As New MyDisposableStructure(), goo2 As New MyDisposableStructure()
             Console.WriteLine(x)
         End Using
         |]
@@ -2391,18 +2391,18 @@ End Class
 
             Assert.Equal(3, dataFlowAnalysisResults.ReadInside.Count)
             Assert.Equal("x", dataFlowAnalysisResults.ReadInside(0).ToDisplayString)
-            Assert.Equal("foo1", dataFlowAnalysisResults.ReadInside(1).ToDisplayString)
-            Assert.Equal("foo2", dataFlowAnalysisResults.ReadInside(2).ToDisplayString)
+            Assert.Equal("goo1", dataFlowAnalysisResults.ReadInside(1).ToDisplayString)
+            Assert.Equal("goo2", dataFlowAnalysisResults.ReadInside(2).ToDisplayString)
 
             Assert.Equal(0, dataFlowAnalysisResults.ReadOutside.Count)
 
             Assert.Equal(2, dataFlowAnalysisResults.VariablesDeclared.Count)
-            Assert.Equal("foo1", dataFlowAnalysisResults.VariablesDeclared(0).ToDisplayString)
-            Assert.Equal("foo2", dataFlowAnalysisResults.VariablesDeclared(1).ToDisplayString)
+            Assert.Equal("goo1", dataFlowAnalysisResults.VariablesDeclared(0).ToDisplayString)
+            Assert.Equal("goo2", dataFlowAnalysisResults.VariablesDeclared(1).ToDisplayString)
 
             Assert.Equal(2, dataFlowAnalysisResults.WrittenInside.Count)
-            Assert.Equal("foo1", dataFlowAnalysisResults.WrittenInside(0).ToDisplayString)
-            Assert.Equal("foo2", dataFlowAnalysisResults.WrittenInside(1).ToDisplayString)
+            Assert.Equal("goo1", dataFlowAnalysisResults.WrittenInside(0).ToDisplayString)
+            Assert.Equal("goo2", dataFlowAnalysisResults.WrittenInside(1).ToDisplayString)
 
             Assert.Equal(1, dataFlowAnalysisResults.WrittenOutside.Count)
             Assert.Equal("x", dataFlowAnalysisResults.WrittenOutside(0).ToDisplayString)

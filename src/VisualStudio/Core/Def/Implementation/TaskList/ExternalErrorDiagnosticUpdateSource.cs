@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -18,6 +19,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(ExternalErrorDiagnosticUpdateSource))]
     internal class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
@@ -37,8 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             VisualStudioWorkspaceImpl workspace,
             IDiagnosticAnalyzerService diagnosticService,
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners) :
-                this(workspace, diagnosticService, registrationService, new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.ErrorList))
+            IAsynchronousOperationListenerProvider listenerProvider) :
+                this(workspace, diagnosticService, registrationService, listenerProvider.GetListener(FeatureAttribute.ErrorList))
         {
             Contract.Requires(!KnownUIContexts.SolutionBuildingContext.IsActive);
             KnownUIContexts.SolutionBuildingContext.UIContextChanged += OnSolutionBuild;
@@ -108,27 +111,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 case WorkspaceChangeKind.SolutionRemoved:
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
-                    {
-                        var asyncToken = _listener.BeginAsyncOperation("OnSolutionChanged");
-                        _taskQueue.ScheduleTask(() => e.OldSolution.ProjectIds.Do(p => ClearProjectErrors(e.OldSolution, p))).CompletesAsyncOperation(asyncToken);
-                        break;
-                    }
+                {
+                    var asyncToken = _listener.BeginAsyncOperation("OnSolutionChanged");
+                    _taskQueue.ScheduleTask(() => e.OldSolution.ProjectIds.Do(p => ClearProjectErrors(e.OldSolution, p))).CompletesAsyncOperation(asyncToken);
+                    break;
+                }
 
                 case WorkspaceChangeKind.ProjectRemoved:
                 case WorkspaceChangeKind.ProjectReloaded:
-                    {
-                        var asyncToken = _listener.BeginAsyncOperation("OnProjectChanged");
-                        _taskQueue.ScheduleTask(() => ClearProjectErrors(e.OldSolution, e.ProjectId)).CompletesAsyncOperation(asyncToken);
-                        break;
-                    }
+                {
+                    var asyncToken = _listener.BeginAsyncOperation("OnProjectChanged");
+                    _taskQueue.ScheduleTask(() => ClearProjectErrors(e.OldSolution, e.ProjectId)).CompletesAsyncOperation(asyncToken);
+                    break;
+                }
 
                 case WorkspaceChangeKind.DocumentRemoved:
                 case WorkspaceChangeKind.DocumentReloaded:
-                    {
-                        var asyncToken = _listener.BeginAsyncOperation("OnDocumentRemoved");
-                        _taskQueue.ScheduleTask(() => ClearDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId)).CompletesAsyncOperation(asyncToken);
-                        break;
-                    }
+                {
+                    var asyncToken = _listener.BeginAsyncOperation("OnDocumentRemoved");
+                    _taskQueue.ScheduleTask(() => ClearDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId)).CompletesAsyncOperation(asyncToken);
+                    break;
+                }
 
                 case WorkspaceChangeKind.ProjectAdded:
                 case WorkspaceChangeKind.DocumentAdded:
@@ -175,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // pause live analyzer
                 using (var operation = _notificationService.Start("BuildDone"))
                 {
-                    Func<DiagnosticData, bool> liveDiagnosticChecker = d =>
+                    bool liveDiagnosticChecker(DiagnosticData d)
                     {
                         // REVIEW: we probably need a better design on de-duplicating live and build errors. or don't de-dup at all.
                         //         for now, we are special casing compiler error case.
@@ -201,10 +204,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                         }
 
                         return false;
-                    };
+                    }
 
-                    var diagnosticService = _diagnosticService as DiagnosticAnalyzerService;
-                    if (diagnosticService != null)
+                    if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
                     {
                         await CleanupAllLiveErrors(diagnosticService, inprogressState.GetProjectsWithoutErrors(inprogressState.Solution)).ConfigureAwait(false);
                         await SyncBuildErrorsAndReportAsync(diagnosticService, inprogressState.Solution, inprogressState.GetLiveDiagnosticsPerProject(liveDiagnosticChecker)).ConfigureAwait(false);
@@ -248,8 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void ReportBuildErrors<T>(T item, Solution solution, ImmutableArray<DiagnosticData> buildErrors)
         {
-            var projectId = item as ProjectId;
-            if (projectId != null)
+            if (item is ProjectId projectId)
             {
                 RaiseDiagnosticsCreated(projectId, solution, projectId, null, buildErrors);
                 return;
@@ -394,13 +395,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private class InprogressState
         {
+            private int _incrementDoNotAccessDirectly = 0;
+
             private readonly ExternalErrorDiagnosticUpdateSource _owner;
             private readonly Solution _solution;
 
             private readonly HashSet<ProjectId> _builtProjects = new HashSet<ProjectId>();
-            private readonly Dictionary<ProjectId, HashSet<DiagnosticData>> _projectMap = new Dictionary<ProjectId, HashSet<DiagnosticData>>();
-            private readonly Dictionary<DocumentId, HashSet<DiagnosticData>> _documentMap = new Dictionary<DocumentId, HashSet<DiagnosticData>>();
             private readonly Dictionary<ProjectId, HashSet<string>> _diagnosticIdMap = new Dictionary<ProjectId, HashSet<string>>();
+
+            private readonly Dictionary<ProjectId, Dictionary<DiagnosticData, int>> _projectMap = new Dictionary<ProjectId, Dictionary<DiagnosticData, int>>();
+            private readonly Dictionary<DocumentId, Dictionary<DiagnosticData, int>> _documentMap = new Dictionary<DocumentId, Dictionary<DiagnosticData, int>>();
 
             public InprogressState(ExternalErrorDiagnosticUpdateSource owner, Solution solution)
             {
@@ -420,31 +424,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public bool SupportedDiagnosticId(ProjectId projectId, string id)
             {
-                if (_diagnosticIdMap.TryGetValue(projectId, out var ids))
+                lock (_diagnosticIdMap)
                 {
-                    return ids.Contains(id);
+                    if (_diagnosticIdMap.TryGetValue(projectId, out var ids))
+                    {
+                        return ids.Contains(id);
+                    }
+
+                    // set ids set
+                    var map = new HashSet<string>();
+                    _diagnosticIdMap.Add(projectId, map);
+
+                    var project = _solution.GetProject(projectId);
+                    if (project == null)
+                    {
+                        // projectId no longer exist, return false;
+                        return false;
+                    }
+
+                    var descriptorMap = _owner._diagnosticService.GetDiagnosticDescriptors(project);
+                    map.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
+
+                    return map.Contains(id);
                 }
-
-                // set ids set
-                var map = new HashSet<string>();
-                _diagnosticIdMap.Add(projectId, map);
-
-                var project = _solution.GetProject(projectId);
-                if (project == null)
-                {
-                    // projectId no longer exist, return false;
-                    return false;
-                }
-
-                var descriptorMap = _owner._diagnosticService.GetDiagnosticDescriptors(project);
-                map.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
-
-                return map.Contains(id);
             }
 
             public ImmutableArray<DiagnosticData> GetBuildDiagnostics()
             {
-                return ImmutableArray.CreateRange(_projectMap.Values.SelectMany(d => d).Concat(_documentMap.Values.SelectMany(d => d)));
+                // return errors in the order that is reported
+                return ImmutableArray.CreateRange(
+                    _projectMap.Values.SelectMany(d => d).Concat(_documentMap.Values.SelectMany(d => d)).OrderBy(kv => kv.Value).Select(kv => kv.Key));
             }
 
             public void Built(ProjectId projectId)
@@ -474,7 +483,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 {
                     var diagnostics = ImmutableArray.CreateRange(
                         _projectMap.Where(kv => kv.Key == projectId).SelectMany(kv => kv.Value).Concat(
-                            _documentMap.Where(kv => kv.Key.ProjectId == projectId).SelectMany(kv => kv.Value)).Where(liveDiagnosticChecker));
+                            _documentMap.Where(kv => kv.Key.ProjectId == projectId).SelectMany(kv => kv.Value)).Select(kv => kv.Key).Where(liveDiagnosticChecker));
 
                     builder.Add(projectId, diagnostics);
                 }
@@ -502,16 +511,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 AddError(_projectMap, key, diagnostic);
             }
 
-            private void AddErrors<T>(Dictionary<T, HashSet<DiagnosticData>> map, T key, HashSet<DiagnosticData> diagnostics)
+            private void AddErrors<T>(Dictionary<T, Dictionary<DiagnosticData, int>> map, T key, HashSet<DiagnosticData> diagnostics)
             {
                 var errors = GetErrorSet(map, key);
-                errors.UnionWith(diagnostics);
+                foreach (var diagnostic in diagnostics)
+                {
+                    AddError(errors, diagnostic);
+                }
             }
 
-            private void AddError<T>(Dictionary<T, HashSet<DiagnosticData>> map, T key, DiagnosticData diagnostic)
+            private void AddError<T>(Dictionary<T, Dictionary<DiagnosticData, int>> map, T key, DiagnosticData diagnostic)
             {
                 var errors = GetErrorSet(map, key);
-                errors.Add(diagnostic);
+                AddError(errors, diagnostic);
+            }
+
+            private void AddError(Dictionary<DiagnosticData, int> errors, DiagnosticData diagnostic)
+            {
+                // add only new errors
+                if (!errors.TryGetValue(diagnostic, out _))
+                {
+                    Logger.Log(FunctionId.ExternalErrorDiagnosticUpdateSource_AddError, d => d.ToString(), diagnostic);
+
+                    errors.Add(diagnostic, GetNextIncrement());
+                }
+            }
+
+            private int GetNextIncrement()
+            {
+                return _incrementDoNotAccessDirectly++;
             }
 
             private IEnumerable<ProjectId> GetProjectIds()
@@ -519,9 +547,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return _documentMap.Keys.Select(k => k.ProjectId).Concat(_projectMap.Keys).Distinct();
             }
 
-            private HashSet<DiagnosticData> GetErrorSet<T>(Dictionary<T, HashSet<DiagnosticData>> map, T key)
+            private Dictionary<DiagnosticData, int> GetErrorSet<T>(Dictionary<T, Dictionary<DiagnosticData, int>> map, T key)
             {
-                return map.GetOrAdd(key, _ => new HashSet<DiagnosticData>(DiagnosticDataComparer.Instance));
+                return map.GetOrAdd(key, _ => new Dictionary<DiagnosticData, int>(DiagnosticDataComparer.Instance));
             }
         }
 

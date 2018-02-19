@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editing;
@@ -14,13 +15,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 {
     public class OrganizeUsingsTests
     {
-        protected async Task CheckAsync(string initial, string final, bool placeSystemNamespaceFirst = false, CSharpParseOptions options = null)
+        protected async Task CheckAsync(
+            string initial, string final,
+            bool placeSystemNamespaceFirst = false,
+            bool separateImportGroups = false,
+            CSharpParseOptions options = null)
         {
             using (var workspace = TestWorkspace.CreateCSharp(initial))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
                 workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst);
-                var newRoot = await (await OrganizeImportsService.OrganizeImportsAsync(document)).GetSyntaxRootAsync();
+                workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups);
+
+                var newRoot = await (await OrganizeImportsService.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync();
                 Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
             }
         }
@@ -1026,6 +1033,85 @@ using ああ;
 ";
 
             await CheckAsync(initial, final);
+        }
+
+        [WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestGrouping()
+        {
+            var initial =
+@"// Banner
+
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
+using IntList = System.Collections.Generic.List<int>;
+using static System.Console;";
+
+            var final =
+@"// Banner
+
+using System.Collections.Generic;
+using System.Linq;
+
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+
+using Roslyn.Utilities;
+
+using static System.Console;
+
+using IntList = System.Collections.Generic.List<int>;
+";
+
+            await CheckAsync(initial, final, placeSystemNamespaceFirst: true, separateImportGroups: true);
+        }
+
+        [WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestGrouping2()
+        {
+            // Make sure we don't insert extra newlines if they're already there.
+            var initial =
+@"// Banner
+
+using System.Collections.Generic;
+using System.Linq;
+
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+
+using Roslyn.Utilities;
+
+using static System.Console;
+
+using IntList = System.Collections.Generic.List<int>;
+";
+
+            var final =
+@"// Banner
+
+using System.Collections.Generic;
+using System.Linq;
+
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+
+using Roslyn.Utilities;
+
+using static System.Console;
+
+using IntList = System.Collections.Generic.List<int>;
+";
+
+            await CheckAsync(initial, final, placeSystemNamespaceFirst: true, separateImportGroups: true);
         }
     }
 }

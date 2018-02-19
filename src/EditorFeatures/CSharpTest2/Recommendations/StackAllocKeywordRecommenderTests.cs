@@ -44,7 +44,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -55,9 +55,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptySpace()
+        public async Task TestInEmptySpaceAfterAssignment()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"var v = $$"));
         }
 
@@ -66,16 +66,17 @@ $$");
         {
             await VerifyKeywordAsync(
 @"unsafe class C {
-    void Foo() {
+    void Goo() {
       var v = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInUnsafeEmptySpace_NotAfterNonPointer()
+        public async Task TestInUnsafeEmptySpace_AfterNonPointer()
         {
-            await VerifyAbsenceAsync(
+            // There can be an implicit conversion to int
+            await VerifyKeywordAsync(
 @"unsafe class C {
-    void Foo() {
+    void Goo() {
       int v = $$");
         }
 
@@ -84,7 +85,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"unsafe class C {
-    void Foo() {
+    void Goo() {
       int* v = $$");
         }
 
@@ -124,12 +125,146 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInsideForStatementVarDecl3()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"class C
 {
     unsafe static void Main(string[] args)
     {
         for (string i = $$");
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSOfAssignment_Span()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+Span<int> s = $$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSOfAssignment_Pointer()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"int* v = $$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSOfAssignment_ReAssignment()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"v = $$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSWithCast()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+var s = (Span<char>)$$"));
+
+            await VerifyKeywordAsync(AddInsideMethod(@"
+s = (Span<char>)$$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSWithConditionalExpression_True()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+var s = value ? $$"));
+
+            await VerifyKeywordAsync(AddInsideMethod(@"
+s = value ? $$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSWithConditionalExpression_True_WithCast()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+var s = value ? (Span<int>)$$"));
+
+            await VerifyKeywordAsync(AddInsideMethod(@"
+s = value ? (Span<int>)$$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSWithConditionalExpression_False()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+var s = value ? stackalloc int[10] : $$"));
+
+            await VerifyKeywordAsync(AddInsideMethod(@"
+s = value ? stackalloc int[10] : $$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSWithConditionalExpression_False_WithCast()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+var s = value ? stackalloc int[10] : (Span<int>)$$"));
+
+            await VerifyKeywordAsync(AddInsideMethod(@"
+s = value ? stackalloc int[10] : (Span<int>)$$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSWithConditionalExpression_NestedConditional_True()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+var s = value1 ? value2 ? $$"));
+
+            await VerifyKeywordAsync(AddInsideMethod(@"
+s = value1 ? value2 ? $$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSWithConditionalExpression_NestedConditional_WithCast_True()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+var s = value1 ? value2 ? (Span<int>)$$"));
+
+            await VerifyKeywordAsync(AddInsideMethod(@"
+s = value1 ? value2 ? (Span<int>)$$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSWithConditionalExpression_NestedConditional_False()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+var s = value1 ? value2 ? stackalloc int [10] : $$"));
+
+            await VerifyKeywordAsync(AddInsideMethod(@"
+s = value1 ? value2 ? stackalloc int [10] : $$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSWithConditionalExpression_NestedConditional_WithCast_False()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+var s = value1 ? value2 ? stackalloc int [10] : (Span<int>)$$"));
+
+            await VerifyKeywordAsync(AddInsideMethod(@"
+s = value1 ? value2 ? stackalloc int [10] : (Span<int>)$$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInLHSOfAssignment()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(@"
+var x $$ ="));
+
+            await VerifyAbsenceAsync(AddInsideMethod(@"
+x $$ ="));
         }
     }
 }

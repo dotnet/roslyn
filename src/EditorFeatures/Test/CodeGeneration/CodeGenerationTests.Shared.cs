@@ -129,8 +129,7 @@ namespace N
         public string FAccessE;
     }
 }";
-                var expected = @"
-namespace N
+                var expected = @"namespace N
 {
     public class C
     {
@@ -343,8 +342,7 @@ namespace N
                     forceLanguage: LanguageNames.CSharp);
 
                 initial = "Namespace [|N|] \n End Namespace";
-                expected = @"
-Namespace N
+                expected = @"Namespace N
     Public Class C
         Public Const FConst As String
         Public Shared FStatic As String
@@ -516,9 +514,7 @@ End Namespace";
             {
                 var generationSource = "public class [|C|] { private string B; public string C; }";
                 var initial = "public class [|C|] { string A; }";
-                var expected = @"
-public class C
-{
+                var expected = @"public class C {
     public string C;
     string A;
     private string B;
@@ -526,9 +522,7 @@ public class C
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
                 initial = "public struct [|S|] { string A; }";
-                expected = @"
-public struct S
-{
+                expected = @"public struct S {
     public string C;
     string A;
     private string B;
@@ -536,8 +530,7 @@ public struct S
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
                 initial = "Public Class [|C|] \n Dim A As String \n End Class";
-                expected = @"
-Public Class C
+                expected = @"Public Class C
     Public C As String
     Dim A As String
     Private B As String
@@ -545,8 +538,7 @@ End Class";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
                 initial = "Public Module [|M|] \n Dim A As String \n End Module";
-                expected = @"
-Public Module M
+                expected = @"Public Module M
     Public C As String
     Dim A As String
     Private B As String
@@ -554,9 +546,8 @@ End Module";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
                 initial = "Public Structure [|S|] \n Dim A As String \n End Structure";
-                expected = @"
-Public Structure S
-    Dim A As String
+                expected = @"Public Structure S 
+ Dim A As String
     Public C As String
     Private B As String
 End Structure";
@@ -568,43 +559,41 @@ End Structure";
             {
                 var generationSource = "public class [|C|] { private void B(){} public void C(){}  }";
                 var initial = "public interface [|I|] { void A(); }";
-                var expected = @"
-public interface I
-{
-    void A();
+                var expected = @"public interface I { void A();
     void B();
     void C();
 }";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
                 initial = "Public Interface [|I|] \n Sub A() \n End Interface";
-                expected = @"
-Public Interface I
-    Sub A()
+                expected = @"Public Interface I 
+ Sub A()
     Sub B()
     Sub C()
 End Interface";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
                 initial = "Public Class [|C|] \n Sub A() \n End Sub \n End Class";
-                expected = @"
-Public Class C
-    Sub A()
-    End Sub
+                expected = @"Public Class C 
+ Sub A() 
+ End Sub
+
     Public Sub C()
     End Sub
+
     Private Sub B()
     End Sub
 End Class";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
                 initial = "Public Module [|M|] \n Sub A() \n End Sub \n End Module";
-                expected = @"
-Public Module M
-    Sub A()
-    End Sub
+                expected = @"Public Module M 
+ Sub A() 
+ End Sub
+
     Public Sub C()
     End Sub
+
     Private Sub B()
     End Sub
 End Module";
@@ -616,11 +605,22 @@ End Module";
             {
                 var generationSource = "internal class [|B|]{}";
                 var initial = "namespace [|N|] { class A{} }";
-                var expected = "namespace N { class A{} internal class B{} }";
+                var expected = @"namespace N { class A{}
+
+    internal class B
+    {
+    }
+}";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
 
                 initial = "Namespace [|N|] \n Class A \n End Class \n End Namespace";
-                expected = "Namespace N \n Class A \n End Class \n Friend Class B \n End Class \n End Namespace";
+                expected = @"Namespace N 
+ Class A 
+ End Class
+
+    Friend Class B
+    End Class
+End Namespace";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
             }
 
@@ -629,11 +629,17 @@ End Module";
             {
                 var generationSource = "public class [|C|]{}";
                 var initial = "namespace [|N|] { class A{} }";
-                var expected = "namespace N { public class C{} class A{} }";
+                var expected = "namespace N { public class C { } class A{} }";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
 
                 initial = "Namespace [|N|] \n Class A \n End Class \n End Namespace";
-                expected = "Namespace N \n Public Class C \n End Class \n Class A \n End Class \n End Namespace";
+                expected = @"Namespace N
+    Public Class C
+    End Class
+
+    Class A 
+ End Class 
+ End Namespace";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
             }
 
@@ -647,10 +653,13 @@ public class [|C|]
     public C() { }
 }";
                 var initial = "public class [|C|] { }";
-                var expected = @"
-public class C
+                var expected = @"public class C
 {
-    /// <summary>When in need, a documented method is a friend, indeed.</summary>
+    /// 
+    /// <member name=""M:C.#ctor"">
+    ///     <summary>When in need, a documented method is a friend, indeed.</summary>
+    /// </member>
+    /// 
     public C();
 }";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
@@ -681,48 +690,43 @@ namespace [|N|]
 }";
 
                 var initial = "namespace [|N|] { }";
-                var expected = @"
-namespace N
-{
-namespace N
-{
-    public class A 
+                var expected = @"namespace N {
+    namespace N
     {
-        public static abstract string Property1 { get; }
-        public virtual string Property { get; }
+        public class A
+        {
+            public static abstract string Property1 { get; }
+            public virtual string Property { get; }
 
-        public abstract static void Method2();
-        public virtual void Method1();
-    }
+            public abstract static void Method2();
+            public virtual void Method1();
+        }
 
-    public class C
-    {
-        public sealed override string Property { get; }
-        public sealed override void Method1();
+        public class C
+        {
+            public sealed override string Property { get; }
+
+            public sealed override void Method1();
+        }
     }
-}
-}
-";
+}";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                     codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
 
                 var initialVB = "Namespace [|N|] End Namespace";
-                var expectedVB = @"
-Namespace N 
-Namespace N
-    Public Class A
-        Public Shared MustOverride ReadOnly Property Property1 As String
-        Public Overridable ReadOnly Property [Property] As String
-        Public MustOverride Shared Sub Method2()
-        Public Overridable Sub Method1()
-    End Class
+                var expectedVB = @"Namespace N End NamespaceNamespace N
+        Public Class A
+            Public Shared MustOverride ReadOnly Property Property1 As String
+            Public Overridable ReadOnly Property [Property] As String
+            Public MustOverride Shared Sub Method2()
+            Public Overridable Sub Method1()
+        End Class
 
-    Public Class C
-        Public Overrides NotOverridable ReadOnly Property [Property] As String
-        Public NotOverridable Overrides Sub Method1()
-    End Class
-End Namespace
-";
+        Public Class C
+            Public Overrides NotOverridable ReadOnly Property [Property] As String
+            Public NotOverridable Overrides Sub Method1()
+        End Class
+    End Namespace";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initialVB, expectedVB,
                     codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
             }

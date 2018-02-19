@@ -174,17 +174,17 @@ namespace Microsoft.CodeAnalysis
                     // Note: it is possible in some situations to hit the same symbol 
                     // multiple times.  For example, if you have:
                     //
-                    //      Foo<Z>(List<Z> list)
+                    //      Goo<Z>(List<Z> list)
                     //
                     // If we start with the symbol for "list" then we'll see the following
                     // chain of symbols hit:
                     //
                     //      List<Z>     
                     //          Z
-                    //              Foo<Z>(List<Z>)
+                    //              Goo<Z>(List<Z>)
                     //                  List<Z>
                     //
-                    // The recursion is prevented because when we hit 'Foo' we mark that
+                    // The recursion is prevented because when we hit 'Goo' we mark that
                     // we're writing out a signature.  And, in signature mode we only write
                     // out the ordinal for 'Z' without recursing.  However, even though
                     // we prevent the recursion, we still hit List<Z> twice.  After writing
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // If it's a reference to a method type parameter, and we're currently writing
                 // out a signture, then only write out the ordinal of type parameter.  This 
-                // helps prevent recursion problems in cases like "Foo<T>(T t).
+                // helps prevent recursion problems in cases like "Goo<T>(T t).
                 if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol, out int methodIndex))
                 {
                     WriteType(SymbolKeyType.TypeParameterOrdinal);

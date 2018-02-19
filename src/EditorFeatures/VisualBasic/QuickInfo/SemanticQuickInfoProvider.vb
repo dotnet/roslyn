@@ -18,16 +18,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
     Friend Class SemanticQuickInfoProvider
         Inherits AbstractSemanticQuickInfoProvider
 
-        <ImportingConstructor>
-        Public Sub New(projectionBufferFactoryService As IProjectionBufferFactoryService,
-                       editorOptionsFactoryService As IEditorOptionsFactoryService,
-                       textEditorFactoryService As ITextEditorFactoryService,
-                       glyphService As IGlyphService,
-                       typeMap As ClassificationTypeMap)
-            MyBase.New(projectionBufferFactoryService, editorOptionsFactoryService,
-                       textEditorFactoryService, glyphService, typeMap)
-        End Sub
-
         Protected Overrides Async Function BuildContentAsync(document As Document,
                                                   token As SyntaxToken,
                                                   cancellationToken As CancellationToken) As Task(Of IDeferredQuickInfoContent)

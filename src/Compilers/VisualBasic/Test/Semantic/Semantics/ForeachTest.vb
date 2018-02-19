@@ -648,13 +648,13 @@ End Class
 Class C
     Shared Sub Main()
     End Sub
-    Function foo()
+    Function goo()
         'COMPILEERROR: BC30290, 
-        For Each foo As Integer In New Integer() {1, 2, 3}
+        For Each goo As Integer In New Integer() {1, 2, 3}
         Next
     End Function
-    Sub foo1()
-        For Each foo1 As Integer In New Integer() {1, 2, 3}
+    Sub goo1()
+        For Each goo1 As Integer In New Integer() {1, 2, 3}
         Next
     End SUB
 End Class
@@ -663,8 +663,8 @@ End Class
 
             SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "System.Collections.IEnumerable")
             GetDeclareSymbolTestForeach(compilation1, Nothing)
-            AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="foo", ReadInsideSymbol:="", ReadOutsideSymbol:="",
-                                             WrittenInsideSymbol:="foo", WrittenOutsideSymbol:="Me",
+            AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="goo", ReadInsideSymbol:="", ReadOutsideSymbol:="",
+                                             WrittenInsideSymbol:="goo", WrittenOutsideSymbol:="Me",
                                              AlwaysAssignedSymbol:="", DataFlowsInSymbol:="", DataFlowsOutSymbol:="")
             AnalyzeRegionControlFlowTestForeach(compilation1, EntryPoints:=0, ExitPoints:=0,
                                                 EndPointIsReachable:=True)
@@ -673,8 +673,8 @@ End Class
 
             SemanticInfoTypeTestForeach(compilation1, 2, "Integer()", "System.Collections.IEnumerable")
             GetDeclareSymbolTestForeach(compilation1, Nothing, 2)
-            AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="foo1", ReadInsideSymbol:="", ReadOutsideSymbol:="",
-                                             WrittenInsideSymbol:="foo1", WrittenOutsideSymbol:="Me",
+            AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="goo1", ReadInsideSymbol:="", ReadOutsideSymbol:="",
+                                             WrittenInsideSymbol:="goo1", WrittenOutsideSymbol:="Me",
                                              AlwaysAssignedSymbol:="", DataFlowsInSymbol:="", DataFlowsOutSymbol:="", index:=2)
             AnalyzeRegionControlFlowTestForeach(compilation1, EntryPoints:=0, ExitPoints:=0,
                                                 EndPointIsReachable:=True, index:=2)
@@ -829,10 +829,10 @@ End Class
     <file name="a.vb">
 Class C
     Public Shared Sub Main()
-        For Each x As Integer In New Integer() {foo(x), foo(x), foo(x)}
+        For Each x As Integer In New Integer() {goo(x), goo(x), goo(x)}
         Next
     End Sub
-    Function foo(ByRef x As Integer) As Integer
+    Function goo(ByRef x As Integer) As Integer
         x = 10
         Return x + 10
     End Function
@@ -1017,7 +1017,7 @@ Class C1
     Public Shared Sub Main()
         Dim myCollection As SomethingEnumerable = nothing
         For Each element In myCollection 
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class
@@ -1052,7 +1052,7 @@ Class C1
     Public Shared Sub Main()
         Dim myCollection As SomethingEnumerable = nothing
         For Each element In myCollection 
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class
@@ -1095,7 +1095,7 @@ Class C1
     Public Shared Sub Main()
         Dim myCollection3 As SomethingEnumerable(Of String) = nothing
         For Each element In myCollection3
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        

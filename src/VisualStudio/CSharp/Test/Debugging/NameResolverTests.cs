@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             using (var workspace = TestWorkspace.CreateCSharp(" "))
             {
                 var debugInfo = new CSharpBreakpointResolutionService();
-                var results = await debugInfo.ResolveBreakpointsAsync(workspace.CurrentSolution, "foo", CancellationToken.None);
+                var results = await debugInfo.ResolveBreakpointsAsync(workspace.CurrentSolution, "goo", CancellationToken.None);
                 Assert.Equal(0, results.Count());
             }
         }
@@ -43,19 +43,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             var text =
 @"class C
 {
-  void Foo()
+  void Goo()
   {
   }
 }";
-            await TestAsync(text, "Foo", "C.Foo()");
-            await TestAsync(text, "foo");
-            await TestAsync(text, "C.Foo", "C.Foo()");
-            await TestAsync(text, "N.C.Foo");
-            await TestAsync(text, "Foo<T>");
-            await TestAsync(text, "C<T>.Foo");
-            await TestAsync(text, "Foo()", "C.Foo()");
-            await TestAsync(text, "Foo(int i)");
-            await TestAsync(text, "Foo(int)");
+            await TestAsync(text, "Goo", "C.Goo()");
+            await TestAsync(text, "goo");
+            await TestAsync(text, "C.Goo", "C.Goo()");
+            await TestAsync(text, "N.C.Goo");
+            await TestAsync(text, "Goo<T>");
+            await TestAsync(text, "C<T>.Goo");
+            await TestAsync(text, "Goo()", "C.Goo()");
+            await TestAsync(text, "Goo(int i)");
+            await TestAsync(text, "Goo(int)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
@@ -67,23 +67,23 @@ namespace N
 {
   class C
   {
-    void Foo()
+    void Goo()
     {
     }
   }
 }";
-            await TestAsync(text, "Foo", "N.C.Foo()");
-            await TestAsync(text, "foo");
-            await TestAsync(text, "C.Foo", "N.C.Foo()");
-            await TestAsync(text, "N.C.Foo", "N.C.Foo()");
-            await TestAsync(text, "Foo<T>");
-            await TestAsync(text, "C<T>.Foo");
-            await TestAsync(text, "Foo()", "N.C.Foo()");
-            await TestAsync(text, "C.Foo()", "N.C.Foo()");
-            await TestAsync(text, "N.C.Foo()", "N.C.Foo()");
-            await TestAsync(text, "Foo(int i)");
-            await TestAsync(text, "Foo(int)");
-            await TestAsync(text, "Foo(a)");
+            await TestAsync(text, "Goo", "N.C.Goo()");
+            await TestAsync(text, "goo");
+            await TestAsync(text, "C.Goo", "N.C.Goo()");
+            await TestAsync(text, "N.C.Goo", "N.C.Goo()");
+            await TestAsync(text, "Goo<T>");
+            await TestAsync(text, "C<T>.Goo");
+            await TestAsync(text, "Goo()", "N.C.Goo()");
+            await TestAsync(text, "C.Goo()", "N.C.Goo()");
+            await TestAsync(text, "N.C.Goo()", "N.C.Goo()");
+            await TestAsync(text, "Goo(int i)");
+            await TestAsync(text, "Goo(int)");
+            await TestAsync(text, "Goo(a)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
@@ -95,24 +95,24 @@ namespace N
 {
   class C<T>
   {
-    void Foo()
+    void Goo()
     {
     }
   }
 }";
-            await TestAsync(text, "Foo", "N.C<T>.Foo()");
-            await TestAsync(text, "foo");
-            await TestAsync(text, "C.Foo", "N.C<T>.Foo()");
-            await TestAsync(text, "N.C.Foo", "N.C<T>.Foo()");
-            await TestAsync(text, "Foo<T>");
-            await TestAsync(text, "C<T>.Foo", "N.C<T>.Foo()");
-            await TestAsync(text, "C<T>.Foo()", "N.C<T>.Foo()");
-            await TestAsync(text, "Foo()", "N.C<T>.Foo()");
-            await TestAsync(text, "C.Foo()", "N.C<T>.Foo()");
-            await TestAsync(text, "N.C.Foo()", "N.C<T>.Foo()");
-            await TestAsync(text, "Foo(int i)");
-            await TestAsync(text, "Foo(int)");
-            await TestAsync(text, "Foo(a)");
+            await TestAsync(text, "Goo", "N.C<T>.Goo()");
+            await TestAsync(text, "goo");
+            await TestAsync(text, "C.Goo", "N.C<T>.Goo()");
+            await TestAsync(text, "N.C.Goo", "N.C<T>.Goo()");
+            await TestAsync(text, "Goo<T>");
+            await TestAsync(text, "C<T>.Goo", "N.C<T>.Goo()");
+            await TestAsync(text, "C<T>.Goo()", "N.C<T>.Goo()");
+            await TestAsync(text, "Goo()", "N.C<T>.Goo()");
+            await TestAsync(text, "C.Goo()", "N.C<T>.Goo()");
+            await TestAsync(text, "N.C.Goo()", "N.C<T>.Goo()");
+            await TestAsync(text, "Goo(int i)");
+            await TestAsync(text, "Goo(int)");
+            await TestAsync(text, "Goo(a)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
@@ -124,29 +124,29 @@ namespace N
 {
   class C
   {
-    void Foo<T>()
+    void Goo<T>()
     {
     }
   }
 }";
-            await TestAsync(text, "Foo", "N.C.Foo<T>()");
-            await TestAsync(text, "foo");
-            await TestAsync(text, "C.Foo", "N.C.Foo<T>()");
-            await TestAsync(text, "N.C.Foo", "N.C.Foo<T>()");
-            await TestAsync(text, "Foo<T>", "N.C.Foo<T>()");
-            await TestAsync(text, "Foo<X>", "N.C.Foo<T>()");
-            await TestAsync(text, "Foo<T,X>");
-            await TestAsync(text, "C<T>.Foo");
-            await TestAsync(text, "C<T>.Foo()");
-            await TestAsync(text, "Foo()", "N.C.Foo<T>()");
-            await TestAsync(text, "C.Foo()", "N.C.Foo<T>()");
-            await TestAsync(text, "N.C.Foo()", "N.C.Foo<T>()");
-            await TestAsync(text, "Foo(int i)");
-            await TestAsync(text, "Foo(int)");
-            await TestAsync(text, "Foo(a)");
-            await TestAsync(text, "Foo<T>(int i)");
-            await TestAsync(text, "Foo<T>(int)");
-            await TestAsync(text, "Foo<T>(a)");
+            await TestAsync(text, "Goo", "N.C.Goo<T>()");
+            await TestAsync(text, "goo");
+            await TestAsync(text, "C.Goo", "N.C.Goo<T>()");
+            await TestAsync(text, "N.C.Goo", "N.C.Goo<T>()");
+            await TestAsync(text, "Goo<T>", "N.C.Goo<T>()");
+            await TestAsync(text, "Goo<X>", "N.C.Goo<T>()");
+            await TestAsync(text, "Goo<T,X>");
+            await TestAsync(text, "C<T>.Goo");
+            await TestAsync(text, "C<T>.Goo()");
+            await TestAsync(text, "Goo()", "N.C.Goo<T>()");
+            await TestAsync(text, "C.Goo()", "N.C.Goo<T>()");
+            await TestAsync(text, "N.C.Goo()", "N.C.Goo<T>()");
+            await TestAsync(text, "Goo(int i)");
+            await TestAsync(text, "Goo(int)");
+            await TestAsync(text, "Goo(a)");
+            await TestAsync(text, "Goo<T>(int i)");
+            await TestAsync(text, "Goo<T>(int)");
+            await TestAsync(text, "Goo<T>(a)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
@@ -155,24 +155,24 @@ namespace N
             var text =
 @"class C
 {
-  void Foo()
+  void Goo()
   {
   }
 
-  void Foo(int i)
+  void Goo(int i)
   {
   }
 }";
-            await TestAsync(text, "Foo", "C.Foo()", "C.Foo(int)");
-            await TestAsync(text, "foo");
-            await TestAsync(text, "C.Foo", "C.Foo()", "C.Foo(int)");
-            await TestAsync(text, "N.C.Foo");
-            await TestAsync(text, "Foo<T>");
-            await TestAsync(text, "C<T>.Foo");
-            await TestAsync(text, "Foo()", "C.Foo()");
-            await TestAsync(text, "Foo(int i)", "C.Foo(int)");
-            await TestAsync(text, "Foo(int)", "C.Foo(int)");
-            await TestAsync(text, "Foo(i)", "C.Foo(int)");
+            await TestAsync(text, "Goo", "C.Goo()", "C.Goo(int)");
+            await TestAsync(text, "goo");
+            await TestAsync(text, "C.Goo", "C.Goo()", "C.Goo(int)");
+            await TestAsync(text, "N.C.Goo");
+            await TestAsync(text, "Goo<T>");
+            await TestAsync(text, "C<T>.Goo");
+            await TestAsync(text, "Goo()", "C.Goo()");
+            await TestAsync(text, "Goo(int i)", "C.Goo(int)");
+            await TestAsync(text, "Goo(int)", "C.Goo(int)");
+            await TestAsync(text, "Goo(i)", "C.Goo(int)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
@@ -183,7 +183,7 @@ namespace N
 {
   class C
   {
-    void Foo()
+    void Goo()
     {
     }
   }
@@ -193,22 +193,22 @@ namespace N1
 {
   class C
   {
-    void Foo(int i)
+    void Goo(int i)
     {
     }
   }
 }";
-            await TestAsync(text, "Foo", "N1.C.Foo(int)", "N.C.Foo()");
-            await TestAsync(text, "foo");
-            await TestAsync(text, "C.Foo", "N1.C.Foo(int)", "N.C.Foo()");
-            await TestAsync(text, "N.C.Foo", "N.C.Foo()");
-            await TestAsync(text, "N1.C.Foo", "N1.C.Foo(int)");
-            await TestAsync(text, "Foo<T>");
-            await TestAsync(text, "C<T>.Foo");
-            await TestAsync(text, "Foo()", "N.C.Foo()");
-            await TestAsync(text, "Foo(int i)", "N1.C.Foo(int)");
-            await TestAsync(text, "Foo(int)", "N1.C.Foo(int)");
-            await TestAsync(text, "Foo(i)", "N1.C.Foo(int)");
+            await TestAsync(text, "Goo", "N1.C.Goo(int)", "N.C.Goo()");
+            await TestAsync(text, "goo");
+            await TestAsync(text, "C.Goo", "N1.C.Goo(int)", "N.C.Goo()");
+            await TestAsync(text, "N.C.Goo", "N.C.Goo()");
+            await TestAsync(text, "N1.C.Goo", "N1.C.Goo(int)");
+            await TestAsync(text, "Goo<T>");
+            await TestAsync(text, "C<T>.Goo");
+            await TestAsync(text, "Goo()", "N.C.Goo()");
+            await TestAsync(text, "Goo(int i)", "N1.C.Goo(int)");
+            await TestAsync(text, "Goo(int)", "N1.C.Goo(int)");
+            await TestAsync(text, "Goo(i)", "N1.C.Goo(int)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
@@ -219,7 +219,7 @@ namespace N1
 {
   class C
   {
-    void Foo()
+    void Goo()
     {
     }
   }
@@ -229,26 +229,26 @@ namespace N1
 {
   class C
   {
-    void Foo<T>(int i)
+    void Goo<T>(int i)
     {
     }
   }
 }";
-            await TestAsync(text, "Foo", "N1.C.Foo<T>(int)", "N.C.Foo()");
-            await TestAsync(text, "foo");
-            await TestAsync(text, "C.Foo", "N1.C.Foo<T>(int)", "N.C.Foo()");
-            await TestAsync(text, "N.C.Foo", "N.C.Foo()");
-            await TestAsync(text, "N1.C.Foo", "N1.C.Foo<T>(int)");
-            await TestAsync(text, "Foo<T>", "N1.C.Foo<T>(int)");
-            await TestAsync(text, "C<T>.Foo");
-            await TestAsync(text, "Foo()", "N.C.Foo()");
-            await TestAsync(text, "Foo<T>()");
-            await TestAsync(text, "Foo(int i)", "N1.C.Foo<T>(int)");
-            await TestAsync(text, "Foo(int)", "N1.C.Foo<T>(int)");
-            await TestAsync(text, "Foo(i)", "N1.C.Foo<T>(int)");
-            await TestAsync(text, "Foo<T>(int i)", "N1.C.Foo<T>(int)");
-            await TestAsync(text, "Foo<T>(int)", "N1.C.Foo<T>(int)");
-            await TestAsync(text, "Foo<T>(i)", "N1.C.Foo<T>(int)");
+            await TestAsync(text, "Goo", "N1.C.Goo<T>(int)", "N.C.Goo()");
+            await TestAsync(text, "goo");
+            await TestAsync(text, "C.Goo", "N1.C.Goo<T>(int)", "N.C.Goo()");
+            await TestAsync(text, "N.C.Goo", "N.C.Goo()");
+            await TestAsync(text, "N1.C.Goo", "N1.C.Goo<T>(int)");
+            await TestAsync(text, "Goo<T>", "N1.C.Goo<T>(int)");
+            await TestAsync(text, "C<T>.Goo");
+            await TestAsync(text, "Goo()", "N.C.Goo()");
+            await TestAsync(text, "Goo<T>()");
+            await TestAsync(text, "Goo(int i)", "N1.C.Goo<T>(int)");
+            await TestAsync(text, "Goo(int)", "N1.C.Goo<T>(int)");
+            await TestAsync(text, "Goo(i)", "N1.C.Goo<T>(int)");
+            await TestAsync(text, "Goo<T>(int i)", "N1.C.Goo<T>(int)");
+            await TestAsync(text, "Goo<T>(int)", "N1.C.Goo<T>(int)");
+            await TestAsync(text, "Goo<T>(i)", "N1.C.Goo<T>(int)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
@@ -257,40 +257,40 @@ namespace N1
             var text =
 @"class C
 {
-  void Foo(int a)
+  void Goo(int a)
   {
   }
 
-  void Foo(int a, string b = ""bb"")
+  void Goo(int a, string b = ""bb"")
   {
   }
 
-  void Foo(__arglist)
+  void Goo(__arglist)
   {
   }
 }";
-            await TestAsync(text, "Foo", "C.Foo(int)", "C.Foo(int, [string])", "C.Foo(__arglist)");
-            await TestAsync(text, "foo");
-            await TestAsync(text, "C.Foo", "C.Foo(int)", "C.Foo(int, [string])", "C.Foo(__arglist)");
-            await TestAsync(text, "N.C.Foo");
-            await TestAsync(text, "Foo<T>");
-            await TestAsync(text, "C<T>.Foo");
-            await TestAsync(text, "Foo()", "C.Foo(__arglist)");
-            await TestAsync(text, "Foo(int i)", "C.Foo(int)");
-            await TestAsync(text, "Foo(int)", "C.Foo(int)");
-            await TestAsync(text, "Foo(int x = 42)", "C.Foo(int)");
-            await TestAsync(text, "Foo(i)", "C.Foo(int)");
-            await TestAsync(text, "Foo(int i, int b)", "C.Foo(int, [string])");
-            await TestAsync(text, "Foo(int, bool)", "C.Foo(int, [string])");
-            await TestAsync(text, "Foo(i, s)", "C.Foo(int, [string])");
-            await TestAsync(text, "Foo(,)", "C.Foo(int, [string])");
-            await TestAsync(text, "Foo(int x = 42,)", "C.Foo(int, [string])");
-            await TestAsync(text, "Foo(int x = 42, y = 42)", "C.Foo(int, [string])");
-            await TestAsync(text, "Foo([attr] x = 42, y = 42)", "C.Foo(int, [string])");
-            await TestAsync(text, "Foo(int i, int b, char c)");
-            await TestAsync(text, "Foo(int, bool, char)");
-            await TestAsync(text, "Foo(i, s, c)");
-            await TestAsync(text, "Foo(__arglist)", "C.Foo(int)");
+            await TestAsync(text, "Goo", "C.Goo(int)", "C.Goo(int, [string])", "C.Goo(__arglist)");
+            await TestAsync(text, "goo");
+            await TestAsync(text, "C.Goo", "C.Goo(int)", "C.Goo(int, [string])", "C.Goo(__arglist)");
+            await TestAsync(text, "N.C.Goo");
+            await TestAsync(text, "Goo<T>");
+            await TestAsync(text, "C<T>.Goo");
+            await TestAsync(text, "Goo()", "C.Goo(__arglist)");
+            await TestAsync(text, "Goo(int i)", "C.Goo(int)");
+            await TestAsync(text, "Goo(int)", "C.Goo(int)");
+            await TestAsync(text, "Goo(int x = 42)", "C.Goo(int)");
+            await TestAsync(text, "Goo(i)", "C.Goo(int)");
+            await TestAsync(text, "Goo(int i, int b)", "C.Goo(int, [string])");
+            await TestAsync(text, "Goo(int, bool)", "C.Goo(int, [string])");
+            await TestAsync(text, "Goo(i, s)", "C.Goo(int, [string])");
+            await TestAsync(text, "Goo(,)", "C.Goo(int, [string])");
+            await TestAsync(text, "Goo(int x = 42,)", "C.Goo(int, [string])");
+            await TestAsync(text, "Goo(int x = 42, y = 42)", "C.Goo(int, [string])");
+            await TestAsync(text, "Goo([attr] x = 42, y = 42)", "C.Goo(int, [string])");
+            await TestAsync(text, "Goo(int i, int b, char c)");
+            await TestAsync(text, "Goo(int, bool, char)");
+            await TestAsync(text, "Goo(i, s, c)");
+            await TestAsync(text, "Goo(__arglist)", "C.Goo(int)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
@@ -321,8 +321,8 @@ abstract class C
     event Delegate Event;
     [IndexerName(""ABCD"")]
     int this[int i] { get { return i; } }
-    void Foo() { }
-    void Foo(int x = 1, int y = 2) { }
+    void Goo() { }
+    void Goo(int x = 1, int y = 2) { }
     ~C() { }
 }";
             await TestAsync(text, "AbstractMethod");
@@ -337,19 +337,19 @@ abstract class C
             await TestAsync(text, "ABCD");
             await TestAsync(text, "C.ABCD(int)");
             await TestAsync(text, "42");
-            await TestAsync(text, "Foo", "C.Foo()", "C.Foo([int], [int])"); // just making sure it would normally resolve before trying bad syntax
-            await TestAsync(text, "Foo Foo");
-            await TestAsync(text, "Foo()asdf");
-            await TestAsync(text, "Foo(),");
-            await TestAsync(text, "Foo(),f");
-            await TestAsync(text, "Foo().Foo");
-            await TestAsync(text, "Foo(");
-            await TestAsync(text, "(Foo");
-            await TestAsync(text, "Foo)");
-            await TestAsync(text, "(Foo)");
-            await TestAsync(text, "Foo(x = 42, y = 42)", "C.Foo([int], [int])"); // just making sure it would normally resolve before trying bad syntax
+            await TestAsync(text, "Goo", "C.Goo()", "C.Goo([int], [int])"); // just making sure it would normally resolve before trying bad syntax
+            await TestAsync(text, "Goo Goo");
+            await TestAsync(text, "Goo()asdf");
+            await TestAsync(text, "Goo(),");
+            await TestAsync(text, "Goo(),f");
+            await TestAsync(text, "Goo().Goo");
+            await TestAsync(text, "Goo(");
+            await TestAsync(text, "(Goo");
+            await TestAsync(text, "Goo)");
+            await TestAsync(text, "(Goo)");
+            await TestAsync(text, "Goo(x = 42, y = 42)", "C.Goo([int], [int])"); // just making sure it would normally resolve before trying bad syntax
             await TestAsync(text, "int x = 42");
-            await TestAsync(text, "Foo(int x = 42, y = 42");
+            await TestAsync(text, "Goo(int x = 42, y = 42");
             await TestAsync(text, "C");
             await TestAsync(text, "C.C");
             await TestAsync(text, "~");
@@ -480,23 +480,23 @@ class G<T>
             var text =
 @"class C
 {
-  void Foo() { };
+  void Goo() { };
 }";
-            await TestAsync(text, "Foo;", "C.Foo()");
+            await TestAsync(text, "Goo;", "C.Goo()");
             await TestAsync(text, 
-@"Foo();", "C.Foo()");
-            await TestAsync(text, "  Foo;", "C.Foo()");
-            await TestAsync(text, "  Foo;;");
-            await TestAsync(text, "  Foo; ;");
+@"Goo();", "C.Goo()");
+            await TestAsync(text, "  Goo;", "C.Goo()");
+            await TestAsync(text, "  Goo;;");
+            await TestAsync(text, "  Goo; ;");
             await TestAsync(text, 
-@"Foo();", "C.Foo()");
+@"Goo();", "C.Goo()");
             await TestAsync(text, 
-@"Foo();", "C.Foo()");
+@"Goo();", "C.Goo()");
             await TestAsync(text, 
-@"Foo(); // comment", "C.Foo()");
+@"Goo(); // comment", "C.Goo()");
             await TestAsync(text, 
 @"/*comment*/
-           Foo(/* params */); /* comment", "C.Foo()");
+           Goo(/* params */); /* comment", "C.Goo()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
@@ -525,13 +525,13 @@ class @foreach
 @"extern alias A
 class C
 {
-    void Foo(D d) { }
+    void Goo(D d) { }
 }";
-            await TestAsync(text, "A::Foo");
-            await TestAsync(text, "A::Foo(A::B)");
-            await TestAsync(text, "A::Foo(A::B)");
-            await TestAsync(text, "A::C.Foo");
-            await TestAsync(text, "C.Foo(A::Q)", "C.Foo(D)");
+            await TestAsync(text, "A::Goo");
+            await TestAsync(text, "A::Goo(A::B)");
+            await TestAsync(text, "A::Goo(A::B)");
+            await TestAsync(text, "A::C.Goo");
+            await TestAsync(text, "C.Goo(A::Q)", "C.Goo(D)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
@@ -542,7 +542,7 @@ class C
 {
   class C
   {
-    void Foo() { }
+    void Goo() { }
   }
   namespace N2
   {
@@ -556,15 +556,15 @@ class C
   {
     class C
     {
-      void Foo(double x) { }
+      void Goo(double x) { }
 
       class D
       {
-        void Foo() { }
+        void Goo() { }
 
         class E
         {
-          void Foo() { }
+          void Goo() { }
         }
       }
     }
@@ -572,13 +572,13 @@ class C
   namespace N5 { }
 }";
 
-            await TestAsync(text, "Foo", "N1.N4.C.Foo(double)", "N1.N4.C.D.Foo()", "N1.N4.C.D.E.Foo()", "N1.C.Foo()");
-            await TestAsync(text, "C.Foo", "N1.N4.C.Foo(double)", "N1.C.Foo()");
-            await TestAsync(text, "D.Foo", "N1.N4.C.D.Foo()");
-            await TestAsync(text, "N1.N4.C.D.Foo", "N1.N4.C.D.Foo()");
-            await TestAsync(text, "N1.Foo");
-            await TestAsync(text, "N3.C.Foo");
-            await TestAsync(text, "N5.C.Foo");
+            await TestAsync(text, "Goo", "N1.N4.C.Goo(double)", "N1.N4.C.D.Goo()", "N1.N4.C.D.E.Goo()", "N1.C.Goo()");
+            await TestAsync(text, "C.Goo", "N1.N4.C.Goo(double)", "N1.C.Goo()");
+            await TestAsync(text, "D.Goo", "N1.N4.C.D.Goo()");
+            await TestAsync(text, "N1.N4.C.D.Goo", "N1.N4.C.D.Goo()");
+            await TestAsync(text, "N1.Goo");
+            await TestAsync(text, "N3.C.Goo");
+            await TestAsync(text, "N5.C.Goo");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
@@ -587,16 +587,16 @@ class C
             var text =
 @"interface I1
 {
-  void Foo();
+  void Goo();
 }
 class C1 : I1
 {
-  void I1.Foo() { }
+  void I1.Goo() { }
 }";
 
-            await TestAsync(text, "Foo", "C1.Foo()");
-            await TestAsync(text, "I1.Foo");
-            await TestAsync(text, "C1.Foo", "C1.Foo()");
+            await TestAsync(text, "Goo", "C1.Goo()");
+            await TestAsync(text, "I1.Goo");
+            await TestAsync(text, "C1.Goo", "C1.Goo()");
             await TestAsync(text, "C1.I1.Moo");
         }
     }

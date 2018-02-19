@@ -48,7 +48,7 @@ End Namespace
                 <Document><![CDATA[
 {|S2:
 Class C
-    Sub Foo()
+    Sub Goo()
         System$$
     End Sub
 End Class
@@ -85,7 +85,7 @@ End Class
                 <Document><![CDATA[
 {|S2:
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim s As New$$
     End Sub
 End Class

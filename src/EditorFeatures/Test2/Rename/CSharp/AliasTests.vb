@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
 
                             class C<T>
                             {
-                                void Foo()
+                                void Goo()
                                 {
                                     var x = new [|$$D|]();
                                 }
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
 
                             class C<T>
                             {
-                                void Foo()
+                                void Goo()
                                 {
                                     var x = new [|D|]();
                                 }
@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
 
                             class C
                             {
-                                void Foo()
+                                void Goo()
                                 {
                                     [|D|] d;
                                 }
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
                             using [|D|] = C;
                             class C
                             {
-                                void Foo()
+                                void Goo()
                                 {
                                     var x = new [|$$D|]();
                                 }
@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
                             using [|$$D|] = C;
                             class C
                             {
-                                void Foo()
+                                void Goo()
                                 {
                                     var x = new [|D|]();
                                 }
@@ -193,12 +193,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            using Foo = System.Int32;
+                            using Goo = System.Int32;
                             class C
                             {
-                                void Foo()
+                                void Goo()
                                 {
-                                    Foo [|$$x|] = 23;
+                                    Goo [|$$x|] = 23;
                                 }
                             }
                         </Document>
@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            using Foo = System.Int32;
+                            using Goo = System.Int32;
                             using Bar = System.Int32;
                             class C
                             {
@@ -238,13 +238,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            using Foo = Program;
+                            using Goo = Program;
 
                             class Program
                             {
-                                public void Foo()
+                                public void Goo()
                                 {
-                                    Foo [|$$x|] = null;
+                                    Goo [|$$x|] = null;
                                 }
                             }
                         </Document>
@@ -260,15 +260,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-using [|Foo|] = C3;
+using [|Goo|] = C3;
 
 namespace N1
 {
     class C1
     {
-        public void Foo()
+        public void Goo()
         {
-            {|stmt1:$$Foo|} f = null;
+            {|stmt1:$$Goo|} f = null;
             C1 c = null;
         }
     }
@@ -293,15 +293,15 @@ public class C3
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            using [|Foo|] = N1.C1;
+                            using [|Goo|] = N1.C1;
 
                             namespace N1
                             {
                                 class C1
                                 {
-                                    public void Foo()
+                                    public void Goo()
                                     {
-                                        [|$$Foo|] f = null;
+                                        [|$$Goo|] f = null;
                                         C1 c = null;
                                     }
                                 }
@@ -321,14 +321,14 @@ public class C3
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            using foo = System.Int32;
+                            using goo = System.Int32;
                             using [|bar|] = System.Int32;
 
                             class Program
                             {
                                 static void Main(string[] args)
                                 {
-                                    foo f = 1;
+                                    goo f = 1;
                                     {|stmt1:$$bar|} b = 2;
                                 }
                             }
@@ -377,7 +377,7 @@ namespace N
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
 using System;
-using [|$$Foo|] = System.Console;
+using [|$$Goo|] = System.Console;
 
 class Bar : {|qualify:Attribute|}
 { }
@@ -386,7 +386,7 @@ class C1
 {
     static void Main()
     {
-        {|stmt1:Foo|}.WriteLine("Baz");
+        {|stmt1:Goo|}.WriteLine("Baz");
     }
 }
                         ]]></Document>
@@ -438,7 +438,7 @@ using [|dynamic|] = System;
 class C : [|$$dynamic|]::Object { }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="foo")
+                </Workspace>, renameTo:="goo")
 
             End Using
         End Sub
@@ -452,14 +452,14 @@ class C : [|$$dynamic|]::Object { }
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
 using {|declconflict:Bar|} = A.B;
-using [|$$Foo|] = A.C; // Rename Foo to Bar
+using [|$$Goo|] = A.C; // Rename Goo to Bar
 
 namespace A{    
     class C
     {        
         public class B        
         {            
-            public class Foo            
+            public class Goo            
             { 
             }         
         }    
@@ -468,15 +468,15 @@ namespace A{
 
 namespace A.B.B
 {    
-    class Foo { }
+    class Goo { }
 }
 
 class Program
 {
     static void Main(string[] args)    
     {        
-        Bar.B.Foo b;        
-        {|stmt1:Foo|}.B.Foo c;
+        Bar.B.Goo b;        
+        {|stmt1:Goo|}.B.Goo c;
      }
 }
                         ]]></Document>
@@ -484,7 +484,7 @@ class Program
                 </Workspace>, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
-                result.AssertLabeledSpansAre("stmt1", "A.C.B.Foo c;", type:=RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "A.C.B.Goo c;", type:=RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
@@ -501,7 +501,7 @@ namespace A{
     {        
         public class B        
         {            
-            public class Foo            
+            public class Goo            
             { 
             }         
         }    
@@ -510,20 +510,20 @@ namespace A{
 
 namespace A.B.B
 {    
-    class Foo { }
+    class Goo { }
 }
 
 namespace X
 {
     using {|declconflict:Bar|} = A.B;
-    using [|$$Foo|] = A.C; // Rename Foo to Bar
+    using [|$$Goo|] = A.C; // Rename Goo to Bar
 
     class Program
     {
         static void Main(string[] args)    
         {        
-            Bar.B.Foo b;        
-            {|stmt1:Foo|}.B.Foo c;
+            Bar.B.Goo b;        
+            {|stmt1:Goo|}.B.Goo c;
          }
     }
 }
@@ -532,7 +532,7 @@ namespace X
                 </Workspace>, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
-                result.AssertLabeledSpansAre("stmt1", "A.C.B.Foo c;", type:=RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "A.C.B.Goo c;", type:=RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
@@ -549,7 +549,7 @@ namespace A{
     {        
         public class B        
         {            
-            public class Foo            
+            public class Goo            
             { 
             }         
         }    
@@ -558,20 +558,20 @@ namespace A{
 
 namespace A.B.B
 {    
-    class Foo { }
+    class Goo { }
 }
 
 namespace X
 {
     using {|declconflict:@Bar|} = A.B;
-    using [|$$Foo|] = A.C; // Rename Foo to Bar
+    using [|$$Goo|] = A.C; // Rename Goo to Bar
 
     class Program
     {
         static void Main(string[] args)    
         {        
-            Bar.B.Foo b;        
-            {|stmt1:Foo|}.B.Foo c;
+            Bar.B.Goo b;        
+            {|stmt1:Goo|}.B.Goo c;
          }
     }
 }
@@ -580,7 +580,7 @@ namespace X
                 </Workspace>, renameTo:="B\u0061r")
 
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
-                result.AssertLabeledSpansAre("stmt1", "A.C.B.Foo c;", type:=RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "A.C.B.Goo c;", type:=RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
@@ -650,18 +650,18 @@ namespace N
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
-using [|$$FooAttribute|] = System.ObsoleteAttribute;
+using [|$$GooAttribute|] = System.ObsoleteAttribute;
 
-[{|long:FooAttribute|}]
+[{|long:GooAttribute|}]
 class C{ }
 
-[{|short:Foo|}]
+[{|short:Goo|}]
 class D{ }
 
-[{|long:FooAttribute|}()]
+[{|long:GooAttribute|}()]
 class B{ }
 
-[{|short:Foo|}()] 
+[{|short:Goo|}()] 
 class Program
 {    
     static void Main(string[] args)    
@@ -685,19 +685,19 @@ class Program
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
-using [|$$FooAttribute|] = System.ObsoleteAttribute;
+using [|$$GooAttribute|] = System.ObsoleteAttribute;
 using Bar = System.ContextStaticAttribute;
 
-[{|long1:FooAttribute|}]
+[{|long1:GooAttribute|}]
 class C{ }
 
-[{|short1:Foo|}]
+[{|short1:Goo|}]
 class D{ }
 
-[{|long2:FooAttribute|}()]
+[{|long2:GooAttribute|}()]
 class B{ }
 
-[{|short2:Foo|}()] 
+[{|short2:Goo|}()] 
 class Program
 {    
     static void Main(string[] args)    

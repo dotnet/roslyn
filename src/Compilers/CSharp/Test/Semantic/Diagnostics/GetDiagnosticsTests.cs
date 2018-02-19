@@ -70,7 +70,7 @@ class D
         }
 
         [Fact]
-        public void DiagnosticsFilteredForInsersectingIntervals()
+        public void DiagnosticsFilteredForIntersectingIntervals()
         {
             var source = @"
 class C : Abracadabra
@@ -95,7 +95,7 @@ class C : Abracadabra
             var source = @"
 class C
 {
-    public void Foo()
+    public void Goo()
     {
         int x;
     }
@@ -120,12 +120,12 @@ class C
             var hidden = diag.WithSeverity(DiagnosticSeverity.Hidden);
             Assert.Equal(DiagnosticSeverity.Hidden, hidden.Severity);
             Assert.Equal(DiagnosticSeverity.Warning, hidden.DefaultSeverity);
-            Assert.Equal(4, hidden.WarningLevel);
+            Assert.Equal(1, hidden.WarningLevel);
 
             var info = diag.WithSeverity(DiagnosticSeverity.Info);
             Assert.Equal(DiagnosticSeverity.Info, info.Severity);
             Assert.Equal(DiagnosticSeverity.Warning, info.DefaultSeverity);
-            Assert.Equal(4, info.WarningLevel);
+            Assert.Equal(1, info.WarningLevel);
         }
 
         [Fact, WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")]
@@ -271,16 +271,22 @@ namespace N1
                     {
                         var symbol = symbolDeclaredEvent.Symbol;
                         var added = declaredSymbolNames.Add(symbol.Name);
-                        Assert.True(added, "Unexpected multiple symbol declared events for symbol " + symbol);
-                        var method = symbol as Symbols.MethodSymbol;
-                        Assert.Null(method?.PartialDefinitionPart); // we should never get a partial method's implementation part
+                        if (!added)
+                        {
+                            var method = symbol as Symbols.MethodSymbol;
+                            Assert.NotNull(method);
+
+                            var isPartialMethod = method.PartialDefinitionPart != null ||
+                                                  method.PartialImplementationPart != null;
+                            Assert.True(isPartialMethod, "Unexpected multiple symbol declared events for symbol " + symbol);
+                        }
                     }
                     else
                     {
-                        var compilationCompeletedEvent = compEvent as CompilationUnitCompletedEvent;
-                        if (compilationCompeletedEvent != null)
+                        var compilationCompletedEvent = compEvent as CompilationUnitCompletedEvent;
+                        if (compilationCompletedEvent != null)
                         {
-                            Assert.True(completedCompilationUnits.Add(compilationCompeletedEvent.CompilationUnit.FilePath));
+                            Assert.True(completedCompilationUnits.Add(compilationCompletedEvent.CompilationUnit.FilePath));
                         }
                     }
                 }
@@ -293,7 +299,7 @@ namespace N1
         public void TestEventQueueCompletionForEmptyCompilation()
         {
             var compilation = CreateCompilationWithMscorlib45(SpecializedCollections.EmptyEnumerable<SyntaxTree>()).WithEventQueue(new AsyncQueue<CompilationEvent>());
-            
+
             // Force complete compilation event queue
             var unused = compilation.GetDiagnostics();
 
@@ -393,6 +399,23 @@ namespace N1
 
             Assert.True(diagnostics[0].Location.SourceTree.Equals(syntaxTree1));
             Assert.True(diagnostics[1].Location.SourceTree.Equals(syntaxTree2));
+        }
+
+        [Fact]
+        [WorkItem(24351, "https://github.com/dotnet/roslyn/issues/24351")]
+        public void GettingDeclarationDiagnosticsForATreeShouldNotFreezeCompilation()
+        {
+            var parseOptions = new CSharpParseOptions(LanguageVersion.Latest);
+            var tree1 = Parse(string.Empty, options: parseOptions);
+            var tree2 = Parse("ref struct X {}", options: parseOptions);
+
+            var compilation = CreateStandardCompilation(new[] { tree1, tree2 });
+
+            // Verify diagnostics for the first tree. This should have sealed the attributes
+            compilation.GetSemanticModel(tree1).GetDeclarationDiagnostics().Verify();
+
+            // Verify diagnostics for the second tree. This should have triggered the assert
+            compilation.GetSemanticModel(tree2).GetDeclarationDiagnostics().Verify();
         }
     }
 }

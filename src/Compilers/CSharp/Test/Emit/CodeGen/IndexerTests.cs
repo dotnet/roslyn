@@ -287,7 +287,7 @@ class C : B
         private const string TypeWithIndexers = @"
 public class C
 {
-    public static int Foo(int x)
+    public static int Goo(int x)
     {
         System.Console.Write(x + "","");
         return x * 10;
@@ -338,34 +338,34 @@ class Test
 
         //// Normal
 
-        x = c[C.Foo(1), C.Foo(2)];
+        x = c[C.Goo(1), C.Goo(2)];
         System.Console.WriteLine();
 
         //// Named parameters
 
-        x = c[C.Foo(1), y: C.Foo(2)]; //NB: Dev10 gets this wrong (2,1,10,20)
+        x = c[C.Goo(1), y: C.Goo(2)]; //NB: Dev10 gets this wrong (2,1,10,20)
         System.Console.WriteLine();
 
-        x = c[x: C.Foo(1), y: C.Foo(2)];
+        x = c[x: C.Goo(1), y: C.Goo(2)];
         System.Console.WriteLine();
 
-        x = c[y: C.Foo(2), x: C.Foo(1)];
+        x = c[y: C.Goo(2), x: C.Goo(1)];
         System.Console.WriteLine();
 
         //// Optional parameters
 
-        x = c[C.Foo(1)];
+        x = c[C.Goo(1)];
         System.Console.WriteLine();
 
-        x = c[x: C.Foo(1)];
+        x = c[x: C.Goo(1)];
         System.Console.WriteLine();
 
         //// Parameter arrays
 
-        x = c[C.Foo(1), C.Foo(2), C.Foo(3)];
+        x = c[C.Goo(1), C.Goo(2), C.Goo(3)];
         System.Console.WriteLine();
 
-        x = c[new int[] { C.Foo(1), C.Foo(2), C.Foo(3) }];
+        x = c[new int[] { C.Goo(1), C.Goo(2), C.Goo(3) }];
         System.Console.WriteLine();
     }
 }
@@ -487,34 +487,34 @@ class Test
 
         //// Normal
 
-        c[C.Foo(1), C.Foo(2)] = C.Foo(3);
+        c[C.Goo(1), C.Goo(2)] = C.Goo(3);
         System.Console.WriteLine();
 
         //// Named parameters
 
-        c[C.Foo(1), y: C.Foo(2)] = C.Foo(3);
+        c[C.Goo(1), y: C.Goo(2)] = C.Goo(3);
         System.Console.WriteLine();
 
-        c[x: C.Foo(1), y: C.Foo(2)] = C.Foo(3); //NB: dev10 gets this wrong (2,1,3,10,20,30,)
+        c[x: C.Goo(1), y: C.Goo(2)] = C.Goo(3); //NB: dev10 gets this wrong (2,1,3,10,20,30,)
         System.Console.WriteLine();
 
-        c[y: C.Foo(2), x: C.Foo(1)] = C.Foo(3);
+        c[y: C.Goo(2), x: C.Goo(1)] = C.Goo(3);
         System.Console.WriteLine();
 
         //// Optional parameters
 
-        c[C.Foo(1)] = C.Foo(3);
+        c[C.Goo(1)] = C.Goo(3);
         System.Console.WriteLine();
 
-        c[x: C.Foo(1)] = C.Foo(3);
+        c[x: C.Goo(1)] = C.Goo(3);
         System.Console.WriteLine();
 
         //// Parameter arrays
 
-        c[C.Foo(1), C.Foo(2), C.Foo(3)] = C.Foo(4);
+        c[C.Goo(1), C.Goo(2), C.Goo(3)] = C.Goo(4);
         System.Console.WriteLine();
 
-        c[new int[] { C.Foo(1), C.Foo(2), C.Foo(3) }] = C.Foo(4);
+        c[new int[] { C.Goo(1), C.Goo(2), C.Goo(3) }] = C.Goo(4);
         System.Console.WriteLine();
     }
 }
@@ -635,34 +635,34 @@ class Test
 
         //// Normal
 
-        c[C.Foo(1), C.Foo(2)]++;
+        c[C.Goo(1), C.Goo(2)]++;
         System.Console.WriteLine();
 
         //// Named parameters
 
-        c[C.Foo(1), y: C.Foo(2)]++;
+        c[C.Goo(1), y: C.Goo(2)]++;
         System.Console.WriteLine();
 
-        c[x: C.Foo(1), y: C.Foo(2)]++; //NB: dev10 gets this wrong (2,1,10,20,10,20,-29,)
+        c[x: C.Goo(1), y: C.Goo(2)]++; //NB: dev10 gets this wrong (2,1,10,20,10,20,-29,)
         System.Console.WriteLine();
 
-        c[y: C.Foo(2), x: C.Foo(1)]++;
+        c[y: C.Goo(2), x: C.Goo(1)]++;
         System.Console.WriteLine();
 
         //// Optional parameters
 
-        c[C.Foo(1)]++;
+        c[C.Goo(1)]++;
         System.Console.WriteLine();
 
-        c[x: C.Foo(1)]++;
+        c[x: C.Goo(1)]++;
         System.Console.WriteLine();
 
         //// Parameter arrays
 
-        c[C.Foo(1), C.Foo(2), C.Foo(3)]++;
+        c[C.Goo(1), C.Goo(2), C.Goo(3)]++;
         System.Console.WriteLine();
 
-        c[new int[] { C.Foo(1), C.Foo(2), C.Foo(3) }]++;
+        c[new int[] { C.Goo(1), C.Goo(2), C.Goo(3) }]++;
         System.Console.WriteLine();
     }
 }
@@ -848,34 +848,34 @@ class Test
 
         //// Normal
 
-        c[C.Foo(1), C.Foo(2)] += C.Foo(3);
+        c[C.Goo(1), C.Goo(2)] += C.Goo(3);
         System.Console.WriteLine();
 
         //// Named parameters
 
-        c[C.Foo(1), y: C.Foo(2)] += C.Foo(3);
+        c[C.Goo(1), y: C.Goo(2)] += C.Goo(3);
         System.Console.WriteLine();
 
-        c[x: C.Foo(1), y: C.Foo(2)] += C.Foo(3); //NB: dev10 gets this wrong (2,1,10,20,3,10,20,0,)
+        c[x: C.Goo(1), y: C.Goo(2)] += C.Goo(3); //NB: dev10 gets this wrong (2,1,10,20,3,10,20,0,)
         System.Console.WriteLine();
 
-        c[y: C.Foo(2), x: C.Foo(1)] += C.Foo(3);
+        c[y: C.Goo(2), x: C.Goo(1)] += C.Goo(3);
         System.Console.WriteLine();
 
         //// Optional parameters
 
-        c[C.Foo(1)] += C.Foo(3);
+        c[C.Goo(1)] += C.Goo(3);
         System.Console.WriteLine();
 
-        c[x: C.Foo(1)] += C.Foo(3);
+        c[x: C.Goo(1)] += C.Goo(3);
         System.Console.WriteLine();
 
         //// Parameter arrays
 
-        c[C.Foo(1), C.Foo(2), C.Foo(3)] += C.Foo(4);
+        c[C.Goo(1), C.Goo(2), C.Goo(3)] += C.Goo(4);
         System.Console.WriteLine();
 
-        c[new int[] { C.Foo(1), C.Foo(2), C.Foo(3) }] += C.Foo(4);
+        c[new int[] { C.Goo(1), C.Goo(2), C.Goo(3) }] += C.Goo(4);
         System.Console.WriteLine();
     }
 }
@@ -1078,7 +1078,7 @@ class Test
 
     static void Main()
     {
-        NewC()[y: C.Foo(1), x: NewC()[C.Foo(2)]] = NewC()[x: C.Foo(3), y: NewC()[C.Foo(4)]] += NewC()[C.Foo(5), C.Foo(6), NewC()[C.Foo(7)]]++;
+        NewC()[y: C.Goo(1), x: NewC()[C.Goo(2)]] = NewC()[x: C.Goo(3), y: NewC()[C.Goo(4)]] += NewC()[C.Goo(5), C.Goo(6), NewC()[C.Goo(7)]]++;
         System.Console.WriteLine();
     }
 }

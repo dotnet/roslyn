@@ -18,6 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
         private ImmutableArray<Cci.IFileReference> _lazyFiles;
 
+        private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
+
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
         ///   1) If the /out switch is specified, then the explicit assembly name is used.
@@ -57,9 +61,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _sourceAssembly;
 
-        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
         {
             return _additionalTypes;
+        }
+
+        internal override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
+        {
+            var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+
+            CreateEmbeddedAttributesIfNeeded(diagnostics);
+            if ((object)_lazyEmbeddedAttribute != null)
+            {
+                builder.Add(_lazyEmbeddedAttribute);
+            }
+
+            if ((object)_lazyIsReadOnlyAttribute != null)
+            {
+                builder.Add(_lazyIsReadOnlyAttribute);
+            }
+
+            if ((object)_lazyIsByRefLikeAttribute != null)
+            {
+                builder.Add(_lazyIsByRefLikeAttribute);
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         public sealed override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context)
@@ -132,6 +159,89 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public override string Name => _metadataName;
         public AssemblyIdentity Identity => _sourceAssembly.Identity;
         public Version AssemblyVersionPattern => _sourceAssembly.AssemblyVersionPattern;
+
+        internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
+        {
+            // _lazyEmbeddedAttribute should have been created before calling this method.
+            return new SynthesizedAttributeData(
+                _lazyEmbeddedAttribute.Constructor,
+                ImmutableArray<TypedConstant>.Empty,
+                ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+        }
+
+        protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
+        {
+            if ((object)_lazyIsReadOnlyAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyIsReadOnlyAttribute.Constructor,
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeIsReadOnlyAttribute();
+        }
+
+        protected override SynthesizedAttributeData TrySynthesizeIsByRefLikeAttribute()
+        {
+            if ((object)_lazyIsByRefLikeAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyIsByRefLikeAttribute.Constructor,
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeIsByRefLikeAttribute();
+        }
+
+        private void CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)
+        {
+            if (this.NeedsGeneratedIsReadOnlyAttribute)
+            {
+                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyIsReadOnlyAttribute,
+                    diagnostics,
+                    AttributeDescription.IsReadOnlyAttribute);
+            }
+
+            if (this.NeedsGeneratedIsByRefLikeAttribute)
+            {
+                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyIsByRefLikeAttribute,
+                    diagnostics,
+                    AttributeDescription.IsByRefLikeAttribute);
+            }
+        }
+
+        private void CreateEmbeddedAttributeItselfIfNeeded(DiagnosticBag diagnostics)
+        {
+            CreateEmbeddedAttributeIfNeeded(
+                ref _lazyEmbeddedAttribute,
+                diagnostics,
+                AttributeDescription.CodeAnalysisEmbeddedAttribute);
+        }
+
+        private void CreateEmbeddedAttributeIfNeeded(ref SynthesizedEmbeddedAttributeSymbol symbol, DiagnosticBag diagnostics, AttributeDescription description)
+        {
+            if ((object)symbol == null)
+            {
+                var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
+                var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+                Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+
+                if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
+                {
+                    diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
+                }
+
+                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, diagnostics);
+            }
+        }
     }
 
     internal sealed class PEAssemblyBuilder : PEAssemblyBuilderBase

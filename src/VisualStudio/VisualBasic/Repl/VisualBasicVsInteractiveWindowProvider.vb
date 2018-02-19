@@ -62,7 +62,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
                 Commands,
                 contentTypeRegistry,
                 Path.GetDirectoryName(GetType(VisualBasicVsInteractiveWindowPackage).Assembly.Location),
-                CommonVsUtils.GetWorkingDirectory())
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))
         End Function
 
         Protected Overrides ReadOnly Property InteractiveWindowFunctionId As FunctionId

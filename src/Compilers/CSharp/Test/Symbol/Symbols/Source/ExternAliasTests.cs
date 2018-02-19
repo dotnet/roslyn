@@ -13,53 +13,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ExternAliasTests : CSharpTestBase
     {
-        private static MetadataReference s_foo1;
-        public static MetadataReference Foo1
+        private static MetadataReference s_goo1;
+        public static MetadataReference Goo1
         {
             get
             {
-                if (s_foo1 == null)
+                if (s_goo1 == null)
                 {
                     var src =
         @"
 namespace NS
 {
-    public class Foo
+    public class Goo
     {
       public int M() { return 1; }
     }
 }
 ";
-                    var comp = CreateStandardCompilation(src, assemblyName: "Foo1", options: TestOptions.ReleaseDll);
-                    s_foo1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
+                    var comp = CreateStandardCompilation(src, assemblyName: "Goo1", options: TestOptions.ReleaseDll);
+                    s_goo1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
                 }
 
-                return s_foo1;
+                return s_goo1;
             }
         }
 
-        private static MetadataReference s_foo2;
-        public static MetadataReference Foo2
+        private static MetadataReference s_goo2;
+        public static MetadataReference Goo2
         {
             get
             {
-                if (s_foo2 == null)
+                if (s_goo2 == null)
                 {
                     var src =
         @"
 namespace NS
 {
-    public class Foo2
+    public class Goo2
     {
       public int M() { return 2; }
     }
 }
 ";
-                    var comp = CreateStandardCompilation(src, assemblyName: "Foo2", options: TestOptions.ReleaseDll);
-                    s_foo2 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
+                    var comp = CreateStandardCompilation(src, assemblyName: "Goo2", options: TestOptions.ReleaseDll);
+                    s_goo2 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
                 }
 
-                return s_foo2;
+                return s_goo2;
             }
         }
 
@@ -69,19 +69,19 @@ namespace NS
             var src =
 @"
 extern alias Bar;
-using MClass=Bar::NS.Foo2;
+using MClass=Bar::NS.Goo2;
 
 class Maine
 {
     public static void Main()
     {
         MClass c = new MClass();
-        Bar::NS.Foo d = new Bar::NS.Foo();
+        Bar::NS.Goo d = new Bar::NS.Goo();
     }
 }
 ";
             var comp = CreateStandardCompilation(src);
-            comp = comp.AddReferences(Foo1, Foo2);
+            comp = comp.AddReferences(Goo1, Goo2);
             comp.GetDiagnostics().Verify();
         }
 
@@ -91,10 +91,10 @@ class Maine
             var src =
 @"
 extern alias Bar;
-Bar::NS.Foo d = new Bar::NS.Foo();
+Bar::NS.Goo d = new Bar::NS.Goo();
 ";
             var comp = CreateCompilationWithMscorlib45(src, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication), parseOptions: TestOptions.Script);
-            comp = comp.AddReferences(Foo1, Foo2);
+            comp = comp.AddReferences(Goo1, Goo2);
             comp.VerifyDiagnostics();
         }
 
@@ -106,7 +106,7 @@ Bar::NS.Foo d = new Bar::NS.Foo();
             var comp = CSharpCompilation.CreateScriptCompilation(
                 GetUniqueName(),
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(src, options: TestOptions.Script),
-                references: new MetadataReference[] { MscorlibRef, ExternAliasTests.Foo1, ExternAliasTests.Foo2 });
+                references: new MetadataReference[] { MscorlibRef, ExternAliasTests.Goo1, ExternAliasTests.Goo2 });
 
             comp.VerifyDiagnostics(
                 // (1,1): error CS7015: 'extern alias' is not valid in this context
@@ -127,13 +127,13 @@ namespace NS
     {
         public static void Main()
         {
-            Bar::NS.Foo d = new Bar::NS.Foo();
+            Bar::NS.Goo d = new Bar::NS.Goo();
         }
     }
 }
 ";
             var comp = CreateStandardCompilation(src);
-            comp = comp.AddReferences(Foo1, Foo2);
+            comp = comp.AddReferences(Goo1, Goo2);
             comp.GetDiagnostics().Verify();
         }
 
@@ -153,7 +153,7 @@ class Maine
 }
 ";
             var comp = CreateStandardCompilation(src);
-            comp = comp.AddReferences(Foo1, Foo2);
+            comp = comp.AddReferences(Goo1, Goo2);
             comp.VerifyDiagnostics(
                 // (3,1): error CS1537: The using alias 'Bar' appeared previously in this namespace
                 // using Bar = System.Console;
@@ -181,7 +181,7 @@ class Maine
 }
 ";
             var comp = CreateStandardCompilation(src);
-            comp = comp.AddReferences(Foo1);
+            comp = comp.AddReferences(Goo1);
             comp.VerifyDiagnostics(
                 // (2,14): error CS0430: The extern alias 'bar' was not specified in a /reference option
                 // extern alias bar;
@@ -209,8 +209,8 @@ namespace NS
 ";
             var comp = CreateStandardCompilation(src, assemblyName: "Baz.dll", options: TestOptions.ReleaseDll);
             var outputMetadata = AssemblyMetadata.CreateFromImage(comp.EmitToArray());
-            var foo1 = outputMetadata.GetReference();
-            var foo1Alias = outputMetadata.GetReference(aliases: ImmutableArray.Create("Baz"));
+            var goo1 = outputMetadata.GetReference();
+            var goo1Alias = outputMetadata.GetReference(aliases: ImmutableArray.Create("Baz"));
 
             src =
         @"
@@ -223,8 +223,8 @@ namespace NS
 }
 ";
             comp = CreateStandardCompilation(src, assemblyName: "Bar.dll", options: TestOptions.ReleaseDll);
-            comp = comp.AddReferences(foo1);
-            var foo2 = MetadataReference.CreateFromImage(comp.EmitToArray());
+            comp = comp.AddReferences(goo1);
+            var goo2 = MetadataReference.CreateFromImage(comp.EmitToArray());
 
             src =
             @"
@@ -237,7 +237,7 @@ class Maine
 }
 ";
             comp = CreateStandardCompilation(src);
-            comp = comp.AddReferences(foo2, foo1Alias);
+            comp = comp.AddReferences(goo2, goo1Alias);
             comp.VerifyDiagnostics(
                 // (6,20): warning CS0219: The variable 'd' is assigned but its value is never used
                 //             NS.Bar d = null;
@@ -254,15 +254,15 @@ class Maine
 {
     public static void Main()
     {
-            NS.Foo d = null;    //shouldn't be able to see this type w/o qualification. it is in an extern alias.
+            NS.Goo d = null;    //shouldn't be able to see this type w/o qualification. it is in an extern alias.
     }
 }
 ";
             var comp = CreateStandardCompilation(src);
-            comp = comp.AddReferences(Foo1);
+            comp = comp.AddReferences(Goo1);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0246: The type or namespace name 'NS' could not be found (are you missing a using directive or an assembly reference?)
-                //             NS.Foo d = null;    //shouldn't be able to see this type w/o qualification. it is in an extern alias.
+                //             NS.Goo d = null;    //shouldn't be able to see this type w/o qualification. it is in an extern alias.
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NS").WithArguments("NS")
                 );
         }
@@ -283,7 +283,7 @@ class Maine
 }
 ";
             var comp = CreateStandardCompilation(src);
-            comp = comp.AddReferences(Foo1);
+            comp = comp.AddReferences(Goo1);
             comp.VerifyDiagnostics(
                 // (2,14): error CS1537: The using alias 'Bar' appeared previously in this namespace
                 // extern alias Bar;
@@ -310,7 +310,7 @@ namespace NS
 }
 ";
             var comp = CreateStandardCompilation(src, options: TestOptions.ReleaseDll);
-            var foo1Alias = comp.EmitToImageReference(aliases: ImmutableArray.Create("global"));
+            var goo1Alias = comp.EmitToImageReference(aliases: ImmutableArray.Create("global"));
 
             src =
             @"
@@ -324,7 +324,7 @@ class Maine
 }
 ";
             comp = CreateStandardCompilation(src);
-            comp = comp.AddReferences(foo1Alias);
+            comp = comp.AddReferences(goo1Alias);
             comp.VerifyDiagnostics(
                 // (2,14): error CS1681: You cannot redefine the global extern alias
                 // extern alias global;
@@ -340,12 +340,12 @@ class Maine
             var text =
 @"extern alias Bar;
 
-class A : Bar::NS.Foo {}
+class A : Bar::NS.Goo {}
 ";
             var tree = Parse(text);
             var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
             var comp = CreateStandardCompilation(tree);
-            comp = comp.AddReferences(Foo1);
+            comp = comp.AddReferences(Goo1);
 
             var model = comp.GetSemanticModel(tree);
 
@@ -377,7 +377,7 @@ class A : Bar::NS.Foo {}
         }
     }
 }";
-            var comp = CreateStandardCompilation(text).AddReferences(Foo1);
+            var comp = CreateStandardCompilation(text).AddReferences(Goo1);
             comp.VerifyDiagnostics(
                 // (3,5): info CS8020: Unused extern alias.
                 //     extern alias Bar;

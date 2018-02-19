@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             var comp = CreateCompilationWithMscorlib45(@"
 public partial class C
 {
-    static partial void foo() => System.Console.WriteLine(""test"");
+    static partial void goo() => System.Console.WriteLine(""test"");
 }
 
 public partial class C
 {
-    static partial void foo();
+    static partial void goo();
 }
 ");
             var tree = comp.SyntaxTrees[0];
@@ -39,20 +39,20 @@ public partial class C
                 .OfType<MethodDeclarationSyntax>()
                 .ElementAt(1);
 
-            var fooDef = model.GetDeclaredSymbol(node) as SourceOrdinaryMethodSymbol;
-            Assert.NotNull(fooDef);
-            Assert.True(fooDef.IsPartial);
-            Assert.True(fooDef.IsPartialDefinition);
-            Assert.False(fooDef.IsPartialImplementation);
-            Assert.Null(fooDef.PartialDefinitionPart);
+            var gooDef = model.GetDeclaredSymbol(node) as SourceOrdinaryMethodSymbol;
+            Assert.NotNull(gooDef);
+            Assert.True(gooDef.IsPartial);
+            Assert.True(gooDef.IsPartialDefinition);
+            Assert.False(gooDef.IsPartialImplementation);
+            Assert.Null(gooDef.PartialDefinitionPart);
 
-            var fooImpl = fooDef.PartialImplementationPart
+            var gooImpl = gooDef.PartialImplementationPart
                 as SourceOrdinaryMethodSymbol;
-            Assert.NotNull(fooImpl);
-            Assert.True(fooImpl.IsPartial);
-            Assert.True(fooImpl.IsPartialImplementation);
-            Assert.False(fooImpl.IsPartialDefinition);
-            Assert.True(fooImpl.IsExpressionBodied);
+            Assert.NotNull(gooImpl);
+            Assert.True(gooImpl.IsPartial);
+            Assert.True(gooImpl.IsPartialImplementation);
+            Assert.False(gooImpl.IsPartialDefinition);
+            Assert.True(gooImpl.IsExpressionBodied);
         }
 
         [Fact]
@@ -923,7 +923,7 @@ public class C
             var comp = CreateStandardCompilation(@"
 public class C
 {
-    void Foo()
+    void Goo()
     {
         int Bar() { return 0; } => 0;
     }

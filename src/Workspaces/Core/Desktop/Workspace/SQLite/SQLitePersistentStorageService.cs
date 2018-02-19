@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -12,6 +13,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 {
     internal partial class SQLitePersistentStorageService : AbstractPersistentStorageService
     {
+        private const string LockFile = "db.lock";
         private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
 
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
         }
 
-        public SQLitePersistentStorageService(IOptionService optionService, IPersistentStorageFaultInjector faultInjector) 
+        public SQLitePersistentStorageService(IOptionService optionService, IPersistentStorageFaultInjector faultInjector)
             : base(optionService, testing: true)
         {
             _faultInjectorOpt = faultInjector;
@@ -36,9 +38,47 @@ namespace Microsoft.CodeAnalysis.SQLite
             return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
         }
 
-        protected override AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath)
-            => new SQLitePersistentStorage(
-                OptionService, workingFolderPath, solution.FilePath, databaseFilePath, this.Release, _faultInjectorOpt);
+        protected override bool TryOpenDatabase(
+            Solution solution, string workingFolderPath, string databaseFilePath, out AbstractPersistentStorage storage)
+        {
+            storage = null;
+
+            // try to get db ownership lock. if someone else already has the lock. it will throw
+            var dbOwnershipLock = TryGetDatabaseOwnership(databaseFilePath);
+            if (dbOwnershipLock == null)
+            {
+                return false;
+            }
+
+            storage = new SQLitePersistentStorage(
+                OptionService, workingFolderPath, solution.FilePath, databaseFilePath, this.Release, dbOwnershipLock, _faultInjectorOpt);
+
+            return true;
+        }
+
+        private static IDisposable TryGetDatabaseOwnership(string databaseFilePath)
+        {
+            return IOUtilities.PerformIO<IDisposable>(() =>
+            {
+                // make sure directory exist first.
+                EnsureDirectory(databaseFilePath);
+
+                return File.Open(
+                    Path.Combine(Path.GetDirectoryName(databaseFilePath), LockFile),
+                    FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            });
+        }
+
+        private static void EnsureDirectory(string databaseFilePath)
+        {
+            var directory = Path.GetDirectoryName(databaseFilePath);
+            if (Directory.Exists(directory))
+            {
+                return;
+            }
+
+            Directory.CreateDirectory(directory);
+        }
 
         protected override bool ShouldDeleteDatabase(Exception exception)
         {

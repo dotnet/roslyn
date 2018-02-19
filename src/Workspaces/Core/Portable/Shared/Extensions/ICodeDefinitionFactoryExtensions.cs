@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     : factory.CreateArguments(constructor.Parameters));
         }
 
-        public static IEnumerable<ISymbol> CreateFieldDelegatingConstructor(
+        public static (ImmutableArray<ISymbol> fields, ISymbol constructor) CreateFieldDelegatingConstructor(
             this SyntaxGenerator factory,
             Compilation compilation,
             string typeName,
@@ -81,19 +81,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 addNullChecks, preferThrowExpression).SelectAsArray(
                     s => s.WithAdditionalAnnotations(Simplifier.Annotation));
 
-            foreach (var field in fields)
-            {
-                yield return field;
-            }
-
-            yield return CodeGenerationSymbolFactory.CreateConstructorSymbol(
+            var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
-                accessibility: Accessibility.Public,
+                accessibility: containingTypeOpt.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 typeName: typeName,
                 parameters: parameters,
                 statements: statements,
                 thisConstructorArguments: GetThisConstructorArguments(containingTypeOpt, parameterToExistingFieldMap));
+
+            return (ImmutableArray<ISymbol>.CastUp(fields), constructor);
         }
 
         private static ImmutableArray<SyntaxNode> GetThisConstructorArguments(
@@ -122,11 +119,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return default;
         }
 
-        public static IEnumerable<IFieldSymbol> CreateFieldsForParameters(
+        public static ImmutableArray<IFieldSymbol> CreateFieldsForParameters(
             this SyntaxGenerator factory,
             IList<IParameterSymbol> parameters,
             IDictionary<string, string> parameterToNewFieldMap)
         {
+            var result = ArrayBuilder<IFieldSymbol>.GetInstance();
             foreach (var parameter in parameters)
             {
                 var refKind = parameter.RefKind;
@@ -139,15 +137,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     // TODO: I'm not sure that's what we really want for ref parameters. 
                     if (TryGetValue(parameterToNewFieldMap, parameterName, out var fieldName))
                     {
-                        yield return CodeGenerationSymbolFactory.CreateFieldSymbol(
+                        result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
                             attributes: default,
                             accessibility: Accessibility.Private,
                             modifiers: default,
                             type: parameterType,
-                            name: parameterToNewFieldMap[parameterName]);
+                            name: parameterToNewFieldMap[parameterName]));
                     }
                 }
             }
+
+            return result.ToImmutableAndFree();
         }
 
         private static bool TryGetValue(IDictionary<string, string> dictionary, string key, out string value)

@@ -72,8 +72,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                     // The parent of a cell is of DataItem control type, which support SelectionItemPattern.
                     TreeWalker walker = TreeWalker.ControlViewWalker;
                     var parent = walker.GetParent(item);
-                    object pattern;
-                    if (parent.TryGetCurrentPattern(SelectionItemPattern.Pattern, out pattern))
+                    if (parent.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var pattern))
                     {
                         (pattern as SelectionItemPattern).Select();
                     }

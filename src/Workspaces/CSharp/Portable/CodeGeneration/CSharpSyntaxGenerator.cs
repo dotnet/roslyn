@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode AsUsingDirective(SyntaxNode node)
         {
-            var name = node as NameSyntax;
-            if (name != null)
+            if (node is NameSyntax name)
             {
                 return this.NamespaceImportDeclaration(name);
             }
@@ -121,17 +120,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null);
         }
 
-        private static SyntaxTokenList GetParameterModifiers(RefKind refKind)
+        internal static SyntaxTokenList GetParameterModifiers(RefKind refKind)
         {
             switch (refKind)
             {
                 case RefKind.None:
-                default:
-                    return default;
+                    return new SyntaxTokenList();
                 case RefKind.Out:
                     return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword));
                 case RefKind.Ref:
                     return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword));
+                case RefKind.In:
+                    return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword));
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
+            }
+        }
+
+        internal static SyntaxToken GetArgumentModifiers(RefKind refKind)
+        {
+            switch (refKind)
+            {
+                case RefKind.None:
+                case RefKind.In:
+                    return default;
+                case RefKind.Out:
+                    return SyntaxFactory.Token(SyntaxKind.OutKeyword);
+                case RefKind.Ref:
+                    return SyntaxFactory.Token(SyntaxKind.RefKeyword);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
             }
         }
 
@@ -475,6 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // C# interface implementations are implicit/not-specified -- so they are just named the name as the interface member
             return PreserveTrivia(declaration, d =>
             {
+                d = WithInterfaceSpecifier(d, null);
                 d = this.AsImplementation(d, Accessibility.Public);
 
                 if (interfaceMemberName != null)
@@ -482,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     d = this.WithName(d, interfaceMemberName);
                 }
 
-                return WithInterfaceSpecifier(d, null);
+                return d;
             });
         }
 
@@ -858,14 +877,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static AttributeArgumentSyntax AsAttributeArgument(SyntaxNode node)
         {
-            var expr = node as ExpressionSyntax;
-            if (expr != null)
+            if (node is ExpressionSyntax expr)
             {
                 return SyntaxFactory.AttributeArgument(expr);
             }
 
-            var arg = node as ArgumentSyntax;
-            if (arg != null && arg.Expression != null)
+            if (node is ArgumentSyntax arg && arg.Expression != null)
             {
                 return SyntaxFactory.AttributeArgument(default, arg.NameColon, arg.Expression);
             }
@@ -900,8 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static AttributeListSyntax AsAttributeList(SyntaxNode node)
         {
-            var attr = node as AttributeSyntax;
-            if (attr != null)
+            if (node is AttributeSyntax attr)
             {
                 return SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attr));
             }
@@ -1408,7 +1424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private bool CanHaveAccessibility(SyntaxNode declaration)
+        internal override bool CanHaveAccessibility(SyntaxNode declaration)
         {
             switch (declaration.Kind())
             {
@@ -1417,27 +1433,50 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.DelegateDeclaration:
-                case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.FieldDeclaration:
-                case SyntaxKind.PropertyDeclaration:
-                case SyntaxKind.IndexerDeclaration:
                 case SyntaxKind.EventFieldDeclaration:
-                case SyntaxKind.EventDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                     return true;
+
                 case SyntaxKind.VariableDeclaration:
                 case SyntaxKind.VariableDeclarator:
-                    return this.GetDeclarationKind(declaration) == DeclarationKind.Field;
-                case SyntaxKind.EnumMemberDeclaration:
-                case SyntaxKind.Parameter:
-                case SyntaxKind.LocalDeclarationStatement:
-                case SyntaxKind.DestructorDeclaration:
+                    var declarationKind = this.GetDeclarationKind(declaration);
+                    return declarationKind == DeclarationKind.Field || declarationKind == DeclarationKind.Event;
+
+                case SyntaxKind.ConstructorDeclaration:
+                    // Static constructor can't have accessibility
+                    return !((ConstructorDeclarationSyntax)declaration).Modifiers.Any(SyntaxKind.StaticKeyword);
+
+                case SyntaxKind.PropertyDeclaration:
+                    return ((PropertyDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
+
+                case SyntaxKind.IndexerDeclaration:
+                    return ((IndexerDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
+
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)declaration;
+                    if (method.ExplicitInterfaceSpecifier != null)
+                    {
+                        // explicit interface methods can't have accessibility.
+                        return false;
+                    }
+
+                    if (method.Modifiers.Any(SyntaxKind.PartialKeyword))
+                    {
+                        // partial methods can't have accessibility modifiers.
+                        return false;
+                    }
+
+                    return true;
+
+                case SyntaxKind.EventDeclaration:
+                    return ((EventDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
+
                 default:
                     return false;
             }
@@ -1457,7 +1496,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode WithAccessibility(SyntaxNode declaration, Accessibility accessibility)
         {
-            if (!this.CanHaveAccessibility(declaration))
+            if (!this.CanHaveAccessibility(declaration) &&
+                accessibility != Accessibility.NotApplicable)
             {
                 return declaration;
             }
@@ -1465,7 +1505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return this.Isolate(declaration, d =>
             {
                 var tokens = GetModifierTokens(d);
-                GetAccessibilityAndModifiers(tokens, out var tmp, out var modifiers);
+                GetAccessibilityAndModifiers(tokens, out _, out var modifiers);
                 var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
                 return SetModifierTokens(d, newTokens);
             });
@@ -1704,6 +1744,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     list = list.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword))
                                .Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
                     break;
+                case Accessibility.ProtectedAndInternal:
+                    list = list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
+                               .Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+                    break;
                 case Accessibility.NotApplicable:
                     break;
             }
@@ -1758,10 +1802,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 list = list.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
             }
 
-            // partial must be last
+            // partial and ref must be last
             if (modifiers.IsPartial)
             {
                 list = list.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
+            }
+
+            if (modifiers.IsRef)
+            {
+                list = list.Add(SyntaxFactory.Token(SyntaxKind.RefKeyword));
             }
 
             return list;
@@ -1781,7 +1830,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         break;
 
                     case SyntaxKind.PrivateKeyword:
-                        accessibility = Accessibility.Private;
+                        if (accessibility == Accessibility.Protected)
+                        {
+                            accessibility = Accessibility.ProtectedAndInternal;
+                        }
+                        else
+                        {
+                            accessibility = Accessibility.Private;
+                        }
                         break;
 
                     case SyntaxKind.InternalKeyword:
@@ -1797,11 +1853,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         break;
 
                     case SyntaxKind.ProtectedKeyword:
-                        if (accessibility == Accessibility.Internal)
+                        if (accessibility == Accessibility.Private)
+                        {
+                            accessibility = Accessibility.ProtectedAndInternal;
+                        }
+                        else if (accessibility == Accessibility.Internal)
                         {
                             accessibility = Accessibility.ProtectedOrInternal;
                         }
-                        else
+
                         {
                             accessibility = Accessibility.Protected;
                         }
@@ -1850,6 +1910,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                     case SyntaxKind.PartialKeyword:
                         modifiers = modifiers | DeclarationModifiers.Partial;
+                        break;
+
+                    case SyntaxKind.RefKeyword:
+                        modifiers = modifiers | DeclarationModifiers.Ref;
                         break;
                 }
             }
@@ -2585,7 +2649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private static BaseParameterListSyntax GetParameterList(SyntaxNode declaration)
+        internal static BaseParameterListSyntax GetParameterList(SyntaxNode declaration)
         {
             switch (declaration.Kind())
             {
@@ -3122,9 +3186,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        #endregion
+#endregion
 
-        #region Remove, Replace, Insert
+#region Remove, Replace, Insert
 
         public override SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode declaration, SyntaxNode newDeclaration)
         {
@@ -3352,7 +3416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.FieldDeclaration:
                     return ((FieldDeclarationSyntax)declaration).Declaration.Variables;
                 case SyntaxKind.EventFieldDeclaration:
-                    return ((FieldDeclarationSyntax)declaration).Declaration.Variables;
+                    return ((EventFieldDeclarationSyntax)declaration).Declaration.Variables;
                 case SyntaxKind.LocalDeclarationStatement:
                     return ((LocalDeclarationStatementSyntax)declaration).Declaration.Variables;
                 case SyntaxKind.VariableDeclaration:
@@ -3461,9 +3525,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override bool IsRegularOrDocComment(SyntaxTrivia trivia)
             => trivia.IsRegularOrDocComment();
 
-        #endregion
+#endregion
 
-        #region Statements and Expressions
+#region Statements and Expressions
 
         public override SyntaxNode AddEventHandler(SyntaxNode @event, SyntaxNode handler)
         {
@@ -3533,8 +3597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static StatementSyntax AsStatement(SyntaxNode node)
         {
-            var expression = node as ExpressionSyntax;
-            if (expression != null)
+            if (node is ExpressionSyntax expression)
             {
                 return SyntaxFactory.ExpressionStatement(expression);
             }
@@ -3970,8 +4033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.Argument(
                 nameOpt == null ? null : SyntaxFactory.NameColon(nameOpt),
-                refKind == RefKind.Ref ? SyntaxFactory.Token(SyntaxKind.RefKeyword) :
-                refKind == RefKind.Out ? SyntaxFactory.Token(SyntaxKind.OutKeyword) : default,
+                GetArgumentModifiers(refKind),
                 (ExpressionSyntax)expression);
         }
 
@@ -4152,6 +4214,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AsArgument)));
 
-        #endregion
+#endregion
     }
 }

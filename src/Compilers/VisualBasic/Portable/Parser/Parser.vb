@@ -2253,10 +2253,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Else
                         typeName = ParseTypeName()
 
-                        If typeName.Kind = SyntaxKind.TupleType Then
-                            typeName = ReportSyntaxError(typeName, ERRID.ERR_NewWithTupleTypeSyntax)
-                        End If
-
                         If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
                             ' New <Type> ( <Arguments> )
                             newArguments = ParseParenthesizedArguments()
@@ -4200,7 +4196,7 @@ checkNullable:
                 End If
             End If
 
-            ' ===== Parse the property's type (e.g. Property Foo(params) AS type )
+            ' ===== Parse the property's type (e.g. Property Goo(params) AS type )
 
             Dim asClause As AsClauseSyntax = Nothing
             Dim initializer As EqualsValueSyntax = Nothing
@@ -5583,7 +5579,7 @@ checkNullable:
                         typeName = ResyncAt(typeName, SyntaxKind.GreaterThanToken)
 
                     ElseIf CurrentToken.Kind = SyntaxKind.OpenParenToken Then
-                        arguments = ParseParenthesizedArguments()
+                        arguments = ParseParenthesizedArguments(attributeListParent:=True)
                     End If
 
                     Dim attribute As AttributeSyntax = SyntaxFactory.Attribute(optionalTarget, typeName, arguments)

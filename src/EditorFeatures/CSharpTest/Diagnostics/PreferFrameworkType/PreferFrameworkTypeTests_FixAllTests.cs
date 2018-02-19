@@ -115,7 +115,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: _fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: _fixAllActionId);
         }
 
         [Fact]
@@ -223,7 +223,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: _fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: _fixAllActionId);
         }
 
         [Fact]
@@ -331,7 +331,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: _fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: _fixAllActionId);
         }
 
         [Fact]
@@ -474,7 +474,7 @@ class ProgramA3
         </Document>
     </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: _fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: _fixAllActionId);
         }
     }
 }

@@ -322,6 +322,7 @@ namespace Microsoft.CodeAnalysis.Host
 ", new TestParameters(options: InterfaceNamesStartWithI));
         }
         
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(16562, "https://github.com/dotnet/roslyn/issues/16562")]
         public async Task TestRefactorNotify()
         {

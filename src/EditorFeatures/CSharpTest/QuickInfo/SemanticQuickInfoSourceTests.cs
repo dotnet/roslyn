@@ -37,12 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             var documentId = workspace.GetDocumentId(testDocument);
             var document = workspace.CurrentSolution.GetDocument(documentId);
 
-            var provider = new SemanticQuickInfoProvider(
-                workspace.GetService<IProjectionBufferFactoryService>(),
-                workspace.GetService<IEditorOptionsFactoryService>(),
-                workspace.GetService<ITextEditorFactoryService>(),
-                workspace.GetService<IGlyphService>(),
-                workspace.GetService<ClassificationTypeMap>());
+            var provider = new SemanticQuickInfoProvider();
 
             await TestWithOptionsAsync(document, provider, position, expectedResults);
 
@@ -101,12 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
 
-                var provider = new SemanticQuickInfoProvider(
-                        workspace.GetService<IProjectionBufferFactoryService>(),
-                        workspace.GetService<IEditorOptionsFactoryService>(),
-                        workspace.GetService<ITextEditorFactoryService>(),
-                        workspace.GetService<IGlyphService>(),
-                        workspace.GetService<ClassificationTypeMap>());
+                var provider = new SemanticQuickInfoProvider();
 
                 var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
                 if (state != null)
@@ -256,12 +246,7 @@ using System.Linq;
                 var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
 
-                var provider = new SemanticQuickInfoProvider(
-                        workspace.GetService<IProjectionBufferFactoryService>(),
-                        workspace.GetService<IEditorOptionsFactoryService>(),
-                        workspace.GetService<ITextEditorFactoryService>(),
-                        workspace.GetService<IGlyphService>(),
-                        workspace.GetService<ClassificationTypeMap>());
+                var provider = new SemanticQuickInfoProvider();
 
                 var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
                 if (state != null)
@@ -319,7 +304,7 @@ using System.Linq;
         public async Task TestNamespaceInUsingDirectiveWithAlias()
         {
             await TestAsync(
-@"using Foo = Sys$$tem.Console;",
+@"using Goo = Sys$$tem.Console;",
                 MainDescription("namespace System"));
         }
 
@@ -327,7 +312,7 @@ using System.Linq;
         public async Task TestTypeInUsingDirectiveWithAlias()
         {
             await TestAsync(
-@"using Foo = System.Con$$sole;",
+@"using Goo = System.Con$$sole;",
                 MainDescription("class System.Console"));
         }
 
@@ -336,13 +321,13 @@ using System.Linq;
         public async Task TestDocumentationInUsingDirectiveWithAlias()
         {
             var markup =
-@"using I$$ = IFoo;
-///<summary>summary for interface IFoo</summary>
-interface IFoo {  }";
+@"using I$$ = IGoo;
+///<summary>summary for interface IGoo</summary>
+interface IGoo {  }";
 
             await TestAsync(markup,
-                MainDescription("interface IFoo"),
-                Documentation("summary for interface IFoo"));
+                MainDescription("interface IGoo"),
+                Documentation("summary for interface IGoo"));
         }
 
         [WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
@@ -350,14 +335,14 @@ interface IFoo {  }";
         public async Task TestDocumentationInUsingDirectiveWithAlias2()
         {
             var markup =
-@"using I = IFoo;
-///<summary>summary for interface IFoo</summary>
-interface IFoo {  }
+@"using I = IGoo;
+///<summary>summary for interface IGoo</summary>
+interface IGoo {  }
 class C : I$$ { }";
 
             await TestAsync(markup,
-                MainDescription("interface IFoo"),
-                Documentation("summary for interface IFoo"));
+                MainDescription("interface IGoo"),
+                Documentation("summary for interface IGoo"));
         }
 
         [WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
@@ -365,17 +350,17 @@ class C : I$$ { }";
         public async Task TestDocumentationInUsingDirectiveWithAlias3()
         {
             var markup =
-@"using I = IFoo;
-///<summary>summary for interface IFoo</summary>
-interface IFoo 
+@"using I = IGoo;
+///<summary>summary for interface IGoo</summary>
+interface IGoo 
 {  
-    void Foo();
+    void Goo();
 }
 class C : I$$ { }";
 
             await TestAsync(markup,
-                MainDescription("interface IFoo"),
-                Documentation("summary for interface IFoo"));
+                MainDescription("interface IGoo"),
+                Documentation("summary for interface IGoo"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1469,7 +1454,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestStringLiteral()
         {
-            await TestInMethodAsync(@"string f = ""Foo""$$",
+            await TestInMethodAsync(@"string f = ""Goo""$$",
                 MainDescription("class System.String"));
         }
 
@@ -1525,7 +1510,7 @@ class C
 
 void M()
 {
-    d$$yn.Foo();
+    d$$yn.Goo();
 }",
                 MainDescription($"({FeaturesResources.field}) dynamic C.dyn"));
         }
@@ -1642,7 +1627,7 @@ class D
 {
     set
     {
-        foo = val$$ue;
+        goo = val$$ue;
     }
 }",
                 MainDescription($"({FeaturesResources.parameter}) DateTime value"));
@@ -1886,7 +1871,7 @@ void Method(int i = 0)
         public async Task Method_OptionalDecimalParameter()
         {
             await TestInClassAsync(
-@"void Foo(decimal x$$yz = 10)
+@"void Goo(decimal x$$yz = 10)
 {
 }",
                 MainDescription($"({FeaturesResources.parameter}) decimal xyz = 10"));
@@ -1898,46 +1883,46 @@ void Method(int i = 0)
             // Generic method don't get the instantiation info yet.  NOTE: We don't display
             // constraint info in Dev10. Should we?
             await TestInClassAsync(
-@"TOut Foo<TIn, TOut>(TIn arg) where TIn : IEquatable<TIn>
+@"TOut Goo<TIn, TOut>(TIn arg) where TIn : IEquatable<TIn>
 {
-    Fo$$o<int, DateTime>(37);
+    Go$$o<int, DateTime>(37);
 }",
 
-            MainDescription("DateTime C.Foo<int, DateTime>(int arg)"));
+            MainDescription("DateTime C.Goo<int, DateTime>(int arg)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_UnconstructedGeneric()
         {
             await TestInClassAsync(
-@"TOut Foo<TIn, TOut>(TIn arg)
+@"TOut Goo<TIn, TOut>(TIn arg)
 {
-    Fo$$o<TIn, TOut>(default(TIn);
+    Go$$o<TIn, TOut>(default(TIn);
 }",
 
-                MainDescription("TOut C.Foo<TIn, TOut>(TIn arg)"));
+                MainDescription("TOut C.Goo<TIn, TOut>(TIn arg)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_Inferred()
         {
             await TestInClassAsync(
-@"void Foo<TIn>(TIn arg)
+@"void Goo<TIn>(TIn arg)
 {
-    Fo$$o(42);
+    Go$$o(42);
 }",
-                MainDescription("void C.Foo<int>(int arg)"));
+                MainDescription("void C.Goo<int>(int arg)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_MultipleParams()
         {
             await TestInClassAsync(
-@"void Foo(DateTime dt, System.IO.FileInfo fi, int number)
+@"void Goo(DateTime dt, System.IO.FileInfo fi, int number)
 {
-    Fo$$o(DateTime.Now, null, 32);
+    Go$$o(DateTime.Now, null, 32);
 }",
-                MainDescription("void C.Foo(DateTime dt, System.IO.FileInfo fi, int number)"));
+                MainDescription("void C.Goo(DateTime dt, System.IO.FileInfo fi, int number)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1945,11 +1930,11 @@ void Method(int i = 0)
         {
             // NOTE - Default values aren't actually returned by symbols yet.
             await TestInClassAsync(
-@"void Foo(int num = 42)
+@"void Goo(int num = 42)
 {
-    Fo$$o();
+    Go$$o();
 }",
-                MainDescription("void C.Foo([int num = 42])"));
+                MainDescription("void C.Goo([int num = 42])"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1957,11 +1942,11 @@ void Method(int i = 0)
         {
             // NOTE - Default values aren't actually returned by symbols yet.
             await TestInClassAsync(
-@"void Foo(ref DateTime dt, out System.IO.FileInfo fi, params int[] numbers)
+@"void Goo(ref DateTime dt, out System.IO.FileInfo fi, params int[] numbers)
 {
-    Fo$$o(DateTime.Now, null, 32);
+    Go$$o(DateTime.Now, null, 32);
 }",
-                MainDescription("void C.Foo(ref DateTime dt, out System.IO.FileInfo fi, params int[] numbers)"));
+                MainDescription("void C.Goo(ref DateTime dt, out System.IO.FileInfo fi, params int[] numbers)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2022,7 +2007,7 @@ void M()
             await TestInvalidTypeInClassAsync(
 @"void M()
 {
-    new F$$oo();
+    new G$$oo();
 }");
         }
 
@@ -2112,11 +2097,11 @@ void M(C left, C right)
         public async Task GenericMethodWithConstraintsAtDeclaration()
         {
             await TestInClassAsync(
-@"TOut F$$oo<TIn, TOut>(TIn arg) where TIn : IEquatable<TIn>
+@"TOut G$$oo<TIn, TOut>(TIn arg) where TIn : IEquatable<TIn>
 {
 }",
 
-            MainDescription("TOut C.Foo<TIn, TOut>(TIn arg) where TIn : IEquatable<TIn>"));
+            MainDescription("TOut C.Goo<TIn, TOut>(TIn arg) where TIn : IEquatable<TIn>"));
         }
 
 #pragma warning disable CA2243 // Attribute string literals should parse correctly
@@ -2126,12 +2111,12 @@ void M(C left, C right)
         public async Task GenericMethodWithMultipleConstraintsAtDeclaration()
         {
             await TestInClassAsync(
-@"TOut Foo<TIn, TOut>(TIn arg) where TIn : Employee, new()
+@"TOut Goo<TIn, TOut>(TIn arg) where TIn : Employee, new()
 {
-    Fo$$o<TIn, TOut>(default(TIn);
+    Go$$o<TIn, TOut>(default(TIn);
 }",
 
-            MainDescription("TOut C.Foo<TIn, TOut>(TIn arg) where TIn : Employee, new()"));
+            MainDescription("TOut C.Goo<TIn, TOut>(TIn arg) where TIn : Employee, new()"));
         }
 
 #pragma warning disable CA2243 // Attribute string literals should parse correctly
@@ -2141,12 +2126,12 @@ void M(C left, C right)
         public async Task UnConstructedGenericMethodWithConstraintsAtInvocation()
         {
             await TestInClassAsync(
-@"TOut Foo<TIn, TOut>(TIn arg) where TIn : Employee
+@"TOut Goo<TIn, TOut>(TIn arg) where TIn : Employee
 {
-    Fo$$o<TIn, TOut>(default(TIn);
+    Go$$o<TIn, TOut>(default(TIn);
 }",
 
-            MainDescription("TOut C.Foo<TIn, TOut>(TIn arg) where TIn : Employee"));
+            MainDescription("TOut C.Goo<TIn, TOut>(TIn arg) where TIn : Employee"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2518,16 +2503,16 @@ internal class A<T>
         public async Task TestErrorType()
         {
             await TestAsync(
-@"using Foo = Foo;
+@"using Goo = Goo;
 
 class C
 {
     void Main()
     {
-        $$Foo
+        $$Goo
     }
 }",
-                MainDescription("Foo"));
+                MainDescription("Goo"));
         }
 
         [WorkItem(16662, "https://github.com/dotnet/roslyn/issues/16662")]
@@ -3147,11 +3132,11 @@ class SomeAttribute : Attribute
             await TestInClassAsync(
 @"void M()
 {
-Foo:
-    int Foo;
-    goto Foo$$;
+Goo:
+    int Goo;
+    goto Goo$$;
 }",
-                MainDescription($"({FeaturesResources.label}) Foo"));
+                MainDescription($"({FeaturesResources.label}) Goo"));
         }
 
         [WorkItem(542613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542613")]
@@ -3477,8 +3462,8 @@ class B
         public async Task TestErrorType1()
         {
             await TestInMethodAsync(
-@"var $$v1 = new Foo();",
-                MainDescription($"({FeaturesResources.local_variable}) Foo v1"));
+@"var $$v1 = new Goo();",
+                MainDescription($"({FeaturesResources.local_variable}) Goo v1"));
         }
 
         [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
@@ -3495,8 +3480,8 @@ class B
         public async Task TestErrorType3()
         {
             await TestInMethodAsync(
-@"var $$v1 = new Foo<Bar>();",
-                MainDescription($"({FeaturesResources.local_variable}) Foo<Bar> v1"));
+@"var $$v1 = new Goo<Bar>();",
+                MainDescription($"({FeaturesResources.local_variable}) Goo<Bar> v1"));
         }
 
         [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
@@ -3520,8 +3505,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorType6()
         {
-            await TestInMethodAsync("var $$v1 = new Foo[1]",
-                MainDescription($"({FeaturesResources.local_variable}) Foo[] v1"));
+            await TestInMethodAsync("var $$v1 = new Goo[1]",
+                MainDescription($"({FeaturesResources.local_variable}) Goo[] v1"));
         }
 
         [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
@@ -3535,7 +3520,7 @@ class B
     {
     }
 
-    void Foo()
+    void Goo()
     {
         var $$v1 = MethodGroup;
     }
@@ -3567,11 +3552,11 @@ class B
             await TestAsync(
 @"class C
 {
-    unsafe void $$Foo(int* x = null)
+    unsafe void $$Goo(int* x = null)
     {
     }
 }",
-                MainDescription("void C.Foo([int* x = null])"));
+                MainDescription("void C.Goo([int* x = null])"));
         }
 
         [WorkItem(545098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545098")]
@@ -3642,7 +3627,7 @@ class B
 
     void Main()
     {
-        Foo($$a);
+        Goo($$a);
     }
 }",
                 MainDescription($"({FeaturesResources.constant}) int Program.a = true - false"));
@@ -3789,7 +3774,7 @@ End Class";
         None
     }
 
-    void Foo()
+    void Goo()
     {
         var b = $$SortOrder.Ascending;
     }
@@ -3815,16 +3800,16 @@ class C<T>
             var markup = @"using System.Threading.Tasks;
 class C
 {
-    async Task Foo()
+    async Task Goo()
     {
-        Fo$$o();
+        Go$$o();
     }
 }";
-            var description = $"({CSharpFeaturesResources.awaitable}) Task C.Foo()";
+            var description = $"({CSharpFeaturesResources.awaitable}) Task C.Goo()";
 
             var documentation = $@"
 {WorkspacesResources.Usage_colon}
-  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Foo();";
+  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Goo();";
 
             await VerifyWithMscorlib45Async(markup, new[] { MainDescription(description), Usage(documentation) });
         }
@@ -3838,12 +3823,12 @@ using System;
 class Program
 {
     [Obsolete]
-    public void foo()
+    public void goo()
     {
-        fo$$o();
+        go$$o();
     }
 }";
-            await TestAsync(markup, MainDescription($"[{CSharpFeaturesResources.deprecated}] void Program.foo()"));
+            await TestAsync(markup, MainDescription($"[{CSharpFeaturesResources.deprecated}] void Program.goo()"));
         }
 
         [WorkItem(751070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751070")]
@@ -3872,11 +3857,11 @@ public class Test
         {
             await TestAsync(
 @"/// <summary>
-///foo
+///goo
 /// </summary>
 class C$$
 {
-}", Documentation("foo"));
+}", Documentation("goo"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -3884,12 +3869,12 @@ class C$$
         {
             await TestAsync(
 @"/// <summary>
-/// foo
+/// goo
 /// bar
 /// </summary>
 class C$$
 {
-}", Documentation("foo bar"));
+}", Documentation("goo bar"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -3924,11 +3909,11 @@ class C$$
         {
             await TestAsync(
 @"/// <summary>
-/// <para>foo</para>
+/// <para>goo</para>
 /// </summary>
 class C$$
 {
-}", Documentation("foo"));
+}", Documentation("goo"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -3936,7 +3921,7 @@ class C$$
         {
             var referenced = @"
 /// <summary>
-///foo
+///goo
 /// </summary>
 public class C
 {
@@ -3945,12 +3930,12 @@ public class C
             var code = @"
 class G
 {
-    void foo()
+    void goo()
     {
         C$$ c;
     }
 }";
-            await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("foo"));
+            await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("goo"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -3958,7 +3943,7 @@ class G
         {
             var referenced = @"
 /// <summary>
-/// foo
+/// goo
 /// bar
 /// </summary>
 public class C
@@ -3968,12 +3953,12 @@ public class C
             var code = @"
 class G
 {
-    void foo()
+    void goo()
     {
         C$$ c;
     }
 }";
-            await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("foo bar"));
+            await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("goo bar"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -3982,7 +3967,7 @@ class G
             var code = @"
 class G
 {
-    void foo()
+    void goo()
     {
         C$$ c;
     }
@@ -4004,7 +3989,7 @@ public class C
             var code = @"
 class G
 {
-    void foo()
+    void goo()
     {
         C$$ c;
     }
@@ -4029,13 +4014,13 @@ public class C
 @"/// <summary></summary>
 public class C
 {
-    /// <typeparam name=""T"">A type parameter of <see cref=""foo{ T} (string[], T)""/></typeparam>
-    /// <param name=""args"">First parameter of <see cref=""Foo{T} (string[], T)""/></param>
-    /// <param name=""otherParam"">Another parameter of <see cref=""Foo{T}(string[], T)""/></param>
-    public void Foo<T>(string[] arg$$s, T otherParam)
+    /// <typeparam name=""T"">A type parameter of <see cref=""goo{ T} (string[], T)""/></typeparam>
+    /// <param name=""args"">First parameter of <see cref=""Goo{T} (string[], T)""/></param>
+    /// <param name=""otherParam"">Another parameter of <see cref=""Goo{T}(string[], T)""/></param>
+    public void Goo<T>(string[] arg$$s, T otherParam)
     {
     }
-}", Documentation("First parameter of C.Foo<T>(string[], T)"));
+}", Documentation("First parameter of C.Goo<T>(string[], T)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4044,24 +4029,24 @@ public class C
             var code = @"
 class G
 {
-    void foo()
+    void goo()
     {
         C c;
-        c.Foo<int>(arg$$s: new string[] { }, 1);
+        c.Goo<int>(arg$$s: new string[] { }, 1);
     }
 }";
             var referenced = @"
 /// <summary></summary>
 public class C
 {
-    /// <typeparam name=""T"">A type parameter of <see cref=""foo{ T} (string[], T)""/></typeparam>
-    /// <param name=""args"">First parameter of <see cref=""Foo{T} (string[], T)""/></param>
-    /// <param name=""otherParam"">Another parameter of <see cref=""Foo{T}(string[], T)""/></param>
-    public void Foo<T>(string[] args, T otherParam)
+    /// <typeparam name=""T"">A type parameter of <see cref=""goo{ T} (string[], T)""/></typeparam>
+    /// <param name=""args"">First parameter of <see cref=""Goo{T} (string[], T)""/></param>
+    /// <param name=""otherParam"">Another parameter of <see cref=""Goo{T}(string[], T)""/></param>
+    public void Goo<T>(string[] args, T otherParam)
     {
     }
 }";
-            await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("First parameter of C.Foo<T>(string[], T)"));
+            await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("First parameter of C.Goo<T>(string[], T)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4071,13 +4056,13 @@ public class C
 @"/// <summary></summary>
 public class C
 {
-    /// <typeparam name=""T"">A type parameter of <see cref=""foo{ T} (string[], T)""/></typeparam>
-    /// <param name=""args"">First parameter of <see cref=""Foo{T} (string[], T)""/></param>
-    /// <param name=""otherParam"">Another parameter of <see cref=""Foo{T}(string[], T)""/></param>
-    public void Foo<T>(string[] args, T oth$$erParam)
+    /// <typeparam name=""T"">A type parameter of <see cref=""goo{ T} (string[], T)""/></typeparam>
+    /// <param name=""args"">First parameter of <see cref=""Goo{T} (string[], T)""/></param>
+    /// <param name=""otherParam"">Another parameter of <see cref=""Goo{T}(string[], T)""/></param>
+    public void Goo<T>(string[] args, T oth$$erParam)
     {
     }
-}", Documentation("Another parameter of C.Foo<T>(string[], T)"));
+}", Documentation("Another parameter of C.Goo<T>(string[], T)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4086,24 +4071,24 @@ public class C
             var code = @"
 class G
 {
-    void foo()
+    void goo()
     {
         C c;
-        c.Foo<int>(args: new string[] { }, other$$Param: 1);
+        c.Goo<int>(args: new string[] { }, other$$Param: 1);
     }
 }";
             var referenced = @"
 /// <summary></summary>
 public class C
 {
-    /// <typeparam name=""T"">A type parameter of <see cref=""foo{ T} (string[], T)""/></typeparam>
-    /// <param name=""args"">First parameter of <see cref=""Foo{T} (string[], T)""/></param>
-    /// <param name=""otherParam"">Another parameter of <see cref=""Foo{T}(string[], T)""/></param>
-    public void Foo<T>(string[] args, T otherParam)
+    /// <typeparam name=""T"">A type parameter of <see cref=""goo{ T} (string[], T)""/></typeparam>
+    /// <param name=""args"">First parameter of <see cref=""Goo{T} (string[], T)""/></param>
+    /// <param name=""otherParam"">Another parameter of <see cref=""Goo{T}(string[], T)""/></param>
+    public void Goo<T>(string[] args, T otherParam)
     {
     }
 }";
-            await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("Another parameter of C.Foo<T>(string[], T)"));
+            await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("Another parameter of C.Goo<T>(string[], T)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4113,13 +4098,13 @@ public class C
 @"/// <summary></summary>
 public class C
 {
-    /// <typeparam name=""T"">A type parameter of <see cref=""Foo{T} (string[], T)""/></typeparam>
-    /// <param name=""args"">First parameter of <see cref=""Foo{T} (string[], T)""/></param>
-    /// <param name=""otherParam"">Another parameter of <see cref=""Foo{T}(string[], T)""/></param>
-    public void Foo<T$$>(string[] args, T otherParam)
+    /// <typeparam name=""T"">A type parameter of <see cref=""Goo{T} (string[], T)""/></typeparam>
+    /// <param name=""args"">First parameter of <see cref=""Goo{T} (string[], T)""/></param>
+    /// <param name=""otherParam"">Another parameter of <see cref=""Goo{T}(string[], T)""/></param>
+    public void Goo<T$$>(string[] args, T otherParam)
     {
     }
-}", Documentation("A type parameter of C.Foo<T>(string[], T)"));
+}", Documentation("A type parameter of C.Goo<T>(string[], T)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4129,13 +4114,13 @@ public class C
 @"/// <summary></summary>
 public class C
 {
-    /// <typeparam name=""T"">A type parameter of <see cref=""foo{T}(string[], T)""/></typeparam>
-    /// <param name=""args"">First parameter of <see cref=""Foo{T} (string[], T)""/></param>
-    /// <param name=""otherParam"">Another parameter of <see cref=""Foo{T}(string[], T)""/></param>
-    public void Foo<T$$>(string[] args, T otherParam)
+    /// <typeparam name=""T"">A type parameter of <see cref=""goo{T}(string[], T)""/></typeparam>
+    /// <param name=""args"">First parameter of <see cref=""Goo{T} (string[], T)""/></param>
+    /// <param name=""otherParam"">Another parameter of <see cref=""Goo{T}(string[], T)""/></param>
+    public void Goo<T$$>(string[] args, T otherParam)
     {
     }
-}", Documentation("A type parameter of foo<T>(string[], T)"));
+}", Documentation("A type parameter of goo<T>(string[], T)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4298,10 +4283,10 @@ class Generic$$Class<T>
             var code = @"
 class G
 {
-    void foo()
+    void goo()
     {
         C c;
-        c.Fo$$o();
+        c.Go$$o();
     }
 }";
             var referenced = @"
@@ -4309,20 +4294,20 @@ class G
 public class C
 {
     /// <summary> 
-    /// See <see cref=""Foo""/> method
+    /// See <see cref=""Goo""/> method
     /// </summary> 
-    public void Foo()
+    public void Goo()
     {
     }
 }";
             await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#",
-                Documentation("See C.Foo() method",
+                Documentation("See C.Goo() method",
                     ExpectedClassifications(
                         Text("See"),
                         WhiteSpace(" "),
                         Class("C"),
                         Punctuation.Text("."),
-                        Identifier("Foo"),
+                        Identifier("Goo"),
                         Punctuation.OpenParen,
                         Punctuation.CloseParen,
                         WhiteSpace(" "),
@@ -4338,7 +4323,7 @@ public class C
 class C
 {
     int x;
-    void foo()
+    void goo()
     {
         x$$
     }
@@ -4358,14 +4343,14 @@ class C
         public async Task FieldUnavailableInOneLinkedFile()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
-#if FOO
+#if GOO
     int x;
 #endif
-    void foo()
+    void goo()
     {
         x$$
     }
@@ -4390,10 +4375,10 @@ class C
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
-#if FOO
+#if GOO
     int x;
 #endif
-    void foo()
+    void goo()
     {
         x$$
     }
@@ -4401,7 +4386,7 @@ class C
 ]]>
         </Document>
     </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""FOO"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""GOO"">
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
     </Project>
 </Workspace>";
@@ -4414,14 +4399,14 @@ class C
         public async Task FieldUnavailableInTwoLinkedFiles()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
-#if FOO
+#if GOO
     int x;
 #endif
-    void foo()
+    void goo()
     {
         x$$
     }
@@ -4447,16 +4432,16 @@ class C
         public async Task ExcludeFilesWithInactiveRegions()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO,BAR"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO,BAR"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
-#if FOO
+#if GOO
     int x;
 #endif
 
 #if BAR
-    void foo()
+    void goo()
     {
         x$$
     }
@@ -4485,7 +4470,7 @@ class C
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
-    void foo()
+    void goo()
     {
         B$$ar();
     }
@@ -4813,7 +4798,7 @@ namespace MyNs
 ";
             using (var workspace = TestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
             {
-                await TestWithOptionsAsync(workspace, MainDescription("(parameter) int x = 1"));
+                await TestWithOptionsAsync(workspace, MainDescription($"({ FeaturesResources.parameter }) int x = 1"));
             }
         }
 
@@ -4858,7 +4843,7 @@ public class C
     }
 }
 " + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                MainDescription("(local variable) ValueTuple y"));
+                MainDescription($"({ FeaturesResources.local_variable }) ValueTuple y"));
         }
 
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
@@ -4894,7 +4879,7 @@ public class C
     }
 }
 " + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                MainDescription("(local variable) ValueTuple<int> y"));
+                MainDescription($"({ FeaturesResources.local_variable }) ValueTuple<int> y"));
         }
 
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
@@ -4930,7 +4915,7 @@ public class C
     }
 }
 " + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                MainDescription("(local variable) (int, int) y"));
+                MainDescription($"({ FeaturesResources.local_variable }) (int, int) y"));
         }
 
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
@@ -4961,15 +4946,15 @@ class Program
 {
     static void Main(string[] args)
     {
-        ref int i = ref $$foo();
+        ref int i = ref $$goo();
     }
 
-    private static ref int foo()
+    private static ref int goo()
     {
         throw new NotImplementedException();
     }
 }",
-                MainDescription("ref int Program.foo()"));
+                MainDescription("ref int Program.goo()"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4982,15 +4967,229 @@ class Program
 {
     static void Main(string[] args)
     {
-        ref int $$i = ref foo();
+        ref int $$i = ref goo();
     }
 
-    private static ref int foo()
+    private static ref int goo()
     {
         throw new NotImplementedException();
     }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) ref int i"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(410932, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=410932")]
+        public async Task TestGenericMethodInDocComment()
+        {
+            await TestAsync(
+@"
+class Test
+{
+    T F<T>()
+    {
+        F<T>();
+    }
+
+    /// <summary>
+    /// <see cref=""F$${T}()""/>
+    /// </summary>
+    void S()
+    { }
+}
+",
+            MainDescription("T Test.F<T>()"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(403665, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=403665&_a=edit")]
+        public async Task TestExceptionWithCrefToConstructorDoesNotCrash()
+        {
+            await TestAsync(
+@"
+class Test
+{
+    /// <summary>
+    /// </summary>
+    /// <exception cref=""Test.Test""/>
+    public Test$$() {}
+}
+",
+            MainDescription("Test.Test()"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRefStruct()
+        {
+            var markup = "ref struct X$$ {}";
+            await TestAsync(markup, MainDescription("ref struct X"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRefStruct_Nested()
+        {
+            var markup = @"
+namespace Nested
+{
+    ref struct X$$ {}
+}";
+            await TestAsync(markup, MainDescription("ref struct Nested.X"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestReadOnlyStruct()
+        {
+            var markup = "readonly struct X$$ {}";
+            await TestAsync(markup, MainDescription("readonly struct X"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestReadOnlyStruct_Nested()
+        {
+            var markup = @"
+namespace Nested
+{
+    readonly struct X$$ {}
+}";
+            await TestAsync(markup, MainDescription("readonly struct Nested.X"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestReadOnlyRefStruct()
+        {
+            var markup = "readonly ref struct X$$ {}";
+            await TestAsync(markup, MainDescription("readonly ref struct X"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestReadOnlyRefStruct_Nested()
+        {
+            var markup = @"
+namespace Nested
+{
+    readonly ref struct X$$ {}
+}";
+            await TestAsync(markup, MainDescription("readonly ref struct Nested.X"));
+        }
+
+        [WorkItem(22450, "https://github.com/dotnet/roslyn/issues/22450")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRefLikeTypesNoDeprecated()
+        {
+            var xmlString = @"
+<Workspace>
+    <Project Language=""C#"" LanguageVersion=""702"" CommonReferences=""true"">
+        <MetadataReferenceFromSource Language=""C#"" LanguageVersion=""702"" CommonReferences=""true"">
+            <Document FilePath=""ReferencedDocument"">
+public ref struct TestRef
+{
+}
+            </Document>
+        </MetadataReferenceFromSource>
+        <Document FilePath=""SourceDocument"">
+ref struct Test
+{
+    private $$TestRef _field;
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            // There should be no [deprecated] attribute displayed.
+            await VerifyWithReferenceWorkerAsync(xmlString, MainDescription($"ref struct TestRef"));
+        }
+
+        [WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task PropertyWithSameNameAsOtherType()
+        {
+            await TestAsync(
+@"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static A B { get; set; }
+        static B A { get; set; }
+
+        static void Main(string[] args)
+        {
+            B = ConsoleApplication1.B$$.F();
+        }
+    }
+    class A { }
+    class B
+    {
+        public static A F() => null;
+    }
+}",
+            MainDescription($"ConsoleApplication1.A ConsoleApplication1.B.F()"));
+        }
+
+        [WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task PropertyWithSameNameAsOtherType2()
+        {
+            await TestAsync(
+@"using System.Collections.Generic;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        public static List<Bar> Bar { get; set; }
+
+        static void Main(string[] args)
+        {
+            Tes$$t<Bar>();
+        }
+
+        static void Test<T>() { }
+    }
+
+    class Bar
+    {
+    }
+}",
+            MainDescription($"void Program.Test<Bar>()"));
+        }
+
+        [WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task InMalformedEmbeddedStatement_01()
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void method1()
+    {
+        if (method2())
+            .Any(b => b.Content$$Type, out var chars)
+        {
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task InMalformedEmbeddedStatement_02()
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void method1()
+    {
+        if (method2())
+            .Any(b => b$$.ContentType, out var chars)
+        {
+        }
+    }
+}
+",
+            MainDescription($"({ FeaturesResources.parameter }) ? b"));
         }
     }
 }

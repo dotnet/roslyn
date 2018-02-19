@@ -142,8 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
                 }
 
                 Debug.Assert(_managedObjectWeakReference != null);
-                var managedObject = _managedObjectWeakReference.Target as TObject;
-                if (managedObject != null)
+                if (_managedObjectWeakReference.Target is TObject managedObject)
                 {
                     // Construct a new ComHandle without going through the cycle of unwrapping
                     // the managed object from the rcw, that has shown to be a perf concern for 

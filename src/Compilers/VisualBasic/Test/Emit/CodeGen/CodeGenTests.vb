@@ -3135,17 +3135,17 @@ expectedOutput:=<![CDATA[
 Public Module Program
     Public Sub Main()
         Dim a As Integer = 1
-        Dim i As IFoo(Of String) = Nothing
-        Dim e As New FooVal()
+        Dim i As IGoo(Of String) = Nothing
+        Dim e As New GooVal()
 
         i = If(a > 1, i, e)
-        System.Console.Write(i.Foo())
+        System.Console.Write(i.Goo())
     End Sub
 
-    Interface IFoo(Of T) : Function Foo() As T : End Interface
+    Interface IGoo(Of T) : Function Goo() As T : End Interface
 
-    Structure FooVal : Implements IFoo(Of String)
-        Public Function Foo() As String Implements IFoo(Of String).Foo
+    Structure GooVal : Implements IGoo(Of String)
+        Public Function Goo() As String Implements IGoo(Of String).Goo
             Return "Val "
         End Function
     End Structure
@@ -3156,23 +3156,23 @@ End Module</file>
             <![CDATA[{
   // Code size       41 (0x29)
   .maxstack  2
-  .locals init (Program.IFoo(Of String) V_0, //i
-  Program.FooVal V_1) //e
+  .locals init (Program.IGoo(Of String) V_0, //i
+  Program.GooVal V_1) //e
   IL_0000:  ldc.i4.1
   IL_0001:  ldnull
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_1
-  IL_0005:  initobj    "Program.FooVal"
+  IL_0005:  initobj    "Program.GooVal"
   IL_000b:  ldc.i4.1
   IL_000c:  bgt.s      IL_001b
   IL_000e:  ldloc.1
-  IL_000f:  box        "Program.FooVal"
-  IL_0014:  castclass  "Program.IFoo(Of String)"
+  IL_000f:  box        "Program.GooVal"
+  IL_0014:  castclass  "Program.IGoo(Of String)"
   IL_0019:  br.s       IL_001c
   IL_001b:  ldloc.0
   IL_001c:  stloc.0
   IL_001d:  ldloc.0
-  IL_001e:  callvirt   "Function Program.IFoo(Of String).Foo() As String"
+  IL_001e:  callvirt   "Function Program.IGoo(Of String).Goo() As String"
   IL_0023:  call       "Sub System.Console.Write(String)"
   IL_0028:  ret
 }]]>)
@@ -3185,22 +3185,22 @@ End Module</file>
     <file name="a.vb">
 Public Module Program
     Public Sub Main()
-        Dim i As IFoo(Of String) = Nothing
-        Dim e As New FooVal()
-        Dim n? As FooVal = e
+        Dim i As IGoo(Of String) = Nothing
+        Dim e As New GooVal()
+        Dim n? As GooVal = e
 
         i = If(i, e)
-        System.Console.Write(i.Foo())
+        System.Console.Write(i.Goo())
 
         i = Nothing
         i = If(n, i)
-        System.Console.Write(i.Foo())
+        System.Console.Write(i.Goo())
     End Sub
 
-    Interface IFoo(Of T) : Function Foo() As T : End Interface
+    Interface IGoo(Of T) : Function Goo() As T : End Interface
 
-    Structure FooVal : Implements IFoo(Of String)
-        Public Function Foo() As String Implements IFoo(Of String).Foo
+    Structure GooVal : Implements IGoo(Of String)
+        Public Function Goo() As String Implements IGoo(Of String).Goo
             Return "Val "
         End Function
     End Structure
@@ -3212,41 +3212,41 @@ End Module</file>
 {
   // Code size       90 (0x5a)
   .maxstack  2
-  .locals init (Program.IFoo(Of String) V_0, //i
-  Program.FooVal V_1, //e
-  Program.FooVal? V_2) //n
+  .locals init (Program.IGoo(Of String) V_0, //i
+  Program.GooVal V_1, //e
+  Program.GooVal? V_2) //n
   IL_0000:  ldnull
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_1
-  IL_0004:  initobj    "Program.FooVal"
+  IL_0004:  initobj    "Program.GooVal"
   IL_000a:  ldloca.s   V_2
   IL_000c:  ldloc.1
-  IL_000d:  call       "Sub Program.FooVal?..ctor(Program.FooVal)"
+  IL_000d:  call       "Sub Program.GooVal?..ctor(Program.GooVal)"
   IL_0012:  ldloc.0
   IL_0013:  dup
   IL_0014:  brtrue.s   IL_0022
   IL_0016:  pop
   IL_0017:  ldloc.1
-  IL_0018:  box        "Program.FooVal"
-  IL_001d:  castclass  "Program.IFoo(Of String)"
+  IL_0018:  box        "Program.GooVal"
+  IL_001d:  castclass  "Program.IGoo(Of String)"
   IL_0022:  stloc.0
   IL_0023:  ldloc.0
-  IL_0024:  callvirt   "Function Program.IFoo(Of String).Foo() As String"
+  IL_0024:  callvirt   "Function Program.IGoo(Of String).Goo() As String"
   IL_0029:  call       "Sub System.Console.Write(String)"
   IL_002e:  ldnull
   IL_002f:  stloc.0
   IL_0030:  ldloca.s   V_2
-  IL_0032:  call       "Function Program.FooVal?.get_HasValue() As Boolean"
+  IL_0032:  call       "Function Program.GooVal?.get_HasValue() As Boolean"
   IL_0037:  brtrue.s   IL_003c
   IL_0039:  ldloc.0
   IL_003a:  br.s       IL_004d
   IL_003c:  ldloca.s   V_2
-  IL_003e:  call       "Function Program.FooVal?.GetValueOrDefault() As Program.FooVal"
-  IL_0043:  box        "Program.FooVal"
-  IL_0048:  castclass  "Program.IFoo(Of String)"
+  IL_003e:  call       "Function Program.GooVal?.GetValueOrDefault() As Program.GooVal"
+  IL_0043:  box        "Program.GooVal"
+  IL_0048:  castclass  "Program.IGoo(Of String)"
   IL_004d:  stloc.0
   IL_004e:  ldloc.0
-  IL_004f:  callvirt   "Function Program.IFoo(Of String).Foo() As String"
+  IL_004f:  callvirt   "Function Program.IGoo(Of String).Goo() As String"
   IL_0054:  call       "Sub System.Console.Write(String)"
   IL_0059:  ret
 }
@@ -3983,7 +3983,7 @@ Class C(Of V)
         Console.WriteLine("Success")
     End Sub
 
-    Public Sub Foo(ByVal z As V)
+    Public Sub Goo(ByVal z As V)
         Me.S(z)
     End Sub
 
@@ -3992,7 +3992,7 @@ End Class
 Module M222
     Sub Main(args As String())
         Dim c As New C(Of Integer)
-        c.Foo(1)
+        c.Goo(1)
     End Sub
 End Module
 
@@ -4016,7 +4016,7 @@ Class C(Of V)
         Console.WriteLine("Success")
     End Sub
 
-    Public Sub Foo(ByVal z As V)
+    Public Sub Goo(ByVal z As V)
         Me.S(z)
     End Sub
 
@@ -4025,7 +4025,7 @@ End Class
 Module M222
     Sub Main(args As String())
         Dim c As New C(Of Integer)
-        c.Foo(1)
+        c.Goo(1)
     End Sub
 End Module
 
@@ -4049,7 +4049,7 @@ Class C(Of V)
         Console.WriteLine("Success")
     End Sub
 
-    Public Sub Foo(ByVal z As V)
+    Public Sub Goo(ByVal z As V)
         Me.S(z)
     End Sub
 
@@ -4058,7 +4058,7 @@ End Class
 Module M222
     Sub Main(args As String())
         Dim c As New C(Of Integer)
-        c.Foo(1)
+        c.Goo(1)
     End Sub
 End Module
 
@@ -4082,7 +4082,7 @@ Structure C(Of V)
         Console.WriteLine("Success")
     End Sub
 
-    Public Sub Foo(ByVal z As Integer)
+    Public Sub Goo(ByVal z As Integer)
         Me.S(z)
     End Sub
 
@@ -4091,7 +4091,7 @@ End Structure
 Module M222
     Sub Main(args As String())
         Dim c As New C(Of Integer)
-        c.Foo(1)
+        c.Goo(1)
     End Sub
 End Module
 
@@ -4114,7 +4114,7 @@ Class C
         Console.WriteLine("Success")
     End Sub
 
-    Public Sub Foo(Of V)(ByVal z As V)
+    Public Sub Goo(Of V)(ByVal z As V)
         Me.S(z)
     End Sub
 End Class
@@ -4122,7 +4122,7 @@ End Class
 Module MMM
     Sub Main(args As String())
         Dim c As New C
-        c.Foo(1)
+        c.Goo(1)
     End Sub
 End Module
 
@@ -4145,7 +4145,7 @@ Structure C
         Console.WriteLine("Success")
     End Sub
 
-    Public Sub Foo(ByVal z As Integer)
+    Public Sub Goo(ByVal z As Integer)
         Me.S(z)
     End Sub
 End Structure
@@ -4153,7 +4153,7 @@ End Structure
 Module MMM
     Sub Main(args As String())
         Dim c As New C
-        c.Foo(1)
+        c.Goo(1)
     End Sub
 End Module
 
@@ -4176,7 +4176,7 @@ Class C
         Console.WriteLine("Success")
     End Sub
 
-    Public Sub Foo(Of V)(ByVal z As V)
+    Public Sub Goo(Of V)(ByVal z As V)
         Me.S(z)
     End Sub
 End Class
@@ -4184,7 +4184,7 @@ End Class
 Module MMM
     Sub Main(args As String())
         Dim c As New C
-        c.Foo(1)
+        c.Goo(1)
     End Sub
 End Module
     </file>
@@ -4206,7 +4206,7 @@ Structure C
         Console.WriteLine("Success")
     End Sub
 
-    Public Sub Foo(ByVal z As Integer)
+    Public Sub Goo(ByVal z As Integer)
         Me.S(z)
     End Sub
 End Structure
@@ -4214,7 +4214,7 @@ End Structure
 Module MMM
     Sub Main(args As String())
         Dim c As New C
-        c.Foo(1)
+        c.Goo(1)
     End Sub
 End Module
     </file>
@@ -4248,7 +4248,7 @@ Partial Class C1(Of T) : Implements C1(Of A).I(Of A)
     Interface I(Of J)
     End Interface
     Partial Class C2(Of K As T)
-        Partial Private Sub Foo(Of U As {A, T, I(Of K)}, V As {U, A})(x As A, y As T, z As C1(Of T),
+        Partial Private Sub Goo(Of U As {A, T, I(Of K)}, V As {U, A})(x As A, y As T, z As C1(Of T),
                                                                       aa As K, bb As I(Of K),
                                                                       cc As U, dd As V, ee As IDictionary(Of C1(Of U), I(Of V)),
                                                                       ff As Exception, yy As C1(Of ArgumentException))
@@ -4258,7 +4258,7 @@ Partial Class C1(Of T) : Implements C1(Of A).I(Of A)
                                                                       aa As K, bb As I(Of K),
                                                                       cc As U, dd As V, ee As IDictionary(Of C1(Of U), I(Of V)),
                                                                       ff As Exception, yy As C1(Of ArgumentException))
-            Foo(x, y, z, aa, bb, cc, dd, ee, ff, yy)
+            Goo(x, y, z, aa, bb, cc, dd, ee, ff, yy)
         End Sub
     End Class
 End Class
@@ -4268,7 +4268,7 @@ End Class
 
 Partial Class C1(Of T)
     Partial Class C2(Of K As T)
-        Private Sub Foo(Of U As {T, I(Of K), C1(Of Integer)}, V As {C1(Of Integer), U})(x As C1(Of Integer), y As T, z As C1(Of T),
+        Private Sub Goo(Of U As {T, I(Of K), C1(Of Integer)}, V As {C1(Of Integer), U})(x As C1(Of Integer), y As T, z As C1(Of T),
                                                                       aa As K, bb As I(Of K),
                                                                       cc As U, dd As V, ee As IDictionary(Of C1(Of U), I(Of V)),
                                                                       ff As Exception, yy As C1(Of ArgumentException))
@@ -4291,11 +4291,11 @@ End Class]]>,
             <![CDATA[Imports System
 
 Public Module M
-    Private Sub Foo(Of V)(ByRef x As V,
+    Private Sub Goo(Of V)(ByRef x As V,
                           ParamArray y() As Integer)
-        Console.WriteLine("M.Foo - Integer")
+        Console.WriteLine("M.Goo - Integer")
     End Sub
-    Partial Private Sub Foo(Of V)(ByRef x As V,
+    Partial Private Sub Goo(Of V)(ByRef x As V,
                                   ParamArray y() As Long)
     End Sub
 
@@ -4306,37 +4306,37 @@ Public Module M
         'Modules
         Dim x = 1
         Dim y = 1L
-        Foo(x, x, x, x)
-        Foo(x, x, x, y)
+        Goo(x, x, x, x)
+        Goo(x, x, x, y)
     End Sub
 
-    Partial Private Sub Foo(Of V)(ByRef x As V,
+    Partial Private Sub Goo(Of V)(ByRef x As V,
                                   ParamArray y() As Integer)
     End Sub
-    Private Sub Foo(Of V)(ByRef x As V,
+    Private Sub Goo(Of V)(ByRef x As V,
                           ParamArray y() As Long)
-        Console.WriteLine("M.Foo - Long")
+        Console.WriteLine("M.Goo - Long")
     End Sub
 End Module
 
 Interface I(Of T)
     Partial Structure S(Of U As T)
-        Partial Private Sub Foo(Of V As {T, U})(ByRef x As C(Of S(Of V)),
+        Partial Private Sub Goo(Of V As {T, U})(ByRef x As C(Of S(Of V)),
                                                 ParamArray y() As Integer)
         End Sub
-        Private Sub Foo(Of V As {T, U})(ByRef x As C(Of S(Of V)),
+        Private Sub Goo(Of V As {T, U})(ByRef x As C(Of S(Of V)),
                                         ParamArray y() As Long)
-            Console.WriteLine("S.Foo - Long")
+            Console.WriteLine("S.Goo - Long")
         End Sub
     End Structure
     Class C(Of W As Structure)
     End Class
     Partial Structure S(Of U As T)
-        Private Sub Foo(Of V As {T, U})(ByRef x As C(Of S(Of V)),
+        Private Sub Goo(Of V As {T, U})(ByRef x As C(Of S(Of V)),
                                         ParamArray y() As Integer)
-            Console.WriteLine("S.Foo - Integer")
+            Console.WriteLine("S.Goo - Integer")
         End Sub
-        Partial Private Sub Foo(Of V As {T, U})(ByRef x As C(Of S(Of V)),
+        Partial Private Sub Goo(Of V As {T, U})(ByRef x As C(Of S(Of V)),
                                                 ParamArray y() As Long)
         End Sub
         Shared Sub Test(Of J As U)()
@@ -4344,17 +4344,17 @@ Interface I(Of T)
             Dim c = New I(Of T).C(Of S(Of J))
             Dim x = 1
             Dim y = 1L
-            s.Foo(c, x, x, x)
-            s.Foo(c, x, x, y)
+            s.Goo(c, x, x, x)
+            s.Goo(c, x, x, y)
         End Sub
     End Structure
 End Interface]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
             Dim vbVerifier = CompileAndVerify(vbCompilation,
-                expectedOutput:=<![CDATA[S.Foo - Integer
-S.Foo - Long
-M.Foo - Integer
-M.Foo - Long
+                expectedOutput:=<![CDATA[S.Goo - Integer
+S.Goo - Long
+M.Goo - Integer
+M.Goo - Long
 ]]>)
             vbVerifier.VerifyDiagnostics()
         End Sub
@@ -4405,7 +4405,7 @@ expectedOutput:=<![CDATA[Base.New(): 0]]>).
 Imports System        
 
 Module M1
-    Sub Foo(xParam as Integer, ByRef yParam As Long)
+    Sub Goo(xParam as Integer, ByRef yParam As Long)
         Console.WriteLine(xParam)
         Console.WriteLine(yParam)
         xParam = 17
@@ -4419,7 +4419,7 @@ Module M1
         y = 16442
         Console.WriteLine("x = {0}", x)
         Console.WriteLine("y = {0}", y)
-        Foo(x,y)
+        Goo(x,y)
         Console.WriteLine("x = {0}", x)
         Console.WriteLine("y = {0}", y)
     End Sub
@@ -4434,7 +4434,7 @@ y = 16442
 x = 143
 y = 189
 ]]>).
-            VerifyIL("M1.Foo",
+            VerifyIL("M1.Goo",
             <![CDATA[
 {
   // Code size       26 (0x1a)
@@ -4503,7 +4503,7 @@ Imports System
 Namespace VBN
     Friend Structure SBar
         Public Field1 As Decimal
-        Public Field2 As SFoo
+        Public Field2 As SGoo
     End Structure
 End Namespace
 ]]></file>
@@ -4516,8 +4516,8 @@ Imports VBN
 Module Program
 
             Sub Main(args As String())
-                Dim sss As VBN.SFoo, ccc As SBar = New SBar()
-                sss = New SFoo()
+                Dim sss As VBN.SGoo, ccc As SBar = New SBar()
+                sss = New SGoo()
                 Dim val As Short = 9
                 sss.M1(val)
                 ' () - ByRef
@@ -4555,7 +4555,7 @@ Imports System
 
 Namespace VBN
 
-            Structure SFoo
+            Structure SGoo
                 Public Sub M1(ByVal x As Object)
                     console.write("O:{0}|", x)
                 End Sub
@@ -5427,23 +5427,23 @@ Imports VBN
 Module Program
 
     Sub Main(args As String())
-        Dim x As VBN.IFoo(Of Char, Char) = Nothing, y As CFoo(Of Char, Char), z As SFoo = Nothing, local As Boolean = True
-        y = New CFoo(Of Char, Char)()
+        Dim x As VBN.IGoo(Of Char, Char) = Nothing, y As CGoo(Of Char, Char), z As SGoo = Nothing, local As Boolean = True
+        y = New CGoo(Of Char, Char)()
         Do
             If y IsNot Nothing OrElse x IsNot Nothing Then
-                'x = DirectCast(y, IFoo(Of Char, Char))
+                'x = DirectCast(y, IGoo(Of Char, Char))
                 y.ImplF1("q"c, "c"c)
                 Dim w As String = "If"
                 y = Nothing
             ElseIf x Is Nothing AndAlso y Is Nothing AndAlso z.Field2 Is Nothing Then
-                z = New SFoo()
-                z.Field2 = New CFoo(Of SFoo, UShort)
+                z = New SGoo()
+                z.Field2 = New CGoo(Of SGoo, UShort)
                 z.Field2.ImplF2("Aa", "Bb", "Cc")
                 Dim w& = 11223344
                 Console.Write(w)
             Else
-                SFoo.Field1 = 9D
-                Console.Write(SFoo.Field1)
+                SGoo.Field1 = 9D
+                Console.Write(SGoo.Field1)
                 Dim w As Boolean = False
                 Console.Write(w)
                 local = False
@@ -5458,17 +5458,17 @@ Imports System
 Imports System.Collections.Generic
 
 Namespace VBN
-    Public Interface IFoo(Of T, V)
+    Public Interface IGoo(Of T, V)
         Sub F1(ByRef x As T, ByVal y As V)
         Function F2(ParamArray ary As String()) As String
     End Interface
 
-    Class CFoo(Of T, V)
-        'Implements IFoo(Of T, V)
-        Public Sub ImplF1(ByRef x As T, ByVal y As V) 'Implements IFoo(Of T, V).F1
+    Class CGoo(Of T, V)
+        'Implements IGoo(Of T, V)
+        Public Sub ImplF1(ByRef x As T, ByVal y As V) 'Implements IGoo(Of T, V).F1
             console.Write(String.Format("-ImpF1:{0},{1}-", x, y))
         End Sub
-        Public Function ImplF2(ParamArray ary As String()) As String 'Implements IFoo(Of T, V).F2
+        Public Function ImplF2(ParamArray ary As String()) As String 'Implements IGoo(Of T, V).F2
             If (ary IsNot Nothing) Then
                 Console.write("-ImpF2:{0}-", ary(0))
             Else
@@ -5478,9 +5478,9 @@ Namespace VBN
         End Function
     End Class
 
-    Friend Structure SFoo
+    Friend Structure SGoo
         Public Shared Field1 As Decimal
-        Public Field2 As CFoo(Of SFoo, UShort)
+        Public Field2 As CGoo(Of SGoo, UShort)
     End Structure
 
 End Namespace
@@ -5533,10 +5533,10 @@ Imports System
 Module Program
     Sub Main(args As String())
         Dim b = Function() Sub() Return
-        Foo(Of Func(Of Action(Of Integer)))(b)()(1)
+        Goo(Of Func(Of Action(Of Integer)))(b)()(1)
     End Sub
  
-    Function Foo(Of T)(x As T) As T
+    Function Goo(Of T)(x As T) As T
         Return x
     End Function
 End Module
@@ -7146,10 +7146,10 @@ Imports System
 
 Module Program
     Sub Main()
-        Foo(Function(x) Function() x)
+        Goo(Function(x) Function() x)
     End Sub
 
-    Sub Foo(x As Func(Of String, Func(Of String)))
+    Sub Goo(x As Func(Of String, Func(Of String)))
         Console.WriteLine(x.Invoke("ABC").Invoke().ToLower())
     End Sub
 End Module
@@ -7454,10 +7454,10 @@ Class A
         Return Value.ToString()
     End Function
 
-    private sub foo(byref x as integer)
+    private sub goo(byref x as integer)
     end sub
     private sub moo()
-        foo(Value)
+        goo(Value)
     end sub
 End Class
     </file>
@@ -7504,7 +7504,7 @@ IL_0001:  ldarg.0
 IL_0002:  ldfld      "A.Value As Integer"
 IL_0007:  stloc.0
 IL_0008:  ldloca.s   V_0
-IL_000a:  call       "Sub A.foo(ByRef Integer)"
+IL_000a:  call       "Sub A.goo(ByRef Integer)"
 IL_000f:  ret
 }
 ]]>)
@@ -7519,10 +7519,10 @@ Imports System
 Module M1
     Dim i as integer = 42
     Sub Main()
-        Foo(Integer.MaxValue)
+        Goo(Integer.MaxValue)
     End Sub
 
-    Sub Foo(ByRef x as integer)
+    Sub Goo(ByRef x as integer)
         x = 42
     End Sub
 End Module
@@ -7538,7 +7538,7 @@ End Module
 IL_0000:  ldc.i4     0x7fffffff
 IL_0005:  stloc.0
 IL_0006:  ldloca.s   V_0
-IL_0008:  call       "Sub M1.Foo(ByRef Integer)"
+IL_0008:  call       "Sub M1.Goo(ByRef Integer)"
 IL_000d:  ret
 }
 ]]>)
@@ -9706,12 +9706,12 @@ expectedOutput:=<![CDATA[
     <file name="a.vb">
 Imports System
 Module M1
-    Sub foo()
+    Sub goo()
         apCompare(1.CompareTo(2))
         Exit Sub
     End Sub
     Sub Main()
-        foo
+        goo
     End Sub
 End Module
 Public Module M2
@@ -9721,7 +9721,7 @@ End Module
     </file>
 </compilation>,
 expectedOutput:="").
-            VerifyIL("M1.foo",
+            VerifyIL("M1.goo",
             <![CDATA[
 {
   // Code size       21 (0x15)
@@ -9808,18 +9808,18 @@ Public Class MyClass1
     Const global_y As Long = 20
     Public Shared Sub Main()
     End Sub
-    Function foo(ByRef x As Integer) As Integer
+    Function goo(ByRef x As Integer) As Integer
         x = x + 10
         Return x + 10
     End Function
-    Sub foo1()
-        Dim global_y As Integer = foo(global_y)
+    Sub goo1()
+        Dim global_y As Integer = goo(global_y)
     End Sub
 End Class
                 </file>
             </compilation>,
             expectedOutput:="").
-                        VerifyIL("MyClass1.foo1",
+                        VerifyIL("MyClass1.goo1",
             <![CDATA[
 {
     // Code size       10 (0xa)
@@ -9827,7 +9827,7 @@ End Class
     .locals init (Integer V_0) //global_y
     IL_0000:  ldarg.0
     IL_0001:  ldloca.s   V_0
-    IL_0003:  call       "Function MyClass1.foo(ByRef Integer) As Integer"
+    IL_0003:  call       "Function MyClass1.goo(ByRef Integer) As Integer"
     IL_0008:  stloc.0
     IL_0009:  ret
 }]]>)
@@ -10133,33 +10133,33 @@ End Module
             Dim source =
 <compilation>
     <file name="a.vb">
-Namespace Foo
+Namespace Goo
     Class B
     End Class
 End Namespace
-Namespace FOO
+Namespace GOO
     Class C
     End Class
 End Namespace
 
-Namespace FoO.Bar
+Namespace GoO.Bar
     Partial Class D
     End Class
 End Namespace
 
-Namespace foo.Baz
+Namespace goo.Baz
     Class E
     End Class
 End Namespace
 
-Namespace foO
+Namespace goO
     Namespace Bar
         Class F
         End Class
     End Namespace
 End Namespace
 
-Namespace FOo.Bar
+Namespace GOo.Bar
     Partial Class D
     End Class
 End Namespace
@@ -10182,11 +10182,11 @@ End Namespace
                 Sub(a)
                     AssertEx.SetEqual({"<Module>",
                                        "PROJEcT.Quuz.A",
-                                       "Project.FOO.C",
-                                       "Project.FoO.Bar.D",
-                                       "Project.Foo.B",
-                                       "Project.foO.Bar.F",
-                                       "Project.foo.Baz.E",
+                                       "Project.GOO.C",
+                                       "Project.GoO.Bar.D",
+                                       "Project.Goo.B",
+                                       "Project.goO.Bar.F",
+                                       "Project.goo.Baz.E",
                                        "SYStem.G"}, MetadataValidation.GetFullTypeNames(a.GetMetadataReader()))
                 End Sub)
         End Sub
@@ -10411,12 +10411,12 @@ Class Test
 
     End Structure
 
-    Shared Function Foo() As C1
+    Shared Function Goo() As C1
         Return New C1()
     End Function
 
     Shared Sub Main()
-        Console.Write(Foo().x.CompareTo(Decimal.One))
+        Console.Write(Goo().x.CompareTo(Decimal.One))
     End Sub
 
 End Class
@@ -10428,7 +10428,7 @@ End Class
   // Code size       29 (0x1d)
   .maxstack  2
   .locals init (Test.C1 V_0)
-  IL_0000:  call       "Function Test.Foo() As Test.C1"
+  IL_0000:  call       "Function Test.Goo() As Test.C1"
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
   IL_0008:  ldflda     "Test.C1.x As Decimal"
@@ -11272,7 +11272,7 @@ Class C
 End Class
     ]]></file>
 </compilation>)
-            CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator, verify:=False)
+            CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator, verify:=Verification.Passes)
         End Sub
 
         <Fact()>
@@ -11287,8 +11287,8 @@ End Class
                                                                  Assert.Equal(1, typeA.GetAttributes().Length)
                                                                  Dim ctorA = typeA.InstanceConstructors.First()
                                                                  Assert.Equal(expectedMethodImplAttributes, ctorA.ImplementationAttributes)
-                                                                 Dim methodFoo = DirectCast(typeA.GetMembers("Foo").First(), MethodSymbol)
-                                                                 Assert.Equal(expectedMethodImplAttributes, methodFoo.ImplementationAttributes)
+                                                                 Dim methodGoo = DirectCast(typeA.GetMembers("Goo").First(), MethodSymbol)
+                                                                 Assert.Equal(expectedMethodImplAttributes, methodGoo.ImplementationAttributes)
 
                                                                  Dim typeB = globalNamespace.GetMember(Of NamedTypeSymbol)("B")
                                                                  Assert.True(typeB.IsComImport())
@@ -11326,7 +11326,7 @@ Class A
         Console.WriteLine("FAIL")
     End Sub
 
-    Public Shared Function Foo() As Integer
+    Public Shared Function Goo() As Integer
         Console.WriteLine("FAIL")
         Return 0
     End Function
@@ -11345,7 +11345,7 @@ Module M1
         End Try
 
         Try
-            A.Foo()
+            A.Goo()
         Catch ex As Exception
             Console.WriteLine("PASS2")
         End Try
@@ -12314,11 +12314,11 @@ End Class
     <file name="a.vb">
 Imports System        
 Module Program
-    Function Foo() As AttributeTargets
+    Function Goo() As AttributeTargets
         Return AttributeTargets.All
     End Function
     Sub Main(args As String())
-        Console.Write(Foo().value__)
+        Console.Write(Goo().value__)
     End Sub
 End Module
     </file>
@@ -12329,7 +12329,7 @@ End Module
   // Code size       19 (0x13)
   .maxstack  1
   .locals init (System.AttributeTargets V_0)
-  IL_0000:  call       "Function Program.Foo() As System.AttributeTargets"
+  IL_0000:  call       "Function Program.Goo() As System.AttributeTargets"
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
   IL_0008:  ldfld      "System.AttributeTargets.value__ As Integer"
@@ -12354,7 +12354,7 @@ Class B : Inherits A
 End Class
 
 Class Program
-    Shared Sub Foo(Of T As Class)(array As T())
+    Shared Sub Goo(Of T As Class)(array As T())
         array(0) = Nothing
     End Sub
 
@@ -12368,7 +12368,7 @@ Class Program
 
     Shared Sub Main()
         Dim array = New B(5) {}
-        Foo(Of A)(array)
+        Goo(Of A)(array)
         Bar(Of A)(array)
 
         Dim array1 = New B(5)() {}
@@ -12378,7 +12378,7 @@ End Class
 
     </file>
 </compilation>, expectedOutput:="").
-            VerifyIL("Program.Foo(Of T)(T())",
+            VerifyIL("Program.Goo(Of T)(T())",
             <![CDATA[
 {
   // Code size       17 (0x11)
@@ -12487,7 +12487,7 @@ End Class
 
         <WorkItem(745103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/745103")>
         <Fact()>
-        Public Sub TestCompoundOnAfieldOfGeneric()
+        Public Sub TestCompoundOnAFieldOfGeneric()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -12523,11 +12523,11 @@ Class c0
         End Set
     End Property
 
-    Public Shared Function Foo(arg As c0) As Integer
+    Public Shared Function Goo(arg As c0) As Integer
         Return 1
     End Function
 
-    Public Function Foo() As Integer
+    Public Function Goo() As Integer
         Return 1
     End Function
 End Class
@@ -12540,8 +12540,8 @@ Class test(Of T As c0)
     End Sub
 
     Public Shared Sub Repro2(arg As T)
-        arg.x = c0.Foo(arg)
-        arg.x = arg.Foo()
+        arg.x = c0.Goo(arg)
+        arg.x = arg.Goo()
     End Sub
 End class
 
@@ -12594,13 +12594,13 @@ End class
   IL_0006:  ldarg.0
   IL_0007:  box        "T"
   IL_000c:  castclass  "c0"
-  IL_0011:  call       "Function c0.Foo(c0) As Integer"
+  IL_0011:  call       "Function c0.Goo(c0) As Integer"
   IL_0016:  stfld      "c0.x As Integer"
   IL_001b:  ldarg.0
   IL_001c:  box        "T"
   IL_0021:  ldarga.s   V_0
   IL_0023:  constrained. "T"
-  IL_0029:  callvirt   "Function c0.Foo() As Integer"
+  IL_0029:  callvirt   "Function c0.Goo() As Integer"
   IL_002e:  stfld      "c0.x As Integer"
   IL_0033:  ret
 }
@@ -12623,23 +12623,23 @@ Module Module1
     End Sub
 
     Sub Test1(Of T As cls1)(arg As T)
-        arg.Foo()
+        arg.Goo()
     End Sub
 
     Sub Test2(Of T As cls2)(arg As T)
-        arg.Foo()
+        arg.Goo()
     End Sub
 End Module
 
 Class cls0
-    Overridable Sub Foo()
+    Overridable Sub Goo()
 
     End Sub
 End Class
 
 Class cls1 : Inherits cls0
-    Public NotOverridable Overrides Sub Foo()
-        System.Console.Write("Foo")
+    Public NotOverridable Overrides Sub Goo()
+        System.Console.Write("Goo")
     End Sub
 End Class
 
@@ -12648,7 +12648,7 @@ End Class
 
 
     </file>
-</compilation>, expectedOutput:="FooFooFoo").
+</compilation>, expectedOutput:="GooGooGoo").
             VerifyIL("Module1.Test1(Of T)(T)",
             <![CDATA[
 {
@@ -12656,7 +12656,7 @@ End Class
   .maxstack  1
   IL_0000:  ldarga.s   V_0
   IL_0002:  constrained. "T"
-  IL_0008:  callvirt   "Sub cls1.Foo()"
+  IL_0008:  callvirt   "Sub cls1.Goo()"
   IL_000d:  ret
 }
 
@@ -12668,7 +12668,7 @@ End Class
   .maxstack  1
   IL_0000:  ldarga.s   V_0
   IL_0002:  constrained. "T"
-  IL_0008:  callvirt   "Sub cls1.Foo()"
+  IL_0008:  callvirt   "Sub cls1.Goo()"
   IL_000d:  ret
 }
 
@@ -13173,7 +13173,8 @@ End Module
 }]]>)
         End Sub
 
-        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <NoIOperationValidationFact>
+        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_01()
             Dim source =
 $"
@@ -13224,7 +13225,8 @@ End Class
             Return builder.ToString()
         End Function
 
-        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <NoIOperationValidationFact>
+        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_02()
             Dim source =
 $"
@@ -13248,7 +13250,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="11461640193")
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_03()
@@ -13305,7 +13307,8 @@ End Class
             Return builder.ToString()
         End Function
 
-        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <NoIOperationValidationFact>
+        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_04()
             Dim source =
 $"
@@ -13331,7 +13334,8 @@ End Class
                 )
         End Sub
 
-        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <NoIOperationValidationFact>
+        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_05()
             Dim count As Integer = 50
             Dim source =
@@ -13376,7 +13380,8 @@ End Class
 5180801")
         End Sub
 
-        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <NoIOperationValidationFact>
+        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
             Dim source =
 $"
@@ -13665,5 +13670,769 @@ End Module
 }
 ]]>)
         End Sub
+
+        <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
+        Public Sub TestExplicitDoubleConversionEmitted()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Program
+    Function M() As Boolean
+        Dim dValue As Double = 600.1
+        Dim mbytDeciWgt As Byte = 1
+
+        Return CDbl(dValue) > CDbl(dValue + CDbl(10 ^ -mbytDeciWgt))
+    End Function
+End Module
+    </file>
+</compilation>).
+            VerifyIL("Program.M",
+            <![CDATA[
+{
+  // Code size       39 (0x27)
+  .maxstack  4
+  .locals init (Double V_0, //dValue
+                Byte V_1) //mbytDeciWgt
+  IL_0000:  ldc.r8     600.1
+  IL_0009:  stloc.0
+  IL_000a:  ldc.i4.1
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.0
+  IL_000d:  conv.r8
+  IL_000e:  ldloc.0
+  IL_000f:  ldc.r8     10
+  IL_0018:  ldloc.1
+  IL_0019:  neg
+  IL_001a:  conv.ovf.i2
+  IL_001b:  conv.r8
+  IL_001c:  call       "Function System.Math.Pow(Double, Double) As Double"
+  IL_0021:  conv.r8
+  IL_0022:  add
+  IL_0023:  conv.r8
+  IL_0024:  cgt
+  IL_0026:  ret
+}
+]]>)
+
+        End Sub
+
+        <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
+        Public Sub TestImplicitDoubleConversionEmitted()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Program
+    Function M() As Boolean
+        Dim dValue As Double = 600.1
+        Dim mbytDeciWgt As Byte = 1
+
+        Return dValue > dValue + (10 ^ -mbytDeciWgt)
+    End Function
+End Module
+    </file>
+</compilation>).
+            VerifyIL("Program.M",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  4
+  .locals init (Byte V_0) //mbytDeciWgt
+  IL_0000:  ldc.r8     600.1
+  IL_0009:  ldc.i4.1
+  IL_000a:  stloc.0
+  IL_000b:  dup
+  IL_000c:  ldc.r8     10
+  IL_0015:  ldloc.0
+  IL_0016:  neg
+  IL_0017:  conv.ovf.i2
+  IL_0018:  conv.r8
+  IL_0019:  call       "Function System.Math.Pow(Double, Double) As Double"
+  IL_001e:  add
+  IL_001f:  cgt
+  IL_0021:  ret
+}
+]]>)
+
+        End Sub
+
+        <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
+        Public Sub TestExplicitSingleConversionEmitted()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Program
+    Function M() As Boolean
+        Dim dValue As Single = 600.1
+        Dim mbytDeciWgt As Byte = 1
+
+        Return CSng(dValue) > CSng(dValue + CSng(10 ^ -mbytDeciWgt))
+    End Function
+End Module
+    </file>
+</compilation>).
+            VerifyIL("Program.M",
+            <![CDATA[
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  .locals init (Single V_0, //dValue
+                Byte V_1) //mbytDeciWgt
+  IL_0000:  ldc.r4     600.1
+  IL_0005:  stloc.0
+  IL_0006:  ldc.i4.1
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.0
+  IL_0009:  conv.r4
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.r8     10
+  IL_0014:  ldloc.1
+  IL_0015:  neg
+  IL_0016:  conv.ovf.i2
+  IL_0017:  conv.r8
+  IL_0018:  call       "Function System.Math.Pow(Double, Double) As Double"
+  IL_001d:  conv.r4
+  IL_001e:  add
+  IL_001f:  conv.r4
+  IL_0020:  cgt
+  IL_0022:  ret
+}
+]]>)
+
+        End Sub
+
+        <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
+        Public Sub TestExplicitSingleConversionNotEmittedOnConstantValue()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Program
+    Function M() As Boolean
+        Dim dValue As Single = 600.1
+        Dim mbytDeciWgt As Byte = 1
+
+        Return CSng(dValue) > CSng(CSng(600) + CSng(0.1))
+    End Function
+End Module
+    </file>
+</compilation>).
+            VerifyIL("Program.M",
+            <![CDATA[
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldc.r4     600.1
+  IL_0005:  conv.r4
+  IL_0006:  ldc.r4     600.1
+  IL_000b:  cgt
+  IL_000d:  ret
+}
+]]>)
+
+        End Sub
+
+        <Fact>
+        Public Sub ArrayElementByReference_Invariant()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New String() {"b"})
+    End Sub
+    Sub F(a() As String)
+        G(a)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As String)
+        H(a(0))
+    End Sub
+    Sub H(ByRef s As String)
+        s = s.ToUpper()
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="B").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "String"
+  IL_0007:  call       "Sub M.H(ByRef String)"
+  IL_000c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementByReference_Covariant()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Object() {"a"})
+        F(New String() {"b"})
+    End Sub
+    Sub F(a() As Object)
+        G(a)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As Object)
+        H(a(0))
+    End Sub
+    Sub H(ByRef s As String)
+        s = s.ToUpper()
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="AB").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       21 (0x15)
+  .maxstack  3
+  .locals init (String V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelem.ref
+  IL_0004:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Object) As String"
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       "Sub M.H(ByRef String)"
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldloc.0
+  IL_0013:  stelem.ref
+  IL_0014:  ret
+}
+]]>)
+        End Sub
+
+        ' Generated code results in ArrayTypeMismatchException,
+        ' matching native compiler.
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementByReferenceBase_Covariant()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Object() {"a"})
+        F(New String() {"b"})
+    End Sub
+    Sub F(a() As Object)
+        Try
+            G(a)
+            System.Console.Write(a(0))
+        Catch e As System.Exception
+            System.Console.Write(e.GetType().Name)
+        End Try
+    End Sub
+    Sub G(a() As Object)
+        H(a(0))
+    End Sub
+    Sub H(ByRef s As Object)
+        s = s.ToString().ToUpper()
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="AArrayTypeMismatchException").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "Object"
+  IL_0007:  call       "Sub M.H(ByRef Object)"
+  IL_000c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementByReference_TypeParameter()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        Dim a = New String() { "b" }
+        Dim b = New B()
+        b.F(a)
+        System.Console.Write(a(0))
+    End Sub
+End Module
+MustInherit Class A(Of T)
+    Friend MustOverride Sub F(Of U As T)(a() As U)
+End Class
+Class B
+    Inherits A(Of String)
+    Friend Overrides Sub F(Of U As String)(a() As U)
+        G(a(0))
+    End Sub
+    Sub G(ByRef s As String)
+        s = s.ToUpper()
+    End Sub
+End Class
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="B").
+            VerifyIL("B.F",
+            <![CDATA[
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (U() V_0,
+                String V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldelem     "U"
+  IL_000a:  box        "U"
+  IL_000f:  castclass  "String"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "Sub B.G(ByRef String)"
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldloc.1
+  IL_001f:  unbox.any  "U"
+  IL_0024:  stelem     "U"
+  IL_0029:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementByReference_StructConstraint()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        Dim a = New Integer() { 1 }
+        Dim b = New B()
+        b.F(a)
+        System.Console.Write(a(0))
+    End Sub
+End Module
+MustInherit Class A(Of T)
+    Friend MustOverride Sub F(Of U As {T, Structure})(a() As U)
+End Class
+Class B
+    Inherits A(Of Integer)
+    Friend Overrides Sub F(Of U As {Integer, Structure})(a() As U)
+        G(a(0))
+    End Sub
+    Sub G(ByRef i As Integer)
+        i += 1
+    End Sub
+End Class
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="2").
+            VerifyIL("B.F",
+            <![CDATA[
+{
+  // Code size       47 (0x2f)
+  .maxstack  3
+  .locals init (U() V_0,
+                Integer V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldelem     "U"
+  IL_000a:  box        "U"
+  IL_000f:  unbox.any  "Integer"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "Sub B.G(ByRef Integer)"
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldloc.1
+  IL_001f:  box        "Integer"
+  IL_0024:  unbox.any  "U"
+  IL_0029:  stelem     "U"
+  IL_002e:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayElementByReference_ValueType()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Integer() {1})
+    End Sub
+    Sub F(a() As Integer)
+        G(a)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As Integer)
+        H(a(0))
+    End Sub
+    Sub H(ByRef i As Integer)
+        i = 2
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="2").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "Integer"
+  IL_0007:  call       "Sub M.H(ByRef Integer)"
+  IL_000c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayElementCompoundAssignment_Invariant()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New String() {""}, "B")
+    End Sub
+    Sub F(a() As String, s As String)
+        G(a, s)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As String, s As String)
+        a(0) += s
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="B").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       19 (0x13)
+  .maxstack  3
+  .locals init (String& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "String"
+  IL_0007:  dup
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ldind.ref
+  IL_000b:  ldarg.1
+  IL_000c:  call       "Function String.Concat(String, String) As String"
+  IL_0011:  stind.ref
+  IL_0012:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementCompoundAssignment_Covariant()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Object() {""}, "A")
+        F(New String() {""}, "B")
+    End Sub
+    Sub F(a() As Object, s As String)
+        G(a, s)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As Object, s As String)
+        a(0) += s
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="AB").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       15 (0xf)
+  .maxstack  4
+  .locals init (Object() V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldloc.0
+  IL_0005:  ldc.i4.0
+  IL_0006:  ldelem.ref
+  IL_0007:  ldarg.1
+  IL_0008:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AddObject(Object, Object) As Object"
+  IL_000d:  stelem.ref
+  IL_000e:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayElementCompoundAssignment_ValueType()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Integer() {1}, 2)
+    End Sub
+    Sub F(a() As Integer, i As Integer)
+        G(a, i)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As Integer, i As Integer)
+        a(0) += i
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="3").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       15 (0xf)
+  .maxstack  3
+  .locals init (Integer& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "Integer"
+  IL_0007:  dup
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ldind.i4
+  IL_000b:  ldarg.1
+  IL_000c:  add.ovf
+  IL_000d:  stind.i4
+  IL_000e:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementCompoundAssignment_Covariant_NonConstantIndex()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Object() {""}, "A")
+        F(New String() {""}, "B")
+    End Sub
+    Sub F(a() As Object, s As String)
+        G(a, s)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As Object, s As String)
+        a(Index(a)) += s
+    End Sub
+    Function Index(arg As Object) As Integer
+        System.Console.Write(arg.GetType().Name)
+        Return 0
+    End Function
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="Object[]AString[]B").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       22 (0x16)
+  .maxstack  4
+  .locals init (Object() V_0,
+                Integer V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  call       "Function M.Index(Object) As Integer"
+  IL_0009:  dup
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  ldelem.ref
+  IL_000e:  ldarg.1
+  IL_000f:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AddObject(Object, Object) As Object"
+  IL_0014:  stelem.ref
+  IL_0015:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayElementWithBlock_Invariant()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New String() {"B"})
+    End Sub
+    Sub F(a() As String)
+        System.Console.Write(G(a))
+    End Sub
+    Function G(a() As String) As String
+        With a(0)
+            Return .ToString() + .ToLower()
+        End With
+    End Function
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="Bb").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (String V_0) //$W0
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.ref
+  IL_0003:  stloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  callvirt   "Function String.ToString() As String"
+  IL_000a:  ldloc.0
+  IL_000b:  callvirt   "Function String.ToLower() As String"
+  IL_0010:  call       "Function String.Concat(String, String) As String"
+  IL_0015:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayElementWithBlock_Covariant()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Object() {"A"})
+        F(New String() {"B"})
+    End Sub
+    Sub F(a() As Object)
+        System.Console.Write(G(a))
+    End Sub
+    Function G(a() As Object) As String
+        With a(0)
+            Return .ToString() + .ToLower()
+        End With
+    End Function
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="AaBb").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       42 (0x2a)
+  .maxstack  8
+  .locals init (Object V_0) //$W0
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.ref
+  IL_0003:  stloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  callvirt   "Function Object.ToString() As String"
+  IL_000a:  ldloc.0
+  IL_000b:  ldnull
+  IL_000c:  ldstr      "ToLower"
+  IL_0011:  ldc.i4.0
+  IL_0012:  newarr     "Object"
+  IL_0017:  ldnull
+  IL_0018:  ldnull
+  IL_0019:  ldnull
+  IL_001a:  call       "Function Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateGet(Object, System.Type, String, Object(), String(), System.Type(), Boolean()) As Object"
+  IL_001f:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AddObject(Object, Object) As Object"
+  IL_0024:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Object) As String"
+  IL_0029:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayElementWithBlock_ValueType()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Integer() {1})
+    End Sub
+    Sub F(a() As Integer)
+        System.Console.Write(G(a))
+    End Sub
+    Function G(a() As Integer) As String
+        With a(0)
+            Return .ToString() + .ToString()
+        End With
+    End Function
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="11").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (Integer& V_0) //$W0
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "Integer"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  call       "Function Integer.ToString() As String"
+  IL_000e:  ldloc.0
+  IL_000f:  call       "Function Integer.ToString() As String"
+  IL_0014:  call       "Function String.Concat(String, String) As String"
+  IL_0019:  ret
+}
+]]>)
+        End Sub
+
     End Class
 End Namespace

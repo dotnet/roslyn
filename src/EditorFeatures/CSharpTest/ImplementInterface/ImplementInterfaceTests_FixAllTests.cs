@@ -113,7 +113,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
         [Fact]
@@ -227,7 +227,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
         [Fact]
@@ -350,7 +350,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
         [Fact]
@@ -482,7 +482,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
         #endregion

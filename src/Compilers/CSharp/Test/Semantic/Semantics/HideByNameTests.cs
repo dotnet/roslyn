@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     ret
   }
 
-  .method public static string Foo(string x) cil managed
+  .method public static string Goo(string x) cil managed
   {
     ldarg.0
     ret
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     ret
   }
 
-  .method public static void Foo(int32 x) cil managed
+  .method public static void Goo(int32 x) cil managed
   {
     ret
   }
@@ -60,13 +60,13 @@ class Program
 {
     static void Main()
     {
-        B.Foo("""");
+        B.Goo("""");
     }
 }";
 
             CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
                 // (6,15): error CS1503: Argument 1: cannot convert from 'string' to 'int'
-                //         B.Foo("");
+                //         B.Goo("");
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int"));
         }
 
@@ -85,7 +85,7 @@ class Program
     ret
   }
 
-  .method public instance string Foo(string x) cil managed
+  .method public instance string Goo(string x) cil managed
   {
     ldarg.0
     ret
@@ -104,7 +104,7 @@ class Program
     ret
   }
 
-  .method public instance void Foo(int32 x) cil managed
+  .method public instance void Goo(int32 x) cil managed
   {
     ret
   }
@@ -116,13 +116,13 @@ class Program
 {
     static void Main()
     {
-        new B().Foo("""");
+        new B().Goo("""");
     }
 }";
 
             CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
                 // (6,21): error CS1503: Argument 1: cannot convert from 'string' to 'int'
-                //         new B().Foo("");
+                //         new B().Goo("");
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int"));
         }
 

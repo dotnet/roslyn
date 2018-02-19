@@ -755,7 +755,7 @@ using System.Drawing;
 
 public interface I
 {
-    void Foo(Point p);
+    void Goo(Point p);
 }
 ";
 
@@ -764,7 +764,7 @@ using System.Drawing;
 
 public class C
 {
-    public void Foo(Point p) { }
+    public void Goo(Point p) { }
 }
 ";
 

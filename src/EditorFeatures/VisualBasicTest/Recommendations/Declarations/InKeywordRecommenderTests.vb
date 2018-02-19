@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InInForEach2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>For Each x As Foo |</MethodBody>, "In")
+            Await VerifyRecommendationsContainAsync(<MethodBody>For Each x As Goo |</MethodBody>, "In")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InInFromQuery2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = From x As Foo |</MethodBody>, "In")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = From x As Goo |</MethodBody>, "In")
         End Function
 
         <WorkItem(543231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543231")>

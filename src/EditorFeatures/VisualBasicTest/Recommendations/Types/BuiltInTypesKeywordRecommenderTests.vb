@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ty
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NumericTypesAfterEnumAs() As Threading.Tasks.Task
-            Await VerifyRecommendationsAreExactlyAsync(<File>Enum Foo As |</File>, "Byte",
+            Await VerifyRecommendationsAreExactlyAsync(<File>Enum Goo As |</File>, "Byte",
                                                                         "SByte",
                                                                         "Short",
                                                                         "UShort",
@@ -37,12 +37,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ty
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllTypesAfterMethodBody() As Threading.Tasks.Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim foo As |</MethodBody>, _keywordList)
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim goo As |</MethodBody>, _keywordList)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoTypesAreInTypeConstraint() As Threading.Tasks.Task
-            Await VerifyRecommendationsMissingAsync(<File>Class Foo(Of String As |</File>, _keywordList)
+            Await VerifyRecommendationsMissingAsync(<File>Class Goo(Of String As |</File>, _keywordList)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -57,10 +57,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ty
 <File>
 Module Program
     Sub Main(args As String())
-        Dim f1 As New Foo2( |
+        Dim f1 As New Goo2( |
     End Sub
 
-    Delegate Sub Foo2()
+    Delegate Sub Goo2()
 
     Function Bar2() As Object
         Return Nothing
@@ -101,10 +101,10 @@ End Class
 <File>
 Class Program
     Sub Main(args As String())
-        Foo(|)
+        Goo(|)
     End Sub
 
-    Sub Foo(x As Integer)
+    Sub Goo(x As Integer)
 
     End Sub
 End Class

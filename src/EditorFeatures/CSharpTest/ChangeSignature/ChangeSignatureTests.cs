@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
             var markup = @"
 class Ext
 {
-    void Foo(int a, int b) => [||]0;
+    void Goo(int a, int b) => [||]0;
 }";
 
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
@@ -88,7 +88,7 @@ class Program
 class Ext
 {
     [||]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -104,7 +104,7 @@ class Ext
 class Ext
 {
     // [||]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -120,7 +120,7 @@ class Ext
 class Ext
 {
     [||]//
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -136,7 +136,7 @@ class Ext
 class Ext
 {
     /// [||]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -152,7 +152,7 @@ class Ext
 class Ext
 {
     [||]///
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -168,7 +168,7 @@ class Ext
 class Ext
 {
     [||][X]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -184,7 +184,7 @@ class Ext
 class Ext
 {
     [[||]X]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -200,7 +200,7 @@ class Ext
 class Ext
 {
     [X][||]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -215,7 +215,7 @@ class Ext
             var markup = @"
 class Ext
 {
-    void Foo<T>(int a, int b) where [||]T : class
+    void Goo<T>(int a, int b) where [||]T : class
     {
     };
 }";

@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (TypeParameterSymbol typeParameter in kvp.Value)
                     {
                         // In any context where this binder applies, the type parameters are always viable/speakable.
-                        Debug.Assert(originalBinder.CanAddLookupSymbolInfo(typeParameter, options, null));
+                        Debug.Assert(!result.CanBeAdded(typeParameter.Name) || originalBinder.CanAddLookupSymbolInfo(typeParameter, options, result, null));
 
                         result.AddSymbol(typeParameter, kvp.Key, 0);
                     }

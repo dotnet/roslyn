@@ -17,13 +17,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 class C
 {
 //[
-    public int Foo { get; set; }
+    public int Goo { get; set; }
 //]    
 }";
 
         private const string s_declarationPreview = @"
 class C{
-    void foo()
+    void goo()
     {
 //[
         int i = 0; string name = ""John"";

@@ -78,16 +78,16 @@ class C
 class C
 {
     static int s1;
-    int i1 = 1 + Foo();
+    int i1 = 1 + Goo();
 
-    static int Foo() { return 1; }
+    static int Goo() { return 1; }
 }";
 
             IEnumerable<ExpectedInitializer> expectedStaticInitializers = null;
 
             IEnumerable<ExpectedInitializer> expectedInstanceInitializers = new ExpectedInitializer[]
             {
-                new ExpectedInitializer("i1", "1 + Foo()", lineNumber: 4),
+                new ExpectedInitializer("i1", "1 + Goo()", lineNumber: 4),
             };
 
             CompileAndCheckInitializers(source, expectedInstanceInitializers, expectedStaticInitializers);
@@ -99,15 +99,15 @@ class C
             var source = @"
 class C
 {
-    static int s1 = 1 + Foo();
+    static int s1 = 1 + Goo();
     int i1;
 
-    static int Foo() { return 1; }
+    static int Goo() { return 1; }
 }";
 
             IEnumerable<ExpectedInitializer> expectedStaticInitializers = new ExpectedInitializer[]
             {
-                new ExpectedInitializer("s1", "1 + Foo()", lineNumber: 3),
+                new ExpectedInitializer("s1", "1 + Goo()", lineNumber: 3),
             };
 
             IEnumerable<ExpectedInitializer> expectedInstanceInitializers = null;

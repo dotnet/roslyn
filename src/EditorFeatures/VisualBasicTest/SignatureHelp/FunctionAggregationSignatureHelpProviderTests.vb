@@ -58,7 +58,7 @@ End Class
 Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
 
-Public Module Foo
+Public Module Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)>
     <Extension()>
     Public Function GetRandomNumber(ByVal values As IEnumerable(Of Integer)) As Integer
@@ -97,7 +97,7 @@ End Class
 Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
 
-Public Module Foo
+Public Module Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
     <Extension()>
     Public Function GetRandomNumber(ByVal values As IEnumerable(Of Integer)) As Integer
@@ -136,7 +136,7 @@ End Class
 Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
 
-Public Module Foo
+Public Module Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)>
     <Extension()>
     Public Function GetRandomNumber(ByVal values As IEnumerable(Of Integer)) As Integer
@@ -185,7 +185,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
 Imports System
 
-Public Module Foo
+Public Module Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)>
     <Extension()>
     Public Function GetRandomNumber(ByVal values As IEnumerable(Of Integer)) As Integer

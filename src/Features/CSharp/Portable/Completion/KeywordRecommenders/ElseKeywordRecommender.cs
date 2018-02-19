@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             // cases:
-            //   if (foo)
+            //   if (goo)
             //     Console.WriteLine();
             //   |
-            //   if (foo)
+            //   if (goo)
             //     Console.WriteLine();
             //   e|
             if (token.IsKind(SyntaxKind.SemicolonToken) && ifStatement.Statement.GetLastToken(includeSkipped: true) == token)
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return true;
             }
 
-            // if (foo) {
+            // if (goo) {
             //     Console.WriteLine();
             //   } |
-            //   if (foo) {
+            //   if (goo) {
             //     Console.WriteLine();
             //   } e|
             if (token.IsKind(SyntaxKind.CloseBraceToken) && ifStatement.Statement is BlockSyntax && token == ((BlockSyntax)ifStatement.Statement).CloseBraceToken)

@@ -177,12 +177,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     void M()
     {
-#define Foo1
-#define Foo2
+#define Goo1
+#define Goo2
 
-{|Cursor:[|#if|]|} Foo1
+{|Cursor:[|#if|]|} Goo1
 
-[|#elif|] Foo2
+[|#elif|] Goo2
 
 [|#else|]
 
@@ -199,12 +199,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     void M()
     {
-#define Foo1
-#define Foo2
+#define Goo1
+#define Goo2
 
-[|#if|] Foo1
+[|#if|] Goo1
 
-{|Cursor:[|#elif|]|} Foo2
+{|Cursor:[|#elif|]|} Goo2
 
 [|#else|]
 
@@ -221,12 +221,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     void M()
     {
-#define Foo1
-#define Foo2
+#define Goo1
+#define Goo2
 
-[|#if|] Foo1
+[|#if|] Goo1
 
-[|#elif|] Foo2
+[|#elif|] Goo2
 
 {|Cursor:[|#else|]|}
 
@@ -243,12 +243,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     void M()
     {
-#define Foo1
-#define Foo2
+#define Goo1
+#define Goo2
 
-[|#if|] Foo1
+[|#if|] Goo1
 
-[|#elif|] Foo2
+[|#elif|] Goo2
 
 [|#else|]
 

@@ -40,7 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub CreateCollectionSource()
             Using environment = New TestEnvironment()
-                Dim project = CreateVisualBasicProject(environment, "Foo")
+                Dim project = CreateVisualBasicProject(environment, "Goo")
                 Dim hierarchy = project.Hierarchy
 
                 Dim hierarchyItem = New MockHierarchyItem With {
@@ -54,7 +54,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                             .NestedHierarchy = hierarchy,
                             .NestedItemID = VSConstants.VSITEMID.Root
                         },
-                        .CanonicalName = "Foo"
+                        .CanonicalName = "Goo"
                     }
                 }
 

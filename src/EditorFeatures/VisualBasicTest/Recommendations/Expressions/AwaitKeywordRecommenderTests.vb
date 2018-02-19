@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
         Public Async Function InSynchronousMethodTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
 Class C
-     Sub Foo()
+     Sub Goo()
         Dim z = |
     End Sub
 End Class
@@ -18,7 +18,7 @@ End Class
         Public Async Function InMethodStatementTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
 Class C
-    Async Sub Foo()
+    Async Sub Goo()
         |
     End Sub
 End Class
@@ -29,7 +29,7 @@ End Class
         Public Async Function InMethodExpressionTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
 Class C
-    Async Sub Foo()
+    Async Sub Goo()
         Dim z = |
     End Sub
 End Class
@@ -40,7 +40,7 @@ End Class
         Public Async Function NotInCatchTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
 Class C
-    Async Sub Foo()
+    Async Sub Goo()
         Try
         Catch
             Dim z = |
@@ -55,7 +55,7 @@ End Class
         Public Async Function NotInCatchExceptionFilterTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
 Class C
-    Async Sub Foo()
+    Async Sub Goo()
         Try
         Catch When Err = |
         End Try
@@ -69,7 +69,7 @@ End Class
         Public Async Function InCatchNestedDelegateTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
 Class C
-    Async Sub Foo()
+    Async Sub Goo()
         Try
         Catch
             Dim z = Function() |
@@ -84,7 +84,7 @@ End Class
         Public Async Function NotInFinallyTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
 Class C
-    Async Sub Foo()
+    Async Sub Goo()
         Try
         Finally
             Dim z = |
@@ -99,7 +99,7 @@ End Class
         Public Async Function NotInSyncLockTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
 Class C
-    Async Sub Foo()
+    Async Sub Goo()
         SyncLock True
             Dim z = |
         End SyncLock

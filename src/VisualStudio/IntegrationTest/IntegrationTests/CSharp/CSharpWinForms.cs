@@ -126,14 +126,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.cs");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
-            VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "FooHandler");
+            VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "GooHandler");
             //  Remove the event handler
             VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "");
             VisualStudio.ErrorList.Verify.NoBuildErrors();
             //  Verify that the handler is removed
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.cs");
             var actualText = VisualStudio.Editor.GetText();
-            Assert.DoesNotContain(@"VisualStudio.Editor.SomeButton.Click += new System.EventHandler(VisualStudio.Editor.FooHandler);", actualText);
+            Assert.DoesNotContain(@"VisualStudio.Editor.SomeButton.Click += new System.EventHandler(VisualStudio.Editor.GooHandler);", actualText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]

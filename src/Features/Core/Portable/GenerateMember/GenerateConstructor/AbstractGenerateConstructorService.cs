@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -46,18 +47,27 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
                 var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
-                if (state == null)
+                if (state != null)
                 {
-                    return ImmutableArray<CodeAction>.Empty;
+                    var result = ArrayBuilder<CodeAction>.GetInstance();
+                    var codeAction = new GenerateConstructorCodeAction((TService)this, document, state, withFields: true);
+                    result.Add(codeAction);
+
+                    // First see the type of edit our regular code action would create.  If it 
+                    // creates fields, then also offer to perform the code action without creating
+                    // any fields.
+                    var edit = await codeAction.GetEditAsync(cancellationToken).ConfigureAwait(false);
+                    if (edit.addedFields)
+                    {
+                        result.Add(
+                            new GenerateConstructorCodeAction((TService)this, document, state, withFields: false));
+                    }
+
+                    return result.ToImmutableAndFree();
                 }
-
-                return GetActions(document, state);
             }
-        }
 
-        private ImmutableArray<CodeAction> GetActions(Document document, State state)
-        {
-            return ImmutableArray.Create<CodeAction>(new GenerateConstructorCodeAction((TService)this, document, state));
+            return ImmutableArray<CodeAction>.Empty;
         }
 
         protected static bool IsSymbolAccessible(

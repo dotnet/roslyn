@@ -542,7 +542,7 @@ public class A<T1>
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         System.Func<int> lambda = () => 
         {
@@ -819,8 +819,7 @@ class C
             {
                 symbols.Add(member);
 
-                var nsOrType = member as INamespaceOrTypeSymbol;
-                if (nsOrType != null)
+                if (member is INamespaceOrTypeSymbol nsOrType)
                 {
                     GetDeclaredSymbols(nsOrType, symbols);
                 }

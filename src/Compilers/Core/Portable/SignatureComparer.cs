@@ -91,6 +91,13 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
                 return false;
             }
 
+            bool isByRef = IsByRef(signature, ref position);
+
+            if (IsByRefMethod(method) != isByRef)
+            {
+                return false;
+            }
+
             // get the return type
             if (!MatchType(GetReturnType(method), signature, ref position))
             {
@@ -112,18 +119,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
 
         private bool MatchParameter(ParameterSymbol parameter, ImmutableArray<byte> signature, ref int position)
         {
-            SignatureTypeCode typeCode = (SignatureTypeCode)signature[position];
-            bool isByRef;
-
-            if (typeCode == SignatureTypeCode.ByReference)
-            {
-                isByRef = true;
-                position++;
-            }
-            else
-            {
-                isByRef = false;
-            }
+            bool isByRef = IsByRef(signature, ref position);
 
             if (IsByRefParam(parameter) != isByRef)
             {
@@ -131,6 +127,21 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
             }
 
             return MatchType(GetParamType(parameter), signature, ref position);
+        }
+
+        private static bool IsByRef(ImmutableArray<byte> signature, ref int position)
+        {
+            SignatureTypeCode typeCode = (SignatureTypeCode)signature[position];
+
+            if (typeCode == SignatureTypeCode.ByReference)
+            {
+                position++;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
 
@@ -273,7 +284,9 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         protected abstract ImmutableArray<ParameterSymbol> GetParameters(PropertySymbol property);
 
         protected abstract TypeSymbol GetParamType(ParameterSymbol parameter);
+
         protected abstract bool IsByRefParam(ParameterSymbol parameter);
+        protected abstract bool IsByRefMethod(MethodSymbol method);
 
         protected abstract TypeSymbol GetFieldType(FieldSymbol field);
     }

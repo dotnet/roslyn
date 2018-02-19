@@ -152,7 +152,7 @@ text;
         {
             var alwaysTriggerList = new[]
             {
-                "foo$$.",
+                "goo$$.",
             };
 
             foreach (var markup in alwaysTriggerList)
@@ -173,8 +173,8 @@ text;
 
             var neverTriggerList = new[]
             {
-                "foo$$x",
-                "foo$$_"
+                "goo$$x",
+                "goo$$_"
             };
 
             foreach (var markup in neverTriggerList)

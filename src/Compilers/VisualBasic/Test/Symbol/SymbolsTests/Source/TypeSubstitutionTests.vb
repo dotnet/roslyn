@@ -66,7 +66,7 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="C">
     <file name="a.vb">
-Namespace Foo
+Namespace Goo
     Class B(Of R, S)
         Function Func(ByVal p1 As R) As S
         End Function
@@ -96,18 +96,18 @@ End Class
 </compilation>)
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
-            Dim fooNS = DirectCast(globalNS.GetMembers("Foo").First, NamespaceSymbol)
+            Dim gooNS = DirectCast(globalNS.GetMembers("Goo").First, NamespaceSymbol)
 
-            Dim classDSymbol As TypeSymbol = DirectCast(DirectCast(FooNS.GetMembers("J").First(), NamedTypeSymbol).BaseType.GetMembers("D").First(), NamedTypeSymbol)
-            Assert.Equal("Foo.C(Of System.Int32).D", classDSymbol.ToTestDisplayString())
+            Dim classDSymbol As TypeSymbol = DirectCast(DirectCast(GooNS.GetMembers("J").First(), NamedTypeSymbol).BaseType.GetMembers("D").First(), NamedTypeSymbol)
+            Assert.Equal("Goo.C(Of System.Int32).D", classDSymbol.ToTestDisplayString())
             Dim classFSymbol = DirectCast(classDSymbol.GetMembers("F").First(), TypeSymbol)
-            Assert.Equal("Foo.C(Of System.Int32).D.F", classFSymbol.ToTestDisplayString())
+            Assert.Equal("Goo.C(Of System.Int32).D.F", classFSymbol.ToTestDisplayString())
             Dim classFBaseType = classFSymbol.BaseType
             Dim classFBaseTypeSquared = classFBaseType.BaseType
-            Assert.Equal("Foo.B(Of System.String, K(Of System.Int32))", classFBaseTypeSquared.ToTestDisplayString())
+            Assert.Equal("Goo.B(Of System.String, K(Of System.Int32))", classFBaseTypeSquared.ToTestDisplayString())
 
             Dim method = classFSymbol.BaseType.BaseType.GetMembers("Func").First()
-            Assert.Equal("Function Foo.B(Of System.String, K(Of System.Int32)).Func(p1 As System.String) As K(Of System.Int32)", method.ToTestDisplayString())
+            Assert.Equal("Function Goo.B(Of System.String, K(Of System.Int32)).Func(p1 As System.String) As K(Of System.Int32)", method.ToTestDisplayString())
 
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub

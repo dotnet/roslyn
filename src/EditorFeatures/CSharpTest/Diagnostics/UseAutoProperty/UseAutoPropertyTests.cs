@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
     public class UseAutoPropertyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new UseAutoPropertyAnalyzer(), new UseAutoPropertyCodeFixProvider());
+            => (new CSharpUseAutoPropertyAnalyzer(), new CSharpUseAutoPropertyCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleGetterFromField()
@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
+
     int P { get; }
 }");
         }
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
+
     public int P { get; private set; }
 }",
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
@@ -97,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
+
     int P { get; } = 1;
 }");
         }
@@ -137,6 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
+
     int P { get; }
 }");
         }
@@ -182,6 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
+
     int P { get; set; }
 }");
         }
@@ -204,6 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
+
     int P { get; }
 }");
         }
@@ -249,6 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
+
     int P { get; set; }
 }");
         }
@@ -605,6 +612,7 @@ partial class Class
 }",
 @"class Class
 {
+
     int P { get; }
 
     public Class()
@@ -637,6 +645,7 @@ partial class Class
 }",
 @"class Class
 {
+
     int P { get; }
 
     public Class(int P)
@@ -669,6 +678,7 @@ partial class Class
 }",
 @"class Class
 {
+
     int P { get; }
 
     public Class()
@@ -694,16 +704,17 @@ partial class Class
         }
     }
 
-    public Foo()
+    public void Goo()
     {
         i = 1;
     }
 }",
 @"class Class
 {
+
     int P { get; set; }
 
-    public Foo()
+    public void Goo()
     {
         P = 1;
     }
@@ -726,16 +737,17 @@ partial class Class
         }
     }
 
-    public Foo()
+    public void Goo()
     {
         i = 1;
     }
 }",
 @"class Class
 {
+
     public int P { get; private set; }
 
-    public Foo()
+    public void Goo()
     {
         P = 1;
     }
@@ -774,7 +786,7 @@ partial class Class
 @"class Class
 {
     int P { get; }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
@@ -792,7 +804,7 @@ partial class Class
 @"class Class
 {
     int P { get; }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
@@ -811,7 +823,7 @@ partial class Class
 @"class Class
 {
     int P { get; set; }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
@@ -832,6 +844,7 @@ partial class Class
 }",
 @"class Class
 {
+
     (int, string) P { get; }
 }");
         }
@@ -854,6 +867,7 @@ partial class Class
 }",
 @"class Class
 {
+
     (int a, string b) P { get; }
 }");
         }
@@ -894,6 +908,7 @@ partial class Class
 }",
 @"class Class
 {
+
     (int a, string) P { get; }
 }");
         }
@@ -916,6 +931,7 @@ partial class Class
 }",
 @"class Class
 {
+
     (int, string) P { get; } = (1, ""hello"");
 }");
         }
@@ -943,7 +959,104 @@ partial class Class
 }",
 @"class Class
 {
+
     (int, string) P { get; set; }
+}");
+        }
+
+        [WorkItem(23215, "https://github.com/dotnet/roslyn/issues/23215")]
+        [WorkItem(23216, "https://github.com/dotnet/roslyn/issues/23216")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestFixAllInDocument()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    {|FixAllInDocument:int i|};
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+    int j;
+
+    int Q
+    {
+        get
+        {
+            return j;
+        }
+    }
+}",
+@"class Class
+{
+
+    int P { get; }
+
+    int Q { get; }
+}", fixAllActionEquivalenceKey: FeaturesResources.Use_auto_property);
+        }
+
+        [WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task ExplicitInterfaceImplementationGetterOnly()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+namespace RoslynSandbox
+{
+    public interface IFoo
+    {
+        object Bar { get; }
+    }
+
+    class Foo : IFoo
+    {
+        public Foo(object bar)
+        {
+            this.bar = bar;
+        }
+
+        readonly object [|bar|];
+
+        object IFoo.Bar
+        {
+            get { return bar; }
+        }
+    }
+}");
+        }
+
+        [WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task ExplicitInterfaceImplementationGetterAndSetter()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+namespace RoslynSandbox
+{
+    public interface IFoo
+    {
+        object Bar { get; set; }
+    }
+
+    class Foo : IFoo
+    {
+        public Foo(object bar)
+        {
+            this.bar = bar;
+        }
+
+        object [|bar|];
+
+        object IFoo.Bar
+        {
+            get { return bar; }
+            set { bar = value; }
+        }
+    }
 }");
         }
     }

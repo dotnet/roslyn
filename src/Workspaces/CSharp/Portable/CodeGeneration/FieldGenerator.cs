@@ -80,13 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<VariableDeclaratorSyntax>(field, options);
             if (reusableSyntax != null)
             {
-                var variableDeclaration = reusableSyntax.Parent as VariableDeclarationSyntax;
-                if (variableDeclaration != null)
+                if (reusableSyntax.Parent is VariableDeclarationSyntax variableDeclaration)
                 {
                     var newVariableDeclaratorsList = new SeparatedSyntaxList<VariableDeclaratorSyntax>().Add(reusableSyntax);
                     var newVariableDeclaration = variableDeclaration.WithVariables(newVariableDeclaratorsList);
-                    var fieldDecl = variableDeclaration.Parent as FieldDeclarationSyntax;
-                    if (fieldDecl != null)
+                    if (variableDeclaration.Parent is FieldDeclarationSyntax fieldDecl)
                     {
                         return fieldDecl.WithDeclaration(newVariableDeclaration);
                     }
@@ -107,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     SyntaxFactory.SingletonSeparatedList(
                         AddAnnotationsTo(field, SyntaxFactory.VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer)))));
 
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(fieldDeclaration, field, options));
         }
 

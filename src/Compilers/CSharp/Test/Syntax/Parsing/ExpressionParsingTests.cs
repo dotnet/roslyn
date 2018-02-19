@@ -9,9 +9,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class ExpressionParsingTexts : ParsingTests
+    public class ExpressionParsingTests : ParsingTests
     {
-        public ExpressionParsingTexts(ITestOutputHelper output) : base(output) { }
+        public ExpressionParsingTests(ITestOutputHelper output) : base(output) { }
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestName()
         {
-            var text = "foo";
+            var text = "goo";
             var expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestParenthesizedExpression()
         {
-            var text = "(foo)";
+            var text = "(goo)";
             var expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
@@ -1852,6 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(qs.Body.Continuation);
         }
 
+        [Fact]
         public void TestFromGroupBy()
         {
             var text = "from a in A group b by c";
@@ -1863,10 +1864,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
 
             var qs = (QueryExpressionSyntax)expr;
-            Assert.Equal(1, qs.Body.Clauses.Count);
-            Assert.Equal(SyntaxKind.FromClause, qs.Body.Clauses[0].Kind());
+            Assert.Equal(0, qs.Body.Clauses.Count);
 
-            var fs = (FromClauseSyntax)qs.Body.Clauses[0];
+            var fs = qs.FromClause;
             Assert.NotNull(fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
@@ -1891,6 +1891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(qs.Body.Continuation);
         }
 
+        [Fact]
         public void TestFromGroupByIntoSelect()
         {
             var text = "from a in A group b by c into d select e";
@@ -1902,10 +1903,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
 
             var qs = (QueryExpressionSyntax)expr;
-            Assert.Equal(1, qs.Body.Clauses.Count);
-            Assert.Equal(SyntaxKind.FromClause, qs.Body.Clauses[0].Kind());
+            Assert.Equal(0, qs.Body.Clauses.Count);
 
-            var fs = (FromClauseSyntax)qs.Body.Clauses[0];
+            var fs = qs.FromClause;
             Assert.NotNull(fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
@@ -2115,7 +2115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestFromGroupBy1()
         {
-            var text = "from it in foo group x by y";
+            var text = "from it in goo group x by y";
             var expr = SyntaxFactory.ParseExpression(text);
 
             Assert.NotNull(expr);
@@ -3664,6 +3664,124 @@ select t";
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(22830, "https://github.com/dotnet/roslyn/issues/22830")]
+        public void TypeArgumentIndexerInitializer()
+        {
+            UsingExpression("new C { [0] = op1 < op2, [1] = true }");
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.ObjectInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.ImplicitElementAccess);
+                        {
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.LessThanExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "op1");
+                            }
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "op2");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.ImplicitElementAccess);
+                        {
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.TrueLiteralExpression);
+                        {
+                            N(SyntaxKind.TrueKeyword);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(12214, "https://github.com/dotnet/roslyn/issues/12214")]
+        public void ConditionalExpressionInInterpolation()
+        {
+            UsingExpression("$\"{a ? b : d}\"",
+                // (1,4): error CS8361: A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.
+                // $"{a ? b : d}"
+                Diagnostic(ErrorCode.ERR_ConditionalInInterpolation, "a ? b ").WithLocation(1, 4)
+                );
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedStringStartToken);
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConditionalExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        M(SyntaxKind.ColonToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.InterpolationFormatClause);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.InterpolatedStringTextToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
             }
             EOF();
         }

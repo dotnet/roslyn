@@ -3,8 +3,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
@@ -14,12 +15,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHashCodeFromMembers
 {
-    using static GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider;
+    using static AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider;
 
     public class GenerateEqualsAndGetHashCodeFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
+            => new CSharpGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsSingleField()
@@ -40,7 +41,8 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && a == program.a;
+        return program != null &&
+               a == program.a;
     }
 }");
         }
@@ -72,7 +74,8 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && EqualityComparer<S>.Default.Equals(a, program.a);
+        return program != null &&
+               EqualityComparer<S>.Default.Equals(a, program.a);
     }
 }");
         }
@@ -104,7 +107,8 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && a.Equals(program.a);
+        return program != null &&
+               a.Equals(program.a);
     }
 }");
         }
@@ -128,7 +132,8 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null && a == name.a;
+        return name != null &&
+               a == name.a;
     }
 }");
         }
@@ -152,7 +157,8 @@ class ReallyLongLong
     public override bool Equals(object obj)
     {
         var @long = obj as ReallyLongLong;
-        return @long != null && a == @long.a;
+        return @long != null &&
+               a == @long.a;
     }
 }");
         }
@@ -180,7 +186,9 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null && a == name.a && B == name.B;
+        return name != null &&
+               a == name.a &&
+               B == name.B;
     }
 }");
         }
@@ -208,7 +216,8 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && i == program.i;
+        return program != null &&
+               i == program.i;
     }
 }");
         }
@@ -256,7 +265,7 @@ class Program : Base
                S == program.S;
     }
 }",
-index: 0, ignoreTrivia: false);
+index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -304,8 +313,10 @@ class Program : Middle
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && base.Equals(obj) &&
-               i == program.i && S == program.S;
+        return program != null &&
+               base.Equals(obj) &&
+               i == program.i &&
+               S == program.S;
     }
 }");
         }
@@ -338,7 +349,8 @@ struct ReallyLongName
         }
 
         var name = (ReallyLongName)obj;
-        return i == name.i && S == name.S;
+        return i == name.i &&
+               S == name.S;
     }
 }");
         }
@@ -369,7 +381,7 @@ class Program<T>
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -467,7 +479,7 @@ class Program : Base
 
     public override int GetHashCode()
     {
-        var hashCode = -284411267;
+        var hashCode = 339610899;
         hashCode = hashCode * -1521134295 + base.GetHashCode();
         hashCode = hashCode * -1521134295 + j.GetHashCode();
         return hashCode;
@@ -509,7 +521,7 @@ class Program : Base
 
     public override int GetHashCode()
     {
-        return base.GetHashCode();
+        return 624022166 + base.GetHashCode();
     }
 }",
 chosenSymbols: new string[] { },
@@ -871,8 +883,7 @@ class Program
                b == program.b;
     }
 }",
-chosenSymbols: new[] { "a", "b" },
-ignoreTrivia: false);
+chosenSymbols: new[] { "a", "b" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -904,8 +915,7 @@ class Program
                b == program.b;
     }
 }",
-chosenSymbols: new[] { "c", "b" },
-ignoreTrivia: false);
+chosenSymbols: new[] { "c", "b" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -935,8 +945,7 @@ class Program
         return program != null;
     }
 }",
-chosenSymbols: new string[] { },
-ignoreTrivia: false);
+chosenSymbols: new string[] { });
         }
 
         [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
@@ -962,8 +971,7 @@ class Program
                F == program.F;
     }
 }",
-chosenSymbols: null,
-ignoreTrivia: false);
+chosenSymbols: null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1003,8 +1011,7 @@ class Program
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, GenerateOperatorsId),
-ignoreTrivia: false);
+optionsCallback: options => EnableOption(options, GenerateOperatorsId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1033,11 +1040,8 @@ class Program
                s == program.s;
     }
 
-    public static bool operator ==(Program program1, Program program2)
-        => EqualityComparer<Program>.Default.Equals(program1, program2);
-
-    public static bool operator !=(Program program1, Program program2)
-        => !(program1 == program2);
+    public static bool operator ==(Program program1, Program program2) => EqualityComparer<Program>.Default.Equals(program1, program2);
+    public static bool operator !=(Program program1, Program program2) => !(program1 == program2);
 }",
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
@@ -1076,8 +1080,7 @@ class Program
     public static bool operator ==(Program program1, Program program2) => true;
 }",
 chosenSymbols: null,
-optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)),
-ignoreTrivia: false);
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1121,8 +1124,7 @@ struct Program
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, GenerateOperatorsId),
-ignoreTrivia: false);
+optionsCallback: options => EnableOption(options, GenerateOperatorsId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1156,8 +1158,7 @@ struct Program : IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, ImplementIEquatableId),
-ignoreTrivia: false);
+optionsCallback: options => EnableOption(options, ImplementIEquatableId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1192,8 +1193,7 @@ class Program : IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, ImplementIEquatableId),
-ignoreTrivia: false);
+optionsCallback: options => EnableOption(options, ImplementIEquatableId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1223,8 +1223,7 @@ class Program : System.IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)),
-ignoreTrivia: false);
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1240,7 +1239,7 @@ public class Class1
     int i;
     [||]
 
-    public void Foo()
+    public void F()
     {
     }
 }
@@ -1258,7 +1257,7 @@ public class Class1
         return @class != null;
     }
 
-    public void Foo()
+    public void F()
     {
     }
 
@@ -1266,8 +1265,220 @@ public class Class1
     {
         return 0;
     }
-}",
+}
+        ",
 chosenSymbols: new string[] { },
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGetHashCodeInCheckedContext()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|int i;
+
+    string S { get; }|]
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+
+    string S { get; }
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               i == program.i &&
+               S == program.S;
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            var hashCode = -538000506;
+            hashCode = hashCode * -1521134295 + i.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
+            return hashCode;
+        }
+    }
+}",
+index: 1, compilationOptions: new CSharpCompilationOptions(
+    OutputKind.DynamicallyLinkedLibrary, checkOverflow: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGetHashCodeStruct()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+struct S
+{
+    [|int j;|]
+}",
+@"using System.Collections.Generic;
+
+struct S
+{
+    int j;
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is S))
+        {
+            return false;
+        }
+
+        var s = (S)obj;
+        return j == s.j;
+    }
+
+    public override int GetHashCode()
+    {
+        return 1424088837 + j.GetHashCode();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGetHashCodeSystemHashCodeOneMember()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+struct S
+{
+    [|int j;|]
+}",
+@"using System;
+using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+struct S
+{
+    int j;
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is S))
+        {
+            return false;
+        }
+
+        var s = (S)obj;
+        return j == s.j;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(j);
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGetHashCodeSystemHashCodeEightMembers()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+struct S
+{
+    [|int j, k, l, m, n, o, p, q;|]
+}",
+@"using System;
+using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+struct S
+{
+    int j, k, l, m, n, o, p, q;
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is S))
+        {
+            return false;
+        }
+
+        var s = (S)obj;
+        return j == s.j &&
+               k == s.k &&
+               l == s.l &&
+               m == s.m &&
+               n == s.n &&
+               o == s.o &&
+               p == s.p &&
+               q == s.q;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(j, k, l, m, n, o, p, q);
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGetHashCodeSystemHashCodeNineMembers()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+struct S
+{
+    [|int j, k, l, m, n, o, p, q, r;|]
+}",
+@"using System;
+using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+struct S
+{
+    int j, k, l, m, n, o, p, q, r;
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is S))
+        {
+            return false;
+        }
+
+        var s = (S)obj;
+        return j == s.j &&
+               k == s.k &&
+               l == s.l &&
+               m == s.m &&
+               n == s.n &&
+               o == s.o &&
+               p == s.p &&
+               q == s.q &&
+               r == s.r;
+    }
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(j);
+        hash.Add(k);
+        hash.Add(l);
+        hash.Add(m);
+        hash.Add(n);
+        hash.Add(o);
+        hash.Add(p);
+        hash.Add(q);
+        hash.Add(r);
+        return hash.ToHashCode();
+    }
+}",
 index: 1);
         }
     }

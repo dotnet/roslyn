@@ -5,11 +5,12 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 // Note: the easiest way to create new unit tests that use GetSemanticInfo
-// is to use the SemanticInfo unit test generate in Editor Test App. 
+// is to use the SemanticInfo unit test generate in Editor Test App.
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1407,7 +1408,7 @@ static class E
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
-<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")>
 <ComImport()>
 <Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
 Public Class A
@@ -1433,7 +1434,7 @@ Public Class A
         End Set
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: false);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
 
             // Assignment (property group).
             var source2 =
@@ -1527,7 +1528,7 @@ End Class";
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
-<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")>
 <ComImport()>
 <Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
 Public Class A
@@ -1572,7 +1573,7 @@ Public Class B
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: false);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
 
             // Overridden property.
             var source2 =
@@ -2234,7 +2235,7 @@ using NSA = A;
 
 namespace A 
 {
-    class Foo {}
+    class Goo {}
 }
 
 namespace B
@@ -2247,7 +2248,7 @@ namespace B
 
         static void Main() 
         {
-            /*<bind>*/NSA::Foo/*</bind>*/ foo = new NSA::Foo();
+            /*<bind>*/NSA::Goo/*</bind>*/ goo = new NSA::Goo();
 
         }
     }
@@ -2255,13 +2256,13 @@ namespace B
 ";
             var semanticInfo = GetSemanticInfoForTest(sourceCode);
 
-            Assert.Equal("A.Foo", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("A.Goo", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("A.Foo", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("A.Goo", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("A.Foo", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("A.Goo", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -2360,11 +2361,11 @@ namespace N2
         public void InvocExprWithAliasIdentifierNameSameAsType()
         {
             string sourceCode = @"
-using N1 = NFoo;
+using N1 = NGoo;
 
-namespace NFoo
+namespace NGoo
 {
-    class Foo 
+    class Goo 
     {
         public static void method() { }
     }
@@ -2378,7 +2379,7 @@ namespace N2
     {
         static void Main() 
         {
-            /*<bind>*/N1::Foo.method()/*</bind>*/;
+            /*<bind>*/N1::Goo.method()/*</bind>*/;
             
         }
     }
@@ -2392,7 +2393,7 @@ namespace N2
             Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("void NFoo.Foo.method()", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("void NGoo.Goo.method()", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -2456,29 +2457,29 @@ class Program
     {
         D d = new D();
         string s = ""hello""; long l = 1;
-        /*<bind>*/d.foo(ref s, l, l)/*</bind>*/;
+        /*<bind>*/d.goo(ref s, l, l)/*</bind>*/;
     }
 }
 public class B
 {
     // Should bind to this method.
-    public virtual int foo(ref string x, long y, long z)
+    public virtual int goo(ref string x, long y, long z)
     {
-        Console.WriteLine(""Base: foo(ref string x, long y, long z)"");
+        Console.WriteLine(""Base: goo(ref string x, long y, long z)"");
         return 0;
     }
-    public virtual void foo(ref string x, params long[] y)
+    public virtual void goo(ref string x, params long[] y)
     {
-        Console.WriteLine(""Base: foo(ref string x, params long[] y)"");
+        Console.WriteLine(""Base: goo(ref string x, params long[] y)"");
     }
 }
 public class D: B
 {
     // Roslyn erroneously binds to this override.
     // Roslyn binds to the correct method above if you comment out this override.
-    public override void foo(ref string x, params long[] y)
+    public override void goo(ref string x, params long[] y)
     {
-        Console.WriteLine(""Derived: foo(ref string x, params long[] y)"");
+        Console.WriteLine(""Derived: goo(ref string x, params long[] y)"");
     }
 }
 ";
@@ -2490,7 +2491,7 @@ public class D: B
             Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("System.Int32 B.foo(ref System.String x, System.Int64 y, System.Int64 z)", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 B.goo(ref System.String x, System.Int64 y, System.Int64 z)", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -2511,26 +2512,26 @@ class Program
     {
         D d = new D();
         int i = 1;
-        /*<bind>*/d.foo(i, i)/*</bind>*/;
+        /*<bind>*/d.goo(i, i)/*</bind>*/;
     } 
 }
 public class B
 {
-    public virtual int foo(params int[] x)
+    public virtual int goo(params int[] x)
     {
-        Console.WriteLine(""""Base: foo(params int[] x)"""");
+        Console.WriteLine(""""Base: goo(params int[] x)"""");
         return 0;
     }
-    public virtual void foo(params object[] x)
+    public virtual void goo(params object[] x)
     {
-        Console.WriteLine(""""Base: foo(params object[] x)"""");
+        Console.WriteLine(""""Base: goo(params object[] x)"""");
     }
 }
 public class D: B
 {
-    public override void foo(params object[] x)
+    public override void goo(params object[] x)
     {
-        Console.WriteLine(""""Derived: foo(params object[] x)"""");
+        Console.WriteLine(""""Derived: goo(params object[] x)"""");
     }
 }
 ";
@@ -2542,7 +2543,7 @@ public class D: B
             Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("System.Int32 B.foo(params System.Int32[] x)", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 B.goo(params System.Int32[] x)", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -2765,7 +2766,7 @@ static class Extensions2
     public static int M(this C c) { return 0; }
 }
 
-class Foo
+class Goo
 {
     void M()
     {
@@ -2811,7 +2812,7 @@ static class Extensions
 {
     public static int M(this C c, int i) { return 0; }
 }
-class Foo
+class Goo
 {
     void M()
     {
@@ -4023,7 +4024,7 @@ class B : /*<bind>*/A<B.Y.Z>/*</bind>*/
             string sourceCode = @"
 class C
 {
-  static void Foo()
+  static void Goo()
   {
     int x = 10;
     /*<bind>*/x/*</bind>*/();
@@ -4427,7 +4428,7 @@ using S = System.String;
 {
     class X 
     { 
-        void Foo()
+        void Goo()
         {
             string x;
             x = /*<bind>*/S/*</bind>*/.Empty;
@@ -4893,7 +4894,7 @@ class C
 }
 class D
 {
-    void Foo()
+    void Goo()
     {
         C./*<bind>*/M/*</bind>*/(1);
     }
@@ -5281,7 +5282,7 @@ public class C
 }
 class Main
 {
-    void Foo(int a)
+    void Goo(int a)
     {
         new C(a.).M(x => /*<bind>*/x/*</bind>*/);
     }
@@ -5306,7 +5307,7 @@ public class C
 }
 class Main
 {
-    void Foo(int a)
+    void Goo(int a)
     {
         new C(a.).M(x => /*<bind>*/x/*</bind>*/);
     }
@@ -5326,7 +5327,7 @@ class C
 }
 class D
 {
-    void Foo()
+    void Goo()
     {
         C./*<bind>*/set_P/*</bind>*/(1);
     }
@@ -6355,11 +6356,11 @@ class C
 {
     public delegate int Func(int i);
  
-    public Func Foo()
+    public Func Goo()
     {
-        return /*<bind>*/Foo/*</bind>*/;
+        return /*<bind>*/Goo/*</bind>*/;
     }
-    private int Foo(int i)
+    private int Goo(int i)
     {
         return i;
     }
@@ -6371,16 +6372,16 @@ class C
             Assert.Equal("C.Func", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Delegate, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
-            Assert.Equal("C.Foo(int)", semanticInfo.ImplicitConversion.Method.ToString());
+            Assert.Equal("C.Goo(int)", semanticInfo.ImplicitConversion.Method.ToString());
 
-            Assert.Equal("System.Int32 C.Foo(System.Int32 i)", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Goo(System.Int32 i)", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
             var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("C.Func C.Foo()", sortedMethodGroup[0].ToTestDisplayString());
-            Assert.Equal("System.Int32 C.Foo(System.Int32 i)", sortedMethodGroup[1].ToTestDisplayString());
+            Assert.Equal("C.Func C.Goo()", sortedMethodGroup[0].ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Goo(System.Int32 i)", sortedMethodGroup[1].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -6730,13 +6731,13 @@ using System.Linq;
 
 class Program
 {
-    static void foo(short s)
+    static void goo(short s)
     {
     }
 
     static void Main(string[] args)
     {
-        foo(/*<bind>*/123/*</bind>*/);
+        goo(/*<bind>*/123/*</bind>*/);
     }
 }
 ";
@@ -6805,7 +6806,7 @@ class TestAttribute : Attribute
 
 class C1
 {
-    [Test(/*<bind>*/F/*</bind>*/=""method"")] 
+    [Test(/*<bind>*/F/*</bind>*/=""method"")]
     int f() { return 0; }
 }
 
@@ -7163,11 +7164,11 @@ class Program
             string sourceCode = @"
 class Program
 {
-     int foo(int i) { return i;}
+     int goo(int i) { return i;}
  
     static void Main(string[] args)
     {
-        var r = /*<bind>*/new System.Func<int, int>((arg)=> { return 1;}, foo)/*</bind>*/; 
+        var r = /*<bind>*/new System.Func<int, int>((arg)=> { return 1;}, goo)/*</bind>*/; 
     }
 }
 ";
@@ -7194,11 +7195,11 @@ class Program
             string sourceCode = @"
 class Program
 {
-     int foo(int i) { return i;}
+     int goo(int i) { return i;}
  
     static void Main(string[] args)
     {
-        var r = new /*<bind>*/System.Func<int, int>/*</bind>*/((arg)=> { return 1;}, foo); 
+        var r = new /*<bind>*/System.Func<int, int>/*</bind>*/((arg)=> { return 1;}, goo); 
     }
 }
 ";
@@ -7487,7 +7488,7 @@ class Program
     public void f(int x, int y, int z) { }
     public void f(string y, string z) { }
 
-    public void foo()
+    public void goo()
     {
         f(3, /*<bind>*/z/*</bind>*/: 4, y: 9);
     }
@@ -7520,9 +7521,9 @@ class Program
     public void f(string y, string z, int q) { }
     public void f(string q, int w, int b) { }
 
-    public void foo()
+    public void goo()
     {
-        f(3, /*<bind>*/z/*</bind>*/: ""foo"", y: 9);
+        f(3, /*<bind>*/z/*</bind>*/: ""goo"", y: 9);
     }
 }
 ";
@@ -7558,9 +7559,9 @@ class Program
     public void f(string y, string z, int q) { }
     public void f(string q, int w, int b) { }
 
-    public void foo()
+    public void goo()
     {
-        f(3, z: ""foo"", /*<bind>*/yagga/*</bind>*/: 9);
+        f(3, z: ""goo"", /*<bind>*/yagga/*</bind>*/: 9);
     }
 }
 ";
@@ -7944,6 +7945,8 @@ class Program
         [Fact]
         public void DelegateSignatureMismatch3()
         {
+            // This test and the DelgateSignatureMismatch4 should have identical results, as they are semantically identical
+
             string sourceCode = @"
 using System;
 using System.Collections.Generic;
@@ -7960,14 +7963,49 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
-            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
-            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal("System.Int32 Program.f()", semanticInfo.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Null(semanticInfo.Type);
+            Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("System.Int32 Program.f()", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Empty(semanticInfo.CandidateSymbols);
+
+            Assert.Equal(1, semanticInfo.MethodGroup.Length);
+            Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void DelegateSignatureMismatch4()
+        {
+            // This test and the DelgateSignatureMismatch3 should have identical results, as they are semantically identical
+
+            string sourceCode = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static int f() { return 1; }
+    static void Main(string[] args)
+    {
+        Action a = /*<bind>*/f/*</bind>*/;
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+
+            Assert.Null(semanticInfo.Type);
+            Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("System.Int32 Program.f()", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Empty(semanticInfo.CandidateSymbols);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
             Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
@@ -8101,10 +8139,10 @@ class Test
     static void Main()
     {
         /*<bind>*/var/*</bind>*/ q = 
-    from  Foo  i in i
-    from  Foo<int>  j in j
+    from  Goo  i in i
+    from  Goo<int>  j in j
     group i by  i
-    join  Foo
+    join  Goo
     }
 }
 ";
@@ -8262,18 +8300,18 @@ public class Test
         public void OpenGenericTypeInAttribute02()
         {
             string sourceCode = @"
-class Foo {}
+class Goo {}
     
-[/*<bind>*/Foo/*</bind>*/]
+[/*<bind>*/Goo/*</bind>*/]
 public class Test
 {
 }
 ";
             var semanticInfo = GetSemanticInfoForTest<AttributeSyntax>(sourceCode);
 
-            Assert.Equal("Foo", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("Foo", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
@@ -8281,12 +8319,12 @@ public class Test
             Assert.Equal(CandidateReason.NotAnAttributeType, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("Foo..ctor()", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("Goo..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
             var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("Foo..ctor()", sortedMethodGroup[0].ToTestDisplayString());
+            Assert.Equal("Goo..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -9127,23 +9165,23 @@ class Program
             Assert.Equal("B", type.Name);
             Assert.True(type.IsUnboundGenericType);
             Assert.False(type.IsErrorType());
-            Assert.True(type.TypeArguments[0].IsErrorType());
+            Assert.True(type.TypeArguments()[0].IsErrorType());
 
             var constructedFrom = type.ConstructedFrom;
             Assert.Equal(constructedFrom, constructedFrom.ConstructedFrom);
             Assert.Equal(constructedFrom, constructedFrom.TypeParameters[0].ContainingSymbol);
-            Assert.Equal(constructedFrom.TypeArguments[0], constructedFrom.TypeParameters[0]);
+            Assert.Equal(constructedFrom.TypeArguments()[0], constructedFrom.TypeParameters[0]);
             Assert.Equal(type.ContainingSymbol, constructedFrom.ContainingSymbol);
             Assert.Equal(type.TypeParameters[0], constructedFrom.TypeParameters[0]);
-            Assert.False(constructedFrom.TypeArguments[0].IsErrorType());
+            Assert.False(constructedFrom.TypeArguments()[0].IsErrorType());
             Assert.NotEqual(type, constructedFrom);
             Assert.False(constructedFrom.IsUnboundGenericType);
             var a = type.ContainingType;
             Assert.Equal(constructedFrom, a.GetTypeMembers("B").Single());
             Assert.NotEqual(type.TypeParameters[0], type.OriginalDefinition.TypeParameters[0]); // alpha renamed
-            Assert.Null(type.BaseType);
-            Assert.Empty(type.Interfaces);
-            Assert.NotNull(constructedFrom.BaseType);
+            Assert.Null(type.BaseType());
+            Assert.Empty(type.Interfaces());
+            Assert.NotNull(constructedFrom.BaseType());
             Assert.Empty(type.GetMembers());
             Assert.NotEmpty(constructedFrom.GetMembers());
             Assert.True(a.IsUnboundGenericType);
@@ -9801,9 +9839,9 @@ class A1 : System.Attribute { }
         public void AliasAttributeName_02_AttributeSyntax()
         {
             string sourceCode = @"
-using FooAttribute = System.ObsoleteAttribute;
+using GooAttribute = System.ObsoleteAttribute;
 
-[/*<bind>*/Foo/*</bind>*/]
+[/*<bind>*/Goo/*</bind>*/]
 class C { }
 ";
             var semanticInfo = GetSemanticInfoForTest<AttributeSyntax>(sourceCode);
@@ -9828,7 +9866,7 @@ class C { }
 
             var aliasInfo = GetAliasInfoForTest(sourceCode);
             Assert.NotNull(aliasInfo);
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
             Assert.Equal(SymbolKind.Alias, aliasInfo.Kind);
         }
 
@@ -9837,9 +9875,9 @@ class C { }
         public void AliasAttributeName_02_IdentifierNameSyntax()
         {
             string sourceCode = @"
-using FooAttribute = System.ObsoleteAttribute;
+using GooAttribute = System.ObsoleteAttribute;
 
-[/*<bind>*/Foo/*</bind>*/]
+[/*<bind>*/Goo/*</bind>*/]
 class C { }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
@@ -9864,7 +9902,7 @@ class C { }
 
             var aliasInfo = GetAliasInfoForTest(sourceCode);
             Assert.NotNull(aliasInfo);
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
             Assert.Equal(SymbolKind.Alias, aliasInfo.Kind);
         }
 
@@ -9873,9 +9911,9 @@ class C { }
         public void AliasAttributeName_03_AttributeSyntax()
         {
             string sourceCode = @"
-using FooAttribute = System.ObsoleteAttribute;
+using GooAttribute = System.ObsoleteAttribute;
 
-[/*<bind>*/FooAttribute/*</bind>*/]
+[/*<bind>*/GooAttribute/*</bind>*/]
 class C { }
 ";
             var semanticInfo = GetSemanticInfoForTest<AttributeSyntax>(sourceCode);
@@ -9900,7 +9938,7 @@ class C { }
 
             var aliasInfo = GetAliasInfoForTest(sourceCode);
             Assert.NotNull(aliasInfo);
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
             Assert.Equal(SymbolKind.Alias, aliasInfo.Kind);
         }
 
@@ -9909,9 +9947,9 @@ class C { }
         public void AliasAttributeName_03_IdentifierNameSyntax()
         {
             string sourceCode = @"
-using FooAttribute = System.ObsoleteAttribute;
+using GooAttribute = System.ObsoleteAttribute;
 
-[/*<bind>*/FooAttribute/*</bind>*/]
+[/*<bind>*/GooAttribute/*</bind>*/]
 class C { }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
@@ -9936,7 +9974,7 @@ class C { }
 
             var aliasInfo = GetAliasInfoForTest(sourceCode);
             Assert.NotNull(aliasInfo);
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
             Assert.Equal(SymbolKind.Alias, aliasInfo.Kind);
         }
 
@@ -10097,9 +10135,9 @@ namespace N
         public void AliasAttributeName_NonAttributeAlias()
         {
             string sourceCode = @"
-using FooAttribute = C;
+using GooAttribute = C;
 
-[/*<bind>*/FooAttribute/*</bind>*/]
+[/*<bind>*/GooAttribute/*</bind>*/]
 class C { }
 ";
             var semanticInfo = GetSemanticInfoForTest<AttributeSyntax>(sourceCode);
@@ -10131,9 +10169,9 @@ class C { }
         public void AliasAttributeName_NonAttributeAlias_GenericType()
         {
             string sourceCode = @"
-using FooAttribute = Gen<int>;
+using GooAttribute = Gen<int>;
 
-[/*<bind>*/FooAttribute/*</bind>*/]
+[/*<bind>*/GooAttribute/*</bind>*/]
 class C { }
 class Gen<T> { }
 ";
@@ -10201,16 +10239,16 @@ class A2 : System.Attribute { }
         public void AmbigAliasAttributeName_02()
         {
             string sourceCode = @"
-using Foo = System.ObsoleteAttribute;
-class FooAttribute : System.Attribute { }
-[/*<bind>*/Foo/*</bind>*/]
+using Goo = System.ObsoleteAttribute;
+class GooAttribute : System.Attribute { }
+[/*<bind>*/Goo/*</bind>*/]
 class C { }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Equal("Foo", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
-            Assert.Equal("Foo", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
@@ -10218,7 +10256,7 @@ class C { }
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("FooAttribute", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("GooAttribute", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
             Assert.Equal("System.ObsoleteAttribute", sortedCandidates[1].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[1].Kind);
@@ -10235,16 +10273,16 @@ class C { }
         public void AmbigAliasAttributeName_03()
         {
             string sourceCode = @"
-using Foo = FooAttribute;
-class FooAttribute : System.Attribute { }
-[/*<bind>*/Foo/*</bind>*/]
+using Goo = GooAttribute;
+class GooAttribute : System.Attribute { }
+[/*<bind>*/Goo/*</bind>*/]
 class C { }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Equal("Foo", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
-            Assert.Equal("Foo", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
@@ -10252,9 +10290,9 @@ class C { }
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("FooAttribute", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("GooAttribute", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
-            Assert.Equal("FooAttribute", sortedCandidates[1].ToTestDisplayString());
+            Assert.Equal("GooAttribute", sortedCandidates[1].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[1].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -11033,14 +11071,14 @@ class Program
         {
             string sourceCode = @"
 using System;
-class Foo
+class Goo
 {
-    public Foo() { }
-    public Foo(int x) { }
+    public Goo() { }
+    public Goo(int x) { }
 
     public static void Main()
     {
-        var x = new /*<bind>*/Foo/*</bind>*/(typeof(.<>));
+        var x = new /*<bind>*/Goo/*</bind>*/(typeof(.<>));
     }
 }
 
@@ -11051,7 +11089,7 @@ class Foo
             Assert.Null(semanticInfo.ConvertedType);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("Foo", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -11065,23 +11103,23 @@ class Foo
         {
             string sourceCode = @"
 using System;
-class Foo
+class Goo
 {
-    public Foo() { }
-    public Foo(int x) { }
+    public Goo() { }
+    public Goo(int x) { }
 
     public static void Main()
     {
-        var x = /*<bind>*/new Foo(typeof(Foo))/*</bind>*/;
+        var x = /*<bind>*/new Goo(typeof(Goo))/*</bind>*/;
     }
 }
 
 ";
             var semanticInfo = GetSemanticInfoForTest<ObjectCreationExpressionSyntax>(sourceCode);
 
-            Assert.Equal("Foo", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("Foo", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
@@ -11089,15 +11127,15 @@ class Foo
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("Foo..ctor()", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("Goo..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
-            Assert.Equal("Foo..ctor(System.Int32 x)", sortedCandidates[1].ToTestDisplayString());
+            Assert.Equal("Goo..ctor(System.Int32 x)", sortedCandidates[1].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
             var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("Foo..ctor()", sortedMethodGroup[0].ToTestDisplayString());
-            Assert.Equal("Foo..ctor(System.Int32 x)", sortedMethodGroup[1].ToTestDisplayString());
+            Assert.Equal("Goo..ctor()", sortedMethodGroup[0].ToTestDisplayString());
+            Assert.Equal("Goo..ctor(System.Int32 x)", sortedMethodGroup[1].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -11283,7 +11321,7 @@ class Test
 {
     static void Main() { }
 
-    static void Foo(List<int> Scores)
+    static void Goo(List<int> Scores)
     {
         var z = from y in Scores select new Action(() => { /*<bind>*/var/*</bind>*/ x = y; });
     }
@@ -11317,7 +11355,7 @@ using System.Linq;
 class Program
 {
     const bool v = true;
-    public void Foo(bool b = /*<bind>*/v == true/*</bind>*/)
+    public void Goo(bool b = /*<bind>*/v == true/*</bind>*/)
     {
     }
 }
@@ -11350,7 +11388,7 @@ using System.Linq;
 
 class Program
 {
-    public void Foo<T, U>(T t = /*<bind>*/default(U)/*</bind>*/) where U : class, T
+    public void Goo<T, U>(T t = /*<bind>*/default(U)/*</bind>*/) where U : class, T
     {
     }
     static void Main(string[] args)
@@ -11388,14 +11426,14 @@ using System.Linq;
 
 public static class Extensions
 {
-    private static int Foo(this string z) { return 3; }
+    private static int Goo(this string z) { return 3; }
 }
 
 class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(args[0]./*<bind>*/Foo/*</bind>*/());
+        Console.WriteLine(args[0]./*<bind>*/Goo/*</bind>*/());
     }
 }
 ";
@@ -11409,12 +11447,12 @@ class Program
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("System.Int32 System.String.Foo()", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("System.Int32 System.String.Goo()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
             var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("System.Int32 System.String.Foo()", sortedMethodGroup[0].ToTestDisplayString());
+            Assert.Equal("System.Int32 System.String.Goo()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -11567,7 +11605,7 @@ class Test
 class Program
 {
     const int y = 1;
-    public void Foo(bool x = (undeclared == /*<bind>*/y/*</bind>*/)) { }
+    public void Goo(bool x = (undeclared == /*<bind>*/y/*</bind>*/)) { }
     static void Main(string[] args)
     {
         
@@ -11722,7 +11760,7 @@ namespace Test
 {
     public class Program
     {
-        public int[][, , ] Foo()
+        public int[][, , ] Goo()
         {
             var a3 = new[] { /*<bind>*/new [,,] {{{1, 2}}}/*</bind>*/, new [,,] {{{3, 4}}} };
             return a3;
@@ -11757,7 +11795,7 @@ namespace Test
 {
     public class Program
     {
-        public int[][, , ] Foo()
+        public int[][, , ] Goo()
         {
             var a3 = new[] { new [,,] {{{3, 4}}}, new [,,] {{{3, 4}}} };
             return /*<bind>*/a3/*</bind>*/;
@@ -11788,7 +11826,7 @@ namespace Test
             string sourceCode = @"
 public class C
 {
-    public int[] Foo()
+    public int[] Goo()
     {
         char c = 'c';
         short s1 = 0;
@@ -11824,7 +11862,7 @@ public class C
             string sourceCode = @"
 public class C
 {
-    public int[] Foo()
+    public int[] Goo()
     {
         char c = 'c';
         short s1 = 0;
@@ -11864,7 +11902,7 @@ namespace Test
 {
     public class Program
     {
-        public int[][,,] Foo()
+        public int[][,,] Goo()
         {
             var a3 = new[] { /*<bind>*/new[,,] { { { 3, 4 } }, 3, 4 }/*</bind>*/, new[,,] { { { 3, 4 } } } };
             return a3;
@@ -11899,7 +11937,7 @@ namespace Test
 {
     public class Program
     {
-        public int[][,,] Foo()
+        public int[][,,] Goo()
         {
             var a3 = new[] { /*<bind>*/new[,,] { { { 3, 4 } }, x, y }/*</bind>*/, new[,,] { { { 3, 4 } } } };
             return a3;
@@ -11930,7 +11968,7 @@ namespace Test
             string sourceCode = @"
 public class C
 {
-    public int[] Foo()
+    public int[] Goo()
     {
         char c = 'c';
         short s1 = 0;
@@ -12382,7 +12420,7 @@ struct Conv
             // The specification requires that the user-defined conversion chosen be one
             // which converts to an integral or string type, but *not* a nullable integral type,
             // oddly enough. Since the only applicable user-defined conversion here would be the
-            // lifted conversion from Conv? to int?, the resolution of the conversion fails 
+            // lifted conversion from Conv? to int?, the resolution of the conversion fails
             // and this program produces an error.
 
             string sourceCode = @"
@@ -12664,13 +12702,13 @@ public class Base
 
     public static void Main()
     {
-        MemberInitializerTest<Base>.Foo();
+        MemberInitializerTest<Base>.Goo();
     }
 }
 
 public class MemberInitializerTest<T> where T : Base, new()
 {
-    public static void Foo()
+    public static void Goo()
     {
         var i = new T() { /*<bind>*/x/*</bind>*/ = 1, y = 2 };
         System.Console.WriteLine(i.x);
@@ -12954,10 +12992,10 @@ public class MemberInitializerTest
 public class MemberInitializerTest
 {
     public int x;
-    public MemberInitializerTest Foo() { return new MemberInitializerTest(); }
+    public MemberInitializerTest Goo() { return new MemberInitializerTest(); }
     public static void Main()
     {
-        var i = new MemberInitializerTest() { x = 0, /*<bind>*/Foo()/*</bind>*/};
+        var i = new MemberInitializerTest() { x = 0, /*<bind>*/Goo()/*</bind>*/};
     }
 }
 ";
@@ -12969,7 +13007,7 @@ public class MemberInitializerTest
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("MemberInitializerTest MemberInitializerTest.Foo()", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("MemberInitializerTest MemberInitializerTest.Goo()", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -12985,10 +13023,10 @@ public class MemberInitializerTest
 public class MemberInitializerTest
 {
     public int x;
-    public MemberInitializerTest Foo() { return new MemberInitializerTest(); }
+    public MemberInitializerTest Goo() { return new MemberInitializerTest(); }
     public static void Main()
     {
-        var i = new MemberInitializerTest() { x = 0, /*<bind>*/Foo()/*</bind>*/ = new MemberInitializerTest() };
+        var i = new MemberInitializerTest() { x = 0, /*<bind>*/Goo()/*</bind>*/ = new MemberInitializerTest() };
     }
 }
 ";
@@ -13000,7 +13038,7 @@ public class MemberInitializerTest
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("MemberInitializerTest MemberInitializerTest.Foo()", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("MemberInitializerTest MemberInitializerTest.Goo()", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -13015,30 +13053,29 @@ public class MemberInitializerTest
             string sourceCode = @"
 public class MemberInitializerTest
 {
-    public MemberInitializerTest Foo() { return new MemberInitializerTest(); }
+    public MemberInitializerTest Goo() { return new MemberInitializerTest(); }
     public static void Main()
     {
-        var i = new MemberInitializerTest() { /*<bind>*/Foo/*</bind>*/ };
+        var i = new MemberInitializerTest() { /*<bind>*/Goo/*</bind>*/ };
     }
 }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
             Assert.Null(semanticInfo.Type);
-            Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+            Assert.Null(semanticInfo.ConvertedType);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.NotInvocable, semanticInfo.CandidateReason);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("MemberInitializerTest MemberInitializerTest.Foo()", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("MemberInitializerTest MemberInitializerTest.Goo()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
             var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("MemberInitializerTest MemberInitializerTest.Foo()", sortedMethodGroup[0].ToTestDisplayString());
+            Assert.Equal("MemberInitializerTest MemberInitializerTest.Goo()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -13599,10 +13636,11 @@ public class MemberInitializerTest
 ";
             var semanticInfo = GetSemanticInfoForTest<PostfixUnaryExpressionSyntax>(sourceCode);
 
-            Assert.Equal("System.Object", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("?", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
             Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -13622,12 +13660,12 @@ using System.Collections.Generic;
 public class MemberInitializerTest
 {
     public int x;
-    static MemberInitializerTest Foo() { return new MemberInitializerTest(); }
+    static MemberInitializerTest Goo() { return new MemberInitializerTest(); }
 
     public static void Main()
     {
         int y = 0;
-        var i = new List<int> { 1, /*<bind>*/Foo().x = 1/*</bind>*/};
+        var i = new List<int> { 1, /*<bind>*/Goo().x = 1/*</bind>*/};
     }
 }
 ";
@@ -13794,7 +13832,7 @@ class Program
             string sourceCode = @"
 class Program
 {
-    /*<bind>*/var/*</bind>*/ Foo() {}
+    /*<bind>*/var/*</bind>*/ Goo() {}
 }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
@@ -14371,7 +14409,7 @@ struct Class1
         public void VarEvent()
         {
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(@"
-event /*<bind>*/var/*</bind>*/ foo;
+event /*<bind>*/var/*</bind>*/ goo;
 ");
             Assert.True(((TypeSymbol)semanticInfo.Type).IsErrorType());
         }
@@ -14412,9 +14450,9 @@ class C : B
     static void Main()
     {
     }
-    void Foo(int x)
+    void Goo(int x)
     {
-        /*<bind>*/(this).Foo(1)/*</bind>*/;
+        /*<bind>*/(this).Goo(1)/*</bind>*/;
     }
 }
 ";
@@ -14426,7 +14464,7 @@ class C : B
             Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("void C.Foo(System.Int32 x)", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("void C.Goo(System.Int32 x)", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -14465,13 +14503,13 @@ class C<[T(a: 1)]T>
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            Assert.Equal("void C.Foo()", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("void C.Goo()", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
             var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("void C.Foo()", sortedMethodGroup[0].ToTestDisplayString());
+            Assert.Equal("void C.Goo()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -14483,9 +14521,9 @@ class C<[T(a: 1)]T>
             string sourceCode = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        /*<bind>*/Foo/*</bind>*/();
+        /*<bind>*/Goo/*</bind>*/();
     }
 }";
 
@@ -14494,9 +14532,9 @@ class C
             sourceCode = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        ((/*<bind>*/Foo/*</bind>*/))();
+        ((/*<bind>*/Goo/*</bind>*/))();
     }
 }";
 
@@ -14510,7 +14548,7 @@ class C
             var sourceCode1 = @"
 class C1
 {
-    void Foo()
+    void Goo()
     {
         int x = 2;
         long? z = /*<bind>*/x/*</bind>*/;
@@ -14520,7 +14558,7 @@ class C1
             var sourceCode2 = @"
 class C2
 {
-    void Foo()
+    void Goo()
     {
         long? y = /*<bind>*/x/*</bind>*/;
         int x = 2;
@@ -15212,6 +15250,26 @@ class K
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [WorkItem(18763, "https://github.com/dotnet/roslyn/issues/18763")]
+        [Fact]
+        public void AttributeArgumentLambdaThis()
+        {
+            string source =
+@"class C
+{
+    [X(() => this._Y)]
+    public void Z()
+    {
+    }
+}";
+            var compilation = CreateStandardCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var syntax = tree.GetCompilationUnitRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.ThisExpression);
+            var info = model.GetSemanticInfoSummary(syntax);
+            Assert.Equal("C", info.Type.Name);
         }
     }
 }

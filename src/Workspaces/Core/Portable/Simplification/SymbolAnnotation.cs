@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Simplification
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             return GetSymbols(annotation, compilation).FirstOrDefault();
         }
 
-        public static IEnumerable<ISymbol> GetSymbols(SyntaxAnnotation annotation, Compilation compilation)
+        public static ImmutableArray<ISymbol> GetSymbols(SyntaxAnnotation annotation, Compilation compilation)
         {
             return DocumentationCommentId.GetSymbolsForReferenceId(annotation.Data, compilation);
         }

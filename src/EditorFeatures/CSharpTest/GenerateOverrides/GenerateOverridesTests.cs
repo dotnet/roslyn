@@ -1,13 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.GenerateOverrides;
 using Microsoft.CodeAnalysis.PickMembers;
 using Roslyn.Test.Utilities;
@@ -46,8 +41,7 @@ class C
     {
         return base.ToString();
     }
-}
-", new[] { "Equals", "GetHashCode", "ToString" });
+}", new[] { "Equals", "GetHashCode", "ToString" });
         }
 
         [WorkItem(17698, "https://github.com/dotnet/roslyn/issues/17698")]
@@ -93,8 +87,31 @@ class Derived : Base
     {
         return ref base.X();
     }
-}
-", new[] { "X", "Y", "this[]" });
+}", new[] { "X", "Y", "this[]" });
+        }
+
+        [WorkItem(21601, "https://github.com/dotnet/roslyn/issues/21601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        public async Task TestMissingInStaticClass1()
+        {
+            await TestMissingAsync(
+@"
+static class C
+{
+    [||]
+}");
+        }
+
+        [WorkItem(21601, "https://github.com/dotnet/roslyn/issues/21601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        public async Task TestMissingInStaticClass2()
+        {
+            await TestMissingAsync(
+@"
+static class [||]C
+{
+    
+}");
         }
     }
 }

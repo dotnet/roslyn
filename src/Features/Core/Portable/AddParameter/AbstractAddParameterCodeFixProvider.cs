@@ -19,7 +19,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddParameter
 {
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract class AbstractAddParameterCodeFixProvider<
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
         TArgumentSyntax,
         TAttributeArgumentSyntax,
         TArgumentListSyntax,
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     NonParamsParameterCount(constructor) < arguments.Count)
                 {
                     var argumentToAdd = DetermineFirstArgumentToAdd(
-                        semanticModel, syntaxFacts, comparer, constructor, 
+                        semanticModel, syntaxFacts, comparer, constructor,
                         arguments, argumentOpt);
 
                     if (argumentToAdd != null)
@@ -164,7 +166,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
         private async Task<Document> FixAsync(
-            Document invocationDocument, 
+            Document invocationDocument,
             IMethodSymbol method,
             TArgumentSyntax argument,
             SeparatedSyntaxList<TArgumentSyntax> argumentList,
@@ -191,7 +193,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             AddParameter(
                 syntaxFacts, editor, methodDeclaration, argument,
                 insertionIndex, parameterDeclaration, cancellationToken);
-            
+
             var newRoot = editor.GetChangedRoot();
             var newDocument = methodDocument.WithSyntaxRoot(newRoot);
 
@@ -259,7 +261,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 // Placing the last parameter on its own line.  Get the indentation of the 
                 // curent last parameter and give the new last parameter the same indentation.
                 var leadingIndentation = GetDesiredLeadingIndentation(
-                    generator, syntaxFacts, existingParameters.Last(), includeLeadingNewLine: true);
+                    generator, syntaxFacts, existingParameters[existingParameters.Count - 1], includeLeadingNewLine: true);
                 parameterDeclaration = parameterDeclaration.WithPrependedLeadingTrivia(leadingIndentation)
                                                             .WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -337,7 +339,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static List<SyntaxTrivia> GetDesiredLeadingIndentation(
-            SyntaxGenerator generator, ISyntaxFactsService syntaxFacts, 
+            SyntaxGenerator generator, ISyntaxFactsService syntaxFacts,
             SyntaxNode node, bool includeLeadingNewLine)
         {
             var triviaList = new List<SyntaxTrivia>();
@@ -346,8 +348,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 triviaList.Add(generator.ElasticCarriageReturnLineFeed);
             }
 
-            var lastWhitespace = default(SyntaxTrivia); 
-            foreach(var trivia in node.GetLeadingTrivia().Reverse())
+            var lastWhitespace = default(SyntaxTrivia);
+            foreach (var trivia in node.GetLeadingTrivia().Reverse())
             {
                 if (syntaxFacts.IsWhitespaceTrivia(trivia))
                 {
@@ -440,19 +442,31 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                     // Now check the type of the argument versus the type of the parameter.  If they
                     // don't match, then this is the argument we should make the parameter for.
-                    var argumentTypeInfo = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfArgument(argument));
+                    var expressionOfArgument = syntaxFacts.GetExpressionOfArgument(argument);
+                    if (expressionOfArgument is null)
+                    {
+                        return null;
+                    }
+                    var argumentTypeInfo = semanticModel.GetTypeInfo(expressionOfArgument);
+                    var isNullLiteral = syntaxFacts.IsNullLiteralExpression(expressionOfArgument);
+                    var isDefaultLiteral = syntaxFacts.IsDefaultLiteralExpression(expressionOfArgument);
+
                     if (argumentTypeInfo.Type == null && argumentTypeInfo.ConvertedType == null)
                     {
                         // Didn't know the type of the argument.  We shouldn't assume it doesn't
-                        // match a parameter. 
-                        continue;
+                        // match a parameter.  However, if the user wrote 'null' and it didn't
+                        // match anything, then this is the problem argument.
+                        if (!isNullLiteral && !isDefaultLiteral)
+                        {
+                            continue;
+                        }
                     }
 
                     var parameter = method.Parameters[i];
 
-                    if (!TypeInfoMatchesType(argumentTypeInfo, parameter.Type))
+                    if (!TypeInfoMatchesType(argumentTypeInfo, parameter.Type, isNullLiteral, isDefaultLiteral))
                     {
-                        if (TypeInfoMatchesWithParamsExpansion(argumentTypeInfo, parameter))
+                        if (TypeInfoMatchesWithParamsExpansion(argumentTypeInfo, parameter, isNullLiteral, isDefaultLiteral))
                         {
                             // The argument matched if we expanded out the params-parameter.
                             // As the params-parameter has to be last, there's nothing else to 
@@ -468,11 +482,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return null;
         }
 
-        private bool TypeInfoMatchesWithParamsExpansion(TypeInfo argumentTypeInfo, IParameterSymbol parameter)
+        private bool TypeInfoMatchesWithParamsExpansion(
+            TypeInfo argumentTypeInfo, IParameterSymbol parameter, 
+            bool isNullLiteral, bool isDefaultLiteral)
         {
             if (parameter.IsParams && parameter.Type is IArrayTypeSymbol arrayType)
             {
-                if (TypeInfoMatchesType(argumentTypeInfo, arrayType.ElementType))
+                if (TypeInfoMatchesType(argumentTypeInfo, arrayType.ElementType, isNullLiteral, isDefaultLiteral))
                 {
                     return true;
                 }
@@ -481,8 +497,27 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return false;
         }
 
-        private bool TypeInfoMatchesType(TypeInfo argumentTypeInfo, ITypeSymbol type)
-            => type.Equals(argumentTypeInfo.Type) || type.Equals(argumentTypeInfo.ConvertedType);
+        private bool TypeInfoMatchesType(
+            TypeInfo argumentTypeInfo, ITypeSymbol type,
+            bool isNullLiteral, bool isDefaultLiteral)
+        {
+            if (type.Equals(argumentTypeInfo.Type) || type.Equals(argumentTypeInfo.ConvertedType))
+            {
+                return true;
+            }
+
+            if (isDefaultLiteral)
+            {
+                return true;
+            }
+
+            if (isNullLiteral)
+            {
+                return type.IsReferenceType || type.IsNullable();
+            }
+
+            return false;
+        }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

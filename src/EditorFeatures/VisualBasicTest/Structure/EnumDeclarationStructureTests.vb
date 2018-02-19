@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         Public Async Function TestEnum() As Task
             Const code = "
 {|span:Enum $$E1
-End Enum|} ' Foo
+End Enum|} ' Goo
 "
 
             Await VerifyBlockSpansAsync(code,
@@ -29,7 +29,7 @@ End Enum|} ' Foo
 {|span1:'Hello
 'World!|}
 {|span2:Enum $$E1
-End Enum|} ' Foo
+End Enum|} ' Goo
 "
 
             Await VerifyBlockSpansAsync(code,
@@ -43,7 +43,7 @@ End Enum|} ' Foo
 {|span1:Enum $$E1
 {|span2:'Hello
 'World!|}
-End Enum|} ' Foo
+End Enum|} ' Goo
 "
 
             Await VerifyBlockSpansAsync(code,

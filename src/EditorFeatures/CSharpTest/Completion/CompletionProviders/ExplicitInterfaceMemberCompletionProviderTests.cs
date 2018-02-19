@@ -24,20 +24,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task ExplicitInterfaceMember()
         {
             var markup = @"
-interface IFoo
+interface IGoo
 {
-    void Foo();
-    void Foo(int x);
+    void Goo();
+    void Goo(int x);
     int Prop { get; }
 }
 
-class Bar : IFoo
+class Bar : IGoo
 {
-     void IFoo.$$
+     void IGoo.$$
 }";
 
-            await VerifyItemExistsAsync(markup, "Foo()");
-            await VerifyItemExistsAsync(markup, "Foo(int x)");
+            await VerifyItemExistsAsync(markup, "Goo()");
+            await VerifyItemExistsAsync(markup, "Goo(int x)");
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
@@ -46,28 +46,28 @@ class Bar : IFoo
         public async Task CommitOnNotParen()
         {
             var markup = @"
-interface IFoo
+interface IGoo
 {
-    void Foo();
+    void Goo();
 }
 
-class Bar : IFoo
+class Bar : IGoo
 {
-     void IFoo.$$
+     void IGoo.$$
 }";
 
             var expected = @"
-interface IFoo
+interface IGoo
 {
-    void Foo();
+    void Goo();
 }
 
-class Bar : IFoo
+class Bar : IGoo
 {
-     void IFoo.Foo()
+     void IGoo.Goo()
 }";
 
-            await VerifyProviderCommitAsync(markup, "Foo()", expected, null, "");
+            await VerifyProviderCommitAsync(markup, "Goo()", expected, null, "");
         }
 
         [WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
@@ -75,28 +75,28 @@ class Bar : IFoo
         public async Task CommitOnParen()
         {
             var markup = @"
-interface IFoo
+interface IGoo
 {
-    void Foo();
+    void Goo();
 }
 
-class Bar : IFoo
+class Bar : IGoo
 {
-     void IFoo.$$
+     void IGoo.$$
 }";
 
             var expected = @"
-interface IFoo
+interface IGoo
 {
-    void Foo();
+    void Goo();
 }
 
-class Bar : IFoo
+class Bar : IGoo
 {
-     void IFoo.Foo(
+     void IGoo.Goo(
 }";
 
-            await VerifyProviderCommitAsync(markup, "Foo()", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "Goo()", expected, '(', "");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -106,12 +106,12 @@ class Bar : IFoo
             var markup = @"
 interface I1
 {
-    void Foo();
+    void Goo();
 }
 
 interface I2 : I1
 {
-    void Foo2();
+    void Goo2();
     int Prop { get; }
 }
 
@@ -121,12 +121,12 @@ class Bar : I2
 }";
 
             await VerifyItemIsAbsentAsync(markup, "Equals(object obj)");
-            await VerifyItemIsAbsentAsync(markup, "Foo()");
+            await VerifyItemIsAbsentAsync(markup, "Goo()");
             await VerifyItemIsAbsentAsync(markup, "GetHashCode()");
             await VerifyItemIsAbsentAsync(markup, "GetType()");
             await VerifyItemIsAbsentAsync(markup, "ToString()");
 
-            await VerifyItemExistsAsync(markup, "Foo2()");
+            await VerifyItemExistsAsync(markup, "Goo2()");
             await VerifyItemExistsAsync(markup, "Prop");
         }
     }

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -34,55 +35,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var cancellationToken = context.CancellationToken;
-
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            if (syntaxTree.IsInNonUserCode(position, cancellationToken))
+            try
             {
-                return;
+                var document = context.Document;
+                var position = context.Position;
+                var cancellationToken = context.CancellationToken;
+
+                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                if (syntaxTree.IsInNonUserCode(position, cancellationToken))
+                {
+                    return;
+                }
+
+                var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+                token = token.GetPreviousTokenIfTouchingWord(position);
+
+                if (!token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
+                {
+                    return;
+                }
+
+                var attributeArgumentList = token.Parent as AttributeArgumentListSyntax;
+                var attributeSyntax = token.Parent.Parent as AttributeSyntax;
+                if (attributeSyntax == null || attributeArgumentList == null)
+                {
+                    return;
+                }
+
+                if (IsAfterNameColonArgument(token) || IsAfterNameEqualsArgument(token))
+                {
+                    context.IsExclusive = true;
+                }
+
+                // We actually want to collect two sets of named parameters to present the user.  The
+                // normal named parameters that come from the attribute constructors.  These will be
+                // presented like "goo:".  And also the named parameters that come from the writable
+                // fields/properties in the attribute.  These will be presented like "bar =".  
+
+                var existingNamedParameters = GetExistingNamedParameters(attributeArgumentList, position);
+
+                var workspace = document.Project.Solution.Workspace;
+                var semanticModel = await document.GetSemanticModelForNodeAsync(attributeSyntax, cancellationToken).ConfigureAwait(false);
+                var nameColonItems = await GetNameColonItemsAsync(context, semanticModel, token, attributeSyntax, existingNamedParameters).ConfigureAwait(false);
+                var nameEqualsItems = await GetNameEqualsItemsAsync(context, semanticModel, token, attributeSyntax, existingNamedParameters).ConfigureAwait(false);
+
+                context.AddItems(nameEqualsItems);
+
+                // If we're after a name= parameter, then we only want to show name= parameters.
+                // Otherwise, show name: parameters too.
+                if (!IsAfterNameEqualsArgument(token))
+                {
+                    context.AddItems(nameColonItems);
+                }
             }
-
-            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            token = token.GetPreviousTokenIfTouchingWord(position);
-
-            if (!token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                return;
-            }
-
-            var attributeArgumentList = token.Parent as AttributeArgumentListSyntax;
-            var attributeSyntax = token.Parent.Parent as AttributeSyntax;
-            if (attributeSyntax == null || attributeArgumentList == null)
-            {
-                return;
-            }
-
-            if (IsAfterNameColonArgument(token) || IsAfterNameEqualsArgument(token))
-            {
-                context.IsExclusive = true;
-            }
-
-            // We actually want to collect two sets of named parameters to present the user.  The
-            // normal named parameters that come from the attribute constructors.  These will be
-            // presented like "foo:".  And also the named parameters that come from the writable
-            // fields/properties in the attribute.  These will be presented like "bar =".  
-
-            var existingNamedParameters = GetExistingNamedParameters(attributeArgumentList, position);
-
-            var workspace = document.Project.Solution.Workspace;
-            var semanticModel = await document.GetSemanticModelForNodeAsync(attributeSyntax, cancellationToken).ConfigureAwait(false);
-            var nameColonItems = await GetNameColonItemsAsync(context, semanticModel, token, attributeSyntax, existingNamedParameters).ConfigureAwait(false);
-            var nameEqualsItems = await GetNameEqualsItemsAsync(context, semanticModel, token, attributeSyntax, existingNamedParameters).ConfigureAwait(false);
-
-            context.AddItems(nameEqualsItems);
-
-            // If we're after a name= parameter, then we only want to show name= parameters.
-            // Otherwise, show name: parameters too.
-            if (!IsAfterNameEqualsArgument(token))
-            {
-                context.AddItems(nameColonItems);
+                // nop
             }
         }
 
@@ -233,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private TextChange? GetTextChange(CompletionItem selectedItem, char? ch)
-        { 
+        {
             var displayText = selectedItem.DisplayText;
 
             if (ch != null)

@@ -14,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class VisualStudioAnalyzerTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub GetReferenceCalledMultipleTimes()
-            Using analyzer = New VisualStudioAnalyzer("C:\Foo\Bar.dll", New MockVsFileChangeEx(), Nothing, Nothing, Nothing, Nothing, Nothing)
+            Using analyzer = New VisualStudioAnalyzer("C:\Goo\Bar.dll", New MockVsFileChangeEx(), Nothing, Nothing, Nothing, Nothing, Nothing)
                 Dim reference1 = analyzer.GetReference()
                 Dim reference2 = analyzer.GetReference()
 

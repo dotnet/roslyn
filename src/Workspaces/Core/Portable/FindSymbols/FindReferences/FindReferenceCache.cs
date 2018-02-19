@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SyntaxNode root, SourceText sourceText,
             string text, CancellationToken cancellationToken)
         {
-            Func<SyntaxToken, bool> candidate = t =>
+            bool candidate(SyntaxToken t) =>
                 syntaxFacts.IsGlobalNamespaceKeyword(t) || (syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text));
 
             // identifier is not escaped

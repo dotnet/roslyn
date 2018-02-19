@@ -50,6 +50,42 @@ class C
             });
         }
 
+        [Fact, WorkItem(21386, "https://github.com/dotnet/roslyn/issues/21386")]
+        public void Gaps()
+        {
+            var source = @"
+using System;
+
+namespace N1
+{
+  namespace N2 
+  {
+    using System.Collections;
+
+    namespace N3 
+    {
+      class C { void M() { } }
+    }
+  }
+}
+";
+            var comp = CreateStandardCompilation(source);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                GetMethodDebugInfo(runtime, "N1.N2.N3.C.M").ImportRecordGroups.Verify(@"
+                {
+                }
+                {
+                    Namespace: string='System.Collections'
+                }
+                {
+                }
+                {
+                    Namespace: string='System'
+                }");
+            });
+        }
+
         [Fact]
         public void NestedScopes()
         {

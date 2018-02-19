@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19441")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void UpdateActiveStatementLeafNode()
         {
             VisualStudio.Editor.SetText(@"
@@ -34,7 +34,7 @@ Imports System.Linq
 Module Module1
     Sub Main()
         Dim names(2) As String
-        names(0) = ""foo""
+        names(0) = ""goo""
         names(1) = ""bar""
 
         For index = 0 To names.GetUpperBound(0)
@@ -49,22 +49,22 @@ End Module
             VisualStudio.Debugger.Go(waitForBreakMode: true);
             VisualStudio.Editor.ReplaceText("names(0)", "names(1)");
             VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
-            VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"foo\"");
+            VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"goo\"");
             VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
             VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"bar\"");
         }
 
-        [Fact (Skip = "https://github.com/dotnet/roslyn/issues/19441")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void AddTryCatchAroundActiveStatement()
         {
             VisualStudio.Editor.SetText(@"
 Imports System
 Module Module1
     Sub Main()
-        Foo()
+        Goo()
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Console.WriteLine(1)
     End Sub
 End Module");
@@ -82,7 +82,7 @@ End Try");
             VisualStudio.Editor.Verify.CurrentLineText("End Try");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19441")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void EditLambdaExpression()
         {
             VisualStudio.Editor.SetText(@"
@@ -113,7 +113,7 @@ End Module");
             VisualStudio.ErrorList.Verify.NoBuildErrors();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19441")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void EnCWhileDebuggingFromImmediateWindow()
         {
             VisualStudio.Editor.SetText(@"
@@ -136,6 +136,7 @@ End Module");
             VisualStudio.Debugger.ExecuteStatement("Module1.Main()");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         private void SetupMultiProjectSolution()
         {
             var basicLibrary = new ProjectUtils.Project("BasicLibrary1");
@@ -177,7 +178,7 @@ End Module
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19441")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void MultiProjectDebuggingWhereNotAllModulesAreLoaded()
         {
             SetupMultiProjectSolution();
@@ -188,7 +189,7 @@ End Module
             VisualStudio.ErrorList.Verify.NoErrors();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19441")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void DocumentStateTrackingReadonlyInRunMode()
         {
             SetupMultiProjectSolution();
@@ -238,30 +239,30 @@ End Module
             VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19441")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
 Imports System
 Module Module1
     Sub Main()
-        Dim foo As String = ""abc""
-        Console.WriteLine(foo)
+        Dim goo As String = ""abc""
+        Console.WriteLine(goo)
     End Sub
 End Module
 ");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.Debugger.SetBreakPoint(module1FileName, "End Sub");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.Editor.ReplaceText("Dim foo As String = \"abc\"", "Dim foo As Single = 10");
+            VisualStudio.Editor.ReplaceText("Dim goo As String = \"abc\"", "Dim goo As Single = 10");
             VisualStudio.Editor.SelectTextInCurrentDocument("Sub Main()");
             VisualStudio.Debugger.SetNextStatement();
             VisualStudio.Debugger.Go(waitForBreakMode: true);
 
-            VisualStudio.LocalsWindow.Verify.CheckEntry("foo", "Single", "10");
+            VisualStudio.LocalsWindow.Verify.CheckEntry("goo", "Single", "10");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19441")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void LocalsWindowUpdatesCorrectlyDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
@@ -294,7 +295,7 @@ End Module
             VisualStudio.LocalsWindow.Verify.CheckEntry("lLng", "Long", "444");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19441")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void WatchWindowUpdatesCorrectlyDuringEnC()
         {
             VisualStudio.Editor.SetText(@"

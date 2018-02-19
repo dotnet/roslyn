@@ -3,28 +3,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
-using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal sealed partial class VisualStudioProjectTracker : ForegroundThreadAffinitizedObject, IVisualStudioHostProjectContainer
+    internal sealed partial class VisualStudioProjectTracker : ForegroundThreadAffinitizedObject
     {
         #region Readonly fields
         private static readonly ConditionalWeakTable<SolutionId, string> s_workingFolderPathMap = new ConditionalWeakTable<SolutionId, string>();
@@ -37,8 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         #region Mutable fields accessed only from foreground thread - don't need locking for access (all accessing methods must have AssertIsForeground).
         private readonly List<WorkspaceHostState> _workspaceHosts;
-
-        private readonly HostWorkspaceServices _workspaceServices;
 
         /// <summary>
         /// Set to true while we're batching project loads. That is, between
@@ -60,12 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private bool _solutionIsClosing = false;
 
         /// <summary>
-        /// Set during <see cref="IVsSolutionEvents.OnBeforeCloseSolution"/>, so that <see cref="IVsSolutionEvents.OnAfterCloseSolution"/> knows
-        /// whether or not to clean up deferred projects.
-        /// </summary>
-        private bool _deferredLoadWasEnabledForLastSolution = false;
-
-        /// <summary>
         /// Set to true once the solution has already been completely loaded and all future changes
         /// should be pushed immediately to the workspace hosts. This may not actually result in changes
         /// being pushed to a particular host if <see cref="WorkspaceHostState.HostReadyForEvents"/> isn't true yet.
@@ -83,14 +68,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<ProjectId, AbstractProject> _projectMap;
         private readonly Dictionary<string, ProjectId> _projectPathToIdMap;
         #endregion
-
-        // Temporary for prototyping purposes
-        private IVsOutputWindowPane _pane;
-
-        /// <summary>
-        /// Used to cancel our background solution parse if we get a solution close event from VS.
-        /// </summary>
-        private CancellationTokenSource _solutionParsingCancellationTokenSource = new CancellationTokenSource();
 
         /// <summary>
         /// Provided to not break CodeLens which has a dependency on this API until there is a
@@ -113,9 +90,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        IReadOnlyList<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects() => this.ImmutableProjects;
+        internal HostWorkspaceServices WorkspaceServices { get; }
 
-        void IVisualStudioHostProjectContainer.NotifyNonDocumentOpenedForProject(IVisualStudioHostProject project)
+        internal void NotifyNonDocumentOpenedForProject(AbstractProject project)
         {
             AssertIsForeground();
 
@@ -131,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _serviceProvider = serviceProvider;
             _workspaceHosts = new List<WorkspaceHostState>(capacity: 1);
-            _workspaceServices = workspaceServices;
+            WorkspaceServices = workspaceServices;
 
             _vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
@@ -430,18 +407,64 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 project = null;
-                if (_projectsByBinPath.TryGetValue(filePath, out var projects))
+                if (!_projectsByBinPath.TryGetValue(filePath, out var projects))
                 {
-                    // If for some reason we have more than one referencing project, it's ambiguous so bail
-                    if (projects.Length == 1)
+                    // Workaround https://github.com/dotnet/roslyn/issues/20412 by checking to see if */ref/A.dll can be
+                    // adjusted to */A.dll - only handles the default location for reference assemblies during a build.
+                    if (!HACK_StripRefDirectoryFromPath(filePath, out string binFilePath)
+                        || !_projectsByBinPath.TryGetValue(binFilePath, out projects))
                     {
-                        project = projects[0];
-                        return true;
+                        return false;
                     }
+                }
+
+                // If for some reason we have more than one referencing project, it's ambiguous so bail
+                if (projects.Length == 1)
+                {
+                    project = projects[0];
+                    return true;
                 }
 
                 return false;
             }
+        }
+
+        private static readonly char[] s_directorySeparatorChars = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
+        private static bool HACK_StripRefDirectoryFromPath(string filePath, out string binFilePath)
+        {
+            const string refDirectoryName = "ref";
+
+            // looking for "/ref/" where:
+            // 1. the first / is a directory separator
+            // 2. 'ref' matches in a case-insensitive comparison
+            // 3. the second / is the last directory separator
+            var lastSeparator = filePath.LastIndexOfAny(s_directorySeparatorChars);
+            var secondToLastSeparator = lastSeparator - refDirectoryName.Length - 1;
+            if (secondToLastSeparator < 0)
+            {
+                // Failed condition 3
+                binFilePath = null;
+                return false;
+            }
+
+            if (filePath[secondToLastSeparator] != Path.DirectorySeparatorChar
+                && filePath[secondToLastSeparator] != Path.AltDirectorySeparatorChar)
+            {
+                // Failed condition 1
+                binFilePath = null;
+                return false;
+            }
+
+            if (string.Compare(refDirectoryName, 0, filePath, secondToLastSeparator + 1, lastSeparator - secondToLastSeparator - 1, StringComparison.OrdinalIgnoreCase) != 0)
+            {
+                // Failed condition 2
+                binFilePath = null;
+                return false;
+            }
+
+            binFilePath = filePath.Remove(secondToLastSeparator, lastSeparator - secondToLastSeparator);
+            return true;
         }
 
         /// <summary>
@@ -493,25 +516,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void TryDisconnectExistingDeferredProject(IVsHierarchy hierarchy, string projectName)
-        {
-            var projectPath = AbstractLegacyProject.GetProjectFilePath(hierarchy);
-            var projectId = GetOrCreateProjectIdForPath(projectPath, projectName);
-
-            // If we created a project for this while in deferred project load mode, let's close it
-            // now that we're being asked to make a "real" project for it, so that we'll prefer the
-            // "real" project
-            if (VisualStudioWorkspaceImpl.IsDeferredSolutionLoadEnabled(_serviceProvider))
-            {
-                var existingProject = GetProject(projectId);
-                if (existingProject != null)
-                {
-                    Debug.Assert(existingProject is IWorkspaceProjectContext);
-                    existingProject.Disconnect();
-                }
-            }
-        }
-
         public void OnBeforeCloseSolution()
         {
             AssertIsForeground();
@@ -524,25 +528,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             _solutionLoadComplete = false;
-            _deferredLoadWasEnabledForLastSolution = VisualStudioWorkspaceImpl.IsDeferredSolutionLoadEnabled(_serviceProvider);
-
-            // Cancel any background solution parsing. NOTE: This means that work needs to
-            // check the token periodically, and whenever resuming from an "await"
-            _solutionParsingCancellationTokenSource.Cancel();
-            _solutionParsingCancellationTokenSource = new CancellationTokenSource();
         }
 
         public void OnAfterCloseSolution()
         {
             AssertIsForeground();
-
-            if (_deferredLoadWasEnabledForLastSolution)
-            {
-                foreach (var p in ImmutableProjects)
-                {
-                    p.Disconnect();
-                }
-            }
 
             lock (_gate)
             {
@@ -565,410 +555,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             _solutionIsClosing = false;
-        }
-
-        public async Task LoadSolutionFromMSBuildAsync()
-        {
-            AssertIsForeground();
-            InitializeOutputPane();
-
-            // Continue on the UI thread for these operations, since we are touching the VisualStudioWorkspace, etc.
-            await PopulateWorkspaceFromDeferredProjectInfoAsync(_solutionParsingCancellationTokenSource.Token).ConfigureAwait(true);
-        }
-
-        [Conditional("DEBUG")]
-        private void InitializeOutputPane()
-        {
-            var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
-            var paneGuid = new Guid("07aaa8e9-d776-47d6-a1be-5ce00332d74d");
-            if (ErrorHandler.Succeeded(outputWindow.CreatePane(ref paneGuid, "Roslyn DPL Status", fInitVisible: 1, fClearWithSolution: 1)) &&
-                ErrorHandler.Succeeded(outputWindow.GetPane(ref paneGuid, out _pane)) && _pane != null)
-            {
-                _pane.Activate();
-            }
-        }
-        private async Task PopulateWorkspaceFromDeferredProjectInfoAsync(
-            CancellationToken cancellationToken)
-        {
-            // NOTE: We need to check cancellationToken after each await, in case the user has
-            // already closed the solution.
-            AssertIsForeground();
-
-            var start = DateTimeOffset.UtcNow;
-            var dte = _serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
-            var solutionConfig = (EnvDTE80.SolutionConfiguration2)dte.Solution.SolutionBuild.ActiveConfiguration;
-
-            OutputToOutputWindow($"Getting project information - start");
-
-            var projectInfos = SpecializedCollections.EmptyReadOnlyDictionary<string, DeferredProjectInformation>();
-
-            // Note that `solutionConfig` may be null. For example: if the solution doesn't actually
-            // contain any projects.
-            if (solutionConfig != null)
-            {
-                // Capture the context so that we come back on the UI thread, and do the actual project creation there.
-                var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
-                projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
-                    $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
-                    cancellationToken).ConfigureAwait(true);
-            }
-
-            AssertIsForeground();
-            cancellationToken.ThrowIfCancellationRequested();
-            OutputToOutputWindow($"Getting project information - done (took {DateTimeOffset.UtcNow - start})");
-
-            ForceLoadProjectsWhoseDesignTimeBuildFailed(projectInfos);
-
-            CreateDeferredProjects(projectInfos, cancellationToken);
-
-            CallWithTimingLog("Pushing to workspace", FinishLoad);
-        }
-
-        private void ForceLoadProjectsWhoseDesignTimeBuildFailed(IReadOnlyDictionary<string, DeferredProjectInformation> projectInfos)
-        {
-            OutputToOutputWindow($"Loading projects whose design time builds failed - start");
-            var start = DateTimeOffset.UtcNow;
-            var solution4 = (IVsSolution4)_vsSolution;
-            var solution7 = (IVsSolution7)_vsSolution;
-            var projectInfosOfProjectsThatFailed = projectInfos.Where(pi => DesignTimeBuildFailed(pi.Value) && solution7.IsDeferredProjectLoadAllowed(pi.Key));
-            var guidsOfProjectsThatFailed = projectInfosOfProjectsThatFailed.Select(pi => GetProjectGuid(pi.Key)).ToArray();
-            OutputToOutputWindow($"\tForcing load of {guidsOfProjectsThatFailed.Length} projects.");
-            OutputListToOutputWindow("\tIncluding ", projectInfosOfProjectsThatFailed.Select(pi => pi.Key));
-            solution4.EnsureProjectsAreLoaded((uint)guidsOfProjectsThatFailed.Length, guidsOfProjectsThatFailed, (uint)__VSBSLFLAGS.VSBSLFLAGS_None);
-            OutputToOutputWindow($"Loading projects whose design time builds failed - done (took {DateTimeOffset.UtcNow - start})");
-        }
-
-        private void CreateDeferredProjects(IReadOnlyDictionary<string, DeferredProjectInformation> projectInfos, CancellationToken cancellationToken)
-        {
-            AssertIsForeground();
-
-            OutputToOutputWindow($"Creating projects - start");
-            var start = DateTimeOffset.UtcNow;
-
-            var targetPathsToProjectPaths = BuildTargetPathMap(projectInfos);
-
-            var solution7 = (IVsSolution7)_vsSolution;
-            var analyzerAssemblyLoader = _workspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
-            var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
-            var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
-            foreach (var (projectFilename, projectInfo) in projectInfos)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (!solution7.IsDeferredProjectLoadAllowed(projectFilename))
-                {
-                    OutputToOutputWindow($"\tSkipping non-deferred project: '{projectFilename}'");
-                }
-                else if (DesignTimeBuildFailed(projectInfo))
-                {
-                    OutputToOutputWindow($"\tSkipping failed design time build project: '{projectFilename}'");
-                }
-                else
-                {
-                    GetOrCreateProjectFromArgumentsAndReferences(
-                        workspaceProjectContextFactory,
-                        analyzerAssemblyLoader,
-                        projectFilename,
-                        projectInfos,
-                        targetPathsToProjectPaths);
-                }
-            }
-
-            OutputToOutputWindow($"Creating projects - done (took {DateTimeOffset.UtcNow - start})");
-        }
-
-        private static bool DesignTimeBuildFailed(DeferredProjectInformation projectInfo)
-        {
-            return projectInfo.CommandLineArguments.IsDefaultOrEmpty || string.IsNullOrEmpty(projectInfo.TargetPath);
-        }
-
-        private static ImmutableDictionary<string, string> BuildTargetPathMap(IReadOnlyDictionary<string, DeferredProjectInformation> projectInfos)
-        {
-            var builder = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var item in projectInfos)
-            {
-                var targetPath = item.Value.TargetPath;
-                if (!string.IsNullOrEmpty(targetPath))
-                {
-                    if (!builder.ContainsKey(targetPath))
-                    {
-                        builder[targetPath] = item.Key;
-                    }
-                    else
-                    {
-                        Debug.Fail($"Already have a target path of '{item.Value.TargetPath}', with value '{builder[item.Value.TargetPath]}'.");
-                    }
-                }
-            }
-            return builder.ToImmutable();
-        }
-
-        private void CallWithTimingLog(string logPrefix, Action action)
-        {
-            OutputToOutputWindow($"{logPrefix} - start");
-            var start = DateTimeOffset.UtcNow;
-            action();
-            OutputToOutputWindow($"{logPrefix} - done (took {DateTimeOffset.UtcNow - start})");
-        }
-
-        [Conditional("DEBUG")]
-        private void OutputToOutputWindow(string message)
-        {
-            _pane?.OutputString(message + Environment.NewLine);
-        }
-
-        [Conditional("DEBUG")]
-        private void OutputListToOutputWindow(string prefix, IEnumerable<string> values)
-        {
-            foreach (var s in values)
-            {
-                _pane?.OutputString(prefix + s + Environment.NewLine);
-            }
-        }
-
-        private AbstractProject GetOrCreateProjectFromArgumentsAndReferences(
-            IWorkspaceProjectContextFactory workspaceProjectContextFactory,
-            IAnalyzerAssemblyLoader analyzerAssemblyLoader,
-            string projectFilename,
-            IReadOnlyDictionary<string, DeferredProjectInformation> allProjectInfos,
-            IReadOnlyDictionary<string, string> targetPathsToProjectPaths)
-        {
-            var languageName = GetLanguageOfProject(projectFilename);
-            if (languageName == null)
-            {
-                return null;
-            }
-
-            if (!allProjectInfos.TryGetValue(projectFilename, out var projectInfo))
-            {
-                // This could happen if we were called recursively about a dangling P2P reference
-                // that isn't actually in the solution.
-                return null;
-            }
-
-            // TODO: Should come from .sln file?
-            var projectName = PathUtilities.GetFileName(projectFilename, includeExtension: false);
-
-            // `AbstractProject` only sets the filename if it actually exists.  Since we want
-            // our ids to match, mimic that behavior here.
-            var projectId = File.Exists(projectFilename)
-                ? GetOrCreateProjectIdForPath(projectFilename, projectName)
-                : GetOrCreateProjectIdForPath(projectName, projectName);
-
-            // See if something has already created this project - it's not deferred, the AnyCode design time build
-            // failed so we force loaded it, or we already created a deferred project and we're in a recursive call
-            // to find a ProjectReference
-            if (_projectMap.TryGetValue(projectId, out var project))
-            {
-                return project;
-            }
-
-            // If the project system has opted this project out of deferred loading, or AnyCode
-            // was unable to get command line info for it, we can't create a project for it.
-            // NOTE: We need to check this even though it happened in CreateDeferredProjects
-            // because we could be in a recursive call from a project reference below.
-            var solution7 = (IVsSolution7)_vsSolution;
-            if (DesignTimeBuildFailed(projectInfo) ||
-                !solution7.IsDeferredProjectLoadAllowed(projectFilename))
-            {
-                return null;
-            }
-
-            var commandLineParser = _workspaceServices.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
-            var projectDirectory = PathUtilities.GetDirectoryName(projectFilename);
-            var commandLineArguments = commandLineParser.Parse(
-                projectInfo.CommandLineArguments,
-                projectDirectory,
-                isInteractive: false,
-                sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
-
-            OutputToOutputWindow($"\tCreating '{projectName}':\t{commandLineArguments.SourceFiles.Length} source files,\t{commandLineArguments.MetadataReferences.Length} references.");
-
-            var projectGuid = GetProjectGuid(projectFilename);
-            var projectContext = workspaceProjectContextFactory.CreateProjectContext(
-                languageName,
-                projectName,
-                projectFilename,
-                projectGuid: projectGuid,
-                hierarchy: null,
-                binOutputPath: projectInfo.TargetPath);
-
-            project = (AbstractProject)projectContext;
-            projectContext.SetOptions(projectInfo.CommandLineArguments.Join(" "));
-
-            var addedSourceFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var sourceFile in commandLineArguments.SourceFiles)
-            {
-                if (addedSourceFilePaths.Add(sourceFile.Path))
-                {
-                    projectContext.AddSourceFile(sourceFile.Path);
-                }
-            }
-
-            var addedAdditionalFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var additionalFile in commandLineArguments.AdditionalFiles)
-            {
-                if (addedAdditionalFilePaths.Add(additionalFile.Path))
-                {
-                    projectContext.AddAdditionalFile(additionalFile.Path);
-                }
-            }
-
-            var metadataReferences = commandLineArguments.ResolveMetadataReferences(project.CurrentCompilationOptions.MetadataReferenceResolver).AsImmutable();
-            var addedProjectReferences = new HashSet<string>();
-            foreach (var projectReferencePath in projectInfo.ReferencedProjectFilePaths)
-            {
-                var referencedProject = TryFindExistingProjectForProjectReference(projectReferencePath, metadataReferences);
-                if (referencedProject == null)
-                {
-                    referencedProject = GetOrCreateProjectFromArgumentsAndReferences(
-                        workspaceProjectContextFactory,
-                        analyzerAssemblyLoader,
-                        projectReferencePath,
-                        allProjectInfos,
-                        targetPathsToProjectPaths);
-                }
-
-                var referencedProjectContext = referencedProject as IWorkspaceProjectContext;
-                if (referencedProjectContext != null)
-                {
-                    // TODO: Can we get the properties from corresponding metadata reference in
-                    // commandLineArguments?
-                    addedProjectReferences.Add(projectReferencePath);
-                    projectContext.AddProjectReference(
-                        referencedProjectContext,
-                        new MetadataReferenceProperties());
-                }
-                else if (referencedProject != null)
-                {
-                    // This project was already created by the regular project system. See if we
-                    // can find the matching project somehow.
-                    var existingReferenceOutputPath = referencedProject?.BinOutputPath;
-                    if (existingReferenceOutputPath != null)
-                    {
-                        addedProjectReferences.Add(projectReferencePath);
-                        projectContext.AddMetadataReference(
-                            existingReferenceOutputPath,
-                            new MetadataReferenceProperties());
-                    }
-                }
-                else
-                {
-                    // We don't know how to create this project.  Another language or something?
-                    OutputToOutputWindow($"\t\tFailed to create a project for '{projectReferencePath}'.");
-                }
-            }
-
-            var addedReferencePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var reference in metadataReferences)
-            {
-                var path = GetReferencePath(reference);
-                if (targetPathsToProjectPaths.TryGetValue(path, out var possibleProjectReference) &&
-                    addedProjectReferences.Contains(possibleProjectReference))
-                {
-                    // We already added a P2P reference for this, we don't need to add the file reference too.
-                    continue;
-                }
-
-                if (addedReferencePaths.Add(path))
-                {
-                    projectContext.AddMetadataReference(path, reference.Properties);
-                }
-            }
-
-            var addedAnalyzerPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var reference in commandLineArguments.ResolveAnalyzerReferences(analyzerAssemblyLoader))
-            {
-                var path = reference.FullPath;
-                if (!PathUtilities.IsAbsolute(path))
-                {
-                    path = PathUtilities.CombineAbsoluteAndRelativePaths(
-                        projectDirectory,
-                        path);
-                }
-
-                if (addedAnalyzerPaths.Add(path))
-                {
-                    projectContext.AddAnalyzerReference(path);
-                }
-            }
-
-            return (AbstractProject)projectContext;
-        }
-
-        private Guid GetProjectGuid(string projectFilename)
-        {
-            var solution5 = (IVsSolution5)_vsSolution;
-            // If the index is stale, it might give us a path that doesn't exist anymore that the
-            // solution doesn't know about - be resilient to that case.
-            Guid projectGuid;
-            try
-            {
-                projectGuid = solution5.GetGuidOfProjectFile(projectFilename);
-            }
-            catch (ArgumentException)
-            {
-                var message = $"Failed to get the project guid for '{projectFilename}' from the solution, using  random guid instead.";
-                Debug.Fail(message);
-                OutputToOutputWindow(message);
-                projectGuid = Guid.NewGuid();
-            }
-
-            return projectGuid;
-        }
-
-        private AbstractProject TryFindExistingProjectForProjectReference(string projectReferencePath, ImmutableArray<MetadataReference> metadataReferences)
-        {
-            // NOTE: ImmutableProjects might contain projects for other languages like
-            // Xaml, or Typescript where the project file ends up being identical.
-            AbstractProject candidate = null;
-            foreach (var existingProject in ImmutableProjects)
-            {
-                if (existingProject.Language != LanguageNames.CSharp && existingProject.Language != LanguageNames.VisualBasic)
-                {
-                    continue;
-                }
-
-                if (!StringComparer.OrdinalIgnoreCase.Equals(existingProject.ProjectFilePath, projectReferencePath))
-                {
-                    continue;
-                }
-
-                // There might be multiple projects that have the same project file path and language in the case of
-                // cross-targeted .NET Core project.  To support that, we'll try to find the one with the output path
-                // that matches one of the metadata references we're trying to add.  If we don't find any, then we'll
-                // settle one with a matching project file path.
-                candidate = candidate ?? existingProject;
-                if (metadataReferences.Contains(mr => StringComparer.OrdinalIgnoreCase.Equals(GetReferencePath(mr), existingProject.BinOutputPath)))
-                {
-                    return existingProject;
-                }
-            }
-
-            return candidate;
-        }
-
-        private static string GetReferencePath(MetadataReference mr)
-        {
-            // Some references may fail to be resolved - if they are, we'll still pass them
-            // through, in case they come into existence later (they may be built by other 
-            // parts of the build system).
-            return mr is UnresolvedMetadataReference umr
-                ? umr.Reference
-                : ((PortableExecutableReference)mr).FilePath;
-        }
-
-        private static string GetLanguageOfProject(string projectFilename)
-        {
-            switch (PathUtilities.GetExtension(projectFilename))
-            {
-                case ".csproj":
-                    return LanguageNames.CSharp;
-                case ".vbproj":
-                    return LanguageNames.VisualBasic;
-                default:
-                    return null;
-            };
         }
 
         private void FinishLoad()

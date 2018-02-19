@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
         [Fact]
         public void ConvertToSpan()
         {
-            Action<int, int> del = (start, length) =>
+            void del(int start, int length)
             {
                 var textSpan = new TextSpan(start, length);
                 var span = textSpan.ToSpan();
                 Assert.Equal(start, span.Start);
                 Assert.Equal(length, span.Length);
-            };
+            }
 
             del(0, 5);
             del(15, 20);

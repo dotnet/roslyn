@@ -5,6 +5,8 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
+#pragma warning disable xUnit1013 // currently there are public virtual methods that are overridden by derived types
+
 namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 {
     public abstract class WorkspaceBase : AbstractEditorTest

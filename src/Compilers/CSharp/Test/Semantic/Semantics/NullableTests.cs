@@ -147,6 +147,7 @@ class C
 }";
 
             var verifier = CompileAndVerify(source: source2, expectedOutput: "0");
+            verifier = CompileAndVerify(source: source2, expectedOutput: "0");
 
             // And in fact, this should work if there is an implicit conversion from the result of the addition
             // to the type:
@@ -169,7 +170,8 @@ class C
   }
 }";
 
-            verifier = CompileAndVerify(source: source3, expectedOutput: "1");
+            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.Fails);
+            verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
         }
 
         [Fact, WorkItem(543954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
@@ -227,7 +229,8 @@ class C
 ";
             foreach (string type in new[] { "int", "ushort", "byte", "long", "float", "decimal" })
             {
-                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0");
+                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.Fails);
+                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
             }
         }
 
@@ -1739,13 +1742,13 @@ class Test
             string source = @"
 public class Parent
 {
-    public int Foo(int? d = 0) { return (int)d; }
+    public int Goo(int? d = 0) { return (int)d; }
 }
 ";
             string source2 = @"
 public class Parent
 {
-    public int Foo(int? d = 0) { return (int)d; }
+    public int Goo(int? d = 0) { return (int)d; }
 }
 
 public class Test
@@ -1753,7 +1756,7 @@ public class Test
     public static void Main()
     {
         Parent p = new Parent();
-        System.Console.Write(p.Foo(0));
+        System.Console.Write(p.Goo(0));
     }
 }
 ";

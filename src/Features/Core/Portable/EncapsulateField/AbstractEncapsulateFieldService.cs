@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 accessibility: ComputeAccessibility(accessibility, field.Type),
                 modifiers: new DeclarationModifiers(isStatic: field.IsStatic, isReadOnly: field.IsReadOnly, isUnsafe: field.IsUnsafe()),
                 type: field.Type,
-                returnsByRef: false,
+                refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: propertyName,
                 parameters: ImmutableArray<IParameterSymbol>.Empty,

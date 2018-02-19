@@ -656,14 +656,14 @@ class Test
 class A
 {
     private void Hidden() { }
-    protected void Foo() { }
+    protected void Goo() { }
 }
  
 class B : A
 {
     void Bar()
     {
-        /*<bind>*/base/*</bind>*/.Foo();
+        /*<bind>*/base/*</bind>*/.Goo();
     }
 }
 ";
@@ -688,10 +688,10 @@ class B : A
             Assert.Equal("A", baseExprType.Name);
 
             var symbols = model.LookupBaseMembers(baseExprLocation);
-            Assert.Equal("void A.Foo()", symbols.Single().ToTestDisplayString());
+            Assert.Equal("void A.Goo()", symbols.Single().ToTestDisplayString());
 
             var names = model.LookupNames(baseExprLocation, useBaseReferenceAccessibility: true);
-            Assert.Equal("Foo", names.Single());
+            Assert.Equal("Goo", names.Single());
         }
 
         [WorkItem(528263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528263")]
@@ -1741,7 +1741,7 @@ public class Outer
             const string source = @"
 class C
 {
-    static void Foo<T>()
+    static void Goo<T>()
     {
         /*<bind>*/T/*</bind>*/();
     }
@@ -1760,14 +1760,14 @@ class C
 class C
 {
     const int T = 42;
-    static void Foo<T>(int x = /*<bind>*/T/*</bind>*/)
+    static void Goo<T>(int x = /*<bind>*/T/*</bind>*/)
     {
         System.Console.Write(x);
     }
 
     static void Main()
     {
-        Foo<object>();
+        Goo<object>();
     }
 }";
 
@@ -1788,7 +1788,7 @@ class C
 {
     const int T = 42;
 
-    static void Foo<T>([A(/*<bind>*/T/*</bind>*/)] int x)
+    static void Goo<T>([A(/*<bind>*/T/*</bind>*/)] int x)
     {
     }
 }";
@@ -1811,7 +1811,7 @@ class C
     const int T = 42;
 
     [A(/*<bind>*/T/*</bind>*/)]
-    static void Foo<T>(int x)
+    static void Goo<T>(int x)
     {
     }
 }";
@@ -1833,7 +1833,7 @@ class C
 {
     const int T = 42;
 
-    static void Foo<[A(/*<bind>*/T/*</bind>*/)] T>(int x)
+    static void Goo<[A(/*<bind>*/T/*</bind>*/)] T>(int x)
     {
     }
 }";
@@ -1850,14 +1850,14 @@ class C
 {
     class T { }
 
-    static void Foo<T>(T x = default(/*<bind>*/T/*</bind>*/))
+    static void Goo<T>(T x = default(/*<bind>*/T/*</bind>*/))
     {
         System.Console.Write((object)x == null);
     }
 
     static void Main()
     {
-        Foo<object>();
+        Goo<object>();
     }
 }";
 
@@ -1873,14 +1873,14 @@ class C
 {
     class T { }
 
-    static void Foo<T>(T x = default(/*<bind>*/T/*</bind>*/))
+    static void Goo<T>(T x = default(/*<bind>*/T/*</bind>*/))
     {
         System.Console.Write((object)x == null);
     }
 
     static void Main()
     {
-        Foo<object>();
+        Goo<object>();
     }
 }";
 

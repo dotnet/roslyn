@@ -1235,7 +1235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         '''  body {
         '''    Call(
         '''      &lt;NULL&gt;
-        '''      method: Int32 Foo[Struct1](System.Nullable`1[Form1+Struct1]) in Form1 (
+        '''      method: Int32 Goo[Struct1](System.Nullable`1[Form1+Struct1]) in Form1 (
         '''        Constant(
         '''          null
         '''          type: System.Nullable`1[Form1+Struct1]

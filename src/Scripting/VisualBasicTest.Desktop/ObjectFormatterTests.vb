@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
 
         <Fact>
         Public Sub DebuggerProxy_FrameworkTypes_ArrayList()
-            Dim obj = New ArrayList From {1, 2, True, "foo"}
+            Dim obj = New ArrayList From {1, 2, True, "goo"}
             Dim str = s_formatter.FormatObject(obj, SingleLineOptions)
-            Assert.Equal("ArrayList(4) { 1, 2, True, ""foo"" }", str)
+            Assert.Equal("ArrayList(4) { 1, 2, True, ""goo"" }", str)
         End Sub
 
         <Fact>

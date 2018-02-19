@@ -105,7 +105,7 @@ Public Class C
     Sub M()
         dim v = $""{1 + 2}string"" ' trailing trivia
     End Sub
-End Class", ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>

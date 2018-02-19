@@ -6,16 +6,13 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Construction;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
+using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
@@ -136,7 +133,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             VersionStamp version = default;
 
-            Microsoft.Build.Construction.SolutionFile solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(absoluteSolutionPath);
+            var solutionFile = MSB.Construction.SolutionFile.Parse(absoluteSolutionPath);
             var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
 
             // a list to accumulate all the loaded projects
@@ -147,7 +144,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (project.ProjectType != SolutionProjectType.SolutionFolder)
+                if (project.ProjectType != MSB.Construction.SolutionProjectType.SolutionFolder)
                 {
                     var projectAbsolutePath = TryGetAbsolutePath(project.AbsolutePath, reportMode);
                     if (projectAbsolutePath != null)
@@ -538,7 +535,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private void CheckDocuments(IEnumerable<DocumentFileInfo> docs, string projectFilePath, ProjectId projectId)
+        private void CheckDocuments(ImmutableArray<DocumentFileInfo> docs, string projectFilePath, ProjectId projectId)
         {
             var paths = new HashSet<string>();
             foreach (var doc in docs)

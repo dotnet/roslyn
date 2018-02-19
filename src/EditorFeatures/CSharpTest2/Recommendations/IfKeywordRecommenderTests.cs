@@ -43,7 +43,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -201,7 +201,7 @@ $$"));
         public async Task TestAfterElse()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"if (foo) {
+@"if (goo) {
 } else $$"));
         }
 

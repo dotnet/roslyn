@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -9,6 +10,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -35,16 +37,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var completionCount = context.Items.Count;
-            await base.ProvideCompletionsAsync(context).ConfigureAwait(false);
-
-            if (completionCount < context.Items.Count)
+            try
             {
-                // If we added any items, then add a suggestion mode item as this is a location 
-                // where a member name could be written, and we should not interfere with that.
-                context.SuggestionModeItem = CreateSuggestionModeItem(
-                    CSharpFeaturesResources.member_name,
-                    CSharpFeaturesResources.Autoselect_disabled_due_to_member_declaration);
+                var completionCount = context.Items.Count;
+                await base.ProvideCompletionsAsync(context).ConfigureAwait(false);
+
+                if (completionCount < context.Items.Count)
+                {
+                    // If we added any items, then add a suggestion mode item as this is a location 
+                    // where a member name could be written, and we should not interfere with that.
+                    context.SuggestionModeItem = CreateSuggestionModeItem(
+                        CSharpFeaturesResources.member_name,
+                        CSharpFeaturesResources.Autoselect_disabled_due_to_member_declaration);
+                }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // nop
             }
         }
 
@@ -86,8 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return SpecializedTasks.EmptyImmutableArray<ISymbol>();
             }
 
-            // Looks syntactically good.  See what interfaces our containing class/struct has
             var typeDeclaration = typeNode.GetAncestor<TypeDeclarationSyntax>();
+            if (typeDeclaration == null)
+            {
+                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            }
+
+            // Looks syntactically good.  See what interfaces our containing class/struct has
             Debug.Assert(IsClassOrStruct(typeDeclaration));
 
             var semanticModel = context.SemanticModel;

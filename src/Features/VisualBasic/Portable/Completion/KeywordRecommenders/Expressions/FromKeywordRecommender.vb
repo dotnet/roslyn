@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expressions
     ''' <summary>
-    ''' Recommends the "From" keyword when used in a New syntax (such as New foo From)
+    ''' Recommends the "From" keyword when used in a New syntax (such as New goo From)
     ''' </summary>
     Friend Class FromKeywordRecommender
         Inherits AbstractKeywordRecommender

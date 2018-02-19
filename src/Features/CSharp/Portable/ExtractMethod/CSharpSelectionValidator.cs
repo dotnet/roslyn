@@ -195,8 +195,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 // couldn't find any valid node
                 return selectionInfo.WithStatus(s => new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.Selection_does_not_contain_a_valid_node))
-                                    .With(s => s.FirstTokenInFinalSpan = default(SyntaxToken))
-                                    .With(s => s.LastTokenInFinalSpan = default(SyntaxToken));
+                                    .With(s => s.FirstTokenInFinalSpan = default)
+                                    .With(s => s.LastTokenInFinalSpan = default);
             }
 
             firstValidNode = (firstValidNode.Parent is ExpressionStatementSyntax) ? firstValidNode.Parent : firstValidNode;

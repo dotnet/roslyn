@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     private void bar(Func<int, int, bool> f) { }
     
-    private void foo()
+    private void goo()
     {
         bar((x, i $$
     }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     private void bar(Func<int, int, bool> f) { }
     
-    private void foo()
+    private void goo()
     {
         bar((int x, i $$
     }
@@ -78,7 +78,7 @@ class c
 {
     private void bar(Func<int, int, bool> f) { }
     
-    private void foo()
+    private void goo()
     {
         bar($$
     }
@@ -107,7 +107,7 @@ class Program
 
 class a
 {
-    void foo()
+    void goo()
     {
         var b = new Program() { myfunc = $$
     }
@@ -122,7 +122,7 @@ class a
 
 class a
 {
-    void foo()
+    void goo()
     {
         Func<int, int>[] myfunc = new Func<int, int>[] { $$;
     }
@@ -137,7 +137,7 @@ class a
 
 class a
 {
-    void foo()
+    void goo()
     {
         var a = new [] { $$;
     }
@@ -152,7 +152,7 @@ class a
 
 class a
 {
-    void foo()
+    void goo()
     {
         var a = new [] { x => 2 * x, $$
     }
@@ -167,7 +167,7 @@ class a
 
 class a
 {
-    void foo()
+    void goo()
     {
         var a = true ? $$
     }
@@ -182,7 +182,7 @@ class a
 
 class a
 {
-    void foo()
+    void goo()
     {
         var a = true ? x => x * 2 : $$
     }
@@ -197,7 +197,7 @@ class a
 
 class a
 {
-    void foo()
+    void goo()
     {
         Func<int, int> a = true ? $$
     }
@@ -212,12 +212,12 @@ class a
 
 class a
 {
-    void foo(int a) { }
-    void foo(Func<int, int> a) { }
+    void goo(int a) { }
+    void goo(Func<int, int> a) { }
 
     void bar()
     {
-        this.foo($$
+        this.goo($$
     }
 }";
             await VerifyBuilderAsync(markup);
@@ -230,12 +230,12 @@ class a
 
 class a
 {
-    void foo(int i, int a) { }
-    void foo(int i, Func<int, int> a) { }
+    void goo(int i, int a) { }
+    void goo(int i, Func<int, int> a) { }
 
     void bar()
     {
-        this.foo(1, $$
+        this.goo(1, $$
     }
 }";
             await VerifyBuilderAsync(markup);
@@ -413,6 +413,51 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        public async Task TestInObjectCreation()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main()
+    {
+        Program x = new P$$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        public async Task TestInArrayCreation()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main()
+    {
+        Program[] x = new $$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        public async Task TestInArrayCreation2()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main()
+    {
+        Program[] x = new Pr$$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TupleExpressionInVarDeclaration()
         {
             var markup = @"using System;
@@ -505,9 +550,9 @@ using System.Linq.Expressions;
  
 public class Class
 {
-    public void Foo(Expression<Action<int>> arg)
+    public void Goo(Expression<Action<int>> arg)
     {
-        Foo($$
+        Goo($$
     }
 }";
             await VerifyBuilderAsync(markup);
@@ -522,7 +567,7 @@ using System.Linq.Expressions;
  
 public class Class
 {
-    public void Foo(Expression<Action<int>> arg)
+    public void Goo(Expression<Action<int>> arg)
     {
         Enumerable.Empty<$$
     }
@@ -586,7 +631,7 @@ using System;
  
 public class Class
 {
-    public void Foo()
+    public void Goo()
     {
         EventHandler h = (s$$)
     }
@@ -642,12 +687,12 @@ class D : B
 
 class a
 {
-    void foo()
+    void goo()
     {
         int[] a = new $$;
     }
 }";
-            await VerifyBuilderAsync(markup);
+            await VerifyNotBuilderAsync(markup);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -761,6 +806,42 @@ class C {
             await VerifyNotBuilderAsync(markup);
         }
 
+        [WorkItem(20937, "https://github.com/dotnet/roslyn/issues/20937")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AsyncLambda()
+        {
+            var markup = @"
+using System;
+using System.Threading.Tasks;
+class Program
+{
+    public void B(Func<int, int, Task<int>> f) { }
+
+    void A()
+    {
+        B(async($$";
+
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(20937, "https://github.com/dotnet/roslyn/issues/20937")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AsyncLambdaAfterComma()
+        {
+            var markup = @"
+using System;
+using System.Threading.Tasks;
+class Program
+{
+    public void B(Func<int, int, Task<int>> f) { }
+
+    void A()
+    {
+        B(async(p1, $$";
+
+            await VerifyBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
         {
             await VerifyWorkerAsync(markup, isBuilder: false);
@@ -806,7 +887,7 @@ class C {
                 if (isBuilder)
                 {
                     Assert.NotNull(completionList);
-                    Assert.NotNull(completionList.SuggestionModeItem);
+                    Assert.True(completionList.SuggestionModeItem != null, "Expecting a suggestion mode, but none was present");
                 }
                 else
                 {

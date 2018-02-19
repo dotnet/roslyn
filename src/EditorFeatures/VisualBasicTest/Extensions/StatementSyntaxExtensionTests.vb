@@ -156,7 +156,7 @@ End Property</String>.Value
 
         <Fact>
         Public Sub SubBlockWithPublicModifier()
-            Dim code = <String>Sub Foo
+            Dim code = <String>Sub Goo
 End Sub</String>.Value
             Dim node = SyntaxFactory.ParseCompilationUnit(code).DescendantNodes.OfType(Of MethodBlockSyntax).First()
             TestStatementDeclarationWithPublicModifier(node)

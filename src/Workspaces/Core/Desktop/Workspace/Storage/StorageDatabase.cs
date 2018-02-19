@@ -6,6 +6,5 @@ namespace Microsoft.CodeAnalysis.Storage
     {
         None = 0,
         SQLite = 1,
-        Esent = 2,
     }
 }

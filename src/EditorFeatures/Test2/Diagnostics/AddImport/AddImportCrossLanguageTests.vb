@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.IncrementalCaches
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
 
@@ -37,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                         <Document FilePath="Test1.vb">
                             public class Class1
                             {
-                                public void Foo()
+                                public void Goo()
                                 {
                                     var x = new Cl$$ass2();
                                 }
@@ -60,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
 
                             public class Class1
                             {
-                                public void Foo()
+                                public void Goo()
                                 {
                                     var x = new Class2();
                                 }
@@ -78,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                         <ProjectReference>CSAssembly1</ProjectReference>
                         <Document FilePath="Test1.vb">
                             public class Class1
-                                public sub Foo()
+                                public sub Goo()
                                     dim x as new Cl$$ass2()
                                 end sub
                             end class
@@ -101,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                             Imports NS2
 
                             Public Class Class1
-                                Public Sub Foo()
+                                Public Sub Goo()
                                     Dim x As New Class2()
                                 End Sub
                             End Class
@@ -509,12 +510,12 @@ namespace CSAssembly2
                             Optional codeActionIndex As Integer = 0,
                             Optional addedReference As String = Nothing,
                             Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing) As Task
-            Dim verifySolutions As Action(Of Solution, Solution) = Nothing
+            Dim verifySolutions As Func(Of Solution, Solution, Task) = Nothing
             Dim workspace As TestWorkspace = Nothing
 
             If addedReference IsNot Nothing Then
                 verifySolutions =
-                    Sub(oldSolution As Solution, newSolution As Solution)
+                    Function(oldSolution As Solution, newSolution As Solution)
                         Dim initialDocId = workspace.DocumentWithCursor.Id
                         Dim oldProject = oldSolution.GetDocument(initialDocId).Project
                         Dim newProject = newSolution.GetDocument(initialDocId).Project
@@ -529,7 +530,8 @@ namespace CSAssembly2
                                                    Select p.Name
 
                         Assert.True(newProjectReferences.Contains(addedReference))
-                    End Sub
+                        Return SpecializedTasks.EmptyTask
+                    End Function
             End If
 
             Await TestAsync(definition, expected, codeActionIndex,

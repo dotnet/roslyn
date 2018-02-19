@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestAddSameWithStringBuilderProducesSameStringInstance()
         {
             var st = new StringTable();
-            var sb1 = new StringBuilder("foo");
-            var sb2 = new StringBuilder("foo");
+            var sb1 = new StringBuilder("goo");
+            var sb2 = new StringBuilder("goo");
             var s1 = st.Add(sb1);
             var s2 = st.Add(sb2);
             Assert.Same(s1, s2);
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestAddDifferentWithStringBuilderProducesDifferentStringInstance()
         {
             var st = new StringTable();
-            var sb1 = new StringBuilder("foo");
+            var sb1 = new StringBuilder("goo");
             var sb2 = new StringBuilder("bar");
             var s1 = st.Add(sb1);
             var s2 = st.Add(sb2);
@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestSharedAddSameWithStringBuilderProducesSameStringInstance()
         {
-            var sb1 = new StringBuilder("foo");
-            var sb2 = new StringBuilder("foo");
+            var sb1 = new StringBuilder("goo");
+            var sb2 = new StringBuilder("goo");
             var s1 = new StringTable().Add(sb1);
             var s2 = new StringTable().Add(sb2);
             Assert.Same(s1, s2);

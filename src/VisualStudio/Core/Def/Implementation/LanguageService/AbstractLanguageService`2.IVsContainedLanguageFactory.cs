@@ -23,8 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // item-specific answer given to us from Venus rather than the project-level answer
             // given, which are going to be different. This was changed for Dev10 bug 839428.
             string projectName = null;
-            var webApplicationCtxSvc = this.SystemServiceProvider.GetService(typeof(SWebApplicationCtxSvc)) as IWebApplicationCtxSvc;
-            if (webApplicationCtxSvc != null)
+            if (this.SystemServiceProvider.GetService(typeof(SWebApplicationCtxSvc)) is IWebApplicationCtxSvc webApplicationCtxSvc)
             {
                 if (webApplicationCtxSvc.GetItemContext(hierarchy, itemid, out var webServiceProvider) >= 0)
                 {
@@ -50,8 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             if (projectName == null)
             {
-                var containedLanguageProjectNameProvider = hierarchy as IVsContainedLanguageProjectNameProvider;
-                if (containedLanguageProjectNameProvider != null)
+                if (hierarchy is IVsContainedLanguageProjectNameProvider containedLanguageProjectNameProvider)
                 {
                     containedLanguageProjectNameProvider.GetProjectName(itemid, out projectName);
                 }

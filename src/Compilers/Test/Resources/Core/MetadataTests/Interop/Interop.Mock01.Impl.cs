@@ -5,23 +5,23 @@ using MockInterop01;
 
 namespace MockInterop01.Impl
 {
-    public class IFooImplExp : IFoo
+    public class IGooImplExp : IGoo
     {
-        InteropEnum IFoo.IFooReadOnlyProp { get { return InteropEnum.White; } }
+        InteropEnum IGoo.IGooReadOnlyProp { get { return InteropEnum.White; } }
 
-        ComplexStruct IFoo.MethodForStruct(ref UnionStruct p1, out InteropDeleWithStructArray p2) { p2 = null; return new ComplexStruct(); }
+        ComplexStruct IGoo.MethodForStruct(ref UnionStruct p1, out InteropDeleWithStructArray p2) { p2 = null; return new ComplexStruct(); }
 
-        string IFoo.this[string p, IFoo p2]
+        string IGoo.this[string p, IGoo p2]
         {
             get { return p; }
             set { }
         }
 
-        InteropDeleWithStructArray _FooEvent;
-        event InteropDeleWithStructArray IFoo.IFooEvent
+        InteropDeleWithStructArray _GooEvent;
+        event InteropDeleWithStructArray IGoo.IGooEvent
         {
-            add { _FooEvent += value; }
-            remove { _FooEvent -= value; }
+            add { _GooEvent += value; }
+            remove { _GooEvent -= value; }
         }
     }
 
@@ -49,7 +49,7 @@ namespace MockInterop01.Impl
         public event EventDele02 OnEvent02;
         public event EventDele03 OnEvent03;
 
-        public void Fire1(IFoo p)
+        public void Fire1(IGoo p)
         {
             if (OnEvent01 != null) OnEvent01(p);
         }

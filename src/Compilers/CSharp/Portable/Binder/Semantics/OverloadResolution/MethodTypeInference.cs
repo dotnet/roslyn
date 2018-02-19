@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    void M<U>(T t, U u); 
             // }
             // ...
-            // static void Foo<V>(V v, I<V> iv) 
+            // static void Goo<V>(V v, I<V> iv) 
             // {
             //   iv.M(v, "");
             // }
@@ -285,15 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sb.Append(", ");
                 }
 
-                var refKind = GetRefKind(i);
-                if (refKind == RefKind.Out)
-                {
-                    sb.Append("out ");
-                }
-                else if (refKind == RefKind.Ref)
-                {
-                    sb.Append("ref ");
-                }
+                sb.Append(GetRefKind(i).ToParameterPrefix());
                 sb.Append(_formalParameterTypes[i]);
             }
 
@@ -546,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that has no name text. This is because of the following scenario:
             //
             // void M<T>(T t) { }
-            // void Foo()
+            // void Goo()
             // {
             //     UnknownType t;
             //     M(t);
@@ -587,55 +579,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ExplicitParameterTypeInference(argument, target, ref useSiteDiagnostics);
             }
-            else if (argument.Kind == BoundKind.TupleLiteral)
+            else if (argument.Kind != BoundKind.TupleLiteral ||
+                !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, isExactInference, ref useSiteDiagnostics))
             {
-                MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, isExactInference, ref useSiteDiagnostics);
-            }
-            else if (IsReallyAType(source))
-            {
-                if (isExactInference)
+                // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let's try to infer from argument type
+                if (IsReallyAType(source))
                 {
-                    ExactInference(source, target, ref useSiteDiagnostics);
-                }
-                else
-                {
-                    LowerBoundInference(source, target, ref useSiteDiagnostics);
+                    if (isExactInference)
+                    {
+                        ExactInference(source, target, ref useSiteDiagnostics);
+                    }
+                    else
+                    {
+                        LowerBoundInference(source, target, ref useSiteDiagnostics);
+                    }
                 }
             }
         }
 
-        private void MakeExplicitParameterTypeInferences(Binder binder, BoundTupleLiteral argument, TypeSymbol target, bool isExactInference, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool MakeExplicitParameterTypeInferences(Binder binder, BoundTupleLiteral argument, TypeSymbol target, bool isExactInference, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            // if tuple has a type we will try to match the type as a single input
-            // Example:
-            //      if   "(a: 1, b: 2)" is passed as   T arg
-            //      then T becomes (int a, int b)
-            var source = argument.Type;
-            if (IsReallyAType(source))
-            {
-                if (isExactInference)
-                {
-                    // SPEC: * If V is one of the unfixed Xi then U is added to the set of
-                    // SPEC:   exact bounds for Xi.
-                    if (ExactTypeParameterInference(source, target))
-                    {
-                        return;
-                    }
-                }
-                else
-                {
-                    // SPEC: A lower-bound inference from a type U to a type V is made as follows:
-
-                    // SPEC: * If V is one of the unfixed Xi then U is added to the set of 
-                    // SPEC:   lower bounds for Xi.
-
-                    if (LowerBoundTypeParameterInference(source, target))
-                    {
-                        return;
-                    }
-                }
-            }
-
             // try match up element-wise to the destination tuple (or underlying type)
             // Example:
             //      if   "(a: 1, b: "qq")" is passed as   (T, U) arg
@@ -643,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (target.Kind != SymbolKind.NamedType)
             {
                 // tuples can only match to tuples or tuple underlying types.
-                return;
+                return false;
             }
 
             var destination = (NamedTypeSymbol)target;
@@ -653,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceArguments.Length))
             {
                 // target is not a tuple of appropriate shape
-                return;
+                return false;
             }
 
             var destTypes = destination.GetElementTypesOfTupleOrCompatible();
@@ -669,6 +632,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var destType = destTypes[i];
                 MakeExplicitParameterTypeInferences(binder, sourceArgument, destType, isExactInference, ref useSiteDiagnostics);
             }
+
+            return true;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -1604,13 +1569,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   type C<U1...Uk> then an exact inference 
             // SPEC:   is made from each Ui to the corresponding Vi.
 
-            var namedSource = source as NamedTypeSymbol;
+            var namedSource = source.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
             if ((object)namedSource == null)
             {
                 return false;
             }
 
-            var namedTarget = target as NamedTypeSymbol;
+            var namedTarget = target.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
             if ((object)namedTarget == null)
             {
                 return false;
@@ -1867,6 +1832,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
+
+            source = source.TupleUnderlyingTypeOrSelf();
+            target = target.TupleUnderlyingTypeOrSelf();
 
             var constructedTarget = target as NamedTypeSymbol;
             if ((object)constructedTarget == null)
@@ -2185,6 +2153,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
+            source = source.TupleUnderlyingTypeOrSelf();
+            target = target.TupleUnderlyingTypeOrSelf();
 
             var constructedSource = source as NamedTypeSymbol;
             if ((object)constructedSource == null)
@@ -2713,17 +2683,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         // In error recovery and reporting scenarios we sometimes end up in a situation
         // like this:
         //
-        // x.Foo( y=>
+        // x.Goo( y=>
         //
-        // and the question is, "is Foo a valid extension method of x?"  If Foo is
-        // generic, then Foo will be something like:
+        // and the question is, "is Goo a valid extension method of x?"  If Goo is
+        // generic, then Goo will be something like:
         //
-        // static Blah Foo<T>(this Bar<T> bar, Func<T, T> f){ ... }
+        // static Blah Goo<T>(this Bar<T> bar, Func<T, T> f){ ... }
         //
         // What we would like to know is: given _only_ the expression x, can we infer
         // what T is in Bar<T> ?  If we can, then for error recovery and reporting
-        // we can provisionally consider Foo to be an extension method of x. If we 
-        // cannot deduce this just from x then we should consider Foo to not be an
+        // we can provisionally consider Goo to be an extension method of x. If we 
+        // cannot deduce this just from x then we should consider Goo to not be an
         // extension method of x, at least until we have more information.
         //
         // Clearly it is pointless to run multiple phases

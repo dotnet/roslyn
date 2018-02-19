@@ -963,16 +963,16 @@ class C : ILErrors.InterfaceEvents
 {
 
 
-    public static T foo<T>(DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T> del)
+    public static T goo<T>(DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T> del)
     {
-        return del(""foo""); // will show ERR_InvalidDelegateType instead of ERR_NoSuchMemberOrExtension
+        return del(""goo""); // will show ERR_InvalidDelegateType instead of ERR_NoSuchMemberOrExtension
     }
 
 
     public static void Main() 
     {
         DelegateWithoutInvoke.DelegateSubWithoutInvoke myDelegate1 = bar;
-        myDelegate1.Invoke(""foo""); // will show an ERR_NoSuchMemberOrExtension
+        myDelegate1.Invoke(""goo""); // will show an ERR_NoSuchMemberOrExtension
         DelegateWithoutInvoke.DelegateSubWithoutInvoke myDelegate2 = new DelegateWithoutInvoke.DelegateSubWithoutInvoke(myDelegate1);
         object myDelegate3 = new DelegateWithoutInvoke.DelegateSubWithoutInvoke(bar2);
         DelegateWithoutInvoke.DelegateSubWithoutInvoke myDelegate4 = x => System.Console.WriteLine(""Hello World"");
@@ -993,13 +993,13 @@ class C : ILErrors.InterfaceEvents
             var delegatesWithoutInvokeReference = TestReferences.SymbolsTests.DelegateImplementation.DelegatesWithoutInvoke;
             CreateStandardCompilation(text, new MetadataReference[] { delegatesWithoutInvokeReference }).VerifyDiagnostics(
                 // (7,16): error CS7023: Delegate 'DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T>' has no invoke method or an invoke method with a return type or parameter types that are not supported.
-                //         return del("foo"); // will show ERR_InvalidDelegateType instead of ERR_NoSuchMemberOrExtension
-                Diagnostic(ErrorCode.ERR_InvalidDelegateType, @"del(""foo"")").WithArguments("DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T>"),
+                //         return del("goo"); // will show ERR_InvalidDelegateType instead of ERR_NoSuchMemberOrExtension
+                Diagnostic(ErrorCode.ERR_InvalidDelegateType, @"del(""goo"")").WithArguments("DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T>"),
                 // (13,70): error CS7023: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         DelegateWithoutInvoke.DelegateSubWithoutInvoke myDelegate1 = bar;
                 Diagnostic(ErrorCode.ERR_InvalidDelegateType, "bar").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke"),
                 // (14,21): error CS1061: 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' does not contain a definition for 'Invoke' and no extension method 'Invoke' accepting a first argument of type 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' could be found (are you missing a using directive or an assembly reference?)
-                //         myDelegate1.Invoke("foo"); // will show an ERR_NoSuchMemberOrExtension
+                //         myDelegate1.Invoke("goo"); // will show an ERR_NoSuchMemberOrExtension
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Invoke").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke", "Invoke"),
                 // (15,70): error CS7023: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         DelegateWithoutInvoke.DelegateSubWithoutInvoke myDelegate2 = new DelegateWithoutInvoke.DelegateSubWithoutInvoke(myDelegate1);
@@ -1022,15 +1022,15 @@ class C : ILErrors.InterfaceEvents
             var text =
 @"class C 
 {
-    public static T foo<T>(CSharpErrors.DelegateParameterType3<T> del)
+    public static T goo<T>(CSharpErrors.DelegateParameterType3<T> del)
     {
-        return del.Invoke(""foo"");
+        return del.Invoke(""goo"");
     }
 
     public static void Main() 
     {
         CSharpErrors.DelegateReturnType1 myDelegate1 = bar;
-        myDelegate1(""foo"");
+        myDelegate1(""goo"");
         CSharpErrors.DelegateReturnType1 myDelegate2 = new CSharpErrors.DelegateReturnType1(myDelegate1);
         object myDelegate3 = new CSharpErrors.DelegateReturnType1(bar);
         CSharpErrors.DelegateReturnType1 myDelegate4 = x => System.Console.WriteLine(""Hello World"");
@@ -1052,14 +1052,14 @@ class C : ILErrors.InterfaceEvents
             var ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
             CreateStandardCompilation(text, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference }).VerifyDiagnostics(
                 // (5,16): error CS0012: The type 'UnavailableClass<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         return del.Invoke("foo");
+                //         return del.Invoke("goo");
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "del.Invoke").WithArguments("UnavailableClass<>", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (13,56): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CSharpErrors.DelegateReturnType1 myDelegate1 = bar;
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "bar").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (14,9): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         myDelegate1("foo");
-                Diagnostic(ErrorCode.ERR_NoTypeDef, @"myDelegate1(""foo"")").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                //         myDelegate1("goo");
+                Diagnostic(ErrorCode.ERR_NoTypeDef, @"myDelegate1(""goo"")").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (15,56): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CSharpErrors.DelegateReturnType1 myDelegate2 = new CSharpErrors.DelegateReturnType1(myDelegate1);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "new CSharpErrors.DelegateReturnType1(myDelegate1)").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1125,12 +1125,12 @@ public class X {}
             var libSource = @"
 public interface I
 {
-    void Foo(X a);
+    void Goo(X a);
 }
 
 public class C
 {
-    public void Foo(X a) { }
+    public void Goo(X a) { }
 }
 ";
             var lib = CreateStandardCompilation(libSource, new[] { xRef }, assemblyName: "Test");
@@ -1157,12 +1157,12 @@ public class X {}
             var libSource = @"
 public interface I
 {
-    void Foo(X a);
+    void Goo(X a);
 }
 
 public class C
 {
-    public virtual void Foo(X a) { }
+    public virtual void Goo(X a) { }
 }
 ";
             var lib = CreateStandardCompilation(libSource, new[] { xRef }, assemblyName: "Lib");

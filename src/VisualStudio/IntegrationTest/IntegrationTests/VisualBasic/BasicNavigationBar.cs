@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
         private const string TestSource = @"
 Class C
     Public WithEvents Domain As AppDomain
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
@@ -35,10 +35,10 @@ End Structure";
         {
             VisualStudio.Editor.SetText(TestSource);
 
-            VisualStudio.Editor.PlaceCaret("Foo", charsOffset: 1);
+            VisualStudio.Editor.PlaceCaret("Goo", charsOffset: 1);
 
             VerifyLeftSelected("C");
-            VerifyRightSelected("Foo");
+            VerifyRightSelected("Goo");
 
             VisualStudio.Editor.ExpandTypeNavBar();
             var expectedItems = new[]
@@ -79,7 +79,7 @@ End Structure";
             VisualStudio.Editor.PlaceCaret("C", charsOffset: 1);
             VerifyLeftSelected("C");
             VisualStudio.Editor.ExpandMemberNavBar();
-            Assert.Equal(new[] { "New", "Finalize", "Foo" }, VisualStudio.Editor.GetMemberNavBarItems());
+            Assert.Equal(new[] { "New", "Finalize", "Goo" }, VisualStudio.Editor.GetMemberNavBarItems());
             VisualStudio.Editor.SelectMemberNavBarItem("New");
             VisualStudio.Editor.Verify.TextContains(@"
     Public Sub New()

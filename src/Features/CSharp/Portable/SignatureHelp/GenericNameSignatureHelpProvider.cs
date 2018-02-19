@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return true;
             }
 
-            genericIdentifier = default(SyntaxToken);
-            lessThanToken = default(SyntaxToken);
+            genericIdentifier = default;
+            lessThanToken = default;
             return false;
         }
 

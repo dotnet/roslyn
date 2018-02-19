@@ -269,12 +269,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionModeItem)
         {
-            Glyph? expectedGlyph = null;
-            if (glyph.HasValue)
-            {
-                expectedGlyph = (Glyph)glyph.Value;
-            }
-
             var document1 = WorkspaceFixture.UpdateDocument(code, sourceCodeKind);
             await CheckResultsAsync(
                 document1, position, expectedItemOrNull, 
@@ -319,8 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var items = (await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
-            var customCommitCompletionProvider = service.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
-            if (customCommitCompletionProvider != null)
+            if (service.ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
                 var completionRules = GetCompletionHelper(document);
                 var textView = (WorkspaceFixture.GetWorkspace()).Documents.Single().GetTextView();

@@ -325,8 +325,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 // first, check whether the text buffer is still alive.
-                var container = this.Container as TextBufferContainer;
-                if (container != null)
+                if (this.Container is TextBufferContainer container)
                 {
                     var lastEventArgs = container.LastEventArgs;
                     if (lastEventArgs != null && lastEventArgs.OldText == oldText && lastEventArgs.NewText == this)

@@ -188,7 +188,7 @@ foreach_variable_statement // new
 
 **References**
 
-[C# Design NOtes for Oct 25-26, 2016](https://github.com/dotnet/csharplang/blob/master/meetings/2016/LDM-2016-10-25-26.md)
+[C# Design Notes for Oct 25-26, 2016](https://github.com/dotnet/csharplang/blob/master/meetings/2016/LDM-2016-10-25-26.md)
 
 [C# Design Notes for Sep 6, 2016](https://github.com/dotnet/csharplang/blob/master/meetings/2016/LDM-2016-09-06.md)
 

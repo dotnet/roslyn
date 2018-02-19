@@ -13,12 +13,11 @@ namespace BuildBoss
         Exe,
         ExeNonDeployment,
         UnitTest,
-        UnitTestDesktop,
         UnitTestPortable,
-        DeploymentTest,
         Vsix,
         Depedency,
-        Custom
+        SourcePackage,
+        Custom,
     }
 
     internal static class RoslynProjectKindUtil
@@ -32,18 +31,16 @@ namespace BuildBoss
             {
                 case "UnitTestPortable":
                     return RoslynProjectKind.UnitTestPortable;
-                case "UnitTestDesktop":
-                    return RoslynProjectKind.UnitTestDesktop;
                 case "UnitTest":
                     return RoslynProjectKind.UnitTest;
-                case "DeploymentTest":
-                    return RoslynProjectKind.DeploymentTest;
                 case "Vsix":
                     return RoslynProjectKind.Vsix;
                 case "Dependency":
                     return RoslynProjectKind.Depedency;
                 case "Custom":
                     return RoslynProjectKind.Custom;
+                case "SourcePackage":
+                    return RoslynProjectKind.SourcePackage;
                 default:
                     return null;
             }
@@ -53,7 +50,6 @@ namespace BuildBoss
         {
             return
                 kind == RoslynProjectKind.UnitTest ||
-                kind == RoslynProjectKind.UnitTestDesktop ||
                 kind == RoslynProjectKind.UnitTestPortable;
         }
 
@@ -61,7 +57,6 @@ namespace BuildBoss
         {
             return
                 kind == RoslynProjectKind.Exe ||
-                kind == RoslynProjectKind.DeploymentTest ||
                 IsAnyUnitTest(kind);
         }
     }

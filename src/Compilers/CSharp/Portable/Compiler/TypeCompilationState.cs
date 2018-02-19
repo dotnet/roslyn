@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public readonly CSharpCompilation Compilation;
 
-        public LambdaFrame StaticLambdaFrame;
+        public SynthesizedClosureEnvironment StaticLambdaFrame;
 
         /// <summary>
         /// A graph of method->method references for this(...) constructor initializers.

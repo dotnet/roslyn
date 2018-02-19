@@ -22,14 +22,11 @@ namespace Microsoft.CodeAnalysis.Storage
         protected readonly IOptionService OptionService;
         private readonly SolutionSizeTracker _solutionSizeTracker;
 
-        private readonly object _lookupAccessLock;
-        private readonly Dictionary<string, AbstractPersistentStorage> _lookup;
         private readonly bool _testing;
+        private readonly object _primaryStorageAccessLock;
+        private readonly PrimaryStorageInfo _primaryStorage;
 
         private string _lastSolutionPath;
-
-        private SolutionId _primarySolutionId;
-        private AbstractPersistentStorage _primarySolutionStorage;
 
         protected AbstractPersistentStorageService(
             IOptionService optionService,
@@ -38,23 +35,20 @@ namespace Microsoft.CodeAnalysis.Storage
             OptionService = optionService;
             _solutionSizeTracker = solutionSizeTracker;
 
-            _lookupAccessLock = new object();
-            _lookup = new Dictionary<string, AbstractPersistentStorage>();
+            _primaryStorageAccessLock = new object();
 
             _lastSolutionPath = null;
-
-            _primarySolutionId = null;
-            _primarySolutionStorage = null;
+            _primaryStorage = new PrimaryStorageInfo();
         }
 
-        protected AbstractPersistentStorageService(IOptionService optionService, bool testing) 
+        protected AbstractPersistentStorageService(IOptionService optionService, bool testing)
             : this(optionService, solutionSizeTracker: null)
         {
             _testing = true;
         }
 
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
-        protected abstract AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath);
+        protected abstract bool TryOpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath, out AbstractPersistentStorage storage);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         public IPersistentStorage GetStorage(Solution solution)
@@ -62,23 +56,16 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public IPersistentStorage GetStorage(Solution solution, bool checkBranchId)
         {
-            if (!ShouldUseDatabase(solution, checkBranchId))
+            if (!DatabaseSupported(solution, checkBranchId))
             {
                 return NoOpPersistentStorage.Instance;
             }
 
-            // can't use cached information
-            if (!string.Equals(solution.FilePath, _lastSolutionPath, StringComparison.OrdinalIgnoreCase))
+            // check whether the solution actually exist on disk
+            if (!CheckSolutionFileExist(solution.FilePath))
             {
-                // check whether the solution actually exist on disk
-                if (!File.Exists(solution.FilePath))
-                {
-                    return NoOpPersistentStorage.Instance;
-                }
+                return NoOpPersistentStorage.Instance;
             }
-
-            // cache current result.
-            _lastSolutionPath = solution.FilePath;
 
             // get working folder path
             var workingFolderPath = GetWorkingFolderPath(solution);
@@ -91,45 +78,45 @@ namespace Microsoft.CodeAnalysis.Storage
             return GetStorage(solution, workingFolderPath);
         }
 
+        private bool CheckSolutionFileExist(string solutionFilePath)
+        {
+            if (!string.Equals(solutionFilePath, _lastSolutionPath, StringComparison.OrdinalIgnoreCase))
+            {
+                // check whether the solution actually exist on disk
+                var exist = File.Exists(solutionFilePath);
+
+                // cache current result.
+                _lastSolutionPath = exist ? solutionFilePath : null;
+
+                return exist;                
+            }
+
+            return true;
+        }
+
         private IPersistentStorage GetStorage(Solution solution, string workingFolderPath)
         {
-            lock (_lookupAccessLock)
+            lock (_primaryStorageAccessLock)
             {
-                // see whether we have something we can use
-                if (_lookup.TryGetValue(solution.FilePath, out var storage))
+                // first check primary storage, this should cover most of cases
+                if (_primaryStorage.TryGetStorage(solution.FilePath, workingFolderPath, out var storage))
                 {
-                    // previous attempt to create db storage failed.
-                    if (storage == null && !SolutionSizeAboveThreshold(solution))
-                    {
-                        return NoOpPersistentStorage.Instance;
-                    }
-
-                    // everything seems right, use what we have
-                    if (storage?.WorkingFolderPath == workingFolderPath)
-                    {
-                        storage.AddRefUnsafe();
-                        return storage;
-                    }
+                    return storage;
                 }
 
-                // either this is the first time, or working folder path has changed.
-                // remove existing one
-                _lookup.Remove(solution.FilePath);
-
+                // okay, go through steps to see whether persistent service should be
+                // supported
                 var dbFile = GetDatabaseFilePath(workingFolderPath);
                 if (!File.Exists(dbFile) && !SolutionSizeAboveThreshold(solution))
                 {
-                    _lookup.Add(solution.FilePath, storage);
                     return NoOpPersistentStorage.Instance;
                 }
 
                 // try create new one
                 storage = TryCreatePersistentStorage(solution, workingFolderPath);
-                _lookup.Add(solution.FilePath, storage);
-
                 if (storage != null)
                 {
-                    RegisterPrimarySolutionStorageIfNeeded(solution, storage);
+                    _primaryStorage.EnsureStorage(solution, storage);
 
                     storage.AddRefUnsafe();
                     return storage;
@@ -139,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Storage
             }
         }
 
-        private bool ShouldUseDatabase(Solution solution, bool checkBranchId)
+        private bool DatabaseSupported(Solution solution, bool checkBranchId)
         {
             if (_testing)
             {
@@ -185,18 +172,6 @@ namespace Microsoft.CodeAnalysis.Storage
             return size >= threshold;
         }
 
-        private void RegisterPrimarySolutionStorageIfNeeded(Solution solution, AbstractPersistentStorage storage)
-        {
-            if (_primarySolutionStorage != null || solution.Id != _primarySolutionId)
-            {
-                return;
-            }
-
-            // hold onto the primary solution when it is used the first time.
-            _primarySolutionStorage = storage;
-            storage.AddRefUnsafe();
-        }
-
         private string GetWorkingFolderPath(Solution solution)
         {
             if (_testing)
@@ -235,7 +210,11 @@ namespace Microsoft.CodeAnalysis.Storage
             var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
             try
             {
-                database = OpenDatabase(solution, workingFolderPath, databaseFilePath);
+                if (!TryOpenDatabase(solution, workingFolderPath, databaseFilePath, out database))
+                {
+                    return false;
+                }
+
                 database.Initialize(solution);
 
                 persistentStorage = database;
@@ -264,11 +243,10 @@ namespace Microsoft.CodeAnalysis.Storage
 
         protected void Release(AbstractPersistentStorage storage)
         {
-            lock (_lookupAccessLock)
+            lock (_primaryStorageAccessLock)
             {
                 if (storage.ReleaseRefUnsafe())
                 {
-                    _lookup.Remove(storage.SolutionFilePath);
                     storage.Close();
                 }
             }
@@ -278,52 +256,117 @@ namespace Microsoft.CodeAnalysis.Storage
         {
             // don't create database storage file right away. it will be
             // created when first C#/VB project is added
-            lock (_lookupAccessLock)
+            lock (_primaryStorageAccessLock)
             {
-                Contract.ThrowIfTrue(_primarySolutionStorage != null);
-
-                // just reset solutionId as long as there is no storage has created.
-                _primarySolutionId = solutionId;
+                _primaryStorage.RegisterPrimarySolution(solutionId);
             }
         }
 
         public void UnregisterPrimarySolution(SolutionId solutionId, bool synchronousShutdown)
         {
             AbstractPersistentStorage storage = null;
-            lock (_lookupAccessLock)
+            lock (_primaryStorageAccessLock)
             {
-                if (_primarySolutionId == null)
-                {
-                    // primary solution is never registered or already unregistered
-                    Contract.ThrowIfTrue(_primarySolutionStorage != null);
-                    return;
-                }
-
-                Contract.ThrowIfFalse(_primarySolutionId == solutionId);
-
-                _primarySolutionId = null;
-                if (_primarySolutionStorage == null)
-                {
-                    // primary solution is registered but no C#/VB project was added
-                    return;
-                }
-
-                storage = _primarySolutionStorage;
-                _primarySolutionStorage = null;
+                _primaryStorage.UnregisterPrimarySolution(solutionId, out storage);
             }
 
-            if (storage != null)
+            ReleaseStorage(storage, synchronousShutdown);
+        }
+
+        private static void ReleaseStorage(AbstractPersistentStorage storage, bool synchronousShutdown)
+        {
+            if (storage == null)
             {
-                if (synchronousShutdown)
+                return;
+            }
+
+            if (synchronousShutdown)
+            {
+                // dispose storage outside of the lock
+                storage.Dispose();
+            }
+            else
+            {
+                // make it to shutdown asynchronously
+                Task.Run(() => storage.Dispose());
+            }
+        }
+
+        private class PrimaryStorageInfo
+        {
+            public SolutionId SolutionId { get; private set; }
+
+            public AbstractPersistentStorage Storage { get; private set; }
+
+            public bool TryGetStorage(
+                string solutionFilePath,
+                string workingFolderPath,
+                out AbstractPersistentStorage storage)
+            {
+                storage = null;
+
+                if (Storage == null)
                 {
-                    // dispose storage outside of the lock
-                    storage.Dispose();
+                    return false;
                 }
-                else
+
+                if (Storage.SolutionFilePath != solutionFilePath ||
+                    Storage.WorkingFolderPath != workingFolderPath)
                 {
-                    // make it to shutdown asynchronously
-                    Task.Run(() => storage.Dispose());
+                    return false;
                 }
+
+                storage = Storage;
+                storage.AddRefUnsafe();
+
+                return true;
+            }
+
+            public void EnsureStorage(Solution solution, AbstractPersistentStorage storage)
+            {
+                if (Storage != null || solution.Id != SolutionId)
+                {
+                    return;
+                }
+
+                // hold onto the primary solution when it is used the first time.
+                Storage = storage;
+                storage.AddRefUnsafe();
+            }
+
+            public void RegisterPrimarySolution(SolutionId solutionId)
+            {
+                Contract.ThrowIfNull(solutionId);
+
+                if (SolutionId == solutionId)
+                {
+                    // this can happen if user opened solution without creating actual file
+                    // (ex, "Projects and Solutions" -> "Save new projects when created" option off in VS)
+                    // and then later save the solution. then certain host such as VS can call it again
+                    // without unregister solution first through IVsSolutionWorkingFoldersEvents
+                    return;
+                }
+
+                SolutionId = solutionId;
+                ReleaseStorage(Storage, synchronousShutdown: false);
+            }
+
+            public void UnregisterPrimarySolution(SolutionId solutionId, out AbstractPersistentStorage storage)
+            {
+                storage = null;
+                if (SolutionId == null)
+                {
+                    // primary solution is never registered or already unregistered
+                    Contract.ThrowIfTrue(Storage != null);
+                    return;
+                }
+
+                Contract.ThrowIfFalse(SolutionId == solutionId);
+
+                storage = Storage;
+
+                SolutionId = null;
+                Storage = null;
             }
         }
     }

@@ -27,7 +27,7 @@ class C
 {
     async void f()
     {
-        await foo();
+        await goo();
     }
 }
 ");
@@ -92,7 +92,7 @@ class C
 {
     void f()
     {
-        await foo();
+        await goo();
     }
 }
 ");
@@ -503,7 +503,7 @@ async () => await default(Task);
         public void AwaitIdentifierName()
         {
             UsingNode(@"
-async () => await foo;
+async () => await goo;
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -581,7 +581,7 @@ async () => await unchecked { };
         public void AwaitParenthesizedExpression()
         {
             UsingNode(@"
-async () => await (foo());
+async () => await (goo());
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -608,7 +608,7 @@ async () => await (foo());
         public void AwaitObjectCreationExpression()
         {
             UsingNode(@"
-async () => await new Foo();
+async () => await new Goo();
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -634,7 +634,7 @@ async () => await new Foo();
         public void AwaitAwaitExpression()
         {
             UsingNode(@"
-async () => await await foo;
+async () => await await goo;
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -1007,7 +1007,7 @@ async () => {
         {
             UsingNode(@"
 async () => {
-    using (await foo())
+    using (await goo())
     {
     }
 };
@@ -1062,7 +1062,7 @@ async () => {
         public void AwaitIdentifierExpressionInSyncContext()
         {
             UsingNode(@"
-() => await foo;
+() => await goo;
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -1088,7 +1088,7 @@ async () => {
         public void AwaitAwaitExpressionInSyncContext()
         {
             UsingNode(@"
-() => await await foo;
+() => await await goo;
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -1160,7 +1160,7 @@ async () => {
         public void AwaitThisExpressionInSyncContext()
         {
             UsingNode(@"
-() => await this.foo();
+() => await this.goo();
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -1202,7 +1202,7 @@ async () => {
         public void AwaitBaseExpressionInSyncContext()
         {
             UsingNode(@"
-() => await base.foo();
+() => await base.goo();
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -1339,7 +1339,7 @@ async () => {
         public void AwaitDefaultExpressionInSyncContext()
         {
             UsingNode(@"
-() => await default(Foo);
+() => await default(Goo);
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -1423,7 +1423,7 @@ async () => {
         public void AwaitStringLiteralExpressionInSyncContext()
         {
             UsingNode(@"
-() => await ""foo"";
+() => await ""goo"";
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -1554,7 +1554,7 @@ async () => {
         {
             UsingNode(@"
 () => {
-    using (await foo())
+    using (await goo())
     {
     }
 };
@@ -1611,7 +1611,7 @@ async () => {
         {
             UsingNode(@"
 () => {
-    await foo;
+    await goo;
 }
 ");
 
@@ -1651,7 +1651,7 @@ async () => {
         {
             UsingNode(@"
 () => {
-    await foo();
+    await goo();
 }
 ");
 
@@ -1696,7 +1696,7 @@ async () => {
         {
             UsingNode(@"
 () => {
-    const await foo();
+    const await goo();
 }
 ");
 
@@ -1722,7 +1722,7 @@ async () => {
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "foo");
+                                N(SyntaxKind.IdentifierToken, "goo");
                                 M(SyntaxKind.BracketedArgumentList);
                                 {
                                     M(SyntaxKind.OpenBracketToken);
@@ -1743,7 +1743,7 @@ async () => {
         {
             UsingNode(@"
 () => {
-    static await foo();
+    static await goo();
 }
 ");
 
@@ -1789,7 +1789,7 @@ async () => {
         {
             UsingNode(@"
 () => {
-    await foo(];
+    await goo(];
 }
 ");
 
@@ -1814,7 +1814,7 @@ async () => {
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "foo");
+                                N(SyntaxKind.IdentifierToken, "goo");
                                 N(SyntaxKind.BracketedArgumentList);
                                 {
                                     M(SyntaxKind.OpenBracketToken);
@@ -1842,7 +1842,7 @@ async () => {
         {
             UsingNode(@"
 () => {
-    await foo(];
+    await goo(];
     int x = 2;
 }
 ");
@@ -1867,7 +1867,7 @@ async () => {
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "foo");
+                                N(SyntaxKind.IdentifierToken, "goo");
                                 N(SyntaxKind.BracketedArgumentList);
                                 {
                                     M(SyntaxKind.OpenBracketToken);

@@ -100,6 +100,7 @@ End Module
         End Sub
 
         <Fact()>
+        <CompilerTrait(CompilerFeature.IOperation)>
         Public Sub TestNestedEmptyArrayLiteralWithObject()
             Dim source =
 <compilation name="TestNestedEmptyArrayLiteral">
@@ -140,6 +141,24 @@ End Module
             CompileAndVerify(comp,
      expectedOutput:=<![CDATA[
                                ]]>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of LocalDeclarationStatementSyntax)().ElementAt(7)
+
+            Assert.Equal("Dim j3(,) As Object = {}", node.ToString())
+
+            comp.VerifyOperationTree(node.Declarators.Last.Initializer.Value, expectedOperationTree:=
+            <![CDATA[
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Object(,)) (Syntax: '{}')
+  Dimension Sizes(2):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{}')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{}')
+  Initializer: 
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '{}')
+      Element Values(1):
+          IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '{}')
+            Element Values(0)
+]]>.Value)
 
             comp = comp.WithOptions(_strictOn)
             comp.VerifyDiagnostics(
@@ -1070,21 +1089,21 @@ Module Module1
             Console.WriteLine(msg)
         End Sub
 
-        Public Shared Sub foo(ByVal ParamArray z As String())
+        Public Shared Sub goo(ByVal ParamArray z As String())
             StrReturnMethod("string()")
         End Sub
 
-        Public Shared Sub foo(ByVal z As Char())
+        Public Shared Sub goo(ByVal z As Char())
             StrReturnMethod("char()")
         End Sub
 
-        Public Shared Sub foo(ByVal z As String)
+        Public Shared Sub goo(ByVal z As String)
             StrReturnMethod("string")
         End Sub
     End Class
 
     Sub Main()
-        c1.foo({"a"c}) '//Char()
+        c1.goo({"a"c}) '//Char()
     End Sub
 
 End Module
@@ -1199,12 +1218,12 @@ Imports System
 Module m
 
     Sub Main()
-        Foo2Params({1, 2, 3}, {1.1, 2.2, 3.3})
-        Foo2Params({1, 2, 3}, {1L, 2L, 3L})
+        Goo2Params({1, 2, 3}, {1.1, 2.2, 3.3})
+        Goo2Params({1, 2, 3}, {1L, 2L, 3L})
     End Sub
 
-    Function Foo2Params(Of t)(x As t, y As t) As String
-        Console.WriteLine("Function Foo2Param(of {0})(x as {0}, y as {0})", x.getType())
+    Function Goo2Params(Of t)(x As t, y As t) As String
+        Console.WriteLine("Function Goo2Param(of {0})(x as {0}, y as {0})", x.getType())
         Return Nothing
     End Function
 End Module
@@ -1214,14 +1233,14 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=_strictOff)
             CompileAndVerify(comp, expectedOutput:=<![CDATA[
-Function Foo2Param(of System.Double[])(x as System.Double[], y as System.Double[])
-Function Foo2Param(of System.Int64[])(x as System.Int64[], y as System.Int64[])
+Function Goo2Param(of System.Double[])(x as System.Double[], y as System.Double[])
+Function Goo2Param(of System.Int64[])(x as System.Int64[], y as System.Int64[])
             ]]>)
 
             comp = comp.WithOptions(_strictOn)
             CompileAndVerify(comp, expectedOutput:=<![CDATA[
-Function Foo2Param(of System.Double[])(x as System.Double[], y as System.Double[])
-Function Foo2Param(of System.Int64[])(x as System.Int64[], y as System.Int64[])
+Function Goo2Param(of System.Double[])(x as System.Double[], y as System.Double[])
+Function Goo2Param(of System.Int64[])(x as System.Int64[], y as System.Int64[])
             ]]>)
 
         End Sub
@@ -1236,11 +1255,11 @@ Imports System
 Module m
 
     Sub Main()
-       Foo2ParamsArray({1, 2, 3}, 3L)
+       Goo2ParamsArray({1, 2, 3}, 3L)
     End Sub
 
-   Function Foo2ParamsArray(Of t)(x() As t, y As t) As String
-     Console.WriteLine("Function Foo2Param(of {0})(x as {0}, y as {0})", x.getType())
+   Function Goo2ParamsArray(Of t)(x() As t, y As t) As String
+     Console.WriteLine("Function Goo2Param(of {0})(x as {0}, y as {0})", x.getType())
      return nothing
     End Function
 
@@ -1251,12 +1270,12 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=_strictOff)
             CompileAndVerify(comp, expectedOutput:=<![CDATA[
-Function Foo2Param(of System.Int64[])(x as System.Int64[], y as System.Int64[])
+Function Goo2Param(of System.Int64[])(x as System.Int64[], y as System.Int64[])
             ]]>)
 
             comp = comp.WithOptions(_strictOn)
             CompileAndVerify(comp, expectedOutput:=<![CDATA[
-Function Foo2Param(of System.Int64[])(x as System.Int64[], y as System.Int64[])
+Function Goo2Param(of System.Int64[])(x as System.Int64[], y as System.Int64[])
             ]]>)
 
         End Sub
@@ -1279,17 +1298,17 @@ Module m
     End Class
 
     Sub Main()
-        Foo({1, 2})
-        Foo2Params({1, 2, 3}, New C())
+        Goo({1, 2})
+        Goo2Params({1, 2, 3}, New C())
     End Sub
 
-    Function Foo(Of t)(ByVal x As t) As String
-        Console.WriteLine("Function Foo(of {0})(x as {0})", x.getType())
+    Function Goo(Of t)(ByVal x As t) As String
+        Console.WriteLine("Function Goo(of {0})(x as {0})", x.getType())
         Return nothing
     End Function
 
-   Function Foo2Params(Of t)(x As t, y As t) As String
-     Console.WriteLine("Function Foo2Params(of {0})(x as {0}, y as {1})", x.getType(), y.GetType())
+   Function Goo2Params(Of t)(x As t, y As t) As String
+     Console.WriteLine("Function Goo2Params(of {0})(x as {0}, y as {1})", x.getType(), y.GetType())
      return nothing
     End Function
 
@@ -1300,16 +1319,16 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=_strictOff)
             CompileAndVerify(comp, expectedOutput:=<![CDATA[
-Function Foo(of System.Int32[])(x as System.Int32[])
+Function Goo(of System.Int32[])(x as System.Int32[])
 Widening Operator CType(ByVal x As Integer())
-Function Foo2Params(of m+C)(x as m+C, y as m+C)
+Function Goo2Params(of m+C)(x as m+C, y as m+C)
             ]]>)
 
             comp = comp.WithOptions(_strictOn)
             CompileAndVerify(comp, expectedOutput:=<![CDATA[
-Function Foo(of System.Int32[])(x as System.Int32[])
+Function Goo(of System.Int32[])(x as System.Int32[])
 Widening Operator CType(ByVal x As Integer())
-Function Foo2Params(of m+C)(x as m+C, y as m+C)
+Function Goo2Params(of m+C)(x as m+C, y as m+C)
             ]]>)
 
         End Sub
@@ -1503,11 +1522,11 @@ End Module
     <file name="a.vb"><![CDATA[
 Module Program
     Sub Main(ByVal args As String())
-        fooModules({"1"}, {1})
+        gooModules({"1"}, {1})
     End Sub
-    Public Sub fooModules(Of T)(ByVal ParamArray z As T())
+    Public Sub gooModules(Of T)(ByVal ParamArray z As T())
     End Sub
-    Public Sub fooModules(ByVal ParamArray z As String())
+    Public Sub gooModules(ByVal ParamArray z As String())
     End Sub
 End Module
     ]]></file>
@@ -1516,10 +1535,10 @@ End Module
             Dim expected =
 <expected>
 BC30311: Value of type 'String()' cannot be converted to 'String'.
-        fooModules({"1"}, {1})
+        gooModules({"1"}, {1})
                    ~~~~~
 BC30311: Value of type 'Integer()' cannot be converted to 'String'.
-        fooModules({"1"}, {1})
+        gooModules({"1"}, {1})
                           ~~~
 </expected>
 
@@ -1538,19 +1557,19 @@ BC30311: Value of type 'Integer()' cannot be converted to 'String'.
 Imports System
 Module Program
     Sub Main(ByVal args As String())
-        Dim x1 As Func(Of Integer) = {AddressOf Foo}
+        Dim x1 As Func(Of Integer) = {AddressOf Goo}
     End Sub
  
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module
     ]]></file>
 </compilation>)
 
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ArrayInitNoType, "{AddressOf Foo}"))
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ArrayInitNoType, "{AddressOf Goo}"))
 
             compilation = compilation.WithOptions(_strictOn)
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ArrayInitNoType, "{AddressOf Foo}"))
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ArrayInitNoType, "{AddressOf Goo}"))
         End Sub
 
 
@@ -1650,17 +1669,17 @@ Module m
     End Class
 
     Sub Main()
-        Foo({1, 2})
-        Foo2Params({1, 2, 3}, New C())'BIND:"{1, 2, 3}"
+        Goo({1, 2})
+        Goo2Params({1, 2, 3}, New C())'BIND:"{1, 2, 3}"
     End Sub
 
-    Function Foo(Of t)(ByVal x As t) As String
-        Console.WriteLine("Function Foo(of {0})(x as {0})", x.GetType())
+    Function Goo(Of t)(ByVal x As t) As String
+        Console.WriteLine("Function Goo(of {0})(x as {0})", x.GetType())
         Return Nothing
     End Function
 
-    Function Foo2Params(Of t)(x As t, y As t) As String
-        Console.WriteLine("Function Foo2Params(of {0})(x as {0}, y as {1})", x.GetType(), y.GetType())
+    Function Goo2Params(Of t)(x As t, y As t) As String
+        Console.WriteLine("Function Goo2Params(of {0})(x as {0}, y as {1})", x.GetType(), y.GetType())
         Return Nothing
     End Function
 
@@ -1763,13 +1782,13 @@ Imports System
 Imports System.Collections.Generic
 Module M
     Sub Main()
-       Foo({({1})})
+       Goo({({1})})
     End Sub
-    Sub Foo(Of T As Structure)(x As T?()())
-        Console.WriteLine("Sub Foo(Of T As Structure)(x As T?()())")
+    Sub Goo(Of T As Structure)(x As T?()())
+        Console.WriteLine("Sub Goo(Of T As Structure)(x As T?()())")
     End Sub
-    Sub Foo(Of T)(x As IList(Of T)())
-        Console.WriteLine("Sub Foo(Of T)(x As IList(Of T)())")
+    Sub Goo(Of T)(x As IList(Of T)())
+        Console.WriteLine("Sub Goo(Of T)(x As IList(Of T)())")
     End Sub
 End Module
 ]]></file>
@@ -1777,13 +1796,13 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=_strictOff)
             CompileAndVerify(comp,
                              expectedOutput:=<![CDATA[
-Sub Foo(Of T)(x As IList(Of T)())
+Sub Goo(Of T)(x As IList(Of T)())
                         ]]>)
 
             comp = comp.WithOptions(_strictOn)
             CompileAndVerify(comp,
                              expectedOutput:=<![CDATA[
-Sub Foo(Of T)(x As IList(Of T)())
+Sub Goo(Of T)(x As IList(Of T)())
                         ]]>)
         End Sub
 
@@ -1849,9 +1868,9 @@ Module M
         Dim a1 = If(True, {<basic xmlns="">true</basic>}, {Nothing})
         Validate(a1)
         Validate({<basic xmlns="">true</basic>}, {Nothing})
-        Dim a3 = If({"foo"}, {Nothing})
+        Dim a3 = If({"goo"}, {Nothing})
         Validate(a3)
-        Validate({"foo"}, {Nothing})
+        Validate({"goo"}, {Nothing})
         System.Console.WriteLine("--------------")
 
         Dim b1 = If(True, {New Animal, New Mammal}, {New Fish, New Mammal})
@@ -1861,9 +1880,9 @@ Module M
         Validate({New Animal, New Mammal}, {New Fish, New Mammal})
         System.Console.WriteLine("--------------")
 
-        Dim x5 = If(True, {CType(New Bar(1), Foo)}, {Nothing})
+        Dim x5 = If(True, {CType(New Bar(1), Goo)}, {Nothing})
         Validate(x5)
-        Validate({CType(New Bar(1), Foo)}, {Nothing})
+        Validate({CType(New Bar(1), Goo)}, {Nothing})
 
         System.Console.WriteLine("======================" & vbCrLf)
         Dim obj2 = If(True, {Nothing}, {Nothing, New With {.a = 1}})
@@ -1922,13 +1941,13 @@ Class Animal : End Class
 Class Mammal : Inherits Animal : End Class
 Class Fish : Inherits Animal : End Class
 
-Class Foo
+Class Goo
     Sub New(ByVal x As Integer)
         Field = x
     End Sub
     Public Field As Integer
-    Public Overloads Shared Widening Operator CType(ByVal x As Bar) As Foo
-        Return New Foo(x.Field)
+    Public Overloads Shared Widening Operator CType(ByVal x As Bar) As Goo
+        Return New Goo(x.Field)
     End Operator
 End Class
 Class Bar
@@ -1936,7 +1955,7 @@ Class Bar
     Sub New(ByVal x As Integer)
         Field = x
     End Sub
-    Public Overloads Shared Widening Operator CType(ByVal x As Foo) As Bar
+    Public Overloads Shared Widening Operator CType(ByVal x As Goo) As Bar
         Return New Bar(x.Field)
     End Operator
 End Class
@@ -1957,8 +1976,8 @@ Static=Animal[], Runtime=Animal[]
 Static=Animal[], Runtime=Animal[]
 Static=Animal[], Runtime x=Animal[], Runtime y=Animal[]
 --------------
-Static=Foo[], Runtime=Foo[]
-Static=Foo[], Runtime x=Foo[], Runtime y=Foo[]
+Static=Goo[], Runtime=Goo[]
+Static=Goo[], Runtime x=Goo[], Runtime y=Goo[]
 ======================
 
 Static=VB$AnonymousType_0`1[System.Int32][], Runtime=VB$AnonymousType_0`1[System.Int32][]
@@ -1999,12 +2018,12 @@ Static=System.Object[,], Runtime x=System.Object[,], Runtime y=Nothing
     <file name="a.vb"><![CDATA[
 Module Program
     Sub Main(ByVal args As String())
-        fooModules({"1"}, {})
+        gooModules({"1"}, {})
     End Sub
-    Public Sub fooModules(Of T)(ByVal ParamArray z As T())
+    Public Sub gooModules(Of T)(ByVal ParamArray z As T())
         System.Console.WriteLine(GetType(T))
     End Sub
-    Public Sub fooModules(ByVal ParamArray z As String())
+    Public Sub gooModules(ByVal ParamArray z As String())
     End Sub
 End Module
     ]]></file>

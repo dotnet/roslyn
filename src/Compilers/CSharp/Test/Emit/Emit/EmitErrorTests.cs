@@ -89,7 +89,7 @@ public class A
 {
     public const int x = x;
 
-    public static int Foo(int y = x) { return y; }
+    public static int Goo(int y = x) { return y; }
 }
 ";
             var compilation1 = CreateStandardCompilation(source1);
@@ -102,14 +102,14 @@ public class B
 {
     public static void Main()
     {
-        System.Console.WriteLine(A.Foo());
+        System.Console.WriteLine(A.Goo());
     }
 }
 ";
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
-                verify: false);
+                verify: Verification.Fails);
         }
 
         [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
@@ -121,7 +121,7 @@ public class A
 {
     public const decimal x = x;
 
-    public static decimal Foo(decimal y = x) { return y; }
+    public static decimal Goo(decimal y = x) { return y; }
 }
 ";
             var compilation1 = CreateStandardCompilation(source1);
@@ -134,14 +134,14 @@ public class B
 {
     public static void Main()
     {
-        System.Console.WriteLine(A.Foo());
+        System.Console.WriteLine(A.Goo());
     }
 }
 ";
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
-                verify: false);
+                verify: Verification.Fails);
         }
 
         [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
@@ -156,13 +156,13 @@ public struct S
 
 public class A
 {
-    public static S Foo(S p = 42) { return p; }
+    public static S Goo(S p = 42) { return p; }
 }
 ";
             var compilation1 = CreateStandardCompilation(source1);
             compilation1.VerifyDiagnostics(
                 // (9,27): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'S'
-                //     public static S Foo(S p = 42) { return p; }
+                //     public static S Goo(S p = 42) { return p; }
                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("int", "S").WithLocation(9, 27));
 
             string source2 = @"
@@ -170,7 +170,7 @@ public class B
 {
     public static void Main()
     {
-        System.Console.WriteLine(A.Foo());
+        System.Console.WriteLine(A.Goo());
     }
 }
 ";
@@ -178,7 +178,7 @@ public class B
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
-                verify: false);
+                verify: Verification.Fails);
             compilation2.VerifyIL("B.Main()", @"
 {
   // Code size       25 (0x19)
@@ -187,7 +187,7 @@ public class B
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloc.0
-  IL_0009:  call       ""S A.Foo(S)""
+  IL_0009:  call       ""S A.Goo(S)""
   IL_000e:  box        ""S""
   IL_0013:  call       ""void System.Console.WriteLine(object)""
   IL_0018:  ret
@@ -201,7 +201,7 @@ public class B
             string source1 = @"
 public class A
 {
-    public static Missing Foo() { return null; }
+    public static Missing Goo() { return null; }
 }
 ";
             var compilation1 = CreateStandardCompilation(source1);
@@ -214,7 +214,7 @@ public class B
 {
     public static void Main()
     {
-        var f = A.Foo();
+        var f = A.Goo();
         System.Console.WriteLine(f);
     }
 }
@@ -268,7 +268,7 @@ public class B
                 Diagnostic(ErrorCode.ERR_NetModuleNameMismatch).WithArguments("ModuleNameMismatch.netmodule", "ModuleNameMismatch.mod"));
         }
 
-        [Fact]
+        [NoIOperationValidationFact]
         public void CS0204_ERR_TooManyLocals()
         {
             var builder = new System.Text.StringBuilder();
@@ -331,6 +331,6 @@ public class A
                 );
         }
 
-        #endregion
+#endregion
     }
 }

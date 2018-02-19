@@ -111,11 +111,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Protected Sub TestCommonIsTextualTriggerCharacter()
             Dim alwaysTriggerList =
             {
-                "foo$$.",
-                "foo$$[",
-                "foo$$#",
-                "foo$$ ",
-                "foo$$="
+                "goo$$.",
+                "goo$$[",
+                "goo$$#",
+                "goo$$ ",
+                "goo$$="
             }
 
             For Each markup In alwaysTriggerList
@@ -134,8 +134,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
             Dim neverTriggerList =
             {
-                "foo$$x",
-                "foo$$_"
+                "goo$$x",
+                "goo$$_"
             }
 
             For Each markup In neverTriggerList

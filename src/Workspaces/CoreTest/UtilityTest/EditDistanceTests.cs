@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyEditDistance("XlmReade", "XmlReader", 2);
         }
 
+        [Fact]
         public void EditDistance5()
         {
             VerifyEditDistance("Zeil", "trials", 4);

@@ -7,6 +7,8 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(VisualStudioTodoListTable))]
     internal class VisualStudioTodoListTable : VisualStudioBaseTodoListTable
     {

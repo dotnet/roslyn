@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             }
 
             protected abstract ImmutableArray<ITypeParameterSymbol> DetermineTypeParametersWorker(CancellationToken cancellationToken);
-            protected abstract bool DetermineReturnsByRef(CancellationToken cancellationToken);
+            protected abstract RefKind DetermineRefKind(CancellationToken cancellationToken);
 
             public ITypeSymbol DetermineReturnType(CancellationToken cancellationToken)
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     accessibility: accessibility,
                     modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract),
                     type: DetermineReturnType(cancellationToken),
-                    returnsByRef: DetermineReturnsByRef(cancellationToken),
+                    refKind: DetermineRefKind(cancellationToken),
                     explicitInterfaceImplementations: default,
                     name: this.State.IdentifierToken.ValueText,
                     parameters: DetermineParameters(cancellationToken),
@@ -101,14 +101,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     isUnsafe = returnType.IsUnsafe() || parameters.Any(p => p.Type.IsUnsafe());
                 }
 
-                var returnsByRef = DetermineReturnsByRef(cancellationToken);
-
                 var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     attributes: default,
                     accessibility: DetermineAccessibility(isAbstract),
                     modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract, isUnsafe: isUnsafe),
                     returnType: returnType,
-                    returnsByRef: returnsByRef,
+                    refKind: DetermineRefKind(cancellationToken),
                     explicitInterfaceImplementations: default,
                     name: this.State.IdentifierToken.ValueText,
                     typeParameters: DetermineTypeParameters(cancellationToken),
@@ -230,7 +228,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         // NOTE(cyrusn): We only generate protected in the case of statics.  Consider
                         // the case where we're generating into one of our base types.  i.e.:
                         //
-                        // class B : A { void Foo() { A a; a.Foo(); }
+                        // class B : A { void Goo() { A a; a.Goo(); }
                         //
                         // In this case we can *not* mark the method as protected.  'B' can only
                         // access protected members of 'A' through an instance of 'B' (or a subclass
@@ -239,9 +237,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         //
                         // However, this does not apply if the method will be static.  i.e.
                         // 
-                        // class B : A { void Foo() { A.Foo(); }
+                        // class B : A { void Goo() { A.Goo(); }
                         //
-                        // B can access the protected statics of A, and so we generate 'Foo' as
+                        // B can access the protected statics of A, and so we generate 'Goo' as
                         // protected.
 
                         // TODO: Code coverage

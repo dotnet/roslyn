@@ -237,7 +237,7 @@ class Program
 using System;
 class Program
 {
-    bool foo()
+    bool goo()
     {
         const bool b = true;
         while (b == b)
@@ -330,7 +330,7 @@ class Program
 using System;
 class Program
 {
-    bool foo()
+    bool goo()
     {
         const bool b = true;
         while (b == b)
@@ -368,7 +368,7 @@ class Program
         int a;
         const bool b = true;
     }
-    void foo()
+    void goo()
     {
         y = 2;
         Console.WriteLine(z);
@@ -751,9 +751,9 @@ public struct S
     static void Main()
     {
         return;
-        throw Foo();
+        throw Goo();
     }
-    static System.Exception Foo()
+    static System.Exception Goo()
     {
         System.Console.WriteLine(""Hello"");
         return null;
@@ -773,7 +773,7 @@ struct S<T>
 {
     T x;
 
-    static void Foo()
+    static void Goo()
     {
         x.x = 1;
     }
@@ -824,17 +824,17 @@ struct S<T>
 
 partial class C
 {
-    static partial void Foo(Action a);
+    static partial void Goo(Action a);
 
     static void Main()
     {
-        Foo(() => { int x, y = x; });
+        Goo(() => { int x, y = x; });
     }
 }";
             var comp = CreateStandardCompilation(program);
             comp.VerifyDiagnostics(
                 // (9,32): error CS0165: Use of unassigned local variable 'x'
-                //         Foo(() => { int x, y = x; });
+                //         Goo(() => { int x, y = x; });
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x")
                 );
         }
@@ -849,9 +849,9 @@ class Program
 {
     static void Main(string[] args)
     {
-        var s = foo<,int>(123);
+        var s = goo<,int>(123);
     }
-    public static int foo<T>(int i)
+    public static int goo<T>(int i)
     {
         return 1;
     }
@@ -1321,7 +1321,7 @@ struct Program
         System.Console.WriteLine(x2.ii);
     }
 
-    public void Foo()
+    public void Goo()
     {
     }
 
@@ -1370,7 +1370,7 @@ struct Program
         System.Console.WriteLine(x2.ii);
     }
 
-    public void Foo()
+    public void Goo()
     {
     }
 
@@ -1422,7 +1422,7 @@ struct Program
         x2.i += 1;
     }
 
-    public void Foo()
+    public void Goo()
     {
     }
 
@@ -1474,7 +1474,7 @@ struct Program
         };
     }
 
-    public void Foo()
+    public void Goo()
     {
     }
 
@@ -1527,7 +1527,7 @@ class Program
         };
     }
 
-    public void Foo()
+    public void Goo()
     {
     }
 
@@ -1569,7 +1569,7 @@ struct Program
         x2 = x;
     }
 
-    public void Foo()
+    public void Goo()
     {
     }
 
@@ -1605,7 +1605,7 @@ struct Program
         x2 = x;
     }
 
-    public void Foo()
+    public void Goo()
     {
     }
 
@@ -1638,20 +1638,20 @@ struct Program
 
     public Program(int arg)
     {
-        Foo(out x1);
-        Foo(ref x1);
-        Foo(out x2);
-        Foo(ref x2);
-        Foo(out x3);
-        Foo(ref x3);
+        Goo(out x1);
+        Goo(ref x1);
+        Goo(out x2);
+        Goo(ref x2);
+        Goo(out x3);
+        Goo(ref x3);
     }
 
-    public static void Foo(out S1 s)
+    public static void Goo(out S1 s)
     {
         s = default(S1);
     }
 
-    public static void Foo1(ref S1 s)
+    public static void Goo1(ref S1 s)
     {
         s = default(S1);
     }
@@ -1666,28 +1666,28 @@ struct Program
             // no errors since S1 is empty
             comp.VerifyDiagnostics(
     // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Foo(out x1);
+    //         Goo(out x1);
     Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(15, 17),
     // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Foo(ref x1);
+    //         Goo(ref x1);
     Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(16, 17),
     // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Foo(out x2);
+    //         Goo(out x2);
     Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(17, 17),
     // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Foo(ref x2);
+    //         Goo(ref x2);
     Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(18, 17),
     // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
-    //         Foo(ref x3);
+    //         Goo(ref x3);
     Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
     // (15,17): error CS8079: Use of automatically implemented property 'x1' whose backing field is possibly unassigned 
-    //         Foo(out x1);
+    //         Goo(out x1);
     Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x1").WithArguments("x1").WithLocation(15, 17),
     // (16,9): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
-    //         Foo(ref x1);
-    Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Foo").WithArguments("this").WithLocation(16, 9),
+    //         Goo(ref x1);
+    Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Goo").WithArguments("this").WithLocation(16, 9),
     // (17,17): error CS8079: Use of automatically implemented property 'x2' whose backing field is possibly unassigned 
-    //         Foo(out x2);
+    //         Goo(out x2);
     Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 17),
     // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0
     //         public int x;
@@ -1775,7 +1775,7 @@ using System;
 struct C<T>
 {
     public int num;
-    public int Foo1()
+    public int Goo1()
     {
         return this.num;
     }
@@ -1786,7 +1786,7 @@ class Test
     {
         C<object> c;
         c.num = 1;
-        bool verify = c.Foo1() == 1;
+        bool verify = c.Goo1() == 1;
         Console.WriteLine(verify);
     }
 }
@@ -2065,8 +2065,8 @@ class ChildType : AbstractType
             string program =
 @"class Program
 {
-    private int field = Foo();
-    static int Foo() { return 12; }
+    private int field = Goo();
+    static int Goo() { return 12; }
     public Program(out int x)
     {
         x = 13;
@@ -2291,18 +2291,18 @@ class Program
         int x;
         S(dynamic y)
         {
-            Foo(y, null);
+            Goo(y, null);
         }
     }
-    static void Foo(int y)
+    static void Goo(int y)
     {
     }
 }";
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (8,13): error CS1501: No overload for method 'Foo' takes 2 arguments
-                //             Foo(y, null);
-                Diagnostic(ErrorCode.ERR_BadArgCount, "Foo").WithArguments("Foo", "2"),
+                // (8,13): error CS1501: No overload for method 'Goo' takes 2 arguments
+                //             Goo(y, null);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Goo").WithArguments("Goo", "2"),
                 // (6,9): error CS0171: Field 'C.S.x' must be fully assigned before control is returned to the caller
                 //         S(dynamic y)
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("C.S.x"),

@@ -165,11 +165,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Return the name of the tool to execute.
         /// </summary>
-        override protected string ToolName
+        override protected string ToolNameWithoutExtension
         {
             get
             {
-                return "csc.exe";
+                return "csc";
             }
         }
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// This method handles the necessary work of looking at the "Aliases" attribute on
         /// the incoming "References" items, and making sure to generate the correct
         /// command-line on csc.exe.  The syntax for aliasing a reference is:
-        ///     csc.exe /reference:Foo=System.Xml.dll
+        ///     csc.exe /reference:Goo=System.Xml.dll
         ///
         /// The "Aliases" attribute on the "References" items is actually a comma-separated
         /// list of aliases, and if any of the aliases specified is the string "global",
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         {
                             // We have a valid (and explicit) alias for this reference.  Add
                             // it to the command-line using the syntax:
-                            //      /reference:Foo=System.Xml.dll
+                            //      /reference:Goo=System.Xml.dll
                             commandLine.AppendSwitchAliased(switchName, trimmedAlias, reference.ItemSpec);
                         }
                     }

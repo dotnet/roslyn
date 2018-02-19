@@ -269,28 +269,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Property(WellKnownMember member)
         {
-            var propertySym = WellKnownMember(member) as PropertySymbol;
-            //if (propertySym == null) return BoundBadExpression
-            Binder.ReportUseSiteDiagnostics(propertySym, Diagnostics, Syntax);
-            Debug.Assert(propertySym.IsStatic);
-            return Call(null, propertySym.GetMethod);
+            return Property(null, member);
         }
 
-        public BoundExpression Property(BoundExpression receiver, WellKnownMember member)
+        public BoundExpression Property(BoundExpression receiverOpt, WellKnownMember member)
         {
-            var propertySym = WellKnownMember(member) as PropertySymbol;
-            Debug.Assert(!propertySym.IsStatic);
-            Debug.Assert(receiver.Type.GetMembers(propertySym.Name).OfType<PropertySymbol>().Single() == propertySym);
-            //if (propertySym == null) return BoundBadExpression
+            var propertySym = (PropertySymbol)WellKnownMember(member);
+            Debug.Assert(receiverOpt == null ||
+                receiverOpt.Type.GetMembers(propertySym.Name).OfType<PropertySymbol>().Single() == propertySym);
             Binder.ReportUseSiteDiagnostics(propertySym, Diagnostics, Syntax);
-            Debug.Assert(!propertySym.IsStatic);
-            return Call(receiver, propertySym.GetMethod);
+            return Property(receiverOpt, propertySym);
         }
 
-        public BoundExpression Property(BoundExpression receiver, PropertySymbol property)
+        public BoundExpression Property(BoundExpression receiverOpt, PropertySymbol property)
         {
-            Debug.Assert(!property.IsStatic);
-            return Call(receiver, property.GetMethod); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
+            Debug.Assert((receiverOpt == null) == property.IsStatic);
+            return Call(receiverOpt, property.GetMethod); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
         }
 
         public NamedTypeSymbol SpecialType(SpecialType st)
@@ -369,9 +363,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (PropertySymbol)SpecialMember(sm);
         }
 
-        public BoundExpressionStatement Assignment(BoundExpression left, BoundExpression right, RefKind refKind = RefKind.None)
+        public BoundExpressionStatement Assignment(BoundExpression left, BoundExpression right, bool isRef = false)
         {
-            return ExpressionStatement(AssignmentExpression(left, right, refKind));
+            return ExpressionStatement(AssignmentExpression(left, right, isRef));
         }
 
         public BoundExpressionStatement ExpressionStatement(BoundExpression expr)
@@ -379,12 +373,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundExpressionStatement(Syntax, expr) { WasCompilerGenerated = true };
         }
 
-        public BoundAssignmentOperator AssignmentExpression(BoundExpression left, BoundExpression right, RefKind refKind = RefKind.None)
+        public BoundAssignmentOperator AssignmentExpression(BoundExpression left, BoundExpression right, bool isRef = false)
         {
             Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.AllIgnoreOptions) ||
                     right.Type.IsErrorType() || left.Type.IsErrorType());
 
-            return new BoundAssignmentOperator(Syntax, left, right, left.Type, refKind: refKind) { WasCompilerGenerated = true };
+            return new BoundAssignmentOperator(Syntax, left, right, left.Type, isRef: isRef) { WasCompilerGenerated = true };
         }
 
         public BoundBlock Block()
@@ -436,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundStatementList(Syntax, ImmutableArray.Create(first, second)) { WasCompilerGenerated = true };
         }
-        
+
         public BoundReturnStatement Return(BoundExpression expression = null)
         {
             if (expression != null)
@@ -510,7 +504,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundIsOperator Is(BoundExpression operand, TypeSymbol type)
         {
             HashSet<DiagnosticInfo> discarded = null;
-            Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(operand, type, ref discarded);
+            // Because compiler-generated nodes are not lowered, this conversion is not used later in the compiler.
+            // But it is a required part of the `BoundIsOperator` node, so we compute a conversion here.
+            Conversion c = Compilation.Conversions.ClassifyBuiltInConversion(operand.Type, type, ref discarded);
             return new BoundIsOperator(this.Syntax, operand, Type(type), c, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean)) { WasCompilerGenerated = true };
         }
 
@@ -601,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)method == null)
             {
-                return new BoundBadExpression(Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, args.AsImmutableOrNull(), receiver);
+                return new BoundBadExpression(Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, args.AsImmutable(), receiver);
             }
 
             return Call(null, method, args);
@@ -638,11 +634,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundCall Call(BoundExpression receiver, MethodSymbol method, ImmutableArray<BoundExpression> args)
         {
             Debug.Assert(method.ParameterCount == args.Length);
+
             return new BoundCall(
                 Syntax, receiver, method, args,
-                ImmutableArray<String>.Empty, ImmutableArray<RefKind>.Empty, false, false, false,
+                default(ImmutableArray<String>), method.ParameterRefKinds, false, false, false,
                 default(ImmutableArray<int>), LookupResultKind.Viable, null, method.ReturnType,
-                hasErrors:method.OriginalDefinition is ErrorMethodSymbol)
+                hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
         }
 
@@ -651,14 +648,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method.ParameterCount == args.Length);
             return new BoundCall(
                 Syntax, receiver, method, args,
-                ImmutableArray<String>.Empty, refKinds, false, false, false,
+                default(ImmutableArray<String>), refKinds, false, false, false,
                 ImmutableArray<int>.Empty, LookupResultKind.Viable, null, method.ReturnType)
             { WasCompilerGenerated = true };
         }
 
         public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type)
         {
-            return new BoundConditionalOperator(Syntax, condition, consequence, alternative, default(ConstantValue), type) { WasCompilerGenerated = true };
+            return new BoundConditionalOperator(Syntax, false, condition, consequence, alternative, default(ConstantValue), type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ComplexConditionalReceiver(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver)
@@ -991,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WellKnownType(CodeAnalysis.WellKnownType.System_Type))
             { WasCompilerGenerated = true };
         }
-        
+
         public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeSymbol> typeArguments)
         {
             return typeArguments.SelectAsArray(Typeof);
@@ -1189,14 +1186,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundArrayInitialization(Syntax, elements) { WasCompilerGenerated = true },
                 Compilation.CreateArrayTypeSymbol(elementType));
         }
-        
+
         public BoundExpression Array(TypeSymbol elementType, BoundExpression length)
         {
             return new BoundArrayCreation(
                Syntax,
                ImmutableArray.Create<BoundExpression>(length),
                null,
-               Compilation.CreateArrayTypeSymbol(elementType)) { WasCompilerGenerated = true };
+               Compilation.CreateArrayTypeSymbol(elementType))
+            { WasCompilerGenerated = true };
         }
 
         internal BoundExpression Default(TypeSymbol type)
@@ -1304,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 local,
                 argument,
-                refKind,
+                refKind != RefKind.None,
                 type);
 
             return local;
@@ -1337,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (discardsCount != 0)
             {
                 arguments = arguments.SelectAsArray(
-                    (arg, t) => arg.Kind == BoundKind.DiscardExpression ?  t.factory.MakeTempForDiscard((BoundDiscardExpression)arg, t.builder) : arg,
+                    (arg, t) => arg.Kind == BoundKind.DiscardExpression ? t.factory.MakeTempForDiscard((BoundDiscardExpression)arg, t.builder) : arg,
                     (factory: this, builder: builder));
             }
 

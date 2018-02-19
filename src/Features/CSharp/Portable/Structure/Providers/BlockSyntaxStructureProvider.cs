@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 // portion.  Also, while outlining might be ok, the Indent-Guide
                 // would look very strange for nodes like:
                 //
-                //      if (foo)
+                //      if (goo)
                 //      {
                 //      }
                 //      else

@@ -21,7 +21,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21154"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void BasicToCSharp()
         {
             var csProj = new ProjectUtils.Project("CSProj");
@@ -68,7 +68,7 @@ End Class
 }", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21154"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void SameProject()
         {
             SetUpEditor(@"

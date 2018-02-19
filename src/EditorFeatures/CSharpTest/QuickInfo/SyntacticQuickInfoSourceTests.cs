@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -264,12 +265,7 @@ if (true)
 
         private IQuickInfoProvider CreateProvider(TestWorkspace workspace)
         {
-            return new SyntacticQuickInfoProvider(
-                workspace.GetService<IProjectionBufferFactoryService>(),
-                workspace.GetService<IEditorOptionsFactoryService>(),
-                workspace.GetService<ITextEditorFactoryService>(),
-                workspace.GetService<IGlyphService>(),
-                workspace.GetService<ClassificationTypeMap>());
+            return new SyntacticQuickInfoProvider();
         }
 
         protected override async Task AssertNoContentAsync(
@@ -292,16 +288,11 @@ if (true)
             var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
             Assert.NotNull(state);
 
-            var viewHostingControl = (ViewHostingControl)((ElisionBufferDeferredContent)state.Content).Create();
-            try
-            {
-                var actualContent = viewHostingControl.ToString();
-                Assert.Equal(expectedContent, actualContent);
-            }
-            finally
-            {
-                viewHostingControl.TextView_TestOnly.Close();
-            }
+            var hostingControlFactory = workspace.GetService<DeferredContentFrameworkElementFactory>();
+
+            var viewHostingControl = (ViewHostingControl)hostingControlFactory.CreateElement(state.Content);
+            var actualContent = viewHostingControl.GetText_TestOnly();
+            Assert.Equal(expectedContent, actualContent);
         }
 
         protected override Task TestInMethodAsync(string code, string expectedContent, string expectedDocumentationComment = null)

@@ -357,8 +357,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             AssertIsForeground();
 
-            var presentedItem = item as NavigationBarPresentedItem;
-            if (presentedItem != null)
+            if (item is NavigationBarPresentedItem presentedItem)
             {
                 // Presented items are not navigable, but they may be selected due to a race
                 // documented in Bug #1174848. Protect all INavigationBarItemService implementers
@@ -366,8 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 return;
             }
 
-            var projectItem = item as NavigationBarProjectItem;
-            if (projectItem != null)
+            if (item is NavigationBarProjectItem projectItem)
             {
                 projectItem.SwitchToContext();
 

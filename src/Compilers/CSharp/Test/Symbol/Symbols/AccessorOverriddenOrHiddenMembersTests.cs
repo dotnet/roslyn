@@ -497,6 +497,57 @@ class Derived : Base, I
         }
 
         [Fact]
+        public void ImplementingAccessorWithNonAccessorMayReportInInterfaceReference()
+        {
+            var source = @"
+interface I<T>
+{
+	T P { get; }
+}
+class Base
+{
+    public int get_P() { return 1; }
+}
+class Derived : Base, I<int> // CS0470 must be reported in ""I<int>""
+{
+}
+";
+
+            var comp = CreateStandardCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,23): error CS0470: Method 'Base.get_P()' cannot implement interface accessor 'I<int>.P.get' for type 'Derived'. Use an explicit interface implementation.
+                // class Derived : Base, I<int>
+                Diagnostic(ErrorCode.ERR_MethodImplementingAccessor, "I<int>").WithArguments("Base.get_P()", "I<int>.P.get", "Derived").WithLocation(10, 23),
+                // (10,23): error CS0535: 'Derived' does not implement interface member 'I<int>.P'
+                // class Derived : Base, I<int>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<int>").WithArguments("Derived", "I<int>.P").WithLocation(10, 23));
+        }
+
+        [Fact]
+        public void ImplementingNonAccessorWithAccessorMayReportInInterfaceReference()
+        {
+            var source = @"
+interface I<T>
+{
+    T get_P();
+}
+class Base
+{
+    public int P { get; }
+}
+class Derived : Base, I<int> // CS0686 must be reported in ""I<int>""
+{
+}
+";
+
+            var comp = CreateStandardCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,23): error CS0686: Accessor 'Base.P.get' cannot implement interface member 'I<int>.get_P()' for type 'Derived'. Use an explicit interface implementation.
+                // class Derived : Base, I<int>
+                Diagnostic(ErrorCode.ERR_AccessorImplementingMethod, "I<int>").WithArguments("Base.P.get", "I<int>.get_P()", "Derived").WithLocation(10, 23));
+        }
+
+        [Fact]
         public void PropertyHidesBetterImplementation()
         {
             var text = @"
@@ -931,7 +982,7 @@ class Derived : Base
             const string sourceFromReproSteps = @"
 class A
 {
-    void Foo()
+    void Goo()
     {
         var d = new Disposable();
         d.Dispose();

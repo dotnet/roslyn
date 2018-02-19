@@ -42,15 +42,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assembly3 = (MetadataOrSourceAssemblySymbol)assemblies[2];
 
             var derived1 = module1.GlobalNamespace.GetTypeMembers("Derived").Single();
-            var base1 = derived1.BaseType;
+            var base1 = derived1.BaseType();
             BaseTypeResolution.AssertBaseType(base1, "Base");
 
             var derived4 = module1.GlobalNamespace.GetTypeMembers("GenericDerived").Single();
-            var base4 = derived4.BaseType;
+            var base4 = derived4.BaseType();
             BaseTypeResolution.AssertBaseType(base4, "GenericBase<K>");
 
             var derived6 = module1.GlobalNamespace.GetTypeMembers("GenericDerived1").Single();
-            var base6 = derived6.BaseType;
+            var base6 = derived6.BaseType();
             BaseTypeResolution.AssertBaseType(base6, "GenericBase<K>.NestedGenericBase<L>");
 
             Assert.Equal(assembly3, base1.ContainingAssembly);
@@ -70,16 +70,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(2, assembly3.EmittedNameToTypeMapCount);
 
             var derived2 = module2.GlobalNamespace.GetTypeMembers("Derived").Single();
-            var base2 = derived2.BaseType;
+            var base2 = derived2.BaseType();
             BaseTypeResolution.AssertBaseType(base2, "Base");
             Assert.Same(base2, base1);
 
             var derived3 = module2.GlobalNamespace.GetTypeMembers("GenericDerived").Single();
-            var base3 = derived3.BaseType;
+            var base3 = derived3.BaseType();
             BaseTypeResolution.AssertBaseType(base3, "GenericBase<S>");
 
             var derived5 = module2.GlobalNamespace.GetTypeMembers("GenericDerived1").Single();
-            var base5 = derived5.BaseType;
+            var base5 = derived5.BaseType();
             BaseTypeResolution.AssertBaseType(base5, "GenericBase<S1>.NestedGenericBase<S2>");
         }
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             const string funcTypeMetadataName = "System.Func`1";
 
             // mscorlib contains this type, so we should be able to find it without looking in referenced assemblies.
-            var funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: false, isWellKnownType: false);
+            var funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: false, isWellKnownType: false, conflicts: out var _);
             Assert.NotNull(funcType);
             Assert.NotEqual(TypeKind.Error, funcType.TypeKind);
             Assert.Equal(corlibAssembly, funcType.ContainingAssembly);
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             // The compilation assembly references both mscorlib and System.Core, but finding
             // System.Func`1 in both isn't ambiguous because one forwards to the other.
-            Assert.Equal(funcType, compilation.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: true, isWellKnownType: false));
+            Assert.Equal(funcType, compilation.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _));
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ class Derived : Base
             Assert.Equal(baseType, ilAssembly2.ResolveForwardedType("Base"));
 
             var derivedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            Assert.Equal(baseType, derivedType.BaseType);
+            Assert.Equal(baseType, derivedType.BaseType());
 
             // All forwards resolve to the same type, so there's no issue.
             compilation.VerifyDiagnostics();
@@ -429,7 +429,7 @@ class Derived : Base
             Assert.Equal(baseType, ilAssembly3.ResolveForwardedType("Base"));
 
             var derivedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            Assert.Equal(baseType, derivedType.BaseType);
+            Assert.Equal(baseType, derivedType.BaseType());
 
             // Find the type even though there's a cycle.
             compilation.VerifyDiagnostics();
@@ -474,7 +474,7 @@ class Derived : Base
        extends [mscorlib]System.Object
 {
   .method public hidebysig instance class [pe1]Cycle 
-          Foo() cil managed
+          Goo() cil managed
   {
     ldnull
     ret
@@ -497,7 +497,7 @@ class Test
     static void Main()
     {
         UseSite us = new UseSite();
-        us.Foo();
+        us.Goo();
     }
 }
 ";
@@ -522,8 +522,8 @@ class Test
 
             compilation.VerifyDiagnostics(
                 // (7,9): error CS0731: The type forwarder for type 'Cycle' in assembly 'pe2' causes a cycle
-                //         us.Foo();
-                Diagnostic(ErrorCode.ERR_CycleInTypeForwarder, "us.Foo").WithArguments("Cycle", "pe2"));
+                //         us.Goo();
+                Diagnostic(ErrorCode.ERR_CycleInTypeForwarder, "us.Goo").WithArguments("Cycle", "pe2"));
         }
 
         /// <summary>
@@ -1370,14 +1370,14 @@ namespace NS
         [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         public void EmitForwarder_ModuleInReferencedAssembly()
         {
-            string moduleA = @"public class Foo{ public static string A = ""Original""; }";
+            string moduleA = @"public class Goo{ public static string A = ""Original""; }";
             var bitsA = CreateStandardCompilation(moduleA, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
             var refA = MetadataReference.CreateFromImage(bitsA);
 
-            string moduleB = @"using System; class Program2222 { static void Main(string[] args) { Console.WriteLine(Foo.A); } }";
+            string moduleB = @"using System; class Program2222 { static void Main(string[] args) { Console.WriteLine(Goo.A); } }";
             var bitsB = CreateStandardCompilation(moduleB, new[] { refA }, TestOptions.ReleaseExe, assemblyName: "test").EmitToArray();
 
-            string module0 = @"public class Foo{ public static string A = ""Substituted""; }";
+            string module0 = @"public class Goo{ public static string A = ""Substituted""; }";
             var bits0 = CreateStandardCompilation(module0, options: TestOptions.ReleaseModule, assemblyName: "asm0").EmitToArray();
             var ref0 = ModuleMetadata.CreateFromImage(bits0).GetReference();
 
@@ -1385,7 +1385,7 @@ namespace NS
             var bits1 = CreateStandardCompilation(module1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1").EmitToArray();
             var ref1 = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(bits1), ModuleMetadata.CreateFromImage(bits0)).GetReference();
 
-            string module2 = @"using System; [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Foo))]";
+            string module2 = @"using System; [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Goo))]";
             var bits2 = CreateStandardCompilation(module2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
 
             // runtime check:
@@ -1415,7 +1415,7 @@ namespace NS
             var source0 = @"
 namespace X 
 {
-    public class Foo
+    public class Goo
     {
 	    public int getValue()
 	    {
@@ -1430,10 +1430,10 @@ using System;
 
             var source2 = @"
 using System;
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(X.Foo))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(X.Goo))]
 ";
 
-            CheckForwarderEmit2(source0, source1, source2, "X.Foo");
+            CheckForwarderEmit2(source0, source1, source2, "X.Goo");
         }
 
         [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
@@ -1473,7 +1473,7 @@ public class CF1
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
             // Exported types in .Net module cause PEVerify to fail.
-            CompileAndVerify(appCompilation, verify: false,
+            CompileAndVerify(appCompilation, verify: Verification.Fails,
                 symbolValidator: m =>
                 {
                     var peReader1 = ((PEModuleSymbol)m).Module.GetMetadataReader();
@@ -1559,7 +1559,7 @@ public class CF1
         {
             var folder = Temp.CreateDirectory();
             var comp0 = CreateStandardCompilation(source0, options: TestOptions.ReleaseModule, assemblyName: "asm0");
-            var asm0 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp0, verify: false).EmittedAssemblyData);
+            var asm0 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp0, verify: Verification.Skipped).EmittedAssemblyData);
             var ref0 = asm0.GetReference();
 
             var comp1 = CreateStandardCompilation(source1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1");
@@ -1725,7 +1725,7 @@ public class Forwarded<T>
                         var context = CreateStandardCompilation("", new[] { r1, r2, r3 }, options: TestOptions.ReleaseDll);
 
                         var forwarded = context.GetTypeByMetadataName("Forwarded`1");
-                        var resolved = context.GetTypeByMetadataName("B").BaseType.OriginalDefinition;
+                        var resolved = context.GetTypeByMetadataName("B").BaseType().OriginalDefinition;
 
                         Assert.NotNull(forwarded);
                         Assert.False(resolved.IsErrorType());

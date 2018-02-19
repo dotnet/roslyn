@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
 
         public string GetStorageLocation(Solution solution)
         {
-            string result;
-            _idToStorageLocation.TryGetValue(solution.Id, out result);
+            _idToStorageLocation.TryGetValue(solution.Id, out var result);
             return result;
         }
 
@@ -44,7 +43,8 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
                 }
                 else
                 {
-                    _idToStorageLocation[id] = storageLocation;
+                    // Store the esent database in a different location for the out of proc server.
+                    _idToStorageLocation[id] = Path.Combine(storageLocation, "Server");
                 }
             }
         }

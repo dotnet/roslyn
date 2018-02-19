@@ -28,6 +28,9 @@
                     <CheckBox x:Name="PlaceSystemNamespaceFirst"
                               x:Uid="SortImports_PlaceSystemFirst"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_PlaceSystemNamespaceFirst}" />
+                    <CheckBox x:Name="SeparateImportGroups"
+                              x:Uid="SeparateImportGroups"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_SeparateImportGroups}" />
                     <CheckBox x:Name="SuggestForTypesInReferenceAssemblies"
                               x:Uid="AddImport_SuggestForTypesInReferenceAssemblies"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Suggest_imports_for_types_in_reference_assemblies}" />

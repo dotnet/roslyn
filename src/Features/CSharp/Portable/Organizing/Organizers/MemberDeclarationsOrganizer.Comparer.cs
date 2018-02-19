@@ -99,8 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                     return compare;
                 }
 
-                var xName = ShouldCompareByName(x) ? x.GetNameToken() : default(SyntaxToken);
-                var yName = ShouldCompareByName(y) ? y.GetNameToken() : default(SyntaxToken);
+                var xName = ShouldCompareByName(x) ? x.GetNameToken() : default;
+                var yName = ShouldCompareByName(y) ? y.GetNameToken() : default;
 
                 if ((compare = TokenComparer.NormalInstance.Compare(xName, yName)) != 0)
                 {

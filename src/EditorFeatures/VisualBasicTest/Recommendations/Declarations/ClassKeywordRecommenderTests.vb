@@ -140,7 +140,7 @@ Delegate Sub DelegateType()
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ClassNotAfterPrivateInNamespaceTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Namespace Foo
+Namespace Goo
     Private |
 End Namespace</File>, "Class")
         End Function

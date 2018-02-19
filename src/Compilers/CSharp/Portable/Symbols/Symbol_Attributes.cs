@@ -255,19 +255,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="symbolPart">Specific part of the symbol to which the attributes apply, or <see cref="AttributeLocation.None"/> if the attributes apply to the symbol itself.</param>
         /// <param name="earlyDecodingOnly">Indicates that only early decoding should be performed.  WARNING: the resulting bag will not be sealed.</param>
         /// <param name="binderOpt">Binder to use. If null, <see cref="DeclaringCompilation"/> GetBinderFactory will be used.</param>
+        /// <param name="attributeMatchesOpt">If specified, only load attributes that match this predicate, and any diagnostics produced will be dropped.</param>
         /// <returns>Flag indicating whether lazyCustomAttributes were stored on this thread. Caller should check for this flag and perform NotePartComplete if true.</returns>
         internal bool LoadAndValidateAttributes(
             OneOrMany<SyntaxList<AttributeListSyntax>> attributesSyntaxLists,
             ref CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag,
             AttributeLocation symbolPart = AttributeLocation.None,
             bool earlyDecodingOnly = false,
-            Binder binderOpt = null)
+            Binder binderOpt = null,
+            Func<AttributeSyntax, bool> attributeMatchesOpt = null)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var compilation = this.DeclaringCompilation;
 
             ImmutableArray<Binder> binders;
-            ImmutableArray<AttributeSyntax> attributesToBind = this.GetAttributesToBind(attributesSyntaxLists, symbolPart, diagnostics, compilation, binderOpt, out binders);
+            ImmutableArray<AttributeSyntax> attributesToBind = this.GetAttributesToBind(attributesSyntaxLists, symbolPart, diagnostics, compilation, attributeMatchesOpt, binderOpt, out binders);
             Debug.Assert(!attributesToBind.IsDefault);
 
             ImmutableArray<CSharpAttributeData> boundAttributes;
@@ -344,8 +346,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool lazyAttributesStoredOnThisThread = false;
             if (lazyCustomAttributesBag.SetAttributes(boundAttributes))
             {
-                this.RecordPresenceOfBadAttributes(boundAttributes);
-                AddDeclarationDiagnostics(diagnostics);
+                if (attributeMatchesOpt is null)
+                {
+                    this.RecordPresenceOfBadAttributes(boundAttributes);
+                    AddDeclarationDiagnostics(diagnostics);
+                }
                 lazyAttributesStoredOnThisThread = true;
                 if (lazyCustomAttributesBag.IsEmpty) lazyCustomAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
             }
@@ -382,6 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeLocation symbolPart,
             DiagnosticBag diagnostics,
             CSharpCompilation compilation,
+            Func<AttributeSyntax, bool> attributeMatchesOpt,
             Binder rootBinderOpt,
             out ImmutableArray<Binder> binders)
         {
@@ -409,8 +415,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             var attributesToBind = attributeDeclarationSyntax.Attributes;
-                            syntaxBuilder.AddRange(attributesToBind);
-                            attributesToBindCount += attributesToBind.Count;
+                            if (attributeMatchesOpt is null)
+                            {
+                                syntaxBuilder.AddRange(attributesToBind);
+                                attributesToBindCount += attributesToBind.Count;
+                            }
+                            else
+                            {
+                                foreach (var attribute in attributesToBind)
+                                {
+                                    if (attributeMatchesOpt(attribute))
+                                    {
+                                        syntaxBuilder.Add(attribute);
+                                        attributesToBindCount++;
+                                    }
+                                }
+                            }
                         }
                     }
 

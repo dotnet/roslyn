@@ -21,14 +21,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17393"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCodeRefactoringOffered()
         {
             SetUpEditor(@"
 class C
 {
-    public void Method(int a, string b) { }
+    public void Method$$(int a, string b) { }
 }");
 
             VisualStudio.Editor.InvokeCodeActionList();
@@ -48,12 +47,12 @@ class C
             ChangeSignatureDialog.VerifyOpen();
             ChangeSignatureDialog.ClickCancel();
             ChangeSignatureDialog.VerifyClosed();
-            var actuaText = VisualStudio.Editor.GetText();
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 class C
 {
     public void Method(int a, string b) { }
-}", actuaText);
+}", actualText);
         }
 
         [Fact (Skip = "https://github.com/dotnet/roslyn/issues/17640"),

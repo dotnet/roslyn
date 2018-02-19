@@ -174,6 +174,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingType.IsMetadataSealed;
             }
         }
+        
+        internal override bool HasCodeAnalysisEmbeddedAttribute => _underlyingType.HasCodeAnalysisEmbeddedAttribute;
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
@@ -203,6 +205,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsSerializable
         {
             get { return _underlyingType.IsSerializable; }
+        }
+
+        internal override bool IsByRefLikeType
+        {
+            get { return _underlyingType.IsByRefLikeType; }
+        }
+
+        internal override bool IsReadOnly
+        {
+            get { return _underlyingType.IsReadOnly; }
         }
 
         internal override bool HasDeclarativeSecurity

@@ -1,10 +1,1 @@
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_3 = 1503 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_5 = 1505 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.ToDisplayString(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> String
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.TryParse(version As String, ByRef result As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Boolean
-Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.TryGetInferredMemberName(syntax As Microsoft.CodeAnalysis.SyntaxNode) -> String
-Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.ConflictMarkerTrivia = 792 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ConflictMarkerTrivia(text As String) -> Microsoft.CodeAnalysis.SyntaxTrivia
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsReservedTupleElementName(elementName As String) -> Boolean
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithMetadataImportOptions(value As Microsoft.CodeAnalysis.MetadataImportOptions) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions

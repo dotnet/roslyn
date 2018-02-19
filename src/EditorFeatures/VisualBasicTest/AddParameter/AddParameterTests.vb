@@ -14,6 +14,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddParameter
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <WorkItem(23927, "https://github.com/dotnet/roslyn/issues/23927")>
+        Public Async Function TestMissingOnOmittedArgument() As Task
+            Await TestMissingAsync(
+"Public Module Module1
+    Private Class C
+        Public Sub New(Arg1 As Integer)
+        End Sub
+
+        Public Sub New(Arg1 As Integer, Arg2 As Integer)
+        End Sub
+    End Class
+
+    Public Sub Main()
+        Dim x = New [|C|](, 0)
+    End Sub
+End Module")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestMissingWithImplicitConstructor() As Task
             Await TestMissingAsync(
 "
@@ -50,6 +69,34 @@ end class
 class D
     sub M()
         dim a = new C(1)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(20973, "https://github.com/dotnet/roslyn/issues/20973")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        Public Async Function TestNothingArgument1() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    public sub new(i as integer)
+    end sub
+end class
+
+class D
+    sub M()
+        dim a = new C(nothing, [|1|])
+    end sub
+end class",
+"
+class C
+    public sub new(i as integer, v As Integer)
+    end sub
+end class
+
+class D
+    sub M()
+        dim a = new C(nothing, 1)
     end sub
 end class")
         End Function
@@ -151,7 +198,8 @@ class D
     sub M()
         dim a = new C(1, true)
     end sub
-end class")
+end class
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
@@ -181,7 +229,8 @@ class D
     sub M()
         dim a = new C(true, 1)
     end sub
-end class")
+end class
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
@@ -211,7 +260,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, [|0|])
     end sub
 end class",
@@ -222,11 +271,10 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -239,7 +287,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, [|0|])
     end sub
 end class",
@@ -250,11 +298,10 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -267,7 +314,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, [|true|])
     end sub
 end class",
@@ -278,11 +325,10 @@ class C
                    v As Boolean)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, true)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -296,7 +342,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, [|0|])
     end sub
 end class",
@@ -308,11 +354,10 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -326,7 +371,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, [|0|])
     end sub
 end class",
@@ -338,11 +383,10 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -356,7 +400,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, [|true|])
     end sub
 end class",
@@ -368,11 +412,10 @@ class C
         v As Boolean)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, true)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
     End Class
 End Namespace

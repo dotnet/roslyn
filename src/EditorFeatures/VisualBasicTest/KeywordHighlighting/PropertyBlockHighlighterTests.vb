@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
         Public Async Function TestPropertySample1_1() As Task
             Await TestAsync(<Text>
 Class C
-{|Cursor:[|Public Property|]|} Foo As Integer [|Implements|] IFoo.Foo
+{|Cursor:[|Public Property|]|} Goo As Integer [|Implements|] IGoo.Goo
     Get
         Return 1
     End Get
@@ -29,7 +29,7 @@ End Class</Text>)
         Public Async Function TestPropertySample1_2() As Task
             Await TestAsync(<Text>
 Class C
-[|Public Property|] Foo As Integer {|Cursor:[|Implements|]|} IFoo.Foo
+[|Public Property|] Goo As Integer {|Cursor:[|Implements|]|} IGoo.Goo
     Get
         Return 1
     End Get
@@ -44,7 +44,7 @@ End Class</Text>)
         Public Async Function TestPropertySample1_3() As Task
             Await TestAsync(<Text>
 Class C
-[|Public Property|] Foo As Integer [|Implements|] IFoo.Foo
+[|Public Property|] Goo As Integer [|Implements|] IGoo.Goo
     Get
         Return 1
     End Get

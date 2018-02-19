@@ -150,7 +150,7 @@ class C
 {
     [|NuGetType|] n;
 }",
-"Use local version '1.0'",
+string.Format(FeaturesResources.Use_local_version_0, "1.0"),
 parameters: new TestParameters(fixProviderData: data));
 
             await TestSmartTagTextAsync(
@@ -158,7 +158,7 @@ parameters: new TestParameters(fixProviderData: data));
 {
     [|NuGetType|] n;
 }",
-"Use local version '2.0'",
+string.Format(FeaturesResources.Use_local_version_0, "2.0"),
 index: 1,
 parameters: new TestParameters(fixProviderData: data));
 
@@ -167,7 +167,7 @@ parameters: new TestParameters(fixProviderData: data));
 {
     [|NuGetType|] n;
 }",
-"Find and install latest version",
+FeaturesResources.Find_and_install_latest_version,
 index: 2,
 parameters: new TestParameters(fixProviderData: data));
         }
@@ -257,7 +257,7 @@ class C
             installerServiceMock.Verify();
         }
 
-        private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(
+        private Task<IList<PackageWithTypeResult>> CreateSearchResult(
             string packageName, string typeName, ImmutableArray<string> containingNamespaceNames)
         {
             return CreateSearchResult(new PackageWithTypeResult(
@@ -265,8 +265,8 @@ class C
                 rank: 0, containingNamespaceNames: containingNamespaceNames));
         }
 
-        private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
-            => Task.FromResult(ImmutableArray.Create(results));
+        private Task<IList<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
+            => Task.FromResult<IList<PackageWithTypeResult>>(ImmutableArray.Create(results));
 
         private ImmutableArray<string> CreateNameParts(params string[] parts) => parts.ToImmutableArray();
     }

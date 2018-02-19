@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    internal class ArrayBuilderTests
+    public class ArrayBuilderTests
     {
         [Fact]
         public void RemoveDuplicates1()

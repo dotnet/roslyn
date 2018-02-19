@@ -292,7 +292,7 @@ end class
         <Document>
             class ConsumingClass
             {
-                void foo()
+                void goo()
                 {
                     Some$$Class x;
                 }
@@ -319,7 +319,7 @@ end class
         <Document>
             partial class Test
             {
-                void Foo()
+                void Goo()
                 {
                     var t = new Test();
                     t.M$$();
@@ -737,9 +737,9 @@ class C
 {
     void M()
     {
-    [|Foo|]:
-        int Foo;
-        goto $$Foo;
+    [|Goo|]:
+        int Goo;
+        goto $$Goo;
     }
 }]]>
         </Document>
@@ -765,6 +765,54 @@ class C
 
             Test(workspace)
         End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOverriddenDefinition_FromOverride()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Origin { public virtual void Method() { } }
+            class Base : Origin { public override void [|Method|]() { } }
+            class Derived : Base { }
+            class Derived2 : Derived { public ove$$rride void Method() { }  }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOverriddenDefinition_FromOverride2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Origin { public virtual void [|Method|]() { } }
+            class Base : Origin { public ove$$rride void Method() { } }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOverriddenProperty_FromOverride()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Origin { public virtual int [|Property|] { get; set; } }
+            class Base : Origin { public ove$$rride int Property { get; set; } }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
 #End Region
 
 #Region "CSharp TupleTests"
@@ -1222,7 +1270,7 @@ namespace System
             <ParseOptions Kind="Script"/>
             class ConsumingClass
             {
-                void foo()
+                void goo()
                 {
                     Some$$Class x;
                 }
@@ -1530,7 +1578,7 @@ End Class
         </Document>
         <Document>
             Class ConsumingClass
-                Sub foo()
+                Sub goo()
                     Dim obj As Some$$Class
                 End Sub
             End Class
@@ -1583,7 +1631,7 @@ End Class
         </Document>
         <Document>
             Class ConsumingClass
-                Sub foo()
+                Sub goo()
                     Dim obj As $$SomeClass
                 End Sub
             End Class
@@ -1606,7 +1654,7 @@ End Class
         </Document>
         <Document>
             Class ConsumingClass
-                Sub foo()
+                Sub goo()
                     Dim obj As SomeClass$$
                 End Sub
             End Class
@@ -1634,14 +1682,14 @@ Class [|C|]
  
     Sub New()
         MyBase.New()
-        MyClass.Foo()
+        MyClass.Goo()
         $$Me.Bar()
     End Sub
  
     Private Sub Bar()
     End Sub
  
-    Private Sub Foo()
+    Private Sub Goo()
     End Sub
 End Class
         </Document>
@@ -1668,14 +1716,14 @@ Class [|C|]
  
     Sub New()
         MyBase.New()
-        $$MyClass.Foo()
+        $$MyClass.Goo()
         Me.Bar()
     End Sub
  
     Private Sub Bar()
     End Sub
  
-    Private Sub Foo()
+    Private Sub Goo()
     End Sub
 End Class
         </Document>
@@ -1702,16 +1750,85 @@ Class C
  
     Sub New()
         $$MyBase.New()
-        MyClass.Foo()
+        MyClass.Goo()
         Me.Bar()
     End Sub
  
     Private Sub Bar()
     End Sub
  
-    Private Sub Foo()
+    Private Sub Goo()
     End Sub
 End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicGoToOverridenSubDefinition()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class Base
+                Overridable Sub [|Method|]()
+                End Sub
+            End Class
+            Class Derived
+                Inherits Base
+
+                Overr$$ides Sub Method()
+                End Sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicGoToOverridenFunctionDefinition()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class Base
+                Overridable Function [|Method|]() As Integer
+                    Return 1
+                End Function
+            End Class
+            Class Derived
+                Inherits Base
+
+                Overr$$ides Function Method() As Integer
+                    Return 1
+                End Function
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicGoToOverridenPropertyDefinition()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class Base
+                Overridable Property [|Number|] As Integer
+            End Class
+            Class Derived
+                Inherits Base
+
+                Overr$$ides Property Number As Integer
+            End Class
         </Document>
     </Project>
 </Workspace>
@@ -1798,7 +1915,7 @@ End Class
         </Document>
         <Document>
             Class ConsumingClass
-                Sub foo()
+                Sub goo()
                     Dim obj As SomeClass$$
                 End Sub
             End Class
@@ -2152,12 +2269,12 @@ End Class
     <Project Language="Visual Basic" CommonReferences="true">
         <ProjectReference>VBAssembly</ProjectReference>
         <CompilationOptions>
-            <GlobalImport>Foo = Importable.ImportMe</GlobalImport>
+            <GlobalImport>Goo = Importable.ImportMe</GlobalImport>
         </CompilationOptions>
         <Document>
 Public Class Class2
     Sub Test()
-        Dim x as Fo$$o
+        Dim x as Go$$o
     End Sub
 End Class
 

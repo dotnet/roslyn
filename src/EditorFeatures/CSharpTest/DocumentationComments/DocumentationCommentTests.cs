@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -58,7 +60,7 @@ class C
 @"class C
 {
     //$$
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             var expected =
@@ -68,9 +70,9 @@ class C
     /// $$
     /// </summary>
     /// <typeparam name=""T""></typeparam>
-    /// <param name=""foo""></param>
+    /// <param name=""goo""></param>
     /// <returns></returns>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             VerifyTypingCharacter(code, expected);
@@ -83,7 +85,7 @@ class C
 @"class C
 {
     //$$
-    int M<@int>(int @foo) { return 0; }
+    int M<@int>(int @goo) { return 0; }
 }";
 
             var expected =
@@ -93,9 +95,9 @@ class C
     /// $$
     /// </summary>
     /// <typeparam name=""int""></typeparam>
-    /// <param name=""foo""></param>
+    /// <param name=""goo""></param>
     /// <returns></returns>
-    int M<@int>(int @foo) { return 0; }
+    int M<@int>(int @goo) { return 0; }
 }";
 
             VerifyTypingCharacter(code, expected);
@@ -192,7 +194,7 @@ class C
 @"class C
 {
     //$$
-    void M<T>(int foo) {  }
+    void M<T>(int goo) {  }
 }";
 
             var expected =
@@ -202,8 +204,8 @@ class C
     /// $$
     /// </summary>
     /// <typeparam name=""T""></typeparam>
-    /// <param name=""foo""></param>
-    void M<T>(int foo) {  }
+    /// <param name=""goo""></param>
+    void M<T>(int goo) {  }
 }";
 
             VerifyTypingCharacter(code, expected);
@@ -346,7 +348,7 @@ class C
 {
     //$$
     /// <summary></summary>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             var expected =
@@ -354,7 +356,7 @@ class C
 {
     ///$$
     /// <summary></summary>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             VerifyTypingCharacter(code, expected);
@@ -366,7 +368,7 @@ class C
             var code =
 @"class C
 {
-    void M(int foo)
+    void M(int goo)
     {
       //$$
     }
@@ -375,7 +377,7 @@ class C
             var expected =
 @"class C
 {
-    void M(int foo)
+    void M(int goo)
     {
       ///$$
     }
@@ -391,7 +393,7 @@ class C
 @"class C
 {
     /// <summary></summary>
-    void M(int foo)
+    void M(int goo)
     {
       //$$
     }
@@ -401,7 +403,7 @@ class C
 @"class C
 {
     /// <summary></summary>
-    void M(int foo)
+    void M(int goo)
     {
       ///$$
     }
@@ -547,7 +549,7 @@ class C
         public void PressingEnter_InsertComment_Class3()
         {
             var code =
-@"///$$[Foo] class C
+@"///$$[Goo] class C
 {
 }";
 
@@ -555,7 +557,7 @@ class C
 @"/// <summary>
 /// $$
 /// </summary>
-[Foo] class C
+[Goo] class C
 {
 }";
 
@@ -586,7 +588,7 @@ class C
 @"class C
 {
     ///$$
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             var expected =
@@ -596,9 +598,9 @@ class C
     /// $$
     /// </summary>
     /// <typeparam name=""T""></typeparam>
-    /// <param name=""foo""></param>
+    /// <param name=""goo""></param>
     /// <returns></returns>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             VerifyPressingEnter(code, expected);
@@ -610,7 +612,7 @@ class C
             var code =
 @"class C
 {
-    ///$$int M<T>(int foo) { return 0; }
+    ///$$int M<T>(int goo) { return 0; }
 }";
 
             var expected =
@@ -620,9 +622,9 @@ class C
     /// $$
     /// </summary>
     /// <typeparam name=""T""></typeparam>
-    /// <param name=""foo""></param>
+    /// <param name=""goo""></param>
     /// <returns></returns>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             VerifyPressingEnter(code, expected);
@@ -634,7 +636,7 @@ class C
             var code =
 @"class C
 {
-void Foo()
+void Goo()
 {
 ///$$
 }
@@ -643,7 +645,7 @@ void Foo()
             var expected =
 @"class C
 {
-void Foo()
+void Goo()
 {
 ///
 $$
@@ -801,7 +803,7 @@ $$/// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task foo()
+        public async Task goo()
         {
             var x = 1;
         }
@@ -815,7 +817,7 @@ $$/// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task foo()
+        public async Task goo()
         {
             var x = 1;
         }
@@ -997,7 +999,7 @@ class C
 {
     ///$$
     /// <summary></summary>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             var expected =
@@ -1006,7 +1008,7 @@ class C
     ///
     /// $$
     /// <summary></summary>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             VerifyPressingEnter(code, expected);
@@ -1040,7 +1042,7 @@ class C
     /// 
     /// </summary>
     /// <param name=""i"">$$</param>
-    void Foo(int i)
+    void Goo(int i)
     {
     }
 }";
@@ -1053,7 +1055,7 @@ class C
     /// </summary>
     /// <param name=""i"">
     /// $$</param>
-    void Foo(int i)
+    void Goo(int i)
     {
     }
 }";
@@ -1492,7 +1494,7 @@ class C { $$ }";
             var code =
 @"class C
 {
-    int M<T>(int foo) { $$return 0; }
+    int M<T>(int goo) { $$return 0; }
 }";
 
             var expected =
@@ -1502,9 +1504,9 @@ class C { $$ }";
     /// $$
     /// </summary>
     /// <typeparam name=""T""></typeparam>
-    /// <param name=""foo""></param>
+    /// <param name=""goo""></param>
     /// <returns></returns>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             VerifyInsertCommentCommand(code, expected);
@@ -1535,14 +1537,14 @@ class C
 @"class C
 {
     /// <summary></summary>
-    int M<T>(int foo) { $$return 0; }
+    int M<T>(int goo) { $$return 0; }
 }";
 
             var expected =
 @"class C
 {
     /// <summary></summary>
-    int M<T>(int foo) { $$return 0; }
+    int M<T>(int goo) { $$return 0; }
 }";
 
             VerifyInsertCommentCommand(code, expected);
@@ -1581,7 +1583,7 @@ class C { } class D { }";
             var code =
 @"class C
 {
-    protected abstract void $$Foo(); protected abstract void Bar();
+    protected abstract void $$Goo(); protected abstract void Bar();
 }";
 
             var expected =
@@ -1590,7 +1592,7 @@ class C { } class D { }";
     /// <summary>
     /// $$
     /// </summary>
-    protected abstract void Foo(); protected abstract void Bar();
+    protected abstract void Goo(); protected abstract void Bar();
 }";
 
             VerifyInsertCommentCommand(code, expected);
@@ -1603,13 +1605,13 @@ class C { } class D { }";
             var code =
 @"class C
 {
-    protected abstract void Foo(); protected abstract void $$Bar();
+    protected abstract void Goo(); protected abstract void $$Bar();
 }";
 
             var expected =
 @"class C
 {
-    protected abstract void Foo(); protected abstract void $$Bar();
+    protected abstract void Goo(); protected abstract void $$Bar();
 }";
 
             VerifyInsertCommentCommand(code, expected);
@@ -1876,6 +1878,40 @@ $$
 }";
 
             VerifyOpenLineBelow(code, expected, useTabs: true);
+        }
+
+        [WorkItem(468638, @"https://devdiv.visualstudio.com/DevDiv/NET%20Developer%20Experience%20IDE/_workitems/edit/468638")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void VerifyEnterWithTrimNewLineEditorConfigOption()
+        {
+            const string code =
+@"/// <summary>
+/// $$
+/// </summary>
+class C { }";
+
+            const string expected =
+@"/// <summary>
+///
+/// $$
+/// </summary>
+class C { }";
+
+            try
+            {
+                VerifyPressingEnter(code, expected, useTabs: true, setOptionsOpt:
+                workspace =>
+                {
+                    workspace.GetService<IEditorOptionsFactoryService>().GlobalOptions
+                        .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, true);
+                });
+            }
+            finally
+            {
+                TestWorkspace.CreateCSharp("").GetService<IEditorOptionsFactoryService>().GlobalOptions
+                        .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, false);
+            }
+            
         }
 
         protected override char DocumentationCommentCharacter

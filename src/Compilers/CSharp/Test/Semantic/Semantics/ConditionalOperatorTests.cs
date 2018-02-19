@@ -175,11 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestConditional("1 ? 2 : 3", null,
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool"));
 
-            TestConditional("foo ? 'a' : 'b'", null,
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "foo").WithArguments("foo"));
+            TestConditional("goo ? 'a' : 'b'", null,
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo"));
 
-            TestConditional("new Foo() ? GetObject() : null", null,
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Foo").WithArguments("Foo"));
+            TestConditional("new Goo() ? GetObject() : null", null,
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo"));
 
             // CONSIDER: dev10 reports ERR_ConstOutOfRange
             TestConditional("1 ? null : null", null,
@@ -909,11 +909,12 @@ class Program
 ";
             string expectedIL = @"
 {
-  // Code size       59 (0x3b)
+  // Code size       63 (0x3f)
   .maxstack  5
   .locals init (System.Collections.Generic.IEnumerable<string>[] V_0, //v1
-  System.Collections.IEnumerable[] V_1, //v2
-  System.Collections.IEnumerable[] V_2) //v3
+                System.Collections.IEnumerable[] V_1, //v2
+                System.Collections.IEnumerable[] V_2, //v3
+                System.Collections.IEnumerable[] V_3)
   IL_0000:  ldc.i4.1
   IL_0001:  newarr     ""System.Collections.Generic.IEnumerable<string>""
   IL_0006:  dup
@@ -929,20 +930,24 @@ class Program
   IL_001c:  ldc.i4.0
   IL_001d:  call       ""System.Collections.Generic.IEnumerable<object> System.Linq.Enumerable.Empty<object>()""
   IL_0022:  stelem.ref
-  IL_0023:  stloc.1
-  IL_0024:  ldloc.0
-  IL_0025:  dup
-  IL_0026:  brtrue.s   IL_002a
-  IL_0028:  pop
-  IL_0029:  ldloc.1
-  IL_002a:  stloc.2
-  IL_002b:  ldsfld     ""bool Program.testFlag""
-  IL_0030:  brfalse.s  IL_003a
-  IL_0032:  ldloc.2
-  IL_0033:  ldlen
-  IL_0034:  conv.i4
-  IL_0035:  call       ""void System.Console.WriteLine(int)""
-  IL_003a:  ret
+  IL_0023:  stloc.3
+  IL_0024:  ldloc.3
+  IL_0025:  stloc.1
+  IL_0026:  ldloc.0
+  IL_0027:  stloc.3
+  IL_0028:  ldloc.3
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_002e
+  IL_002c:  pop
+  IL_002d:  ldloc.1
+  IL_002e:  stloc.2
+  IL_002f:  ldsfld     ""bool Program.testFlag""
+  IL_0034:  brfalse.s  IL_003e
+  IL_0036:  ldloc.2
+  IL_0037:  ldlen
+  IL_0038:  conv.i4
+  IL_0039:  call       ""void System.Console.WriteLine(int)""
+  IL_003e:  ret
 }
 ";
 

@@ -1336,17 +1336,17 @@ Option Strict Off
 Imports System
 
 Module M
-    Function Foo(ByVal x As Func(Of Object), ByVal y As Integer) As String
+    Function Goo(ByVal x As Func(Of Object), ByVal y As Integer) As String
       Return "ABC"
     End Function
 
-    Sub Foo(ByVal x As Func(Of String), ByVal y As Long)
+    Sub Goo(ByVal x As Func(Of String), ByVal y As Long)
     End Sub
 
     Sub Main()
         Dim x As Object = 1
         Dim y As Long = 1
-        Console.WriteLine(Foo(Function() x, y).ToLower())
+        Console.WriteLine(Goo(Function() x, y).ToLower())
     End Sub
 End Module
     </file>
@@ -1635,13 +1635,13 @@ Imports System
 
 Class C
     Shared Sub Main()
-        Foo(Function() Function() Nothing)
+        Goo(Function() Function() Nothing)
     End Sub
 
-    Shared Sub Foo(x As Func(Of Func(Of String)))
+    Shared Sub Goo(x As Func(Of Func(Of String)))
     End Sub
 
-    Sub Foo(x As Func(Of Func(Of Object)))
+    Sub Goo(x As Func(Of Func(Of Object)))
     End Sub
 End Class
         </file>

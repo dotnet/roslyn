@@ -233,18 +233,18 @@ interface I : IComparable<IComparable<I>> { }
 
 class C
 {
-    static void Foo(Func<IComparable<I>> x) { }
-    static void Foo(Func<I> x) {}
+    static void Goo(Func<IComparable<I>> x) { }
+    static void Goo(Func<I> x) {}
     static void M()
     {
-        Foo(() => null);
+        Goo(() => null);
     }
 }
 ";
             CreateStandardCompilation(source).VerifyDiagnostics(
-                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(Func<IComparable<I>>)' and 'C.Foo(Func<I>)'
-                //         Foo(() => null);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("C.Foo(System.Func<System.IComparable<I>>)", "C.Foo(System.Func<I>)").WithLocation(12, 9));
+                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Goo(Func<IComparable<I>>)' and 'C.Goo(Func<I>)'
+                //         Goo(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("C.Goo(System.Func<System.IComparable<I>>)", "C.Goo(System.Func<I>)").WithLocation(12, 9));
         }
 
         [WorkItem(539976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539976")]
@@ -276,8 +276,8 @@ class C
 using System;
 public static class A
 {
-    public static void Foo(Func<B, object> func) { }
-    public static void Foo(Func<C, object> func) { }
+    public static void Goo(Func<B, object> func) { }
+    public static void Goo(Func<C, object> func) { }
 }
 
 public class B
@@ -305,7 +305,7 @@ class Program
 {
     static void Main()
     {
-        A.Foo(x => x.GetUrl());
+        A.Goo(x => x.GetUrl());
     }
 }
 ";
@@ -328,11 +328,11 @@ using stdole;
 
 public static class A
 {
-    public static void Foo(Func<X> func) 
+    public static void Goo(Func<X> func) 
     { 
         System.Console.WriteLine(""X"");
 }
-    public static void Foo(Func<Y> func) 
+    public static void Goo(Func<Y> func) 
     { 
         System.Console.WriteLine(""Y"");
     }
@@ -352,7 +352,7 @@ public class Program
 {
     public static void Main()
     {
-        A.Foo(() => delegate { });
+        A.Goo(() => delegate { });
     }
 }
 ";
@@ -427,9 +427,9 @@ End Namespace
 
 
 Public Module M
-  Sub Foo(x as Action(Of String))
+  Sub Goo(x as Action(Of String))
   End Sub
-  Sub Foo(x as Action(Of GC))
+  Sub Goo(x as Action(Of GC))
   End Sub
 End Module
 ";
@@ -444,7 +444,7 @@ class Program
 {
     static void Main()
     {
-        M.Foo(x => { });
+        M.Goo(x => { });
     }
 }
 ";
@@ -788,11 +788,11 @@ class Program
 {
     static void Main()
     {
-        Foo(() => () => { var x = (IEnumerable<int>)null; return x; });
+        Goo(() => () => { var x = (IEnumerable<int>)null; return x; });
     }
  
-    static void Foo(Func<Func<IEnumerable>> x) { }
-    static void Foo(Func<Func<IFormattable>> x) { }
+    static void Goo(Func<Func<IEnumerable>> x) { }
+    static void Goo(Func<Func<IFormattable>> x) { }
 }
 ";
             var compilation = CreateStandardCompilation(source);
@@ -804,7 +804,7 @@ class Program
             // Used to throw a NRE because of the ExpressionSyntax's null SyntaxTree.
             model.GetSpeculativeSymbolInfo(
                 invocation.SpanStart,
-                SyntaxFactory.ParseExpression("Foo(() => () => { var x = null; return x; })"), // cast removed
+                SyntaxFactory.ParseExpression("Goo(() => () => { var x = null; return x; })"), // cast removed
                 SpeculativeBindingOption.BindAsExpression);
         }
 
@@ -1290,11 +1290,11 @@ class Program
     static void Main()
     {
         ICloneable c = """";
-        Foo(() => (c.Clone()), null);
+        Goo(() => (c.Clone()), null);
     }
  
-    static void Foo(Action x, string y) { }
-    static void Foo(Func<object> x, object y) { Console.WriteLine(42); }
+    static void Goo(Action x, string y) { }
+    static void Goo(Func<object> x, object y) { Console.WriteLine(42); }
 }", options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
@@ -2007,7 +2007,7 @@ class Program
     static void Main(string[] args)
     {
         var z = args.Select(a => a.
-        var foo = 
+        var goo = 
     }
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
@@ -2474,6 +2474,113 @@ class Test1<T>
                 );
         }
 
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
+        public void LambdaSquigglesArea()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        System.Func<bool, System.Action<bool>> x = x1 => x2 =>
+        {
+            error();
+        };
+    }
+}
+";
+            var comp = CreateStandardCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'error' does not exist in the current context
+                //             error();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "error").WithArguments("error").WithLocation(8, 13),
+                // (6,58): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         System.Func<bool, System.Action<bool>> x = x1 => x2 =>
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "x2 =>").WithArguments("lambda expression").WithLocation(6, 58)
+                );
+        }
+
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
+        public void LambdaSquigglesAreaInAsync()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        System.Func<bool, System.Threading.Tasks.Task<System.Action<bool>>> x = async x1 => x2 =>
+        {
+            error();
+        };
+    }
+}
+";
+            var comp = CreateStandardCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'error' does not exist in the current context
+                //             error();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "error").WithArguments("error").WithLocation(8, 13),
+                // (6,93): error CS4010: Cannot convert async lambda expression to delegate type 'Task<Action<bool>>'. An async lambda expression may return void, Task or Task<T>, none of which are convertible to 'Task<Action<bool>>'.
+                //         System.Func<bool, System.Threading.Tasks.Task<System.Action<bool>>> x = async x1 => x2 =>
+                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "x2 =>").WithArguments("lambda expression", "System.Threading.Tasks.Task<System.Action<bool>>").WithLocation(6, 93),
+                // (6,90): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         System.Func<bool, System.Threading.Tasks.Task<System.Action<bool>>> x = async x1 => x2 =>
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 90)
+                );
+        }
+
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
+        public void DelegateSquigglesArea()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        System.Func<bool, System.Action<bool>> x = x1 => delegate(bool x2)
+        {
+            error();
+        };
+    }
+}
+";
+            var comp = CreateStandardCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'error' does not exist in the current context
+                //             error();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "error").WithArguments("error").WithLocation(8, 13),
+                // (6,58): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         System.Func<bool, System.Action<bool>> x = x1 => delegate(bool x2)
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "delegate(bool x2)").WithArguments("lambda expression").WithLocation(6, 58)
+                );
+        }
+
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
+        public void DelegateWithoutArgumentsSquigglesArea()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        System.Func<bool, System.Action> x = x1 => delegate
+        {
+            error();
+        };
+    }
+}
+";
+            var comp = CreateStandardCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'error' does not exist in the current context
+                //             error();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "error").WithArguments("error").WithLocation(8, 13),
+                // (6,52): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         System.Func<bool, System.Action> x = x1 => delegate
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "delegate").WithArguments("lambda expression").WithLocation(6, 52)
+                );
+        }
+
         [Fact]
         public void ThrowExpression_Lambda()
         {
@@ -2522,6 +2629,85 @@ class C
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "1234");
+        }
+
+        [Fact, WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
+        public void InMalformedEmbeddedStatement_01()
+        {
+            var source = @"
+class Program
+{
+    void method1()
+    {
+        if (method2())
+            .Any(b => b.ContentType, out var chars)
+        {
+        }
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var comp = CreateStandardCompilation(tree);
+
+            ExpressionSyntax contentType = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "ContentType").Single();
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("ContentType", contentType.ToString());
+            Assert.Null(model.GetSymbolInfo(contentType).Symbol);
+            Assert.Equal(TypeKind.Error, model.GetTypeInfo(contentType).Type.TypeKind);
+
+            ExpressionSyntax b = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b").Single();
+
+            model = comp.GetSemanticModel(tree);
+            Assert.Equal("b", b.ToString());
+            ISymbol symbol = model.GetSymbolInfo(b).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+            Assert.Equal("? b", symbol.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, model.GetTypeInfo(b).Type.TypeKind);
+
+            ParameterSyntax parameterSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+
+            model = comp.GetSemanticModel(tree);
+            symbol = model.GetDeclaredSymbol(parameterSyntax);
+            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+            Assert.Equal("? b", symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
+        public void InMalformedEmbeddedStatement_02()
+        {
+            var source = @"
+class Program
+{
+    void method1()
+    {
+        if (method2())
+            .Any(b => b.ContentType, out var chars)
+        {
+        }
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var comp = CreateStandardCompilation(tree);
+
+            ExpressionSyntax contentType = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "ContentType").Single();
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("ContentType", contentType.ToString());
+            var lambda = (MethodSymbol)model.GetEnclosingSymbol(contentType.SpanStart);
+            Assert.Equal(MethodKind.AnonymousFunction, lambda.MethodKind);
+
+            ExpressionSyntax b = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b").Single();
+
+            model = comp.GetSemanticModel(tree);
+            Assert.Equal("b", b.ToString());
+            lambda = (MethodSymbol)model.GetEnclosingSymbol(b.SpanStart);
+            Assert.Equal(MethodKind.AnonymousFunction, lambda.MethodKind);
+
+            model = comp.GetSemanticModel(tree);
+            ParameterSyntax parameterSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+            Assert.Equal("void Program.method1()", model.GetEnclosingSymbol(parameterSyntax.SpanStart).ToTestDisplayString());
         }
     }
 }

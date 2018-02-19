@@ -24,9 +24,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
     Async Function rtrt() As Task
         Await gt()
     End Function
- 
-    Async Function gt() As Task
-    End Function
+
+Async Function gt() As Task
+End Function
 </ModuleDeclaration>
             Await TestAsync(initial, expected)
         End Function

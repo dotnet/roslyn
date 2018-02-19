@@ -49,11 +49,11 @@ class C
             VisualStudio.Editor.Verify.CompletionItemsExist("T");
 
             VisualStudio.Editor.SendKeys(' ');
-            VisualStudio.Editor.SendKeys("Foo<T>() { }");
+            VisualStudio.Editor.SendKeys("Goo<T>() { }");
             VisualStudio.Editor.Verify.TextContains(@"
 class C
 {
-    public T Foo<T>() { }$$
+    public T Goo<T>() { }$$
 }",
 assertCaretPosition: true);
         }
@@ -88,7 +88,7 @@ public static class NavigateTo
         {
             VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            VisualStudio.Editor.SendKeys("nam Foo", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("nam Goo", VirtualKey.Enter);
             VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
             VisualStudio.Editor.SendKeys("pu cla Program", VirtualKey.Enter);
             VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
@@ -109,14 +109,14 @@ public static class NavigateTo
         {
             VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            VisualStudio.Editor.SendKeys("nam Foo");
-            VisualStudio.Editor.Verify.CurrentLineText("namespace Foo$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("nam Goo");
+            VisualStudio.Editor.Verify.CurrentLineText("namespace Goo$$", assertCaretPosition: true);
 
             ClearEditor();
             VisualStudio.Workspace.SetUseSuggestionMode(true);
 
-            VisualStudio.Editor.SendKeys("nam Foo");
-            VisualStudio.Editor.Verify.CurrentLineText("nam Foo$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("nam Goo");
+            VisualStudio.Editor.Verify.CurrentLineText("nam Goo$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

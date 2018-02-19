@@ -52,8 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             while (peersToProcess.Count > 0)
             {
                 var peer = peersToProcess.Dequeue();
-                var itemWrapperAutomationPeer = peer as ListBoxItemWrapperAutomationPeer;
-                if (itemWrapperAutomationPeer != null)
+                if (peer is ListBoxItemWrapperAutomationPeer itemWrapperAutomationPeer)
                 {
                     results.Add(itemWrapperAutomationPeer);
                 }

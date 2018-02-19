@@ -7,13 +7,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         Public Sub ApplyAfterUsingStatement()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-Sub foo()
+Sub goo()
 Using variable
 End Sub
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-Sub foo()
+Sub goo()
 Using variable
 
 End Using
@@ -26,7 +26,7 @@ End Class",
         Public Sub DontApplyForMatchedUsing()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-Sub foo()
+Sub goo()
 Using variable
 End Using
 End Sub

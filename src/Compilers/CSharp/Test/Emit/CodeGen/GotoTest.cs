@@ -21,7 +21,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine(""foo"");
+        Console.WriteLine(""goo"");
         goto bar;
         Console.Write(""you won't see me"");
         bar: Console.WriteLine(""bar"");
@@ -29,7 +29,7 @@ public class Program
     }
 }
 ";
-            string expectedOutput = @"foo
+            string expectedOutput = @"goo
 bar
 ";
 
@@ -47,14 +47,14 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine(""foo"");
+        Console.WriteLine(""goo"");
         goto bar;
         Console.Write(""you won't see me"");
         bar: Console.WriteLine(""bar"");
     }
 }
 ";
-            string expectedOutput = @"foo
+            string expectedOutput = @"goo
 bar
 ";
 
@@ -817,7 +817,7 @@ L0: ;
 @"True
 False";
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Passes);
         }
 
         [Fact]
@@ -868,7 +868,7 @@ if (Q < 4) goto L;";
 3: F
 4: Q";
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]
@@ -951,7 +951,7 @@ default:
             string expectedOutput =
 @"3";
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Passes);
         }
 
         [Fact]

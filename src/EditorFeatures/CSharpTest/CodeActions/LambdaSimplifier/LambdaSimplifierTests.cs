@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(s [||]=> Quux(s));
     }
@@ -33,7 +33,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(Quux);
     }
@@ -52,7 +52,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(s [||]=> Quux(s));
     }
@@ -64,7 +64,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(Quux);
     }
@@ -83,7 +83,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(s [||]=> Quux(s));
     }
@@ -95,7 +95,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(Quux);
     }
@@ -114,7 +114,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(s [||]=> Quux(s));
     }
@@ -132,7 +132,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(s [||]=> Quux(s));
     }
@@ -150,7 +150,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(s [||]=> Quux(s));
     }
@@ -168,7 +168,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar((s1, s2) [||]=> Quux(s1, s2));
     }
@@ -180,7 +180,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(Quux);
     }
@@ -199,7 +199,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar((s1, s2) [||]=> {
             return Quux(s1, s2);
@@ -213,7 +213,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(Quux);
     }
@@ -232,7 +232,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar((s1, s2) [||]=> {
             return this.Quux(s1, s2);
@@ -246,7 +246,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(this.Quux);
     }
@@ -265,7 +265,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(s [||]=> Quux(s));
         Bar(s => Quux(s));
@@ -278,7 +278,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(Quux);
         Bar(s => Quux(s));
@@ -294,7 +294,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(s [||]=> Quux(s));
         Bar(s => Quux(s));
@@ -307,7 +307,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(Quux);
         Bar(Quux);
@@ -328,7 +328,7 @@ class C
 
 class A
 {
-    static void Foo<T>(T x) where T : class
+    static void Goo<T>(T x) where T : class
     {
     }
 
@@ -342,7 +342,7 @@ class A
 
     static void Main()
     {
-        Bar(x => [||]Foo(x));
+        Bar(x => [||]Goo(x));
     }
 }");
         }
@@ -358,26 +358,26 @@ class Program
 {
     static void Main()
     {
-        C<string>.InvokeFoo();
+        C<string>.InvokeGoo();
     }
 }
 
 class C<T>
 {
-    public static void InvokeFoo()
+    public static void InvokeGoo()
     {
-        Action<dynamic, string> foo = (x, y) => [||]C<T>.Foo(x, y); // Simplify lambda expression
-        foo(1, "");
+        Action<dynamic, string> goo = (x, y) => [||]C<T>.Goo(x, y); // Simplify lambda expression
+        goo(1, "");
     }
 
-    static void Foo(object x, object y)
+    static void Goo(object x, object y)
     {
-        Console.WriteLine(""Foo(object x, object y)"");
+        Console.WriteLine(""Goo(object x, object y)"");
     }
 
-    static void Foo(object x, T y)
+    static void Goo(object x, T y)
     {
-        Console.WriteLine(""Foo(object x, T y)"");
+        Console.WriteLine(""Goo(object x, T y)"");
     }
 }");
         }
@@ -393,31 +393,31 @@ class Program
 {
     static void Main()
     {
-        C<string>.InvokeFoo();
+        C<string>.InvokeGoo();
     }
 }
 
 class Casd<T>
 {
-    public static void InvokeFoo()
+    public static void InvokeGoo()
     {
-        Action<dynamic> foo = x => [||]Casd<T>.Foo(x); // Simplify lambda expression
-        foo(1, "");
+        Action<dynamic> goo = x => [||]Casd<T>.Goo(x); // Simplify lambda expression
+        goo(1, "");
     }
 
-    private static void Foo(dynamic x)
+    private static void Goo(dynamic x)
     {
         throw new NotImplementedException();
     }
 
-    static void Foo(object x, object y)
+    static void Goo(object x, object y)
     {
-        Console.WriteLine(""Foo(object x, object y)"");
+        Console.WriteLine(""Goo(object x, object y)"");
     }
 
-    static void Foo(object x, T y)
+    static void Goo(object x, T y)
     {
-        Console.WriteLine(""Foo(object x, T y)"");
+        Console.WriteLine(""Goo(object x, T y)"");
     }
 }");
         }
@@ -458,7 +458,7 @@ class C
     public static bool operator >(Func<string> y, C x) { return true; }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(545856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]

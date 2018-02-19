@@ -9,6 +9,7 @@ using Roslyn.Utilities;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -50,8 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, Workspace workspace)
         {
-            var builtInAnalyzer = analyzer as IBuiltInAnalyzer;
-            if (builtInAnalyzer != null)
+            if (analyzer is IBuiltInAnalyzer builtInAnalyzer)
             {
                 return builtInAnalyzer.OpenFileOnly(workspace);
             }
@@ -284,6 +284,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return language == LanguageNames.CSharp ? csharpMessage : vbMessage;
+        }
+
+        public static void AppendAnalyzerMap(this Dictionary<string, DiagnosticAnalyzer> analyzerMap, IEnumerable<DiagnosticAnalyzer> analyzers)
+        {
+            foreach (var analyzer in analyzers)
+            {
+                // user might have included exact same analyzer twice as project analyzers explicitly. we consider them as one
+                analyzerMap[analyzer.GetAnalyzerId()] = analyzer;
+            }
         }
     }
 }

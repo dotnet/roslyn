@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 
     public class HostModel
     {
-        public readonly int Foo;
+        public readonly int Goo;
     }
 
     public class InteractiveSessionTests : TestBase
@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         {
             var script = CSharpScript.Create(@"
 static string outerStr = null;
-public static void Foo(string str) { outerStr = str; }
+public static void Goo(string str) { outerStr = str; }
 class InnerClass
 {
    public string innerStr = null;
-   public void Goo() { Foo(""test""); innerStr = outerStr; }       
+   public void Goo() { Goo(""test""); innerStr = outerStr; }       
 }
 ").ContinueWith(@"
 InnerClass iC = new InnerClass();
@@ -60,11 +60,11 @@ System.Console.WriteLine(iC.innerStr);
         {
             var script = CSharpScript.Create(@"
 static string outerStr = null;
-public static void Foo(string str) { outerStr = str; }
+public static void Goo(string str) { outerStr = str; }
 struct InnerStruct
 {
    public string innerStr;
-   public void Goo() { Foo(""test""); innerStr = outerStr; }            
+   public void Goo() { Goo(""test""); innerStr = outerStr; }            
 }
 ").ContinueWith(@"
 InnerStruct iS = new InnerStruct();     
@@ -103,7 +103,7 @@ void Method() { }
 ").ContinueWith(@"
 class C 
 {
-    public void Foo() 
+    public void Goo() 
     {
         object f = field;
         object p = Property;
@@ -167,15 +167,15 @@ object.ReferenceEquals(a.GetType(), c.GetType()).ToString() + "" "" +
         public void AnonymousTypes_Redefinition()
         {
             var script = CSharpScript.Create(@"
-var x = new { Foo = ""foo"" };
+var x = new { Goo = ""goo"" };
 ").ContinueWith(@"
-var x = new { Foo = ""foo"" };
+var x = new { Goo = ""goo"" };
 ").ContinueWith(@"
-x.Foo
+x.Goo
 ");
 
             var result = script.EvaluateAsync().Result;
-            Assert.Equal("foo", result);
+            Assert.Equal("goo", result);
         }
 
         [Fact]
@@ -214,9 +214,9 @@ new object[] { new[] { a, c }, new[] { b, d } }
             var script = CSharpScript.Create(@"
 dynamic expando = new ExpandoObject();  
 ", options).ContinueWith(@"
-expando.foo = 1;
+expando.goo = 1;
 ").ContinueWith(@"
-expando.foo
+expando.goo
 ");
 
             Assert.Equal(1, script.EvaluateAsync().Result);
@@ -253,7 +253,7 @@ E
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[DllImport(""foo"", 
+[DllImport(""goo"", 
     EntryPoint = ""bar"", 
     CallingConvention = CallingConvention.Cdecl, 
     CharSet = CharSet.Unicode, 
@@ -282,7 +282,7 @@ typeof(C)
             Assert.True(dllImport.PreserveSig);
             Assert.True(dllImport.ThrowOnUnmappableChar);
             Assert.Equal("bar", dllImport.EntryPoint);
-            Assert.Equal("foo", dllImport.Value);
+            Assert.Equal("goo", dllImport.Value);
         }
 
         #endregion
@@ -295,16 +295,16 @@ typeof(C)
         public void PrivateTopLevel()
         {
             var script = CSharpScript.Create<int>(@"
-private int foo() { return 1; }
+private int goo() { return 1; }
 private static int bar() { return 10; }
 private static int f = 100;
 
-foo() + bar() + f
+goo() + bar() + f
 ");
             Assert.Equal(111, script.EvaluateAsync().Result);
 
             script = script.ContinueWith<int>(@"
-foo() + bar() + f
+goo() + bar() + f
 ");
 
             Assert.Equal(111, script.EvaluateAsync().Result);
@@ -326,30 +326,30 @@ private class C
 { 
     internal class D
     {
-        internal static int foo() { return 1; } 
+        internal static int goo() { return 1; } 
     }
 
     private class E
     {
-        internal static int foo() { return 1; } 
+        internal static int goo() { return 1; } 
     }
 
     public class F
     {
-        internal protected static int foo() { return 1; } 
+        internal protected static int goo() { return 1; } 
     }
 
     internal protected class G
     {
-        internal static int foo() { return 1; } 
+        internal static int goo() { return 1; } 
     }
 }
 ");
-            Assert.Equal(1, script.ContinueWith<int>("C.D.foo()").EvaluateAsync().Result);
-            Assert.Equal(1, script.ContinueWith<int>("C.F.foo()").EvaluateAsync().Result);
-            Assert.Equal(1, script.ContinueWith<int>("C.G.foo()").EvaluateAsync().Result);
+            Assert.Equal(1, script.ContinueWith<int>("C.D.goo()").EvaluateAsync().Result);
+            Assert.Equal(1, script.ContinueWith<int>("C.F.goo()").EvaluateAsync().Result);
+            Assert.Equal(1, script.ContinueWith<int>("C.G.goo()").EvaluateAsync().Result);
 
-            ScriptingTestHelpers.AssertCompilationError(script.ContinueWith<int>(@"C.E.foo()"),
+            ScriptingTestHelpers.AssertCompilationError(script.ContinueWith<int>(@"C.E.goo()"),
                 // error CS0122: 'C.E' is inaccessible due to its protection level
                 Diagnostic(ErrorCode.ERR_BadAccess, "E").WithArguments("C.E"));
         }
@@ -420,19 +420,19 @@ pi = i + j + k + l;
             var s0 = CSharpScript.RunAsync("", ScriptOptions.Default.AddReferences(HostAssembly));
 
             var state = s0.
-                ContinueWith("class X { public int foo() { return 1; } }").
-                ContinueWith("class X { public int foo() { return 1; } }").
+                ContinueWith("class X { public int goo() { return 1; } }").
+                ContinueWith("class X { public int goo() { return 1; } }").
                 ContinueWith("using InteractiveFixtures.A;").
-                ContinueWith("new X().foo()");
+                ContinueWith("new X().goo()");
 
             Assert.Equal(1, state.Result.ReturnValue);
 
             state =
                 s0.
-                ContinueWith("class X { public int foo() { return 1; } }").
+                ContinueWith("class X { public int goo() { return 1; } }").
                 ContinueWith(@"
 using InteractiveFixtures.A;
-new X().foo()
+new X().goo()
 ");
 
             Assert.Equal(1, state.Result.ReturnValue);
@@ -696,7 +696,7 @@ class B<T> : A<B<B<T>>> { }
         public void CompilationChain_GenericMethods()
         {
             var s0 = CSharpScript.Create(@"
-public int foo<T, R>(T arg) { return 1; }
+public int goo<T, R>(T arg) { return 1; }
 
 public static T bar<T>(T i)
 {
@@ -704,7 +704,7 @@ public static T bar<T>(T i)
 }
 ");
 
-            Assert.Equal(1, s0.ContinueWith(@"foo<int, int>(1)").EvaluateAsync().Result);
+            Assert.Equal(1, s0.ContinueWith(@"goo<int, int>(1)").EvaluateAsync().Result);
             Assert.Equal(5, s0.ContinueWith(@"bar(5)").EvaluateAsync().Result);
         }
 
@@ -828,11 +828,11 @@ TestDelegate testDelB = delegate (string s) { Console.WriteLine(s); };
         public void Closure()
         {
             var f = CSharpScript.EvaluateAsync<Func<int, int>>(@"
-int Foo(int arg) { return arg + 1; }
+int Goo(int arg) { return arg + 1; }
 
 System.Func<int, int> f = (arg) =>
 {
-    return Foo(arg);
+    return Goo(arg);
 };
 
 f
@@ -972,10 +972,10 @@ fruit.Skip(1).Where(s => s.Length > 4).Count()", options).Result;
             var result = CSharpScript.EvaluateAsync<object[]>(@"
 var x = 1;
 var y = x;
-var z = foo(x);
+var z = goo(x);
 
-string foo(int a) { return null; } 
-int foo(string a) { return 0; }
+string goo(int a) { return null; } 
+int goo(string a) { return 0; }
 
 new object[] { x, y, z }
 ").Result;
@@ -1167,7 +1167,7 @@ new C()
             string root = Path.GetPathRoot(file.Path);
             string unrooted = file.Path.Substring(root.Length);
 
-            string dir = Path.Combine(root, "foo", "bar", "baz");
+            string dir = Path.Combine(root, "goo", "bar", "baz");
             string scriptPath = Path.Combine(dir, "a.csx");
 
             var script = CSharpScript.Create(
@@ -1507,8 +1507,8 @@ new List<ArgumentException>()
         [Fact]
         public void HostObjectBinding_StaticMembers()
         {
-            var s0 = CSharpScript.RunAsync("static int foo = StaticField;", globals: new C());
-            var s1 = s0.ContinueWith("static int bar { get { return foo; } }");
+            var s0 = CSharpScript.RunAsync("static int goo = StaticField;", globals: new C());
+            var s1 = s0.ContinueWith("static int bar { get { return goo; } }");
             var s2 = s1.ContinueWith("class C { public static int baz() { return bar; } }");
             var s3 = s2.ContinueWith("C.baz()");
 
@@ -1517,7 +1517,7 @@ new List<ArgumentException>()
 
         public class D
         {
-            public int foo(int a) { return 0; }
+            public int goo(int a) { return 0; }
         }
 
         /// <summary>
@@ -1526,11 +1526,11 @@ new List<ArgumentException>()
         [Fact]
         public void HostObjectBinding_Overloads()
         {
-            var s0 = CSharpScript.RunAsync("int foo(double a) { return 2; }", globals: new D());
-            var s1 = s0.ContinueWith("foo(1)");
+            var s0 = CSharpScript.RunAsync("int goo(double a) { return 2; }", globals: new D());
+            var s1 = s0.ContinueWith("goo(1)");
             Assert.Equal(2, s1.Result.ReturnValue);
 
-            var s2 = s1.ContinueWith("foo(1.0)");
+            var s2 = s1.ContinueWith("goo(1.0)");
             Assert.Equal(2, s2.Result.ReturnValue);
         }
 

@@ -23,25 +23,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MyClassAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(|</MethodBody>, "MyClass")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "MyClass")
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MyClassAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar, |</MethodBody>, "MyClass")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, "MyClass")
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MyClassAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar + |</MethodBody>, "MyClass")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, "MyClass")
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MyClassAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(Not |</MethodBody>, "MyClass")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, "MyClass")
         End Function
 
         <Fact>
@@ -130,8 +130,8 @@ Loop Until |</MethodBody>, "MyClass")
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MyClassNotInModuleTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Module Foo
-Sub Foo()
+Module Goo
+Sub Goo()
 |
 End Sub()
 End Module</File>, "MyClass")
@@ -141,8 +141,8 @@ End Module</File>, "MyClass")
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MyClassNotInSharedMethodTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Class Foo
-Shared Sub Foo()
+Class Goo
+Shared Sub Goo()
 |
 End Sub()
 End Class</File>, "MyClass")
@@ -152,8 +152,8 @@ End Class</File>, "MyClass")
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MyClassInStructureTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Module Foo
-Sub Foo()
+Module Goo
+Sub Goo()
 |
 End Sub()
 End Module</File>, "MyClass")
@@ -184,7 +184,7 @@ End Module</File>, "MyClass")
 End Class
 Public Class Derived
     Inherits Base
-    Sub Foo() Handles |
+    Sub Goo() Handles |
     End Sub
 End Class|</File>
 

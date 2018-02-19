@@ -187,7 +187,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return propertyBody.Expression;
             }
 
-            return accessorList?.Accessors.Where(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)).FirstOrDefault()?.Body;
+            var firstGetter = accessorList?.Accessors.Where(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)).FirstOrDefault();
+            if (firstGetter == null)
+            {
+                return null;
+            }
+
+            return (SyntaxNode)firstGetter.Body ?? firstGetter.ExpressionBody?.Expression;
         }
 
         public static SyntaxTokenList? TryGetFieldOrPropertyModifiers(SyntaxNode node)
@@ -254,8 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static bool IsAsyncMethodOrLambda(SyntaxNode declaration)
         {
-            var anonymousFunction = declaration as AnonymousFunctionExpressionSyntax;
-            if (anonymousFunction != null)
+            if (declaration is AnonymousFunctionExpressionSyntax anonymousFunction)
             {
                 return anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
             }

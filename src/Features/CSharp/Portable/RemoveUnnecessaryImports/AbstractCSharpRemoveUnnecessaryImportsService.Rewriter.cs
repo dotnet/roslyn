@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             {
                 var currentUsings = new List<UsingDirectiveSyntax>(usings);
 
-                finalTrivia = default(SyntaxTriviaList);
+                finalTrivia = default;
                 for (int i = 0; i < usings.Count; i++)
                 {
                     if (usingsToRemove.Contains(usings[i]))

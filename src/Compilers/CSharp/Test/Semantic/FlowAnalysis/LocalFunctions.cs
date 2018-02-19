@@ -8,6 +8,119 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctions : FlowTestBase
     {
         [Fact]
+        [WorkItem(17829, "https://github.com/dotnet/roslyn/issues/17829")]
+        public void UncalledLambdaInLocalFunction()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+class C
+{
+    void M()
+    {
+        void L()
+        {
+            Action a = () =>
+            {
+                int x;
+                x++;
+            };
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (12,17): error CS0165: Use of unassigned local variable 'x'
+                //                 x++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 17),
+                // (7,14): warning CS8321: The local function 'L' is declared but never used
+                //         void L()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "L").WithArguments("L").WithLocation(7, 14));
+        }
+
+        [Fact]
+        [WorkItem(17829, "https://github.com/dotnet/roslyn/issues/17829")]
+        public void LambdaInNestedUncalledLocalFunctions()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+class C
+{
+    void M()
+    {
+        void L1()
+        {
+            void L2()
+            {
+                Action a = () =>
+                {
+                    int x;
+                    x++;
+                };
+            }
+            L2();
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (14,21): error CS0165: Use of unassigned local variable 'x'
+                //                     x++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(14, 21),
+                // (7,14): warning CS8321: The local function 'L1' is declared but never used
+                //         void L1()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "L1").WithArguments("L1").WithLocation(7, 14));
+        }
+
+        [Fact]
+        [WorkItem(17829, "https://github.com/dotnet/roslyn/issues/17829")]
+        public void CapturedInLambdaInUncalledLocalFunction()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+class C
+{
+    void M()
+    {
+        void L()
+        {
+            int x;
+            Action f = () => x++;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (10,30): error CS0165: Use of unassigned local variable 'x'
+                //             Action f = () => x++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(10, 30),
+                // (7,14): warning CS8321: The local function 'L' is declared but never used
+                //         void L()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "L").WithArguments("L").WithLocation(7, 14));
+        }
+
+        [Fact]
+        [WorkItem(17829, "https://github.com/dotnet/roslyn/issues/17829")]
+        public void CapturedInNestedUncalledLocalFunctions()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        void L1()
+        {
+            int x;
+            void L2() => x++;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,18): warning CS8321: The local function 'L2' is declared but never used
+                //             void L2() => x++;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "L2").WithArguments("L2").WithLocation(9, 18),
+                // (6,14): warning CS8321: The local function 'L1' is declared but never used
+                //         void L1()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "L1").WithArguments("L1").WithLocation(6, 14));
+        }
+
+        [Fact]
         public void ConstUnassigned()
         {
             var comp = CreateStandardCompilation(@"
@@ -1166,24 +1279,24 @@ class C
     void M()
     {
         {
-            Foo();
+            Goo();
             int x = 0;
-            void Foo() => x++;
+            void Goo() => x++;
         }
         {
-            System.Action a = Foo;
+            System.Action a = Goo;
             int x = 0;
-            void Foo() => x++;
+            void Goo() => x++;
         }
     }
 }");
             comp.VerifyDiagnostics(
                 // (7,13): error CS0165: Use of unassigned local variable 'x'
-                //             Foo();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "Foo()").WithArguments("x").WithLocation(7, 13),
+                //             Goo();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Goo()").WithArguments("x").WithLocation(7, 13),
                 // (12,31): error CS0165: Use of unassigned local variable 'x'
-                //             System.Action a = Foo;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "Foo").WithArguments("x").WithLocation(12, 31));
+                //             System.Action a = Goo;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Goo").WithArguments("x").WithLocation(12, 31));
         }
 
         [Fact]
@@ -1198,18 +1311,18 @@ class Program
         switch(args[0])
         {
             case string x:
-                Foo(); 
+                Goo(); 
                 break;
             case int x:
-                void Foo() => System.Console.WriteLine(x);
+                void Goo() => System.Console.WriteLine(x);
                 break;
         }
     }
 }");
             comp.VerifyDiagnostics(
                 // (9,17): error CS0165: Use of unassigned local variable 'x'
-                //                 Foo();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "Foo()").WithArguments("x").WithLocation(9, 17));
+                //                 Goo();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Goo()").WithArguments("x").WithLocation(9, 17));
         }
 
         [Fact]
@@ -1389,23 +1502,23 @@ class c
 {
     static void Main(string[] args)
     {
-        System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool output)
+        System.Collections.Generic.IEnumerable<string> getGoo(int count, out bool output)
         {
             output = true;
-            yield return ""foo"";
+            yield return ""goo"";
         }
 
-        getFoo(1, out bool myBool);
+        getGoo(1, out bool myBool);
     }
 }");
 
             comp.VerifyDiagnostics(
                 // (6,83): error CS1623: Iterators cannot have ref or out parameters
-                //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+                //         System.Collections.Generic.IEnumerable<string> getGoo(int count, out bool goobar)
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "output"),
-                // (6,56): error CS0177: The out parameter 'foobar' must be assigned to before control leaves the current method
-                //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "getFoo").WithArguments("output").WithLocation(6, 56));
+                // (6,56): error CS0177: The out parameter 'goobar' must be assigned to before control leaves the current method
+                //         System.Collections.Generic.IEnumerable<string> getGoo(int count, out bool goobar)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "getGoo").WithArguments("output").WithLocation(6, 56));
         }
 
         [Fact]
@@ -1417,28 +1530,28 @@ class c
 {
     static void Main(string[] args)
     {
-        System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool output)
+        System.Collections.Generic.IEnumerable<string> getGoo(int count, out bool output)
         {
             output = false;
             for (int i = 0; i < count; i++)
             {
-                foreach (var val in getFoo(3, out var bar))
-                yield return ""foo"";
+                foreach (var val in getGoo(3, out var bar))
+                yield return ""goo"";
             }
-            yield return ""foo"";
+            yield return ""goo"";
         }
 
-        getFoo(1, out bool myBool);
+        getGoo(1, out bool myBool);
     }
 }");
 
             comp.VerifyDiagnostics(
                 // (6,83): error CS1623: Iterators cannot have ref or out parameters
-                //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+                //         System.Collections.Generic.IEnumerable<string> getGoo(int count, out bool goobar)
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "output"),
-                // (6,56): error CS0177: The out parameter 'foobar' must be assigned to before control leaves the current method
-                //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "getFoo").WithArguments("output").WithLocation(6, 56));
+                // (6,56): error CS0177: The out parameter 'goobar' must be assigned to before control leaves the current method
+                //         System.Collections.Generic.IEnumerable<string> getGoo(int count, out bool goobar)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "getGoo").WithArguments("output").WithLocation(6, 56));
         }
     }
 }

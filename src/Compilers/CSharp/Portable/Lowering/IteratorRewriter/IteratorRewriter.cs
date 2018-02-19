@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add a field: T current
             _currentField = F.StateMachineField(_elementType, GeneratedNames.MakeIteratorCurrentFieldName());
 
-            // if it is an enumerable, and either Environment.CurrentManagedThreadId or System.Thread are available
+            // if it is an enumerable, and either Environment.CurrentManagedThreadId or Thread.ManagedThreadId are available
             // add a field: int initialThreadId
             bool addInitialThreadId =
                    _isEnumerable &&

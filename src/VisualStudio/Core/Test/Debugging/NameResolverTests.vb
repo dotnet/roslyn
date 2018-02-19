@@ -35,19 +35,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             Dim text =
 <text>
 class C
-  sub Foo()
+  sub Goo()
   end sub
 end class</text>.Value
 
-            Await TestAsync(text, "Foo", "C.Foo()")
-            Await TestAsync(text, "foo", "C.Foo()")
-            Await TestAsync(text, "C.Foo", "C.Foo()")
-            Await TestAsync(text, "N.C.Foo")
-            Await TestAsync(text, "Foo(of T)")
-            Await TestAsync(text, "C(of T).Foo")
-            Await TestAsync(text, "Foo()", "C.Foo()")
-            Await TestAsync(text, "Foo(i as Integer)")
-            Await TestAsync(text, "Foo(Integer)")
+            Await TestAsync(text, "Goo", "C.Goo()")
+            Await TestAsync(text, "goo", "C.Goo()")
+            Await TestAsync(text, "C.Goo", "C.Goo()")
+            Await TestAsync(text, "N.C.Goo")
+            Await TestAsync(text, "Goo(of T)")
+            Await TestAsync(text, "C(of T).Goo")
+            Await TestAsync(text, "Goo()", "C.Goo()")
+            Await TestAsync(text, "Goo(i as Integer)")
+            Await TestAsync(text, "Goo(Integer)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
@@ -56,23 +56,23 @@ end class</text>.Value
 <text>
 namespace N
   class C
-    sub Foo()
+    sub Goo()
     end sub
   end class
 end namespace</text>.Value
 
-            Await TestAsync(text, "Foo", "N.C.Foo()")
-            Await TestAsync(text, "foo", "N.C.Foo()")
-            Await TestAsync(text, "C.Foo", "N.C.Foo()")
-            Await TestAsync(text, "n.c.Foo", "N.C.Foo()")
-            Await TestAsync(text, "Foo(of T)")
-            Await TestAsync(text, "C(of T).Foo")
-            Await TestAsync(text, "Foo()", "N.C.Foo()")
-            Await TestAsync(text, "C.Foo()", "N.C.Foo()")
-            Await TestAsync(text, "N.C.Foo()", "N.C.Foo()")
-            Await TestAsync(text, "Foo(i as Integer)")
-            Await TestAsync(text, "Foo(Integer)")
-            Await TestAsync(text, "Foo(a)")
+            Await TestAsync(text, "Goo", "N.C.Goo()")
+            Await TestAsync(text, "goo", "N.C.Goo()")
+            Await TestAsync(text, "C.Goo", "N.C.Goo()")
+            Await TestAsync(text, "n.c.Goo", "N.C.Goo()")
+            Await TestAsync(text, "Goo(of T)")
+            Await TestAsync(text, "C(of T).Goo")
+            Await TestAsync(text, "Goo()", "N.C.Goo()")
+            Await TestAsync(text, "C.Goo()", "N.C.Goo()")
+            Await TestAsync(text, "N.C.Goo()", "N.C.Goo()")
+            Await TestAsync(text, "Goo(i as Integer)")
+            Await TestAsync(text, "Goo(Integer)")
+            Await TestAsync(text, "Goo(a)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
@@ -81,24 +81,24 @@ end namespace</text>.Value
 <text>
 namespace N
   class C(of T)
-    sub Foo()
+    sub Goo()
     end sub
   end class
 end namespace</text>.Value
 
-            Await TestAsync(text, "Foo", "N.C(Of T).Foo()")
-            Await TestAsync(text, "foo", "N.C(Of T).Foo()")
-            Await TestAsync(text, "C.Foo", "N.C(Of T).Foo()")
-            Await TestAsync(text, "N.C.Foo", "N.C(Of T).Foo()")
-            Await TestAsync(text, "Foo(of T)")
-            Await TestAsync(text, "C(of T).Foo", "N.C(Of T).Foo()")
-            Await TestAsync(text, "C(of T).Foo()", "N.C(Of T).Foo()")
-            Await TestAsync(text, "Foo()", "N.C(Of T).Foo()")
-            Await TestAsync(text, "C.Foo()", "N.C(Of T).Foo()")
-            Await TestAsync(text, "N.C.Foo()", "N.C(Of T).Foo()")
-            Await TestAsync(text, "Foo(i as Integer)")
-            Await TestAsync(text, "Foo(Integer)")
-            Await TestAsync(text, "Foo(a)")
+            Await TestAsync(text, "Goo", "N.C(Of T).Goo()")
+            Await TestAsync(text, "goo", "N.C(Of T).Goo()")
+            Await TestAsync(text, "C.Goo", "N.C(Of T).Goo()")
+            Await TestAsync(text, "N.C.Goo", "N.C(Of T).Goo()")
+            Await TestAsync(text, "Goo(of T)")
+            Await TestAsync(text, "C(of T).Goo", "N.C(Of T).Goo()")
+            Await TestAsync(text, "C(of T).Goo()", "N.C(Of T).Goo()")
+            Await TestAsync(text, "Goo()", "N.C(Of T).Goo()")
+            Await TestAsync(text, "C.Goo()", "N.C(Of T).Goo()")
+            Await TestAsync(text, "N.C.Goo()", "N.C(Of T).Goo()")
+            Await TestAsync(text, "Goo(i as Integer)")
+            Await TestAsync(text, "Goo(Integer)")
+            Await TestAsync(text, "Goo(a)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
@@ -107,29 +107,29 @@ end namespace</text>.Value
 <text>
 namespace N
   class C
-    sub Foo(of T)()
+    sub Goo(of T)()
     end sub
   end class
 end namespace</text>.Value
 
-            Await TestAsync(text, "Foo", "N.C.Foo(Of T)()")
-            Await TestAsync(text, "foo", "N.C.Foo(Of T)()")
-            Await TestAsync(text, "C.Foo", "N.C.Foo(Of T)()")
-            Await TestAsync(text, "N.C.Foo", "N.C.Foo(Of T)()")
-            Await TestAsync(text, "Foo(of T)", "N.C.Foo(Of T)()")
-            Await TestAsync(text, "Foo(of X)", "N.C.Foo(Of T)()")
-            Await TestAsync(text, "Foo(of T,X)")
-            Await TestAsync(text, "C(of T).Foo")
-            Await TestAsync(text, "C(of T).Foo()")
-            Await TestAsync(text, "Foo()", "N.C.Foo(Of T)()")
-            Await TestAsync(text, "C.Foo()", "N.C.Foo(Of T)()")
-            Await TestAsync(text, "N.C.Foo()", "N.C.Foo(Of T)()")
-            Await TestAsync(text, "Foo(i as Integer)")
-            Await TestAsync(text, "Foo(Integer)")
-            Await TestAsync(text, "Foo(a)")
-            Await TestAsync(text, "Foo(of T)(i as Integer)")
-            Await TestAsync(text, "Foo(of T)(Integer)")
-            Await TestAsync(text, "Foo(of T)(a)")
+            Await TestAsync(text, "Goo", "N.C.Goo(Of T)()")
+            Await TestAsync(text, "goo", "N.C.Goo(Of T)()")
+            Await TestAsync(text, "C.Goo", "N.C.Goo(Of T)()")
+            Await TestAsync(text, "N.C.Goo", "N.C.Goo(Of T)()")
+            Await TestAsync(text, "Goo(of T)", "N.C.Goo(Of T)()")
+            Await TestAsync(text, "Goo(of X)", "N.C.Goo(Of T)()")
+            Await TestAsync(text, "Goo(of T,X)")
+            Await TestAsync(text, "C(of T).Goo")
+            Await TestAsync(text, "C(of T).Goo()")
+            Await TestAsync(text, "Goo()", "N.C.Goo(Of T)()")
+            Await TestAsync(text, "C.Goo()", "N.C.Goo(Of T)()")
+            Await TestAsync(text, "N.C.Goo()", "N.C.Goo(Of T)()")
+            Await TestAsync(text, "Goo(i as Integer)")
+            Await TestAsync(text, "Goo(Integer)")
+            Await TestAsync(text, "Goo(a)")
+            Await TestAsync(text, "Goo(of T)(i as Integer)")
+            Await TestAsync(text, "Goo(of T)(Integer)")
+            Await TestAsync(text, "Goo(of T)(a)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
@@ -137,24 +137,24 @@ end namespace</text>.Value
             Dim text =
 <text>
 class C
-  sub Foo()
+  sub Goo()
   end sub
 
-  sub Foo(i as Integer)
+  sub Goo(i as Integer)
   end sub
 end class
 </text>.Value
 
-            Await TestAsync(text, "Foo", "C.Foo()", "C.Foo(Integer)")
-            Await TestAsync(text, "foo", "C.Foo()", "C.Foo(Integer)")
-            Await TestAsync(text, "C.Foo", "C.Foo()", "C.Foo(Integer)")
-            Await TestAsync(text, "N.C.Foo")
-            Await TestAsync(text, "Foo(of T)")
-            Await TestAsync(text, "C(of T).Foo")
-            Await TestAsync(text, "Foo()", "C.Foo()")
-            Await TestAsync(text, "Foo(i as Integer)", "C.Foo(Integer)")
-            Await TestAsync(text, "Foo(Integer)", "C.Foo(Integer)")
-            Await TestAsync(text, "Foo(i)", "C.Foo(Integer)")
+            Await TestAsync(text, "Goo", "C.Goo()", "C.Goo(Integer)")
+            Await TestAsync(text, "goo", "C.Goo()", "C.Goo(Integer)")
+            Await TestAsync(text, "C.Goo", "C.Goo()", "C.Goo(Integer)")
+            Await TestAsync(text, "N.C.Goo")
+            Await TestAsync(text, "Goo(of T)")
+            Await TestAsync(text, "C(of T).Goo")
+            Await TestAsync(text, "Goo()", "C.Goo()")
+            Await TestAsync(text, "Goo(i as Integer)", "C.Goo(Integer)")
+            Await TestAsync(text, "Goo(Integer)", "C.Goo(Integer)")
+            Await TestAsync(text, "Goo(i)", "C.Goo(Integer)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
@@ -163,29 +163,29 @@ end class
 <text>
 namespace N
   class C
-    sub Foo()
+    sub Goo()
     end sub
   end class
 end namespace
 
 namespace N1
   class C
-    sub Foo(i as Integer)
+    sub Goo(i as Integer)
     end sub
   end class
 end namespace</text>.Value
 
-            Await TestAsync(text, "Foo", "N1.C.Foo(Integer)", "N.C.Foo()")
-            Await TestAsync(text, "foo", "N1.C.Foo(Integer)", "N.C.Foo()")
-            Await TestAsync(text, "C.Foo", "N1.C.Foo(Integer)", "N.C.Foo()")
-            Await TestAsync(text, "N.C.Foo", "N.C.Foo()")
-            Await TestAsync(text, "N1.C.Foo", "N1.C.Foo(Integer)")
-            Await TestAsync(text, "Foo(of T)")
-            Await TestAsync(text, "C(of T).Foo")
-            Await TestAsync(text, "Foo()", "N.C.Foo()")
-            Await TestAsync(text, "Foo(i as Integer)", "N1.C.Foo(Integer)")
-            Await TestAsync(text, "Foo(Integer)", "N1.C.Foo(Integer)")
-            Await TestAsync(text, "Foo(i)", "N1.C.Foo(Integer)")
+            Await TestAsync(text, "Goo", "N1.C.Goo(Integer)", "N.C.Goo()")
+            Await TestAsync(text, "goo", "N1.C.Goo(Integer)", "N.C.Goo()")
+            Await TestAsync(text, "C.Goo", "N1.C.Goo(Integer)", "N.C.Goo()")
+            Await TestAsync(text, "N.C.Goo", "N.C.Goo()")
+            Await TestAsync(text, "N1.C.Goo", "N1.C.Goo(Integer)")
+            Await TestAsync(text, "Goo(of T)")
+            Await TestAsync(text, "C(of T).Goo")
+            Await TestAsync(text, "Goo()", "N.C.Goo()")
+            Await TestAsync(text, "Goo(i as Integer)", "N1.C.Goo(Integer)")
+            Await TestAsync(text, "Goo(Integer)", "N1.C.Goo(Integer)")
+            Await TestAsync(text, "Goo(i)", "N1.C.Goo(Integer)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
@@ -194,33 +194,33 @@ end namespace</text>.Value
 <text>
 namespace N
   class C
-    sub Foo()
+    sub Goo()
     end sub
   end class
 end namespace
 
 namespace N1
   class C
-    sub Foo(of T)(i as Integer)
+    sub Goo(of T)(i as Integer)
     end sub
   end class
 end namespace</text>.Value
 
-            Await TestAsync(text, "Foo", "N1.C.Foo(Of T)(Integer)", "N.C.Foo()")
-            Await TestAsync(text, "foo", "N1.C.Foo(Of T)(Integer)", "N.C.Foo()")
-            Await TestAsync(text, "C.Foo", "N1.C.Foo(Of T)(Integer)", "N.C.Foo()")
-            Await TestAsync(text, "N.C.Foo", "N.C.Foo()")
-            Await TestAsync(text, "N1.C.Foo", "N1.C.Foo(Of T)(Integer)")
-            Await TestAsync(text, "Foo(of T)", "N1.C.Foo(Of T)(Integer)")
-            Await TestAsync(text, "C(of T).Foo")
-            Await TestAsync(text, "Foo()", "N.C.Foo()")
-            Await TestAsync(text, "Foo(of T)()")
-            Await TestAsync(text, "Foo(i as Integer)", "N1.C.Foo(Of T)(Integer)")
-            Await TestAsync(text, "Foo(Integer)", "N1.C.Foo(Of T)(Integer)")
-            Await TestAsync(text, "Foo(i)", "N1.C.Foo(Of T)(Integer)")
-            Await TestAsync(text, "Foo(of T)(i as Integer)", "N1.C.Foo(Of T)(Integer)")
-            Await TestAsync(text, "Foo(of T)(Integer)", "N1.C.Foo(Of T)(Integer)")
-            Await TestAsync(text, "Foo(of T)(i)", "N1.C.Foo(Of T)(Integer)")
+            Await TestAsync(text, "Goo", "N1.C.Goo(Of T)(Integer)", "N.C.Goo()")
+            Await TestAsync(text, "goo", "N1.C.Goo(Of T)(Integer)", "N.C.Goo()")
+            Await TestAsync(text, "C.Goo", "N1.C.Goo(Of T)(Integer)", "N.C.Goo()")
+            Await TestAsync(text, "N.C.Goo", "N.C.Goo()")
+            Await TestAsync(text, "N1.C.Goo", "N1.C.Goo(Of T)(Integer)")
+            Await TestAsync(text, "Goo(of T)", "N1.C.Goo(Of T)(Integer)")
+            Await TestAsync(text, "C(of T).Goo")
+            Await TestAsync(text, "Goo()", "N.C.Goo()")
+            Await TestAsync(text, "Goo(of T)()")
+            Await TestAsync(text, "Goo(i as Integer)", "N1.C.Goo(Of T)(Integer)")
+            Await TestAsync(text, "Goo(Integer)", "N1.C.Goo(Of T)(Integer)")
+            Await TestAsync(text, "Goo(i)", "N1.C.Goo(Of T)(Integer)")
+            Await TestAsync(text, "Goo(of T)(i as Integer)", "N1.C.Goo(Of T)(Integer)")
+            Await TestAsync(text, "Goo(of T)(Integer)", "N1.C.Goo(Of T)(Integer)")
+            Await TestAsync(text, "Goo(of T)(i)", "N1.C.Goo(Of T)(Integer)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
@@ -228,32 +228,32 @@ end namespace</text>.Value
             Dim text =
 <text>
 class C
-  sub Foo(a as Integer)
+  sub Goo(a as Integer)
   end sub
 
-  sub Foo(a as Integer, Optional b as String = "bb")
+  sub Goo(a as Integer, Optional b as String = "bb")
   end sub
 end class</text>.Value
 
-            Await TestAsync(text, "Foo", "C.Foo(Integer)", "C.Foo(Integer, [String])")
-            Await TestAsync(text, "foo", "C.Foo(Integer)", "C.Foo(Integer, [String])")
-            Await TestAsync(text, "C.Foo", "C.Foo(Integer)", "C.Foo(Integer, [String])")
-            Await TestAsync(text, "N.C.Foo")
-            Await TestAsync(text, "Foo(of T)")
-            Await TestAsync(text, "C(of T).Foo")
-            Await TestAsync(text, "Foo()")
-            Await TestAsync(text, "Foo(i as Integer)", "C.Foo(Integer)")
-            Await TestAsync(text, "Foo(Integer)", "C.Foo(Integer)")
-            Await TestAsync(text, "Foo(i)", "C.Foo(Integer)")
-            Await TestAsync(text, "Foo(i as Integer, int b)", "C.Foo(Integer, [String])")
-            Await TestAsync(text, "Foo(int, boolean)", "C.Foo(Integer, [String])")
-            Await TestAsync(text, "Foo(i, s)", "C.Foo(Integer, [String])")
-            Await TestAsync(text, "Foo(,)", "C.Foo(Integer, [String])")
-            Await TestAsync(text, "Foo(x As Integer = 42,)", "C.Foo(Integer, [String])")
-            Await TestAsync(text, "Foo(Optional x As Integer = 42, y = 42)", "C.Foo(Integer, [String])")
-            Await TestAsync(text, "Foo(i as Integer, int b, char c)")
-            Await TestAsync(text, "Foo(int, bool, char)")
-            Await TestAsync(text, "Foo(i, s, c)")
+            Await TestAsync(text, "Goo", "C.Goo(Integer)", "C.Goo(Integer, [String])")
+            Await TestAsync(text, "goo", "C.Goo(Integer)", "C.Goo(Integer, [String])")
+            Await TestAsync(text, "C.Goo", "C.Goo(Integer)", "C.Goo(Integer, [String])")
+            Await TestAsync(text, "N.C.Goo")
+            Await TestAsync(text, "Goo(of T)")
+            Await TestAsync(text, "C(of T).Goo")
+            Await TestAsync(text, "Goo()")
+            Await TestAsync(text, "Goo(i as Integer)", "C.Goo(Integer)")
+            Await TestAsync(text, "Goo(Integer)", "C.Goo(Integer)")
+            Await TestAsync(text, "Goo(i)", "C.Goo(Integer)")
+            Await TestAsync(text, "Goo(i as Integer, int b)", "C.Goo(Integer, [String])")
+            Await TestAsync(text, "Goo(int, boolean)", "C.Goo(Integer, [String])")
+            Await TestAsync(text, "Goo(i, s)", "C.Goo(Integer, [String])")
+            Await TestAsync(text, "Goo(,)", "C.Goo(Integer, [String])")
+            Await TestAsync(text, "Goo(x As Integer = 42,)", "C.Goo(Integer, [String])")
+            Await TestAsync(text, "Goo(Optional x As Integer = 42, y = 42)", "C.Goo(Integer, [String])")
+            Await TestAsync(text, "Goo(i as Integer, int b, char c)")
+            Await TestAsync(text, "Goo(int, bool, char)")
+            Await TestAsync(text, "Goo(i, s, c)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
@@ -307,9 +307,9 @@ MustInherit Class C
     Dim Field As Integer
     Delegate Sub Delegate1()
     Event Event1 As Delegate1
-    Sub Foo()
+    Sub Goo()
     End Sub
-    Sub Foo(Optional x As Integer = 1, Optional y As Integer= 2)
+    Sub Goo(Optional x As Integer = 1, Optional y As Integer= 2)
     End Sub
 End Class</text>.Value
 
@@ -321,22 +321,22 @@ End Class</text>.Value
             Await TestAsync(text, "Property2")
             Await TestAsync(text, "New")
             Await TestAsync(text, "C.New")
-            Await TestAsync(text, "Foo", "C.Foo()", "C.Foo([Integer], [Integer])") ' just making sure it would normally resolve before trying bad syntax
-            Await TestAsync(text, "Foo Foo")
-            Await TestAsync(text, "Foo()asdf")
-            Await TestAsync(text, "Foo;")
-            Await TestAsync(text, "Foo();")
-            Await TestAsync(text, "Foo(),")
-            Await TestAsync(text, "Foo(),f")
-            Await TestAsync(text, "Foo().Foo")
-            Await TestAsync(text, "Foo(")
-            Await TestAsync(text, "(Foo")
-            Await TestAsync(text, "Foo)")
-            Await TestAsync(text, "(Foo)")
-            Await TestAsync(text, "Foo(x = 42, y = 42)", "C.Foo([Integer], [Integer])") ' just making sure it would normally resolve before trying bad syntax
-            Await TestAsync(text, "Foo[x = 42, y = 42]")
+            Await TestAsync(text, "Goo", "C.Goo()", "C.Goo([Integer], [Integer])") ' just making sure it would normally resolve before trying bad syntax
+            Await TestAsync(text, "Goo Goo")
+            Await TestAsync(text, "Goo()asdf")
+            Await TestAsync(text, "Goo;")
+            Await TestAsync(text, "Goo();")
+            Await TestAsync(text, "Goo(),")
+            Await TestAsync(text, "Goo(),f")
+            Await TestAsync(text, "Goo().Goo")
+            Await TestAsync(text, "Goo(")
+            Await TestAsync(text, "(Goo")
+            Await TestAsync(text, "Goo)")
+            Await TestAsync(text, "(Goo)")
+            Await TestAsync(text, "Goo(x = 42, y = 42)", "C.Goo([Integer], [Integer])") ' just making sure it would normally resolve before trying bad syntax
+            Await TestAsync(text, "Goo[x = 42, y = 42]")
             Await TestAsync(text, "Dim x As Integer = 42")
-            Await TestAsync(text, "Foo(Optional x As Integer = 42, y = 42")
+            Await TestAsync(text, "Goo(Optional x As Integer = 42, y = 42")
             Await TestAsync(text, "C")
             Await TestAsync(text, "C.C")
             Await TestAsync(text, "")
@@ -471,14 +471,14 @@ End Class</text>.Value
             Dim text =
 <text>
 Class C
-  Sub Foo()
+  Sub Goo()
   End Sub
 End Class</text>.Value
 
-            Await TestAsync(text, "  Foo", "C.Foo()")
-            Await TestAsync(text, "Foo() ", "C.Foo()")
-            Await TestAsync(text, " Foo (  )   ", "C.Foo()")
-            Await TestAsync(text, "Foo() ' comment", "C.Foo()")
+            Await TestAsync(text, "  Goo", "C.Goo()")
+            Await TestAsync(text, "Goo() ", "C.Goo()")
+            Await TestAsync(text, " Goo (  )   ", "C.Goo()")
+            Await TestAsync(text, "Goo() ' comment", "C.Goo()")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
@@ -508,14 +508,14 @@ End Class</text>.Value
             Dim text =
 <text>
 Class C
-  Sub Foo(c1 As C)
+  Sub Goo(c1 As C)
   End Sub
 End Class</text>.Value
 
-            Await TestAsync(text, "Global.Foo")
-            Await TestAsync(text, "Global.C.Foo")
-            Await TestAsync(text, "Global.C.Foo(C)")
-            Await TestAsync(text, "C.Foo(Global.C)", "C.Foo(C)")
+            Await TestAsync(text, "Global.Goo")
+            Await TestAsync(text, "Global.C.Goo")
+            Await TestAsync(text, "Global.C.Goo(C)")
+            Await TestAsync(text, "C.Goo(Global.C)", "C.Goo(C)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
@@ -523,22 +523,22 @@ End Class</text>.Value
             Dim text =
 <text>
 Class C
-  Sub Foo()
+  Sub Goo()
   End Sub
 End Class
 Namespace N1
   Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
   End Class
 End Namespace</text>.Value
 
-            Await TestWithRootNamespaceAsync("Root", text, "Foo", "Root.N1.C.Foo()", "Root.C.Foo()")
-            Await TestWithRootNamespaceAsync("Root", text, "C.Foo", "Root.N1.C.Foo()", "Root.C.Foo()")
-            Await TestWithRootNamespaceAsync("Root", text, "N1.C.Foo()", "Root.N1.C.Foo()")
-            Await TestWithRootNamespaceAsync("Root", text, "Root.C.Foo()", "Root.C.Foo()")
-            Await TestWithRootNamespaceAsync("Root", text, "Root.N1.C.Foo", "Root.N1.C.Foo()")
-            Await TestWithRootNamespaceAsync("Root", text, "Root.Foo")
+            Await TestWithRootNamespaceAsync("Root", text, "Goo", "Root.N1.C.Goo()", "Root.C.Goo()")
+            Await TestWithRootNamespaceAsync("Root", text, "C.Goo", "Root.N1.C.Goo()", "Root.C.Goo()")
+            Await TestWithRootNamespaceAsync("Root", text, "N1.C.Goo()", "Root.N1.C.Goo()")
+            Await TestWithRootNamespaceAsync("Root", text, "Root.C.Goo()", "Root.C.Goo()")
+            Await TestWithRootNamespaceAsync("Root", text, "Root.N1.C.Goo", "Root.N1.C.Goo()")
+            Await TestWithRootNamespaceAsync("Root", text, "Root.Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
@@ -547,7 +547,7 @@ End Namespace</text>.Value
 <text>
 Namespace N1
   Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
   End Class
   Namespace N2
@@ -560,13 +560,13 @@ Namespace N1
   End Namespace
   Namespace N4
     Class C
-      Sub Foo(x As Double)
+      Sub Goo(x As Double)
       End Sub
       Class D
-        Sub Foo()
+        Sub Goo()
         End Sub
         Class E
-          Sub Foo()
+          Sub Goo()
           End Sub
         End Class
       End Class
@@ -576,13 +576,13 @@ Namespace N1
   End Namespace
 End Namespace</text>.Value
 
-            Await TestAsync(text, "Foo", "N1.N4.C.Foo(Double)", "N1.N4.C.D.Foo()", "N1.N4.C.D.E.Foo()", "N1.C.Foo()")
-            Await TestAsync(text, "C.Foo", "N1.N4.C.Foo(Double)", "N1.C.Foo()")
-            Await TestAsync(text, "D.Foo", "N1.N4.C.D.Foo()")
-            Await TestAsync(text, "N1.N4.C.D.Foo", "N1.N4.C.D.Foo()")
-            Await TestAsync(text, "N1.Foo")
-            Await TestAsync(text, "N3.C.Foo")
-            Await TestAsync(text, "N5.C.Foo")
+            Await TestAsync(text, "Goo", "N1.N4.C.Goo(Double)", "N1.N4.C.D.Goo()", "N1.N4.C.D.E.Goo()", "N1.C.Goo()")
+            Await TestAsync(text, "C.Goo", "N1.N4.C.Goo(Double)", "N1.C.Goo()")
+            Await TestAsync(text, "D.Goo", "N1.N4.C.D.Goo()")
+            Await TestAsync(text, "N1.N4.C.D.Goo", "N1.N4.C.D.Goo()")
+            Await TestAsync(text, "N1.Goo")
+            Await TestAsync(text, "N3.C.Goo")
+            Await TestAsync(text, "N5.C.Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
@@ -590,20 +590,20 @@ End Namespace</text>.Value
             Dim text =
 <text>
 Interface I1
-  Sub Foo()
+  Sub Goo()
   Sub Moo()
 End Interface
 Class C1 : Implements I1
-  Sub Foo1() Implements I1.Foo
+  Sub Goo1() Implements I1.Goo
   End Sub
   Sub Moo() Implements I1.Moo
   End Sub
 End Class
 </text>.Value
 
-            Await TestAsync(text, "Foo")
-            Await TestAsync(text, "I1.Foo")
-            Await TestAsync(text, "Foo1", "C1.Foo1()")
+            Await TestAsync(text, "Goo")
+            Await TestAsync(text, "I1.Goo")
+            Await TestAsync(text, "Goo1", "C1.Goo1()")
             Await TestAsync(text, "Moo", "C1.Moo()")
         End Function
 

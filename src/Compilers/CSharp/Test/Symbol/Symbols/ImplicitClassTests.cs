@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var c = CreateCompilation(@"
 namespace N
 {
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -26,8 +26,8 @@ namespace N
             var n = ((NamespaceSymbol)c.Assembly.GlobalNamespace.GetMembers("N").Single());
             var implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
             Assert.Equal(0, implicitClass.GetAttributes().Length);
-            Assert.Equal(0, implicitClass.Interfaces.Length);
-            Assert.Equal(c.ObjectType, implicitClass.BaseType);
+            Assert.Equal(0, implicitClass.Interfaces().Length);
+            Assert.Equal(c.ObjectType, implicitClass.BaseType());
             Assert.Equal(0, implicitClass.Arity);
             Assert.True(implicitClass.IsImplicitlyDeclared);
             Assert.Equal(SyntaxKind.NamespaceDeclaration, implicitClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind());
@@ -39,8 +39,8 @@ namespace N
             n = ((NamespaceSymbol)c2.GlobalNamespace.GetMembers("N").Single());
             implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
             Assert.IsType<CSharp.Symbols.Retargeting.RetargetingNamedTypeSymbol>(implicitClass);
-            Assert.Equal(0, implicitClass.Interfaces.Length);
-            Assert.Equal(c2.ObjectType, implicitClass.BaseType);
+            Assert.Equal(0, implicitClass.Interfaces().Length);
+            Assert.Equal(c2.ObjectType, implicitClass.BaseType());
         }
 
         [Fact]
@@ -48,15 +48,15 @@ namespace N
         {
             var c = CreateStandardCompilation(@"
 base.ToString();
-void Foo()
+void Goo()
 {
 }
 ", parseOptions: TestOptions.Script);
 
             var scriptClass = ((NamedTypeSymbol)c.Assembly.GlobalNamespace.GetMembers().Single());
             Assert.Equal(0, scriptClass.GetAttributes().Length);
-            Assert.Equal(0, scriptClass.Interfaces.Length);
-            Assert.Null(scriptClass.BaseType);
+            Assert.Equal(0, scriptClass.Interfaces().Length);
+            Assert.Null(scriptClass.BaseType());
             Assert.Equal(0, scriptClass.Arity);
             Assert.True(scriptClass.IsImplicitlyDeclared);
             Assert.Equal(SyntaxKind.CompilationUnit, scriptClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind());
@@ -92,7 +92,7 @@ event System.Action e;
             var comp = CreateStandardCompilation(@"
 namespace N::A
 {
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -103,8 +103,8 @@ namespace N::A
                 // namespace N::A
                 Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "N::A"),
                 // (4,10): error CS0116: A namespace does not directly contain members such as fields or methods
-                //     void Foo()
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Foo"));
+                //     void Goo()
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Goo"));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -113,7 +113,7 @@ namespace N::A
             var methodDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
             Assert.Equal("A", model.GetDeclaredSymbol(namespaceDecl).Name);
-            Assert.Equal("Foo", model.GetDeclaredSymbol(methodDecl).Name);
+            Assert.Equal("Goo", model.GetDeclaredSymbol(methodDecl).Name);
         }
     }
 }

@@ -361,11 +361,6 @@
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_SNIPPETS" />
     </CommandPlacement>
 
-    <!-- Add Rename to the editor context menu below the Refactor item. -->
-    <CommandPlacement guid="guidVSStd2K" id="ECMD_RENAME" priority="0x0150">
-      <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_LANGUAGE"/>
-    </CommandPlacement>
-
     <!-- Analyzer node entries -->
     <CommandPlacement guid="guidVSStd97" id="cmdidPropSheetOrProperties" priority="200">
       <Parent guid="guidRoslynGrpId" id="grpAnalyzerProperties" />

@@ -100,10 +100,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(Foo<int>()());
+        Console.WriteLine(Goo<int>()());
     }
 
-    static Func<object> Foo<T>()
+    static Func<object> Goo<T>()
     {
         T x2 = default(T);
         return (Func<object>) (() => new { x2 });
@@ -125,10 +125,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(Foo<int>()());
+        Console.WriteLine(Goo<int>()());
     }
 
-    static Func<object> Foo<T>()
+    static Func<object> Goo<T>()
     {
         T x2 = default(T);
         Func<object> x3 = () => new { x2 };
@@ -151,12 +151,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(Foo<int>());
-        Console.WriteLine(Foo<string>());
-        Console.WriteLine(Foo<int?>());
+        Console.WriteLine(Goo<int>());
+        Console.WriteLine(Goo<string>());
+        Console.WriteLine(Goo<int?>());
     }
 
-    static object Foo<T>()
+    static object Goo<T>()
     {
         T x2 = default(T);
         return new { x2 };
@@ -182,13 +182,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        foreach(var x in Foo<int>())
+        foreach(var x in Goo<int>())
         {
             Console.Write(x);
         }
     }
 
-    static IEnumerable<object> Foo<T>()
+    static IEnumerable<object> Goo<T>()
     {
         T x2 = default(T);
         yield return new { x2 }.ToString();
@@ -211,10 +211,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(Foo<int>()());
+        Console.WriteLine(Goo<int>()());
     }
 
-    static Func<object> Foo<T>()
+    static Func<object> Goo<T>()
     {
         T x2 = default(T);
         return (Func<object>) (() => new { });
@@ -746,7 +746,7 @@ class Query
                 expectedOutput: "{ ToString = Field }-Field");
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [Fact]
         public void AnonymousTypeSymbol_StandardNames3()
         {
             var source = @"
@@ -846,11 +846,7 @@ class Query
 @"{
   // Code size       75 (0x4b)
   .maxstack  3
-" +
-  (IntPtr.Size == 4 ?
-    "  IL_0000:  ldc.i4     0x78ce6eb1" :
-    "  IL_0000:  ldc.i4     0x983c2cef") +
-@"
+  IL_0000:  ldc.i4     0x3711624
   IL_0005:  ldc.i4     0xa5555529
   IL_000a:  mul
   IL_000b:  call       ""System.Collections.Generic.EqualityComparer<<ToString>j__TPar> System.Collections.Generic.EqualityComparer<<ToString>j__TPar>.Default.get""
@@ -1003,7 +999,7 @@ class Query
             int init = 0;
             foreach (var name in names)
             {
-                init = unchecked(init * HASH_FACTOR + name.GetHashCode());
+                init = unchecked(init * HASH_FACTOR + Hash.GetFNVHashCode(name));
             }
             return "0x" + init.ToString("X").ToLower();
         }
@@ -1048,13 +1044,13 @@ class Query
 
             //  test
             Assert.Equal(typeViewName, type.ToDisplayString());
-            Assert.Equal("object", type.BaseType.ToDisplayString());
+            Assert.Equal("object", type.BaseType().ToDisplayString());
             Assert.True(fieldsCount == 0 ? !type.IsGenericType : type.IsGenericType);
             Assert.Equal(fieldsCount, type.Arity);
             Assert.Equal(Accessibility.Internal, type.DeclaredAccessibility);
             Assert.True(type.IsSealed);
             Assert.False(type.IsStatic);
-            Assert.Equal(0, type.Interfaces.Length);
+            Assert.Equal(0, type.Interfaces().Length);
 
             //  test non-existing members
             Assert.Equal(0, type.GetMembers("doesnotexist").Length);
@@ -1499,7 +1495,7 @@ class Class3
                         Assert.Equal("<>f__AnonymousType2", types[2]);
                         Assert.Equal("<>f__AnonymousType3<<b>j__TPar, <a>j__TPar>", types[3]);
                     },
-                    verify: false
+                    verify: Verification.Passes
                 );
 
                 // do some speculative semantic query

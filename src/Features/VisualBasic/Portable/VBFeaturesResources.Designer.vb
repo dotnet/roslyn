@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
      Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
@@ -3244,6 +3244,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Use &apos;Is Nothing&apos; check.
+        '''</summary>
+        Friend ReadOnly Property Use_Is_Nothing_check() As String
+            Get
+                Return ResourceManager.GetString("Use_Is_Nothing_check", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Use &apos;IsNot Nothing&apos; check.
+        '''</summary>
+        Friend ReadOnly Property Use_IsNot_Nothing_check() As String
+            Get
+                Return ResourceManager.GetString("Use_IsNot_Nothing_check", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Use &apos;Out&apos; for a type that will only be used as a return from functions..
         '''</summary>
         Friend ReadOnly Property Use_Out_for_a_type_that_will_only_be_used_as_a_return_from_functions() As String
@@ -3335,7 +3353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
                 Return ResourceManager.GetString("Using_statement", resourceCulture)
             End Get
         End Property
-        
+
         '''<summary>
         '''  Looks up a localized string similar to When a run-time error occurs, execution transfers to the statement following the statement or procedure call that resulted in the error..
         '''</summary>

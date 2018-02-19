@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                            WithExpressionBody(
                                WithGenerateBody(declaration, options, parseOptions),
                                expressionBody: null),
-                           default(SyntaxToken));
+                           default);
             }
         }
 

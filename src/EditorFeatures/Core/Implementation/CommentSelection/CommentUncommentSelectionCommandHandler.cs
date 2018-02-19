@@ -455,8 +455,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         {
             var firstAndLastLine = DetermineFirstAndLastLine(span);
 
-            var firstNonWhitespacePosition = firstAndLastLine.Item1.GetFirstNonWhitespacePosition();
-            var lastNonWhitespacePosition = firstAndLastLine.Item2.GetLastNonWhitespacePosition();
+            var firstNonWhitespacePosition = firstAndLastLine.firstLine.GetFirstNonWhitespacePosition();
+            var lastNonWhitespacePosition = firstAndLastLine.lastLine.GetLastNonWhitespacePosition();
 
             var allOnFirst = !firstNonWhitespacePosition.HasValue ||
                               span.Start.Position <= firstNonWhitespacePosition.Value;

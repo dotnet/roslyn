@@ -149,7 +149,7 @@ class A
 
 class B : A
 {
-    void Foo()
+    void Goo()
     {
         this.Finalize(); //CS0245
     }
@@ -166,7 +166,7 @@ class C
 
 class D : C
 {
-    void Foo()
+    void Goo()
     {
         Finalize();
         Action a = Finalize;
@@ -189,7 +189,7 @@ class F : E
 
 class G : F
 {
-    void Foo()
+    void Goo()
     {
         Finalize(); //CS0245 in Roslyn 
         Action a = Finalize;
@@ -231,7 +231,7 @@ class A
 
 class B : A
 {
-    void Foo()
+    void Goo()
     {
         base.Finalize(); //CS0250
     }
@@ -248,7 +248,7 @@ class C
 
 class D : C
 {
-    void Foo()
+    void Goo()
     {
         base.Finalize();
         Action a = base.Finalize;
@@ -271,7 +271,7 @@ class F : E
 
 class G : F
 {
-    void Foo()
+    void Goo()
     {
         base.Finalize();
         Action a = base.Finalize;

@@ -53,6 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
                     break;
                 case Accessibility.ProtectedAndInternal:
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+                    break;
                 case Accessibility.Internal:
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword));
                     break;

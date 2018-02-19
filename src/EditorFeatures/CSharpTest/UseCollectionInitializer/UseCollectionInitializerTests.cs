@@ -529,7 +529,8 @@ class C
 {
     void M()
     {
-        var list1 = new List<int>(() => {
+        var list1 = new List<int>(() =>
+        {
             var list2 = new List<int>
             {
                 2
@@ -567,7 +568,8 @@ class C
     {
         var list1 = new List<int>
         {
-            () => {
+            () =>
+            {
                 var list2 = new List<int>
                 {
                     2
@@ -589,7 +591,7 @@ class C
     void M()
     {
         var c = [||]new List<int>();
-        c.Add(1); // Foo
+        c.Add(1); // Goo
         c.Add(2); // Bar
     }
 }",
@@ -601,12 +603,11 @@ class C
     {
         var c = new List<int>
         {
-            1, // Foo
+            1, // Goo
             2 // Bar
         };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
@@ -632,14 +633,8 @@ class C
     {
         var c = new Dictionary<int, string>
         {
-            {
-                1,
-                ""x""
-            },
-            {
-                2,
-                ""y""
-            }
+            { 1, ""x"" },
+            { 2, ""y"" }
         };
     }
 }");
@@ -652,7 +647,7 @@ class C
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public static void Bar()
     {
@@ -666,7 +661,7 @@ public class Foo
 }",
 @"using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public static void Bar()
     {
@@ -853,7 +848,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         dynamic body = [||]new ExpandoObject();
         body[0] = new ExpandoObject();
@@ -869,7 +864,7 @@ class C
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -889,7 +884,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -902,7 +897,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -913,7 +908,7 @@ public class Foo
         };
 #endif
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
@@ -924,7 +919,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -936,7 +931,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -957,7 +952,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -969,7 +964,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -1014,7 +1009,7 @@ class MyClass
 
         int horse = 1;
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }

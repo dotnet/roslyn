@@ -85,7 +85,7 @@ $$
         {
             var code = @"class C
 {
-    string x = ""foo""
+    string x = ""goo""
     string s = $""{x} $$
 }";
             using (var session = CreateSession(code))
@@ -100,7 +100,7 @@ $$
         {
             var code = @"class C
 {
-    string x = ""foo""
+    string x = ""goo""
     string s = $@""{x} $$
 }";
             using (var session = CreateSession(code))
@@ -486,11 +486,11 @@ class C
 {
     public void man()
     {
-        var foo = new Foo $$
+        var goo = new Goo $$
     }
 }
 
-class Foo
+class Goo
 {
     public int bar;
 }";
@@ -499,13 +499,13 @@ class Foo
 {
     public void man()
     {
-        var foo = new Foo {
+        var goo = new Goo {
 
         }
     }
 }
 
-class Foo
+class Goo
 {
     public int bar;
 }";
@@ -530,11 +530,11 @@ class Foo
 {
     public void man()
     {
-        var foo = new Foo $$
+        var goo = new Goo $$
     }
 }
 
-class Foo
+class Goo
 {
     public int bar;
 }";
@@ -543,14 +543,14 @@ class Foo
 {
     public void man()
     {
-        var foo = new Foo
+        var goo = new Goo
         {
 
         }
     }
 }
 
-class Foo
+class Goo
 {
     public int bar;
 }";

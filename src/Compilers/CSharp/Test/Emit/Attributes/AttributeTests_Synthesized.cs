@@ -4,11 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,16 +19,95 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class AttributeTests_Synthesized : WellKnownAttributesTestBase
+    /// <summary>
+    /// NYI: PEVerify currently fails for netmodules with error: "The module X was expected to contain an assembly manifest".
+    /// Verification was disabled for net modules for now. Add it back once module support has been added.
+    /// See tests having verify: !outputKind.IsNetModule()
+    /// https://github.com/dotnet/roslyn/issues/23475
+    /// </summary>
+    public class AttributeTests_Synthesized: WellKnownAttributesTestBase
     {
-        #region CompilerGeneratedAttribute, DebuggerBrowsableAttribute, DebuggerStepThroughAttribute, DebuggerDisplayAttribute
-
-        private static DebuggerBrowsableState GetDebuggerBrowsableState(ImmutableArray<SynthesizedAttributeData> attributes)
+        #region Theory Data
+        public static IEnumerable<object[]> OptimizationLevelTheoryData
         {
-            return (DebuggerBrowsableState)attributes.Single(a => a.AttributeClass.Name == "DebuggerBrowsableAttribute").ConstructorArguments.First().Value;
+            get
+            {
+                foreach (var level in Enum.GetValues(typeof(OptimizationLevel)))
+                {
+                    yield return new object[] { level };
+                }
+            }
         }
 
-        [Fact, WorkItem(546632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546632")]
+        public static IEnumerable<object[]> FullMatrixTheoryData
+        {
+            get
+            {
+                foreach (var kind in Enum.GetValues(typeof(OutputKind)))
+                {
+                    foreach (var level in Enum.GetValues(typeof(OptimizationLevel)))
+                    {
+                        yield return new object[] { kind, level };
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region Helpers
+        private void VerifyCompilationRelaxationsAttribute(CSharpAttributeData attribute, bool isSynthesized)
+        {
+            Assert.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute", attribute.AttributeClass.ToTestDisplayString());
+            Assert.Equal("System.Int32", attribute.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
+            Assert.Empty(attribute.CommonNamedArguments);
+
+            int expectedArgValue = isSynthesized ? (int)CompilationRelaxations.NoStringInterning : 0;
+            Assert.Equal(1, attribute.CommonConstructorArguments.Length);
+            attribute.VerifyValue(0, TypedConstantKind.Primitive, expectedArgValue);
+        }
+
+        private void VerifyRuntimeCompatibilityAttribute(CSharpAttributeData attribute, bool isSynthesized)
+        {
+            Assert.Equal("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute", attribute.AttributeClass.ToTestDisplayString());
+            Assert.Empty(attribute.AttributeConstructor.Parameters);
+            Assert.Empty(attribute.CommonConstructorArguments);
+
+            if (isSynthesized)
+            {
+                Assert.Equal(1, attribute.CommonNamedArguments.Length);
+                attribute.VerifyNamedArgumentValue<bool>(0, "WrapNonExceptionThrows", TypedConstantKind.Primitive, true);
+            }
+            else
+            {
+                Assert.Equal(0, attribute.CommonNamedArguments.Length);
+            }
+        }
+
+        private void VerifyDebuggableAttribute(CSharpAttributeData attribute, OptimizationLevel optimizations, bool isSynthesized)
+        {
+            Assert.Equal("System.Diagnostics.DebuggableAttribute", attribute.AttributeClass.ToTestDisplayString());
+            Assert.Equal("System.Diagnostics.DebuggableAttribute.DebuggingModes", attribute.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
+            Assert.Empty(attribute.CommonNamedArguments);
+
+            Assert.Equal(1, attribute.CommonConstructorArguments.Length);
+
+            var expectedDebuggingMode = DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints;
+
+            if (isSynthesized && optimizations == OptimizationLevel.Debug)
+            {
+                expectedDebuggingMode |=
+                    DebuggableAttribute.DebuggingModes.Default |
+                    DebuggableAttribute.DebuggingModes.DisableOptimizations |
+                    DebuggableAttribute.DebuggingModes.EnableEditAndContinue;
+            }
+
+            attribute.VerifyValue(0, TypedConstantKind.Enum, (int)expectedDebuggingMode);
+        }
+        #endregion
+
+        #region CompilerGeneratedAttribute, DebuggerBrowsableAttribute, DebuggerStepThroughAttribute, DebuggerDisplayAttribute
+        [Fact]
+        [WorkItem(546632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546632")]
         public void PrivateImplementationDetails()
         {
             string source = @"
@@ -48,7 +128,8 @@ class C
             AssertEx.SetEqual(expectedAttrs, actualAttrs);
         }
 
-        [Fact, WorkItem(546958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546958")]
+        [Fact]
+        [WorkItem(546958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546958")]
         public void FixedSizeBuffers()
         {
             string source = @"
@@ -69,8 +150,10 @@ unsafe struct S
             AssertEx.SetEqual(expectedAttrs, actualAttrs);
         }
 
-        [Fact, WorkItem(546927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546927")]
-        public void BackingFields()
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        [WorkItem(546927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546927")]
+        public void BackingFields_Property(OptimizationLevel optimizationLevel)
         {
             string source = @"
 using System;
@@ -81,33 +164,45 @@ class Test
     public event Func<int> MyEvent;
 }
 ";
-            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(source, options: options, symbolValidator: module =>
             {
-                var comp = CreateStandardCompilation(source, options: options);
+                var peModule = (PEModuleSymbol)module;
+                var type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
 
-                var c = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-                var p = c.GetMember<PropertySymbol>("MyProp");
-                var e = c.GetMember<EventSymbol>("MyEvent");
+                var property = type.GetMember<PEFieldSymbol>(GeneratedNames.MakeBackingFieldName("MyProp"));
+                Verify(property.Handle);
 
-                var expectedAttrs =
-                    options.OptimizationLevel == OptimizationLevel.Debug
-                    ? new[] { "CompilerGeneratedAttribute", "DebuggerBrowsableAttribute" }
-                    : new[] { "CompilerGeneratedAttribute" };
+                var eventField = (PEFieldSymbol)type.GetMember<PEEventSymbol>("MyEvent").AssociatedField;
+                Verify(eventField.Handle);
 
-                var attrs = ((SourcePropertySymbol)p).BackingField.GetSynthesizedAttributes();
-                AssertEx.SetEqual(expectedAttrs, GetAttributeNames(attrs));
-                if (options.OptimizationLevel == OptimizationLevel.Debug)
-                    Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs));
+                void Verify(EntityHandle token)
+                {
+                    var attributes = peModule.GetCustomAttributesForToken(token);
 
-                attrs = e.AssociatedField.GetSynthesizedAttributes();
-                AssertEx.SetEqual(expectedAttrs, GetAttributeNames(attrs));
-                if (options.OptimizationLevel == OptimizationLevel.Debug)
-                    Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs));
-            }
+                    if (optimizationLevel == OptimizationLevel.Debug)
+                    {
+                        Assert.Equal(2, attributes.Length);
+
+                        Assert.Equal("CompilerGeneratedAttribute", attributes[0].AttributeClass.Name);
+                        Assert.Equal("DebuggerBrowsableAttribute", attributes[1].AttributeClass.Name);
+                        Assert.Equal(DebuggerBrowsableState.Never, (DebuggerBrowsableState)attributes[1].ConstructorArguments.Single().Value);
+                    }
+                    else
+                    {
+                        Assert.Equal("CompilerGeneratedAttribute", attributes.Single().AttributeClass.Name);
+                    }
+                }
+            });
         }
 
-        [Fact, WorkItem(546927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546927")]
-        public void Accessors()
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        [WorkItem(546927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546927")]
+        public void Accessors(OptimizationLevel optimizationLevel)
         {
             string source = @"
 using System;
@@ -119,136 +214,127 @@ abstract class C
     public event Func<int> E;
 }
 ";
-            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
-            {
-                var comp = CreateStandardCompilation(source, options: options);
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
 
-                var c = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            CompileAndVerify(source, options: options, symbolValidator: module =>
+            {
+                var peModule = (PEModuleSymbol)module;
+                var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+
                 var p = c.GetMember<PropertySymbol>("P");
+                Assert.Equal("CompilerGeneratedAttribute", peModule.GetCustomAttributesForToken(((PEMethodSymbol)p.GetMethod).Handle).Single().AttributeClass.Name);
+                Assert.Equal("CompilerGeneratedAttribute", peModule.GetCustomAttributesForToken(((PEMethodSymbol)p.SetMethod).Handle).Single().AttributeClass.Name);
+
                 // no attributes on abstract property accessors
                 var q = c.GetMember<PropertySymbol>("Q");
+                Assert.Empty(peModule.GetCustomAttributesForToken(((PEMethodSymbol)q.GetMethod).Handle));
+                Assert.Empty(peModule.GetCustomAttributesForToken(((PEMethodSymbol)q.SetMethod).Handle));
 
                 var e = c.GetMember<EventSymbol>("E");
-
-                var expected = new[] { "CompilerGeneratedAttribute" };
-
-                var attrs = p.GetMethod.GetSynthesizedAttributes();
-                AssertEx.SetEqual(expected, GetAttributeNames(attrs));
-
-                attrs = p.SetMethod.GetSynthesizedAttributes();
-                AssertEx.SetEqual(expected, GetAttributeNames(attrs));
-
-                attrs = q.GetMethod.GetSynthesizedAttributes();
-                Assert.Equal(0, attrs.Length);
-
-                attrs = q.SetMethod.GetSynthesizedAttributes();
-                Assert.Equal(0, attrs.Length);
-
-                attrs = e.AddMethod.GetSynthesizedAttributes();
-                AssertEx.SetEqual(expected, GetAttributeNames(attrs));
-
-                attrs = e.RemoveMethod.GetSynthesizedAttributes();
-                AssertEx.SetEqual(expected, GetAttributeNames(attrs));
-            }
+                Assert.Equal("CompilerGeneratedAttribute", peModule.GetCustomAttributesForToken(((PEMethodSymbol)e.AddMethod).Handle).Single().AttributeClass.Name);
+                Assert.Equal("CompilerGeneratedAttribute", peModule.GetCustomAttributesForToken(((PEMethodSymbol)e.RemoveMethod).Handle).Single().AttributeClass.Name);
+            });
         }
 
-        [Fact]
-        public void Lambdas()
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void Lambdas(OptimizationLevel optimizationLevel)
         {
             string source = @"
 using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         int a = 1, b = 2;
         Func<int, int, int> d = (x, y) => a*x+b*y; 
     }
 }
 ";
-            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateStandardCompilation(source, options: options), symbolValidator: m =>
             {
-                var comp = CreateStandardCompilation(source, options: options);
+                var displayClass = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>c__DisplayClass0_0");
+                AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(displayClass.GetAttributes()));
 
-                CompileAndVerify(comp, symbolValidator: m =>
+                foreach (var member in displayClass.GetMembers())
                 {
-                    var displayClass = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>c__DisplayClass0_0");
-                    AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(displayClass.GetAttributes()));
-
-                    foreach (var member in displayClass.GetMembers())
-                    {
-                        Assert.Equal(0, member.GetAttributes().Length);
-                    }
-                });
-            }
+                    Assert.Equal(0, member.GetAttributes().Length);
+                }
+            });
         }
 
-        [Fact]
-        public void AnonymousTypes()
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AnonymousTypes(OptimizationLevel optimizationLevel)
         {
             string source = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         var x = new { X = 1, Y = 2 };
     }
 }
 ";
-            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateStandardCompilation(source, options: options), symbolValidator: m =>
             {
-                var comp = CreateStandardCompilation(source, options: options);
+                var anon = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousType0`2");
 
-                CompileAndVerify(comp, symbolValidator: m =>
+                string[] expected;
+                if (options.OptimizationLevel == OptimizationLevel.Debug)
                 {
-                    var anon = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousType0`2");
+                    expected = new[] { "DebuggerDisplayAttribute", "CompilerGeneratedAttribute" };
+                }
+                else
+                {
+                    expected = new[] { "CompilerGeneratedAttribute" };
+                }
 
-                    string[] expected;
-                    if (options.OptimizationLevel == OptimizationLevel.Debug)
+                AssertEx.SetEqual(expected, GetAttributeNames(anon.GetAttributes()));
+
+                foreach (var member in anon.GetMembers())
+                {
+                    var actual = GetAttributeNames(member.GetAttributes());
+
+                    switch (member.Name)
                     {
-                        expected = new[] { "DebuggerDisplayAttribute", "CompilerGeneratedAttribute" };
+                        case "<X>i__Field":
+                        case "<Y>i__Field":
+                            expected = new[] { "DebuggerBrowsableAttribute" };
+                            break;
+
+                        case ".ctor":
+                        case "Equals":
+                        case "GetHashCode":
+                        case "ToString":
+                            expected = new[] { "DebuggerHiddenAttribute" };
+                            break;
+
+                        case "X":
+                        case "get_X":
+                        case "Y":
+                        case "get_Y":
+                            expected = new string[] { };
+                            break;
+
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(member.Name);
                     }
-                    else
-                    {
-                        expected = new[] { "CompilerGeneratedAttribute" };
-                    }
 
-                    AssertEx.SetEqual(expected, GetAttributeNames(anon.GetAttributes()));
-
-                    foreach (var member in anon.GetMembers())
-                    {
-                        var actual = GetAttributeNames(member.GetAttributes());
-
-                        switch (member.Name)
-                        {
-                            case "<X>i__Field":
-                            case "<Y>i__Field":
-                                expected = new[] { "DebuggerBrowsableAttribute" };
-                                break;
-
-                            case ".ctor":
-                            case "Equals":
-                            case "GetHashCode":
-                            case "ToString":
-                                expected = new[] { "DebuggerHiddenAttribute" };
-                                break;
-
-                            case "X":
-                            case "get_X":
-                            case "Y":
-                            case "get_Y":
-                                expected = new string[] { };
-                                break;
-
-                            default:
-                                throw TestExceptionUtilities.UnexpectedValue(member.Name);
-                        }
-
-                        AssertEx.SetEqual(expected, actual);
-                    }
-                });
-            }
+                    AssertEx.SetEqual(expected, actual);
+                }
+            });
         }
 
         [Fact]
@@ -257,7 +343,7 @@ class C
             string source = @"
 public class C
 {
-   public void Foo() 
+   public void Goo() 
    {
 	  var _0 = new { };
 	  var _1 = new { X0 = 1 };
@@ -303,26 +389,27 @@ public class C
                 Assert.Equal(@"\{ X10 = {X10}, X11 = {X11}, X12 = {X12}, X13 = {X13}, X14 = {X14}, X15 = {X15}, X16 = {X16}, X17 = {X17}, X20 = {X20}, X21 = {X21} ... }",
                     GetDebuggerDisplayString(assembly, 12, 48));
             });
+
+            string GetDebuggerDisplayString(AssemblySymbol assembly, int ordinal, int fieldCount)
+            {
+                NamedTypeSymbol anon;
+                if (fieldCount == 0)
+                {
+                    anon = assembly.GetTypeByMetadataName("<>f__AnonymousType0");
+                }
+                else
+                {
+                    anon = assembly.GetTypeByMetadataName("<>f__AnonymousType" + ordinal + "`" + fieldCount);
+                }
+
+                var dd = anon.GetAttributes().Where(a => a.AttributeClass.Name == "DebuggerDisplayAttribute").Single();
+                return (string)dd.ConstructorArguments.Single().Value;
+            }
         }
 
-        private static string GetDebuggerDisplayString(AssemblySymbol assembly, int ordinal, int fieldCount)
-        {
-            NamedTypeSymbol anon;
-            if (fieldCount == 0)
-            {
-                anon = assembly.GetTypeByMetadataName("<>f__AnonymousType0");
-            }
-            else
-            {
-                anon = assembly.GetTypeByMetadataName("<>f__AnonymousType" + ordinal + "`" + fieldCount);
-            }
-
-            var dd = anon.GetAttributes().Where(a => a.AttributeClass.Name == "DebuggerDisplayAttribute").Single();
-            return (string)dd.ConstructorArguments.Single().Value;
-        }
-
-        [Fact]
-        public void Iterator()
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void Iterator(OptimizationLevel optimizationLevel)
         {
             string source = @"
 using System.Collections.Generic;
@@ -335,1295 +422,102 @@ public class C
     }
 }
 ";
-            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateStandardCompilation(source, options: options), symbolValidator: module =>
             {
-                var comp = CreateStandardCompilation(source, options: options);
+                var iter = module.ContainingAssembly.GetTypeByMetadataName("C+<Iterator>d__0");
+                AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(iter.GetAttributes()));
 
-                CompileAndVerify(comp, symbolValidator: module =>
+                foreach (var member in iter.GetMembers().Where(member => member is MethodSymbol))
                 {
-                    var iter = module.ContainingAssembly.GetTypeByMetadataName("C+<Iterator>d__0");
-                    AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(iter.GetAttributes()));
-
-                    foreach (var member in iter.GetMembers().Where(member => member is MethodSymbol))
+                    switch (member.Name)
                     {
-                        switch (member.Name)
-                        {
-                            case ".ctor":
-                            case "System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator":
-                            case "System.Collections.IEnumerable.GetEnumerator":
-                            case "System.Collections.IEnumerator.Reset":
-                            case "System.IDisposable.Dispose":
-                            case "System.Collections.Generic.IEnumerator<System.Int32>.get_Current":
-                            case "System.Collections.IEnumerator.get_Current":
-                                AssertEx.SetEqual(new[] { "DebuggerHiddenAttribute" }, GetAttributeNames(member.GetAttributes()));
-                                break;
+                        case ".ctor":
+                        case "System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator":
+                        case "System.Collections.IEnumerable.GetEnumerator":
+                        case "System.Collections.IEnumerator.Reset":
+                        case "System.IDisposable.Dispose":
+                        case "System.Collections.Generic.IEnumerator<System.Int32>.get_Current":
+                        case "System.Collections.IEnumerator.get_Current":
+                            AssertEx.SetEqual(new[] { "DebuggerHiddenAttribute" }, GetAttributeNames(member.GetAttributes()));
+                            break;
 
-                            case "System.Collections.IEnumerator.Current":
-                            case "System.Collections.Generic.IEnumerator<System.Int32>.Current":
-                            case "MoveNext":
-                                AssertEx.SetEqual(new string[] { }, GetAttributeNames(member.GetAttributes()));
-                                break;
+                        case "System.Collections.IEnumerator.Current":
+                        case "System.Collections.Generic.IEnumerator<System.Int32>.Current":
+                        case "MoveNext":
+                            AssertEx.SetEqual(new string[] { }, GetAttributeNames(member.GetAttributes()));
+                            break;
 
-                            default:
-                                throw TestExceptionUtilities.UnexpectedValue(member.Name);
-                        }
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(member.Name);
                     }
-                });
-            }
+                }
+            });
         }
 
-        [Fact]
-        public void Async()
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void Async(OptimizationLevel optimizationLevel)
         {
             string source = @"
 using System.Threading.Tasks;
 
 class C
 {
-    public async Task<int> Foo()
+    public async Task<int> Goo()
     {
         for (int x = 1; x < 10; x++)
         {
-            await Foo();
+            await Goo();
         }
         
         return 1;
     }
 }
 ";
-            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
             {
-                var comp = CreateCompilationWithMscorlib45(source, options: options);
+                var goo = module.GlobalNamespace.GetMember<MethodSymbol>("C.Goo");
+                AssertEx.SetEqual(options.OptimizationLevel == OptimizationLevel.Debug ?
+                                    new[] { "AsyncStateMachineAttribute", "DebuggerStepThroughAttribute" } :
+                                    new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(goo.GetAttributes()));
 
-                CompileAndVerify(comp, symbolValidator: m =>
+                var iter = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Goo>d__0");
+                AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(iter.GetAttributes()));
+
+                foreach (var member in iter.GetMembers().Where(s => s.Kind == SymbolKind.Method))
                 {
-                    var foo = m.GlobalNamespace.GetMember<MethodSymbol>("C.Foo");
-                    AssertEx.SetEqual(options.OptimizationLevel == OptimizationLevel.Debug ?
-                                        new[] { "AsyncStateMachineAttribute", "DebuggerStepThroughAttribute" } :
-                                        new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(foo.GetAttributes()));
-
-                    var iter = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Foo>d__0");
-                    AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(iter.GetAttributes()));
-
-                    foreach (var member in iter.GetMembers().Where(s => s.Kind == SymbolKind.Method))
+                    switch (member.Name)
                     {
-                        switch (member.Name)
-                        {
-                            case ".ctor":
-                                break;
+                        case ".ctor":
+                            break;
 
-                            case "SetStateMachine":
-                                AssertEx.SetEqual(new[] { "DebuggerHiddenAttribute" }, GetAttributeNames(member.GetAttributes()));
-                                break;
+                        case "SetStateMachine":
+                            AssertEx.SetEqual(new[] { "DebuggerHiddenAttribute" }, GetAttributeNames(member.GetAttributes()));
+                            break;
 
-                            case "MoveNext":
-                                AssertEx.SetEqual(new string[] { }, GetAttributeNames(member.GetAttributes()));
-                                break;
+                        case "MoveNext":
+                            AssertEx.SetEqual(new string[] { }, GetAttributeNames(member.GetAttributes()));
+                            break;
 
-                            default:
-                                throw TestExceptionUtilities.UnexpectedValue(member.Name);
-                        }
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(member.Name);
                     }
-                });
-            }
-        }
-
-        #endregion
-
-        #region CompilationRelaxationsAttribute, RuntimeCompatibilityAttribute
-
-        private void VerifyCompilationRelaxationsAttribute(CSharpAttributeData attribute, SourceAssemblySymbol sourceAssembly, bool isSynthesized)
-        {
-            ModuleSymbol module = sourceAssembly.Modules[0];
-            NamespaceSymbol compilerServicesNS = Get_System_Runtime_CompilerServices_NamespaceSymbol(module);
-
-            NamedTypeSymbol compilationRelaxationsAttrType = compilerServicesNS.GetTypeMember("CompilationRelaxationsAttribute");
-            var compilationRelaxationsCtor = (MethodSymbol)sourceAssembly.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_CompilationRelaxationsAttribute__ctorInt32);
-
-            Assert.Equal(compilationRelaxationsAttrType, attribute.AttributeClass);
-            Assert.Equal(compilationRelaxationsCtor, attribute.AttributeConstructor);
-
-            int expectedArgValue = isSynthesized ? (int)CompilationRelaxations.NoStringInterning : 0;
-            Assert.Equal(1, attribute.CommonConstructorArguments.Length);
-            attribute.VerifyValue<int>(0, TypedConstantKind.Primitive, expectedArgValue);
-
-            Assert.Equal(0, attribute.CommonNamedArguments.Length);
-        }
-
-        private void VerifyRuntimeCompatibilityAttribute(CSharpAttributeData attribute, SourceAssemblySymbol sourceAssembly, bool isSynthesized)
-        {
-            ModuleSymbol module = sourceAssembly.Modules[0];
-            NamespaceSymbol compilerServicesNS = Get_System_Runtime_CompilerServices_NamespaceSymbol(module);
-
-            NamedTypeSymbol runtimeCompatibilityAttrType = compilerServicesNS.GetTypeMember("RuntimeCompatibilityAttribute");
-            var runtimeCompatibilityCtor = (MethodSymbol)sourceAssembly.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__ctor);
-
-            Assert.Equal(runtimeCompatibilityAttrType, attribute.AttributeClass);
-            Assert.Equal(runtimeCompatibilityCtor, attribute.AttributeConstructor);
-
-            Assert.Equal(0, attribute.CommonConstructorArguments.Length);
-
-            if (isSynthesized)
-            {
-                Assert.Equal(1, attribute.CommonNamedArguments.Length);
-                attribute.VerifyNamedArgumentValue<bool>(0, "WrapNonExceptionThrows", TypedConstantKind.Primitive, true);
-            }
-            else
-            {
-                Assert.Equal(0, attribute.CommonNamedArguments.Length);
-            }
-        }
-
-        [Fact]
-        public void TestSynthesizedAssemblyAttributes_01()
-        {
-            // Verify Synthesized CompilationRelaxationsAttribute
-            // Verify Synthesized RuntimeCompatibilityAttribute
-
-            var source = @"
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
-            {
-                var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
-
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-                var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-
-                if (outputKind != OutputKind.NetModule)
-                {
-                    // Verify synthesized CompilationRelaxationsAttribute and RuntimeCompatibilityAttribute
-                    Assert.Equal(3, synthesizedAttributes.Length);
-                    VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                    VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
-                    VerifyDebuggableAttribute(synthesizedAttributes[2], sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints);
                 }
-                else
-                {
-                    Assert.Equal(0, synthesizedAttributes.Length);
-                }
-            }
+            });
         }
 
-        [Fact]
-        public void TestSynthesizedAssemblyAttributes_02()
-        {
-            // Verify Applied CompilationRelaxationsAttribute
-            // Verify Synthesized RuntimeCompatibilityAttribute
-
-            var source = @"
-using System.Runtime.CompilerServices;
-
-[assembly: CompilationRelaxationsAttribute(0)]
-
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
-            {
-                var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
-
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-
-                // Verify applied CompilationRelaxationsAttribute
-                var appliedAttributes = sourceAssembly.GetAttributes();
-                Assert.Equal(1, appliedAttributes.Length);
-                VerifyCompilationRelaxationsAttribute(appliedAttributes[0], sourceAssembly, isSynthesized: false);
-
-                // Verify synthesized RuntimeCompatibilityAttribute
-                var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                if (outputKind != OutputKind.NetModule)
-                {
-                    Assert.Equal(2, synthesizedAttributes.Length);
-                    VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                    VerifyDebuggableAttribute(synthesizedAttributes[1], sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints);
-                }
-                else
-                {
-                    Assert.Equal(0, synthesizedAttributes.Length);
-                }
-            }
-        }
-
-        [Fact]
-        public void TestSynthesizedAssemblyAttributes_03()
-        {
-            // Verify Synthesized CompilationRelaxationsAttribute
-            // Verify Applied RuntimeCompatibilityAttribute
-
-            var source = @"
-using System.Runtime.CompilerServices;
-
-[assembly: RuntimeCompatibilityAttribute()]
-
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
-            {
-                var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
-
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-
-                // Verify applied RuntimeCompatibilityAttribute
-                var appliedAttributes = sourceAssembly.GetAttributes();
-                Assert.Equal(1, appliedAttributes.Length);
-                VerifyRuntimeCompatibilityAttribute(appliedAttributes[0], sourceAssembly, isSynthesized: false);
-
-                // Verify synthesized CompilationRelaxationsAttribute
-                var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                if (outputKind != OutputKind.NetModule)
-                {
-                    Assert.Equal(2, synthesizedAttributes.Length);
-                    VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                    VerifyDebuggableAttribute(synthesizedAttributes[1], sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints);
-                }
-                else
-                {
-                    Assert.Equal(0, synthesizedAttributes.Length);
-                }
-            }
-        }
-
-        [Fact]
-        public void TestSynthesizedAssemblyAttributes_04()
-        {
-            // Verify Applied CompilationRelaxationsAttribute
-            // Verify Applied RuntimeCompatibilityAttribute
-
-            var source = @"
-using System.Runtime.CompilerServices;
-
-[assembly: CompilationRelaxationsAttribute(0)]
-[assembly: RuntimeCompatibilityAttribute()]
-
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
-            {
-                var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
-
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-
-                // Verify applied CompilationRelaxationsAttribute and RuntimeCompatibilityAttribute
-                var appliedAttributes = sourceAssembly.GetAttributes();
-                Assert.Equal(2, appliedAttributes.Length);
-                VerifyCompilationRelaxationsAttribute(appliedAttributes[0], sourceAssembly, isSynthesized: false);
-                VerifyRuntimeCompatibilityAttribute(appliedAttributes[1], sourceAssembly, isSynthesized: false);
-
-                // Verify no synthesized attributes
-                var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                if (outputKind != OutputKind.NetModule)
-                {
-                    Assert.Equal(1, synthesizedAttributes.Length);
-                    VerifyDebuggableAttribute(synthesizedAttributes[0], sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints);
-                }
-                else
-                {
-                    Assert.Equal(0, synthesizedAttributes.Length);
-                }
-            }
-        }
-
-        [Fact]
-        public void TestSynthesizedAssemblyAttributes_05()
-        {
-            // Verify module attributes don't suppress synthesized assembly attributes:
-
-            // Synthesized CompilationRelaxationsAttribute
-            // Synthesized RuntimeCompatibilityAttribute
-
-            var source = @"
-using System.Runtime.CompilerServices;
-
-[module: CompilationRelaxationsAttribute(0)]
-[module: RuntimeCompatibilityAttribute()]
-
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
-            {
-                var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
-
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-
-                // Verify no applied assembly attributes
-                var appliedAssemblyAttributes = sourceAssembly.GetAttributes();
-                Assert.Equal(0, appliedAssemblyAttributes.Length);
-
-                // Verify applied module attributes
-                var appliedModuleAttributes = sourceAssembly.Modules[0].GetAttributes();
-                Assert.Equal(2, appliedModuleAttributes.Length);
-                VerifyCompilationRelaxationsAttribute(appliedModuleAttributes[0], sourceAssembly, isSynthesized: false);
-                VerifyRuntimeCompatibilityAttribute(appliedModuleAttributes[1], sourceAssembly, isSynthesized: false);
-
-                // Verify synthesized assembly attributes
-                var synthesizedAssemblyAttributes = sourceAssembly.GetSynthesizedAttributes();
-                if (!outputKind.IsNetModule())
-                {
-                    Assert.Equal(3, synthesizedAssemblyAttributes.Length);
-                    VerifyCompilationRelaxationsAttribute(synthesizedAssemblyAttributes[0], sourceAssembly, isSynthesized: true);
-                    VerifyRuntimeCompatibilityAttribute(synthesizedAssemblyAttributes[1], sourceAssembly, isSynthesized: true);
-                    VerifyDebuggableAttribute(synthesizedAssemblyAttributes[2], sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints);
-                }
-                else
-                {
-                    Assert.Equal(0, synthesizedAssemblyAttributes.Length);
-                }
-            }
-        }
-
-        [Fact]
-        public void TestSynthesizedAssemblyAttributes_06()
-        {
-            // Verify missing well-known attribute types **DO NOT** generate diagnostics and silently suppress synthesizing CompilationRelaxationsAttribute and RuntimeCompatibilityAttribute.
-
-            foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
-            {
-                var compilation = CreateCompilation("", options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
-
-                if (outputKind.IsApplication())
-                {
-                    compilation.VerifyDiagnostics(
-                        // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                        Diagnostic(ErrorCode.ERR_NoEntryPoint));
-                }
-                else
-                {
-                    compilation.VerifyDiagnostics();
-                }
-
-                // Verify no synthesized assembly attributes
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-                var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                Assert.Equal(0, synthesizedAttributes.Length);
-            }
-        }
-
-        [Fact]
-        public void TestSynthesizedAssemblyAttributes_07()
-        {
-            // Verify missing well-known attribute members **DO** generate diagnostics and suppress synthesizing CompilationRelaxationsAttribute and RuntimeCompatibilityAttribute.
-
-            var source = @"
-namespace System.Runtime.CompilerServices
-{
-    sealed public class CompilationRelaxationsAttribute : System.Attribute
-    {
-    }
-
-    sealed public class RuntimeCompatibilityAttribute : System.Attribute
-    {
-        public RuntimeCompatibilityAttribute(int dummy) {}
-    }
-}
-
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
-            {
-                var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
-
-                if (!outputKind.IsNetModule())
-                {
-                    compilation.VerifyDiagnostics(
-                        // error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor'
-                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Runtime.CompilerServices.CompilationRelaxationsAttribute", ".ctor"),
-                        // error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor'
-                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute", ".ctor"),
-                        // error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.WrapNonExceptionThrows'
-                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute", "WrapNonExceptionThrows"));
-                }
-                else
-                {
-                    compilation.VerifyDiagnostics();
-
-                    // Verify no synthesized assembly attributes
-                    var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-                    var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                    Assert.Equal(0, synthesizedAttributes.Length);
-                }
-            }
-        }
-
-        // NYI: /addmodule support
-        // TODO: Add tests for assembly attributes emitted into netmodules which suppress synthesized CompilationRelaxationsAttribute/RuntimeCompatibilityAttribute
-
-        #endregion
-
-        #region DebuggableAttribute
-
-        private void VerifyDebuggableAttribute(CSharpAttributeData attribute, SourceAssemblySymbol sourceAssembly, DebuggableAttribute.DebuggingModes expectedDebuggingMode)
-        {
-            ModuleSymbol module = sourceAssembly.Modules[0];
-            NamespaceSymbol diagnosticsNS = Get_System_Diagnostics_NamespaceSymbol(module);
-
-            NamedTypeSymbol debuggableAttributeType = diagnosticsNS.GetTypeMember("DebuggableAttribute");
-            var debuggableAttributeCtor = (MethodSymbol)sourceAssembly.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_DebuggableAttribute__ctorDebuggingModes);
-
-            Assert.Equal(debuggableAttributeType, attribute.AttributeClass);
-            Assert.Equal(debuggableAttributeCtor, attribute.AttributeConstructor);
-
-            Assert.Equal(1, attribute.CommonConstructorArguments.Length);
-            attribute.VerifyValue(0, TypedConstantKind.Enum, (int)expectedDebuggingMode);
-
-            Assert.Equal(0, attribute.CommonNamedArguments.Length);
-        }
-
-        private void VerifySynthesizedDebuggableAttribute(CSharpAttributeData attribute, SourceAssemblySymbol sourceAssembly, OptimizationLevel optimizations)
-        {
-            var expectedDebuggingMode = DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints;
-
-            if (optimizations == OptimizationLevel.Debug)
-            {
-                expectedDebuggingMode |=
-                    DebuggableAttribute.DebuggingModes.Default |
-                    DebuggableAttribute.DebuggingModes.DisableOptimizations |
-                    DebuggableAttribute.DebuggingModes.EnableEditAndContinue;
-            }
-
-            VerifyDebuggableAttribute(attribute, sourceAssembly, expectedDebuggingMode);
-        }
-
-        private void TestDebuggableAttributeCommon(
-            string source,
-            Action<CSharpCompilation> validator,
-            bool includeMscorlibRef,
-            bool compileAndVerify,
-            OutputKind outputKind,
-            OptimizationLevel optimizations)
-        {
-            var compilation = CSharpCompilation.Create("comp",
-                new[] { Parse(source) },
-                includeMscorlibRef ? new[] { MscorlibRef } : null,
-                new CSharpCompilationOptions(outputKind, optimizationLevel: optimizations));
-
-            validator(compilation);
-
-            if (compileAndVerify)
-            {
-                // NYI: /addmodule support
-                // TODO: PEVerify currently fails for netmodules with error: "The module X was expected to contain an assembly manifest".
-                // TODO: Remove the 'verify' named argument once /addmodule support has been added.
-                CompileAndVerify(compilation, verify: !outputKind.IsNetModule());
-            }
-        }
-
-        private void TestDebuggableAttributeMatrix(string source, Action<CSharpCompilation> validator, bool includeMscorlibRef = true, bool compileAndVerify = true)
-        {
-            foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
-            {
-                foreach (OptimizationLevel optimizations in Enum.GetValues(typeof(OptimizationLevel)))
-                {
-                    TestDebuggableAttributeCommon(source, validator, includeMscorlibRef, compileAndVerify, outputKind, optimizations);
-                }
-            }
-        }
-
-        [Fact]
-        public void TestDebuggableAttribute_01()
-        {
-            // Verify Synthesized DebuggableAttribute
-
-            var source = @"
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            Action<CSharpCompilation> validator = (CSharpCompilation compilation) =>
-            {
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-                var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                CSharpCompilationOptions options = compilation.Options;
-
-                if (!options.OutputKind.IsNetModule())
-                {
-                    Assert.Equal(3, synthesizedAttributes.Length);
-                    VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                    VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
-                    VerifySynthesizedDebuggableAttribute(synthesizedAttributes[2], sourceAssembly, options.OptimizationLevel);
-                }
-                else
-                {
-                    Assert.Equal(0, synthesizedAttributes.Length);
-                }
-            };
-
-            TestDebuggableAttributeMatrix(source, validator);
-        }
-
-        [Fact]
-        public void TestDebuggableAttribute_02()
-        {
-            // Verify applied assembly DebuggableAttribute suppresses synthesized DebuggableAttribute
-
-            var source = @"
-using System.Diagnostics;
-
-[assembly: DebuggableAttribute(DebuggableAttribute.DebuggingModes.Default)]
-
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            Action<CSharpCompilation> validator = (CSharpCompilation compilation) =>
-            {
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-                var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                CSharpCompilationOptions options = compilation.Options;
-
-                if (!options.OutputKind.IsNetModule())
-                {
-                    // Verify no synthesized DebuggableAttribute.
-
-                    Assert.Equal(2, synthesizedAttributes.Length);
-                    VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                    VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
-                }
-                else
-                {
-                    Assert.Equal(0, synthesizedAttributes.Length);
-                }
-
-                // Verify applied Debuggable attribute
-                var appliedAttributes = sourceAssembly.GetAttributes();
-                Assert.Equal(1, appliedAttributes.Length);
-                VerifyDebuggableAttribute(appliedAttributes[0], sourceAssembly, DebuggableAttribute.DebuggingModes.Default);
-            };
-
-            TestDebuggableAttributeMatrix(source, validator);
-        }
-
-        [Fact]
-        public void TestDebuggableAttribute_03()
-        {
-            // Verify applied module DebuggableAttribute does not suppress synthesized assembly DebuggableAttribute.
-
-            var source = @"
-using System.Diagnostics;
-
-[module: DebuggableAttribute(DebuggableAttribute.DebuggingModes.Default)]
-
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            Action<CSharpCompilation> validator = (CSharpCompilation compilation) =>
-            {
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-                var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                CSharpCompilationOptions options = compilation.Options;
-
-                if (options.OutputKind != OutputKind.NetModule)
-                {
-                    Assert.Equal(3, synthesizedAttributes.Length);
-                    VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                    VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
-                    VerifySynthesizedDebuggableAttribute(synthesizedAttributes[2], sourceAssembly, options.OptimizationLevel);
-                }
-                else
-                {
-                    Assert.Equal(0, synthesizedAttributes.Length);
-                }
-
-                // Verify applied Debuggable attribute
-                var appliedAttributes = sourceAssembly.Modules[0].GetAttributes();
-                Assert.Equal(1, appliedAttributes.Length);
-                VerifyDebuggableAttribute(appliedAttributes[0], sourceAssembly, DebuggableAttribute.DebuggingModes.Default);
-            };
-
-            TestDebuggableAttributeMatrix(source, validator);
-        }
-
-        [Fact]
-        public void TestDebuggableAttribute_04()
-        {
-            // Applied [module: DebuggableAttribute()] and [assembly: DebuggableAttribute()]
-            // Verify no synthesized assembly DebuggableAttribute.
-
-            var source = @"
-using System.Diagnostics;
-
-[module: DebuggableAttribute(DebuggableAttribute.DebuggingModes.Default)]
-[assembly: DebuggableAttribute(DebuggableAttribute.DebuggingModes.None)]
-
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            Action<CSharpCompilation> validator = (CSharpCompilation compilation) =>
-            {
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-                var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                CSharpCompilationOptions options = compilation.Options;
-
-                if (!options.OutputKind.IsNetModule())
-                {
-                    // Verify no synthesized DebuggableAttribute.
-
-                    Assert.Equal(2, synthesizedAttributes.Length);
-                    VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                    VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
-                }
-                else
-                {
-                    Assert.Equal(0, synthesizedAttributes.Length);
-                }
-
-                // Verify applied module Debuggable attribute
-                var appliedAttributes = sourceAssembly.Modules[0].GetAttributes();
-                Assert.Equal(1, appliedAttributes.Length);
-                VerifyDebuggableAttribute(appliedAttributes[0], sourceAssembly, DebuggableAttribute.DebuggingModes.Default);
-
-                // Verify applied assembly Debuggable attribute
-                appliedAttributes = sourceAssembly.GetAttributes();
-                Assert.Equal(1, appliedAttributes.Length);
-                VerifyDebuggableAttribute(appliedAttributes[0], sourceAssembly, DebuggableAttribute.DebuggingModes.None);
-            };
-
-            TestDebuggableAttributeMatrix(source, validator);
-        }
-
-        [Fact]
-        public void TestDebuggableAttribute_MissingWellKnownTypeOrMember_01()
-        {
-            // Missing Well-known type DebuggableAttribute generates no diagnostics and
-            // silently suppresses synthesized DebuggableAttribute.
-
-            var source = @"
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            Action<CSharpCompilation> validator = (CSharpCompilation compilation) =>
-            {
-                compilation.VerifyDiagnostics(
-                    // (2,14): error CS0518: Predefined type 'System.Object' is not defined or imported
-                    // public class Test
-                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Object"),
-                    // (4,19): error CS0518: Predefined type 'System.Void' is not defined or imported
-                    //     public static void Main()
-                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void"),
-                    // (2,14): error CS1729: 'object' does not contain a constructor that takes 0 arguments
-                    // public class Test
-                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test").WithArguments("object", "0"));
-
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-                var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                Assert.Equal(0, synthesizedAttributes.Length);
-            };
-
-            TestDebuggableAttributeMatrix(source, validator, includeMscorlibRef: false, compileAndVerify: false);
-        }
-
-        [Fact]
-        public void TestDebuggableAttribute_MissingWellKnownTypeOrMember_02()
-        {
-            // Missing Well-known type DebuggableAttribute.DebuggingModes generates no diagnostics and
-            // silently suppresses synthesized DebuggableAttribute.
-
-            var source = @"
-using System;
-using System.Diagnostics;
-
-namespace System.Diagnostics
-{
-    public sealed class DebuggableAttribute: Attribute
-    {
-        public DebuggableAttribute(bool isJITTrackingEnabled, bool isJITOptimizerDisabled) {}
-    }
-}
-
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            Action<CSharpCompilation> validator = (CSharpCompilation compilation) =>
-            {
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-                var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                CSharpCompilationOptions options = compilation.Options;
-
-                if (!options.OutputKind.IsNetModule())
-                {
-                    // Verify no synthesized DebuggableAttribute.
-
-                    Assert.Equal(2, synthesizedAttributes.Length);
-                    VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                    VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
-                }
-                else
-                {
-                    Assert.Equal(0, synthesizedAttributes.Length);
-                }
-            };
-
-            TestDebuggableAttributeMatrix(source, validator);
-        }
-
-        [Fact]
-        public void TestDebuggableAttribute_MissingWellKnownTypeOrMember_03()
-        {
-            // Inaccessible Well-known type DebuggableAttribute.DebuggingModes generates no diagnostics and
-            // silently suppresses synthesized DebuggableAttribute.
-
-            var source = @"
-using System;
-using System.Diagnostics;
-
-namespace System.Diagnostics
-{
-    public sealed class DebuggableAttribute: Attribute
-    {
-        public DebuggableAttribute(bool isJITTrackingEnabled, bool isJITOptimizerDisabled) {}
-
-        private enum DebuggingModes
-        {
-            None = 0,
-            Default = 1,
-            IgnoreSymbolStoreSequencePoints = 2,
-            EnableEditAndContinue = 4,
-            DisableOptimizations = 256,
-        }
-    }
-}
-
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            Action<CSharpCompilation> validator = (CSharpCompilation compilation) =>
-            {
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-                var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                CSharpCompilationOptions options = compilation.Options;
-
-                if (!options.OutputKind.IsNetModule())
-                {
-                    // Verify no synthesized DebuggableAttribute.
-
-                    Assert.Equal(2, synthesizedAttributes.Length);
-                    VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                    VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
-                }
-                else
-                {
-                    Assert.Equal(0, synthesizedAttributes.Length);
-                }
-            };
-
-            TestDebuggableAttributeMatrix(source, validator);
-        }
-
-        [Fact]
-        public void TestDebuggableAttribute_MissingWellKnownTypeOrMember_04()
-        {
-            // Struct Well-known type DebuggableAttribute.DebuggingModes (instead of enum) generates no diagnostics and
-            // silently suppresses synthesized DebuggableAttribute.
-
-            var source = @"
-using System;
-using System.Diagnostics;
-
-namespace System.Diagnostics
-{
-    public sealed class DebuggableAttribute: Attribute
-    {
-        public DebuggableAttribute(bool isJITTrackingEnabled, bool isJITOptimizerDisabled) {}
-
-        public struct DebuggingModes
-        {
-        }
-    }
-}
-
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            Action<CSharpCompilation> validator = (CSharpCompilation compilation) =>
-            {
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-                var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                CSharpCompilationOptions options = compilation.Options;
-
-                if (!options.OutputKind.IsNetModule())
-                {
-                    // Verify no synthesized DebuggableAttribute.
-
-                    Assert.Equal(2, synthesizedAttributes.Length);
-                    VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                    VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
-                }
-                else
-                {
-                    Assert.Equal(0, synthesizedAttributes.Length);
-                }
-            };
-
-            TestDebuggableAttributeMatrix(source, validator);
-        }
-
-        [Fact]
-        public void TestDebuggableAttribute_MissingWellKnownTypeOrMember_05()
-        {
-            // Missing DebuggableAttribute constructor generates no diagnostics and
-            // silently suppresses synthesized DebuggableAttribute.
-
-            var source = @"
-using System;
-using System.Diagnostics;
-
-namespace System.Diagnostics
-{
-    public sealed class DebuggableAttribute: Attribute
-    {
-        public enum DebuggingModes
-        {
-            None = 0,
-            Default = 1,
-            IgnoreSymbolStoreSequencePoints = 2,
-            EnableEditAndContinue = 4,
-            DisableOptimizations = 256,
-        }
-    }
-}
-
-public class Test
-{
-    public static void Main()
-    {
-    }
-}";
-            Action<CSharpCompilation> validator = (CSharpCompilation compilation) =>
-            {
-                var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
-                var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                CSharpCompilationOptions options = compilation.Options;
-
-                if (!options.OutputKind.IsNetModule())
-                {
-                    // Verify no synthesized DebuggableAttribute.
-
-                    Assert.Equal(2, synthesizedAttributes.Length);
-                    VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                    VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
-                }
-                else
-                {
-                    Assert.Equal(0, synthesizedAttributes.Length);
-                }
-            };
-
-            TestDebuggableAttributeMatrix(source, validator);
-        }
-
-        #endregion
-
-        #region UnverifiableCode, SecurityPermission(SkipVerification)
-
-        [Fact]
-        public void CheckUnsafeAttributes1()
-        {
-            string source = @"
-class C
-{
-    public static void Main()
-    {
-    }
-}";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
-            compilation.VerifyDiagnostics();
-
-            var assembly = (SourceAssemblySymbol)compilation.Assembly;
-            var assemblyAttribute = assembly.GetSecurityAttributes().Single();
-            VerifySkipVerificationSecurityAttribute(assemblyAttribute, compilation);
-
-            var module = (SourceModuleSymbol)assembly.Modules.Single();
-            var moduleAttribute = module.GetSynthesizedAttributes().Single();
-            VerifyUnverifiableCodeAttribute(moduleAttribute, compilation);
-        }
-
-        [Fact]
-        public void CheckUnsafeAttributes2()
-        {
-            string source = @"
-class C
-{
-    public static void Main()
-    {
-    }
-}";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll.WithOutputKind(OutputKind.NetModule));
-            compilation.VerifyDiagnostics();
-
-            var assembly = (SourceAssemblySymbol)compilation.Assembly;
-            var assemblyAttribute = assembly.GetSecurityAttributes().Single();
-            VerifySkipVerificationSecurityAttribute(assemblyAttribute, compilation);
-
-            var module = (SourceModuleSymbol)assembly.Modules.Single();
-            var moduleAttribute = module.GetSynthesizedAttributes().Single();
-            VerifyUnverifiableCodeAttribute(moduleAttribute, compilation);
-        }
-
-        internal static void VerifySkipVerificationSecurityAttribute(Cci.SecurityAttribute securityAttribute, CSharpCompilation compilation)
-        {
-            var assemblyAttribute = (CSharpAttributeData)securityAttribute.Attribute;
-
-            Assert.Equal(compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityPermissionAttribute), assemblyAttribute.AttributeClass);
-            Assert.Equal(compilation.GetWellKnownTypeMember(WellKnownMember.System_Security_Permissions_SecurityPermissionAttribute__ctor), assemblyAttribute.AttributeConstructor);
-
-            var assemblyAttributeArgument = assemblyAttribute.CommonConstructorArguments.Single();
-            Assert.Equal(compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction), assemblyAttributeArgument.Type);
-            Assert.Equal(DeclarativeSecurityAction.RequestMinimum, securityAttribute.Action);
-            Assert.Equal(DeclarativeSecurityAction.RequestMinimum, (DeclarativeSecurityAction)(int)assemblyAttributeArgument.Value);
-
-            var assemblyAttributeNamedArgument = assemblyAttribute.CommonNamedArguments.Single();
-            Assert.Equal("SkipVerification", assemblyAttributeNamedArgument.Key);
-            var assemblyAttributeNamedArgumentValue = assemblyAttributeNamedArgument.Value;
-            Assert.Equal(compilation.GetSpecialType(SpecialType.System_Boolean), assemblyAttributeNamedArgumentValue.Type);
-            Assert.Equal(true, assemblyAttributeNamedArgumentValue.Value);
-        }
-
-        internal static void VerifyUnverifiableCodeAttribute(CSharpAttributeData moduleAttribute, CSharpCompilation compilation)
-        {
-            Assert.Equal(compilation.GetWellKnownType(WellKnownType.System_Security_UnverifiableCodeAttribute), moduleAttribute.AttributeClass);
-            Assert.Equal(compilation.GetWellKnownTypeMember(WellKnownMember.System_Security_UnverifiableCodeAttribute__ctor), moduleAttribute.AttributeConstructor);
-
-            Assert.Equal(0, moduleAttribute.CommonConstructorArguments.Length);
-            Assert.Equal(0, moduleAttribute.CommonNamedArguments.Length);
-        }
-
-        #endregion
-
-        #region AsyncStateMachineAttribute
-
-        [Fact]
-        public void AsyncStateMachineAttribute_Method()
-        {
-            string source = @"
-using System.Threading.Tasks;
-
-class Test
-{
-    public static async void F()
-    {
-        await Task.Delay(0);
-    }
-}
-";
-            var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
-
-            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__0");
-            var asyncMethod = comp.GetMember<MethodSymbol>("Test.F");
-
-            var asyncMethodAttributes = asyncMethod.GetAttributes();
-            AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(asyncMethodAttributes));
-
-            var attributeArg = (NamedTypeSymbol)asyncMethodAttributes.Single().ConstructorArguments.Single().Value;
-            Assert.Equal(attributeArg, stateMachine);
-        }
-
-        [Fact]
-        public void AsyncStateMachineAttribute_Method_Debug()
-        {
-            string source = @"
-using System.Threading.Tasks;
-
-class Test
-{
-    public static async void F()
-    {
-        await Task.Delay(0);
-    }
-}
-";
-            var reference = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll).EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
-
-            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__0");
-            var asyncMethod = comp.GetMember<MethodSymbol>("Test.F");
-
-            var asyncMethodAttributes = asyncMethod.GetAttributes();
-            AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute", "DebuggerStepThroughAttribute" }, GetAttributeNames(asyncMethodAttributes));
-
-            var attributeArg = (NamedTypeSymbol)asyncMethodAttributes.First().ConstructorArguments.Single().Value;
-            Assert.Equal(attributeArg, stateMachine);
-        }
-
-        [Fact]
-        public void AsyncStateMachineAttribute_Lambda()
-        {
-            string source = @"
-using System;
-using System.Threading.Tasks;
-
-class Test
-{
-    public static void F()
-    {
-        Action f = async () => { await Task.Delay(0); };
-    }
-}
-";
-            var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
-
-            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<>c.<<F>b__0_0>d");
-            var asyncMethod = comp.GetMember<MethodSymbol>("Test.<>c.<F>b__0_0");
-
-            var asyncMethodAttributes = asyncMethod.GetAttributes();
-            AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(asyncMethodAttributes));
-
-            var attributeArg = (NamedTypeSymbol)asyncMethodAttributes.Single().ConstructorArguments.Single().Value;
-            Assert.Equal(attributeArg, stateMachine);
-        }
-
-        [Fact]
-        public void AsyncStateMachineAttribute_Lambda_Debug()
-        {
-            string source = @"
-using System;
-using System.Threading.Tasks;
-
-class Test
-{
-    public static void F()
-    {
-        Action f = async () => { await Task.Delay(0); };
-    }
-}
-";
-            var reference = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll).EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
-
-            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<>c.<<F>b__0_0>d");
-            var asyncMethod = comp.GetMember<MethodSymbol>("Test.<>c.<F>b__0_0");
-
-            var asyncMethodAttributes = asyncMethod.GetAttributes();
-            AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute", "DebuggerStepThroughAttribute" }, GetAttributeNames(asyncMethodAttributes));
-
-            var attributeArg = (NamedTypeSymbol)asyncMethodAttributes.First().ConstructorArguments.Single().Value;
-            Assert.Equal(attributeArg, stateMachine);
-        }
-
-        [Fact]
-        public void AsyncStateMachineAttribute_GenericStateMachineClass()
-        {
-            string source = @"
-using System.Threading.Tasks;
-
-public class Test<T>
-{
-    public async void F<U>(U u) where U : Test<int>, new()
-    {
-        await Task.Delay(0);
-    }
-}
-";
-            var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
-
-            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__0");
-            var asyncMethod = comp.GetMember<MethodSymbol>("Test.F");
-
-            var asyncMethodAttributes = asyncMethod.GetAttributes();
-            AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(asyncMethodAttributes));
-
-            var attributeStateMachineClass = (NamedTypeSymbol)asyncMethodAttributes.Single().ConstructorArguments.Single().Value;
-            Assert.Equal(attributeStateMachineClass, stateMachine.ConstructUnboundGenericType());
-        }
-
-        [Fact]
-        public void AsyncStateMachineAttribute_MetadataOnly()
-        {
-            string source = @"
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-class Test
-{
-    public static async void F()
-    {
-        await Task.Delay(0);
-    }
-}
-";
-            var reference = CreateCompilationWithMscorlib45(source).
-                EmitToImageReference(new EmitOptions(metadataOnly: true));
-
-            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            Assert.Empty(comp.GetMember<NamedTypeSymbol>("Test").GetMembers("<F>d__1"));
-
-            var asyncMethod = comp.GetMember<MethodSymbol>("Test.F");
-
-            var asyncMethodAttributes = asyncMethod.GetAttributes();
-            Assert.Empty(GetAttributeNames(asyncMethodAttributes));
-        }
-
-        [Fact]
-        public void AsyncStateMachineAttribute_MetadataOnly_Debug()
-        {
-            string source = @"
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-class Test
-{
-    public static async void F()
-    {
-        await Task.Delay(0);
-    }
-}
-";
-            var reference = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll).
-                EmitToImageReference(new EmitOptions(metadataOnly: true));
-
-            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            Assert.Empty(comp.GetMember<NamedTypeSymbol>("Test").GetMembers("<F>d__1"));
-
-            var asyncMethod = comp.GetMember<MethodSymbol>("Test.F");
-
-            var asyncMethodAttributes = asyncMethod.GetAttributes();
-            AssertEx.SetEqual(new[] { "DebuggerStepThroughAttribute" }, GetAttributeNames(asyncMethodAttributes));
-        }
-
-        #endregion
-
-        #region IteratorStateMachineAttribute
-
-        [Fact]
-        public void IteratorStateMachineAttribute_Method()
-        {
-            string source = @"
-using System.Collections.Generic;
-
-class Test
-{
-    public static IEnumerable<int> F()
-    {
-        yield return 1;
-    }
-}
-";
-            foreach (var options in new[] { TestOptions.ReleaseDll, TestOptions.DebugDll })
-            {
-                var reference = CreateCompilationWithMscorlib45(source, options: options).EmitToImageReference();
-                var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
-
-                var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__0");
-                var asyncMethod = comp.GetMember<MethodSymbol>("Test.F");
-
-                var asyncMethodAttributes = asyncMethod.GetAttributes();
-                AssertEx.SetEqual(new[] { "IteratorStateMachineAttribute" }, GetAttributeNames(asyncMethodAttributes));
-
-                var attributeArg = (NamedTypeSymbol)asyncMethodAttributes.Single().ConstructorArguments.Single().Value;
-                Assert.Equal(attributeArg, stateMachine);
-            }
-        }
-
-        [Fact]
-        public void IteratorStateMachineAttribute_GenericStateMachineClass()
-        {
-            string source = @"
-using System.Collections.Generic;
-
-public class Test<T>
-{
-    public IEnumerable<int> F<U>(U u) where U : Test<int>, new()
-    {
-        yield return 1;
-    }
-}
-";
-            var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
-
-            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__0");
-            var iteratorMethod = comp.GetMember<MethodSymbol>("Test.F");
-
-            var iteratorMethodAttributes = iteratorMethod.GetAttributes();
-            AssertEx.SetEqual(new[] { "IteratorStateMachineAttribute" }, GetAttributeNames(iteratorMethodAttributes));
-
-            var attributeStateMachineClass = (NamedTypeSymbol)iteratorMethodAttributes.Single().ConstructorArguments.Single().Value;
-            Assert.Equal(attributeStateMachineClass, stateMachine.ConstructUnboundGenericType());
-        }
-
-        [Fact]
-        public void IteratorStateMachineAttribute_MetadataOnly()
-        {
-            string source = @"
-using System.Collections.Generic;
-
-public class Test
-{
-    public static IEnumerable<int> F()
-    {
-        yield return 1;
-    }
-}
-";
-
-            foreach (var options in new[] { TestOptions.ReleaseDll, TestOptions.DebugDll })
-            {
-                var reference = CreateCompilationWithMscorlib45(source, options: options).
-                    EmitToImageReference(new EmitOptions(metadataOnly: true));
-
-                var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
-                Assert.Empty(comp.GetMember<NamedTypeSymbol>("Test").GetMembers("<F>d__0"));
-
-                var iteratorMethod = comp.GetMember<MethodSymbol>("Test.F");
-
-                var iteratorMethodAttributes = iteratorMethod.GetAttributes();
-                Assert.Empty(GetAttributeNames(iteratorMethodAttributes)); // We haven't bound the body, so we don't know that this is an iterator method.
-            }
-        }
-
-        #endregion
-
-        [Fact, WorkItem(431, "https://github.com/dotnet/roslyn/issues/431")]
-        public void BaseMethodWrapper()
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        [WorkItem(431, "https://github.com/dotnet/roslyn/issues/431")]
+        public void BaseMethodWrapper(OptimizationLevel optimizationLevel)
         {
             string source = @"
 using System.Threading.Tasks;
@@ -1643,16 +537,961 @@ class B : A
     }
 }
 ";
-            foreach (var options in new[] { TestOptions.ReleaseDll, TestOptions.DebugDll })
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
             {
-                var reference = CreateCompilationWithMscorlib45(source, options: options).EmitToImageReference();
-                var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+                var attributes = module.GlobalNamespace.GetTypeMember("B").GetMember<MethodSymbol>("<>n__0").GetAttributes();
 
-                var baseMethodWrapper = comp.GetMember<MethodSymbol>("B.<>n__0");
+                AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute", "DebuggerHiddenAttribute" }, GetAttributeNames(attributes));
+            });
+        }
+        #endregion
 
-                AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute", "DebuggerHiddenAttribute" }, GetAttributeNames(baseMethodWrapper.GetAttributes()));
+        #region CompilationRelaxationsAttribute, RuntimeCompatibilityAttribute, DebuggableAttribute
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void SynthesizedAllAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var source = @"
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            {
+                var attributes = module.ContainingAssembly.GetAttributes();
+
+                if (outputKind.IsNetModule())
+                {
+                    Assert.Equal(0, attributes.Length);
+                }
+                else
+                {
+                    Assert.Equal(3, attributes.Length);
+
+                    VerifyCompilationRelaxationsAttribute(attributes[0], isSynthesized: true);
+                    VerifyRuntimeCompatibilityAttribute(attributes[1], isSynthesized: true);
+                    VerifyDebuggableAttribute(attributes[2], options.OptimizationLevel, isSynthesized: true);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void AppliedCompilationRelaxations(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+[assembly: CompilationRelaxationsAttribute(0)]
+
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            {
+                var attributes = module.ContainingAssembly.GetAttributes();
+
+                if (outputKind.IsNetModule())
+                {
+                    Assert.Equal(0, attributes.Length);
+                }
+                else
+                {
+                    Assert.Equal(3, attributes.Length);
+
+                    VerifyRuntimeCompatibilityAttribute(attributes[0], isSynthesized: true);
+                    VerifyDebuggableAttribute(attributes[1], options.OptimizationLevel, isSynthesized: true);
+                    VerifyCompilationRelaxationsAttribute(attributes[2], isSynthesized: false);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void AppliedRuntimeCompatibility(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+[assembly: RuntimeCompatibilityAttribute()]
+
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            {
+                var attributes = module.ContainingAssembly.GetAttributes();
+
+                if (outputKind.IsNetModule())
+                {
+                    Assert.Equal(0, attributes.Length);
+                }
+                else
+                {
+                    Assert.Equal(3, attributes.Length);
+
+                    VerifyCompilationRelaxationsAttribute(attributes[0], isSynthesized: true);
+                    VerifyDebuggableAttribute(attributes[1], options.OptimizationLevel, isSynthesized: true);
+                    VerifyRuntimeCompatibilityAttribute(attributes[2], isSynthesized: false);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void AppliedDebuggable(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var source = @"
+using System.Diagnostics;
+
+[assembly: DebuggableAttribute(DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)]
+
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            {
+                var attributes = module.ContainingAssembly.GetAttributes();
+
+                if (outputKind.IsNetModule())
+                {
+                    Assert.Equal(0, attributes.Length);
+                }
+                else
+                {
+                    Assert.Equal(3, attributes.Length);
+
+                    VerifyCompilationRelaxationsAttribute(attributes[0], isSynthesized: true);
+                    VerifyRuntimeCompatibilityAttribute(attributes[1], isSynthesized: true);
+                    VerifyDebuggableAttribute(attributes[2], options.OptimizationLevel, isSynthesized: false);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void AppliedDebuggableOnBothAssemblyAndModule(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var source = @"
+using System.Diagnostics;
+
+[module: DebuggableAttribute(DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)]
+[assembly: DebuggableAttribute(DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)]
+
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            {
+                VerifyDebuggableAttribute(module.GetAttributes().Single(), optimizationLevel, isSynthesized: false);
+
+                var attributes = module.ContainingAssembly.GetAttributes();
+
+                if (outputKind.IsNetModule())
+                {
+                    Assert.Equal(0, attributes.Length);
+                }
+                else
+                {
+                    Assert.Equal(3, attributes.Length);
+
+                    VerifyCompilationRelaxationsAttribute(attributes[0], isSynthesized: true);
+                    VerifyRuntimeCompatibilityAttribute(attributes[1], isSynthesized: true);
+                    VerifyDebuggableAttribute(attributes[2], options.OptimizationLevel, isSynthesized: false);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void AppliedCompilationRelaxationsAndRuntimeCompatibility(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+[assembly: CompilationRelaxationsAttribute(0)]
+[assembly: RuntimeCompatibilityAttribute()]
+
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            {
+                var attributes = module.ContainingAssembly.GetAttributes();
+
+                if (outputKind.IsNetModule())
+                {
+                    Assert.Equal(0, attributes.Length);
+                }
+                else
+                {
+                    Assert.Equal(3, attributes.Length);
+
+                    VerifyDebuggableAttribute(attributes[0], options.OptimizationLevel, isSynthesized: true);
+                    VerifyCompilationRelaxationsAttribute(attributes[1], isSynthesized: false);
+                    VerifyRuntimeCompatibilityAttribute(attributes[2], isSynthesized: false);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void ModuleCompilationRelaxationsDoNotSuppressAssemblyAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+[module: CompilationRelaxationsAttribute(0)]
+
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            {
+                VerifyCompilationRelaxationsAttribute(module.GetAttributes().Single(), isSynthesized: false);
+
+                var assemblyAttributes = module.ContainingAssembly.GetAttributes();
+
+                if (outputKind.IsNetModule())
+                {
+                    Assert.Equal(0, assemblyAttributes.Length);
+                }
+                else
+                {
+                    Assert.Equal(3, assemblyAttributes.Length);
+
+                    VerifyCompilationRelaxationsAttribute(assemblyAttributes[0], isSynthesized: true);
+                    VerifyRuntimeCompatibilityAttribute(assemblyAttributes[1], isSynthesized: true);
+                    VerifyDebuggableAttribute(assemblyAttributes[2], options.OptimizationLevel, isSynthesized: true);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void ModuleDebuggableDoNotSuppressAssemblyAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var source = @"
+using System.Diagnostics;
+
+[module: Debuggable(DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)]
+
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            {
+                VerifyDebuggableAttribute(module.GetAttributes().Single(), options.OptimizationLevel, isSynthesized: false);
+
+                var assemblyAttributes = module.ContainingAssembly.GetAttributes();
+
+                if (outputKind.IsNetModule())
+                {
+                    Assert.Equal(0, assemblyAttributes.Length);
+                }
+                else
+                {
+                    Assert.Equal(3, assemblyAttributes.Length);
+
+                    VerifyCompilationRelaxationsAttribute(assemblyAttributes[0], isSynthesized: true);
+                    VerifyRuntimeCompatibilityAttribute(assemblyAttributes[1], isSynthesized: true);
+                    VerifyDebuggableAttribute(assemblyAttributes[2], options.OptimizationLevel, isSynthesized: true);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void MissingWellKnownAttributesNoDiagnosticsAndNoSynthesizedAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var compilation = CreateCompilation("", options: options);
+
+            if (outputKind.IsApplication())
+            {
+                compilation.VerifyDiagnostics(
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    Diagnostic(ErrorCode.ERR_NoEntryPoint));
+            }
+            else
+            {
+                CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+                {
+                    var assemblyAttributes = module.ContainingAssembly.GetAttributes();
+                    Assert.Equal(0, assemblyAttributes.Length);
+                });
             }
         }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void MissingWellKnownAttributeEnumsNoDiagnosticsAndNoSynthesizedAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var code = @"
+namespace System.Diagnostics
+{
+    public sealed class DebuggableAttribute: Attribute
+    {
+        public DebuggableAttribute(bool isJITTrackingEnabled, bool isJITOptimizerDisabled) {}
+    }
+}
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var compilation = CreateStandardCompilation(code, options: options);
+
+            CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            {
+                var attributes = module.ContainingAssembly.GetAttributes();
+
+                if (outputKind.IsNetModule())
+                {
+                    Assert.Equal(0, attributes.Length);
+                }
+                else
+                {
+                    Assert.Equal(2, attributes.Length);
+
+                    VerifyCompilationRelaxationsAttribute(attributes[0], isSynthesized: true);
+                    VerifyRuntimeCompatibilityAttribute(attributes[1], isSynthesized: true);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void InaccessibleWellKnownAttributeEnumsNoDiagnosticsAndNoSynthesizedAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var code = @"
+namespace System.Diagnostics
+{
+    public sealed class DebuggableAttribute: Attribute
+    {
+        public DebuggableAttribute(bool isJITTrackingEnabled, bool isJITOptimizerDisabled) {}
+
+        private enum DebuggingModes
+        {
+            None = 0,
+            Default = 1,
+            IgnoreSymbolStoreSequencePoints = 2,
+            EnableEditAndContinue = 4,
+            DisableOptimizations = 256,
+        }
+    }
+}
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var compilation = CreateStandardCompilation(code, options: options);
+
+            CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            {
+                var attributes = module.ContainingAssembly.GetAttributes();
+
+                if (outputKind.IsNetModule())
+                {
+                    Assert.Equal(0, attributes.Length);
+                }
+                else
+                {
+                    Assert.Equal(2, attributes.Length);
+
+                    VerifyCompilationRelaxationsAttribute(attributes[0], isSynthesized: true);
+                    VerifyRuntimeCompatibilityAttribute(attributes[1], isSynthesized: true);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void WellKnownAttributeMissingCtorNoDiagnosticsAndNoSynthesizedAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var code = @"
+namespace System.Diagnostics
+{
+    public sealed class DebuggableAttribute: Attribute
+    {
+        public enum DebuggingModes
+        {
+            None = 0,
+            Default = 1,
+            IgnoreSymbolStoreSequencePoints = 2,
+            EnableEditAndContinue = 4,
+            DisableOptimizations = 256,
+        }
+    }
+}
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var compilation = CreateStandardCompilation(code, options: options);
+
+            CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            {
+                var attributes = module.ContainingAssembly.GetAttributes();
+
+                if (outputKind.IsNetModule())
+                {
+                    Assert.Equal(0, attributes.Length);
+                }
+                else
+                {
+                    Assert.Equal(2, attributes.Length);
+
+                    VerifyCompilationRelaxationsAttribute(attributes[0], isSynthesized: true);
+                    VerifyRuntimeCompatibilityAttribute(attributes[1], isSynthesized: true);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void WellKnownAttributeInvalidTypeNoDiagnosticsAndNoSynthesizedAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var code = @"
+namespace System.Diagnostics
+{
+    public sealed class DebuggableAttribute: Attribute
+    {
+        public DebuggableAttribute(bool isJITTrackingEnabled, bool isJITOptimizerDisabled) {}
+
+        public struct DebuggingModes
+        {
+        }
+    }
+}
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var compilation = CreateStandardCompilation(code, options: options);
+
+            CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            {
+                var attributes = module.ContainingAssembly.GetAttributes();
+
+                if (outputKind.IsNetModule())
+                {
+                    Assert.Equal(0, attributes.Length);
+                }
+                else
+                {
+                    Assert.Equal(2, attributes.Length);
+
+                    VerifyCompilationRelaxationsAttribute(attributes[0], isSynthesized: true);
+                    VerifyRuntimeCompatibilityAttribute(attributes[1], isSynthesized: true);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void MissingWellKnownAttributeMembersProduceDiagnostics(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    sealed public class CompilationRelaxationsAttribute : System.Attribute
+    {
+    }
+
+    sealed public class RuntimeCompatibilityAttribute : System.Attribute
+    {
+        public RuntimeCompatibilityAttribute(int dummy) {}
+    }
+}
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var compilation = CreateStandardCompilation(source, options: options);
+
+            if (outputKind.IsNetModule())
+            {
+                CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: module =>
+                {
+                    var assemblyAttributes = module.ContainingAssembly.GetAttributes();
+                    Assert.Equal(0, assemblyAttributes.Length);
+                });
+            }
+            else
+            {
+                compilation.VerifyDiagnostics(
+                    // error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor'
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Runtime.CompilerServices.CompilationRelaxationsAttribute", ".ctor"),
+                    // error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor'
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute", ".ctor"),
+                    // error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.WrapNonExceptionThrows'
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute", "WrapNonExceptionThrows"));
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void AppliedCompilationRelaxationsOnModuleSupressesAssemblyAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var referenceComp = CreateStandardCompilation(@"
+using System.Runtime.CompilerServices;
+
+[assembly: CompilationRelaxationsAttribute(0)]
+", options: new CSharpCompilationOptions(OutputKind.NetModule, optimizationLevel: optimizationLevel));
+
+            var reference = ModuleMetadata.CreateFromImage(referenceComp.EmitToArray()).GetReference();
+
+            var source = @"
+
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            CompileAndVerify(source, additionalRefs: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            {
+                var attributes = module.ContainingAssembly.GetAttributes();
+
+                if (outputKind.IsNetModule())
+                {
+                    Assert.Equal(0, attributes.Length);
+                }
+                else
+                {
+                    Assert.Equal(3, attributes.Length);
+
+                    VerifyRuntimeCompatibilityAttribute(attributes[0], isSynthesized: true);
+                    VerifyDebuggableAttribute(attributes[1], options.OptimizationLevel, isSynthesized: true);
+                    VerifyCompilationRelaxationsAttribute(attributes[2], isSynthesized: false);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(FullMatrixTheoryData))]
+        public void AppliedRuntimeCompatibilityOnModuleSupressesAssemblyAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        {
+            var referenceComp = CreateStandardCompilation(@"
+using System.Runtime.CompilerServices;
+
+[assembly: RuntimeCompatibilityAttribute()]
+", options: new CSharpCompilationOptions(OutputKind.NetModule, optimizationLevel: optimizationLevel));
+
+            var reference = ModuleMetadata.CreateFromImage(referenceComp.EmitToArray()).GetReference();
+
+            var source = @"
+
+public class Test
+{
+    public static void Main()
+    {
+    }
+}";
+
+            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            CompileAndVerify(source, additionalRefs: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            {
+                var attributes = module.ContainingAssembly.GetAttributes();
+
+                if (outputKind.IsNetModule())
+                {
+                    Assert.Equal(0, attributes.Length);
+                }
+                else
+                {
+                    Assert.Equal(3, attributes.Length);
+
+                    VerifyCompilationRelaxationsAttribute(attributes[0], isSynthesized: true);
+                    VerifyDebuggableAttribute(attributes[1], options.OptimizationLevel, isSynthesized: true);
+                    VerifyRuntimeCompatibilityAttribute(attributes[2], isSynthesized: false);
+                }
+            });
+        }
+        #endregion
+
+        #region UnverifiableCode, SecurityPermission
+        [Theory]
+        [InlineData(OutputKind.DynamicallyLinkedLibrary)]
+        [InlineData(OutputKind.NetModule)]
+        public void CheckUnsafeAttributes(OutputKind outputKind)
+        {
+            string source = @"
+unsafe class C
+{
+    public static void Main()
+    {
+    }
+}";
+
+            var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(
+                outputKind: outputKind,
+                optimizationLevel: OptimizationLevel.Release,
+                allowUnsafe: true));
+
+            //Skipped because PeVerify fails to run with "The module  was expected to contain an assembly manifest."
+            CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: module =>
+            {
+                var unverifiableCode = module.GetAttributes().Single();
+
+                Assert.Equal("System.Security.UnverifiableCodeAttribute", unverifiableCode.AttributeClass.ToTestDisplayString());
+                Assert.Empty(unverifiableCode.AttributeConstructor.Parameters);
+                Assert.Empty(unverifiableCode.CommonConstructorArguments);
+                Assert.Empty(unverifiableCode.CommonNamedArguments);
+
+                if (outputKind.IsNetModule())
+                {
+                    // Modules security attributes are copied to assemblies they're included in
+                    var moduleReference = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).GetReference();
+                    CompileAndVerify("", additionalRefs: new[] { moduleReference }, symbolValidator: validateSecurity, verify: Verification.Skipped);
+                }
+                else
+                {
+                    validateSecurity(module);
+                }
+            });
+
+            void validateSecurity(ModuleSymbol module)
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.RequestMinimum,
+                    ParentKind = SymbolKind.Assembly,
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u0015" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u0002" + // type bool
+                        "\u0010" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "SkipVerification" + // property name
+                        "\u0001", // argument value (true)
+                });
+            }
+        }
+        #endregion
+
+        #region AsyncStateMachineAttribute
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_Method(OptimizationLevel optimizationLevel)
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+class Test
+{
+    public static async void F()
+    {
+        await Task.Delay(0);
+    }
+}";
+
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                var stateMachine = type.GetTypeMember("<F>d__0");
+                var asyncMethod = type.GetMember<MethodSymbol>("F");
+
+                var attributes = asyncMethod.GetAttributes();
+
+                var stateMachineAttribute = attributes.First();
+                Assert.Equal("AsyncStateMachineAttribute", stateMachineAttribute.AttributeClass.Name);
+                Assert.Equal(stateMachine, stateMachineAttribute.ConstructorArguments.Single().Value);
+
+                if (optimizationLevel == OptimizationLevel.Debug)
+                {
+                    Assert.Equal(2, attributes.Length);
+                    Assert.Equal("DebuggerStepThroughAttribute", attributes.Last().AttributeClass.Name);
+                }
+                else
+                {
+                    Assert.Equal(1, attributes.Length);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_Lambda(OptimizationLevel optimizationLevel)
+        {
+            string source = @"
+using System;
+using System.Threading.Tasks;
+
+class Test
+{
+    public static void F()
+    {
+        Action f = async () => { await Task.Delay(0); };
+    }
+}";
+
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetTypeMember("<>c");
+                var stateMachine = type.GetTypeMember("<<F>b__0_0>d");
+                var asyncMethod = type.GetMember<MethodSymbol>("<F>b__0_0");
+
+                var attributes = asyncMethod.GetAttributes();
+
+                var stateMachineAttribute = attributes.First();
+                Assert.Equal("AsyncStateMachineAttribute", stateMachineAttribute.AttributeClass.Name);
+                Assert.Equal(stateMachine, stateMachineAttribute.ConstructorArguments.Single().Value);
+
+                if (optimizationLevel == OptimizationLevel.Debug)
+                {
+                    Assert.Equal(2, attributes.Length);
+                    Assert.Equal("DebuggerStepThroughAttribute", attributes.Last().AttributeClass.Name);
+                }
+                else
+                {
+                    Assert.Equal(1, attributes.Length);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_GenericStateMachineClass(OptimizationLevel optimizationLevel)
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class Test<T>
+{
+    public async void F<U>(U u) where U : Test<int>, new()
+    {
+        await Task.Delay(0);
+    }
+}";
+
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                var stateMachine = type.GetTypeMember("<F>d__0");
+                var asyncMethod = type.GetMember<MethodSymbol>("F");
+
+                var attributes = asyncMethod.GetAttributes();
+
+                var stateMachineAttribute = attributes.First();
+                Assert.Equal("AsyncStateMachineAttribute", stateMachineAttribute.AttributeClass.Name);
+                Assert.Equal(stateMachine.AsUnboundGenericType(), stateMachineAttribute.ConstructorArguments.Single().Value);
+
+                if (optimizationLevel == OptimizationLevel.Debug)
+                {
+                    Assert.Equal(2, attributes.Length);
+                    Assert.Equal("DebuggerStepThroughAttribute", attributes.Last().AttributeClass.Name);
+                }
+                else
+                {
+                    Assert.Equal(1, attributes.Length);
+                }
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_MetadataOnly(OptimizationLevel optimizationLevel)
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+class Test
+{
+    public static async void F()
+    {
+        await Task.Delay(0);
+    }
+}";
+
+            var referenceOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+            var reference = CreateCompilationWithMscorlib45(source, options: referenceOptions).EmitToImageReference(options: new EmitOptions(metadataOnly: true));
+
+            var options = TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            var compilation = CreateCompilationWithMscorlib45("", new[] { reference }, options: options);
+
+            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+            Assert.Equal(new[] { "F", ".ctor" }, type.GetMembers().SelectAsArray(m => m.Name));
+
+            var asyncMethod = type.GetMember<MethodSymbol>("F");
+
+            if (optimizationLevel == OptimizationLevel.Debug)
+            {
+                Assert.Equal("DebuggerStepThroughAttribute", asyncMethod.GetAttributes().Single().AttributeClass.Name);
+            }
+            else
+            {
+                Assert.Empty(asyncMethod.GetAttributes());
+            }
+        }
+        #endregion
+
+        #region IteratorStateMachineAttribute
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void IteratorStateMachineAttribute_Method(OptimizationLevel optimizationLevel)
+        {
+            string source = @"
+using System.Collections.Generic;
+
+class Test
+{
+    public static IEnumerable<int> F()
+    {
+        yield return 1;
+    }
+}";
+
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                var stateMachine = type.GetTypeMember("<F>d__0");
+                var iteratorMethod = type.GetMember<MethodSymbol>("F");
+
+                var iteratorAttribute = iteratorMethod.GetAttributes().Single();
+                Assert.Equal("IteratorStateMachineAttribute", iteratorAttribute.AttributeClass.Name);
+                Assert.Equal(stateMachine, iteratorAttribute.ConstructorArguments.Single().Value);
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void IteratorStateMachineAttribute_GenericStateMachineClass(OptimizationLevel optimizationLevel)
+        {
+            string source = @"
+using System.Collections.Generic;
+
+public class Test<T>
+{
+    public IEnumerable<int> F<U>(U u) where U : Test<int>, new()
+    {
+        yield return 1;
+    }
+}";
+
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                var stateMachine = type.GetTypeMember("<F>d__0");
+                var iteratorMethod = type.GetMember<MethodSymbol>("F");
+
+                var iteratorAttribute = iteratorMethod.GetAttributes().Single();
+                Assert.Equal("IteratorStateMachineAttribute", iteratorAttribute.AttributeClass.Name);
+                Assert.Equal(stateMachine.AsUnboundGenericType(), iteratorAttribute.ConstructorArguments.Single().Value);
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void IteratorStateMachineAttribute_MetadataOnly(OptimizationLevel optimizationLevel)
+        {
+            string source = @"
+using System.Collections.Generic;
+
+public class Test<T>
+{
+    public IEnumerable<int> F<U>(U u) where U : Test<int>, new()
+    {
+        yield return 1;
+    }
+}";
+
+            var referenceOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+            var reference = CreateCompilationWithMscorlib45(source, options: referenceOptions).EmitToImageReference(options: new EmitOptions(metadataOnly: true));
+
+            var options = TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            var compilation = CreateCompilationWithMscorlib45("", new[] { reference }, options: options);
+
+            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+            Assert.Equal(new[] { "F", ".ctor" }, type.GetMembers().SelectAsArray(m => m.Name));
+
+            Assert.Empty(type.GetMember<MethodSymbol>("F").GetAttributes());
+        }
+        #endregion
 
         [Fact, WorkItem(7809, "https://github.com/dotnet/roslyn/issues/7809")]
         public void SynthesizeAttributeWithUseSiteErrorFails()

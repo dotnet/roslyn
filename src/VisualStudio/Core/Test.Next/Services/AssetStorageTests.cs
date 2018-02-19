@@ -34,14 +34,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             Assert.True(storage.TryAddAsset(checksum, data));
 
-            object stored;
-            Assert.True(storage.TryGetAsset(checksum, out stored));
+            Assert.True(storage.TryGetAsset(checksum, out object stored));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestCleanup()
         {
-            var storage = new AssetStorage(cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2));
+            var storage = new AssetStorage(cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2), gcAfter: TimeSpan.FromMilliseconds(5));
 
             var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();
@@ -52,8 +51,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 await Task.Delay(10);
 
-                object stored;
-                if (!storage.TryGetAsset(checksum, out stored))
+                if (!storage.TryGetAsset(checksum, out object stored))
                 {
                     // asset is deleted
                     return;

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
                                 <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
                                     <Document FilePath="VBDocument">
 Public Class Test
-    Public Sub $$Foo(x as Integer, y as Integer)
+    Public Sub $$Goo(x as Integer, y as Integer)
     End Sub
 End Class</Document>
                                 </Project>
@@ -25,7 +25,7 @@ class C
 {
     void M()
     {
-        new Test().Foo(1, 2);
+        new Test().Goo(1, 2);
     }
 }</Document>
                                 </Project>
@@ -35,7 +35,7 @@ class C
 
             Dim expectedVBCode = <Text><![CDATA[
 Public Class Test
-    Public Sub Foo(y as Integer, x as Integer)
+    Public Sub Goo(y as Integer, x as Integer)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -44,7 +44,7 @@ class C
 {
     void M()
     {
-        new Test().Foo(2, 1);
+        new Test().Goo(2, 1);
     }
 }]]></Text>.NormalizedValue()
 
@@ -68,7 +68,7 @@ class C
                                 <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
                                     <Document FilePath="VBDocument">
 Public Class Test
-    Public Sub Foo(x as Integer, y as Integer)
+    Public Sub Goo(x as Integer, y as Integer)
     End Sub
 End Class</Document>
                                 </Project>
@@ -79,7 +79,7 @@ class C
 {
     void M()
     {
-        new Test().Foo$$(1, 2);
+        new Test().Goo$$(1, 2);
     }
 }</Document>
                                 </Project>
@@ -89,7 +89,7 @@ class C
 
             Dim expectedVBCode = <Text><![CDATA[
 Public Class Test
-    Public Sub Foo(y as Integer, x as Integer)
+    Public Sub Goo(y as Integer, x as Integer)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -98,7 +98,7 @@ class C
 {
     void M()
     {
-        new Test().Foo(2, 1);
+        new Test().Goo(2, 1);
     }
 }]]></Text>.NormalizedValue()
 

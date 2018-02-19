@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private bool IsLocalVariableDeclaration(CSharpSyntaxContext context)
         {
             // cases:
-            //   void Foo() {
+            //   void Goo() {
             //     |
             //
             //   |

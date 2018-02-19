@@ -7,13 +7,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         Public Sub TestApplyAfterSimpleIfThen()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-  Sub foo()
+  Sub goo()
     If True Then
   End Sub
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-  Sub foo()
+  Sub goo()
     If True Then
 
     End If
@@ -26,15 +26,15 @@ End Class",
         Public Sub TestApplyAfterLineIfNextToThen()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-    Sub foo()
-        If True Then foo()
+    Sub goo()
+        If True Then goo()
     End Sub
 End Class",
                 beforeCaret:={2, 20},
                 after:="Class c1
-    Sub foo()
+    Sub goo()
         If True Then
-            foo()
+            goo()
         End If
     End Sub
 End Class",
@@ -45,16 +45,16 @@ End Class",
         Public Sub TestApplyAfterLineIfWithMultipleStatements()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-    Sub foo()
-        If True Then foo() : foo()
+    Sub goo()
+        If True Then goo() : goo()
     End Sub
 End Class",
                 beforeCaret:={2, 20},
                 after:="Class c1
-    Sub foo()
+    Sub goo()
         If True Then
-            foo()
-            foo()
+            goo()
+            goo()
         End If
     End Sub
 End Class",
@@ -65,15 +65,15 @@ End Class",
         Public Sub TestApplyAfterLineIfNextToStatement()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-    Sub foo()
-        If True Then foo()
+    Sub goo()
+        If True Then goo()
     End Sub
 End Class",
                 beforeCaret:={2, 21},
                 after:="Class c1
-    Sub foo()
+    Sub goo()
         If True Then
-            foo()
+            goo()
         End If
     End Sub
 End Class",
@@ -252,14 +252,14 @@ End Class",
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
-        If True Then #Const foo = 2 ' x = 42
+        If True Then #Const goo = 2 ' x = 42
     End Sub
 End Class",
                 beforeCaret:={2, 20},
                 after:="Class C
     Sub S
         If True Then
-            #Const foo = 2 ' x = 42
+            #Const goo = 2 ' x = 42
         End If
     End Sub
 End Class",
@@ -291,13 +291,13 @@ End If",
         Public Sub TestVerifyInternationalCharacter()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-    Sub foo()
+    Sub goo()
         If True Then Dim xæ大% = 1
     End Sub
 End Class",
                 beforeCaret:={2, 20},
                 after:="Class c1
-    Sub foo()
+    Sub goo()
         If True Then
             Dim xæ大% = 1
         End If
@@ -317,7 +317,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Dim x As Integer = 0
-        If x = 0 Then #const foo = ""TEST"" : Console.WriteLine(""TEST"") : 'x = 10
+        If x = 0 Then #const goo = ""TEST"" : Console.WriteLine(""TEST"") : 'x = 10
     End Sub
 End Module",
                 beforeCaret:={7, 22},
@@ -329,7 +329,7 @@ Module Program
     Sub Main(args As String())
         Dim x As Integer = 0
         If x = 0 Then
-            #const foo = ""TEST""
+            #const goo = ""TEST""
             Console.WriteLine(""TEST"")            
         End If : 'x = 10
     End Sub
@@ -341,13 +341,13 @@ End Module",
         Public Sub TestVerifyRewriteOfIfWithColons()
             VerifyStatementEndConstructApplied(
                 before:="Class C
-    Sub Foo()
+    Sub Goo()
         If True Then : Return : End If
     End Sub
 End Class",
                 beforeCaret:={2, 21, 2, 22},
                 after:="Class C
-    Sub Foo()
+    Sub Goo()
         If True Then
             Return
         End If
@@ -363,13 +363,13 @@ End Class",
             ' need to avoid crashing.
             VerifyStatementEndConstructApplied(
                 before:="Class C
-    Sub Foo()
+    Sub Goo()
         If True Then Else ' asdf 
     End Sub
 End Class",
                 beforeCaret:={2, 20},
                 after:="Class C
-    Sub Foo()
+    Sub Goo()
         If True Then
 
         Else ' asdf 

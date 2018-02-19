@@ -169,7 +169,7 @@ namespace ConsoleApplication1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -319,7 +319,7 @@ namespace ConsoleApplication1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -487,7 +487,7 @@ namespace ConsoleApplication2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(input, expected);
         }
     }
 }

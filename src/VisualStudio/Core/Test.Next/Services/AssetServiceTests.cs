@@ -62,10 +62,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var service = new AssetService(sessionId, storage);
                 await service.SynchronizeAssetsAsync(new HashSet<Checksum>(map.Keys), CancellationToken.None);
 
-                object data;
                 foreach (var kv in map)
                 {
-                    Assert.True(storage.TryGetAsset(kv.Key, out data));
+                    Assert.True(storage.TryGetAsset(kv.Key, out object data));
                 }
             }
         }
@@ -91,10 +90,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var service = new AssetService(sessionId, storage);
                 await service.SynchronizeSolutionAssetsAsync(await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
 
-                object data;
                 foreach (var kv in map)
                 {
-                    Assert.True(storage.TryGetAsset(kv.Key, out data));
+                    Assert.True(storage.TryGetAsset(kv.Key, out object data));
                 }
             }
         }
@@ -120,10 +118,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var service = new AssetService(sessionId, storage);
                 await service.SynchronizeProjectAssetsAsync(SpecializedCollections.SingletonEnumerable(await project.State.GetChecksumAsync(CancellationToken.None)), CancellationToken.None);
 
-                object data;
                 foreach (var kv in map)
                 {
-                    Assert.True(storage.TryGetAsset(kv.Key, out data));
+                    Assert.True(storage.TryGetAsset(kv.Key, out object data));
                 }
             }
         }

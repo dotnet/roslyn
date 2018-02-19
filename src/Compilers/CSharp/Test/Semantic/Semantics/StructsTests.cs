@@ -90,12 +90,12 @@ struct S {
         public void TestConstructorStruct()
         {
             var text = @"
-struct  Foo
+struct  Goo
 {
-    public Foo(int x) : this(5, 6)
+    public Goo(int x) : this(5, 6)
     {
     }
-    public Foo(int x, int y) 
+    public Goo(int x, int y) 
     {
         m_x = x;
         m_y = y;
@@ -182,6 +182,7 @@ class Program
         }
 
         // Overriding base System.Object methods on struct
+        [WorkItem(20496, "https://github.com/dotnet/roslyn/issues/20496")]
         [WorkItem(540990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540990")]
         [ClrOnlyFact(ClrOnlyReason.MemberOrder)]
         public void TestOverridingBaseConstructorStruct()
@@ -279,7 +280,7 @@ using System;
 struct C<T>
 {
     public int num;
-    public int Foo1()
+    public int Goo1()
     {
         return this.num;
     }
@@ -290,7 +291,7 @@ class Test
     {
         C<object> c;
         c.num = 1;
-        bool verify = c.Foo1() == 1;
+        bool verify = c.Goo1() == 1;
         Console.WriteLine(verify);
     }
 }

@@ -372,7 +372,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         conflictSpans: ImmutableArray<TextSpan>.Empty, 
                         renameSpans: ImmutableArray<TextSpan>.Empty,
                         warningSpans: ImmutableArray<TextSpan>.Empty,
-                        ignoreTrivia: false, expectedChangedDocumentId: testState.ExistingDocument.Id);
+                        navigationSpans: ImmutableArray<TextSpan>.Empty,
+                        expectedChangedDocumentId: testState.ExistingDocument.Id);
                 }
                 else
                 {
@@ -383,8 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         projectName != null,
                         testState.ProjectToBeModified.Id,
                         newFileFolderContainers,
-                        newFileName,
-                        ignoreTrivia: false);
+                        newFileName);
                 }
 
                 if (checkIfUsingsIncluded)
@@ -393,7 +393,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     await TestOperationsAsync(testState.Workspace, expectedTextWithUsings, operations,
                         conflictSpans: ImmutableArray<TextSpan>.Empty,
                         renameSpans: ImmutableArray<TextSpan>.Empty,
-                        warningSpans: ImmutableArray<TextSpan>.Empty, ignoreTrivia: false,
+                        warningSpans: ImmutableArray<TextSpan>.Empty, 
+                        navigationSpans: ImmutableArray<TextSpan>.Empty,
                         expectedChangedDocumentId: testState.InvocationDocument.Id);
                 }
 

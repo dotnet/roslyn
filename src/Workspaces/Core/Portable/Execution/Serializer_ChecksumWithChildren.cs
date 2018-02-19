@@ -30,20 +30,16 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteInt32(checksums.Children.Count);
             foreach (var child in checksums.Children)
             {
-                var checksum = child as Checksum;
-                if (checksum != null)
+                switch (child)
                 {
-                    writer.WriteByte(ChecksumKind);
-                    checksum.WriteTo(writer);
-                    continue;
-                }
-
-                var checksumCollection = child as ChecksumCollection;
-                if (checksumCollection != null)
-                {
-                    writer.WriteByte(ChecksumWithChildrenKind);
-                    SerializeChecksumWithChildren(checksumCollection, writer, cancellationToken);
-                    continue;
+                    case Checksum checksum:
+                        writer.WriteByte(ChecksumKind);
+                        checksum.WriteTo(writer);
+                        continue;
+                    case ChecksumCollection checksumCollection:
+                        writer.WriteByte(ChecksumWithChildrenKind);
+                        SerializeChecksumWithChildren(checksumCollection, writer, cancellationToken);
+                        continue;
                 }
 
                 throw ExceptionUtilities.UnexpectedValue(child);

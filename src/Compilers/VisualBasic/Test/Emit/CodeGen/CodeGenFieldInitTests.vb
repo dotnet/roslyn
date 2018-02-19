@@ -573,7 +573,7 @@ Class Class1(Of T)
             Return ff(x, p)
         End Function
 
-    Public Function Foo() As Integer
+    Public Function Goo() As Integer
         Return Nothing
     End Function
 

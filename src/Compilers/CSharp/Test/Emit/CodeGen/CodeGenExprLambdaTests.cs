@@ -2312,7 +2312,7 @@ unsafe public class Test
 }";
             string expectedOutput = @"x => G(x)";
 
-            CompileAndVerify(text, new[] { ExpressionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: TrimExpectedOutput(expectedOutput));
+            CompileAndVerify(text, new[] { ExpressionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: TrimExpectedOutput(expectedOutput), verify: Verification.Fails);
         }
 
         [WorkItem(544246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544246")]
@@ -3052,7 +3052,7 @@ unsafe class Test
             var c = CompileAndVerify(text,
                 additionalRefs: new[] { SystemCoreRef },
                 options: TestOptions.UnsafeReleaseDll,
-                verify: false);
+                verify: Verification.Fails);
 
             c.VerifyDiagnostics();
         }
@@ -3650,9 +3650,6 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,81): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 81),
-                // (2,84): error CS1520: Method must have a return type
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile").WithLocation(2, 84),
                 // (2,93): error CS1002: ; expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 93),
@@ -3662,9 +3659,12 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,95): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(2, 95),
-                // (2,84): error CS0501: '<invalid-global-code>.Compile()' must declare a body because it is not marked abstract, extern, or partial
+                // (2,84): error CS1520: Method must have a return type
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.Compile()").WithLocation(2, 84)
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile").WithLocation(2, 84),
+                // (2,84): error CS0501: '<invalid-global-code>.<invalid-global-code>()' must declare a body because it is not marked abstract, extern, or partial
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.<invalid-global-code>()").WithLocation(2, 84)
     );
         }
 
@@ -3700,9 +3700,6 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,81): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 81),
-                // (2,84): error CS1520: Method must have a return type
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile").WithLocation(2, 84),
                 // (2,93): error CS1002: ; expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 93),
@@ -3715,15 +3712,18 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,95): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(2, 95),
-                // (2,84): error CS0501: '<invalid-global-code>.Compile()' must declare a body because it is not marked abstract, extern, or partial
+                // (2,84): error CS1520: Method must have a return type
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.Compile()").WithLocation(2, 84)
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile").WithLocation(2, 84),
+                // (2,84): error CS0501: '<invalid-global-code>.<invalid-global-code>()' must declare a body because it is not marked abstract, extern, or partial
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.<invalid-global-code>()").WithLocation(2, 84)
                 );
         }
 
         [WorkItem(544548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544548")]
         [Fact]
-        public void NSaliasSystemIsGlobal()
+        public void NSAliasSystemIsGlobal()
         {
             string source = @"
 using System = global;
@@ -3738,31 +3738,32 @@ class Test
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,58): error CS1547: Keyword 'void' cannot be used in this context
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(8, 58),
                 // (8,105): error CS1010: Newline in constant
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_NewlineInConst, ""),
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(8, 105),
                 // (8,122): error CS1026: ) expected
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ""),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(8, 122),
                 // (8,122): error CS1026: ) expected
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ""),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(8, 122),
                 // (8,122): error CS1026: ) expected
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ""),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(8, 122),
                 // (8,122): error CS1002: ; expected
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ""),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 122),
                 // (2,16): error CS0246: The type or namespace name 'global' could not be found (are you missing a using directive or an assembly reference?)
                 // using System = global;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "global").WithArguments("global"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "global").WithArguments("global").WithLocation(2, 16),
                 // (8,11): error CS0576: Namespace '<global namespace>' contains a definition conflicting with alias 'System'
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "System").WithArguments("System", "<global namespace>"),
+                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "System").WithArguments("System", "<global namespace>").WithLocation(8, 11),
                 // (8,46): error CS0576: Namespace '<global namespace>' contains a definition conflicting with alias 'System'
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "System").WithArguments("System", "<global namespace>"));
+                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "System").WithArguments("System", "<global namespace>").WithLocation(8, 46)
+                );
         }
 
         [WorkItem(544586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544586")]
@@ -4224,7 +4225,7 @@ public class MemberInitializerTest
     public static void GenericMethod<T>() { }
     public static void Run()
     {
-        Foo f = new Foo {
+        Goo f = new Goo {
             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
         };
     }
@@ -4237,12 +4238,12 @@ public class MemberInitializerTest
                 // (9,123): error CS1525: Invalid expression term '}'
                 //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}"),
-                // (8,9): error CS0246: The type or namespace name 'Foo' could not be found (are you missing a using directive or an assembly reference?)
-                //         Foo f = new Foo {
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Foo").WithArguments("Foo"),
-                // (8,21): error CS0246: The type or namespace name 'Foo' could not be found (are you missing a using directive or an assembly reference?)
-                //         Foo f = new Foo {
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Foo").WithArguments("Foo"),
+                // (8,9): error CS0246: The type or namespace name 'Goo' could not be found (are you missing a using directive or an assembly reference?)
+                //         Goo f = new Goo {
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo"),
+                // (8,21): error CS0246: The type or namespace name 'Goo' could not be found (are you missing a using directive or an assembly reference?)
+                //         Goo f = new Goo {
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo"),
                 // (9,20): error CS0030: Cannot convert type 'method' to 'MemberInitializerTest.D<int>'
                 //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D<int>) GenericMethod").WithArguments("method", "MemberInitializerTest.D<int>"));
@@ -4271,11 +4272,11 @@ class Program
 {
     static void Main()
     {
-        int result = Foo<S>();
+        int result = Goo<S>();
         Console.WriteLine(result);
     }
 
-    static int Foo<T>() where T : I, new()
+    static int Goo<T>() where T : I, new()
     {
         Expression<Func<T>> f1 = () => new T { X = 1 };
         var b = f1.Compile()();
@@ -5131,7 +5132,7 @@ Public Class Cells
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: false);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
 
             var source2 =
 @"class A
@@ -5453,7 +5454,7 @@ public class Derived : Base
     public override int X { get { return 42; } }
 }
 
-public class Foo
+public class Goo
 {
     static Derived Bug(IQueryable<int> query)
     {
@@ -5491,7 +5492,7 @@ public class Derived : Base
     public override int X { set { System.Console.Write(value); } }
 }
 
-public class Foo
+public class Goo
 {
     static int Bug(IQueryable<int> query)
     {
@@ -6047,19 +6048,19 @@ class C //: TestBase
     {
         static void Main(string[] args)
         {
-            Expression<Func<int>> e = () => foo((int)E1.b);
+            Expression<Func<int>> e = () => goo((int)E1.b);
 
             System.Console.WriteLine(e);
         }
 
-        static int foo(int x)
+        static int goo(int x)
         {
             return x;
         }
     }
 }";
 
-            const string expectedOutput = @"() => foo(1)";
+            const string expectedOutput = @"() => goo(1)";
             CompileAndVerify(
                 new[] {
                     source,
@@ -6177,6 +6178,44 @@ value(ConsoleApplication6.Program)";
                 new[] {
                     source,
                 },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void InArguments()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+class C : TestBase
+{
+    readonly static int x = 1;
+    readonly static int y = 2;
+
+    public static int TakesIn(in int x) => x;
+
+    public static void Main(string[] args)
+    {
+        // writeable field
+        Expression<Func<int>> e1 = () => TakesIn(x);
+        System.Console.Write(e1.Compile()());
+
+        // readonly field
+        Expression<Func<int>> e2 = () => TakesIn(in y);
+        System.Console.Write(e2.Compile()());
+
+        // constant
+        Expression<Func<int>> e3 = () => TakesIn(3);
+        Check<int>(e3, ""Call(null.[Int32 TakesIn(Int32 ByRef)](Constant(3 Type:System.Int32)) Type:System.Int32)"");
+        System.Console.Write(e3.Compile()());
+    }
+}";
+
+            const string expectedOutput = @"123";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
         }

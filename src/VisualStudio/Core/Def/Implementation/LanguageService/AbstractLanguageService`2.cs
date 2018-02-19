@@ -260,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
         }
 
-        private void ConditionallyCollapseOutliningRegions(IVsTextView textView, IWpfTextView wpfTextView, Workspace workspace, bool isOpenMetadataAsSource)
+        private void ConditionallyCollapseOutliningRegions(IVsTextView textView, IWpfTextView wpfTextView, Microsoft.CodeAnalysis.Workspace workspace, bool isOpenMetadataAsSource)
         {
             var outliningManagerService = this.Package.ComponentModel.GetService<IOutliningManagerService>();
             var outliningManager = outliningManagerService.GetOutliningManager(wpfTextView);
@@ -275,8 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
             else
             {
-                var viewEx = textView as IVsTextViewEx;
-                if (viewEx != null)
+                if (textView is IVsTextViewEx viewEx)
                 {
                     if (isOpenMetadataAsSource)
                     {

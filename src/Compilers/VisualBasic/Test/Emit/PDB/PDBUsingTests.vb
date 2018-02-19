@@ -30,7 +30,7 @@ End Class
 Class C1
     Public Shared Sub Main()
 
-        Using foo1 As New MyDisposable(), foo2 As New MyDisposable(), foo3 As MyDisposable = Nothing
+        Using goo1 As New MyDisposable(), goo2 As New MyDisposable(), goo3 As MyDisposable = Nothing
             Console.WriteLine("Inside Using.")
         End Using
     End Sub
@@ -41,6 +41,9 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C1.Main",
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
         <method containingType="C1" name="Main">
@@ -52,26 +55,26 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="5" endLine="16" endColumn="29"/>
-                <entry offset="0x1" startLine="18" startColumn="9" endLine="18" endColumn="101"/>
-                <entry offset="0x2" startLine="18" startColumn="15" endLine="18" endColumn="41"/>
-                <entry offset="0x8" startLine="18" startColumn="43" endLine="18" endColumn="69"/>
-                <entry offset="0xe" startLine="18" startColumn="71" endLine="18" endColumn="101"/>
-                <entry offset="0x10" startLine="19" startColumn="13" endLine="19" endColumn="47"/>
-                <entry offset="0x1b" hidden="true"/>
-                <entry offset="0x1d" startLine="20" startColumn="9" endLine="20" endColumn="18"/>
-                <entry offset="0x29" hidden="true"/>
-                <entry offset="0x2b" startLine="20" startColumn="9" endLine="20" endColumn="18"/>
-                <entry offset="0x37" hidden="true"/>
-                <entry offset="0x39" startLine="20" startColumn="9" endLine="20" endColumn="18"/>
-                <entry offset="0x45" startLine="21" startColumn="5" endLine="21" endColumn="12"/>
+                <entry offset="0x0" startLine="16" startColumn="5" endLine="16" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="18" startColumn="9" endLine="18" endColumn="101" document="1"/>
+                <entry offset="0x2" startLine="18" startColumn="15" endLine="18" endColumn="41" document="1"/>
+                <entry offset="0x8" startLine="18" startColumn="43" endLine="18" endColumn="69" document="1"/>
+                <entry offset="0xe" startLine="18" startColumn="71" endLine="18" endColumn="101" document="1"/>
+                <entry offset="0x10" startLine="19" startColumn="13" endLine="19" endColumn="47" document="1"/>
+                <entry offset="0x1b" hidden="true" document="1"/>
+                <entry offset="0x1d" startLine="20" startColumn="9" endLine="20" endColumn="18" document="1"/>
+                <entry offset="0x29" hidden="true" document="1"/>
+                <entry offset="0x2b" startLine="20" startColumn="9" endLine="20" endColumn="18" document="1"/>
+                <entry offset="0x37" hidden="true" document="1"/>
+                <entry offset="0x39" startLine="20" startColumn="9" endLine="20" endColumn="18" document="1"/>
+                <entry offset="0x45" startLine="21" startColumn="5" endLine="21" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x46">
                 <importsforward declaringType="MyDisposable" methodName="Dispose"/>
                 <scope startOffset="0x2" endOffset="0x44">
-                    <local name="foo1" il_index="0" il_start="0x2" il_end="0x44" attributes="0"/>
-                    <local name="foo2" il_index="1" il_start="0x2" il_end="0x44" attributes="0"/>
-                    <local name="foo3" il_index="2" il_start="0x2" il_end="0x44" attributes="0"/>
+                    <local name="goo1" il_index="0" il_start="0x2" il_end="0x44" attributes="0"/>
+                    <local name="goo2" il_index="1" il_start="0x2" il_end="0x44" attributes="0"/>
+                    <local name="goo3" il_index="2" il_start="0x2" il_end="0x44" attributes="0"/>
                 </scope>
             </scope>
         </method>
@@ -320,6 +323,9 @@ End Namespace
 
             v.VerifyPdb(
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="N1.C" name="M">
             <customDebugInfo>
@@ -328,9 +334,9 @@ End Namespace
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="9" endLine="4" endColumn="23"/>
-                <entry offset="0x1" startLine="5" startColumn="17" endLine="5" endColumn="33"/>
-                <entry offset="0x3" startLine="6" startColumn="9" endLine="6" endColumn="16"/>
+                <entry offset="0x0" startLine="4" startColumn="9" endLine="4" endColumn="23" document="1"/>
+                <entry offset="0x1" startLine="5" startColumn="17" endLine="5" endColumn="33" document="1"/>
+                <entry offset="0x3" startLine="6" startColumn="9" endLine="6" endColumn="16" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x4">
                 <defunct name="&amp;PIA"/>
@@ -340,8 +346,8 @@ End Namespace
         </method>
         <method containingType="N2.D" name="M">
             <sequencePoints>
-                <entry offset="0x0" startLine="12" startColumn="9" endLine="12" endColumn="23"/>
-                <entry offset="0x1" startLine="13" startColumn="9" endLine="13" endColumn="16"/>
+                <entry offset="0x0" startLine="12" startColumn="9" endLine="12" endColumn="23" document="1"/>
+                <entry offset="0x1" startLine="13" startColumn="9" endLine="13" endColumn="16" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <defunct name="&amp;PIA"/>

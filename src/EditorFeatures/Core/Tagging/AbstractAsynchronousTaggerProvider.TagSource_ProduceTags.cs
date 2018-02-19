@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     ? _initialComputationCancellationTokenSource.Token
                     : _workQueue.CancellationToken;
 
-            private List<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
+            private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
             {
                 _workQueue.AssertIsForeground();
 
@@ -356,9 +356,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     // document can be null if the buffer the given span is part of is not part of our workspace.
                     return new DocumentSnapshotSpan(document, span);
-                }).ToList();
+                }).ToImmutableArray();
 
-                Debug.Assert(spansAndDocumentsToTag.Count > 0);
                 return spansAndDocumentsToTag;
             }
 
@@ -573,7 +572,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 object oldState,
                 SnapshotPoint? caretPosition,
                 TextChangeRange? textChangeRange,
-                List<DocumentSnapshotSpan> spansToTag,
+                ImmutableArray<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 bool initialTags,
                 CancellationToken cancellationToken)
@@ -618,7 +617,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             private void ProcessContext(
-                List<DocumentSnapshotSpan> spansToTag,
+                ImmutableArray<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 TaggerContext<TTag> context,
                 bool initialTags)
@@ -636,7 +635,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             private void ProcessNewTagTrees(
-                List<DocumentSnapshotSpan> spansToTag,
+                ImmutableArray<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
                 object newState,

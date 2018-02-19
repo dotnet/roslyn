@@ -64,6 +64,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                 End Select
             End If
 
+            ' Classify a reference to an attribute constructor in an attribute location
+            ' as if we were classifying the attribute type itself.
+            If symbol.IsConstructor() AndAlso node.IsParentKind(SyntaxKind.Attribute) Then
+                symbol = symbol.ContainingType
+            End If
+
             If symbol IsNot Nothing Then
                 If symbol.Kind = SymbolKind.Method Then
                     Dim method = DirectCast(symbol, IMethodSymbol)

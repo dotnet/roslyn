@@ -116,7 +116,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Document FilePath="Z:\Project.vb">
 Namespace N
     Partial Class C
-        Sub Foo()
+        Sub Goo()
         End Sub
     End Class
 End Namespace
@@ -164,7 +164,7 @@ End Namespace
                             <Document FilePath="Z:\Project.vb">
 Namespace N
     Partial Class C
-        Sub Foo()
+        Sub Goo()
         End Sub
     End Class
 End Namespace
@@ -180,19 +180,19 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="Foo"), GraphContextDirection.Custom)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="Goo"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.vb"/>
-                            <Node Id="(@3 Namespace=N Type=C Member=Foo)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="Foo" Icon="Microsoft.VisualStudio.Method.Public" Label="Foo"/>
+                            <Node Id="(@3 Namespace=N Type=C Member=Goo)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="Goo" Icon="Microsoft.VisualStudio.Method.Public" Label="Goo"/>
                             <Node Id="(@3 Namespace=N Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
                             <Link Source="(@1 @2)" Target="(@3 Namespace=N Type=C)" Category="Contains"/>
-                            <Link Source="(@3 Namespace=N Type=C)" Target="(@3 Namespace=N Type=C Member=Foo)" Category="Contains"/>
+                            <Link Source="(@3 Namespace=N Type=C)" Target="(@3 Namespace=N Type=C Member=Goo)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.vbproj"/>
@@ -211,7 +211,7 @@ End Namespace
                             <Document FilePath="Z:\Project.vb">
 Namespace N
     Partial Class C
-        Sub ZFoo()
+        Sub ZGoo()
         End Sub
     End Class
 End Namespace
@@ -236,14 +236,14 @@ End Namespace
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project2.vb"/>
                             <Node Id="(@1 @3)" Category="CodeSchema_ProjectItem" Label="Project.vb"/>
                             <Node Id="(@4 Namespace=N Type=C Member=ZBar)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="ZBar" Icon="Microsoft.VisualStudio.Method.Public" Label="ZBar"/>
-                            <Node Id="(@4 Namespace=N Type=C Member=ZFoo)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="ZFoo" Icon="Microsoft.VisualStudio.Method.Public" Label="ZFoo"/>
+                            <Node Id="(@4 Namespace=N Type=C Member=ZGoo)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="ZGoo" Icon="Microsoft.VisualStudio.Method.Public" Label="ZGoo"/>
                             <Node Id="(@4 Namespace=N Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
                             <Link Source="(@1 @2)" Target="(@4 Namespace=N Type=C)" Category="Contains"/>
                             <Link Source="(@1 @3)" Target="(@4 Namespace=N Type=C)" Category="Contains"/>
                             <Link Source="(@4 Namespace=N Type=C)" Target="(@4 Namespace=N Type=C Member=ZBar)" Category="Contains"/>
-                            <Link Source="(@4 Namespace=N Type=C)" Target="(@4 Namespace=N Type=C Member=ZFoo)" Category="Contains"/>
+                            <Link Source="(@4 Namespace=N Type=C)" Target="(@4 Namespace=N Type=C Member=ZGoo)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.vbproj"/>

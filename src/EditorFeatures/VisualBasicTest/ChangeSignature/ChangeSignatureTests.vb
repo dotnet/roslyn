@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
             Dim markup = "
 class C
     [||]
-    sub Foo(i as integer, j as integer)
+    sub Goo(i as integer, j as integer)
     end sub
 end class
 "
@@ -27,7 +27,7 @@ end class
             Dim markup = "
 class C
     ' [||]
-    sub Foo(i as integer, j as integer)
+    sub Goo(i as integer, j as integer)
     end sub
 end class
 "
@@ -41,7 +41,7 @@ end class
             Dim markup = "
 class C
     [||] '
-    sub Foo(i as integer, j as integer)
+    sub Goo(i as integer, j as integer)
     end sub
 end class
 "
@@ -55,7 +55,7 @@ end class
             Dim markup = "
 class C
     [||]<X>
-    sub Foo(i as integer, j as integer)
+    sub Goo(i as integer, j as integer)
     end sub
 end class
 "
@@ -69,7 +69,7 @@ end class
             Dim markup = "
 class C
     <X>[||]
-    sub Foo(i as integer, j as integer)
+    sub Goo(i as integer, j as integer)
     end sub
 end class
 "

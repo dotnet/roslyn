@@ -365,22 +365,28 @@ public class B
 
             // Duplicate type in namespace, at type scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new N.C1()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
-            Assert.True(errorMessage.StartsWith("error CS0433: The type 'C1' exists in both "));
+
+            IEnumerable<string> CS0433Messages(string type)
+            {
+                yield return "error CS0433: " + string.Format(CSharpResources.ERR_SameFullNameAggAgg, compilationA.Assembly.Identity, type, compilationB.Assembly.Identity);
+                yield return "error CS0433: " + string.Format(CSharpResources.ERR_SameFullNameAggAgg, compilationB.Assembly.Identity, type, compilationA.Assembly.Identity);
+            }
+            Assert.Contains(errorMessage, CS0433Messages("C1"));
 
             GetContextState(runtime, "B.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
             contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken);
 
             // Duplicate type in namespace, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C1()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
-            Assert.True(errorMessage.StartsWith("error CS0433: The type 'C1' exists in both "));
+            Assert.Contains(errorMessage, CS0433Messages("C1"));
 
             // Duplicate type in global namespace, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C2()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
-            Assert.True(errorMessage.StartsWith("error CS0433: The type 'C2' exists in both "));
+            Assert.Contains(errorMessage, CS0433Messages("C2"));
 
             // Duplicate extension method, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
-            Assert.Equal(errorMessage, "error CS0121: The call is ambiguous between the following methods or properties: 'N.E.F(A)' and 'N.E.F(A)'");
+            Assert.Equal($"error CS0121: { string.Format(CSharpResources.ERR_AmbigCall, "N.E.F(A)", "N.E.F(A)") }", errorMessage);
 
             // Same tests as above but in library that does not directly reference duplicates.
             GetContextState(runtime, "A", out blocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
@@ -490,14 +496,14 @@ class C
             string errorMessage;
             CompilationTestData testData;
             int attempts = 0;
-            ExpressionCompiler.CreateContextDelegate contextFactory = (b, u) =>
+            EvaluationContextBase contextFactory(ImmutableArray<MetadataBlock> b, bool u)
             {
                 attempts++;
                 return EvaluationContext.CreateTypeContext(
                     ToCompilation(b, u, moduleVersionId),
                     moduleVersionId,
                     typeToken);
-            };
+            }
 
             // Compile: [DebuggerDisplay("{new B()}")]
             const string expr = "new B()";
@@ -660,7 +666,7 @@ public class B
                 ObjectIdAlias(1, typeof(object)));
 
             int attempts = 0;
-            ExpressionCompiler.CreateContextDelegate contextFactory = (b, u) =>
+            EvaluationContextBase contextFactory(ImmutableArray<MetadataBlock> b, bool u)
             {
                 attempts++;
                 return EvaluationContext.CreateMethodContext(
@@ -671,7 +677,7 @@ public class B
                     methodVersion: 1,
                     ilOffset: 0,
                     localSignatureToken: localSignatureToken);
-            };
+            }
 
             string errorMessage;
             CompilationTestData testData;
@@ -749,7 +755,7 @@ namespace System
             var compCorLib = CreateCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
-            Assert.NotNull(objectType.BaseType);
+            Assert.NotNull(objectType.BaseType());
 
             ImmutableArray<byte> peBytes;
             ImmutableArray<byte> pdbBytes;
@@ -867,7 +873,7 @@ namespace System
             var compCorLib = CreateCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
-            Assert.NotNull(objectType.BaseType);
+            Assert.NotNull(objectType.BaseType());
 
             var pdbPath = Temp.CreateDirectory().Path;
             ImmutableArray<byte> peBytes;
@@ -1008,6 +1014,11 @@ namespace System
                 {
                     yield return (type == _objectType.UnderlyingType) ? _objectType : type;
                 }
+            }
+
+            internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
+            {
+                throw new NotImplementedException();
             }
 
             public override int CurrentGenerationOrdinal => _builder.CurrentGenerationOrdinal;

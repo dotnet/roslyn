@@ -9,24 +9,10 @@ namespace Roslyn.Utilities
     internal static class ImmutableArrayExtensions
     {
         internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this IEnumerable<T> items)
-        {
-            if (items == null)
-            {
-                return ImmutableArray.Create<T>();
-            }
-
-            return ImmutableArray.CreateRange<T>(items);
-        }
+            => items == null ? ImmutableArray<T>.Empty : ImmutableArray.CreateRange(items);
 
         internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this ImmutableArray<T> items)
-        {
-            if (items.IsDefault)
-            {
-                return ImmutableArray.Create<T>();
-            }
-
-            return items;
-        }
+            => items.IsDefault ? ImmutableArray<T>.Empty : items;
 
         // same as Array.BinarySearch but the ability to pass arbitrary value to the comparer without allocation
         internal static int BinarySearch<TElement, TValue>(this ImmutableArray<TElement> array, TValue value, Func<TElement, TValue, int> comparer)

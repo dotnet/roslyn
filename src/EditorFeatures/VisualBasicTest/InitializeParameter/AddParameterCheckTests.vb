@@ -107,7 +107,7 @@ end class",
 Imports System
 
 class C
-    private _s as string
+    private _s as string 
 
     public sub new(s as string)
         If s Is Nothing Then

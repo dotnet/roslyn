@@ -1895,7 +1895,7 @@ end class
 <compilation>
     <file name="a.vb">
 Class C 
-    Declare Unicode Sub M Lib "foo" (p as Integer) 
+    Declare Unicode Sub M Lib "goo" (p as Integer) 
 End Class
     </file>
 </compilation>
@@ -1917,7 +1917,7 @@ End Class
                 text,
                 findSymbol,
                 format,
-                "Public Declare Unicode Sub C.M Lib ""foo"" ()", {
+                "Public Declare Unicode Sub C.M Lib ""goo"" ()", {
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -1944,7 +1944,7 @@ End Class
 <compilation>
     <file name="a.vb">
                     Class C 
-                        Declare Unicode Sub M Lib "foo" (p as Integer) 
+                        Declare Unicode Sub M Lib "goo" (p as Integer) 
                     End Class
                 </file>
 </compilation>
@@ -1980,7 +1980,7 @@ End Class
 <compilation>
     <file name="a.vb">
                     Class C 
-                        Declare Unicode Sub M Lib "foo" Alias "bar" (p as Integer) 
+                        Declare Unicode Sub M Lib "goo" Alias "bar" (p as Integer) 
                     End Class
                 </file>
 </compilation>
@@ -1998,7 +1998,7 @@ End Class
                 text,
                 findSymbol,
                 format,
-                "Declare Unicode Sub M Lib ""foo"" Alias ""bar""", {
+                "Declare Unicode Sub M Lib ""goo"" Alias ""bar""", {
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -2022,7 +2022,7 @@ End Class
 <compilation>
     <file name="a.vb">
 Class C 
-    Declare Unicode Sub M Lib "foo" (p as Integer) 
+    Declare Unicode Sub M Lib "goo" (p as Integer) 
 End Class
     </file>
 </compilation>
@@ -3364,7 +3364,7 @@ End Class
         Public Sub TestAlias1()
             Dim text =
         <compilation>
-            <file name="a.vb">Imports Foo=N1.N2.N3
+            <file name="a.vb">Imports Goo=N1.N2.N3
             Namespace N1
                 NAmespace N2
                     NAmespace N3
@@ -3393,7 +3393,7 @@ End Class
                 text,
                 findSymbol,
                 format,
-                "Foo.C1.C2",
+                "Goo.C1.C2",
                 code.IndexOf("Namespace", StringComparison.Ordinal),
                 {
                 SymbolDisplayPartKind.AliasName,
@@ -3407,7 +3407,7 @@ End Class
         Public Sub TestAlias2()
             Dim text =
         <compilation>
-            <file name="a.vb">Imports Foo=N1.N2.N3.C1
+            <file name="a.vb">Imports Goo=N1.N2.N3.C1
             Namespace N1
                 NAmespace N2
                     NAmespace N3
@@ -3436,7 +3436,7 @@ End Class
                 text,
                 findSymbol,
                 format,
-                "Foo.C2",
+                "Goo.C2",
                 code.IndexOf("Namespace", StringComparison.Ordinal),
                 {
                 SymbolDisplayPartKind.AliasName,
@@ -3448,11 +3448,11 @@ End Class
         Public Sub TestAlias3()
             Dim text =
         <compilation>
-            <file name="a.vb">Imports Foo = N1.C1
+            <file name="a.vb">Imports Goo = N1.C1
             Namespace N1
                 Class C1
                 End Class
-                Class Foo
+                Class Goo
                 End Class
             end namespace
                 </file>
@@ -3470,7 +3470,7 @@ End Class
                 findSymbol,
                 format,
                 "C1",
-                code.IndexOf("Class Foo", StringComparison.Ordinal),
+                code.IndexOf("Class Goo", StringComparison.Ordinal),
                 {
                 SymbolDisplayPartKind.ClassName}, True)
         End Sub
@@ -3500,13 +3500,13 @@ Module Program
     Sub Main(args As String())
         Dim x As Microsoft.VisualBasic.Collection
 
-        Dim y As OUTER.INNER.FOO
+        Dim y As OUTER.INNER.GOO
     End Sub
 End Module
 
 Namespace OUTER
     Namespace INNER
-        Friend Class FOO
+        Friend Class GOO
         End Class
     End Namespace
 End Namespace
@@ -3560,14 +3560,14 @@ End Namespace
                 {SymbolDisplayPartKind.NamespaceName}, True)
 
 
-            Dim findFOO As Func(Of NamespaceSymbol, Symbol) = Function(globalns)
+            Dim findGOO As Func(Of NamespaceSymbol, Symbol) = Function(globalns)
                                                                   Return globalns.LookupNestedNamespace({"OUTER"}).
-                                                                  LookupNestedNamespace({"INNER"}).GetTypeMembers("Foo").Single()
+                                                                  LookupNestedNamespace({"INNER"}).GetTypeMembers("Goo").Single()
                                                               End Function
 
-            TestSymbolDescription(text, findFOO, format,
-                "INNER.FOO",
-                text.Value.IndexOf("OUTER.INNER.FOO", StringComparison.Ordinal),
+            TestSymbolDescription(text, findGOO, format,
+                "INNER.GOO",
+                text.Value.IndexOf("OUTER.INNER.GOO", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.NamespaceName,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.ClassName}, True)
@@ -3592,20 +3592,20 @@ End Namespace
             <file name="a.vb">
 imports System.Collections.Generic
 class C1 
-    Dim Private foo as System.Collections.Generic.IDictionary(Of System.Collections.Generic.IList(Of System.Int32), System.String)
+    Dim Private goo as System.Collections.Generic.IDictionary(Of System.Collections.Generic.IList(Of System.Int32), System.String)
 end class
 
     </file>
         </compilation>
 
             Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns) globalns.GetTypeMembers("C1").Single().
-                                                                GetMembers("foo").Single()
+                                                                GetMembers("goo").Single()
 
             Dim code As String = DirectCast(text.FirstNode, XElement).FirstNode.ToString
 
             TestSymbolDescription(text, findSymbol, Nothing,
-                "C1.foo As IDictionary(Of IList(Of Integer), String)",
-                code.IndexOf("foo", StringComparison.Ordinal), {
+                "C1.goo As IDictionary(Of IList(Of Integer), String)",
+                code.IndexOf("goo", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.FieldName,
@@ -3732,7 +3732,7 @@ End Class
         Public Sub TestBug2239()
             Dim text =
         <compilation>
-            <file name="a.vb">Imports Foo=N1.N2.N3
+            <file name="a.vb">Imports Goo=N1.N2.N3
 class GC1(Of T) 
 end class
 
@@ -4004,7 +4004,7 @@ End Class
             <file name="a.vb">
 Class Take
     Class X
-        Public Shared Sub Foo
+        Public Shared Sub Goo
         End Sub
     End Class
 End Class
@@ -4016,7 +4016,7 @@ End Class
 Module M
     Sub Main()
         Dim x = From y In ""
-        Z(Of Integer).X.Foo ' Simplify Z(Of Integer).X
+        Z(Of Integer).X.Goo ' Simplify Z(Of Integer).X
     End Sub
 End Module
 
@@ -4026,13 +4026,13 @@ End Module
 
             Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns) globalns.GetTypeMembers("Take").Single().
                                                                 GetTypeMembers("X").Single().
-                                                                GetMembers("Foo").Single()
+                                                                GetMembers("Goo").Single()
 
             Dim code As String = DirectCast(text.FirstNode, XElement).FirstNode.ToString
 
             TestSymbolDescription(text, findSymbol, Nothing,
-                "Sub [Take].X.Foo()",
-                code.IndexOf("Z(Of Integer).X.Foo", StringComparison.Ordinal), {
+                "Sub [Take].X.Goo()",
+                code.IndexOf("Z(Of Integer).X.Goo", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
@@ -4051,7 +4051,7 @@ End Module
             <file name="a.vb">
 Class [Type]
     Class X
-        Public Shared Sub Foo
+        Public Shared Sub Goo
         End Sub
     End Class
 End Class
@@ -4063,7 +4063,7 @@ End Class
 Module M
     Sub Main()
         Dim x = From y In ""
-        Z(Of Integer).X.Foo ' Simplify Z(Of Integer).X
+        Z(Of Integer).X.Goo ' Simplify Z(Of Integer).X
     End Sub
 End Module
 
@@ -4073,13 +4073,13 @@ End Module
 
             Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns) globalns.GetTypeMembers("Type").Single().
                                                                 GetTypeMembers("X").Single().
-                                                                GetMembers("Foo").Single()
+                                                                GetMembers("Goo").Single()
 
             Dim code As String = DirectCast(text.FirstNode, XElement).FirstNode.ToString
 
             TestSymbolDescription(text, findSymbol, Nothing,
-                "Sub Type.X.Foo()",
-                code.IndexOf("Z(Of Integer).X.Foo", StringComparison.Ordinal), {
+                "Sub Type.X.Goo()",
+                code.IndexOf("Z(Of Integer).X.Goo", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
@@ -4094,18 +4094,18 @@ End Module
                     <compilation>
                         <file name="a.vb">
 Imports System
-Class Foo
+Class Goo
     Public Bar as Type
 End Class
     </file>
                     </compilation>
 
-            findSymbol = Function(globalns) globalns.GetTypeMembers("Foo").Single().GetMembers("Bar").Single()
+            findSymbol = Function(globalns) globalns.GetTypeMembers("Goo").Single().GetMembers("Bar").Single()
 
             code = DirectCast(text.FirstNode, XElement).FirstNode.ToString
 
             TestSymbolDescription(text, findSymbol, Nothing,
-                "Foo.Bar As Type",
+                "Goo.Bar As Type",
                 code.IndexOf("Public Bar as Type", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
@@ -4320,7 +4320,7 @@ End Class
             <file name="a.vb">
 Class Explicit
     Class X
-        Public Shared Sub Foo
+        Public Shared Sub Goo
         End Sub
     End Class
 End Class
@@ -4332,7 +4332,7 @@ End Class
 Module M
     Sub Main()
         Dim x = From y In ""
-        Z(Of Integer).X.Foo ' Simplify Z(Of Integer).X
+        Z(Of Integer).X.Goo ' Simplify Z(Of Integer).X
     End Sub
 End Module
 
@@ -4342,13 +4342,13 @@ End Module
 
             Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns) globalns.GetTypeMembers("Explicit").Single().
                                                                 GetTypeMembers("X").Single().
-                                                                GetMembers("Foo").Single()
+                                                                GetMembers("Goo").Single()
 
             Dim code As String = DirectCast(text.FirstNode, XElement).FirstNode.ToString
 
             TestSymbolDescription(text, findSymbol, Nothing,
-                "Sub Explicit.X.Foo()",
-                code.IndexOf("Z(Of Integer).X.Foo", StringComparison.Ordinal), {
+                "Sub Explicit.X.Goo()",
+                code.IndexOf("Z(Of Integer).X.Goo", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
@@ -4462,7 +4462,7 @@ end class
 <text>
 class A
 {
-    public void Foo(int a)
+    public void Goo(int a)
     {
     }
 }
@@ -4480,10 +4480,10 @@ class A
 
             Dim comp = CreateCSharpCompilation("c", text)
             Dim a = DirectCast(comp.GlobalNamespace.GetMembers("A").Single(), ITypeSymbol)
-            Dim foo = a.GetMembers("Foo").Single()
-            Dim parts = VisualBasic.SymbolDisplay.ToDisplayParts(foo, format)
+            Dim goo = a.GetMembers("Goo").Single()
+            Dim parts = VisualBasic.SymbolDisplay.ToDisplayParts(goo, format)
             Verify(parts,
-                   "Public Sub Foo(a As Integer)",
+                   "Public Sub Goo(a As Integer)",
                    SymbolDisplayPartKind.Keyword,
                    SymbolDisplayPartKind.Space,
                    SymbolDisplayPartKind.Keyword,
@@ -4505,7 +4505,7 @@ class A
             <file name="a.vb">
 Class Explicit
     Class X
-        Public Shared Sub Foo
+        Public Shared Sub Goo
         End Sub
     End Class
 End Class
@@ -4517,7 +4517,7 @@ End Class
 Module M
     Sub Main()
         Dim x = From y In ""
-        Z(Of Integer).X.Foo ' Simplify Z(Of Integer).X
+        Z(Of Integer).X.Goo ' Simplify Z(Of Integer).X
     End Sub
 End Module
 
@@ -4527,13 +4527,13 @@ End Module
 
             Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns) globalns.GetTypeMembers("Explicit").Single().
                                                                 GetTypeMembers("X").Single().
-                                                                GetMembers("Foo").Single()
+                                                                GetMembers("Goo").Single()
 
             Dim code As String = DirectCast(text.FirstNode, XElement).FirstNode.ToString
 
             TestSymbolDescription(text, findSymbol, Nothing,
-                "Sub Explicit.X.Foo()",
-                code.IndexOf("Z(Of Integer).X.Foo", StringComparison.Ordinal), {
+                "Sub Explicit.X.Goo()",
+                code.IndexOf("Z(Of Integer).X.Goo", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,

@@ -459,7 +459,7 @@ Imports System.Collections.Generic
 Public Class R 
     Public Dictionary(Of A, B) Dict = New Dictionary(Of A, B)()
 
-    Public Sub Foo(a As A, b As B)
+    Public Sub Goo(a As A, b As B)
     End Sub
 End Class
 ]]>
@@ -478,7 +478,7 @@ Public Class M
     Public Sub F()
         Dim r = New R()
         System.Console.WriteLine(r.Dict)   ' 2 errors
-        r.Foo(Nothing, Nothing)            ' 2 errors
+        r.Goo(Nothing, Nothing)            ' 2 errors
     End Sub
 End Class
 ]]>
@@ -489,7 +489,7 @@ End Class
 
             main.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_NameNotMember2, "r.Dict").WithArguments("Dict", "R"),
-                Diagnostic(ERRID.ERR_SxSIndirectRefHigherThanDirectRef3, "r.Foo(Nothing, Nothing)").WithArguments("B", "2.0.0.0", "1.0.0.0"))
+                Diagnostic(ERRID.ERR_SxSIndirectRefHigherThanDirectRef3, "r.Goo(Nothing, Nothing)").WithArguments("B", "2.0.0.0", "1.0.0.0"))
         End Sub
 
         <Fact>
@@ -556,7 +556,7 @@ End Class
             main.VerifyDiagnostics()
 
             ' Disable PE verification, it would need .config file with Lib v1 -> Lib v2 binding redirect.
-            CompileAndVerify(main, verify:=False, validator:=
+            CompileAndVerify(main, verify:=Verification.Fails, validator:=
                 Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
 
@@ -1024,7 +1024,7 @@ Public Class B
     Inherits A
 End Class
 
-Public Class Foo
+Public Class Goo
 End Class
     </file>
 </compilation>
@@ -1038,7 +1038,7 @@ End Class
 <compilation name="A">
     <file>        
 Public Class A 
-    Public x As Foo = New Foo()
+    Public x As Goo = New Goo()
 End Class
     </file>
 </compilation>
@@ -1067,7 +1067,7 @@ End Class
 
             GC.KeepAlive(symbolA2)
 
-            ' Recompile "B" and remove int Foo. The assembly manager should not reuse symbols for A since they are referring to old version of B.
+            ' Recompile "B" and remove int Goo. The assembly manager should not reuse symbols for A since they are referring to old version of B.
             Dim sourceB2 =
 <compilation name="B">
     <file>
@@ -1084,11 +1084,11 @@ End Class
             Dim b2 = CreateCompilationWithMscorlibAndReferences(sourceB2, {refA2})
 
             ' TODO (tomat): Dev11 reports error:
-            ' error BC30652: Reference required to assembly 'b, Version=1.0.0.0, Culture=neutral, PublicKeyToken = null' containing the type 'Foo'. Add one to your project.
+            ' error BC30652: Reference required to assembly 'b, Version=1.0.0.0, Culture=neutral, PublicKeyToken = null' containing the type 'Goo'. Add one to your project.
 
             AssertTheseDiagnostics(b2,
 <errors>
-BC31091: Import of type 'Foo' from assembly or module 'B.dll' failed.
+BC31091: Import of type 'Goo' from assembly or module 'B.dll' failed.
        Dim objX As Object = Me.x
                             ~~~~
 </errors>)
@@ -1590,7 +1590,7 @@ Public Class B
     Inherits A
 End Class
 
-Public Class Foo
+Public Class Goo
 End Class
     </file>
 </compilation>
@@ -1660,7 +1660,7 @@ End Class
             Assert.True(corlib1.ReferenceManagerEquals(corlib2))
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution1()
             ' c - a -> b
             Dim bRef = CreateCompilationWithMscorlib({"Public Class B : End Class"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
@@ -1678,11 +1678,11 @@ End Class
 
             Assert.Equal("B", DirectCast(c.GetAssemblyOrModuleSymbol(bRef), AssemblySymbol).Name)
 
-            Resolver.VerifyResolutionAttempts(
+            resolver.VerifyResolutionAttempts(
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_WeakIdentities1()
             ' c - a -> "b,v1,PKT=null" 
             '   - d -> "b,v2,PKT=null"
@@ -1717,7 +1717,7 @@ End Class
                 "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_WeakIdentities2()
             ' c - a -> "b,v1,PKT=null"
             '   - d -> "b,v2,PKT=null"
@@ -1768,7 +1768,7 @@ End Class
             resolver.VerifyResolutionAttempts()
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_ActualMissing()
             ' c - a -> d
             Dim dRef = CreateCompilationWithMscorlib({"Public Interface D : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
@@ -1789,7 +1789,7 @@ End Class
         ''' <summary>
         ''' Ignore assemblies returned by the resolver that don't match the reference identity.
         ''' </summary>
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_MissingDueToResolutionMismatch()
             ' c - a -> b
             Dim bRef = CreateCompilationWithMscorlib({"Public Interface D : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
@@ -1812,7 +1812,7 @@ End Class
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_Modules()
             ' c - a - d
             '   - module(m) - b
@@ -1878,7 +1878,7 @@ End Class
         ''' <summary>
         ''' Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         ''' </summary>
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_BindingToExplicitReference_WorseVersion()
             ' c - a -> d -> "b,v2"
             '          e -> "b,v1"
@@ -1918,7 +1918,7 @@ End Class
         ''' <summary>
         ''' Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         ''' </summary>
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_BindingToExplicitReference_BetterVersion()
             ' c - a -> d -> "b,v2"
             '          e -> "b,v1"
@@ -1957,7 +1957,7 @@ End Class
                 "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_BindingToImplicitReference1()
             ' c - a -> d -> "b,v2"
             '          e -> "b,v1"
@@ -2002,7 +2002,7 @@ End Class
                 "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_BindingToImplicitReference2()
             ' c - a -> d -> "b,v2"
             '          e -> "b,v1"

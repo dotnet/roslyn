@@ -511,18 +511,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // portable layer doesn't support xml doc comments
             // this depends on which layer supports IDocumentationProviderService
             var xmlDocComment = await GetXmlDocumentAsync(MefHostServices.Create(MefHostServices.DefaultAssemblies));
-            Assert.True(string.IsNullOrEmpty(xmlDocComment));
-        }
-
-        [Fact]
-        public async Task TestMetadataXmlDocComment_Desktop()
-        {
-            // desktop layer supports xml doc comments
-            // this depends on which layer supports IDocumentationProviderService
-            var hostServices = MefHostServices.Create(
-                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
-
-            var xmlDocComment = await GetXmlDocumentAsync(hostServices);
             Assert.False(string.IsNullOrEmpty(xmlDocComment));
         }
 

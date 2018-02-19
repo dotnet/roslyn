@@ -23,7 +23,7 @@ Class X
     End Function
     Class B
         Property [|$$X|]()
-        Sub Foo()
+        Sub Goo()
             Dim y = {|stmt1:_Y|}()
         End Sub
     End Class

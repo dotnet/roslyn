@@ -258,15 +258,15 @@ class Program
             var test = @"using System;
 
 [AttributeUsage(AttributeTargets.All)]
-public class Foo : Attribute
+public class Goo : Attribute
 {
     public int Name;
-    public Foo(int sName) { Name = sName; }
+    public Goo(int sName) { Name = sName; }
 }
 
 public delegate void EventHandler(object sender, EventArgs e);
 
-[assembly: Foo(5)]
+[assembly: Goo(5)]
 public class Test { }
 ";
 
@@ -359,8 +359,8 @@ class Test01
     public static int Bar<T>(int x, T y, params int[] z) { return 1; }
     public static int Bar<T>(string y, int x) { return 0; } // Roslyn pick this one
 
-    public static int Foo<T>(int x, T y) { return 1; }
-    public static int Foo<T>(string y, int x) { return 0; } // Roslyn pick this one
+    public static int Goo<T>(int x, T y) { return 1; }
+    public static int Goo<T>(string y, int x) { return 0; } // Roslyn pick this one
 
     public static int AbcDef<T>(int x, T y) { return 0; } // Roslyn pick this one
     public static int AbcDef<T>(string y, int x, params int[] z) { return 1; }
@@ -368,7 +368,7 @@ class Test01
     public static void Main01()
     {
         Console.Write(Bar<string>(x: 1, y: ""T1""));    // Dev10:CS0121
-        Console.Write(Foo<string>(x: 1, y: ""T2""));    // Dev10:CS0121
+        Console.Write(Goo<string>(x: 1, y: ""T2""));    // Dev10:CS0121
         Console.Write(AbcDef<string>(x: 1, y: ""T3"")); // Dev10:CS0121
     }
 }
@@ -449,14 +449,14 @@ class A
 {
     static void Main()
     {
-        Foo( delegate () { throw new Exception(); }); // both Dev10 & Roslyn no error
-        Foo(x: () => { throw new Exception(); });    // Dev10: CS0121, Roslyn: no error
+        Goo( delegate () { throw new Exception(); }); // both Dev10 & Roslyn no error
+        Goo(x: () => { throw new Exception(); });    // Dev10: CS0121, Roslyn: no error
     }
-    public static void Foo(Action x)
+    public static void Goo(Action x)
     {
         Console.WriteLine(1);
     }
-    public static void Foo(Func<int> x)
+    public static void Goo(Func<int> x)
     {
         Console.WriteLine(2);   // Roslyn call this one
     }
@@ -593,10 +593,10 @@ public class GenC<T, U> where T : struct, U
 
             string source = @"using System;
 
-public interface IFoo {    void Method();    }
-public class CT : IFoo {    public void Method() { }    }
+public interface IGoo {    void Method();    }
+public class CT : IGoo {    public void Method() { }    }
 
-public class GenC<T>  where T : IFoo
+public class GenC<T>  where T : IGoo
 {
     public T valueT;
     public static explicit operator T(GenC<T> val)
@@ -610,7 +610,7 @@ public class Test
 {
     public static void Main()
     {
-        var _class = new GenC<IFoo>();
+        var _class = new GenC<IGoo>();
         var ret = (CT)_class;
     }
 }
@@ -1115,7 +1115,7 @@ class Program
         var demo = new test();
         try
         {
-            foreach (var x in demo.Foo()) { }
+            foreach (var x in demo.Goo()) { }
         }
         catch (Exception)
         {
@@ -1126,7 +1126,7 @@ class Program
     class test
     {
         public int count = 0;
-        public IEnumerable Foo()
+        public IEnumerable Goo()
         {
             try
             {
@@ -1152,7 +1152,7 @@ class Program
             var verifier = CompileAndVerify(source, expectedOutput: " ++ EX 1");
 
             // must not load "<>4__this"
-            verifier.VerifyIL("Program.test.<Foo>d__1.System.Collections.IEnumerator.MoveNext()", @"
+            verifier.VerifyIL("Program.test.<Goo>d__1.System.Collections.IEnumerator.MoveNext()", @"
 {
   // Code size      101 (0x65)
   .maxstack  2
@@ -1161,7 +1161,7 @@ class Program
   .try
   {
     IL_0000:  ldarg.0
-    IL_0001:  ldfld      ""int Program.test.<Foo>d__1.<>1__state""
+    IL_0001:  ldfld      ""int Program.test.<Goo>d__1.<>1__state""
     IL_0006:  stloc.1
     IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_0012
@@ -1173,22 +1173,22 @@ class Program
     IL_0010:  leave.s    IL_0063
     IL_0012:  ldarg.0
     IL_0013:  ldc.i4.m1
-    IL_0014:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+    IL_0014:  stfld      ""int Program.test.<Goo>d__1.<>1__state""
     IL_0019:  ldarg.0
     IL_001a:  ldc.i4.s   -3
-    IL_001c:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+    IL_001c:  stfld      ""int Program.test.<Goo>d__1.<>1__state""
     IL_0021:  ldarg.0
     IL_0022:  ldnull
-    IL_0023:  stfld      ""object Program.test.<Foo>d__1.<>2__current""
+    IL_0023:  stfld      ""object Program.test.<Goo>d__1.<>2__current""
     IL_0028:  ldarg.0
     IL_0029:  ldc.i4.1
-    IL_002a:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+    IL_002a:  stfld      ""int Program.test.<Goo>d__1.<>1__state""
     IL_002f:  ldc.i4.1
     IL_0030:  stloc.0
     IL_0031:  leave.s    IL_0063
     IL_0033:  ldarg.0
     IL_0034:  ldc.i4.s   -3
-    IL_0036:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+    IL_0036:  stfld      ""int Program.test.<Goo>d__1.<>1__state""
     .try
     {
       IL_003b:  ldc.i4.0
@@ -1201,21 +1201,21 @@ class Program
       IL_0040:  leave.s    IL_0042
     }
     IL_0042:  ldarg.0
-    IL_0043:  call       ""void Program.test.<Foo>d__1.<>m__Finally1()""
+    IL_0043:  call       ""void Program.test.<Goo>d__1.<>m__Finally1()""
     IL_0048:  br.s       IL_0052
     IL_004a:  ldarg.0
-    IL_004b:  call       ""void Program.test.<Foo>d__1.<>m__Finally1()""
+    IL_004b:  call       ""void Program.test.<Goo>d__1.<>m__Finally1()""
     IL_0050:  leave.s    IL_0063
     IL_0052:  leave.s    IL_005b
   }
   fault
   {
     IL_0054:  ldarg.0
-    IL_0055:  call       ""void Program.test.<Foo>d__1.Dispose()""
+    IL_0055:  call       ""void Program.test.<Goo>d__1.Dispose()""
     IL_005a:  endfinally
   }
   IL_005b:  ldarg.0
-  IL_005c:  call       ""void Program.test.<Foo>d__1.Dispose()""
+  IL_005c:  call       ""void Program.test.<Goo>d__1.Dispose()""
   IL_0061:  ldc.i4.1
   IL_0062:  stloc.0
   IL_0063:  ldloc.0
@@ -1224,15 +1224,15 @@ class Program
 ");
 
             // must load "<>4__this"
-            verifier.VerifyIL("Program.test.<Foo>d__1.<>m__Finally1()", @"
+            verifier.VerifyIL("Program.test.<Goo>d__1.<>m__Finally1()", @"
 {
   // Code size       42 (0x2a)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.m1
-  IL_0002:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+  IL_0002:  stfld      ""int Program.test.<Goo>d__1.<>1__state""
   IL_0007:  ldarg.0
-  IL_0008:  ldfld      ""Program.test Program.test.<Foo>d__1.<>4__this""
+  IL_0008:  ldfld      ""Program.test Program.test.<Goo>d__1.<>4__this""
   IL_000d:  ldstr      ""++ ""
   IL_0012:  call       ""void System.Console.Write(string)""
   IL_0017:  dup
@@ -1303,7 +1303,7 @@ namespace VS7_336319
     public class ExpressionBinder
     {
         private static PredefinedTypes PredefinedTypes = null;
-        private void Foo()
+        private void Goo()
         {
             if (0 == (int)PredefinedTypes.Kind.Decimal) { }
         }
@@ -1501,8 +1501,8 @@ using System;
 
 class Base<T, S>
 {
-    public virtual int Foo(ref S x) { return 0; }
-    public virtual string Foo(out T x)
+    public virtual int Goo(ref S x) { return 0; }
+    public virtual string Goo(out T x)
     {
         x = default(T); return ""Base.Out"";
     }
@@ -1510,14 +1510,14 @@ class Base<T, S>
 
 class Derived : Base<int, int>
 {
-    public override string Foo(out int x)
+    public override string Goo(out int x)
     {
         x = 0; return ""Derived.Out"";
     }
     static void Main()
     {
         int x;
-        Console.WriteLine(new Derived().Foo(out x));
+        Console.WriteLine(new Derived().Goo(out x));
     }
 }
 ";
@@ -1606,11 +1606,11 @@ class Test
 {
     static void Main()
     {
-        Console.Write(Util.Count(Foo<S>()));
-        Console.Write(Util.Count(Foo<C>()));
+        Console.Write(Util.Count(Goo<S>()));
+        Console.Write(Util.Count(Goo<C>()));
     }
 
-    static Wrapper<T> Foo<T>() where T : IEnumerable, IAdd, new()
+    static Wrapper<T> Goo<T>() where T : IEnumerable, IAdd, new()
     {
         return new Wrapper<T> { Item = { 1, 2, 3} };
     }
@@ -1631,10 +1631,10 @@ class Test
 {
     static void Main()
     {
-        Console.Write(Util.Count(Foo<C>()));
+        Console.Write(Util.Count(Goo<C>()));
     }
 
-    static Wrapper<T> Foo<T>() where T : class, IEnumerable, IAdd, new()
+    static Wrapper<T> Goo<T>() where T : class, IEnumerable, IAdd, new()
     {
         return new Wrapper<T> { Item = { 1, 2, 3} };
     }
@@ -1656,10 +1656,10 @@ class Test
 {
     static void Main()
     {
-        Console.Write(Util.Count(Foo<S>()));
+        Console.Write(Util.Count(Goo<S>()));
     }
 
-    static Wrapper<T> Foo<T>() where T : struct, IEnumerable, IAdd
+    static Wrapper<T> Goo<T>() where T : struct, IEnumerable, IAdd
     {
         return new Wrapper<T> { Item = { 1, 2, 3} };
     }

@@ -44,7 +44,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -71,21 +71,21 @@ $$");
         public async Task TestAfterPreviousExternAlias()
         {
             await VerifyKeywordAsync(
-@"extern alias Foo;
+@"extern alias Goo;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterUsing()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"using Foo;
+            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"using Goo;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterUsing_Interactive()
         {
-            await VerifyKeywordAsync(SourceCodeKind.Script, @"using Foo;
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"using Goo;
 $$");
         }
 
@@ -123,7 +123,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"namespace N {
-   extern alias Foo;
+   extern alias Goo;
    $$");
         }
 
@@ -131,7 +131,7 @@ $$");
         public async Task TestNotAfterUsing_InsideNamespace()
         {
             await VerifyAbsenceAsync(@"namespace N {
-    using Foo;
+    using Goo;
     $$");
         }
 

@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             Dim producer = New BraceHighlightingViewTaggerProvider(
                 workspace.GetService(Of IBraceMatchingService),
                 workspace.GetService(Of IForegroundNotificationService),
-                AggregateAsynchronousOperationListener.EmptyListeners)
+                AsynchronousOperationListenerProvider.NullProvider)
 
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()
             Dim context = New TaggerContext(Of BraceHighlightTag)(
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
         Public Async Function TestParens() As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(
 "Module Module1
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
     End Function
 End Module")
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
@@ -74,7 +74,7 @@ End Module")
             Using workspace = TestWorkspace.CreateVisualBasic(
 "Module Module1
     <SomeAttr(New With {.name = ""test""})>  
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module")
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
@@ -189,7 +189,7 @@ End Module")
             Using workspace = TestWorkspace.CreateVisualBasic(
 "Module Module1
     <Attribute()>
-    Sub Foo()
+    Sub Goo()
         Dim x = 2 > 3
         Dim y = 4 > 5
         Dim z = <element></element>

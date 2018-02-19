@@ -5,6 +5,7 @@ Imports Roslyn.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports System.Threading.Tasks
+Imports System.Globalization
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.CSharp
     Public Class ObjectBrowserTests
@@ -72,6 +73,79 @@ namespace N
             End Using
         End Sub
 
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestSimpleContent_InlcudePrivateNestedTypeMembersInSourceCode()
+            Dim code =
+<Code>
+namespace N
+{
+    class C
+    {
+        private enum PrivateEnumTest { }
+        private class PrivateClassTest { }
+        private struct PrivateStructTest { }
+    }
+}
+</Code>
+
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetNamespaceList(0).GetTypeList(0)
+                list.VerifyNames("C", "C.PrivateStructTest", "C.PrivateClassTest", "C.PrivateEnumTest")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestSimpleContent_InlcudePrivateDoubleNestedTypeMembersInSourceCode()
+            Dim code =
+<Code>
+namespace N
+{
+    internal class C
+    {
+        private class NestedClass
+        {
+            private class NestedNestedClass { }
+        }
+    }
+}
+</Code>
+
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetNamespaceList(0).GetTypeList(0)
+                list.VerifyNames("C", "C.NestedClass", "C.NestedClass.NestedNestedClass")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestSimpleContent_InlcudeNoPrivateNestedTypeOfMetaData()
+            Dim metaDatacode =
+<Code>
+namespace N
+{
+    public class C
+    {
+        public enum PublicEnumTest { }
+        private class PrivateClassTest { }
+        private struct PrivateStructTest { }
+    }
+}
+</Code>
+            Dim code = <Code></Code>
+
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code, metaDatacode, False))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList().GetReferenceList(0).GetNamespaceList(0).GetTypeList(0)
+                list.VerifyNames("C", "C.PublicEnumTest")
+            End Using
+        End Sub
+
         <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub TestContent_InheritedMembers1()
@@ -79,14 +153,14 @@ namespace N
 <Code>
 class A
 {
-    protected virtual void Foo()
+    protected virtual void Goo()
     {
     }
 }
 
 class B : A
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -97,7 +171,7 @@ class B : A
 
 class C : B
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -115,7 +189,7 @@ class C : B
                 list = list.GetMemberList(0)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "ToString()",
                     "Equals(object)",
                     "Equals(object, object)",
@@ -133,14 +207,14 @@ class C : B
 <Code>
 class A
 {
-    protected virtual void Foo()
+    protected virtual void Goo()
     {
     }
 }
 
 class B : A
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -151,7 +225,7 @@ class B : A
 
 class C : B
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -169,7 +243,7 @@ class C : B
                 list = list.GetMemberList(1)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "Bar()",
                     "ToString()",
                     "Equals(object)",
@@ -188,14 +262,14 @@ class C : B
 <Code>
 class A
 {
-    protected virtual void Foo()
+    protected virtual void Goo()
     {
     }
 }
 
 class B : A
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -206,7 +280,7 @@ class B : A
 
 class C : B
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -224,7 +298,7 @@ class C : B
                 list = list.GetMemberList(2)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "Bar()",
                     "ToString()",
                     "Equals(object)",
@@ -545,7 +619,7 @@ class C
 </Code>
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code)),
-                    testCulture As New CultureContext("en-US")
+                    testCulture As New CultureContext(New CultureInfo("en-US", useUserOverride:=False))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)

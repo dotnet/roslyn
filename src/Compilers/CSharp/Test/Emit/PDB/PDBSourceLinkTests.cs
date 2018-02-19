@@ -42,7 +42,7 @@ class C
 }
 ");
 
-            var c = CreateStandardCompilation(Parse(source, "f:/build/foo.cs"), options: TestOptions.DebugDll);
+            var c = CreateStandardCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
 
             var pdbStream = new MemoryStream();
             c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(format), pdbStream: pdbStream, sourceLinkStream: new MemoryStream(sourceLinkBlob));
@@ -72,7 +72,7 @@ class C
   }
 }
 ");
-            var c = CreateStandardCompilation(Parse(source, "f:/build/foo.cs"), options: TestOptions.DebugDll);
+            var c = CreateStandardCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
 
             var peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded), sourceLinkStream: new MemoryStream(sourceLinkBlob));
 
@@ -114,7 +114,7 @@ class C
 ";
             var sourceLinkStream = new TestStream(canRead: true, readFunc: (_, __, ___) => { throw new Exception("Error!"); });
 
-            var c = CreateStandardCompilation(Parse(source, "f:/build/foo.cs"), options: TestOptions.DebugDll);
+            var c = CreateStandardCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
             var pdbStream = format != DebugInformationFormat.Embedded ? new MemoryStream() : null;
             var result = c.Emit(new MemoryStream(), pdbStream, options: EmitOptions.Default.WithDebugInformationFormat(format), sourceLinkStream: sourceLinkStream);
             result.Diagnostics.Verify(
@@ -140,7 +140,7 @@ class C
 ";
             var sourceLinkBlob = new byte[0];
 
-            var c = CreateStandardCompilation(Parse(source, "f:/build/foo.cs"), options: TestOptions.DebugDll);
+            var c = CreateStandardCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
 
             var pdbStream = new MemoryStream();
             c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(format), pdbStream: pdbStream, sourceLinkStream: new MemoryStream(sourceLinkBlob));

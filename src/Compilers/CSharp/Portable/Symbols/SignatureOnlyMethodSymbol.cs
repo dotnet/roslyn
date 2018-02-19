@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid { get { return _returnType.SpecialType == SpecialType.System_Void; } }
 
-        internal override RefKind RefKind { get { return _refKind; } }
+        public override RefKind RefKind { get { return _refKind; } }
 
         public override TypeSymbol ReturnType { get { return _returnType; } }
 

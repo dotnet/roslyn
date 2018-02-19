@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// May be empty for fixes that don't need to add an import and only do something like
         /// add a project/metadata reference.
         /// </summary>
-        public ImmutableArray<TextChange> TextChanges { get; }
+        public IList<TextChange> TextChanges { get; }
 
         /// <summary>
         /// String to display in the lightbulb menu.
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// <summary>
         /// Tags that control what glyph is displayed in the lightbulb menu.
         /// </summary>
-        public ImmutableArray<string> Tags { get; private set; }
+        public IList<string> Tags { get; private set; }
 
         /// <summary>
         /// The priority this item should have in the lightbulb list.

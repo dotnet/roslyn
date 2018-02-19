@@ -38,8 +38,8 @@ End Class");
 ''' This is an XML doc comment defined in code.
 ''' </summary>
 Class العربية123
-    Shared Sub Foo()
-         Dim foo as العربية123$$
+    Shared Sub Goo()
+         Dim goo as العربية123$$
     End Sub
 End Class");
             VisualStudio.Editor.InvokeQuickInfo();

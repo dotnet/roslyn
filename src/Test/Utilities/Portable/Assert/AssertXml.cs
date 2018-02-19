@@ -94,8 +94,7 @@ namespace Roslyn.Test.Utilities
             string actualString = expectedIsXmlLiteral ? actual.Replace(" />\r\n", "/>\r\n") : string.Format("@\"{0}\"", actual.Replace("\"", "\"\""));
             string expectedString = expectedIsXmlLiteral ? expected.Replace(" />\r\n", "/>\r\n") : string.Format("@\"{0}\"", expected.Replace("\"", "\"\""));
 
-            string link;
-            if (AssertEx.TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expectedString.Count(c => c == '\n') + 1, expectedValueSourcePath, expectedValueSourceLine, out link))
+            if (AssertEx.TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expectedString.Count(c => c == '\n') + 1, expectedValueSourcePath, expectedValueSourceLine, out var link))
             {
                 assertText.AppendLine(link);
             }

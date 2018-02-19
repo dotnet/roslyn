@@ -24,11 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim completionService = New TestCompletionService(workspace)
 
                 Dim list = Await completionService.GetCompletionsAsync(
-                    document:=document,
-                    caretPosition:=0,
-                    trigger:=CompletionTrigger.Invoke,
-                    options:=Nothing,
-                    cancellationToken:=Nothing)
+                    document, caretPosition:=0, trigger:=CompletionTrigger.Invoke)
 
                 Assert.NotNull(list)
                 Assert.NotEmpty(list.Items)

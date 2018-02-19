@@ -21,7 +21,7 @@ Imports System
 Imports System.Linq
 Class C1
     Sub MAIN()
-        Dim lists = foo()
+        Dim lists = goo()
         lists.Where(Function(ByVal item)
                         [|GoTo lab1|]
                         For Each item In lists
@@ -31,7 +31,7 @@ lab1:
                         Return item.ToString() = ""
                     End Function).ToList()
     End Sub
-    Shared Function foo() As List(Of myattribute1)
+    Shared Function goo() As List(Of myattribute1)
         Return Nothing
     End Function
 End Class

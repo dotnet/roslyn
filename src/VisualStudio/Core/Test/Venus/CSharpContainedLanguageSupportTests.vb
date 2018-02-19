@@ -867,14 +867,14 @@ public partial class _Default
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TestTryRenameElement_ResolvableClass()
-            Dim code As String = <text>public partial class Foo { }</text>.Value
+            Dim code As String = <text>public partial class Goo { }</text>.Value
 
             Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
                     clrt:=ContainedLanguageRenameType.CLRT_CLASS,
-                    oldFullyQualifiedName:="Foo",
+                    oldFullyQualifiedName:="Goo",
                     newFullyQualifiedName:="Bar",
                     refactorNotifyServices:=SpecializedCollections.EmptyEnumerable(Of IRefactorNotifyService),
                     cancellationToken:=Nothing)
@@ -885,14 +885,14 @@ public partial class _Default
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TestTryRenameElement_ResolvableNamespace()
-            Dim code As String = <text>namespace Foo { }</text>.Value
+            Dim code As String = <text>namespace Goo { }</text>.Value
 
             Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
                     clrt:=ContainedLanguageRenameType.CLRT_NAMESPACE,
-                    oldFullyQualifiedName:="Foo",
+                    oldFullyQualifiedName:="Goo",
                     newFullyQualifiedName:="Bar",
                     refactorNotifyServices:=SpecializedCollections.EmptyEnumerable(Of IRefactorNotifyService),
                     cancellationToken:=Nothing)

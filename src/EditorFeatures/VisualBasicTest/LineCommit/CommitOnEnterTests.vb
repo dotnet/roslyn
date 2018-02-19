@@ -214,7 +214,7 @@ End Class
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>[|
-#const foo = 42$$|]
+#const goo = 42$$|]
                                </Document>
                            </Project>
                        </Workspace>

@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // NOTE(cyrusn): The base type of an 'original' type may not be 'original'. i.e. 
-                // "class Foo : IBar<int>".  We must map it back to the 'original' when as we walk up
+                // "class Goo : IBar<int>".  We must map it back to the 'original' when as we walk up
                 // the base type hierarchy.
                 var next = current.GetNextBaseTypeNoUseSiteDiagnostics(basesBeingResolved, compilation, ref visited);
                 if ((object)next == null)

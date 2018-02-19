@@ -247,9 +247,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
                         End If
                     ElseIf argumentList.IsParentKind(SyntaxKind.ObjectCreationExpression) Then
-                        ' new Outer(Foo());
+                        ' new Outer(Goo());
                         '
-                        ' new Outer(a: Foo());
+                        ' new Outer(a: Goo());
                         '
                         ' etc.
                         Dim creation = TryCast(argumentList.Parent, ObjectCreationExpressionSyntax)
@@ -303,9 +303,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If False Then
             ElseIf argument.Parent.IsParentKind(SyntaxKind.ElementAccessExpression) Then
-                ' Outer[Foo()];
+                ' Outer[Goo()];
                 '
-                ' Outer[a: Foo()];
+                ' Outer[a: Goo()];
                 '
                 ' etc.
                 Dim elementAccess = TryCast(argument.Parent.Parent, ElementAccessExpressionSyntax)
@@ -462,8 +462,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If conditional.FirstExpression Is expressionOpt OrElse previousToken = conditional.OpenParenToken Then
                     Dim rightTypes = GetTypes(conditional.SecondExpression, objectAsDefault:=True)
-                    ' value type : If (Foo(), 0)
-                    ' otherwise : If (Foo(), "")
+                    ' value type : If (Goo(), 0)
+                    ' otherwise : If (Goo(), "")
                     Return rightTypes.Select(Function(t) If(t.InferredType.IsValueType,
                                                  New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(t.InferredType)),
                                                  t))
@@ -664,7 +664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
-                ' Func<int,string> = i => Foo();
+                ' Func<int,string> = i => Goo();
                 Dim lambdaTypes = GetTypes(lambda).Where(IsUsableTypeFunc)
                 If lambdaTypes.IsEmpty() Then
                     lambdaTypes = InferTypes(lambda)
@@ -682,7 +682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' If we're in a lambda, then use the return type of the lambda to figure out what to
-                ' infer.  i.e.   Func<int,string> f = i => { return Foo(); }
+                ' infer.  i.e.   Func<int,string> f = i => { return Goo(); }
                 Dim lambda = returnStatement.GetAncestorsOrThis(Of ExpressionSyntax)().FirstOrDefault(
                     Function(e) TypeOf e Is MultiLineLambdaExpressionSyntax OrElse
                         TypeOf e Is SingleLineLambdaExpressionSyntax)
@@ -842,9 +842,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Optional previousToken As SyntaxToken? = Nothing) As IEnumerable(Of TypeInferenceInfo)
 
                 ' We need to be on the right of the dot to infer an appropriate type for
-                ' the member access expression.  i.e. if we have "Foo.Bar" then we can 
+                ' the member access expression.  i.e. if we have "Goo.Bar" then we can 
                 ' def infer what the type of 'Bar' should be (it's whatever type we infer
-                ' for 'Foo.Bar' itself.  However, if we're on 'Foo' then we can't figure
+                ' for 'Goo.Bar' itself.  However, if we're on 'Goo' then we can't figure
                 ' out anything about its type.
                 If previousToken <> Nothing Then
                     If previousToken.Value <> memberAccessExpression.OperatorToken Then
@@ -856,9 +856,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' If we're on the left side of a dot, it's possible in a few cases
                     ' to figure out what type we should be.  Specifically, if we have
                     '
-                    '      await foo.ConfigureAwait()
+                    '      await goo.ConfigureAwait()
                     '
-                    ' then we can figure out what 'foo' should be based on teh await
+                    ' then we can figure out what 'goo' should be based on teh await
                     ' context.
                     If expressionOpt Is memberAccessExpression.Expression Then
                         Return InferTypeForExpressionOfMemberAccessExpression(memberAccessExpression)
@@ -876,7 +876,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression) Then
                     Return InferTypes(DirectCast(memberAccessExpression.Parent, ExpressionSyntax))
                 ElseIf name.Equals(NameOf(Task(Of Integer).ContinueWith)) Then
-                    ' foo.ContinueWith(...)
+                    ' goo.ContinueWith(...)
                     ' We want to infer Task<T>.  For now, we'll just do Task<object>,
                     ' in the future it would be nice to figure out the actual result
                     ' type based on the argument to ContinueWith.
@@ -890,7 +890,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim ienumerableType = Me.Compilation.IEnumerableOfTType()
 
-                    ' foo.Select
+                    ' goo.Select
                     ' We want to infer IEnumerable<T>.  We can try to figure out what 
                     ' T if we get a delegate as the first argument to Select/Where.
                     If ienumerableType IsNot Nothing AndAlso memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) Then

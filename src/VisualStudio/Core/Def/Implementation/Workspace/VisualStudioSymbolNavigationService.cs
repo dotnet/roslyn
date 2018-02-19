@@ -8,9 +8,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -111,7 +113,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // Generate new source or retrieve existing source for the symbol in question
-            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, cancellationToken).WaitAndGetResult(cancellationToken);
+            var allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources) && !symbol.IsFromSource();
+            if (allowDecompilation && !project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.AcceptedDecompilerDisclaimer))
+            {
+                var notificationService = project.Solution.Workspace.Services.GetService<INotificationService>();
+                allowDecompilation = notificationService.ConfirmMessageBox(ServicesVSResources.Decompiler_Legal_Notice_Message, ServicesVSResources.Decompiler_Legal_Notice_Title, NotificationSeverity.Warning);
+                if (allowDecompilation)
+                {
+                    project.Solution.Workspace.Options = project.Solution.Workspace.Options.WithChangedOption(FeatureOnOffOptions.AcceptedDecompilerDisclaimer, true);
+                }
+            }
+
+            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var vsRunningDocumentTable4 = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>();
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
@@ -149,21 +162,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return true;
         }
 
-        public bool TrySymbolNavigationNotify(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        public bool TrySymbolNavigationNotify(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            return TryNotifyForSpecificSymbol(symbol, solution, cancellationToken);
+            return TryNotifyForSpecificSymbol(symbol, project, cancellationToken);
         }
 
         private bool TryNotifyForSpecificSymbol(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+            ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             AssertIsForeground();
 
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);
 
             if (!TryGetNavigationAPIRequiredArguments(
-                    definitionItem, rqName, solution, cancellationToken,
+                    definitionItem, rqName, cancellationToken,
                     out var hierarchy, out var itemID, out var navigationNotify))
             {
                 return false;
@@ -213,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             if (!TryGetNavigationAPIRequiredArguments(
-                    definitionItem, rqName, solution, cancellationToken,
+                    definitionItem, rqName, cancellationToken,
                     out var hierarchy, out var itemID, out var navigationNotify))
             {
                 return false;
@@ -244,7 +257,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private bool TryGetNavigationAPIRequiredArguments(
             DefinitionItem definitionItem,
             string rqName,
-            Solution solution,
             CancellationToken cancellationToken,
             out IVsHierarchy hierarchy,
             out uint itemID,
@@ -294,8 +306,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             AssertIsForeground();
 
-            var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace != null)
+            if (document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
             {
                 var hostProject = visualStudioWorkspace.GetHostProject(document.Project.Id);
                 hierarchy = hostProject.Hierarchy;

@@ -100,17 +100,17 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
 
         private SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
         {
-            return lambda.WithAsyncKeyword(default(SyntaxToken)).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
+            return lambda.WithAsyncKeyword(default).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
         }
 
         private SyntaxNode FixSimpleLambda(SimpleLambdaExpressionSyntax lambda)
         {
-            return lambda.WithAsyncKeyword(default(SyntaxToken)).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
+            return lambda.WithAsyncKeyword(default).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
         }
 
         private SyntaxNode FixAnonymousMethod(AnonymousMethodExpressionSyntax method)
         {
-            return method.WithAsyncKeyword(default(SyntaxToken)).WithPrependedLeadingTrivia(method.AsyncKeyword.LeadingTrivia);
+            return method.WithAsyncKeyword(default).WithPrependedLeadingTrivia(method.AsyncKeyword.LeadingTrivia);
         }
     }
 }

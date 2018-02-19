@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function HashEndRegionInFileAfterRegionTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
-#Region "foo"
+#Region "goo"
 |</File>, "#End Region")
         End Function
 
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function RegionAfterHashEndEndTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
-#Region "foo"
+#Region "goo"
 #End |</File>, "Region")
         End Function
 
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotHashEndRegionAfterHashEndTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-#Region "foo"
+#Region "goo"
 #End |</File>, "#End Region")
         End Function
     End Class

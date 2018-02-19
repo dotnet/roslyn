@@ -433,9 +433,9 @@ End Class
       IL_0000:  ldc.i4.s   23
       IL_0002:  stsfld     int32 C3::bar
       IL_0007:  ret
-    } // end of method foo::.cctor
+    } // end of method goo::.cctor
 
-  } // end of class foo
+  } // end of class goo
 
 .class public auto ansi beforefieldinit C1
        extends [mscorlib]System.Object
@@ -926,6 +926,58 @@ End Class
             For Each m In members
                 Assert.True(memberNames2.Contains(m), m)
             Next
+        End Sub
+
+        <Fact>
+        Public Sub TestMetadataImportOptions()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+
+            Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions)
+            options = options.WithMetadataImportOptions(MetadataImportOptions.Internal)
+            Assert.Equal(MetadataImportOptions.Internal, options.MetadataImportOptions)
+            options = options.WithMetadataImportOptions(MetadataImportOptions.All)
+            Assert.Equal(MetadataImportOptions.All, options.MetadataImportOptions)
+            options = options.WithMetadataImportOptions(MetadataImportOptions.Public)
+            Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions)
+
+            Dim commonOptions = DirectCast(options, CompilationOptions)
+
+            commonOptions = commonOptions.WithMetadataImportOptions(MetadataImportOptions.Internal)
+            Assert.Equal(MetadataImportOptions.Internal, DirectCast(commonOptions, VisualBasicCompilationOptions).MetadataImportOptions)
+            commonOptions = commonOptions.WithMetadataImportOptions(MetadataImportOptions.All)
+            Assert.Equal(MetadataImportOptions.All, DirectCast(commonOptions, VisualBasicCompilationOptions).MetadataImportOptions)
+            commonOptions = commonOptions.WithMetadataImportOptions(MetadataImportOptions.Public)
+            Assert.Equal(MetadataImportOptions.Public, DirectCast(commonOptions, VisualBasicCompilationOptions).MetadataImportOptions)
+
+            Dim compilation0 = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Public Property P1 As Integer
+    Friend Property P2 As Integer
+    Private Property P3 As Integer
+End Class
+    </file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            Dim compilation = CreateCompilationWithMscorlib("", options:=options, references:={compilation0.EmitToImageReference()})
+            Dim c = compilation.GetTypeByMetadataName("C")
+            Assert.NotEmpty(c.GetMembers("P1"))
+            Assert.Empty(c.GetMembers("P2"))
+            Assert.Empty(c.GetMembers("P3"))
+
+            compilation = compilation.WithOptions(options.WithMetadataImportOptions(MetadataImportOptions.Internal))
+            c = compilation.GetTypeByMetadataName("C")
+            Assert.NotEmpty(c.GetMembers("P1"))
+            Assert.NotEmpty(c.GetMembers("P2"))
+            Assert.Empty(c.GetMembers("P3"))
+
+            compilation = compilation.WithOptions(options.WithMetadataImportOptions(MetadataImportOptions.All))
+            c = compilation.GetTypeByMetadataName("C")
+            Assert.NotEmpty(c.GetMembers("P1"))
+            Assert.NotEmpty(c.GetMembers("P2"))
+            Assert.NotEmpty(c.GetMembers("P3"))
         End Sub
 
     End Class

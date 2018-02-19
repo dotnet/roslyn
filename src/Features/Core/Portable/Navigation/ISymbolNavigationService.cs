@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Navigation
 
         /// <returns>True if the navigation was handled, indicating that the caller should not 
         /// perform the navigation.</returns>
-        bool TrySymbolNavigationNotify(ISymbol symbol, Solution solution, CancellationToken cancellationToken);
+        bool TrySymbolNavigationNotify(ISymbol symbol, Project project, CancellationToken cancellationToken);
 
         /// <returns>True if the navigation would be handled.</returns>
         bool WouldNavigateToSymbol(

@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             }
             finally
             {
-                var disposable = classifier as IDisposable;
-                if (disposable != null)
+                if (classifier is IDisposable disposable)
                 {
                     disposable.Dispose();
                 }

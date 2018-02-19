@@ -754,7 +754,7 @@ End Module
 Imports System
 
 Class TestClass
-    WriteOnly Property foo() As String
+    WriteOnly Property goo() As String
         &lt;Diagnostics.Conditional("N")&gt;
         Set(ByVal Value As String)
             Console.WriteLine("Property Called")
@@ -765,7 +765,7 @@ End Class
 Module M1
     Sub Main()
         Dim t As New TestClass()
-        t.foo = "abds"
+        t.goo = "abds"
     End Sub
 End Module
 
@@ -799,7 +799,7 @@ End Class
 "
             Dim parseOptions As New VisualBasicParseOptions(preprocessorSymbols:={New KeyValuePair(Of String, Object)("Defined", True)})
             Dim comp = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source, parseOptions)}, options:=TestOptions.ReleaseModule)
-            CompileAndVerify(comp, verify:=False).VerifyIL("C.M", "
+            CompileAndVerify(comp, verify:=Verification.Fails).VerifyIL("C.M", "
 {
   // Code size        7 (0x7)
   .maxstack  1

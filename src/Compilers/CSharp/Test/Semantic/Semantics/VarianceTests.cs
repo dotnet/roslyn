@@ -258,17 +258,17 @@ delegate T D<out T>();
 
 class C
 {
-    static void Foo(D<IIn<I>> x) { }
-    static void Foo(D<I> x) { }
+    static void Goo(D<IIn<I>> x) { }
+    static void Goo(D<I> x) { }
     static void M()
     {
-        Foo(null);
+        Goo(null);
     }
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(D<IIn<I>>)' and 'C.Foo(D<I>)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("C.Foo(D<IIn<I>>)", "C.Foo(D<I>)"));
+                // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Goo(D<IIn<I>>)' and 'C.Goo(D<I>)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("C.Goo(D<IIn<I>>)", "C.Goo(D<I>)"));
         }
 
         /// <remarks>http://blogs.msdn.com/b/ericlippert/archive/2008/05/07/covariance-and-contravariance-part-twelve-to-infinity-but-not-beyond.aspx</remarks>
@@ -287,7 +287,7 @@ class C
     static void M()
     {
         IC<double> bar = null;
-        IN<IC<string>> foo = bar;
+        IN<IC<string>> goo = bar;
     }
 }
 ";
@@ -626,6 +626,32 @@ interface I<out T> :
                 // (14,17): error CS1961: Invalid variance: The type parameter 'T' must be contravariantly valid on 'I<T, T>'. 'T' is covariant.
                 // interface I<out T> :
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T").WithArguments("I<T, T>", "T", "covariant", "contravariantly").WithLocation(14, 17));
+        }
+
+        [Fact]
+        public void CovarianceBoundariesForRefReadOnly_Parameters()
+        {
+            CreateStandardCompilation(@"
+interface ITest<in T>
+{
+    void M(in T p);
+}").VerifyDiagnostics(
+                // (4,15): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'ITest<T>.M(in T)'. 'T' is contravariant.
+                //     void M(in T p);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T").WithArguments("ITest<T>.M(in T)", "T", "contravariant", "invariantly").WithLocation(4, 15));
+        }
+
+        [Fact]
+        public void CovarianceBoundariesForRefReadOnly_ReturnType()
+        {
+            CreateStandardCompilation(@"
+interface ITest<in T>
+{
+    ref readonly T M();
+}").VerifyDiagnostics(
+                // (4,5): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'ITest<T>.M()'. 'T' is contravariant.
+                //     ref readonly T M();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "ref readonly T").WithArguments("ITest<T>.M()", "T", "contravariant", "invariantly").WithLocation(4, 5));
         }
     }
 }

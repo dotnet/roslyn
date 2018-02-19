@@ -287,8 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
         Console.WriteLine();
         int i = 5; Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -300,7 +299,7 @@ ignoreTrivia: false);
     void Main()
     {
         int [|x|] = 0;
-        Foo();
+        Goo();
 #line hidden
         Bar(x);
     }
@@ -317,9 +316,9 @@ ignoreTrivia: false);
     void Main()
     {
         int [|x|] = 0;
-        Foo();
+        Goo();
 #line hidden
-        Foo();
+        Goo();
 #line default
         Bar(x);
     }
@@ -336,7 +335,7 @@ class Program
     void Main()
     {
         int [||]x = 0;
-        Foo();
+        Goo();
         Bar(x);
 #line hidden
     }
@@ -347,14 +346,13 @@ class Program
 {
     void Main()
     {
-        Foo();
+        Goo();
         int x = 0;
         Bar(x);
 #line hidden
     }
 #line default
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -366,11 +364,11 @@ ignoreTrivia: false);
     void Main()
     {
         int [||]x = 0;
-        Foo();
+        Goo();
 #line hidden
-        Foo();
+        Goo();
 #line default
-        Foo();
+        Goo();
         Bar(x);
     }
 }",
@@ -378,16 +376,15 @@ ignoreTrivia: false);
 {
     void Main()
     {
-        Foo();
+        Goo();
 #line hidden
-        Foo();
+        Goo();
 #line default
-        Foo();
+        Goo();
         int x = 0;
         Bar(x);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
@@ -415,7 +412,8 @@ class Program
 {
     void Main()
     {
-        new[] { 1 }.AsParallel().ForAll((i) => {
+        new[] { 1 }.AsParallel().ForAll((i) =>
+        {
             {|Warning:var @lock = new object();|}
             lock (@lock)
             {
@@ -505,8 +503,7 @@ static class C
             Console.WriteLine(a);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545835")]
@@ -518,13 +515,13 @@ ignoreTrivia: false);
 
 class X
 {
-    static int Foo(Func<int?, byte> x, object y) { return 1; }
-    static int Foo(Func<X, byte> x, string y) { return 2; }
+    static int Goo(Func<int?, byte> x, object y) { return 1; }
+    static int Goo(Func<X, byte> x, string y) { return 2; }
 
     const int Value = 1000;
     static void Main()
     {
-        var [||]a = Foo(X => (byte)X.Value, null);
+        var [||]a = Goo(X => (byte)X.Value, null);
         unchecked
         {
             Console.WriteLine(a);
@@ -536,20 +533,19 @@ class X
 
 class X
 {
-    static int Foo(Func<int?, byte> x, object y) { return 1; }
-    static int Foo(Func<X, byte> x, string y) { return 2; }
+    static int Goo(Func<int?, byte> x, object y) { return 1; }
+    static int Goo(Func<X, byte> x, string y) { return 2; }
 
     const int Value = 1000;
     static void Main()
     {
         unchecked
         {
-            {|Warning:var a = Foo(X => (byte)X.Value, (object)null);|}
+            {|Warning:var a = Goo(X => (byte)X.Value, (object)null);|}
             Console.WriteLine(a);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(546267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546267")]
@@ -565,16 +561,16 @@ class Program
 {
     static void Main(string[] args)
     {
-        // Comment [||]about foo!
-        // Comment about foo!
-        // Comment about foo!
-        // Comment about foo!
-        // Comment about foo!
-        // Comment about foo!
-        // Comment about foo!
-        int foo;
+        // Comment [||]about goo!
+        // Comment about goo!
+        // Comment about goo!
+        // Comment about goo!
+        // Comment about goo!
+        // Comment about goo!
+        // Comment about goo!
+        int goo;
         Console.WriteLine();
-        Console.WriteLine(foo);
+        Console.WriteLine(goo);
     }
 }");
         }
@@ -656,8 +652,7 @@ class Program
         int i = 5;
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -689,8 +684,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -720,8 +714,7 @@ ignoreTrivia: false);
         // Existing trivia
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -755,8 +748,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -793,8 +785,7 @@ ignoreTrivia: false);
         int i = 0;
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -835,8 +826,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -875,8 +865,7 @@ ignoreTrivia: false);
         int i = 0;
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -919,8 +908,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -949,8 +937,7 @@ ignoreTrivia: false);
         int i = 0;
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -983,8 +970,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -1015,8 +1001,7 @@ ignoreTrivia: false);
         int i = 0;
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -1051,8 +1036,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -1089,8 +1073,7 @@ ignoreTrivia: false);
         int i = 0;
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -1131,8 +1114,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -1171,8 +1153,7 @@ ignoreTrivia: false);
         int i = 0;
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -1215,8 +1196,136 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissingOnCrossFunction1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+  static void Main(string[] args)
+  {
+    Method<string>();
+  }
+
+  public static void Method<T>()
+  { 
+    [|T t|];
+    void Local<T>()
+    {
+      Out(out t);
+      Console.WriteLine(t);
+    }
+    Local<int>();
+  }
+
+  public static void Out<T>(out T t) => t = default;
+}");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissingOnCrossFunction2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+  static void Main(string[] args)
+  {
+    Method<string>();
+  }
+
+  public static void Method<T>()
+  { 
+    void Local<T>()
+    {
+        [|T t|];
+        void InnerLocal<T>()
+        {
+          Out(out t);
+          Console.WriteLine(t);
+        }
+    }
+    Local<int>();
+  }
+
+  public static void Out<T>(out T t) => t = default;
+}");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissingOnCrossFunction3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Method<string>();
+    }
+
+    public static void Method<T>()
+    { 
+        [|T t|];
+        void Local<T>()
+        {
+            { // <-- note this set of added braces
+                Out(out t);
+                Console.WriteLine(t);
+            }
+        }
+        Local<int>();
+    }
+
+    public static void Out<T>(out T t) => t = default;
+}");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissingOnCrossFunction4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Method<string>();
+    }
+
+    public static void Method<T>()
+    {
+        { // <-- note this set of added braces
+            [|T t|];
+            void Local<T>()
+            {
+                { // <-- and my axe
+                    Out(out t);
+                    Console.WriteLine(t);
+                }
+            }
+            Local<int>();
+        }
+    }
+
+    public static void Out<T>(out T t) => t = default;
+}");
         }
     }
 }

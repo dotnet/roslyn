@@ -7,11 +7,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         Public Sub TestApplyAfterSimpleSubDeclarationWithTrailingComment()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-  Sub foo() 'Extra Comment
+  Sub goo() 'Extra Comment
 End Class",
                 beforeCaret:={1, -1},
                 after:="Class c1
-  Sub foo() 'Extra Comment
+  Sub goo() 'Extra Comment
 
   End Sub
 End Class",
@@ -80,11 +80,11 @@ End Class",
         Public Sub TestApplyAfterSimpleFunctionDeclarationWithTrailingComment()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-  Function foo() As Integer 'Extra Comment
+  Function goo() As Integer 'Extra Comment
 End Class",
                 beforeCaret:={1, -1},
                 after:="Class c1
-  Function foo() As Integer 'Extra Comment
+  Function goo() As Integer 'Extra Comment
 
   End Function
 End Class",
@@ -94,8 +94,8 @@ End Class",
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub DoNotApplyForInterfaceFunction()
             VerifyStatementEndConstructNotApplied(
-                text:="Interface IFoo
-Function Foo() as Integer
+                text:="Interface IGoo
+Function Goo() as Integer
 End Interface",
                  caret:={1, -1})
         End Sub

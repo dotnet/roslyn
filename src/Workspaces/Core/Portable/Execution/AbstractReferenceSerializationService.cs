@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Execution
     internal abstract class AbstractReferenceSerializationService : IReferenceSerializationService
     {
         private const int MetadataFailed = int.MaxValue;
+        private const string VisualStudioUnresolvedAnalyzerReference = "Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.VisualStudioAnalyzer+VisualStudioUnresolvedAnalyzerReference";
 
         protected const byte NoEncodingSerialization = 0;
         protected const byte EncodingSerialization = 1;
@@ -75,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
         {
-            var portable = reference as PortableExecutableReference;
-            if (portable != null)
+            if (reference is PortableExecutableReference portable)
             {
                 return CreatePortableExecutableReferenceChecksum(portable, cancellationToken);
             }
@@ -101,13 +102,17 @@ namespace Microsoft.CodeAnalysis.Execution
                         WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
                         break;
 
+                    case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
+                        WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
+                        break;
+
                     case AnalyzerImageReference _:
                         // TODO: think a way to support this or a way to deal with this kind of situation.
                         // https://github.com/dotnet/roslyn/issues/15783
                         throw new NotSupportedException(nameof(AnalyzerImageReference));
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(reference.GetType());
+                        throw ExceptionUtilities.UnexpectedValue(reference);
                 }
 
                 stream.Position = 0;
@@ -117,11 +122,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public void WriteTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            var portable = reference as PortableExecutableReference;
-            if (portable != null)
+            if (reference is PortableExecutableReference portable)
             {
-                var supportTemporaryStorage = portable as ISupportTemporaryStorage;
-                if (supportTemporaryStorage != null)
+                if (portable is ISupportTemporaryStorage supportTemporaryStorage)
                 {
                     if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, cancellationToken))
                     {
@@ -184,6 +187,12 @@ namespace Microsoft.CodeAnalysis.Execution
                         return;
                     }
 
+                case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
+                    {
+                        WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
+                        return;
+                    }
+
                 case AnalyzerImageReference _:
                     {
                         // TODO: think a way to support this or a way to deal with this kind of situation.
@@ -192,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     }
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(reference.GetType());
+                    throw ExceptionUtilities.UnexpectedValue(reference);
             }
         }
 
@@ -282,8 +291,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return;
             }
 
-            var assemblyMetadata = metadata as AssemblyMetadata;
-            if (assemblyMetadata != null)
+            if (metadata is AssemblyMetadata assemblyMetadata)
             {
                 writer.WriteInt32((int)assemblyMetadata.Kind);
 
@@ -390,8 +398,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return;
             }
 
-            var assemblyMetadata = metadata as AssemblyMetadata;
-            if (assemblyMetadata != null)
+            if (metadata is AssemblyMetadata assemblyMetadata)
             {
                 writer.WriteInt32((int)assemblyMetadata.Kind);
 
@@ -543,8 +550,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object lifeTimeObject)
         {
-            var directAccess = stream as ISupportDirectMemoryAccess;
-            if (directAccess != null)
+            if (stream is ISupportDirectMemoryAccess directAccess)
             {
                 metadata = ModuleMetadata.CreateFromMetadata(directAccess.GetPointer(), (int)length);
                 lifeTimeObject = stream;
@@ -552,8 +558,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             PinnedObject pinnedObject;
-            var memory = stream as MemoryStream;
-            if (memory != null &&
+            if (stream is MemoryStream memory &&
                 memory.TryGetBuffer(out var buffer) &&
                 buffer.Offset == 0)
             {
@@ -703,6 +708,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
+        [DebuggerDisplay("{" + nameof(Display) + ",nq}")]
         private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
         {
             private readonly Metadata _metadata;

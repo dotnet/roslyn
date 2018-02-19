@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             }
         }
 
-        private async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
+        private async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<ITodoCommentService>();
             if (service == null)

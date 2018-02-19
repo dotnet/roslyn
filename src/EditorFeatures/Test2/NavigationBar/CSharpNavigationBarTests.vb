@@ -68,11 +68,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
-                        <Document>class C { int foo;$$ }</Document>
+                        <Document>class C { int goo;$$ }</Document>
                     </Project>
                 </Workspace>,
                 Item("C", Glyph.ClassInternal), False,
-                Item("foo", Glyph.FieldPrivate), False)
+                Item("goo", Glyph.FieldPrivate), False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545114")>
@@ -80,11 +80,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
-                        <Document>class C { in$$t foo; }</Document>
+                        <Document>class C { in$$t goo; }</Document>
                     </Project>
                 </Workspace>,
                 Item("C", Glyph.ClassInternal), False,
-                Item("foo", Glyph.FieldPrivate), False)
+                Item("goo", Glyph.FieldPrivate), False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545267")>
@@ -92,11 +92,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
-                        <Document>class C { int foo; } $$</Document>
+                        <Document>class C { int goo; } $$</Document>
                     </Project>
                 </Workspace>,
                 Item("C", Glyph.ClassInternal), True,
-                Item("foo", Glyph.FieldPrivate), True)
+                Item("goo", Glyph.FieldPrivate), True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545012")>
@@ -120,12 +120,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class C { void M(out string foo, ref string bar) { } }
+                            class C { void M(out string goo, ref string bar) { } }
                         </Document>
                     </Project>
                 </Workspace>,
                 Item("C", Glyph.ClassInternal, children:={
-                    Item("M(out string foo, ref string bar)", Glyph.MethodPrivate)}))
+                    Item("M(out string goo, ref string bar)", Glyph.MethodPrivate)}))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545001")>
@@ -162,11 +162,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            enum Foo { A, B, C }
+                            enum Goo { A, B, C }
                         </Document>
                     </Project>
                 </Workspace>,
-                Item("Foo", Glyph.EnumInternal, children:={
+                Item("Goo", Glyph.EnumInternal, children:={
                     Item("A", Glyph.EnumMemberPublic),
                     Item("B", Glyph.EnumMemberPublic),
                     Item("C", Glyph.EnumMemberPublic)}))
@@ -178,11 +178,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            delegate void Foo();
+                            delegate void Goo();
                         </Document>
                     </Project>
                 </Workspace>,
-                Item("Foo", Glyph.DelegateInternal, children:={}))
+                Item("Goo", Glyph.DelegateInternal, children:={}))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545114")>
@@ -191,11 +191,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>partial class C { $$ }</Document>
-                        <Document>partial class C { int foo; }</Document>
+                        <Document>partial class C { int goo; }</Document>
                     </Project>
                 </Workspace>,
                 Item("C", Glyph.ClassInternal), False,
-                Item("foo", Glyph.FieldPrivate, grayed:=True), True)
+                Item("goo", Glyph.FieldPrivate, grayed:=True), True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578100")>

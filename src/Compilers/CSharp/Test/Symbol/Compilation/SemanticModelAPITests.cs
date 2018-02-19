@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void RangeVariableSymbolsAreDifferentArossSemanticModelsFromDifferentCompilations()
+        public void RangeVariableSymbolsAreDifferentAcrossSemanticModelsFromDifferentCompilations()
         {
             var text = @"using System.Linq; public class C { public void M() { var q = from c in string.Empty select c; } }";
             var tree = Parse(text);
@@ -205,7 +205,7 @@ class A : L
             var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var abase = a.BaseType;
+            var abase = a.BaseType();
             Assert.Equal("B.R", abase.ToTestDisplayString());
 
             var b = global.GetTypeMembers("B", 0).Single();
@@ -214,7 +214,7 @@ class A : L
             var v = a.GetMembers("v").Single() as FieldSymbol;
             var s = v.Type;
             Assert.Equal("B.R.Q.S", s.ToTestDisplayString());
-            var sbase = s.BaseType;
+            var sbase = s.BaseType();
             Assert.Equal("B.R.Q", sbase.ToTestDisplayString());
         }
 
@@ -239,7 +239,7 @@ class A : A {}
 @"
 partial class A 
 { 
-    void foo() { int x = y; }
+    void goo() { int x = y; }
 }
 
 class C : B {}
@@ -336,7 +336,7 @@ public class B {
             var cbasetype = info.Symbol as NamedTypeSymbol;
 
             var c = comp.GlobalNamespace.GetTypeMembers("C", 1).Single();
-            Assert.Equal(c.BaseType, cbasetype);
+            Assert.Equal(c.BaseType(), cbasetype);
         }
 
         [Fact]
@@ -365,7 +365,7 @@ class A<T> {}
             var bt = b.TypeParameters.First();
 
             Assert.Equal(a.OriginalDefinition, at2.OriginalDefinition);
-            Assert.Equal(b.TypeParameters.First(), at2.TypeArguments.First());
+            Assert.Equal(b.TypeParameters.First(), at2.TypeArguments().First());
         }
 
         [Fact]
@@ -578,7 +578,7 @@ namespace N {
             var text = @"
 public class A 
 {
-	int foo	{	void foo() {}	} // Error
+	int goo	{	void goo() {}	} // Error
 	static int Main() {	return 1;    }
 }
 ";
@@ -660,8 +660,8 @@ using System;
 
 class Test
 {
-    public delegate void DFoo(byte i = 1);
-    protected internal void MFoo(sbyte j = 2) { }
+    public delegate void DGoo(byte i = 1);
+    protected internal void MGoo(sbyte j = 2) { }
 }
 ";
             var tree = Parse(text);
@@ -688,7 +688,7 @@ using System;
 
 partial class Partial001
 {
-    static partial void Foo(ulong x);
+    static partial void Goo(ulong x);
 }
 ";
 
@@ -697,7 +697,7 @@ using System;
 
 partial class Partial001
 {
-    static partial void Foo(ulong x)  {    }
+    static partial void Goo(ulong x)  {    }
     static int Main()  {    return 1;    }
 }
 ";
@@ -729,7 +729,7 @@ using System;
 
 partial class Partial001
 {
-    static partial void Foo<T>(T x);
+    static partial void Goo<T>(T x);
 }
 ";
 
@@ -738,7 +738,7 @@ using System;
 
 partial class Partial001
 {
-    static partial void Foo<T>(T x)  {    }
+    static partial void Goo<T>(T x)  {    }
     static int Main()  {    return 1;    }
 }
 ";
@@ -877,9 +877,9 @@ enum E { a, b, c }
 struct S
 {
     public static E sField;
-    public interface IFoo {  }
-    public IFoo GetFoo { get; set; }
-    public IFoo GetFoo2() { return null; }
+    public interface IGoo {  }
+    public IGoo GetGoo { get; set; }
+    public IGoo GetGoo2() { return null; }
 }
 
 class AnonTypeTest
@@ -888,11 +888,11 @@ class AnonTypeTest
     {
         add
         {
-            var anonType = new { a1 = new { S.sField, ifoo = new { new S().GetFoo } } };
+            var anonType = new { a1 = new { S.sField, igoo = new { new S().GetGoo } } };
         }
         remove 
         {
-            var anonType = new { a1 = new { a2 = new { a2 = S.sField, a3 = new { a3 = new S().GetFoo2() } } } };
+            var anonType = new { a1 = new { a2 = new { a2 = S.sField, a3 = new { a3 = new S().GetGoo2() } } } };
         }
     }
 }
@@ -908,7 +908,7 @@ class AnonTypeTest
                           select apsym.Name;
 
             var results = string.Join(", ", symList);
-            Assert.Equal("a1, a1, a2, a2, a3, a3, GetFoo, ifoo, sField", results);
+            Assert.Equal("a1, a1, a2, a2, a3, a3, GetGoo, igoo, sField", results);
         }
 
         [Fact(), WorkItem(542861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542861"), WorkItem(529673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529673")]
@@ -2037,7 +2037,7 @@ class C
 {
     C P
     {
-        foo
+        goo
         {
             return null;
         }
@@ -3246,7 +3246,7 @@ class C
         [Fact]
         public void BindSpeculativeAttributeWithExpressionVariable_1()
         {
-            new ObsoleteAttribute("foo");
+            new ObsoleteAttribute("goo");
 
             var source =
 @"using System;
@@ -3267,7 +3267,7 @@ class C { }";
         [Fact]
         public void BindSpeculativeAttributeWithExpressionVariable_2()
         {
-            new ObsoleteAttribute("foo");
+            new ObsoleteAttribute("goo");
 
             var source =
 @"using System;
@@ -3359,7 +3359,7 @@ class Program
             Assert.Equal(SymbolKind.NamedType, newSymbol.Kind);
             Assert.Equal("System.Collections.Generic.List<T>", newSymbol.ToTestDisplayString());
 
-            Assert.False(((NamedTypeSymbol)newSymbol).TypeArguments.Single().IsErrorType());
+            Assert.False(((NamedTypeSymbol)newSymbol).TypeArguments().Single().IsErrorType());
             Assert.True(newSymbol.Equals(oldSymbol));
         }
 
@@ -3804,6 +3804,68 @@ using System.Dynamic;
             int spanStart = source.IndexOf("dynamic a = 5;");
             var dynamicType = model.GetSpeculativeTypeInfo(spanStart, typeSyntax, SpeculativeBindingOption.BindAsTypeOrNamespace);
             Assert.Equal(TypeKind.Dynamic, dynamicType.Type.TypeKind);
+        }
+
+        [Fact]
+        public void IsAccessible()
+        {
+            var source =
+@"using System;
+class A
+{
+    public int X;
+    protected int Y;
+    private protected int Z;
+}
+class B : A
+{
+    void Goo()
+    {
+        // in B.Goo
+    }
+    // in B class level
+    int field;
+}
+class C
+{
+    void Goo()
+    {
+        // in C.Goo
+    }
+}
+namespace N
+{
+    // in N
+}";
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+
+            var tree = compilation.SyntaxTrees[0];
+            var text = tree.GetText().ToString();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            int positionInB = text.IndexOf("in B class level");
+            int positionInBGoo = text.IndexOf("in B.Goo");
+            int positionInCGoo = text.IndexOf("in C.Goo");
+            int positionInN = text.IndexOf("in N");
+
+            var globalNs = compilation.GlobalNamespace;
+            var classA = (NamedTypeSymbol)globalNs.GetMembers("A").Single();
+            var fieldX = (FieldSymbol)classA.GetMembers("X").Single();
+            var fieldY = (FieldSymbol)classA.GetMembers("Y").Single();
+            var fieldZ = (FieldSymbol)classA.GetMembers("Z").Single();
+
+            Assert.True(semanticModel.IsAccessible(positionInN, fieldX));
+            Assert.False(semanticModel.IsAccessible(positionInN, fieldY));
+            Assert.False(semanticModel.IsAccessible(positionInN, fieldZ));
+            Assert.True(semanticModel.IsAccessible(positionInB, fieldX));
+            Assert.True(semanticModel.IsAccessible(positionInB, fieldY));
+            Assert.True(semanticModel.IsAccessible(positionInB, fieldZ));
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldX));
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldY));
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldZ));
+            Assert.True(semanticModel.IsAccessible(positionInCGoo, fieldX));
+            Assert.False(semanticModel.IsAccessible(positionInCGoo, fieldY));
+            Assert.False(semanticModel.IsAccessible(positionInCGoo, fieldZ));
         }
 
         #region "regression helper"

@@ -145,17 +145,17 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// Information to track deltas of complexified spans
         /// 
         /// Consider the following example where renaming a->b causes a conflict 
-        /// and Foo is an extension method:
-        ///     "a.Foo(a)" is rewritten to "NS1.NS2.Foo(NS3.a, NS3.a)"
+        /// and Goo is an extension method:
+        ///     "a.Goo(a)" is rewritten to "NS1.NS2.Goo(NS3.a, NS3.a)"
         /// 
-        /// The OriginalSpan is the span of "a.Foo(a)"
+        /// The OriginalSpan is the span of "a.Goo(a)"
         /// 
-        /// The NewSpan is the span of "NS1.NS2.Foo(NS3.a, NS3.a)"
+        /// The NewSpan is the span of "NS1.NS2.Goo(NS3.a, NS3.a)"
         /// 
         /// The ModifiedSubSpans are the pairs of complexified symbols sorted 
         /// according to their order in the original source code span:
         ///     "a", "NS3.a"
-        ///     "Foo", "NS1.NS2.Foo"
+        ///     "Goo", "NS1.NS2.Goo"
         ///     "a", "NS3.a"
         /// 
         /// </summary>
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 foreach (var pair in modifiedSpans)
                 {
-                    result[pair.Item1] = pair.Item2;
+                    result[pair.oldSpan] = pair.newSpan;
                 }
             }
 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     foreach (var pair in complexifiedSpan.ModifiedSubSpans)
                     {
-                        result[pair.Item1] = pair.Item2;
+                        result[pair.oldSpan] = pair.newSpan;
                     }
                 }
             }

@@ -469,8 +469,8 @@ public abstract class C
         [Fact]
         public void ExprStmtWithMethodCall()
         {
-            var s0 = CreateSubmission("int Foo() { return 2;}");
-            var s1 = CreateSubmission("(4 + 5) * Foo()", previous: s0);
+            var s0 = CreateSubmission("int Goo() { return 2;}");
+            var s1 = CreateSubmission("(4 + 5) * Goo()", previous: s0);
 
             s0.VerifyEmitDiagnostics();
             s1.VerifyEmitDiagnostics();
@@ -552,7 +552,7 @@ public abstract class C
                 "s0.dll",
                 SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script),
                 references);
-            var verifier = CompileAndVerify(s0, verify: false);
+            var verifier = CompileAndVerify(s0, verify: Verification.Fails);
             var methodData = verifier.TestData.GetMethodData("<Initialize>");
             Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
             methodData.VerifyIL(

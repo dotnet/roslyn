@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static bool DecomposeBinaryOrAssignmentExpression(ExpressionSyntax expression, out SyntaxToken operatorToken, out ExpressionSyntax left, out ExpressionSyntax right)
             {
-                var binaryExpression = expression as BinaryExpressionSyntax;
-                if (binaryExpression != null)
+                if (expression is BinaryExpressionSyntax binaryExpression)
                 {
                     operatorToken = binaryExpression.OperatorToken;
                     left = binaryExpression.Left;
@@ -54,8 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                var assignmentExpression = expression as AssignmentExpressionSyntax;
-                if (assignmentExpression != null)
+                if (expression is AssignmentExpressionSyntax assignmentExpression)
                 {
                     operatorToken = assignmentExpression.OperatorToken;
                     left = assignmentExpression.Left;
@@ -102,12 +100,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var typeInferenceInfo = new TypeInferenceInfo(typeInfo.Type);
 
                         // If it bound to a method, try to get the Action/Func form of that method.
-                        if (typeInferenceInfo.InferredType == null &&
-                            symbolInfo.GetAllSymbols().Count() == 1 &&
-                            symbolInfo.GetAllSymbols().First().Kind == SymbolKind.Method)
+                        if (typeInferenceInfo.InferredType == null)
                         {
-                            var method = symbolInfo.GetAllSymbols().First();
-                            typeInferenceInfo = new TypeInferenceInfo(method.ConvertToType(this.Compilation));
+                            var allSymbols = symbolInfo.GetAllSymbols();
+                            if (allSymbols.Length == 1 &&
+                                allSymbols[0].Kind == SymbolKind.Method)
+                            {
+                                var method = allSymbols[0];
+                                typeInferenceInfo = new TypeInferenceInfo(method.ConvertToType(this.Compilation));
+                            }
                         }
 
                         if (IsUsableTypeFunc(typeInferenceInfo))
@@ -272,8 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (argument.Parent != null)
                 {
-                    var initializer = argument.Parent.Parent as ConstructorInitializerSyntax;
-                    if (initializer != null)
+                    if (argument.Parent.Parent is ConstructorInitializerSyntax initializer)
                     {
                         var index = initializer.ArgumentList.Arguments.IndexOf(argument);
                         return InferTypeInConstructorInitializer(initializer, index, argument);
@@ -289,9 +289,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (argument.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression))
                     {
-                        // new Outer(Foo());
+                        // new Outer(Goo());
                         //
-                        // new Outer(a: Foo());
+                        // new Outer(a: Goo());
                         //
                         // etc.
                         var creation = argument.Parent.Parent as ObjectCreationExpressionSyntax;
@@ -302,9 +302,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (argument.Parent.IsParentKind(SyntaxKind.ElementAccessExpression))
                     {
-                        // Outer[Foo()];
+                        // Outer[Goo()];
                         //
-                        // Outer[a: Foo()];
+                        // Outer[a: Goo()];
                         //
                         // etc.
                         var elementAccess = argument.Parent.Parent as ElementAccessExpressionSyntax;
@@ -363,8 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (argument.Parent != null)
                 {
-                    var attribute = argument.Parent.Parent as AttributeSyntax;
-                    if (attribute != null)
+                    if (argument.Parent.Parent is AttributeSyntax attribute)
                     {
                         var index = attribute.ArgumentList.Arguments.IndexOf(argument);
                         return InferTypeInAttribute(attribute, index, argument);
@@ -478,25 +477,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                var invocation = argumentList.Parent as InvocationExpressionSyntax;
-                if (invocation != null)
+                switch (argumentList.Parent)
                 {
-                    var index = this.GetArgumentListIndex(argumentList, previousToken);
-                    return InferTypeInInvocationExpression(invocation, index);
-                }
+                    case InvocationExpressionSyntax invocation:
+                        {
+                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            return InferTypeInInvocationExpression(invocation, index);
+                        }
 
-                var objectCreation = argumentList.Parent as ObjectCreationExpressionSyntax;
-                if (objectCreation != null)
-                {
-                    var index = this.GetArgumentListIndex(argumentList, previousToken);
-                    return InferTypeInObjectCreationExpression(objectCreation, index);
-                }
+                    case ObjectCreationExpressionSyntax objectCreation:
+                        {
+                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            return InferTypeInObjectCreationExpression(objectCreation, index);
+                        }
 
-                var constructorInitializer = argumentList.Parent as ConstructorInitializerSyntax;
-                if (constructorInitializer != null)
-                {
-                    var index = this.GetArgumentListIndex(argumentList, previousToken);
-                    return InferTypeInConstructorInitializer(constructorInitializer, index);
+                    case ConstructorInitializerSyntax constructorInitializer:
+                        {
+                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            return InferTypeInConstructorInitializer(constructorInitializer, index);
+                        }
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -510,8 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                var attribute = attributeArgumentList.Parent as AttributeSyntax;
-                if (attribute != null)
+                if (attributeArgumentList.Parent is AttributeSyntax attribute)
                 {
                     var index = this.GetArgumentListIndex(attributeArgumentList, previousToken);
                     return InferTypeInAttribute(attribute, index);
@@ -531,8 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ElementAccessExpressionSyntax elementAccess, int index, ArgumentSyntax argumentOpt = null)
             {
                 var info = SemanticModel.GetTypeInfo(elementAccess.Expression, CancellationToken);
-                var type = info.Type as INamedTypeSymbol;
-                if (type != null)
+                if (info.Type is INamedTypeSymbol type)
                 {
                     var indexers = type.GetMembers().OfType<IPropertySymbol>()
                                                    .Where(p => p.IsIndexer && p.Parameters.Length > index);
@@ -562,8 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (argumentOpt != null)
                 {
-                    var invocation = argumentOpt?.Parent?.Parent as InvocationExpressionSyntax;
-                    if (invocation != null)
+                    if (argumentOpt?.Parent?.Parent is InvocationExpressionSyntax invocation)
                     {
                         // We're trying to figure out the signature of a method we're an argument to. 
                         // That method may be generic, and we might end up using one of its generic
@@ -855,8 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                var elementAccess = bracketedArgumentList.Parent as ElementAccessExpressionSyntax;
-                if (elementAccess != null)
+                if (bracketedArgumentList.Parent is ElementAccessExpressionSyntax elementAccess)
                 {
                     var index = GetArgumentListIndex(bracketedArgumentList, previousToken);
                     return InferTypeInElementAccessExpression(
@@ -925,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (onRightOfToken)
                         {
-                            // x << Foo(), x >> Foo(), x <<= Foo(), x >>= Foo()
+                            // x << Goo(), x >> Goo(), x <<= Goo(), x >>= Goo()
                             return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Int32)));
                         }
 
@@ -1088,8 +1083,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var leftTypes = GetTypes(coalesceExpression.Left);
                     return leftTypes
                         .Select(x => x.InferredType.IsNullable()
-                            ? new TypeInferenceInfo(((INamedTypeSymbol)x.InferredType).TypeArguments[0]) // nullableExpr ?? Foo()
-                            : x); // normalExpr ?? Foo() 
+                            ? new TypeInferenceInfo(((INamedTypeSymbol)x.InferredType).TypeArguments[0]) // nullableExpr ?? Goo()
+                            : x); // normalExpr ?? Goo() 
                 }
 
                 var rightTypes = GetTypes(coalesceExpression.Right);
@@ -1100,8 +1095,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return rightTypes
                     .Select(x => x.InferredType.IsValueType
-                                     ? new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(x.InferredType)) // Foo() ?? 0
-                                     : x); // Foo() ?? ""
+                                     ? new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(x.InferredType)) // Goo() ?? 0
+                                     : x); // Goo() ?? ""
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInConditionalAccessExpression(ConditionalAccessExpressionSyntax expression)
@@ -1113,13 +1108,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (expressionOpt != null && conditional.Condition == expressionOpt)
                 {
-                    // Foo() ? a : b
+                    // Goo() ? a : b
                     return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
                 }
 
-                // a ? Foo() : b
+                // a ? Goo() : b
                 //
-                // a ? b : Foo()
+                // a ? b : Goo()
                 var inTrueClause =
                     (conditional.WhenTrue == expressionOpt) ||
                     (previousToken == conditional.QuestionToken);
@@ -1175,8 +1170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (equalsValue.IsParentKind(SyntaxKind.Parameter))
                 {
-                    var parameter = SemanticModel.GetDeclaredSymbol(equalsValue.Parent, CancellationToken) as IParameterSymbol;
-                    if (parameter != null)
+                    if (SemanticModel.GetDeclaredSymbol(equalsValue.Parent, CancellationToken) is IParameterSymbol parameter)
                     {
                         return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(parameter.Type));
                     }
@@ -1228,7 +1222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                // foreach (int v = Foo())
+                // foreach (int v = Goo())
                 var variableTypes = GetTypes(forEachStatementSyntax.Type);
                 if (!variableTypes.Any())
                 {
@@ -1361,7 +1355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (initializerExpression.IsParentKind(SyntaxKind.EqualsValueClause))
                 {
-                    // = { Foo() }
+                    // = { Goo() }
                     var equalsValueClause = (EqualsValueClauseSyntax)initializerExpression.Parent;
                     IEnumerable<ITypeSymbol> types = InferTypeInEqualsValueClause(equalsValueClause).Select(t => t.InferredType);
 
@@ -1372,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (initializerExpression.IsParentKind(SyntaxKind.ArrayCreationExpression))
                 {
-                    // new int[] { Foo() } 
+                    // new int[] { Goo() } 
                     var arrayCreation = (ArrayCreationExpressionSyntax)initializerExpression.Parent;
                     IEnumerable<ITypeSymbol> types = GetTypes(arrayCreation).Select(t => t.InferredType);
 
@@ -1383,7 +1377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (initializerExpression.IsParentKind(SyntaxKind.ObjectCreationExpression))
                 {
-                    // new List<T> { Foo() } 
+                    // new List<T> { Goo() } 
 
                     var objectCreation = (ObjectCreationExpressionSyntax)initializerExpression.Parent;
 
@@ -1396,7 +1390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (initializerExpression.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
                 {
-                    // new Foo { a = { Foo() } }
+                    // new Goo { a = { Goo() } }
 
                     if (expressionOpt != null)
                     {
@@ -1413,7 +1407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (types.Any(t => t is INamedTypeSymbol))
                     {
-                        // new Foo { a = { Foo() } }
+                        // new Goo { a = { Goo() } }
                         var parameterIndex = previousToken.HasValue
                                 ? initializerExpression.Expressions.GetSeparators().ToList().IndexOf(previousToken.Value) + 1
                                 : initializerExpression.Expressions.IndexOf(expressionOpt);
@@ -1483,7 +1477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInLambdaExpression(ExpressionSyntax lambdaExpression)
             {
-                // Func<int,string> = i => Foo();
+                // Func<int,string> = i => Goo();
                 var types = InferTypes(lambdaExpression);
                 var type = types.FirstOrDefault().InferredType.GetDelegateType(this.Compilation);
 
@@ -1528,8 +1522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                var argumentSyntax = nameColon.Parent as ArgumentSyntax;
-                if (argumentSyntax != null)
+                if (nameColon.Parent is ArgumentSyntax argumentSyntax)
                 {
                     return InferTypeInArgument(argumentSyntax);
                 }
@@ -1543,9 +1536,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxToken? previousToken = null)
             {
                 // We need to be on the right of the dot to infer an appropriate type for
-                // the member access expression.  i.e. if we have "Foo.Bar" then we can 
+                // the member access expression.  i.e. if we have "Goo.Bar" then we can 
                 // def infer what the type of 'Bar' should be (it's whatever type we infer
-                // for 'Foo.Bar' itself.  However, if we're on 'Foo' then we can't figure
+                // for 'Goo.Bar' itself.  However, if we're on 'Goo' then we can't figure
                 // out anything about its type.
                 if (previousToken != null)
                 {
@@ -1554,8 +1547,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                     }
 
-                    // We're right after the dot in "Foo.Bar".  The type for "Bar" should be
-                    // whatever type we'd infer for "Foo.Bar" itself.
+                    // We're right after the dot in "Goo.Bar".  The type for "Bar" should be
+                    // whatever type we'd infer for "Goo.Bar" itself.
                     return InferTypes(memberAccessExpression);
                 }
                 else
@@ -1566,8 +1559,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return InferTypeForExpressionOfMemberAccessExpression(memberAccessExpression);
                     }
 
-                    // We're right after the dot in "Foo.Bar".  The type for "Bar" should be
-                    // whatever type we'd infer for "Foo.Bar" itself.
+                    // We're right after the dot in "Goo.Bar".  The type for "Bar" should be
+                    // whatever type we'd infer for "Goo.Bar" itself.
                     return InferTypes(memberAccessExpression);
                 }
             }
@@ -1578,9 +1571,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If we're on the left side of a dot, it's possible in a few cases
                 // to figure out what type we should be.  Specifically, if we have
                 //
-                //      await foo.ConfigureAwait()
+                //      await goo.ConfigureAwait()
                 //
-                // then we can figure out what 'foo' should be based on teh await
+                // then we can figure out what 'goo' should be based on teh await
                 // context.
                 var name = memberAccessExpression.Name.Identifier.Value;
                 if (name.Equals(nameof(Task<int>.ConfigureAwait)) &&
@@ -1591,7 +1584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (name.Equals(nameof(Task<int>.ContinueWith)))
                 {
-                    // foo.ContinueWith(...)
+                    // goo.ContinueWith(...)
                     // We want to infer Task<T>.  For now, we'll just do Task<object>,
                     // in the future it would be nice to figure out the actual result
                     // type based on the argument to ContinueWith.
@@ -1607,7 +1600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var ienumerableType = this.Compilation.IEnumerableOfTType();
 
-                    // foo.Select
+                    // goo.Select
                     // We want to infer IEnumerable<T>.  We can try to figure out what 
                     // T if we get a delegate as the first argument to Select/Where.
                     if (ienumerableType != null && memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression))
@@ -1719,8 +1712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetTypes(nameEquals.Name);
                 }
 
-                var attributeArgumentSyntax = nameEquals.Parent as AttributeArgumentSyntax;
-                if (attributeArgumentSyntax != null)
+                if (nameEquals.Parent is AttributeArgumentSyntax attributeArgumentSyntax)
                 {
                     var argumentExpression = attributeArgumentSyntax.Expression;
                     return this.GetTypes(argumentExpression);
@@ -1758,11 +1750,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.PreIncrementExpression:
                     case SyntaxKind.UnaryPlusExpression:
                     case SyntaxKind.UnaryMinusExpression:
-                        // ++, --, +Foo(), -Foo();
+                        // ++, --, +Goo(), -Goo();
                         return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Int32)));
 
                     case SyntaxKind.BitwiseNotExpression:
-                        // ~Foo()
+                        // ~Goo()
                         var types = InferTypes(prefixUnaryExpression);
                         if (!types.Any())
                         {
@@ -1774,7 +1766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                     case SyntaxKind.LogicalNotExpression:
-                        // !Foo()
+                        // !Goo()
                         return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
                 }
 
@@ -1881,7 +1873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var ancestorExpressions = returnStatement.GetAncestorsOrThis<ExpressionSyntax>();
 
                 // If we're in a lambda, then use the return type of the lambda to figure out what to
-                // infer.  i.e.   Func<int,string> f = i => { return Foo(); }
+                // infer.  i.e.   Func<int,string> f = i => { return Goo(); }
                 var lambda = ancestorExpressions.FirstOrDefault(e => e.IsKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression));
                 if (lambda != null)
                 {
@@ -1973,11 +1965,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Use the first case label to determine the return type.
-                var firstCase =
-                    switchStatement.Sections.SelectMany(ss => ss.Labels)
-                                                  .FirstOrDefault(label => label.Kind() == SyntaxKind.CaseSwitchLabel)
-                                                  as CaseSwitchLabelSyntax;
-                if (firstCase != null)
+                if (switchStatement.Sections.SelectMany(ss => ss.Labels)
+                                                  .FirstOrDefault(label => label.Kind() == SyntaxKind.CaseSwitchLabel) is CaseSwitchLabelSyntax firstCase)
                 {
                     var result = GetTypes(firstCase.Value);
                     if (result.Any())
@@ -2034,18 +2023,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (variableType.IsVar)
                 {
-                    var variableDeclaration = variableDeclarator.Parent as VariableDeclarationSyntax;
-                    if (variableDeclaration != null)
+                    if (variableDeclarator.Parent is VariableDeclarationSyntax variableDeclaration)
                     {
                         if (variableDeclaration.IsParentKind(SyntaxKind.UsingStatement))
                         {
-                            // using (var v = Foo())
+                            // using (var v = Goo())
                             return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_IDisposable)));
                         }
 
                         if (variableDeclaration.IsParentKind(SyntaxKind.ForStatement))
                         {
-                            // for (var v = Foo(); ..
+                            // for (var v = Goo(); ..
                             return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Int32)));
                         }
 

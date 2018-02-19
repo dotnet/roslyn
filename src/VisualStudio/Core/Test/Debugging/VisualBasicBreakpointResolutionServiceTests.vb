@@ -36,20 +36,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
         <WorkItem(876520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876520")>
         <Fact>
         Public Async Function TestBreakpointSpansMultipleMethods() As Task
-            ' Normal case: debugger passing BP spans "sub Foo() end sub"
+            ' Normal case: debugger passing BP spans "sub Goo() end sub"
             Await TestSpanWithLengthAsync(<text>
 class C
-  [|$$sub Foo()|]
+  [|$$sub Goo()|]
   end sub
 
   sub Bar()
   end sub
 end class</text>, 20)
 
-            ' Rare case: debugger passing BP spans "sub Foo() end sub sub Bar() end sub"
+            ' Rare case: debugger passing BP spans "sub Goo() end sub sub Bar() end sub"
             Await TestSpanWithLengthAsync(<text>
 class C
-  $$sub Foo()
+  $$sub Goo()
   end sub
 
   [|sub Bar()|]

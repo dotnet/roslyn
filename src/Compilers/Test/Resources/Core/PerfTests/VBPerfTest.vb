@@ -85,7 +85,7 @@ Namespace ns1
                     Dim s As String = "c1.test()"
                     If True Then
                         Console.WriteLine(s)
-                        Me.foo(o) : foo(i) : Me.foo(b) : Me.foo(b1) ' Overload Resolution, Implicit Conversions
+                        Me.goo(o) : goo(i) : Me.goo(b) : Me.goo(b1) ' Overload Resolution, Implicit Conversions
                     End If
                 End If
             End If
@@ -192,8 +192,8 @@ Namespace ns1
             Return New Integer()
         End Function
 
-        Friend Function foo(x As Integer) As Integer
-            Console.WriteLine("    c1.foo(int)")
+        Friend Function goo(x As Integer) As Integer
+            Console.WriteLine("    c1.goo(int)")
 
             ' Read, Write Fields
             Me.ui = 0UI + Me.ui
@@ -226,8 +226,8 @@ Namespace ns1
             Return x
         End Function
 
-        Public Function foo(x As Object) As Boolean
-            Console.WriteLine("    c1.foo(object)")
+        Public Function goo(x As Object) As Boolean
+            Console.WriteLine("    c1.goo(object)")
 
             ' Read, Write Fields
             ui = 0UI
@@ -239,7 +239,7 @@ Namespace ns1
             Dim b As Boolean = True : Dim s As String = String.Empty
             s = Nothing : b = Me.i <> 1
             ui = ui1 : i = i1
-            bar4(b) : Me.foo(i1) : bar4(b = (True <> b))
+            bar4(b) : Me.goo(i1) : bar4(b = (True <> b))
 
             ' Read, Write Params
             x = Nothing : x = New c1(Me.i, Me.ui, a)
@@ -266,7 +266,7 @@ Namespace ns1
             Me.ui = 0UI - 0UI
             i = Me.i * 1
             Me.a = New c1()
-            Me.foo(i.GetHashCode()) : Me.a = Me
+            Me.goo(i.GetHashCode()) : Me.a = Me
 
             ' Read, Write Locals
             Dim c As c1 = New c1(1, 0UI, (Nothing))
@@ -279,7 +279,7 @@ Namespace ns1
             c.a = c
             c.a = Nothing : Me.a = c.a : c = Me.a
             c = New c1(i.GetHashCode())
-            Me.foo(c.i) : bar3(c IsNot Nothing)
+            Me.goo(c.i) : bar3(c IsNot Nothing)
 
             If Me.i = 10321 Then
                 Return
@@ -293,7 +293,7 @@ Namespace ns1
             Dim a1 As String() = New String() {"", Nothing, Nothing}
             a1(1) = Nothing : a1(2) = ""
             Dim s As String = Nothing
-            s = a1(1) : foo(a1(2))
+            s = a1(1) : goo(a1(2))
         End Sub
 
         Protected Function bar2(x As Object) As String
@@ -303,7 +303,7 @@ Namespace ns1
             Me.ui = ui - Me.ui
             i = i / 1
             a = Nothing
-            foo(i)
+            goo(i)
 
             ' Read, Write Locals
             Dim c As c1
@@ -348,7 +348,7 @@ Namespace ns1
 
             ' Read, Write Params
             x = (Me.i = i + 1)
-            foo(x.GetHashCode)
+            goo(x.GetHashCode)
 
             ' Read, Write Array Element
             Dim a1 As Boolean() = New Boolean() {True, False, x}
@@ -356,7 +356,7 @@ Namespace ns1
             b = (a1(1)) : b = a1(2)
             Dim o As Object = b <> a1(2)
             o = (a1(1).ToString()) = (a1(2).ToString())
-            foo(a1(1).GetHashCode())
+            goo(a1(1).GetHashCode())
 
             If b Then
                 Return Me.i
@@ -373,7 +373,7 @@ Namespace ns1
             Me.ui = Me.ui - (Me.ui + Me.ui) * Me.ui
             Me.i = (i + 1) - (1 * (i / 1))
             Me.a = (Nothing)
-            foo(Me.i.GetHashCode())
+            goo(Me.i.GetHashCode())
 
             ' Read, Write Locals
             Dim o As Object = Nothing
@@ -386,17 +386,17 @@ Namespace ns1
             c.i = 1
             c.i = Me.i * (Me.i / c.i + c.i)
             c.a = New c1 : Me.a = c.a : c = Me.a : c.a = c : c.a = c
-            foo(c.GetHashCode()) : bar3(c.a.GetHashCode() <> i)
+            goo(c.GetHashCode()) : bar3(c.a.GetHashCode() <> i)
 
             ' Read, Write Params
             x = (o.ToString())
-            x = x.ToString() : foo(x.GetHashCode()) : foo(x.ToString().GetHashCode())
+            x = x.ToString() : goo(x.GetHashCode()) : goo(x.ToString().GetHashCode())
 
             ' Read, Write Array Element
             Dim a1 As Object() = New Object() {(Nothing), (Me.a), c}
             a1(1) = ((Me.a)) : a1(2) = (c) : a1(1) = (i)
             Array.Reverse(a1)
-            o = a1(1) : foo(a1.GetHashCode()) : bar3(a1(2) Is Nothing)
+            o = a1(1) : goo(a1.GetHashCode()) : bar3(a1(2) Is Nothing)
 
             If b Then
                 Return Me
@@ -423,7 +423,7 @@ Namespace ns1
                     Dim s As String = "c2<T>.test()"
                     If b = 0 Then
                         Console.WriteLine(s)
-                        Me.foo(x:=b, y:=sb) ' Named Arguments
+                        Me.goo(x:=b, y:=sb) ' Named Arguments
                     End If
                 End If
                 If sb <> 1 Then
@@ -436,7 +436,7 @@ Namespace ns1
                     Dim s2 As String = "c2<T>.test()"
                     If sb2 = 0 Then
                         Console.WriteLine(s2)
-                        foo(x:=b, y:=sb2) ' Named Arguments
+                        goo(x:=b, y:=sb2) ' Named Arguments
                     End If
                 End If
                 If b = sb2 Then
@@ -514,13 +514,13 @@ Namespace ns1
                 Const const2 As Integer = 1
                 Const const3 As Object = Nothing
                 If True Then
-                    Me.bar4(const1) : c.foo(const2 <> const2) : Me.a = const3
+                    Me.bar4(const1) : c.goo(const2 <> const2) : Me.a = const3
                 End If
             End If
         End Sub
 
-        Private Function foo1(x As T) As T
-            Console.WriteLine("    c2<T>.foo1(T)")
+        Private Function goo1(x As T) As T
+            Console.WriteLine("    c2<T>.goo1(T)")
 
             Dim aa As Integer = 1
 
@@ -536,14 +536,14 @@ Namespace ns1
             Loop
 
             Do While const2 = const1 - aa + aa
-                Me.bar4(const1) : c.foo(const2 <> const2)
+                Me.bar4(const1) : c.goo(const2 <> const2)
                 Return x
             Loop
             Return x
         End Function
 
-        Private Overloads Function foo(x As Boolean) As Boolean
-            Console.WriteLine("    c2<T>.foo(bool)")
+        Private Overloads Function goo(x As Boolean) As Boolean
+            Console.WriteLine("    c2<T>.goo(bool)")
 
             Dim aa As Integer = 1
 
@@ -563,13 +563,13 @@ Namespace ns1
             Return x
         End Function
 
-        Protected Overloads Function foo(x As Byte, y As Object) As c1
-            Console.WriteLine("    c2<T>.foo(byte, object)")
+        Protected Overloads Function goo(x As Byte, y As Object) As c1
+            Console.WriteLine("    c2<T>.goo(byte, object)")
 
             ' Read, Write Params
             y = x : x = 1
             Dim c As c1 = New c1()
-            c.bar4(y) : c.foo(x)
+            c.bar4(y) : c.goo(x)
 
             ' Read Consts
             Const const1 As String = ""
@@ -581,7 +581,7 @@ Namespace ns1
                     Const const3 As Object = Nothing
                     Dim bb As Byte = 1
                     If bb = x Then
-                        Me.bar4(const1) : Me.foo(const2 <> const2) : Me.a = const3
+                        Me.bar4(const1) : Me.goo(const2 <> const2) : Me.a = const3
                         Exit Do
                     Else
                         Return const3
@@ -598,7 +598,7 @@ Namespace ns1
             ' Read, Write Params
             y = x : x = 1
             Dim c As c1 = New c1()
-            c.bar4(y) : c.foo(x)
+            c.bar4(y) : c.goo(x)
 
             ' Read Consts
             Const const1 As Long = 1
@@ -608,7 +608,7 @@ Namespace ns1
             Loop
 
             Do While const2 = const2
-                Me.bar4(const1) : Me.foo(const2 <> const2)
+                Me.bar4(const1) : Me.goo(const2 <> const2)
                 Exit Do
             Loop
         End Sub
@@ -619,7 +619,7 @@ Namespace ns1
             ' Read, Write Params
             y = x : x = 1
             Dim c As c1 = New c1()
-            c.bar4(y) : Me.foo(x)
+            c.bar4(y) : Me.goo(x)
 
             ' Read Consts
             Const const1 As Long = 1
@@ -627,7 +627,7 @@ Namespace ns1
                 Const const2 As SByte = 1
                 Const const3 As Object = Nothing
                 If c IsNot const3 Then
-                    c.bar4(const1) : Me.foo(const2 <> const2) : Me.a = const3
+                    c.bar4(const1) : Me.goo(const2 <> const2) : Me.a = const3
                 End If
             End If
             Return const1
@@ -640,7 +640,7 @@ Namespace ns1
             y = x : x = 1
             Dim d As Double = 1.1
             Dim c As c1 = New c1()
-            Me.bar4(y) : c.foo(x)
+            Me.bar4(y) : c.goo(x)
 
             ' Read Consts
             Const const1 As String = "hi"
@@ -649,7 +649,7 @@ Namespace ns1
                 Const const2 As Byte = 1
                 Const const3 As Object = Nothing
                 If const3 IsNot c Then
-                    Me.bar4(const1) : c.foo(const2 <> const2) : c.a = const3
+                    Me.bar4(const1) : c.goo(const2 <> const2) : c.a = const3
                     Return d
                 End If
                 Return 1.1F + 1.1
@@ -663,7 +663,7 @@ Namespace ns1
             Dim s As String = "c3<T>.test()"
             If True Then
                 Console.WriteLine(s)
-                foo() : foo(1) : foo("1") : foo(1.1) ' Overload Resolution, Implicit Conversions
+                goo() : goo(1) : goo("1") : goo(1.1) ' Overload Resolution, Implicit Conversions
             End If
             ' Nested Scopes
             If Not Not True Then
@@ -732,33 +732,33 @@ Namespace ns1
         End Sub
 
         ' Static Methods
-        Protected Shared Function foo(x As T, y As U) As Integer
-            Console.WriteLine("    c3<T, U>.foo(T, U)")
+        Protected Shared Function goo(x As T, y As U) As Integer
+            Console.WriteLine("    c3<T, U>.goo(T, U)")
             Dim a As Integer() = New Integer(2) {1, 2, 3} : a(1) = a(2)
             Return CType((CType(x.GetHashCode(), Long) + CLng(CInt(CLng(y.GetHashCode())))), Integer)
         End Function
 
-        Friend Shared Function foo(x As Object) As c1
-            Console.WriteLine("    c3<T, U>.foo(object)")
+        Friend Shared Function goo(x As Object) As c1
+            Console.WriteLine("    c3<T, U>.goo(object)")
             Dim a As c1() = New c1(2) {Nothing, New c1(), New c1(1)} : a(1) = a(2)
             x = "hi"
             Return New c1(1.1F, CUInt(1), New c1(x.GetHashCode()))
         End Function
 
-        Private Shared Function foo(x As String) As Single
-            Console.WriteLine("    c3<T, U>.foo(string)")
+        Private Shared Function goo(x As String) As Single
+            Console.WriteLine("    c3<T, U>.goo(string)")
             Dim a As String() = New String() {x, x, "", Nothing} : a(1) = a(2) : a(2) = a(1)
-            Return foo(x.GetHashCode())
+            Return goo(x.GetHashCode())
         End Function
 
-        Public Shared Function foo(x As Integer) As Integer
-            Console.WriteLine("    c3<T, U>.foo(int)")
+        Public Shared Function goo(x As Integer) As Integer
+            Console.WriteLine("    c3<T, U>.goo(int)")
             Dim a As Integer() = New Integer() {x, x, 1, 0} : a(1) = a(2) : a(2) = a(1)
             Return CInt(x.GetHashCode()) + x
         End Function
 
-        Public Shared Function foo() As String
-            Console.WriteLine("    c3<T, U>.foo()")
+        Public Shared Function goo() As String
+            Console.WriteLine("    c3<T, U>.goo()")
             Dim a As String() = New String() {"", Nothing} : a(0) = a(1) : a(1) = a(0)
             Return DirectCast(Nothing, String)
         End Function
@@ -780,7 +780,7 @@ Namespace ns1
             Console.WriteLine("    c3<T, U>.bar(string)")
             Dim a As String() = New String() {x, x, "", Nothing} : a(1) = a(2) : a(2) = a(1)
             x = a(2)
-            Return CSng(foo(x.GetHashCode()))
+            Return CSng(goo(x.GetHashCode()))
         End Function
 
         Public Function bar(x As Integer) As Integer
@@ -813,15 +813,15 @@ Namespace ns1
                 Dim i As Integer = 2
                 Console.WriteLine(str)
                 If Not False Then
-                    Dim a As c1 = New c1(i) : a.foo(i)
+                    Dim a As c1 = New c1(i) : a.goo(i)
                 End If
                 Dim d As Double = 1.1
                 If Not (Not (Not False)) Then
                     Dim sb As SByte = 1
                     Dim a As c1 = New c1(i + (i + i))
-                    a.foo(sb)
+                    a.goo(sb)
                     If True Then
-                        a.foo(d)
+                        a.goo(d)
                     End If
                 End If
 
@@ -946,8 +946,8 @@ Namespace ns1
         End Function
 
         ' Non-Overloaded Method
-        Public Overloads Shared Function foo(i As Integer, s As String, b As Boolean, b1 As Byte, l As Long, s1 As String) As c4
-            Console.WriteLine("    c4.foo(int, string, bool, byte, long, string)")
+        Public Overloads Shared Function goo(i As Integer, s As String, b As Boolean, b1 As Byte, l As Long, s1 As String) As c4
+            Console.WriteLine("    c4.goo(int, string, bool, byte, long, string)")
             Return New c4
         End Function
 
@@ -980,17 +980,17 @@ Namespace ns1
                     If True Then
                         Dim b1 As Byte = 1, l As Long = i, s1 As String = s
                         Dim f As Single = 1.2F : o = f : l = ui
-                        c4.foo(sh, s, b, b1, i, s1) ' Implicit Conversions
+                        c4.goo(sh, s, b, b1, i, s1) ' Implicit Conversions
                         Dim c As c4 = New c4()
-                        c.foo(sh) : Me.bar(sh)
-                        cc.bar(c5.foo(cc.bar()))
-                        c5.foo(cc.bar(c5.foo()))
+                        c.goo(sh) : Me.bar(sh)
+                        cc.bar(c5.goo(cc.bar()))
+                        c5.goo(cc.bar(c5.goo()))
                         If b = False Then
                             Dim d As Double = f, ul As ULong = 1, sb As SByte = 1 : s1 = s
                             c4.bar(sh, us, sb, f, d, ui, ul) ' Implicit Conversions
                             c.bar4(us)
                             Me.bar(cc.bar(), c)
-                            c5.foo(Me.bar(c5.foo(), c))
+                            c5.goo(Me.bar(c5.goo(), c))
                         End If
                         If b1 >= l Then
                             Dim ui1 As UInteger = 1 : o = ui1
@@ -998,17 +998,17 @@ Namespace ns1
                             Do While i <> 1000
                                 Dim b11 As Byte = 1, l1 As Long = i, s11 As String = s1
                                 Dim f1 As Single = 1.2F : o = f1 : l1 = ui1
-                                c4.foo(sh, s1, b, b11, i, s11) ' Implicit Conversions
-                                c.foo(b)
-                                Me.bar(b) : If c5.foo() IsNot Nothing Then c5.foo().ToString().GetHashCode()
-                                cc.bar(Me.bar(c5.foo()))
+                                c4.goo(sh, s1, b, b11, i, s11) ' Implicit Conversions
+                                c.goo(b)
+                                Me.bar(b) : If c5.goo() IsNot Nothing Then c5.goo().ToString().GetHashCode()
+                                cc.bar(Me.bar(c5.goo()))
 
                                 If Not False Then
                                     Dim d1 As Double = f1, ul1 As ULong = 1, sb1 As SByte = 1 : s1 = s
                                     c4.bar(sh, us, sb1, f1, d1, ui1, ul1) ' Implicit Conversions
-                                    c.foo(b1, sb1)
+                                    c.goo(b1, sb1)
                                     Me.bar(o).bar4(c)
-                                    cc.bar(c5.foo(o)).bar4(c).ToString()
+                                    cc.bar(c5.goo(o)).bar4(c).ToString()
                                     d1 = d
                                     If d <> d1 Then Return i
                                 End If
@@ -1018,15 +1018,15 @@ Namespace ns1
                                     If True Then
                                         Dim b12 As Byte = 1, l2 As Long = i, s12 As String = s11
                                         Dim f2 As Single = 1.2F : o = f1 : l2 = ui1
-                                        c4.foo(sh, s1, b, b12, i, s12) ' Implicit Conversions
+                                        c4.goo(sh, s1, b, b12, i, s12) ' Implicit Conversions
                                         c.bar4(b.ToString() = b.ToString())
-                                        Me.bar(c5.foo(cc.bar(i)))
+                                        Me.bar(c5.goo(cc.bar(i)))
                                         If Not False Then
                                             Dim d2 As Double = f2, ul2 As ULong = 1, sb2 As SByte = 1 : s1 = s
                                             c4.bar(sh, us, sb2, f2, d2, ui2, ul2) ' Implicit Conversions
-                                            c.foo(False = True <> False = b)
+                                            c.goo(False = True <> False = b)
                                             c.bar4(sh > us = sh <= us)
-                                            Me.bar(TryCast(c5.foo(TryCast(cc.bar(TryCast(i, Object)), Object)), Object))
+                                            Me.bar(TryCast(c5.goo(TryCast(cc.bar(TryCast(i, Object)), Object)), Object))
                                             If i <> i +
                                                 1 -
                                                 1 Then _
@@ -2537,8 +2537,8 @@ Namespace ns1
                                           End Function
 
             ' Generic Method
-            Protected Sub foo(Of TT, UU, VV)(x As Func(Of TT, UU, VV), y As Func(Of UU, VV, TT), z As Func(Of VV, TT, UU))
-                Console.WriteLine("    c1<T, U>.foo<TT, UU, VV>(Func<TT, UU, VV> x, Func<UU, VV, TT> y, Func<VV, TT, UU> z)")
+            Protected Sub goo(Of TT, UU, VV)(x As Func(Of TT, UU, VV), y As Func(Of UU, VV, TT), z As Func(Of VV, TT, UU))
+                Console.WriteLine("    c1<T, U>.goo<TT, UU, VV>(Func<TT, UU, VV> x, Func<UU, VV, TT> y, Func<VV, TT, UU> z)")
                 Dim t As TT = Nothing, u As UU = Nothing, v As VV = Nothing
 
                 ' Invoke Lambdas
@@ -2546,13 +2546,13 @@ Namespace ns1
             End Sub
 
             ' Generic Method
-            Protected Sub foo(Of TT, UU, VV)(xx As TT, yy As UU, zz As VV)
-                Console.WriteLine("    c1<T, U>.foo<TT, UU, VV>(TT xx, UU yy, VV zz)")
+            Protected Sub goo(Of TT, UU, VV)(xx As TT, yy As UU, zz As VV)
+                Console.WriteLine("    c1<T, U>.goo<TT, UU, VV>(TT xx, UU yy, VV zz)")
             End Sub
 
             ' Generic Method
-            Protected Sub foo(Of TT, UU, VV)(x As Func(Of TT, List(Of TT), UU, Dictionary(Of List(Of TT), UU)), y As Del(Of UU, VV), z As Action(Of VV, List(Of VV), Dictionary(Of List(Of VV), TT)))
-                Console.WriteLine("    c1<T, U>.foo<TT, UU, VV>(Func<TT, List<TT>, Dictionary<List<TT>, UU>> x, Del<UU, VV> y, Action<VV, List<VV>, Dictionary<List<VV>, TT>> z)")
+            Protected Sub goo(Of TT, UU, VV)(x As Func(Of TT, List(Of TT), UU, Dictionary(Of List(Of TT), UU)), y As Del(Of UU, VV), z As Action(Of VV, List(Of VV), Dictionary(Of List(Of VV), TT)))
+                Console.WriteLine("    c1<T, U>.goo<TT, UU, VV>(Func<TT, List<TT>, Dictionary<List<TT>, UU>> x, Del<UU, VV> y, Action<VV, List<VV>, Dictionary<List<VV>, TT>> z)")
                 Dim t As TT = Nothing, u As UU = Nothing, v As VV = Nothing
 
                 ' Invoke Lambdas
@@ -2633,8 +2633,8 @@ Namespace ns1
                 func(ttt, uuu)(uuu, vvv)(vvv, ttt)(t, u)(u)
             End Sub
 
-            Public Sub foo(Of TT, UU, VV)(x As Func(Of TT, UU), y As Func(Of TT, VV), z As Func(Of UU, VV), a As Func(Of UU, TT), b As Func(Of VV, TT), c As Func(Of VV, UU))
-                Console.WriteLine("    c1<T, U>.foo<TT, UU, VV>(Func<TT, UU> x, Func<TT, VV> y, Func<UU, VV> z, Func<UU, TT> a, Func<VV, TT> b, Func<VV, UU> c)")
+            Public Sub goo(Of TT, UU, VV)(x As Func(Of TT, UU), y As Func(Of TT, VV), z As Func(Of UU, VV), a As Func(Of UU, TT), b As Func(Of VV, TT), c As Func(Of VV, UU))
+                Console.WriteLine("    c1<T, U>.goo<TT, UU, VV>(Func<TT, UU> x, Func<TT, VV> y, Func<UU, VV> z, Func<UU, TT> a, Func<VV, TT> b, Func<VV, UU> c)")
             End Sub
 
             Public Sub Test()
@@ -2647,20 +2647,20 @@ Namespace ns1
                 Dim del As Del = Function(a, b, c) a
 
                 ' Generic Methods, Simple Closures
-                foo(Of Integer, String, Del(Of T, U))(y, x.ToString(), Function(a, b, c) uu)
-                foo(Of String, Del(Of T), Integer)(x.ToString(), Function(a, b, c) x, y)
-                foo(Of Del, Integer, String)(Function(c, a) a.ToString(),
+                goo(Of Integer, String, Del(Of T, U))(y, x.ToString(), Function(a, b, c) uu)
+                goo(Of String, Del(Of T), Integer)(x.ToString(), Function(a, b, c) x, y)
+                goo(Of Del, Integer, String)(Function(c, a) a.ToString(),
                                              Function(a As Integer, b As String) del,
                                              Function(b, c) y - c(x, y, Nothing))
 
                 ' Generic Type Inference, Nested Lambdas
-                foo(x, "", del1)
+                goo(x, "", del1)
                 'TODO: Below call currently binds to the wrong overload because we don't 
                 'have anonymous delegates. Delete this comment once this support becomes available.
-                foo(func, del2,
+                goo(func, del2,
                     Sub(a As T, b As List(Of T), c As Dictionary(Of List(Of T), T))
                         Dim z As Integer = x
-                        foo(New Action(Sub() x = 2),
+                        goo(New Action(Sub() x = 2),
                             New Func(Of ArgumentException, Integer)(Function(aa)
                                                                         Return y + x + +z + b.Count
                                                                     End Function),
@@ -2669,7 +2669,7 @@ Namespace ns1
                                                          End Function))
                         x = z
                         If True Then
-                            foo(Function(aa, bb) a.ToString(),
+                            goo(Function(aa, bb) a.ToString(),
                                 Function(bb As Long, cc As String) y - CInt(bb) + b.Count - z,
                                 Function(cc As String, aa As Integer) x + y + aa + c.Values.Count)
                         End If
@@ -2678,31 +2678,31 @@ Namespace ns1
                 ' Generic Type Inference, Dominant Type
                 'TODO: Below call currently binds to the wrong overload because we don't 
                 'have anonymous delegates. Delete this comment once this support becomes available.
-                foo(Function(a As Exception, b As Exception) New ArgumentException(),
+                goo(Function(a As Exception, b As Exception) New ArgumentException(),
                     Function(a As Exception, b As Exception) New ArgumentException(),
                     Function(a As Exception, b As Exception) New ArgumentException())
                 'TODO: Below call currently binds to the wrong overload because we don't 
                 'have anonymous delegates. Delete this comment once this support becomes available.
-                foo(Function(a, b) New ArgumentException(),
+                goo(Function(a, b) New ArgumentException(),
                     Function(a, b) New ArgumentException(),
                     Function(a As ArgumentException, b As Exception) New Exception())
                 Dim func2 As Func(Of Exception, ArgumentException) = Function(a As Exception) New ArgumentException()
                 Dim func3 As Func(Of ArgumentException, Exception) = Function(a As ArgumentException) New ArgumentException()
                 'TODO: Uncomment below call once we have support for variance. See bug 9029.
-                'foo(func2, func2, func2, func2, func3, func3)
-                foo(Function(a) New ArgumentException(),
+                'goo(func2, func2, func2, func2, func3, func3)
+                goo(Function(a) New ArgumentException(),
                     Function(a As Exception) New InvalidCastException(),
                     Function(a) New InvalidCastException(),
                     Function(a As ArgumentException) New Exception(),
                     Function(a) New ArgumentException(),
                     Function(a As InvalidCastException) New ArgumentException())
-                foo(Function(a As Exception) New Exception(),
+                goo(Function(a As Exception) New Exception(),
                     Function(a As Exception) New ArgumentException(),
                     Function(a As Exception) New ArgumentException(),
                     Function(a As Exception) New Exception(),
                     Function(a As Exception) New ArgumentException(),
                     Function(a As Exception) New Exception())
-                foo(Function(a) New Exception(),
+                goo(Function(a) New Exception(),
                     Function(a As Exception) New ArgumentException(),
                     Function(a) New ArgumentException(),
                     Function(a) New Exception(),
@@ -2730,9 +2730,9 @@ Namespace ns1
                 'TODO: Below lines are commented because of what seems like a bug in Dev10 that
                 'results in bad (unverifiable) code generation. Investigate whether we can
                 'work around this somehow.
-                'Dim d2 As Del2(Of TT, UU, VV) = AddressOf foo(Of TT, UU, VV) : d2 = AddressOf foo(Of TT, UU, VV)
-                'Dim d3 As Del3(Of TT, VV, UU) = AddressOf foo : d3 = AddressOf foo(Of TT, VV, UU)
-                Dim d4 As Del4(Of UU, TT, VV) = AddressOf foo : d4 = AddressOf foo
+                'Dim d2 As Del2(Of TT, UU, VV) = AddressOf goo(Of TT, UU, VV) : d2 = AddressOf goo(Of TT, UU, VV)
+                'Dim d3 As Del3(Of TT, VV, UU) = AddressOf goo : d3 = AddressOf goo(Of TT, VV, UU)
+                Dim d4 As Del4(Of UU, TT, VV) = AddressOf goo : d4 = AddressOf goo
                 ' Invoke Delegates
                 'd2(Function(a, b) vvv, Function(b, c) ttt, Function(c, a) uuu)
                 'd3(ttt, vvv, uuu)
@@ -2742,42 +2742,42 @@ Namespace ns1
                 'TODO: Below lines are commented because of what seems like a bug in Dev10 that
                 'results in bad (unverifiable) code generation. Investigate whether we can
                 'work around this somehow.
-                'Dim d22 As Del2(Of Integer, Del, VV) = AddressOf foo(Of Integer, Del, VV) : d22 = AddressOf foo(Of Integer, Del, VV)
-                'Dim d32 As Del3(Of Long, Integer, Exception) = AddressOf foo : d32 = AddressOf foo(Of Long, Integer, Exception)
-                Dim d42 As Del4(Of T, U, Dictionary(Of List(Of TT), Dictionary(Of List(Of UU), VV))) = AddressOf foo : d42 = AddressOf foo
+                'Dim d22 As Del2(Of Integer, Del, VV) = AddressOf goo(Of Integer, Del, VV) : d22 = AddressOf goo(Of Integer, Del, VV)
+                'Dim d32 As Del3(Of Long, Integer, Exception) = AddressOf goo : d32 = AddressOf goo(Of Long, Integer, Exception)
+                Dim d42 As Del4(Of T, U, Dictionary(Of List(Of TT), Dictionary(Of List(Of UU), VV))) = AddressOf goo : d42 = AddressOf goo
                 ' Invoke Delegates
                 'd22(Function(a, b) vvv, Function(b, c) 1, Function(c, a) Nothing)
                 'd32(1, 0, Nothing)
                 d42(Function(a, b, c) Nothing, Function(a, b, c) Nothing, Sub(a, b, c) uuu.Equals(vvv))
 
                 ' Delegate Relaxation
-                Dim d1 As Del1 = AddressOf foo : d1 = AddressOf foo(Of T, U)
+                Dim d1 As Del1 = AddressOf goo : d1 = AddressOf goo(Of T, U)
                 Dim d33 As Del3(Of InvalidCastException, ArgumentNullException, NullReferenceException, Exception) =
-                    AddressOf foo(Of Integer, Long) : d33 = AddressOf foo(Of Integer, Long) : d33 = AddressOf foo(Of Integer, Double)
+                    AddressOf goo(Of Integer, Long) : d33 = AddressOf goo(Of Integer, Long) : d33 = AddressOf goo(Of Integer, Double)
                 ' Invoke Delegates
                 d1(t, u, Nothing, Nothing)
                 d33(New InvalidCastException(), New ArgumentNullException(), New NullReferenceException())
 
                 ' Delegate Relaxation, Generic Methods
-                foo(Of ArgumentException, ArgumentException, Exception)(AddressOf foo(Of Integer), AddressOf foo(Of Long), AddressOf foo(Of Double))
-                foo(Of ArgumentException, ArgumentException, Exception)(AddressOf foo(Of Exception, ArgumentException),
-                                                                        AddressOf foo(Of Exception, ArgumentException),
-                                                                        AddressOf foo(Of Exception, ArgumentException))
-                foo(Of ArgumentException, ArgumentException, Exception)(AddressOf bar, AddressOf bar, AddressOf bar)
+                goo(Of ArgumentException, ArgumentException, Exception)(AddressOf goo(Of Integer), AddressOf goo(Of Long), AddressOf goo(Of Double))
+                goo(Of ArgumentException, ArgumentException, Exception)(AddressOf goo(Of Exception, ArgumentException),
+                                                                        AddressOf goo(Of Exception, ArgumentException),
+                                                                        AddressOf goo(Of Exception, ArgumentException))
+                goo(Of ArgumentException, ArgumentException, Exception)(AddressOf bar, AddressOf bar, AddressOf bar)
             End Sub
 
-            Private Overloads Function foo(Of TT, UU)(x As Exception, y As Exception, z As Exception) As ArgumentException
-                Console.WriteLine("    c2<T, U>.foo<TT, UU>(Exception x, Exception y, Exception z)")
+            Private Overloads Function goo(Of TT, UU)(x As Exception, y As Exception, z As Exception) As ArgumentException
+                Console.WriteLine("    c2<T, U>.goo<TT, UU>(Exception x, Exception y, Exception z)")
                 Return Nothing
             End Function
 
-            Private Overloads Function foo(Of TT, UU)(x As TT, y As UU, a As Exception, b As Exception) As ArgumentException
-                Console.WriteLine("    c2<T, U>.foo<TT, UU>(TT x, UU y, Exception a, Exception b)")
+            Private Overloads Function goo(Of TT, UU)(x As TT, y As UU, a As Exception, b As Exception) As ArgumentException
+                Console.WriteLine("    c2<T, U>.goo<TT, UU>(TT x, UU y, Exception a, Exception b)")
                 Return Nothing
             End Function
 
-            Private Overloads Function foo(Of TT)(a As Exception, b As Exception) As ArgumentException
-                Console.WriteLine("    c2<T, U>.foo<TT>(Exception a, Exception b)")
+            Private Overloads Function goo(Of TT)(a As Exception, b As Exception) As ArgumentException
+                Console.WriteLine("    c2<T, U>.goo<TT>(Exception a, Exception b)")
                 Return Nothing
             End Function
 
@@ -2786,8 +2786,8 @@ Namespace ns1
                 Return Nothing
             End Function
 
-            Private Overloads Function foo(Of TT, UU)(a As TT, b As TT) As UU
-                Console.WriteLine("    c2<T, U>.foo<TT, UU>(TT a, TT b)")
+            Private Overloads Function goo(Of TT, UU)(a As TT, b As TT) As UU
+                Console.WriteLine("    c2<T, U>.goo<TT, UU>(TT a, TT b)")
                 Return Nothing
             End Function
 

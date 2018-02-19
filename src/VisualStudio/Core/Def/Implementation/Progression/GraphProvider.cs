@@ -26,12 +26,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         protected AbstractGraphProvider(
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
-            Workspace workspace,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            CodeAnalysis.Workspace workspace,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _glyphService = glyphService;
             _serviceProvider = serviceProvider;
-            var asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.GraphProvider);
+            var asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
             _graphQueryManager = new GraphQueryManager(workspace, asyncListener);
         }
 
@@ -342,9 +342,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public T GetExtension<T>(GraphObject graphObject, T previous) where T : class
         {
-            var graphNode = graphObject as GraphNode;
 
-            if (graphNode != null)
+            if (graphObject is GraphNode graphNode)
             {
                 // If this is not a Roslyn node, bail out.
                 // TODO: The check here is to see if the SymbolId property exists on the node

@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If node.Member.Kind = BoundKind.LateMemberAccess Then
-                ' objReceiver.foo(args)         
+                ' objReceiver.goo(args)         
                 Dim member = DirectCast(node.Member, BoundLateMemberAccess)
 
                 ' NOTE: member is not the receiver of the call, it just represents the latebound access. 

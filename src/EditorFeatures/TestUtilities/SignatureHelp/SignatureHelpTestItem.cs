@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         /// <summary>
         /// The currently selected parameter index. For some reason it can be null.
-        /// For methods without any parameters, it's still 0 if cursor is between the parentheses, "foo($$)" for example.
+        /// For methods without any parameters, it's still 0 if cursor is between the parentheses, "goo($$)" for example.
         /// </summary>
         public readonly int? CurrentParameterIndex;
 

@@ -321,6 +321,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => expression.IsParentKind(SyntaxKind.RefExpression) ||
                (expression?.Parent as ArgumentSyntax)?.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword;
 
+        public static bool IsInInContext(this ExpressionSyntax expression)
+            => (expression?.Parent as ArgumentSyntax)?.RefKindKeyword.Kind() == SyntaxKind.InKeyword;
+
         public static bool IsOnlyWrittenTo(this ExpressionSyntax expression)
         {
             if (expression.IsRightSideOfDotOrArrow())
@@ -412,9 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsInsideNameOf(this ExpressionSyntax expression)
-        {
-            return expression.SyntaxTree.IsNameOfContext(expression.SpanStart);
-        }
+            => expression.SyntaxTree.IsNameOfContext(expression.SpanStart);
 
         private static bool CanReplace(ISymbol symbol)
         {
@@ -436,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // An RValue can't be written into. 
-            // i.e. you can't replace "a" in "a = b" with "Foo() = b".
+            // i.e. you can't replace "a" in "a = b" with "Goo() = b".
             return
                 expression != null &&
                 !expression.IsWrittenTo() &&
@@ -501,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             switch (expression.Parent.Kind())
             {
                 case SyntaxKind.InvocationExpression:
-                    // Technically, you could introduce an LValue for "Foo" in "Foo()" even if "Foo" binds
+                    // Technically, you could introduce an LValue for "Goo" in "Goo()" even if "Goo" binds
                     // to a method.  (i.e. by assigning to a Func<...> type).  However, this is so contrived
                     // and none of the features that use this extension consider this replaceable.
                     if (expression.IsKind(SyntaxKind.IdentifierName) || expression is MemberAccessExpressionSyntax)
@@ -999,6 +1000,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/23582",
+            Constraint = "Most trees do not have using alias directives, so avoid the expensive " + nameof(CSharpExtensions.GetSymbolInfo) + " call for this case.")]
         private static bool TryReplaceWithAlias(this ExpressionSyntax node, SemanticModel semanticModel, bool preferAliasToQualifiedName, CancellationToken cancellationToken, out IAliasSymbol aliasReplacement)
         {
             aliasReplacement = null;
@@ -1006,6 +1010,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (!node.IsAliasReplaceableExpression())
             {
                 return false;
+            }
+
+            // Avoid the TryReplaceWithAlias algorithm if the tree has no using alias directives. Since the input node
+            // might be a speculative node (not fully rooted in a tree), we use the original semantic model to find the
+            // equivalent node in the original tree, and from there determine if the tree has any using alias
+            // directives.
+            var originalModel = semanticModel.GetOriginalSemanticModel();
+
+            // Perf: We are only using the syntax tree root in a fast-path syntax check. If the root is not readily
+            // available, it is fine to continue through the normal algorithm.
+            if (originalModel.SyntaxTree.TryGetRoot(out var root))
+            {
+                if (!HasUsingAliasDirective(root))
+                {
+                    return false;
+                }
             }
 
             var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
@@ -1107,6 +1127,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
+        private static bool HasUsingAliasDirective(SyntaxNode syntax)
+        {
+            SyntaxList<UsingDirectiveSyntax> usings;
+            SyntaxList<MemberDeclarationSyntax> members;
+            if (syntax.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax namespaceDeclaration))
+            {
+                usings = namespaceDeclaration.Usings;
+                members = namespaceDeclaration.Members;
+            }
+            else if (syntax.IsKind(SyntaxKind.CompilationUnit, out CompilationUnitSyntax compilationUnit))
+            {
+                usings = compilationUnit.Usings;
+                members = compilationUnit.Members;
+            }
+            else
+            {
+                return false;
+            }
+
+            foreach (var usingDirective in usings)
+            {
+                if (usingDirective.Alias != null)
+                {
+                    return true;
+                }
+            }
+
+            foreach (var member in members)
+            {
+                if (HasUsingAliasDirective(member))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         // We must verify that the alias actually binds back to the thing it's aliasing.
         // It's possible there's another symbol with the same name as the alias that binds
         // first
@@ -1114,18 +1172,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var aliasName = aliasReplacement.Name;
 
+            // If we're the argument of a nameof(X.Y) call, then we can't simplify to an
+            // alias unless the alias has the same name as us (i.e. 'Y').
+            if (node.IsNameOfArgumentExpression())
+            {
+                var nameofValueOpt = semanticModel.GetConstantValue(node.Parent.Parent.Parent);
+                if (!nameofValueOpt.HasValue)
+                {
+                    return false;
+                }
+
+                if (nameofValueOpt.Value is string existingVal &&
+                    existingVal != aliasName)
+                {
+                    return false;
+                }
+            }
+
             var boundSymbols = semanticModel.LookupNamespacesAndTypes(node.SpanStart, name: aliasName);
 
             if (boundSymbols.Length == 1)
             {
-                var boundAlias = boundSymbols[0] as IAliasSymbol;
-                if (boundAlias != null && aliasReplacement.Target.Equals(symbol))
+                if (boundSymbols[0] is IAliasSymbol boundAlias && aliasReplacement.Target.Equals(symbol))
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        public static bool IsNameOfArgumentExpression(this ExpressionSyntax expression)
+        {
+            return expression.IsParentKind(SyntaxKind.Argument) &&
+                expression.Parent.IsParentKind(SyntaxKind.ArgumentList) &&
+                expression.Parent.Parent.Parent is InvocationExpressionSyntax invocation &&
+                invocation.IsNameOfInvocation();
+        }
+
+        public static bool IsNameOfInvocation(this InvocationExpressionSyntax invocation)
+        {
+            return invocation.Expression is IdentifierNameSyntax identifierName &&
+                   identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword);
         }
 
         public static IAliasSymbol GetAliasForSymbol(INamespaceOrTypeSymbol symbol, SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -1206,14 +1294,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static int GetNamespaceId(SyntaxNode container, NamespaceDeclarationSyntax target, ref int index)
         {
-            var compilation = container as CompilationUnitSyntax;
-            if (compilation != null)
+            if (container is CompilationUnitSyntax compilation)
             {
                 return GetNamespaceId(compilation.Members, target, ref index);
             }
 
-            var @namespace = container as NamespaceDeclarationSyntax;
-            if (@namespace != null)
+            if (container is NamespaceDeclarationSyntax @namespace)
             {
                 return GetNamespaceId(@namespace.Members, target, ref index);
             }
@@ -1855,8 +1941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         if (containingType != null && !containingType.Equals(leftSymbol))
                         {
-                            var namedType = leftSymbol as INamedTypeSymbol;
-                            if (namedType != null)
+                            if (leftSymbol is INamedTypeSymbol namedType)
                             {
                                 if ((namedType.GetBaseTypes().Contains(containingType) &&
                                     !optionSet.GetOption(SimplificationOptions.AllowSimplificationToBaseType)) ||
@@ -2366,7 +2451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool IsAmbiguousCast(ExpressionSyntax expression, ExpressionSyntax simplifiedNode)
         {
             // Can't simplify a type name in a cast expression if it would then cause the cast to be
-            // parsed differently.  For example:  (Foo::Bar)+1  is a cast.  But if that simplifies to
+            // parsed differently.  For example:  (Goo::Bar)+1  is a cast.  But if that simplifies to
             // (Bar)+1  then that's an arithmetic expression.
             if (expression.IsParentKind(SyntaxKind.CastExpression))
             {
@@ -2468,34 +2553,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static SimpleNameSyntax GetRightmostName(this ExpressionSyntax node)
         {
-            var memberAccess = node as MemberAccessExpressionSyntax;
-            if (memberAccess != null && memberAccess.Name != null)
+            if (node is MemberAccessExpressionSyntax memberAccess && memberAccess.Name != null)
             {
                 return memberAccess.Name;
             }
 
-            var qualified = node as QualifiedNameSyntax;
-            if (qualified != null && qualified.Right != null)
+            if (node is QualifiedNameSyntax qualified && qualified.Right != null)
             {
                 return qualified.Right;
             }
 
-            var simple = node as SimpleNameSyntax;
-            if (simple != null)
+            if (node is SimpleNameSyntax simple)
             {
                 return simple;
             }
 
-            var conditional = node as ConditionalAccessExpressionSyntax;
-            if (conditional != null)
+            if (node is ConditionalAccessExpressionSyntax conditional)
             {
                 return conditional.WhenNotNull.GetRightmostName();
             }
 
-            var memberBinding = node as MemberBindingExpressionSyntax;
-            if (memberBinding != null)
+            if (node is MemberBindingExpressionSyntax memberBinding)
             {
                 return memberBinding.Name;
+            }
+
+            if (node is AliasQualifiedNameSyntax aliasQualifiedName && aliasQualifiedName.Name != null)
+            {
+                return aliasQualifiedName.Name;
             }
 
             return null;
@@ -2563,6 +2648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.GreaterThanOrEqualExpression:
                 case SyntaxKind.IsExpression:
                 case SyntaxKind.AsExpression:
+                case SyntaxKind.IsPatternExpression:
                     // From C# spec, 7.3.1:
                     // Relational and type testing: <  >  <=  >=  is  as
 

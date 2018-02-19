@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void False3()
         {
-            VerifyFalse(AddInsideMethod(@"(Foo()) $$"));
+            VerifyFalse(AddInsideMethod(@"(Goo()) $$"));
         }
     }
 }

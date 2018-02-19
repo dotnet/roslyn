@@ -55,12 +55,12 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
-        [||]If a.Foo() Then a() Else b()
+        [||]If a.Goo() Then a() Else b()
     End Sub
 End Module",
 "Module Program
     Sub Main()
-        If Not a.Foo() Then b() Else a()
+        If Not a.Goo() Then b() Else a()
     End Sub
 End Module")
         End Function
@@ -486,7 +486,7 @@ End Module")
 "Module Program
     Sub Main()
 #End ExternalSource
-        foo()
+        goo()
 #ExternalSource File.vb 1 
         [||]If a Then
             a()
@@ -498,7 +498,7 @@ End Module",
 "Module Program
     Sub Main()
 #End ExternalSource
-        foo()
+        goo()
 #ExternalSource File.vb 1 
         If Not a Then
             b()
@@ -672,7 +672,7 @@ End Module")
 "Module Program
     Sub Main()
         [||]If a Then
-            foo()
+            goo()
             bar()
         Else
             you()
@@ -686,7 +686,7 @@ End Module",
             you()
             too()
         Else
-            foo()
+            goo()
             bar()
         End If
     End Sub
@@ -880,7 +880,7 @@ End Module",
     Sub Main(args As String())
         Dim x() As String
         If x.Length = 0x0 Then 
- EqualsZero()
+            EqualsZero()
         Else
             GreaterThanZero()
         End If
@@ -1081,7 +1081,7 @@ Else
 End If
 </MethodBody>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(529746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529746")>
@@ -1113,7 +1113,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
@@ -1145,7 +1145,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
@@ -1177,7 +1177,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(531472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531472")>
@@ -1205,7 +1205,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(531475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531475")>
@@ -1237,7 +1237,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(545700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545700")>
@@ -1247,11 +1247,11 @@ End Module
 <File>
 Module A
     Sub Main()
-        [||]If True Then : Foo : Foo
+        [||]If True Then : Goo : Goo
         Else
         End If
     End Sub
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module
 </File>
@@ -1261,15 +1261,15 @@ End Module
 Module A
     Sub Main()
         If False Then : Else
-            Foo() : Foo
+            Goo() : Goo
         End If
     End Sub
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(531474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531474")>
@@ -1279,15 +1279,15 @@ End Module
 <File>
     Module Program
         Sub Main()
-            Foo(Function(take)
+            Goo(Function(take)
                     [||]If True Then Console.WriteLine("true") Else Console.WriteLine("false")
                     take$.ToString()
                     Return Function() 1
                 End Function)
         End Sub
-        Sub Foo(Of T)(x As Func(Of String, T))
+        Sub Goo(Of T)(x As Func(Of String, T))
         End Sub
-        Sub Foo(Of T)(x As Func(Of Integer, T))
+        Sub Goo(Of T)(x As Func(Of Integer, T))
         End Sub
     End Module
 </File>
@@ -1296,20 +1296,20 @@ End Module
 <File>
     Module Program
         Sub Main()
-            Foo(Function(take)
+            Goo(Function(take)
                     If False Then Console.WriteLine("false") Else Console.WriteLine("true")
                     take$.ToString()
                     Return Function() 1
                 End Function)
         End Sub
-        Sub Foo(Of T)(x As Func(Of String, T))
+        Sub Goo(Of T)(x As Func(Of String, T))
         End Sub
-        Sub Foo(Of T)(x As Func(Of Integer, T))
+        Sub Goo(Of T)(x As Func(Of Integer, T))
         End Sub
     End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(530758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530758")>
@@ -1333,7 +1333,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(607862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607862")>
@@ -1360,9 +1360,10 @@ Module Program
         End Select
     End Sub
 End Module
+
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
     End Class

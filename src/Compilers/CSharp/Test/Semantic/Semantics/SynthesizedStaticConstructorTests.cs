@@ -33,7 +33,7 @@ class C
 {
     int i1;
 
-    static void Foo() { }
+    static void Goo() { }
 }";
 
             var typeSymbol = CompileAndExtractTypeSymbol(source);
@@ -50,7 +50,7 @@ class C
     int i1;
     static int s1;
 
-    static void Foo() { }
+    static void Goo() { }
 }";
 
             var typeSymbol = CompileAndExtractTypeSymbol(source);
@@ -67,7 +67,7 @@ class C
     int i1;
     static int s1 = 1;
 
-    static void Foo() { }
+    static void Goo() { }
 }";
 
             var typeSymbol = CompileAndExtractTypeSymbol(source);
@@ -84,7 +84,7 @@ class C
     int i1;
     const int s1 = 1;
 
-    static void Foo() { }
+    static void Goo() { }
 }";
 
             var typeSymbol = CompileAndExtractTypeSymbol(source);
@@ -118,7 +118,7 @@ class C
 
     int i1;
 
-    static void Foo() { }
+    static void Goo() { }
 }";
 
             var typeSymbol = CompileAndExtractTypeSymbol(source);
@@ -137,7 +137,7 @@ class C
     int i1;
     static int s1;
 
-    static void Foo() { }
+    static void Goo() { }
 }";
 
             var typeSymbol = CompileAndExtractTypeSymbol(source);
@@ -156,7 +156,7 @@ class C
     int i1;
     static int s1 = 1;
 
-    static void Foo() { }
+    static void Goo() { }
 }";
 
             var typeSymbol = CompileAndExtractTypeSymbol(source);
@@ -175,7 +175,7 @@ class C
     int i1;
     const int s1 = 1;
 
-    static void Foo() { }
+    static void Goo() { }
 }";
 
             var typeSymbol = CompileAndExtractTypeSymbol(source);

@@ -456,9 +456,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' For hint satisfaction it should be demoted to Narrowing. This is required for the following case, otherwise,
                             ' type of t is ambiguous.
                             '
-                            '    Foo2Params({1, 2, 3}, {1L, 2L, 3L})
+                            '    Goo2Params({1, 2, 3}, {1L, 2L, 3L})
                             '
-                            '    Function Foo2Params(Of t)(x As t, y As t) As String
+                            '    Function Goo2Params(Of t)(x As t, y As t) As String
 
                             conversion = ConversionKind.Narrowing
                         End If

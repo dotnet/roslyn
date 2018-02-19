@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
 using Xunit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 {
@@ -330,10 +331,10 @@ class C : B
             var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
-    public void P => System.Console.WriteLine(""foo"");
+    public void P => System.Console.WriteLine(""goo"");
 }").VerifyDiagnostics(
     // (4,17): error CS0547: 'C.P': property or indexer cannot have void type
-    //     public void P => System.Console.WriteLine("foo");
+    //     public void P => System.Console.WriteLine("goo");
     Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "P").WithArguments("C.P").WithLocation(4, 17));
         }
 
@@ -343,11 +344,11 @@ class C
             var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
-    public int P => System.Console.WriteLine(""foo"");
+    public int P => System.Console.WriteLine(""goo"");
 }").VerifyDiagnostics(
     // (4,21): error CS0029: Cannot implicitly convert type 'void' to 'int'
-    //     public int P => System.Console.WriteLine("foo");
-    Diagnostic(ErrorCode.ERR_NoImplicitConv, @"System.Console.WriteLine(""foo"")").WithArguments("void", "int").WithLocation(4, 21));
+    //     public int P => System.Console.WriteLine("goo");
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, @"System.Console.WriteLine(""goo"")").WithArguments("void", "int").WithLocation(4, 21));
         }
 
         [Fact]
@@ -370,7 +371,7 @@ internal interface K
 class C : I, J, K
 {
     public int P => 10;
-    string I.Q { get { return ""foo""; } }
+    string I.Q { get { return ""goo""; } }
     string J.Q { get { return ""bar""; } }
     public decimal D { get { return P; } }
 }");
@@ -410,7 +411,7 @@ abstract class A
 }
 abstract class B : A
 {
-    protected sealed override string Z => ""foo"";
+    protected sealed override string Z => ""goo"";
     protected abstract string Y { get; }
 }    
 class C : B
@@ -441,8 +442,8 @@ class C : B
 4
 2
 8
-foo
-foo8
+goo
+goo8
 18");
         }
 
@@ -503,6 +504,89 @@ class C
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
             Assert.True(p.IsExpressionBodied);
             Assert.Equal(RefKind.Ref, p.GetMethod.RefKind);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningExpressionBodiedProperty()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    int field = 0;
+    public ref readonly int P => ref field;
+}");
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var c = global.GetTypeMember("C");
+
+            var p = c.GetMember<SourcePropertySymbol>("P");
+            Assert.Null(p.SetMethod);
+            Assert.NotNull(p.GetMethod);
+            Assert.False(p.GetMethod.IsImplicitlyDeclared);
+            Assert.True(p.IsExpressionBodied);
+            Assert.Equal(RefKind.RefReadOnly, p.GetMethod.RefKind);
+            Assert.False(p.ReturnsByRef);
+            Assert.False(p.GetMethod.ReturnsByRef);
+            Assert.True(p.ReturnsByRefReadonly);
+            Assert.True(p.GetMethod.ReturnsByRefReadonly);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningExpressionBodiedIndexer()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    int field = 0;
+    public ref readonly int this[in int arg] => ref field;
+}");
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var c = global.GetTypeMember("C");
+
+            var p = c.GetMember<SourcePropertySymbol>("this[]");
+            Assert.Null(p.SetMethod);
+            Assert.NotNull(p.GetMethod);
+            Assert.False(p.GetMethod.IsImplicitlyDeclared);
+            Assert.True(p.IsExpressionBodied);
+            Assert.Equal(RefKind.RefReadOnly, p.GetMethod.RefKind);
+            Assert.Equal(RefKind.In, p.GetMethod.Parameters[0].RefKind);
+            Assert.False(p.ReturnsByRef);
+            Assert.False(p.GetMethod.ReturnsByRef);
+            Assert.True(p.ReturnsByRefReadonly);
+            Assert.True(p.GetMethod.ReturnsByRefReadonly);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningExpressionBodiedIndexer1()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    int field = 0;
+    public ref readonly int this[in int arg] => ref field;
+}");
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var c = global.GetTypeMember("C");
+
+            var p = c.GetMember<SourcePropertySymbol>("this[]");
+            Assert.Null(p.SetMethod);
+            Assert.NotNull(p.GetMethod);
+            Assert.False(p.GetMethod.IsImplicitlyDeclared);
+            Assert.True(p.IsExpressionBodied);
+            Assert.Equal(RefKind.RefReadOnly, p.GetMethod.RefKind);
+            Assert.Equal(RefKind.In, p.GetMethod.Parameters[0].RefKind);
+            Assert.False(p.ReturnsByRef);
+            Assert.False(p.GetMethod.ReturnsByRef);
+            Assert.True(p.ReturnsByRefReadonly);
+            Assert.True(p.GetMethod.ReturnsByRefReadonly);
         }
     }
 }

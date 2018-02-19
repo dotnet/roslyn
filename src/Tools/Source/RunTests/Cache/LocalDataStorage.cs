@@ -40,9 +40,8 @@ namespace RunTests.Cache
 
         public Task<CachedTestResult?> TryGetCachedTestResult(string checksum)
         {
-            CachedTestResult testResult;
             CachedTestResult? value = null;
-            if (TryGetCachedTestResult(checksum, out testResult))
+            if (TryGetCachedTestResult(checksum, out var testResult))
             {
                 value = testResult;
             }
@@ -140,6 +139,13 @@ namespace RunTests.Cache
         {
             try
             {
+                // This is a spot check to avoid dumping entries into the log file if the 
+                // directory doesn't exist
+                if (!Directory.Exists(_storagePath))
+                {
+                    return;
+                }
+
                 var files = Directory.GetFiles(_storagePath);
                 if (files.Length < MaxStorageCount)
                 {

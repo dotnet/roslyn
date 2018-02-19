@@ -638,8 +638,8 @@ Imports Microsoft.VisualBasic
 
 Class Program
     Shared Sub Main(args As String())
-        Dim x As String = "Foo"
-        Console.WriteLine(If(x = "Foo", "y", x))
+        Dim x As String = "Goo"
+        Console.WriteLine(If(x = "Goo", "y", x))
     End Sub
 End Class
     </file>
@@ -2896,11 +2896,11 @@ End Module
 
         Module Module1
             Sub Main()
-                Foo()
-                Foo()
+                Goo()
+                Goo()
             End Sub
 
-            Sub Foo()
+            Sub Goo()
                 Static x as integer = 1
                 x+=1
             End Sub
@@ -2922,11 +2922,11 @@ End Module
           <file name="a.vb">
         Module Module1
             Sub Main()
-                Foo()
-                Foo()
+                Goo()
+                Goo()
             End Sub
 
-            Sub Foo()
+            Sub Goo()
                 Static x as integer = 1
                 x+=1
             End Sub
@@ -2952,11 +2952,11 @@ End Module
 
         Public Class Module1
             Public shared Sub Main()
-                Foo()
-                Foo()
+                Goo()
+                Goo()
             End Sub
 
-            shared Sub Foo()
+            shared Sub Goo()
                 Static x as integer = 1
                 x+=1
             End Sub
@@ -2992,11 +2992,11 @@ End Namespace
           <file name="a.vb">
         Public Class Module1
             Public shared Sub Main()
-                Foo()
-                Foo()
+                Goo()
+                Goo()
             End Sub
 
-            shared Sub Foo()
+            shared Sub Goo()
                 Static x as integer = 1
                 x+=1
             End Sub

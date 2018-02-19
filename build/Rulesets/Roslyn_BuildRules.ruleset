@@ -93,7 +93,7 @@
     <Rule Id="RS0026" Action="Error" />
     <Rule Id="RS0027" Action="Error" />
   </Rules>
-  <Rules AnalyzerId="System.Collections.Immutable.Analyzers" RuleNamespace="System.Collections.Immutable.Analyzers">
+  <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers.ImmutableCollections">
     <Rule Id="RS0012" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="System.Runtime.Analyzers" RuleNamespace="System.Runtime.Analyzers">
@@ -102,7 +102,7 @@
     <Rule Id="CA1308" Action="None" />
     <Rule Id="CA1810" Action="None" />
     <Rule Id="CA1816" Action="None" />
-    <Rule Id="CA1825" Action="Warning" />
+    <Rule Id="CA1825" Action="None" />
     <Rule Id="CA2002" Action="None" />
     <Rule Id="CA2207" Action="None" />
     <Rule Id="CA2208" Action="None" />
@@ -117,10 +117,30 @@
     <Rule Id="CA2101" Action="None" />
     <Rule Id="RS0015" Action="Warning" />
   </Rules>
-  <Rules AnalyzerId="System.Threading.Tasks.Analyzers" RuleNamespace="System.Threading.Tasks.Analyzers">
+  <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers.Tasks">
     <Rule Id="RS0018" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="XmlDocumentationComments.Analyzers" RuleNamespace="XmlDocumentationComments.Analyzers">
     <Rule Id="RS0010" Action="Warning" />
+  </Rules>
+  <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers">
+    <Rule Id="CA9999" Action="None" /> <!-- We know the analyzers will fail during a bootstrap build -->
+  </Rules>
+  <Rules AnalyzerId="xunit.analyzers" RuleNamespace="Xunit.Analyzers">
+    <Rule Id="xUnit1004" Action="None" /> <!-- allow skipped tests -->
+    <Rule Id="xUnit1024" Action="None" /> <!-- seems broken: https://github.com/xunit/xunit/issues/1361 -->
+    <Rule Id="xUnit2000" Action="None" /> <!-- "literal or constant value should be first in Assert.Equal" is a valid assert, but very noisy. Will do the refactoring later -->
+    <Rule Id="xUnit2002" Action="None" /> <!-- "do not use Assert.NonNull on struct" is a valid assert, but will require a codebase audit to turn on -->
+    <Rule Id="xUnit2003" Action="None" /> <!-- "do not use Assert.Equal for null value" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2004" Action="None" /> <!-- "do not use Assert.Equal for boolean conditions" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2006" Action="None" /> <!-- "do not use generic Assert.Equal to test string equality" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2007" Action="None" /> <!-- "do not use Assert.IsType(typeof...)" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2009" Action="None" /> <!-- "do not use Assert.True to check for substrings" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2012" Action="None" /> <!-- "do not use Enumerable.Any() to check if a value exists in a collection" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2013" Action="None" /> <!-- "do not use Assert.Equal() to check for collection size" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2015" Action="None" /> <!-- "do not use typeof() expression to check the exception type. " is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2017" Action="None" /> <!-- "do not use Contains() to check if a value exists in a collection" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2018" Action="None" /> <!-- "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now -->
+collection.
   </Rules>
 </RuleSet>

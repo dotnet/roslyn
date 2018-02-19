@@ -191,9 +191,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             int atLineNumber = -1,
             bool includeSymbols = true)
         {
-            ResultProperties resultProperties;
-            string error;
-            var result = Evaluate(source, outputKind, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols);
+            var result = Evaluate(source, outputKind, methodName, expr, out _, out string error, atLineNumber, includeSymbols);
+            Assert.Null(error);
+            return result;
+        }
+
+        internal CompilationTestData Evaluate(
+            CSharpCompilation compilation,
+            string methodName,
+            string expr,
+            int atLineNumber = -1,
+            bool includeSymbols = true)
+        {
+            var result = Evaluate(compilation, methodName, expr, out _, out string error, atLineNumber, includeSymbols);
             Assert.Null(error);
             return result;
         }
@@ -208,11 +218,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             int atLineNumber = -1,
             bool includeSymbols = true)
         {
-            var compilation0 = CreateStandardCompilation(
+            var compilation = CreateStandardCompilation(
                 source,
                 options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe);
 
-            var runtime = CreateRuntimeInstance(compilation0, debugFormat: includeSymbols ? DebugInformationFormat.Pdb : 0);
+            return Evaluate(compilation, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols);
+        }
+
+        internal CompilationTestData Evaluate(
+            CSharpCompilation compilation,
+            string methodName,
+            string expr,
+            out ResultProperties resultProperties,
+            out string error,
+            int atLineNumber = -1,
+            bool includeSymbols = true)
+        {
+            var runtime = CreateRuntimeInstance(compilation, debugFormat: includeSymbols ? DebugInformationFormat.Pdb : 0);
             var context = CreateMethodContext(runtime, methodName, atLineNumber);
             var testData = new CompilationTestData();
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
@@ -278,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         internal static void VerifyTypeParameters(NamedTypeSymbol type)
         {
             AssertEx.All(type.TypeParameters, typeParameter => type.IsContainingSymbolOfAllTypeParameters(typeParameter));
-            AssertEx.All(type.TypeArguments, typeArgument => type.IsContainingSymbolOfAllTypeParameters(typeArgument));
+            AssertEx.All(type.TypeArguments(), typeArgument => type.IsContainingSymbolOfAllTypeParameters(typeArgument));
             var container = type.ContainingType;
             if ((object)container != null)
             {
@@ -363,22 +385,41 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
             return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader3)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: ilOffset, isVisualBasicMethod: false);
         }
-
-        internal static SynthesizedAttributeData GetDynamicAttributeIfAny(IMethodSymbol method)
+        
+        internal static void CheckAttribute(IEnumerable<byte> assembly, IMethodSymbol method, AttributeDescription description, bool expected)
         {
-            return GetAttributeIfAny(method, "System.Runtime.CompilerServices.DynamicAttribute");
-        }
+            var module = AssemblyMetadata.CreateFromImage(assembly).GetModules().Single().Module;
 
-        internal static SynthesizedAttributeData GetTupleElementNamesAttributeIfAny(IMethodSymbol method)
-        {
-            return GetAttributeIfAny(method, "System.Runtime.CompilerServices.TupleElementNamesAttribute");
-        }
+            var typeName = method.ContainingType.Name;
+            var typeHandle = module.MetadataReader.TypeDefinitions
+                .Single(handle => module.GetTypeDefNameOrThrow(handle) == typeName);
 
-        internal static SynthesizedAttributeData GetAttributeIfAny(IMethodSymbol method, string typeName)
-        {
-            return method.GetSynthesizedAttributes(forReturnType: true).
-                Where(a => a.AttributeClass.ToTestDisplayString() == typeName).
-                SingleOrDefault();
+            var methodName = method.Name;
+            var methodHandle = module
+                .GetMethodsOfTypeOrThrow(typeHandle)
+                .Single(handle => module.GetMethodDefNameOrThrow(handle) == methodName);
+
+            var returnParamHandle = module.GetParametersOfMethodOrThrow(methodHandle).FirstOrDefault();
+
+            if (returnParamHandle.IsNil)
+            {
+                Assert.False(expected);
+            }
+            else
+            {
+                var attributes = module
+                    .GetCustomAttributesOrThrow(returnParamHandle)
+                    .Where(handle => module.GetTargetAttributeSignatureIndex(handle, description) != -1);
+
+                if (expected)
+                {
+                    Assert.Equal(1, attributes.Count());
+                }
+                else
+                {
+                    Assert.Empty(attributes);
+                }
+            }
         }
     }
 }

@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return match.GetTreeEdits();
         }
 
+        /// <summary>
+        /// Gets method edits on the current level of the source hierarchy. This means that edits on lower labeled levels of the hierarchy are not expected to be returned.
+        /// </summary>
         internal static EditScript<SyntaxNode> GetMethodEdits(string src1, string src2, ParseOptions options = null, MethodKind kind = MethodKind.Regular)
         {
             var match = GetMethodMatch(src1, src2, options, kind);

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
-            return SyntaxFactory.ParseSyntaxTree(text, options);
+            return SyntaxFactory.ParseSyntaxTree(text, options ?? TestOptions.Regular);
         }
 
         [Fact]
@@ -1993,6 +1993,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact]
+        public void TestDelegateWithRefReadonlyReturnType()
+        {
+            var text = "delegate ref readonly a b();";
+            var file = this.ParseFile(text, TestOptions.Regular);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
+            var ds = (DelegateDeclarationSyntax)file.Members[0];
+            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotNull(ds.ReturnType);
+            Assert.Equal("ref readonly a", ds.ReturnType.ToString());
+            Assert.NotNull(ds.Identifier);
+            Assert.Equal("b", ds.Identifier.ToString());
+            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
+            Assert.Equal(0, ds.ParameterList.Parameters.Count);
+            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
+            Assert.NotNull(ds.SemicolonToken);
+            Assert.False(ds.SemicolonToken.IsMissing);
+        }
+
         [Fact]
         public void TestDelegateWithBuiltInReturnTypes()
         {
@@ -2013,7 +2041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestDelegateWithBuiltInReturnType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestDelegateWithBuiltInReturnType(SyntaxKind builtInType)
+        private void TestDelegateWithBuiltInReturnType(SyntaxKind builtInType)
         {
             var typeText = SyntaxFacts.GetText(builtInType);
             var text = "delegate " + typeText + " b();";
@@ -2059,7 +2087,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestDelegateWithBuiltInParameterType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestDelegateWithBuiltInParameterType(SyntaxKind builtInType)
+        private void TestDelegateWithBuiltInParameterType(SyntaxKind builtInType)
         {
             var typeText = SyntaxFacts.GetText(builtInType);
             var text = "delegate a b(" + typeText + " c);";
@@ -2482,10 +2510,87 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
         }
 
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact]
+        public void TestClassMethodWithRefReadonlyReturn()
+        {
+            var text = "class a { ref readonly b X() { } }";
+            var file = this.ParseFile(text, TestOptions.Regular);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var cs = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, cs.AttributeLists.Count);
+            Assert.Equal(0, cs.Modifiers.Count);
+            Assert.NotNull(cs.Keyword);
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.NotNull(cs.Identifier);
+            Assert.Equal("a", cs.Identifier.ToString());
+            Assert.Null(cs.BaseList);
+            Assert.Equal(0, cs.ConstraintClauses.Count);
+            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotNull(cs.CloseBraceToken);
+
+            Assert.Equal(1, cs.Members.Count);
+
+            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
+            var ms = (MethodDeclarationSyntax)cs.Members[0];
+            Assert.Equal(0, ms.AttributeLists.Count);
+            Assert.NotNull(ms.ReturnType);
+            Assert.Equal("ref readonly b", ms.ReturnType.ToString());
+            Assert.NotNull(ms.Identifier);
+            Assert.Equal("X", ms.Identifier.ToString());
+            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
+            Assert.Equal(0, ms.ParameterList.Parameters.Count);
+            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
+            Assert.Equal(0, ms.ConstraintClauses.Count);
+            Assert.NotNull(ms.Body);
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+        }
+
+        [Fact]
         public void TestClassMethodWithRef()
         {
             var text = "class a { ref }";
             var file = this.ParseFile(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(1, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var cs = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, cs.AttributeLists.Count);
+            Assert.Equal(0, cs.Modifiers.Count);
+            Assert.NotNull(cs.Keyword);
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.NotNull(cs.Identifier);
+            Assert.Equal("a", cs.Identifier.ToString());
+            Assert.Null(cs.BaseList);
+            Assert.Equal(0, cs.ConstraintClauses.Count);
+            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotNull(cs.CloseBraceToken);
+
+            Assert.Equal(1, cs.Members.Count);
+
+            Assert.Equal(SyntaxKind.IncompleteMember, cs.Members[0].Kind());
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact]
+        public void TestClassMethodWithRefReadonly()
+        {
+            var text = "class a { ref readonly }";
+            var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2876,7 +2981,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestClassMethodWithBuiltInReturnType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassMethodWithBuiltInReturnType(SyntaxKind type)
+        private void TestClassMethodWithBuiltInReturnType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " M() { } }";
@@ -2941,7 +3046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestClassMethodWithBuiltInParameterType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassMethodWithBuiltInParameterType(SyntaxKind type)
+        private void TestClassMethodWithBuiltInParameterType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { b X(" + typeText + " c) { } }";
@@ -3299,7 +3404,7 @@ class Class1<T>{
             TestClassFieldWithBuiltInType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassFieldWithBuiltInType(SyntaxKind type)
+        private void TestClassFieldWithBuiltInType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " c; }";
@@ -3854,6 +3959,61 @@ class Class1<T>{
             Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact]
+        public void TestClassPropertyWithRefReadonlyReturn()
+        {
+            var text = "class a { ref readonly b c { get; set; } }";
+            var file = this.ParseFile(text, TestOptions.Regular);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var cs = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, cs.AttributeLists.Count);
+            Assert.Equal(0, cs.Modifiers.Count);
+            Assert.NotNull(cs.Keyword);
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.NotNull(cs.Identifier);
+            Assert.Equal("a", cs.Identifier.ToString());
+            Assert.Null(cs.BaseList);
+            Assert.Equal(0, cs.ConstraintClauses.Count);
+            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotNull(cs.CloseBraceToken);
+
+            Assert.Equal(1, cs.Members.Count);
+
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
+            var ps = (PropertyDeclarationSyntax)cs.Members[0];
+            Assert.Equal(0, ps.AttributeLists.Count);
+            Assert.Equal(0, ps.Modifiers.Count);
+            Assert.NotNull(ps.Type);
+            Assert.Equal("ref readonly b", ps.Type.ToString());
+            Assert.NotNull(ps.Identifier);
+            Assert.Equal("c", ps.Identifier.ToString());
+
+            Assert.NotNull(ps.AccessorList.OpenBraceToken);
+            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.Equal(2, ps.AccessorList.Accessors.Count);
+
+            Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
+            Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
+            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Null(ps.AccessorList.Accessors[0].Body);
+            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+
+            Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
+            Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
+            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Null(ps.AccessorList.Accessors[1].Body);
+            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+        }
+
         [Fact]
         public void TestClassPropertyWithBuiltInTypes()
         {
@@ -3873,7 +4033,7 @@ class Class1<T>{
             TestClassPropertyWithBuiltInType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassPropertyWithBuiltInType(SyntaxKind type)
+        private void TestClassPropertyWithBuiltInType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " c { get; set; } }";
@@ -4065,7 +4225,7 @@ class Class1<T>{
             TestClassEventWithValue(SyntaxKind.RemoveAccessorDeclaration, SyntaxKind.RemoveKeyword, SyntaxKind.IdentifierToken);
         }
 
-        public void TestClassPropertyWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
+        private void TestClassPropertyWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
         {
             bool isEvent = accessorKeyword == SyntaxKind.AddKeyword || accessorKeyword == SyntaxKind.RemoveKeyword;
             var text = "class a { " + (isEvent ? "event" : string.Empty) + " b c { " + SyntaxFacts.GetText(accessorKeyword) + " { x = value; } } }";
@@ -4122,7 +4282,7 @@ class Class1<T>{
             Assert.Equal(tokenKind, ((IdentifierNameSyntax)bx.Right).Identifier.Kind());
         }
 
-        public void TestClassEventWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
+        private void TestClassEventWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
         {
             var text = "class a { event b c { " + SyntaxFacts.GetText(accessorKeyword) + " { x = value; } } }";
             var file = this.ParseFile(text);
@@ -4742,6 +4902,74 @@ class Class1<T>{
             Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact]
+        public void TestClassIndexerWithRefReadonlyReturn()
+        {
+            var text = "class a { ref readonly b this[c d] { get; set; } }";
+            var file = this.ParseFile(text, TestOptions.Regular);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var cs = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, cs.AttributeLists.Count);
+            Assert.Equal(0, cs.Modifiers.Count);
+            Assert.NotNull(cs.Keyword);
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.NotNull(cs.Identifier);
+            Assert.Equal("a", cs.Identifier.ToString());
+            Assert.Null(cs.BaseList);
+            Assert.Equal(0, cs.ConstraintClauses.Count);
+            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotNull(cs.CloseBraceToken);
+
+            Assert.Equal(1, cs.Members.Count);
+
+            Assert.Equal(SyntaxKind.IndexerDeclaration, cs.Members[0].Kind());
+            var ps = (IndexerDeclarationSyntax)cs.Members[0];
+            Assert.Equal(0, ps.AttributeLists.Count);
+            Assert.Equal(0, ps.Modifiers.Count);
+            Assert.NotNull(ps.Type);
+            Assert.Equal("ref readonly b", ps.Type.ToString());
+            Assert.NotNull(ps.ThisKeyword);
+            Assert.Equal("this", ps.ThisKeyword.ToString());
+
+            Assert.NotNull(ps.ParameterList); // used with indexer property
+            Assert.NotNull(ps.ParameterList.OpenBracketToken);
+            Assert.Equal(SyntaxKind.OpenBracketToken, ps.ParameterList.OpenBracketToken.Kind());
+            Assert.NotNull(ps.ParameterList.CloseBracketToken);
+            Assert.Equal(SyntaxKind.CloseBracketToken, ps.ParameterList.CloseBracketToken.Kind());
+            Assert.Equal(1, ps.ParameterList.Parameters.Count);
+            Assert.Equal(0, ps.ParameterList.Parameters[0].AttributeLists.Count);
+            Assert.Equal(0, ps.ParameterList.Parameters[0].Modifiers.Count);
+            Assert.NotNull(ps.ParameterList.Parameters[0].Type);
+            Assert.Equal("c", ps.ParameterList.Parameters[0].Type.ToString());
+            Assert.NotNull(ps.ParameterList.Parameters[0].Identifier);
+            Assert.Equal("d", ps.ParameterList.Parameters[0].Identifier.ToString());
+
+            Assert.NotNull(ps.AccessorList.OpenBraceToken);
+            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.Equal(2, ps.AccessorList.Accessors.Count);
+
+            Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
+            Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
+            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Null(ps.AccessorList.Accessors[0].Body);
+            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+
+            Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
+            Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
+            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Null(ps.AccessorList.Accessors[1].Body);
+            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+        }
+
         [Fact]
         public void TestClassIndexerWithMultipleParameters()
         {
@@ -5321,6 +5549,9 @@ partial class PartialPartial
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
                 // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 // partial enum E{}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
+                // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum E{}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
         }
 
@@ -5653,7 +5884,7 @@ class C1
     }
 }
 ";
-            var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
+            var file = this.ParseFile(text);
             Assert.Equal(0, file.Errors().Length);
         }
 
@@ -5674,7 +5905,7 @@ class C1
     }
 }
 ";
-            var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
+            var file = this.ParseFile(text);
             Assert.Equal(0, file.Errors().Length);
         }
 
@@ -5835,7 +6066,7 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         M(out var x);
     }
@@ -5853,7 +6084,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -6101,6 +6332,134 @@ class C<T> : where T : X
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Properties_Ref_Get()
+        {
+            var code = @"
+class Program
+{
+    public int P
+    {
+        ref get => throw null;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (6,13): error CS0106: The modifier 'ref' is not valid for this item
+                //         ref get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(6, 13));
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Properties_Ref_Get_SecondModifier()
+        {
+            var code = @"
+class Program
+{
+    public int P
+    {
+        abstract ref get => throw null;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (6,22): error CS0106: The modifier 'abstract' is not valid for this item
+                //         abstract ref get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("abstract").WithLocation(6, 22),
+                // (6,22): error CS0106: The modifier 'ref' is not valid for this item
+                //         abstract ref get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(6, 22));
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Properties_Ref_Set()
+        {
+            var code = @"
+class Program
+{
+    public int P
+    {
+        ref set => throw null;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (6,13): error CS0106: The modifier 'ref' is not valid for this item
+                //         ref set => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(6, 13));
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Properties_Ref_Set_SecondModifier()
+        {
+            var code = @"
+class Program
+{
+    public int P
+    {
+        abstract ref set => throw null;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (6,22): error CS0106: The modifier 'abstract' is not valid for this item
+                //         abstract ref set => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("abstract").WithLocation(6, 22),
+                // (6,22): error CS0106: The modifier 'ref' is not valid for this item
+                //         abstract ref set => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(6, 22));
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Events_Ref()
+        {
+            var code = @"
+public class Program
+{
+    event System.EventHandler E
+    {
+        ref add => throw null; 
+        ref remove => throw null; 
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (6,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         ref add => throw null; 
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "ref").WithLocation(6, 9),
+                // (7,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         ref remove => throw null; 
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "ref").WithLocation(7, 9));
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Events_Ref_SecondModifier()
+        {
+            var code = @"
+public class Program
+{
+    event System.EventHandler E
+    {
+        abstract ref add => throw null; 
+        abstract ref remove => throw null; 
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (6,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         abstract ref add => throw null; 
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "abstract").WithLocation(6, 9),
+                // (7,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         abstract ref remove => throw null; 
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "abstract").WithLocation(7, 9));
         }
     }
 }

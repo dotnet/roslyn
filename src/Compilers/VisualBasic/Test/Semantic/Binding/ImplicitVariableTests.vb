@@ -140,14 +140,14 @@ Option Strict On
 Imports System
 
 Module Module1
-    Function Foo(q As Integer) As Integer
-        Foo = 10
-        bar = Foo + q
-        Foo = CInt(bar) + 7
+    Function Goo(q As Integer) As Integer
+        Goo = 10
+        bar = Goo + q
+        Goo = CInt(bar) + 7
     End Function
 
     Sub Main()
-        i% = Foo(3)
+        i% = Goo(3)
         While i &gt; 0
             Console.Write("{0} ", i)
             i = i% - 1
@@ -183,7 +183,7 @@ Module Module1
         Return CInt(lam(7) + lam(11))
     End Function
 
-    Function Foo(p As Integer) As Integer
+    Function Goo(p As Integer) As Integer
         Return Z(Function(z)
                      q% = q% + 1
                      Return z + q%
@@ -191,7 +191,7 @@ Module Module1
     End Function
 
     Sub Main()
-        Console.WriteLine(Foo(4))
+        Console.WriteLine(Goo(4))
     End Sub
 End Module
     </file>
@@ -214,7 +214,7 @@ Imports System
 
 Module Module1
     Sub Main()
-        Console.WriteLine(New C2().foo("hello"))
+        Console.WriteLine(New C2().goo("hello"))
     End Sub
 End Module
 
@@ -224,7 +224,7 @@ End Class
 
 Class C2
     Inherits C1
-    Public Function foo(x As String) As Object
+    Public Function goo(x As String) As Object
         var = x
         Return var
     End Function
@@ -247,15 +247,15 @@ Option Strict On
 Imports System
 
 Class C1
-    Private var As Integer = foo
+    Private var As Integer = goo
 End Class
 </file>
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30451: 'foo' is not declared. It may be inaccessible due to its protection level.
-    Private var As Integer = foo
+BC30451: 'goo' is not declared. It may be inaccessible due to its protection level.
+    Private var As Integer = goo
                              ~~~                                                   
 </expected>)
 
@@ -462,7 +462,7 @@ Option Strict On
 Imports System
 
 Class C1
-    Sub Foo()
+    Sub Goo()
         Dim x As String = y.ToString()
     End Sub
 End Class
@@ -491,7 +491,7 @@ Option Strict On
 Imports System
 
 Class C1
-    Sub Foo()
+    Sub Goo()
         Dim x As String = y()
     End Sub
 End Class
@@ -521,7 +521,7 @@ Option Infer On
 Imports System
 
 Class C1
-            Sub Foo()
+            Sub Goo()
                 For x = 1 To 10
                     x.GetTypeCode()
                 Next

@@ -11,7 +11,7 @@ namespace RunTests
     internal struct TestExecutionOptions
     {
         internal string XunitPath { get; }
-        internal string ProcDumpPath { get; }
+        internal ProcDumpInfo? ProcDumpInfo { get; }
         internal string LogFilePath { get; }
         internal string Trait { get; }
         internal string NoTrait { get; }
@@ -19,10 +19,10 @@ namespace RunTests
         internal bool Test64 { get; }
         internal bool TestVsi { get; }
         
-        internal TestExecutionOptions(string xunitPath, string procDumpPath, string logFilePath, string trait, string noTrait, bool useHtml, bool test64, bool testVsi)
+        internal TestExecutionOptions(string xunitPath, ProcDumpInfo? procDumpInfo, string logFilePath, string trait, string noTrait, bool useHtml, bool test64, bool testVsi)
         {
             XunitPath = xunitPath;
-            ProcDumpPath = procDumpPath;
+            ProcDumpInfo = procDumpInfo;
             LogFilePath = logFilePath;
             Trait = trait;
             NoTrait = noTrait;

@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -48,6 +49,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrAppDomain appDomain, 
             ImmutableArray<MetadataBlock> previousMetadataBlocks)
         {
+            // Add a dummy data item to the appdomain to add it to the disposal queue when the debugged process is shutting down.
+            // This should prevent from attempts to use the Metadata pointer for dead debugged processes.
+            if (appDomain.GetDataItem<AppDomainLifetimeDataItem>() == null)
+            {
+                appDomain.SetDataItem(DkmDataCreationDisposition.CreateNew, new AppDomainLifetimeDataItem());
+            }
+
             var builder = ArrayBuilder<MetadataBlock>.GetInstance();
             IntPtr ptr;
             uint size;
@@ -66,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     // DkmClrNcModuleInstance.GetMetaDataBytesPtr not implemented in Dev14.
                     throw new NotImplementedMetadataException(e);
                 }
-                catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
+                catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                 {
                     continue;
                 }
@@ -94,7 +102,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     Debug.Assert(size > 0);
                     block = GetMetadataBlock(ptr, size);
                 }
-                catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, missingAssemblyIdentity.GetDisplayName()))
+                catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                 {
                     continue;
                 }
@@ -128,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         Debug.Assert(size > 0);
                         reader = new MetadataReader((byte*)ptr, (int)size);
                     }
-                    catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
+                    catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                     {
                         continue;
                     }
@@ -323,5 +331,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 this.MetadataContext = metadataContext;
             }
         }
+
+        private sealed class AppDomainLifetimeDataItem : DkmDataItem { }
     }
 }

@@ -18,11 +18,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
         Public Sub TestCodeElements1()
             Dim code =
 <code>
-Class Foo
+Class Goo
 End Class
 </code>
 
-            TestChildren(code, "MS", "My", "Microsoft", "System", "Foo", "Windows")
+            TestChildren(code, "MS", "My", "Microsoft", "System", "Goo", "Windows")
         End Sub
 
         ' This test depends On the version Of mscorlib used by the TestWorkspace And may 
@@ -31,11 +31,11 @@ End Class
         Public Sub TestCodeElements2()
             Dim code =
 <code>
-Module Foo
+Module Goo
 End Module
 </code>
 
-            TestChildren(code, "MS", "My", "Microsoft", "System", "Foo", "Windows")
+            TestChildren(code, "MS", "My", "Microsoft", "System", "Goo", "Windows")
         End Sub
 
 #End Region

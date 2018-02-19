@@ -1164,8 +1164,8 @@ class UsePia4
 
                     var itest1 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("ITest1").Single();
                     Assert.Equal(TypeKind.Interface, itest1.TypeKind);
-                    Assert.Null(itest1.BaseType);
-                    Assert.Equal(0, itest1.Interfaces.Length);
+                    Assert.Null(itest1.BaseType());
+                    Assert.Equal(0, itest1.Interfaces().Length);
                     Assert.True(itest1.IsComImport);
                     Assert.False(itest1.IsSerializable);
                     Assert.False(itest1.IsSealed);
@@ -1186,8 +1186,8 @@ class UsePia4
 
                     var test2 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("Test2").Single();
                     Assert.Equal(TypeKind.Struct, test2.TypeKind);
-                    Assert.Equal(SpecialType.System_ValueType, test2.BaseType.SpecialType);
-                    Assert.Same(itest1, test2.Interfaces.Single());
+                    Assert.Equal(SpecialType.System_ValueType, test2.BaseType().SpecialType);
+                    Assert.Same(itest1, test2.Interfaces().Single());
                     Assert.False(test2.IsComImport);
                     Assert.False(test2.IsSerializable);
                     Assert.True(test2.IsSealed);
@@ -1207,7 +1207,7 @@ class UsePia4
 
                     var itest3 = module.GlobalNamespace.GetTypeMembers("ITest3").Single();
                     Assert.Equal(TypeKind.Interface, itest3.TypeKind);
-                    Assert.Same(itest1, itest3.Interfaces.Single());
+                    Assert.Same(itest1, itest3.Interfaces().Single());
                     Assert.True(itest3.IsComImport);
                     Assert.False(itest3.IsSerializable);
                     Assert.False(itest3.IsSealed);
@@ -1244,7 +1244,7 @@ class UsePia4
 
                     var itest8 = module.GlobalNamespace.GetTypeMembers("ITest8").Single();
                     Assert.Equal(TypeKind.Interface, itest8.TypeKind);
-                    Assert.Same(itest8, module.GlobalNamespace.GetTypeMembers("UsePia1").Single().Interfaces.Single());
+                    Assert.Same(itest8, module.GlobalNamespace.GetTypeMembers("UsePia1").Single().Interfaces().Single());
 
                     var test9 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("Test9").Single();
                     Assert.Equal(TypeKind.Enum, test9.TypeKind);
@@ -1327,7 +1327,7 @@ class UsePia4
 
                     var test11 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("Test11").Single();
                     Assert.Equal(TypeKind.Delegate, test11.TypeKind);
-                    Assert.Equal(SpecialType.System_MulticastDelegate, test11.BaseType.SpecialType);
+                    Assert.Equal(SpecialType.System_MulticastDelegate, test11.BaseType().SpecialType);
 
                     // TypDefName: Test11  (02000012)
                     // Flags     : [Public] [AutoLayout] [Class] [Sealed] [AnsiClass]  (00000101)
@@ -1730,42 +1730,42 @@ interface UsePia5 : ITest29
                     Assert.False(t1.HasConstructorConstraint);
                     Assert.False(t1.HasValueTypeConstraint);
                     Assert.False(t1.HasReferenceTypeConstraint);
-                    Assert.Equal(0, t1.ConstraintTypes.Length);
+                    Assert.Equal(0, t1.ConstraintTypes().Length);
                     Assert.Equal(VarianceKind.None, t1.Variance);
 
                     var t2 = m21.TypeParameters[1];
                     Assert.False(t2.HasConstructorConstraint);
                     Assert.False(t2.HasValueTypeConstraint);
                     Assert.False(t2.HasReferenceTypeConstraint);
-                    Assert.Equal(1, t2.ConstraintTypes.Length);
-                    Assert.Same(itest28, t2.ConstraintTypes[0]);
+                    Assert.Equal(1, t2.ConstraintTypes().Length);
+                    Assert.Same(itest28, t2.ConstraintTypes()[0]);
                     Assert.Equal(VarianceKind.None, t2.Variance);
 
                     var t5 = m21.TypeParameters[2];
                     Assert.True(t5.HasConstructorConstraint);
                     Assert.False(t5.HasValueTypeConstraint);
                     Assert.False(t5.HasReferenceTypeConstraint);
-                    Assert.Equal(0, t5.ConstraintTypes.Length);
+                    Assert.Equal(0, t5.ConstraintTypes().Length);
                     Assert.Equal(VarianceKind.None, t5.Variance);
 
                     var t6 = m21.TypeParameters[3];
                     Assert.False(t6.HasConstructorConstraint);
                     Assert.True(t6.HasValueTypeConstraint);
                     Assert.False(t6.HasReferenceTypeConstraint);
-                    Assert.Equal(0, t6.ConstraintTypes.Length);
+                    Assert.Equal(0, t6.ConstraintTypes().Length);
                     Assert.Equal(VarianceKind.None, t6.Variance);
 
                     var t7 = m21.TypeParameters[4];
                     Assert.False(t7.HasConstructorConstraint);
                     Assert.False(t7.HasValueTypeConstraint);
                     Assert.True(t7.HasReferenceTypeConstraint);
-                    Assert.Equal(0, t7.ConstraintTypes.Length);
+                    Assert.Equal(0, t7.ConstraintTypes().Length);
                     Assert.Equal(VarianceKind.None, t7.Variance);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: false);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.Fails);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: false);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.Fails);
         }
 
         [Fact]
@@ -2142,13 +2142,13 @@ public delegate void MyDelegate();
 [ComEventInterface(typeof(InterfaceEvents), typeof(int))]
 public interface Interface1_Event
 {
-    event MyDelegate Foo;
+    event MyDelegate Goo;
 }
 
 [ComImport(), Guid(""84374891-a3b1-4f8f-8310-99ea58059b10"")]
 public interface InterfaceEvents
 {
-    void Foo();
+    void Goo();
 }
 ";
 
@@ -2165,7 +2165,7 @@ class UsePia
 
     public void Test(Interface1_Event x)
     {
-    	x.Foo += Handler;	
+    	x.Goo += Handler;	
     }
 
     void Handler()
@@ -2197,7 +2197,7 @@ class UsePia
                     Assert.Equal("System.Runtime.InteropServices.ComEventInterfaceAttribute(typeof(InterfaceEvents), typeof(InterfaceEvents))", attributes[1].ToString());
                     Assert.Equal(@"System.Runtime.InteropServices.TypeIdentifierAttribute(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"", ""Interface1_Event"")", attributes[2].ToString());
 
-                    var foo = (PEEventSymbol)interface1_Event.GetMembers("Foo").Single();
+                    var goo = (PEEventSymbol)interface1_Event.GetMembers("Goo").Single();
 
                     var interfaceEvents = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("InterfaceEvents").Single();
 
@@ -2207,7 +2207,7 @@ class UsePia
                     Assert.Equal(@"System.Runtime.InteropServices.GuidAttribute(""84374891-a3b1-4f8f-8310-99ea58059b10"")", attributes[1].ToString());
                     Assert.Equal("System.Runtime.InteropServices.TypeIdentifierAttribute", attributes[2].ToString());
 
-                    var foo1 = (PEMethodSymbol)interfaceEvents.GetMembers("Foo").Single();
+                    var goo1 = (PEMethodSymbol)interfaceEvents.GetMembers("Goo").Single();
                 };
 
             var expected =
@@ -2217,7 +2217,7 @@ class UsePia
   .maxstack  4
   IL_0000:  ldtoken    ""Interface1_Event""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_000a:  ldstr      ""Foo""
+  IL_000a:  ldstr      ""Goo""
   IL_000f:  newobj     ""System.Runtime.InteropServices.ComAwareEventInfo..ctor(System.Type, string)""
   IL_0014:  ldarg.1
   IL_0015:  ldarg.0
@@ -2253,13 +2253,13 @@ public delegate void MyDelegate();
 [ComEventInterface(typeof(InterfaceEvents), typeof(int))]
 public interface Interface1_Event
 {
-    event MyDelegate Foo;
+    event MyDelegate Goo;
 }
 
 [ComImport(), Guid(""84374891-a3b1-4f8f-8310-99ea58059b10"")]
 public interface InterfaceEvents
 {
-    void Foo(int x);
+    void Goo(int x);
 }
 
 [ComImport(), Guid(""84374c91-a3b1-4f8f-8310-99ea58059b10"")]
@@ -2282,7 +2282,7 @@ class UsePia
 
     public void Test(Interface1 x)
     {
-    	x.Foo -= Handler;	
+    	x.Goo -= Handler;	
     }
 
     void Handler()
@@ -2304,7 +2304,7 @@ class UsePia
   .maxstack  4
   IL_0000:  ldtoken    ""Interface1_Event""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_000a:  ldstr      ""Foo""
+  IL_000a:  ldstr      ""Goo""
   IL_000f:  newobj     ""System.Runtime.InteropServices.ComAwareEventInfo..ctor(System.Type, string)""
   IL_0014:  ldarg.1
   IL_0015:  ldarg.0
@@ -2340,7 +2340,7 @@ public delegate void MyDelegate();
 [ComEventInterface(typeof(InterfaceEvents), typeof(int))]
 public interface Interface1_Event
 {
-    event MyDelegate Foo;
+    event MyDelegate Goo;
 }
 
 [ComImport(), Guid(""84374891-a3b1-4f8f-8310-99ea58059b10"")]
@@ -2362,7 +2362,7 @@ class UsePia
 
     public void Test(Interface1_Event x)
     {
-    	x.Foo -= Handler;	
+    	x.Goo -= Handler;	
     }
 
     void Handler()
@@ -2371,9 +2371,9 @@ class UsePia
 ";
 
             DiagnosticDescription[] expected = {
-                // (10,6): error CS1766: Source interface 'InterfaceEvents' is missing method 'Foo' which is required to embed event 'Interface1_Event.Foo'.
-                //     	x.Foo -= Handler;	
-                Diagnostic(ErrorCode.ERR_MissingMethodOnSourceInterface, "x.Foo -= Handler").WithArguments("InterfaceEvents", "Foo", "Interface1_Event.Foo")
+                // (10,6): error CS1766: Source interface 'InterfaceEvents' is missing method 'Goo' which is required to embed event 'Interface1_Event.Goo'.
+                //     	x.Goo -= Handler;	
+                Diagnostic(ErrorCode.ERR_MissingMethodOnSourceInterface, "x.Goo -= Handler").WithArguments("InterfaceEvents", "Goo", "Interface1_Event.Goo")
                                                };
 
             var compilation1 = CreateStandardCompilation(consumer, options: TestOptions.ReleaseExe,
@@ -2484,7 +2484,7 @@ public delegate void MyDelegate();
 [Guid(""84374891-a3b1-4f8f-8310-99ea58059b10"")]
 public interface Interface1_Event
 {
-    event MyDelegate Foo;
+    event MyDelegate Goo;
 }
 ";
 
@@ -2501,7 +2501,7 @@ class UsePia
 
     public void Test(Interface1_Event x)
     {
-    	x.Foo -= Handler;	
+    	x.Goo -= Handler;	
     }
 
     void Handler()
@@ -2511,8 +2511,8 @@ class UsePia
 
             DiagnosticDescription[] expected = {
                 // (10,6): error CS1756: Interop type 'Interface1_Event' cannot be embedded because it is missing the required 'System.Runtime.InteropServices.ComImportAttribute' attribute.
-                //     	x.Foo -= Handler;	
-                Diagnostic(ErrorCode.ERR_InteropTypeMissingAttribute, "x.Foo -= Handler").WithArguments("Interface1_Event", "System.Runtime.InteropServices.ComImportAttribute")
+                //     	x.Goo -= Handler;	
+                Diagnostic(ErrorCode.ERR_InteropTypeMissingAttribute, "x.Goo -= Handler").WithArguments("Interface1_Event", "System.Runtime.InteropServices.ComImportAttribute")
                                                };
 
             DiagnosticDescription[] expectedMetadataOnly = {
@@ -2588,20 +2588,20 @@ class UsePia
 .class interface public abstract auto ansi import Interface1_Event
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  add_Foo(class MyDelegate 'value') cil managed
+          instance void  add_Goo(class MyDelegate 'value') cil managed
   {
-  } // end of method Interface1_Event::add_Foo
+  } // end of method Interface1_Event::add_Goo
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  remove_Foo(class MyDelegate 'value') cil managed
+          instance void  remove_Goo(class MyDelegate 'value') cil managed
   {
-  } // end of method Interface1_Event::remove_Foo
+  } // end of method Interface1_Event::remove_Goo
 
-  .event MyDelegate Foo
+  .event MyDelegate Goo
   {
-    .removeon instance void Interface1_Event::remove_Foo(class MyDelegate)
-    .addon instance void Interface1_Event::add_Foo(class MyDelegate)
-  } // end of event Interface1_Event::Foo
+    .removeon instance void Interface1_Event::remove_Goo(class MyDelegate)
+    .addon instance void Interface1_Event::add_Goo(class MyDelegate)
+  } // end of event Interface1_Event::Goo
 } // end of class Interface1_Event
 ";
 
@@ -2616,7 +2616,7 @@ class UsePia
 
     public void Test(Interface1_Event x)
     {
-    	x.Foo -= Handler;	
+    	x.Goo -= Handler;	
     }
 
     void Handler()
@@ -2626,8 +2626,8 @@ class UsePia
 
             DiagnosticDescription[] expected = {
                 // (10,6): error CS1756: Interop type 'Interface1_Event' cannot be embedded because it is missing the required 'System.Runtime.InteropServices.GuidAttribute' attribute.
-                //     	x.Foo -= Handler;	
-                Diagnostic(ErrorCode.ERR_InteropTypeMissingAttribute, "x.Foo -= Handler").WithArguments("Interface1_Event", "System.Runtime.InteropServices.GuidAttribute")
+                //     	x.Goo -= Handler;	
+                Diagnostic(ErrorCode.ERR_InteropTypeMissingAttribute, "x.Goo -= Handler").WithArguments("Interface1_Event", "System.Runtime.InteropServices.GuidAttribute")
                                                };
 
             DiagnosticDescription[] expectedMetadataOnly = {
@@ -4692,11 +4692,11 @@ class UsePia5
 
             var compilation3 = CreateStandardCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: false);
+            CompileAndVerify(compilation3, verify: Verification.Fails);
 
             var compilation4 = CreateStandardCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: false);
+            CompileAndVerify(compilation4, verify: Verification.Fails);
         }
 
         [Fact]
@@ -5169,11 +5169,11 @@ class UsePia5
 
             var compilation3 = CreateStandardCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: false);
+            CompileAndVerify(compilation3, verify: Verification.Fails);
 
             var compilation4 = CreateStandardCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: false);
+            CompileAndVerify(compilation4, verify: Verification.Fails);
         }
 
         [Fact, WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]
@@ -5585,13 +5585,13 @@ public delegate void MyDelegate();
 [ComEventInterface(typeof(InterfaceEvents), typeof(int))]
 public interface Interface1_Event
 {
-    event MyDelegate Foo;
+    event MyDelegate Goo;
 }
 
 [ComImport(), Guid(""84374891-a3b1-4f8f-8310-99ea58059b10"")]
 public interface InterfaceEvents
 {
-    void Foo();
+    void Goo();
 }
 ";
 
@@ -5608,7 +5608,7 @@ class UsePia
 
     public void Test(Interface1_Event x)
     {
-    	x.Foo += Handler;	
+    	x.Goo += Handler;	
     }
 
     void Handler()
@@ -5621,8 +5621,8 @@ class UsePia
 
             DiagnosticDescription[] expected = {
                 // (10,6): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.ComAwareEventInfo..ctor'
-                //     	x.Foo += Handler;	
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x.Foo += Handler").WithArguments("System.Runtime.InteropServices.ComAwareEventInfo", ".ctor").WithLocation(10, 6)
+                //     	x.Goo += Handler;	
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x.Goo += Handler").WithArguments("System.Runtime.InteropServices.ComAwareEventInfo", ".ctor").WithLocation(10, 6)
                                                };
 
             VerifyEmitDiagnostics(compilation1, true, expected);

@@ -2,6 +2,7 @@
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -74,7 +75,7 @@ Return 1
         <Fact>
         Public Sub MeKeyword()
             Dim source = <text>
-Sub Foo
+Sub Goo
     Me.Bar
 End Sub
 
@@ -82,7 +83,7 @@ Sub Bar
     System.Console.WriteLine(1+1)
 End Sub
 
-Me.Foo
+Me.Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -95,7 +96,7 @@ Me.Foo
         <Fact>
         Public Sub MyBaseAndMyClassKeyword()
             Dim source = <text>
-Sub Foo
+Sub Goo
     MyClass.Bar
 End Sub
 
@@ -103,7 +104,7 @@ Sub Bar
     System.Console.WriteLine(1+1)
 End Sub
 
-MyBase.Foo
+MyBase.Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -116,11 +117,11 @@ MyBase.Foo
         <Fact>
         Public Sub SubStatement()
             Dim source = <text>
-Sub Foo
+Sub Goo
     System.Console.WriteLine(1+1)
 End Sub
 
-Foo
+Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -134,23 +135,23 @@ Foo
             Dim source =
     <compilation>
         <file>
-Sub Foo
+Sub Goo
     System.Console.WriteLine(1+1)
 End Sub
     </file>
     </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidInNamespace, "Sub Foo"))
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidInNamespace, "Sub Goo"))
         End Sub
 
         <Fact>
         Public Sub FunctionStatement()
             Dim source = <text>
-Function Foo As Integer
+Function Goo As Integer
     Return 3
 End Function
 
-System.Console.WriteLine(Foo)
+System.Console.WriteLine(Goo)
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -356,7 +357,7 @@ System.Console.Write("complete")
                 "s0.dll",
                 syntaxTree:=Parse(source0.Value, parseOptions),
                 references:=references)
-            Dim verifier = CompileAndVerify(s0, verify:=False)
+            Dim verifier = CompileAndVerify(s0, verify:=Verification.Fails)
             Dim methodData = verifier.TestData.GetMethodData("Script.<Initialize>")
             Assert.Equal("System.Threading.Tasks.Task(Of Object)", methodData.Method.ReturnType.ToDisplayString())
             methodData.VerifyIL(

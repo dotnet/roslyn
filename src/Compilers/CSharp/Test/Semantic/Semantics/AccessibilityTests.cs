@@ -212,12 +212,12 @@ public class RuleE<T>
 
     protected class Z : RuleE<int>.N
     { 
-        protected RuleE<int>.N Foo;    
+        protected RuleE<int>.N Goo;    
     }
 
     private class Z1
     {
-        protected RuleE<int>.N Foo;    
+        protected RuleE<int>.N Goo;    
     }
 
     protected class z4<S> where S : RuleE<int>.N { }
@@ -253,9 +253,9 @@ class Test
     }
 }";
             CreateStandardCompilation(source).VerifyDiagnostics(
-                // (16,32): warning CS0649: Field 'RuleE<T>.Z1.Foo' is never assigned to, and will always have its default value null
-                //         protected RuleE<int>.N Foo;    
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Foo").WithArguments("RuleE<T>.Z1.Foo", "null"),
+                // (16,32): warning CS0649: Field 'RuleE<T>.Z1.Goo' is never assigned to, and will always have its default value null
+                //         protected RuleE<int>.N Goo;    
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Goo").WithArguments("RuleE<T>.Z1.Goo", "null"),
                 // (23,26): warning CS0169: The field 'RuleE<T>.Fld3' is never used
                 //     private RuleE<int>.N Fld3;    
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Fld3").WithArguments("RuleE<T>.Fld3"),

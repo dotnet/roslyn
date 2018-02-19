@@ -76,21 +76,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static XElement CreateCompilationOptionsElement(CompilationOptions options)
         {
-            var vbOptions = options as Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions;
-            if (vbOptions != null)
+            XElement element = null;
+            if (options is Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions vbOptions)
             {
-                var element = new XElement(CompilationOptionsElementName,
+                element = new XElement(CompilationOptionsElementName,
                     vbOptions.GlobalImports.AsEnumerable().Select(i => new XElement(GlobalImportElementName, i.Name)));
 
                 if (vbOptions.RootNamespace != null)
                 {
                     element.SetAttributeValue(RootNamespaceAttributeName, vbOptions.RootNamespace);
                 }
-
-                return element;
             }
 
-            return null;
+            if (options.CheckOverflow)
+            {
+                element = element ?? new XElement(CompilationOptionsElementName);
+                element.SetAttributeValue(CheckOverflowAttributeName, true);
+            }
+
+            return element;
         }
 
         private static XElement CreateMetadataReference(string path)

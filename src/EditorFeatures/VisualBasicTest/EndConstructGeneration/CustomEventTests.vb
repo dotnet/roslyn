@@ -7,11 +7,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         Public Sub TestApplyAfterCustomEvent()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-    Custom Event foo As System.EventHandler
+    Custom Event goo As System.EventHandler
 End Class",
                 beforeCaret:={1, -1},
                 after:="Class c1
-    Custom Event foo As System.EventHandler
+    Custom Event goo As System.EventHandler
         AddHandler(value As EventHandler)
 
         End AddHandler
@@ -31,12 +31,12 @@ End Class",
             VerifyStatementEndConstructApplied(
                 before:="Imports System
 Class c1
-    Custom Event foo As EventHandler
+    Custom Event goo As EventHandler
 End Class",
                 beforeCaret:={2, -1},
                 after:="Imports System
 Class c1
-    Custom Event foo As EventHandler
+    Custom Event goo As EventHandler
         AddHandler(value As EventHandler)
 
         End AddHandler
@@ -56,16 +56,16 @@ End Class",
             VerifyStatementEndConstructApplied(
                 before:="Imports System
 Class c1
-    Custom Event foo As FooHandler
+    Custom Event goo As GooHandler
 End Class",
                 beforeCaret:={2, -1},
                 after:="Imports System
 Class c1
-    Custom Event foo As FooHandler
-        AddHandler(value As FooHandler)
+    Custom Event goo As GooHandler
+        AddHandler(value As GooHandler)
 
         End AddHandler
-        RemoveHandler(value As FooHandler)
+        RemoveHandler(value As GooHandler)
 
         End RemoveHandler
         RaiseEvent()
@@ -81,12 +81,12 @@ End Class",
             VerifyStatementEndConstructApplied(
                 before:="Imports System
 Class c1
-    Custom Event foo As Object
+    Custom Event goo As Object
 End Class",
                 beforeCaret:={2, -1},
                 after:="Imports System
 Class c1
-    Custom Event foo As Object
+    Custom Event goo As Object
         AddHandler(value As Object)
 
         End AddHandler
@@ -106,12 +106,12 @@ End Class",
             VerifyStatementEndConstructApplied(
                 before:="Imports System
 Class c1
-    Custom Event foo As EventHandler(Of ConsoleCancelEventArgs)
+    Custom Event goo As EventHandler(Of ConsoleCancelEventArgs)
 End Class",
                 beforeCaret:={2, -1},
                 after:="Imports System
 Class c1
-    Custom Event foo As EventHandler(Of ConsoleCancelEventArgs)
+    Custom Event goo As EventHandler(Of ConsoleCancelEventArgs)
         AddHandler(value As EventHandler(Of ConsoleCancelEventArgs))
 
         End AddHandler
@@ -131,7 +131,7 @@ End Class",
             VerifyStatementEndConstructNotApplied(
                 text:="Imports System
 Class c1
-    Custom Event foo As EventHandler(Of ConsoleCancelEventArgs)
+    Custom Event goo As EventHandler(Of ConsoleCancelEventArgs)
         AddHandler(value As EventHandler(Of ConsoleCancelEventArgs))
 
         End AddHandler

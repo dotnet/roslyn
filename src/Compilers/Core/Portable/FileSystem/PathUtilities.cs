@@ -37,6 +37,10 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Removes trailing directory separator characters
         /// </summary>
+        /// <remarks>
+        /// This will trim the root directory separator:
+        /// "C:\" maps to "C:", and "/" maps to ""
+        /// </remarks>
         public static string TrimTrailingSeparators(string s)
         {
             int lastSeparator = s.Length;
@@ -51,6 +55,34 @@ namespace Roslyn.Utilities
             }
 
             return s;
+        }
+
+        /// <summary>
+        /// Ensures a trailing directory separator character
+        /// </summary>
+        public static string EnsureTrailingSeparator(string s)
+        {
+            if (s.Length == 0 || IsAnyDirectorySeparator(s[s.Length - 1]))
+            {
+                return s;
+            }
+
+            // Use the existing slashes in the path, if they're consistent
+            bool hasSlash = s.IndexOf('/') >= 0;
+            bool hasBackslash = s.IndexOf('\\') >= 0;
+            if (hasSlash && !hasBackslash)
+            {
+                return s + '/';
+            }
+            else if (!hasSlash && hasBackslash)
+            {
+                return s + '\\';
+            }
+            else
+            {
+                // If there are no slashes or they are inconsistent, use the current platform's slash.
+                return s + DirectorySeparatorChar;
+            }
         }
 
         public static string GetExtension(string path)
@@ -283,13 +315,13 @@ namespace Roslyn.Utilities
             if (!IsUnixLikePlatform)
             {
                 // "\"
-                // "\foo"
+                // "\goo"
                 if (path.Length >= 1 && IsDirectorySeparator(path[0]))
                 {
                     return PathKind.RelativeToCurrentRoot;
                 }
 
-                // "C:foo"
+                // "C:goo"
 
                 if (path.Length >= 2 && path[1] == VolumeSeparatorChar && (path.Length <= 2 || !IsDirectorySeparator(path[2])))
                 {
@@ -297,7 +329,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            // "foo.dll"
+            // "goo.dll"
             return PathKind.Relative;
         }
 
@@ -324,7 +356,7 @@ namespace Roslyn.Utilities
             }
 
             // "\\machine\share"
-            // Including invalid/incomplete UNC paths (e.g. "\\foo")
+            // Including invalid/incomplete UNC paths (e.g. "\\goo")
             return path.Length >= 2 &&
                 IsDirectorySeparator(path[0]) &&
                 IsDirectorySeparator(path[1]);
@@ -428,13 +460,13 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Determines if "path" contains 'component' within itself.
-        /// i.e. asking if the path "c:\foo\bar\baz" has component "bar" would return 'true'.
-        /// On the other hand, if you had "c:\foo\bar1\baz" then it would not have "bar" as a
+        /// i.e. asking if the path "c:\goo\bar\baz" has component "bar" would return 'true'.
+        /// On the other hand, if you had "c:\goo\bar1\baz" then it would not have "bar" as a
         /// component.
         /// 
         /// A path contains a component if any file name or directory name in the path
-        /// matches 'component'.  As such, if you had something like "\\foo" then that would
-        /// not have "foo" as a component. That's because here "foo" is the server name portion
+        /// matches 'component'.  As such, if you had something like "\\goo" then that would
+        /// not have "goo" as a component. That's because here "goo" is the server name portion
         /// of the UNC path, and not an actual directory or file name.
         /// </summary>
         public static bool ContainsPathComponent(string path, string component, bool ignoreCase)
@@ -625,14 +657,16 @@ namespace Roslyn.Utilities
                 return filePath;
             }
 
-            // find the first key in the path map that matches a prefix of the normalized path (followed by a path separator).
+            // find the first key in the path map that matches a prefix of the normalized path.
             // Note that we expect the client to use consistent capitalization; we use ordinal (case-sensitive) comparisons.
             foreach (var kv in pathMap)
             {
                 var oldPrefix = kv.Key;
                 if (!(oldPrefix?.Length > 0)) continue;
 
-                if (filePath.StartsWith(oldPrefix, StringComparison.Ordinal) && filePath.Length > oldPrefix.Length && IsAnyDirectorySeparator(filePath[oldPrefix.Length]))
+                // oldPrefix always ends with a path separator, so there's no need to check if it was a partial match
+                // e.g. for the map /goo=/bar and filename /goooo
+                if (filePath.StartsWith(oldPrefix, StringComparison.Ordinal))
                 {
                     var replacementPrefix = kv.Value;
 

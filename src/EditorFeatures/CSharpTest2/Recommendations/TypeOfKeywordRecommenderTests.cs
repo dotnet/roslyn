@@ -63,7 +63,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class E {
-  void Foo() {
+  void Goo() {
     const int a = $$
   }
 }");

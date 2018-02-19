@@ -383,7 +383,7 @@ unsafe struct C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll);
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             // NOTE: unsigned addition
             verifier.VerifyIL("C.Add_Int1", @"
@@ -2282,13 +2282,13 @@ public class MyClass
 {
     public static void Main()
     {
-        short foo = 0;
+        short goo = 0;
         try
         {
             for (int i = 0; i < 2; i++)
             {
-                checked { foo += 32000; }
-                Console.Write(foo);
+                checked { goo += 32000; }
+                Console.Write(goo);
             }
         }
         catch (OverflowException)

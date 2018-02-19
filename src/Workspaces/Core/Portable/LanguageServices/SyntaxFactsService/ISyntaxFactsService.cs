@@ -14,10 +14,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsCaseSensitive { get; }
         StringComparer StringComparer { get; }
 
+        SyntaxTrivia ElasticMarker { get; }
         SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
 
         bool SupportsIndexingInitializer(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
+
+        SyntaxToken ParseToken(string text);
 
         bool IsAwaitKeyword(SyntaxToken token);
         bool IsIdentifier(SyntaxToken token);
@@ -55,6 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression(SyntaxNode node);
         bool IsNullLiteralExpression(SyntaxNode node);
+        bool IsDefaultLiteralExpression(SyntaxNode node);
         bool IsLiteralExpression(SyntaxNode node);
 
         string GetText(int kind);
@@ -75,6 +79,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsBinaryExpression(SyntaxNode node);
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right);
         void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
+
+        bool IsCastExpression(SyntaxNode node);
+        void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression);
 
         bool IsInvocationExpression(SyntaxNode node);
         bool IsExpressionOfInvocationExpression(SyntaxNode node);
@@ -131,6 +138,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsNamedParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
+        SyntaxNode GetParameterList(SyntaxNode node);
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
 
@@ -183,6 +191,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsForEachStatement(SyntaxNode node);
         bool IsLockStatement(SyntaxNode node);
         bool IsUsingStatement(SyntaxNode node);
+        bool IsStatement(SyntaxNode node);
+        bool IsParameter(SyntaxNode node);
+        bool IsVariableDeclarator(SyntaxNode node);
+        bool IsDeconstructionAssignment(SyntaxNode node);
+        bool IsDeconstructionForEachStatement(SyntaxNode node);
+
+        /// <summary>
+        /// Returns true for nodes that represent the body of a method.
+        /// 
+        /// For VB this will be 
+        /// MethodBlockBaseSyntax.  This will be true for things like constructor, method, operator
+        /// bodies as well as accessor bodies.  It will not be true for things like sub() function()
+        /// lambdas.  
+        /// 
+        /// For C# this will be the BlockSyntax or ArrowExpressionSyntax for a 
+        /// method/constructor/deconstructor/operator/accessor.  It will not be included for local
+        /// functions.
+        /// </summary>
+        bool IsMethodBody(SyntaxNode node);
 
         bool IsReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
@@ -301,14 +328,19 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode;
 
         ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root);
+        ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxToken firstToken);
 
         bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
         bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
 
-        string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken);
+        string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, int maxBannerLength, CancellationToken cancellationToken);
 
         SyntaxTokenList GetModifiers(SyntaxNode node);
         SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers);
+
+        Location GetDeconstructionReferenceLocation(SyntaxNode node);
+
+        SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token);
     }
 
     [Flags]

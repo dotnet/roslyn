@@ -4,10 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -130,10 +133,10 @@ public class A
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(foo[0]);
+        Console.WriteLine(goo[0]);
     }
 
-    static int[] foo()
+    static int[] goo()
     {
         return new int[0];
     }
@@ -149,7 +152,7 @@ public class A
     {        
     }
 
-    void foo(object o)
+    void goo(object o)
     {
         System.Console.WriteLine(o.GetType().GetMethods[0].Name);
     }
@@ -238,7 +241,9 @@ class X
                         case ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden:
                         case ErrorCode.WRN_RefCultureMismatch:
                         case ErrorCode.WRN_ConflictingMachineAssembly:
-                        case ErrorCode.WRN_FilterIsConstant:
+                        case ErrorCode.WRN_FilterIsConstantFalse:
+                        case ErrorCode.WRN_FilterIsConstantTrue:
+                        case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
                         case ErrorCode.WRN_AnalyzerCannotBeCreated:
                         case ErrorCode.WRN_NoAnalyzerInAssembly:
                         case ErrorCode.WRN_UnableToLoadAnalyzer:
@@ -246,7 +251,6 @@ class X
                         case ErrorCode.WRN_AlignmentMagnitude:
                         case ErrorCode.WRN_TupleLiteralNameMismatch:
                         case ErrorCode.WRN_Experimental:
-                        case ErrorCode.WRN_DefaultInSwitch:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -2004,7 +2008,7 @@ public class C
         int z = 0;  // CS0219
     }
 }";
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "foo.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "goo.cs");
             Assert.Equal(ReportDiagnostic.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "public class").Start));
             Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "public static").Start));
             Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "public static").Start));
@@ -2033,7 +2037,7 @@ class Program
         var y = 10;
     }
 }";
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "foo.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "goo.cs");
             Assert.Equal(ReportDiagnostic.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "static void").Start));
             Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "var x").Start));
             Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "var y").Start));
@@ -2051,7 +2055,7 @@ class Program
     {
     }
 }";
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "foo.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "goo.cs");
             Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "static void").Start));
         }
 
@@ -2072,7 +2076,7 @@ interface IMyEnumerator { }
 
 public class Test
 {
-    static IMyEnumerator Foo()
+    static IMyEnumerator Goo()
     {
         yield break;
     }
@@ -2488,8 +2492,9 @@ class Program
             var snkPath = snk.Path;
 
             const string source = "";
+            var options = TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyFile(snkPath);
 
-            var ca = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyFile(snkPath));
+            var ca = CreateStandardCompilation(source, options: options);
 
             ca.VerifyEmitDiagnostics(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 // error CS7027: Error signing output with public key from file '{temp path}' -- Assembly signing not supported.
@@ -2516,6 +2521,44 @@ class Program
         // for the actual signing. However, we error on the key read, and can never
         // get to the third case (but there's still error handling if that changes)
 
+        #endregion
+
+        #region PathMap Linux Tests
+        // Like the above (CoreCLR Signing Tests), these aren't actually syntax tests, but this is in one of only two assemblies tested on linux
+
+        [Theory]
+        [InlineData("C:\\", "/", "C:\\", "/")]
+        [InlineData("C:\\temp\\", "/temp/", "C:\\temp", "/temp")]
+        [InlineData("C:\\temp\\", "/temp/", "C:\\temp\\", "/temp/")]
+        [InlineData("/", "C:\\", "/", "C:\\")]
+        [InlineData("/temp/", "C:\\temp\\", "/temp", "C:\\temp")]
+        [InlineData("/temp/", "C:\\temp\\", "/temp/", "C:\\temp\\")]
+        public void PathMapKeepsCrossPlatformRoot(string expectedFrom, string expectedTo, string sourceFrom, string sourceTo)
+        {
+            var pathmapArg = $"/pathmap:{sourceFrom}={sourceTo}";
+            var parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { pathmapArg, "a.cs" }, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), null);
+            parsedArgs.Errors.Verify();
+            var expected = new KeyValuePair<string, string>(expectedFrom, expectedTo);
+            Assert.Equal(expected, parsedArgs.PathMap[0]);
+        }
+
+        [Fact]
+        public void PathMapInconsistentSlashes()
+        {
+            CSharpCommandLineArguments parse(params string[] args)
+            {
+                var parsedArgs = CSharpCommandLineParser.Default.Parse(args, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), null);
+                parsedArgs.Errors.Verify();
+                return parsedArgs;
+            }
+
+            var sep = PathUtilities.DirectorySeparatorChar;
+            Assert.Equal(new KeyValuePair<string, string>("C:\\temp/goo" + sep, "/temp\\goo" + sep), parse("/pathmap:C:\\temp/goo=/temp\\goo", "a.cs").PathMap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("noslash" + sep, "withoutslash" + sep), parse("/pathmap:noslash=withoutslash", "a.cs").PathMap[0]);
+            var doublemap = parse("/pathmap:/temp=/goo,/temp/=/bar", "a.cs").PathMap;
+            Assert.Equal(new KeyValuePair<string, string>("/temp/", "/goo/"), doublemap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("/temp/", "/bar/"), doublemap[1]);
+        }
         #endregion
     }
 }

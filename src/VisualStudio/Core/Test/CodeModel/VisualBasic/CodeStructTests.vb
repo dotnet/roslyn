@@ -285,7 +285,7 @@ End Structure
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
-Structure $$Foo
+Structure $$Goo
 End Structure
 </Code>
 
@@ -340,11 +340,11 @@ End Structure
 <Code>
 Namespace N
     Structure S$$
-        Implements IFoo(Of Integer)
+        Implements IGoo(Of Integer)
 
     End Structure
 
-    Interface IFoo(Of T)
+    Interface IGoo(Of T)
     End Interface
 End Namespace
 </Code>
@@ -369,16 +369,16 @@ End Structure
 <Code>
 Namespace N
     Structure S$$
-        Implements IFoo(Of Integer)
+        Implements IGoo(Of Integer)
 
     End Structure
 
-    Interface IFoo(Of T)
+    Interface IGoo(Of T)
     End Interface
 End Namespace
 </Code>
 
-            TestGenericNameExtender_GetImplTypeGenericName(code, 1, "N.IFoo(Of Integer)")
+            TestGenericNameExtender_GetImplTypeGenericName(code, 1, "N.IGoo(Of Integer)")
         End Sub
 
 #End Region

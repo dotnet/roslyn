@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -10,8 +9,6 @@
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <!-- Microsoft.VisualStudio.Debugger.Engine 15.0.26201-gamma is not compatible with netstandard1.3 -->
-    <PackageTargetFallback>portable-net45+win8</PackageTargetFallback>
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
   </PropertyGroup>
   <ItemGroup>
@@ -36,8 +33,8 @@
     <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs">
       <Link>CSharp\Compiler\SyntaxKindFacts.cs</Link>
     </Compile>
-    <Compile Include="..\ExpressionCompiler\MetadataUtilities_Exceptions.cs">
-      <Link>ExpressionCompiler\MetadataUtilities_Exceptions.cs</Link>
+    <Compile Include="..\ExpressionCompiler\DkmExceptionUtilities.cs">
+      <Link>ExpressionCompiler\DkmExceptionUtilities.cs</Link>
     </Compile>
     <VsdConfigXml Include="CSharp\FunctionResolver.vsdconfigxml" />
     <VsdConfigXml Include="VisualBasic\FunctionResolver.vsdconfigxml" />
@@ -57,5 +54,4 @@
     </PackageReference>
   </ItemGroup>
   <Import Project="..\..\..\..\..\build\Targets\Vsdconfig.targets" />
-  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

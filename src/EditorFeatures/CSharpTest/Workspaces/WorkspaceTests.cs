@@ -22,24 +22,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 {
     public partial class WorkspaceTests
     {
-        [Shared]
-        [Export(typeof(IAsynchronousOperationListener))]
-        [Export(typeof(IAsynchronousOperationWaiter))]
-        [Feature(FeatureAttribute.Workspace)]
-        private class WorkspaceWaiter : AsynchronousOperationListener
-        {
-            internal WorkspaceWaiter()
-            {
-            }
-        }
-
         private static Lazy<ExportProvider> s_exportProvider = new Lazy<ExportProvider>(CreateExportProvider);
 
         private static ExportProvider CreateExportProvider()
         {
-            var catalog = MinimalTestExportProvider.WithPart(
-                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic(),
-                typeof(WorkspaceWaiter));
+            var catalog = TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic();
             return MinimalTestExportProvider.CreateExportProvider(catalog);
         }
 
@@ -51,8 +38,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
         {
             var workspaceWaiter = workspace.ExportProvider
-                .GetExports<IAsynchronousOperationListener, FeatureMetadata>()
-                .First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
+                                    .GetExportedValue<AsynchronousOperationListenerProvider>()
+                                    .GetWaiter(FeatureAttribute.Workspace);
+
             await workspaceWaiter.CreateWaitTask();
         }
 
@@ -176,7 +164,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 var solution = workspace.CurrentSolution;
 
                 var document = new TestHostDocument(
-@"#if FOO
+@"#if GOO
 class C { }
 #else
 class D { }
@@ -189,7 +177,7 @@ class D { }
                 await VerifyRootTypeNameAsync(workspace, "D");
 
                 workspace.OnParseOptionsChanged(document.Id.ProjectId,
-                    new CSharpParseOptions(preprocessorSymbols: new[] { "FOO" }));
+                    new CSharpParseOptions(preprocessorSymbols: new[] { "GOO" }));
 
                 await VerifyRootTypeNameAsync(workspace, "C");
             }
@@ -203,7 +191,7 @@ class D { }
                 var solution = workspace.CurrentSolution;
 
                 var document = new TestHostDocument(
-@"#if FOO
+@"#if GOO
 class C { }
 #else
 class D { }
@@ -217,7 +205,7 @@ class D { }
                 await VerifyRootTypeNameAsync(workspace, "D");
 
                 workspace.OnParseOptionsChanged(document.Id.ProjectId,
-                    new CSharpParseOptions(preprocessorSymbols: new[] { "FOO" }));
+                    new CSharpParseOptions(preprocessorSymbols: new[] { "GOO" }));
 
                 await VerifyRootTypeNameAsync(workspace, "C");
 
@@ -654,7 +642,7 @@ class D { }
                     if (hasX)
                     {
                         var doc2Z = cs.GetDocument(document2.Id);
-                        var partialDoc2Z = await doc2Z.WithFrozenPartialSemanticsAsync(CancellationToken.None);
+                        var partialDoc2Z = doc2Z.WithFrozenPartialSemantics(CancellationToken.None);
                         var compilation2Z = await partialDoc2Z.Project.GetCompilationAsync();
                         var classDz = compilation2Z.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
                         var classCz = classDz.BaseType;
@@ -877,8 +865,8 @@ class D { }
         {
             using (var workspace = CreateWorkspace())
             {
-                var startText = @"<setting value = ""foo""";
-                var newText = @"<setting value = ""foo1""";
+                var startText = @"<setting value = ""goo""";
+                var newText = @"<setting value = ""goo1""";
                 var document = new TestHostDocument("public class C { }");
                 var additionalDoc = new TestHostDocument(startText);
                 var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
@@ -911,7 +899,7 @@ class D { }
         {
             using (var workspace = CreateWorkspace())
             {
-                var startText = @"<setting value = ""foo""";
+                var startText = @"<setting value = ""goo""";
                 var document = new TestHostDocument("public class C { }");
                 var additionalDoc = new TestHostDocument(startText);
                 var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
@@ -942,7 +930,7 @@ class D { }
         {
             using (var workspace = CreateWorkspace())
             {
-                var startText = @"<setting value = ""foo""";
+                var startText = @"<setting value = ""goo""";
                 var document = new TestHostDocument("public class C { }");
                 var additionalDoc = new TestHostDocument(startText, "original.config");
                 var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
@@ -980,7 +968,7 @@ class D { }
         {
             using (var workspace = CreateWorkspace())
             {
-                var startText = @"<setting value = ""foo""";
+                var startText = @"<setting value = ""goo""";
                 var document = new TestHostDocument("public class C { }");
                 var additionalDoc = new TestHostDocument(startText, "original.config");
                 var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });

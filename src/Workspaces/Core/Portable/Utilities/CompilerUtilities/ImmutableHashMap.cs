@@ -306,8 +306,7 @@ namespace Roslyn.Collections.Immutable
                     var en = stack.Peek();
                     if (en.MoveNext())
                     {
-                        var vb = en.Current as ValueBucket;
-                        if (vb != null)
+                        if (en.Current is ValueBucket vb)
                         {
                             yield return vb.Key;
                         }
@@ -579,8 +578,7 @@ namespace Roslyn.Collections.Immutable
                 var en = stack.Peek();
                 if (en.MoveNext())
                 {
-                    var vb = en.Current as ValueBucket;
-                    if (vb != null)
+                    if (en.Current is ValueBucket vb)
                     {
                         yield return vb;
                     }

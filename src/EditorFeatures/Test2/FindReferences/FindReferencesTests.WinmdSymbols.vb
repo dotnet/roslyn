@@ -182,7 +182,7 @@ namespace SampleComponent
                     .RemoveEventHandler(value);
             }
         }
-        public void Foo()
+        public void Goo()
         {
             Class1 c1 = new Class1();
             Class2 c2 = new Class2();
@@ -451,7 +451,7 @@ namespace SampleComponent
     }
     public sealed class Test
     {
-        public void Foo()
+        public void Goo()
         {
             Class1 c1 = new Class1();
             Class1 c2 = new Class1();
@@ -619,7 +619,7 @@ Public NotInheritable Class Class2
 End Class
 
 Public NotInheritable Class Test
-    Public Sub Foo()
+    Public Sub Goo()
         Dim c1 = DirectCast(New Class1(), IList(Of Integer))
         Dim c2 As New Class1
         Dim c3 As New Class2

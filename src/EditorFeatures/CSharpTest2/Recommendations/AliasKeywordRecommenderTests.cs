@@ -44,7 +44,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -71,14 +71,14 @@ $$");
         public async Task TestAfterExtern_InNamespace()
         {
             await VerifyKeywordAsync(
-@"namespace Foo {
+@"namespace Goo {
     extern $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAlias_InNamespace()
         {
-            await VerifyAbsenceAsync(@"namespace Foo {
+            await VerifyAbsenceAsync(@"namespace Goo {
     extern alias $$");
         }
 
@@ -86,7 +86,7 @@ $$");
         public async Task TestNotAfterExtern_InClass()
         {
             await VerifyAbsenceAsync(
-@"class Foo {
+@"class Goo {
     extern $$");
         }
     }

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
         {
         }
 
-        protected override void AppendTodoComments(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList)
+        protected override void AppendTodoComments(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList)
         {
             if (PreprocessorHasComment(trivia))
             {

@@ -68,7 +68,7 @@ public struct EventDescriptor
         {
             string source = @"
 [System.Security.SuppressUnmanagedCodeSecurityAttribute]
-class Foo
+class Goo
 {
     [System.Security.SuppressUnmanagedCodeSecurityAttribute]
     public static void Main() {}
@@ -662,9 +662,9 @@ namespace N
 }
 ";
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "Test");
-            compilation.VerifyDiagnostics();
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.NamedType,
@@ -696,6 +696,7 @@ namespace N
                         "\u0001" + // number of bytes in the encoding of the named arguments
                         "\u0000" // number of named arguments
                 });
+            });
         }
 
         [Fact]
@@ -709,18 +710,18 @@ namespace N
 	public class C
 	{
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
-		public static void Foo() {}
+		public static void Goo() {}
     }
 }
 ";
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
-            compilation.VerifyDiagnostics();
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo",
+                    ParentNameOpt = @"Goo",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -735,6 +736,7 @@ namespace N
                         "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
                         "User1", // argument value (@"User1")
                 });
+            });
         }
 
         [Fact]
@@ -753,9 +755,9 @@ namespace N
 }
 ";
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
-            compilation.VerifyDiagnostics();
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.NamedType,
@@ -786,6 +788,7 @@ namespace N
                         "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
                         "User1", // argument value (@"User1")
                 });
+            });
         }
 
         [Fact]
@@ -800,18 +803,18 @@ namespace N
 	{
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
 	    [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
-        public static void Foo() {}
+        public static void Goo() {}
     }
 }
 ";
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
-            compilation.VerifyDiagnostics();
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo",
+                    ParentNameOpt = @"Goo",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0002" + // number of attributes (small enough to fit in 1 byte)
@@ -838,6 +841,7 @@ namespace N
                         "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
                         "User1", // argument value (@"User1")
                 });
+            });
         }
 
         [Fact]
@@ -856,9 +860,9 @@ namespace N
 }
 ";
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
-            compilation.VerifyDiagnostics();
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.NamedType,
@@ -896,6 +900,7 @@ namespace N
                         "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
                         "User2", // argument value (@"User2")
                 });
+            });
         }
 
         [Fact]
@@ -910,18 +915,18 @@ namespace N
 	{
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
 	    [PrincipalPermission(SecurityAction.Assert, Role=@""User2"")]
-        public static void Foo() {}
+        public static void Goo() {}
     }
 }
 ";
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
-            compilation.VerifyDiagnostics();
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo",
+                    ParentNameOpt = @"Goo",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -940,7 +945,7 @@ namespace N
                 {
                     ActionFlags = DeclarativeSecurityAction.Assert,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo",
+                    ParentNameOpt = @"Goo",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -955,6 +960,7 @@ namespace N
                         "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
                         "User2", // argument value (@"User2")
                 });
+            });
         }
 
         [Fact]
@@ -980,9 +986,9 @@ namespace N2
 }
 ";
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
-            compilation.VerifyDiagnostics();
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.NamedType,
@@ -1020,6 +1026,7 @@ namespace N2
                         "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
                         "User1", // argument value (@"User1")
                 });
+            });
         }
 
         [Fact]
@@ -1033,21 +1040,21 @@ namespace N
     public class C
 	{
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
-	    public static void Foo1() {}
+	    public static void Goo1() {}
 
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
-	    public static void Foo2() {}
+	    public static void Goo2() {}
     }
 }
 ";
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
-            compilation.VerifyDiagnostics();
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo1",
+                    ParentNameOpt = @"Goo1",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -1066,7 +1073,7 @@ namespace N
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo2",
+                    ParentNameOpt = @"Goo2",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -1081,6 +1088,7 @@ namespace N
                         "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
                         "User1", // argument value (@"User1")
                 });
+            });
         }
 
         [Fact]
@@ -1098,7 +1106,7 @@ namespace N
     public class C
 	{
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
-	    public static void Foo() {}
+	    public static void Goo() {}
     }
 }
 ";
@@ -1112,8 +1120,9 @@ namespace N
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, UnmanagedCode = true)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.RequestMinimum").WithArguments("System.Security.Permissions.SecurityAction.RequestMinimum", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.RequestOptional,
                     ParentKind = SymbolKind.Assembly,
@@ -1170,7 +1179,7 @@ namespace N
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo",
+                    ParentNameOpt = @"Goo",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -1185,6 +1194,7 @@ namespace N
                         "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
                         "User1", // argument value (@"User1")
                 });
+            });
         }
 
         [Fact]
@@ -1199,14 +1209,14 @@ namespace N
     public class C
 	{
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
-	    public static void Foo() {}
+	    public static void Goo() {}
     }
 }
 ";
             var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
-            compilation.VerifyDiagnostics();
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, verify: Verification.Passes,symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.RequestMinimum,
                     ParentKind = SymbolKind.Assembly,
@@ -1246,7 +1256,7 @@ namespace N
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo",
+                    ParentNameOpt = @"Goo",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -1261,16 +1271,14 @@ namespace N
                         "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
                         "User1", // argument value (@"User1")
                 });
+            });
         }
 
         [Fact]
         public void GetSecurityAttributes_Type_Method_Assembly()
         {
             string source = @"
-using System;
-using System.Security;
 using System.Security.Permissions;
-using System.Security.Principal;
 
 namespace N
 {
@@ -1280,88 +1288,99 @@ namespace N
 	{
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
         [PrincipalPermission(SecurityAction.Demand, Role=@""User2"")]
-	    public static void Foo() {}
+	    public static void Goo() {}
     }
 }
 ";
-            Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => (ModuleSymbol module) =>
+
+            var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            CompileAndVerify(compilation, verify: Verification.Passes, symbolValidator: module =>
             {
-                var assembly = module.ContainingAssembly;
-                var ns = module.GlobalNamespace.GetMember<NamespaceSymbol>("N");
-                var namedType = ns.GetMember<NamedTypeSymbol>("C");
-                var type = (Cci.ITypeDefinition)namedType;
-                var method = (Cci.IMethodDefinition)namedType.GetMember("Foo");
-
-                if (isFromSource)
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
-                    var sourceAssembly = (SourceAssemblySymbol)assembly;
-                    IEnumerable<Cci.SecurityAttribute> assemblySecurityAttributes = sourceAssembly.GetSecurityAttributes();
-
-                    var compilation = sourceAssembly.DeclaringCompilation;
-
-                    // Verify assembly security attribute for unsafe dll
-                    Assert.Equal(1, assemblySecurityAttributes.Count());
-                    Cci.SecurityAttribute securityAttribute = assemblySecurityAttributes.Single();
-                    AttributeTests_Synthesized.VerifySkipVerificationSecurityAttribute(securityAttribute, compilation);
-
-                    // Get System.Security.Permissions.PrincipalPermissionAttribute
-                    var emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "PrincipalPermissionAttribute");
-                    NamedTypeSymbol principalPermAttr = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(ref emittedName, true);
-                    Assert.NotNull(principalPermAttr);
-
-                    // Verify type security attributes: different security action
-                    Assert.True(type.HasDeclarativeSecurity);
-                    IEnumerable<Cci.SecurityAttribute> typeSecurityAttributes = type.SecurityAttributes;
-                    Assert.Equal(2, typeSecurityAttributes.Count());
-
-                    // Verify [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
-                    securityAttribute = typeSecurityAttributes.First();
-                    Assert.Equal(DeclarativeSecurityAction.Demand, securityAttribute.Action);
-                    var typeAttribute = (CSharpAttributeData)securityAttribute.Attribute;
-                    Assert.Equal(principalPermAttr, typeAttribute.AttributeClass);
-                    Assert.Equal(1, typeAttribute.CommonConstructorArguments.Length);
-                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)DeclarativeSecurityAction.Demand);
-                    Assert.Equal(1, typeAttribute.CommonNamedArguments.Length);
-                    typeAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User1");
-
-                    // Verify [PrincipalPermission(SecurityAction.Assert, Role=@""User2"")]
-                    securityAttribute = typeSecurityAttributes.Last();
-                    Assert.Equal(DeclarativeSecurityAction.Assert, securityAttribute.Action);
-                    typeAttribute = (CSharpAttributeData)securityAttribute.Attribute;
-                    Assert.Equal(principalPermAttr, typeAttribute.AttributeClass);
-                    Assert.Equal(1, typeAttribute.CommonConstructorArguments.Length);
-                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)DeclarativeSecurityAction.Assert);
-                    Assert.Equal(1, typeAttribute.CommonNamedArguments.Length);
-                    typeAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User2");
-
-                    // Verify method security attributes: same security action
-                    Assert.True(method.HasDeclarativeSecurity);
-                    IEnumerable<Cci.SecurityAttribute> methodSecurityAttributes = method.SecurityAttributes;
-                    Assert.Equal(2, methodSecurityAttributes.Count());
-
-                    // Verify [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
-                    securityAttribute = methodSecurityAttributes.First();
-                    Assert.Equal(DeclarativeSecurityAction.Demand, securityAttribute.Action);
-                    var methodAttribute = (CSharpAttributeData)securityAttribute.Attribute;
-                    Assert.Equal(principalPermAttr, methodAttribute.AttributeClass);
-                    Assert.Equal(1, methodAttribute.CommonConstructorArguments.Length);
-                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)DeclarativeSecurityAction.Demand);
-                    Assert.Equal(1, methodAttribute.CommonNamedArguments.Length);
-                    methodAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User1");
-
-                    // Verify [PrincipalPermission(SecurityAction.Demand, Role=@""User2"")]
-                    securityAttribute = methodSecurityAttributes.Last();
-                    Assert.Equal(DeclarativeSecurityAction.Demand, securityAttribute.Action);
-                    methodAttribute = (CSharpAttributeData)securityAttribute.Attribute;
-                    Assert.Equal(principalPermAttr, methodAttribute.AttributeClass);
-                    Assert.Equal(1, methodAttribute.CommonConstructorArguments.Length);
-                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)DeclarativeSecurityAction.Demand);
-                    Assert.Equal(1, methodAttribute.CommonNamedArguments.Length);
-                    methodAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User2");
-                }
-            };
-
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
+                    ActionFlags = DeclarativeSecurityAction.RequestMinimum,
+                    ParentKind = SymbolKind.Assembly,
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u0015" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u0002" + // type bool
+                        "\u0010" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "SkipVerification" + // property name
+                        "\u0001", // argument value (true)
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.NamedType,
+                    ParentNameOpt = @"C",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Assert,
+                    ParentKind = SymbolKind.NamedType,
+                    ParentNameOpt = @"C",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User2", // argument value (@"User2")
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.Method,
+                    ParentNameOpt = @"Goo",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0002" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1" + // argument value (@"User1")
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User2", // argument value (@"User2")
+                });
+            });
         }
 
         [WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")]
@@ -1405,8 +1424,9 @@ public class MyClass
                 // [PermissionSetAttribute(SecurityAction.Deny, File = @"pset.xml")]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.Deny").WithArguments("System.Security.Permissions.SecurityAction.Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.Deny,
                     ParentKind = SymbolKind.NamedType,
@@ -1425,6 +1445,7 @@ public class MyClass
                         "\u0082" + "\u0086" + // length of string
                         hexFileContent // argument value
                 });
+            });
         }
 
         [WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")]

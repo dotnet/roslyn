@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
@@ -733,7 +734,7 @@ public class LocalTypes2
             Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void GenericsClosedOverLocalTypes2()
         {
             var mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
@@ -1231,7 +1232,7 @@ public interface I7
             Assert.NotEqual(SymbolKind.ErrorType, varI5.Kind);
             Assert.NotEqual(SymbolKind.ErrorType, varI6.Kind);
             Assert.NotEqual(SymbolKind.ErrorType, varI5_Foo.ReturnType.Kind);
-            Assert.NotEqual(SymbolKind.ErrorType, ((NamedTypeSymbol)varI5_Foo.ReturnType).TypeArguments[0].Kind);
+            Assert.NotEqual(SymbolKind.ErrorType, ((NamedTypeSymbol)varI5_Foo.ReturnType).TypeArguments()[0].Kind);
             Assert.Equal("System.Collections.Generic.List<I6>", varI5_Foo.ReturnType.ToTestDisplayString());
 
             var varI7 = varC_Library2.SourceModule.GlobalNamespace.GetTypeMembers("I7").Single();
@@ -1239,11 +1240,11 @@ public interface I7
             var varI7_Bar = varI7.GetMembers("Bar").OfType<MethodSymbol>().Single();
 
             Assert.NotEqual(SymbolKind.ErrorType, varI7_Foo.ReturnType.Kind);
-            Assert.NotEqual(SymbolKind.ErrorType, ((NamedTypeSymbol)varI7_Foo.ReturnType).TypeArguments[0].Kind);
+            Assert.NotEqual(SymbolKind.ErrorType, ((NamedTypeSymbol)varI7_Foo.ReturnType).TypeArguments()[0].Kind);
             Assert.Equal("System.Collections.Generic.List<I5>", varI7_Foo.ReturnType.ToTestDisplayString());
 
             Assert.NotEqual(SymbolKind.ErrorType, varI7_Bar.ReturnType.Kind);
-            Assert.NotEqual(SymbolKind.ErrorType, ((NamedTypeSymbol)varI7_Bar.ReturnType).TypeArguments[0].Kind);
+            Assert.NotEqual(SymbolKind.ErrorType, ((NamedTypeSymbol)varI7_Bar.ReturnType).TypeArguments()[0].Kind);
             Assert.Equal("System.Collections.Generic.List<I1>", varI7_Bar.ReturnType.ToTestDisplayString());
 
             var varI1 = varC_Pia1.SourceModule.GlobalNamespace.GetTypeMembers("I1").Single();

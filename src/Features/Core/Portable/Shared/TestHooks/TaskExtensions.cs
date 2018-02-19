@@ -11,8 +11,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     {
         public static Task CompletesAsyncOperation(this Task task, IAsyncToken asyncToken)
         {
-            var diagnosticToken = asyncToken as AsynchronousOperationListener.DiagnosticAsyncToken;
-            if (diagnosticToken != null)
+            if (asyncToken is AsynchronousOperationListener.DiagnosticAsyncToken diagnosticToken)
             {
                 diagnosticToken.AssociateWithTask(task);
             }
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public static Task CompletesTrackingOperation(this Task task, IDisposable token)
         {
-            if (token == null)
+            if (token == null || token == EmptyAsyncToken.Instance)
             {
                 return task;
             }

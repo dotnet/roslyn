@@ -159,7 +159,7 @@ End Module
       <compilation name="Bug12423a">
           <file name="a.b">
 Class A    
-    Sub Foo()
+    Sub Goo()
         Static x = { [| New B (abc) |] }
     End Sub
 End Class
@@ -179,7 +179,7 @@ End Class
       <compilation name="Bug12423b">
           <file name="a.b">
 Class A    
-    Sub Foo(i As Integer)
+    Sub Goo(i As Integer)
         Static x = New B([| i |] ) { New B (abc) }
     End Sub
 End Class
@@ -570,7 +570,7 @@ end class</file>
 Imports System
 
 Module Program
-    Function Foo() As Integer
+    Function Goo() As Integer
         Static x, y, z
         [|
         If True
@@ -600,7 +600,7 @@ End Module
 Imports System
 
 Module Program
-    Function Foo() As Integer
+    Function Goo() As Integer
         Static x, y, z
         Static b As Boolean = True
         [|
@@ -630,7 +630,7 @@ End Module
           <file name="a.b">
 Imports System
 Module Program
-    Function Foo() As Integer
+    Function Goo() As Integer
         Static x, y
         If True Then x = 1 Else If True Then Return 1 Else [|Return 1|]
         Return x + y
@@ -652,7 +652,7 @@ End Module
           <file name="a.b">
 Imports System
 Module Program
-    Function Foo() As Integer
+    Function Goo() As Integer
         Static x, y
         If True Then x = 1 Else [|If True Then Return 1 Else Return 1|]
         Return x + y
@@ -674,7 +674,7 @@ End Module
           <file name="a.b">
 Imports System
 Module Program
-    Function Foo() As Integer
+    Function Goo() As Integer
         Static x, y
         [|If True Then x = 1 Else If True Then Return 1 Else Return 1|]
         Return x + y
@@ -697,7 +697,7 @@ End Module
 Imports System
 
 Module Program
-    Function Foo() As Integer
+    Function Goo() As Integer
         Static x, y
         [|If True Then x = 1 Else y = 1|]
         Dim z = x + y
@@ -721,7 +721,7 @@ End Module
 Imports System
 
 Module Program
-    Function Foo() As Integer
+    Function Goo() As Integer
         Static b As Boolean = True
         Static x, y
         [|If b Then x = 1 Else y = 1|]
@@ -746,7 +746,7 @@ End Module
 Imports System
 
 Module Program
-    Function Foo() As Integer
+    Function Goo() As Integer
         Static x, y
         If True Then [|x = 1|] Else y = 1
         Static z = x + y
@@ -770,7 +770,7 @@ End Module
 Imports System
 
 Module Program
-    Function Foo() As Integer
+    Function Goo() As Integer
         Static x, y, z
         If True Then x = 1 Else [|y = 1|]
         Static z = x + y
@@ -794,7 +794,7 @@ End Module
 Imports System
 
 Module Program
-    Function Foo() As Integer
+    Function Goo() As Integer
         Static b As Boolean = True
         Static x, y, z
         If b Then x = 1 Else [|y = 1|]
@@ -819,7 +819,7 @@ End Module
 Imports System
 
 Module Program
-    Function Foo() As Integer
+    Function Goo() As Integer
         Static x, y, z
         If True Then x = 1 Else If True Then y = 1 Else [|z = 1|]
         Static zz = z + x + y
@@ -843,7 +843,7 @@ End Module
 Imports System
 
 Module Program
-    Function Foo() As Integer
+    Function Goo() As Integer
         Static b As Boolean = True
         Static x, y, z
         If b Then x = 1 Else If b Then y = 1 Else [|z = 1|]
@@ -868,7 +868,7 @@ End Module
 Imports System
 
 Module Program
-    Function Foo() As Integer
+    Function Goo() As Integer
         Static x, y, z
         If True Then x = 1 Else [|If True Then y = 1 Else y = 1|]
         Static zz = z + x + y
@@ -892,7 +892,7 @@ End Module
 Imports System
 
 Module Program
-    Function Foo() As Integer
+    Function Goo() As Integer
         Static b As Boolean = True
         Static x, y, z
         If b Then x = 1 Else [|If b Then y = 1 Else y = 1|]
@@ -993,15 +993,15 @@ Module Program
     Sub Main(args As String())
         Static o as object = 1
 [|
-        foo(o)
+        goo(o)
 |]
     End Sub
 
-    Sub foo(x As String)
+    Sub goo(x As String)
 
     End Sub
 
-    Sub foo(Byref x As Integer)
+    Sub goo(Byref x As Integer)
 
     End Sub
 End Module
@@ -1032,15 +1032,15 @@ Class Program
         Static o as object = 1
         Static oo as object = new Program
 [|
-        oo.foo(o)
+        oo.goo(o)
 |]
     End Sub
 
-    Sub foo(x As String)
+    Sub goo(x As String)
 
     End Sub
 
-    Sub foo(Byref x As Integer)
+    Sub goo(Byref x As Integer)
 
     End Sub
 End Class
@@ -1074,11 +1074,11 @@ Module Program
 |]
     End Sub
 
-    Sub foo(x As String)
+    Sub goo(x As String)
 
     End Sub
 
-    Sub foo(Byref x As Integer)
+    Sub goo(Byref x As Integer)
 
     End Sub
 End Module
@@ -1841,14 +1841,14 @@ class C
     shared sub Main()
         Static x as integer = 0
 [|
-        Foo(
+        Goo(
 x 
 )
 |]
       System.Console.WriteLine(x)
     end sub
 
-    shared sub Foo(byref x as integer)
+    shared sub Goo(byref x as integer)
     end sub
 end class
             </file>
@@ -1879,10 +1879,10 @@ end class
 class C
      Sub Main()
         Static x As UInteger
-        System.Console.WriteLine([|Foo(x)|])
+        System.Console.WriteLine([|Goo(x)|])
     End Sub
 
-    Function Foo(ByRef x As ULong)
+    Function Goo(ByRef x As ULong)
         x = 123
         Return x + 1
     End Function
@@ -1910,10 +1910,10 @@ end class
 class C
      Sub Main()
         Static x As UInteger
-        System.Console.WriteLine(Foo([|x|]))
+        System.Console.WriteLine(Goo([|x|]))
     End Sub
 
-    Function Foo(ByRef x As ULong)
+    Function Goo(ByRef x As ULong)
         x = 123
         Return x + 1
     End Function
@@ -2031,10 +2031,10 @@ class C
      Sub Main()
         Static x As ULong
 
-        System.Console.WriteLine([|Foo(x)|])
+        System.Console.WriteLine([|Goo(x)|])
     End Sub
 
-    Function Foo(ByRef x As ULong)
+    Function Goo(ByRef x As ULong)
         x = 123
         Return x + 1
     End Function
@@ -2062,11 +2062,11 @@ class C
     shared sub Main()
         Static x as integer = 1, y as integer = 1
 [|
-        Foo(x)
+        Goo(x)
 |]
     end sub
 
-    shared sub Foo(int x) 
+    shared sub Goo(int x) 
     end sub
 end class
             </file>
@@ -2099,12 +2099,12 @@ class C
 [|
         x = y
         y = 2
-        Foo(y, 2) ' VB does not support expression assignment F(x = y, y = 2)
+        Goo(y, 2) ' VB does not support expression assignment F(x = y, y = 2)
 |]
         Static z as integer = x + y
     }
 
-    shared sub Foo(int x, int y)
+    shared sub Goo(int x, int y)
     end sub
 }
             </file>
@@ -2473,7 +2473,7 @@ End Enum
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
    <compilation>
        <file name="a.vb">
-Public Class Foo
+Public Class Goo
     Sub M()
         Static c As C = New C()
         Static n1 = c.[|M|]
@@ -2530,9 +2530,9 @@ End Class
 Imports Microsoft.VisualBasic
 Public Class C
     Sub M()
-        Static  n1 = [|Foo|](85)
+        Static  n1 = [|Goo|](85)
         End Sub
-    Function Foo(i As Integer) As Integer
+    Function Goo(i As Integer) As Integer
         Return i
     End Function
 End Class
@@ -2551,9 +2551,9 @@ End Class
 Imports Microsoft.VisualBasic
 Public Class C
     Sub M()
-        Static n1 = [|Foo|](85)
+        Static n1 = [|Goo|](85)
   End Sub
-    ReadOnly Property Foo(i As Integer) As Integer
+    ReadOnly Property Goo(i As Integer) As Integer
         Get
             Return i
         End Get
@@ -3824,8 +3824,8 @@ Imports System.Collections.Generic
 
 Public Class C2
     Public Shared Sub Main()
-        Static foo as string = "Hello World"
-        Static x as [|New List(Of String) From {foo, "!"}|]
+        Static goo as string = "Hello World"
+        Static x as [|New List(Of String) From {goo, "!"}|]
     End Sub
 End Class
     </file>
@@ -3833,12 +3833,12 @@ End Class
 
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("foo", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal("goo", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("foo", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("goo", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("foo, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("goo, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
@@ -3852,8 +3852,8 @@ Imports System.Collections.Generic
 
 Public Class C2
     Public Shared Sub Main()
-        Static  foo as string = "Hello World"
-        Static x as New List(Of String) From [|{foo, "!"}|]
+        Static  goo as string = "Hello World"
+        Static x as New List(Of String) From [|{goo, "!"}|]
     End Sub
 End Class
     </file>
@@ -3872,8 +3872,8 @@ Imports System.Collections.Generic
 
 Public Class C2
     Public Shared Sub Main()
-        Static foo as string = "Hello World"
-        Static x as New Dictionary(Of String, Integer) From {[|{foo, 1}|], {"bar", 42}}
+        Static goo as string = "Hello World"
+        Static x as New Dictionary(Of String, Integer) From {[|{goo, 1}|], {"bar", 42}}
     End Sub
 End Class
     </file>
@@ -3893,10 +3893,10 @@ Imports System.Collections.Generic
 
 Public Class C2
     Public Shared Sub Main()
-        Static foo As String = "Hello World"
+        Static goo As String = "Hello World"
         Static x As [|New List(Of Action) From {
             Sub()
-                Console.WriteLine(foo)
+                Console.WriteLine(goo)
             End Sub,
             Sub()
                 Console.WriteLine(x.Item(0))
@@ -3911,13 +3911,13 @@ End Class
             Assert.True(dataFlowAnalysisResults.Succeeded)
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("foo, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal("goo, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("foo, x", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
-            Assert.Equal("foo, x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("goo, x", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("goo, x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("foo, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("goo, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
@@ -4475,24 +4475,24 @@ End Class
        <file name="a.vb">
 Imports System
 
-Interface IFoo
+Interface IGoo
     Delegate Sub DS(ByRef p As Char)
 End Interface
 
-Class CFoo
-    Implements IFoo
+Class CGoo
+    Implements IGoo
 End Class
 
 Friend Module AM
     Sub Main(args As String())
-        Static ifoo As IFoo = New CFoo()
-        Static at1 As New With {.if = ifoo}
+        Static igoo As IGoo = New CGoo()
+        Static at1 As New With {.if = igoo}
 [|
-        Static at2 As New With {.if = at1, ifoo,
+        Static at2 As New With {.if = at1, igoo,
             .friend = New With {Key args, .lambda = DirectCast(Sub(ByRef p As Char)
                                                                    args(0) = p &amp; p
                                                                    p = "Q"c
-                                                               End Sub, IFoo.DS)}}
+                                                               End Sub, IGoo.DS)}}
 |]
      Console.Write(args(0))
     End Sub
@@ -4507,12 +4507,12 @@ End Module
             Assert.Equal("at2", GetSymbolNamesJoined(dataFlowResults.AlwaysAssigned))
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.Captured))
             Assert.Equal("at2, p", GetSymbolNamesJoined(dataFlowResults.VariablesDeclared))
-            Assert.Equal("args, ifoo, at1", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
+            Assert.Equal("args, igoo, at1", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Equal("p", GetSymbolNamesJoined(dataFlowResults.DataFlowsOut))
-            Assert.Equal("args, ifoo, at1, p", GetSymbolNamesJoined(dataFlowResults.ReadInside))
+            Assert.Equal("args, igoo, at1, p", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Equal("at2, p", GetSymbolNamesJoined(dataFlowResults.WrittenInside))
-            Assert.Equal("args, ifoo", GetSymbolNamesJoined(dataFlowResults.ReadOutside))
-            Assert.Equal("args, ifoo, at1", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
+            Assert.Equal("args, igoo", GetSymbolNamesJoined(dataFlowResults.ReadOutside))
+            Assert.Equal("args, igoo, at1", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
@@ -4523,7 +4523,7 @@ End Module
        <file name="a.vb">
 Imports System
 
-Interface IFoo
+Interface IGoo
     Delegate Sub DS(ByRef p As Char)
 End Interface
 
@@ -4533,7 +4533,7 @@ Friend Module AM
        Static at1 As New With {.friend = New With {args, Key.lambda = DirectCast(Sub(ByRef p As Char)
                                                                                   args(0) = p &amp; p
                                                                                   p = "Q"c
-                                                                              End Sub, IFoo.DS) }
+                                                                              End Sub, IGoo.DS) }
                           }
        Dim at2 As New With { Key .a= at1, .friend = New With { [| at1 |] }}
        Console.Write(args(0))

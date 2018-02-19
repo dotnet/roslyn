@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateConstructo
                 <Document>
                     public class CSClass
                     {
-                        public void Foo()
+                        public void Goo()
                         {
                             new $$VBClass("hello");
                         }

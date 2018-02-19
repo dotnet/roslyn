@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 <Code>
 class C
 {
-    void Foo(string $$s)
+    void Goo(string $$s)
     {
     }
 }
@@ -31,7 +31,7 @@ class C
 <Code>
 class C
 {
-    void Foo(ref string $$s)
+    void Goo(ref string $$s)
     {
     }
 }
@@ -46,7 +46,7 @@ class C
 <Code>
 class C
 {
-    void Foo(out string $$s)
+    void Goo(out string $$s)
     {
     }
 }
@@ -65,7 +65,7 @@ class C
 <Code>
 class C
 {
-    void Foo(string $$s)
+    void Goo(string $$s)
     {
     }
 }
@@ -80,7 +80,7 @@ class C
 <Code>
 class C
 {
-    void Foo(ref string $$s)
+    void Goo(ref string $$s)
     {
     }
 }
@@ -95,7 +95,7 @@ class C
 <Code>
 class C
 {
-    void Foo(out string $$s)
+    void Goo(out string $$s)
     {
     }
 }

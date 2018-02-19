@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
                     _operatorTokenKind = operatorTokenKind
                 End Sub
 
-                Public Overrides Function CreateSwitchLabel() As CaseClauseSyntax
+                Protected Overrides Function CreateSwitchLabelWorker() As CaseClauseSyntax
                     Dim comparisonToken = If(_inverted, s_comparisonTokenMap(_operatorTokenKind).inverse, _operatorTokenKind)
                     Return SyntaxFactory.RelationalCaseClause(
                         s_comparisonTokenMap(comparisonToken).caseClause,
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
                     _constant = constant
                 End Sub
 
-                Public Overrides Function CreateSwitchLabel() As CaseClauseSyntax
+                Protected Overrides Function CreateSwitchLabelWorker() As CaseClauseSyntax
                     Return SyntaxFactory.SimpleCaseClause(_constant)
                 End Function
             End Class
@@ -61,12 +61,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
                     _rangeBounds = rangeBounds
                 End Sub
 
-                Public Overrides Function CreateSwitchLabel() As CaseClauseSyntax
+                Protected Overrides Function CreateSwitchLabelWorker() As CaseClauseSyntax
                     Return SyntaxFactory.RangeCaseClause(_rangeBounds.lower, _rangeBounds.upper)
                 End Function
             End Class
 
-            Public MustOverride Function CreateSwitchLabel() As CaseClauseSyntax Implements IPattern(Of CaseClauseSyntax).CreateSwitchLabel
+            Public Function CreateSwitchLabel() As CaseClauseSyntax Implements IPattern(Of CaseClauseSyntax).CreateSwitchLabel
+                Return CreateSwitchLabelWorker().WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
+            End Function
+
+            Protected MustOverride Function CreateSwitchLabelWorker() As CaseClauseSyntax
+
         End Class
     End Class
 End Namespace

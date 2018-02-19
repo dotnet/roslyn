@@ -615,14 +615,14 @@ End Class
         [Fact(Skip = "failing msbuild")]
         public void SolutionWithPunctuation()
         {
-            var testDir = _tempDirectory.CreateDirectory(@"SLN;!@(foo)'^1");
-            var slnFile = testDir.CreateFile("Console;!@(foo)'^(Application1.sln").WriteAllText(
+            var testDir = _tempDirectory.CreateDirectory(@"SLN;!@(goo)'^1");
+            var slnFile = testDir.CreateFile("Console;!@(goo)'^(Application1.sln").WriteAllText(
     @"
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2005
-Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Cons.ole;!@(foo)'^(Application1"", ""Console;!@(foo)'^(Application1\Cons.ole;!@(foo)'^(Application1.csproj"", ""{770F2381-8C39-49E9-8C96-0538FA4349A7}""
+Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Cons.ole;!@(goo)'^(Application1"", ""Console;!@(goo)'^(Application1\Cons.ole;!@(goo)'^(Application1.csproj"", ""{770F2381-8C39-49E9-8C96-0538FA4349A7}""
 EndProject
-Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Class;!@(foo)'^(Library1"", ""Class;!@(foo)'^(Library1\Class;!@(foo)'^(Library1.csproj"", ""{0B4B78CC-C752-43C2-BE9A-319D20216129}""
+Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Class;!@(goo)'^(Library1"", ""Class;!@(goo)'^(Library1\Class;!@(goo)'^(Library1.csproj"", ""{0B4B78CC-C752-43C2-BE9A-319D20216129}""
 EndProject
 Global
     GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -644,8 +644,8 @@ Global
     EndGlobalSection
 EndGlobal
 ");
-            var appDir = testDir.CreateDirectory(@"Console;!@(foo)'^(Application1");
-            var appProjFile = appDir.CreateFile(@"Cons.ole;!@(foo)'^(Application1.csproj").WriteAllText(
+            var appDir = testDir.CreateDirectory(@"Console;!@(goo)'^(Application1");
+            var appProjFile = appDir.CreateFile(@"Cons.ole;!@(goo)'^(Application1.csproj").WriteAllText(
     @"
 <Project DefaultTargets=""Build"" ToolsVersion=""3.5"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _buildTaskDll + @""" />
@@ -657,8 +657,8 @@ EndGlobal
         <ProjectGuid>{770F2381-8C39-49E9-8C96-0538FA4349A7}</ProjectGuid>
         <OutputType>Exe</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>Console____foo____Application1</RootNamespace>
-        <AssemblyName>Console%3b!%40%28foo%29%27^%28Application1</AssemblyName>
+        <RootNamespace>Console____goo____Application1</RootNamespace>
+        <AssemblyName>Console%3b!%40%28goo%29%27^%28Application1</AssemblyName>
     </PropertyGroup>
     <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
         <DebugSymbols>true</DebugSymbols>
@@ -686,9 +686,9 @@ EndGlobal
         <Compile Include=""Program.cs"" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include=""..\Class%3b!%40%28foo%29%27^%28Library1\Class%3b!%40%28foo%29%27^%28Library1.csproj"">
+        <ProjectReference Include=""..\Class%3b!%40%28goo%29%27^%28Library1\Class%3b!%40%28goo%29%27^%28Library1.csproj"">
             <Project>{0B4B78CC-C752-43C2-BE9A-319D20216129}</Project>
-            <Name>Class%3b!%40%28foo%29%27^%28Library1</Name>
+            <Name>Class%3b!%40%28goo%29%27^%28Library1</Name>
         </ProjectReference>
     </ItemGroup>
     <Import Project=""$(MSBuildBinPath)\Microsoft.CSharp.targets"" />
@@ -701,19 +701,19 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Console____foo____Application1
+namespace Console____goo____Application1
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Class____foo____Library1.Class1 foo = new Class____foo____Library1.Class1();
+            Class____goo____Library1.Class1 goo = new Class____goo____Library1.Class1();
         }
     }
 }");
 
-            var libraryDir = testDir.CreateDirectory(@"Class;!@(foo)'^(Library1");
-            var libraryProjFile = libraryDir.CreateFile("Class;!@(foo)'^(Library1.csproj").WriteAllText(
+            var libraryDir = testDir.CreateDirectory(@"Class;!@(goo)'^(Library1");
+            var libraryProjFile = libraryDir.CreateFile("Class;!@(goo)'^(Library1.csproj").WriteAllText(
     @"
 <Project DefaultTargets=""Build"" ToolsVersion=""3.5"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _buildTaskDll + @""" />
@@ -725,8 +725,8 @@ namespace Console____foo____Application1
         <ProjectGuid>{0B4B78CC-C752-43C2-BE9A-319D20216129}</ProjectGuid>
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>Class____foo____Library1</RootNamespace>
-        <AssemblyName>Class%3b!%40%28foo%29%27^%28Library1</AssemblyName>
+        <RootNamespace>Class____goo____Library1</RootNamespace>
+        <AssemblyName>Class%3b!%40%28goo%29%27^%28Library1</AssemblyName>
     </PropertyGroup>
     <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
         <DebugSymbols>true</DebugSymbols>
@@ -771,7 +771,7 @@ namespace Console____foo____Application1
 
             var libraryClassFile = libraryDir.CreateFile("Class1.cs").WriteAllText(
     @"
-namespace Class____foo____Library1
+namespace Class____goo____Library1
 {
     public class Class1
     {

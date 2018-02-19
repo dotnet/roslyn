@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotInEnumBlockMemberDeclarationTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-                                             Enum foo
+                                             Enum goo
                                                  |
                                              End enum
                                          </File>, "#Const")

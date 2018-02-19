@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var projectId = project.Id;
 
             // Skip telemetry logging for supported diagnostics, as that can cause an infinite loop.
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diagnostic) =>
+            void onAnalyzerException(Exception ex, DiagnosticAnalyzer a, Diagnostic diagnostic) =>
                     AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, _hostDiagnosticUpdateSource, projectId);
 
             return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, onAnalyzerException);
@@ -219,15 +219,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> CreateProjectDiagnosticAnalyzersPerReference(Project project)
         {
             return CreateDiagnosticAnalyzersPerReferenceMap(CreateProjectAnalyzerReferencesMap(project), project.Language);
-        }
-
-        /// <summary>
-        /// Create <see cref="DiagnosticAnalyzer"/>s collection for given <paramref name="project"/>
-        /// </summary>
-        public ImmutableArray<DiagnosticAnalyzer> CreateDiagnosticAnalyzers(Project project)
-        {
-            var analyzersPerReferences = CreateDiagnosticAnalyzersPerReference(project);
-            return analyzersPerReferences.SelectMany(kv => kv.Value).ToImmutableArray();
         }
 
         /// <summary>

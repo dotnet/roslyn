@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return CreateCompilationWithMscorlib45(source, options: options, references: references);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
             var compilation = CreateCompilation(source, references: references, options: options);
-            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: verify);
         }
 
         [Fact]
@@ -337,7 +337,7 @@ using System.Threading;
 class TestCase
 {
     public static int Count = 0;
-    public static T Foo<T>(T t)
+    public static T Goo<T>(T t)
     {
         return t;
     }
@@ -352,9 +352,9 @@ class TestCase
     {
         try
         {
-            int x1 = Foo(await Bar(4));
+            int x1 = Goo(await Bar(4));
             Task<int> t = Bar(5);
-            int x2 = Foo(await t);
+            int x2 = Goo(await t);
             if (x1 != 4)
                 Count++;
             if (x2 != 5)
@@ -865,7 +865,7 @@ class Driver
         Console.WriteLine(Result);
     }
 }";
-            CompileAndVerify(source, "0", options: TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
         }
 
         [Fact]
@@ -879,7 +879,7 @@ using System.Threading.Tasks;
 
 struct Test
 {
-    public Task<string> Foo
+    public Task<string> Goo
     {
         get { return Task.Run<string>(async () => { await Task.Delay(1); return ""abc""; }); }
     }
@@ -905,12 +905,12 @@ class TestCase<U>
         Test t = new Test();
 
         tests++;
-        var x1 = await TestCase<string>.GetValue(await t.Foo);
+        var x1 = await TestCase<string>.GetValue(await t.Goo);
         if (x1 == ""abc"")
             Driver.Count++;
 
         tests++;
-        var x2 = await TestCase<string>.GetValue1(t.Foo);
+        var x2 = await TestCase<string>.GetValue1(t.Goo);
         if (x2 == ""abc"")
             Driver.Count++;
 
@@ -937,7 +937,7 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.UnsafeDebugExe, verify: Verification.Passes);
         }
 
         [Fact]
@@ -955,8 +955,8 @@ class TestCase
     public async void Run()
     {
         int tests = 0;
-        var x1 = ((await Foo1()) is object);
-        var x2 = ((await Foo2()) as string);
+        var x1 = ((await Goo1()) is object);
+        var x2 = ((await Goo2()) as string);
         if (x1 == true)
             tests++;
         if (x2 == ""string"")
@@ -966,7 +966,7 @@ class TestCase
         Driver.CompletedSignal.Set();
     }
 
-    public async Task<int> Foo1()
+    public async Task<int> Goo1()
     {
         await Task.Delay(1);
         TestCase.Count++;
@@ -974,7 +974,7 @@ class TestCase
         return i;
     }
 
-    public async Task<object> Foo2()
+    public async Task<object> Goo2()
     {
         await Task.Delay(1);
         TestCase.Count++;
@@ -998,7 +998,7 @@ class Driver
         Console.Write(Driver.Result);
     }
 }";
-            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.UnsafeDebugExe, verify: Verification.Passes);
         }
 
         [Fact]
@@ -1039,7 +1039,7 @@ class Driver
 
     public static int Result = -1;
 }";
-            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.UnsafeDebugExe, verify: Verification.Passes);
         }
 
         [Fact]
@@ -1196,9 +1196,9 @@ using System;
 struct Test<U, V, W>
 {
     //Regular methods
-    public int Foo(Func<Task<U>> f) { return 1; }
-    public int Foo(Func<Task<V>> f) { return 2; }
-    public int Foo(Func<Task<W>> f) { return 3; }
+    public int Goo(Func<Task<U>> f) { return 1; }
+    public int Goo(Func<Task<V>> f) { return 2; }
+    public int Goo(Func<Task<W>> f) { return 3; }
 }
 
 class TestCase
@@ -1211,21 +1211,21 @@ class TestCase
         int rez = 0;
         // Pick double
         Driver.Tests++;
-        rez = test.Foo(async () => { return 1.0; });
+        rez = test.Goo(async () => { return 1.0; });
         if (rez == 3) Driver.Count++;
 
         //pick int
         Driver.Tests++;
-        rez = test.Foo(async delegate() { return 1; });
+        rez = test.Goo(async delegate() { return 1; });
         if (rez == 1) Driver.Count++;
 
         // The best overload is Func<Task<object>>
         Driver.Tests++;
-        rez = test.Foo(async () => { return """"; });
+        rez = test.Goo(async () => { return """"; });
         if (rez == 2) Driver.Count++;
 
         Driver.Tests++;
-        rez = test.Foo(async delegate() { return """"; });
+        rez = test.Goo(async delegate() { return """"; });
         if (rez == 2) Driver.Count++;
     }
 }
@@ -1295,7 +1295,7 @@ using System.Threading.Tasks;
 
 struct DynamicClass
 {
-    public async Task<dynamic> Foo<T>(T t)
+    public async Task<dynamic> Goo<T>(T t)
     {
         await Task.Delay(1);
         return t;
@@ -1320,7 +1320,7 @@ class TestCase
         try
         {
             tests++;  
-            var x1 = await dc.Foo("""");
+            var x1 = await dc.Goo("""");
             if (x1 == """") Driver.Count++;
 
             tests++;
@@ -1328,7 +1328,7 @@ class TestCase
             if (x2 == 123) Driver.Count++;
 
             tests++;
-            var x3 = await await dc.Bar(await dc.Foo(234));
+            var x3 = await await dc.Bar(await dc.Goo(234));
             if (x3 == 234) Driver.Count++;
         }
         finally
@@ -1683,7 +1683,7 @@ struct TestCase
         {
             ms[index: null] = Task.Run<Func<int>>(async () => { await Task.Delay(1); Interlocked.Increment(ref TestCase.Count); return () => (123); });
             this.tests++;
-            var x = await ms[index: await Foo(null)];
+            var x = await ms[index: await Goo(null)];
             if (x() == 123)
                 this.tests++;
         }
@@ -1695,7 +1695,7 @@ struct TestCase
         }
     }
 
-    public async Task<Task<Func<int>>> Foo(Task<Func<int>> d)
+    public async Task<Task<Func<int>>> Goo(Task<Func<int>> d)
     {
         await Task.Delay(1);
         Interlocked.Increment(ref TestCase.Count);
@@ -1932,7 +1932,7 @@ using System.Threading.Tasks;
 
 class TestCase
 {
-    public T Foo<T>(T x, T y, int z)
+    public T Goo<T>(T x, T y, int z)
     {
         return x;
     }
@@ -1945,7 +1945,7 @@ class TestCase
     public IEnumerable<T> Run<T>(T t)
     {
         dynamic d = GetVal(t);
-        yield return Foo(t, d, 3);
+        yield return Goo(t, d, 3);
     }
 }
 
@@ -2856,11 +2856,11 @@ using System.Threading.Tasks;
 using System;
 class TestCase
 {
-    public static int Foo(Func<Task<double>> f) { return 12; }
-    public static int Foo(Func<Task<object>> f) { return 13; }
+    public static int Goo(Func<Task<double>> f) { return 12; }
+    public static int Goo(Func<Task<object>> f) { return 13; }
     public static void Main()
     {
-        Console.WriteLine(Foo(async delegate() { return 14; }));
+        Console.WriteLine(Goo(async delegate() { return 14; }));
     }
 }
 ";
@@ -3028,10 +3028,10 @@ class Program
 {
     static void Main()
     {
-        Foo<int>().Wait();
+        Goo<int>().Wait();
     }
  
-    static async Task Foo<T>()
+    static async Task Goo<T>()
     {
         Console.WriteLine(""{0}"" as dynamic, await Task.FromResult(new T[] { }));
     }
@@ -3487,6 +3487,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 );
         }
 
+        [Fact]
         public void AsyncTasklikeBadAttributeArgument4()
         {
             var source = @"
@@ -3850,8 +3851,8 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 );
         }
 
-        // Should check constraints (see https://github.com/dotnet/roslyn/issues/12616).
-        //[Fact]
+        [WorkItem(12616, "https://github.com/dotnet/roslyn/issues/12616")]
+        [Fact]
         public void AsyncTasklikeBuilderConstraints()
         {
             var source1 = @"
@@ -3886,10 +3887,9 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 
             var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
             comp1.VerifyEmitDiagnostics(
-                // (8,22): error CS0656: Missing compiler required member 'MyTaskBuilder.Start'
+                // (8,22): error CS0311: The type 'C.<f>d__1' cannot be used as type parameter 'TSM' in the generic type or method 'MyTaskBuilder.Start<TSM>(ref TSM)'. There is no implicit reference conversion from 'C.<f>d__1' to 'I'.
                 //     async MyTask f() { await (Task)null; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await (Task)null; }").WithArguments("MyTaskBuilder", "Start").WithLocation(8, 22)
-                );
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "{ await (Task)null; }").WithArguments("MyTaskBuilder.Start<TSM>(ref TSM)", "I", "TSM", "C.<f>d__1").WithLocation(8, 22));
 
             var source2 = @"
 using System;
@@ -3920,11 +3920,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 ";
 
             var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe);
-            comp2.VerifyEmitDiagnostics(
-                // (8,22): error CS0656: Missing compiler required member 'MyTaskBuilder.AwaitUnsafeOnCompleted'
-                //     async MyTask f() { await (Task)null; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await (Task)null; }").WithArguments("MyTaskBuilder", "AwaitUnsafeOnCompleted").WithLocation(8, 22)
-                );
+            comp2.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -4937,19 +4933,19 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         {
             var source = @"using System;
  
-public class Foo {}
+public class Goo {}
  
 public class C {
     public static void Main(string[] args)
     {
         var c = new C();
-        c.M(new Foo());
+        c.M(new Goo());
         c.M(new object());
     }
     public async void M(object o) {
         switch (o)
         {
-            case Foo _:
+            case Goo _:
                 Console.Write(0);
                 break;
             default:
@@ -4971,16 +4967,16 @@ public class C {
 using System.Threading.Tasks;
 
 public class C {
-    public class Foo
+    public class Goo
     {
         public int Value;
     }
     public static void Main(string[] args)
     {
         var c = new C();
-        c.M(new Foo() { Value = 1 });
-        c.M(new Foo() { Value = 2 });
-        c.M(new Foo() { Value = 3 });
+        c.M(new Goo() { Value = 1 });
+        c.M(new Goo() { Value = 2 });
+        c.M(new Goo() { Value = 3 });
         c.M(new object());
     }
     public void M(object o)
@@ -4990,14 +4986,14 @@ public class C {
     public async Task MAsync(object o) {
         switch (o)
         {
-            case Foo foo when await Copy(foo.Value) == 1:
-                Console.Write($""{foo.Value}=1 "");
+            case Goo goo when await Copy(goo.Value) == 1:
+                Console.Write($""{goo.Value}=1 "");
                 break;
-            case Foo foo when await Copy(foo.Value) == 2:
-                Console.Write($""{foo.Value}=2 "");
+            case Goo goo when await Copy(goo.Value) == 2:
+                Console.Write($""{goo.Value}=2 "");
                 break;
-            case Foo foo:
-                Console.Write($""{foo.Value} "");
+            case Goo goo:
+                Console.Write($""{goo.Value} "");
                 break;
             default:
                 Console.Write(""X "");
@@ -5012,6 +5008,52 @@ public class C {
 }";
             var expectedOutput = @"1=1 2=2 3 X";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(19831, "https://github.com/dotnet/roslyn/issues/19831")]
+        public void CaptureAssignedInOuterFinally()
+        {
+            var source = @"
+
+    using System;
+    using System.Threading.Tasks;
+
+    public class Program
+    {
+        static void Main(string[] args)
+        {
+            Test().Wait();
+            System.Console.WriteLine(""success"");
+        }
+
+        public static async Task Test()
+        {
+            // declaring variable before try/finally and nulling it in finally cause NRE in try's body
+            var obj = new Object();
+
+            try
+            {
+                for(int i = 0; i < 3; i++)
+                {
+                    // NRE on second iteration
+                    obj.ToString();
+                    await Task.Yield();
+                }
+            }
+            finally
+            {
+                obj = null;
+            }
+        }
+    }
+";
+            var expectedOutput = @"success";
+
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }

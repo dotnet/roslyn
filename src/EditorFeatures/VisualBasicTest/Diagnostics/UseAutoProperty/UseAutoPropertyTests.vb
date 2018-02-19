@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseAut
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New UseAutoPropertyAnalyzer(), New UseAutoPropertyCodeFixProvider())
+            Return (New VisualBasicUseAutoPropertyAnalyzer(), New VisualBasicUseAutoPropertyCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
@@ -86,7 +86,8 @@ end class")
     end property|]
 end class",
 "class Class1
-    readonly property P as integer = 1
+    readonly property P as integer
+= 1
 end class")
         End Function
 
@@ -207,7 +208,7 @@ end class")
     [|dim i as integer|]
     property P as Integer
         get
-            Foo()
+            Goo()
             return i
         end get
     end property
@@ -221,7 +222,7 @@ end class")
     [|dim i as integer|]
     property P as Integer
         set
-            Foo()
+            Goo()
             i = value
         end set
     end property
@@ -239,7 +240,7 @@ end class")
         end get
 
         set
-            Foo()
+            Goo()
             i = value
         end set
     end property
@@ -463,7 +464,7 @@ end class")
 end class",
 "class Class1
     ReadOnly property P as Integer
-    public sub new(dim P as integer)
+ public sub new(dim P as integer)
         Me.P = 1
     end sub
 end class")
@@ -500,7 +501,7 @@ end class")
         get
             return i
  end property
-    public sub Foo()
+    public sub Goo()
         i = 1
     end sub
 end class")
@@ -515,7 +516,7 @@ end class")
         get
             return i
  \end property 
- public sub Foo()
+ public sub Goo()
         i = 1
     end sub
 end class")
@@ -534,14 +535,15 @@ end class")
             i = value
         end set
     end property
-    public sub Foo()
+    public sub Goo()
         i = 1
     end sub
 end class",
 "class Class1
     public property P as Integer
-    public sub Foo() P = 1 
- end sub
+    public sub Goo()
+        P = 1
+    end sub
 end class")
         End Function
 
@@ -550,6 +552,51 @@ end class")
             Await TestMissingInRegularAndScriptAsync("Class Class1
     Public Property [|P|] As Integer
 End Class")
+        End Function
+
+        <WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function ExplicitInterfaceImplementation() As Task
+            Await TestInRegularAndScriptAsync("
+Namespace RoslynSandbox
+    Public Interface IFoo
+        ReadOnly Property Bar() As Object
+    End Interface
+
+    Friend Class Foo
+        Implements IFoo
+
+        Private [|_bar|] As Object
+
+		Private ReadOnly Property Bar() As Object Implements IFoo.Bar
+            Get
+                Return _bar
+            End Get
+        End Property
+
+        Public Sub New(bar As Object)
+            _bar = bar
+        End Sub
+    End Class
+End Namespace
+",
+"
+Namespace RoslynSandbox
+    Public Interface IFoo
+        ReadOnly Property Bar() As Object
+    End Interface
+
+    Friend Class Foo
+        Implements IFoo
+
+		Private ReadOnly Property Bar() As Object Implements IFoo.Bar
+
+        Public Sub New(bar As Object)
+            Me.Bar = bar
+        End Sub
+    End Class
+End Namespace
+")
         End Function
     End Class
 End Namespace

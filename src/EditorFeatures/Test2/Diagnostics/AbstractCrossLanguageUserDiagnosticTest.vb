@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                             Optional codeActionIndex As Integer = 0,
                             Optional verifyTokens As Boolean = True,
                             Optional fileNameToExpected As Dictionary(Of String, String) = Nothing,
-                            Optional verifySolutions As Action(Of Solution, Solution) = Nothing,
+                            Optional verifySolutions As Func(Of Solution, Solution, Task) = Nothing,
                             Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing) As Task
             Using workspace = TestWorkspace.CreateWorkspace(definition)
                 onAfterWorkspaceCreated?.Invoke(workspace)
@@ -65,16 +65,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 Dim updatedSolution = workspace.CurrentSolution
 
-                verifySolutions?.Invoke(oldSolution, updatedSolution)
+                If verifySolutions IsNot Nothing Then
+                    Await verifySolutions(oldSolution, updatedSolution)
+                End If
 
-                If expected Is Nothing AndAlso fileNameToExpected Is Nothing Then
+                If expected Is Nothing AndAlso
+                   fileNameToExpected Is Nothing AndAlso
+                   verifySolutions Is Nothing Then
                     Dim projectChanges = SolutionUtilities.GetSingleChangedProjectChanges(oldSolution, updatedSolution)
                     Assert.Empty(projectChanges.GetChangedDocuments())
                 ElseIf expected IsNot Nothing Then
                     Dim updatedDocument = SolutionUtilities.GetSingleChangedDocument(oldSolution, updatedSolution)
 
                     Await VerifyAsync(expected, verifyTokens, updatedDocument)
-                Else
+                ElseIf fileNameToExpected IsNot Nothing Then
                     For Each kvp In fileNameToExpected
                         Dim updatedDocument = updatedSolution.Projects.SelectMany(Function(p) p.Documents).Single(Function(d) d.Name = kvp.Key)
                         Await VerifyAsync(kvp.Value, verifyTokens, updatedDocument)
@@ -134,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Dim hostDocument = GetHostDocument(workspace)
 
             Dim invocationBuffer = hostDocument.TextBuffer
-            Dim invocationPoint = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+            Dim invocationPoint = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue AndAlso Not d.IsLinkFile).CursorPosition.Value
 
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
 

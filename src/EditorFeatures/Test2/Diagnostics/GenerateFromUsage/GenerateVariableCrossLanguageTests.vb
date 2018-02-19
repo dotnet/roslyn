@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateVariable
                 <ProjectReference>CSAssembly1</ProjectReference>
                 <Document>
                     public class VBClass
-                        public sub Foo()
+                        public sub Goo()
                             Dim v as CSClass
                             Dim x As String = v.$$Bar
                         end sub

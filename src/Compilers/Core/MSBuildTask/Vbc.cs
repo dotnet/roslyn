@@ -246,11 +246,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         ///  Return the name of the tool to execute.
         /// </summary>
-        override protected string ToolName
+        override protected string ToolNameWithoutExtension
         {
             get
             {
-                return "vbc.exe";
+                return "vbc";
             }
         }
 
@@ -472,7 +472,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 commandLine.AppendSwitchIfNotNull("/", this.Verbosity);
             }
 
-            commandLine.AppendSwitchIfNotNull("/doc:", this.DocumentationFile);
+            if ((bool?)this._store[nameof(GenerateDocumentation)] != false)
+            {
+                // Only provide the filename when GenerateDocumentation is not
+                // explicitly disabled.  Otherwise, the /doc switch (which comes
+                // later in the command) overrides and re-enabled generating
+                // documentation.
+                commandLine.AppendSwitchIfNotNull("/doc:", this.DocumentationFile);
+            }
+
             commandLine.AppendSwitchUnquotedIfNotNull("/define:", Vbc.GetDefineConstantsSwitch(this.DefineConstants));
             AddReferencesToCommandLine(commandLine);
             commandLine.AppendSwitchIfNotNull("/win32resource:", this.Win32Resource);
@@ -778,10 +786,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// accordingly.
         ///
         /// Example:
-        ///     If we attempted to pass in Platform="foobar", then this method would
+        ///     If we attempted to pass in Platform="goobar", then this method would
         ///     set HostCompilerSupportsAllParameters=true, but it would throw an 
         ///     exception because the host compiler fully supports
-        ///     the Platform parameter, but "foobar" is an illegal value.
+        ///     the Platform parameter, but "goobar" is an illegal value.
         ///
         /// Example:
         ///     If we attempted to pass in NoConfig=false, then this method would set

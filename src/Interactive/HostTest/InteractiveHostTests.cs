@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             Assert.Equal("", errorOutput);
             Assert.Equal(2, output.Length);
-            Assert.Equal("Microsoft (R) Roslyn C# Compiler version " + FileVersionInfo.GetVersionInfo(_host.GetType().Assembly.Location).FileVersion, output[0]);
+            Assert.Equal(string.Format(CSharpInteractiveEditorResources.Microsoft_R_Roslyn_CSharp_Compiler_version_0, FileVersionInfo.GetVersionInfo(_host.GetType().Assembly.Location).FileVersion), output[0]);
             // "Type "#help" for more information."
             Assert.Equal(FeaturesResources.Type_Sharphelp_for_more_information, output[1]);
 
@@ -118,14 +119,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             return ReadOutputToEnd(isError: true);
         }
 
-        public void ClearOutput()
+        private void ClearOutput()
         {
             _outputReadPosition = new int[] { 0, 0 };
             _synchronizedOutput.Clear();
             _synchronizedErrorOutput.Clear();
         }
 
-        public void RestartHost(string rspFile = null)
+        private void RestartHost(string rspFile = null)
         {
             ClearOutput();
 
@@ -229,11 +230,11 @@ System.Console.Error.WriteLine(""error-\u7890!"");
             var process = _host.TryGetProcess();
 
             Execute(@"
-int foo(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9) 
+int goo(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9) 
 { 
-    return foo(0,1,2,3,4,5,6,7,8,9) + foo(0,1,2,3,4,5,6,7,8,9); 
+    return goo(0,1,2,3,4,5,6,7,8,9) + goo(0,1,2,3,4,5,6,7,8,9); 
 } 
-foo(0,1,2,3,4,5,6,7,8,9)
+goo(0,1,2,3,4,5,6,7,8,9)
             ");
 
             Assert.Equal("", ReadOutputToEnd());
@@ -248,7 +249,7 @@ foo(0,1,2,3,4,5,6,7,8,9)
         }
 
         private const string MethodWithInfiniteLoop = @"
-void foo() 
+void goo() 
 { 
     int i = 0;
     while (true) 
@@ -386,10 +387,10 @@ using static System.Console;
 public class C 
 { 
    public int field = 4; 
-   public int Foo(int i) { return i; } 
+   public int Goo(int i) { return i; } 
 }
 
-public int Foo(int i) { return i; }
+public int Goo(int i) { return i; }
 
 WriteLine(5);
 ").Path;
@@ -399,10 +400,10 @@ WriteLine(5);
             Assert.True(task.Result.Success);
             Assert.Equal("5", ReadOutputToEnd().Trim());
 
-            Execute("Foo(2)");
+            Execute("Goo(2)");
             Assert.Equal("2", ReadOutputToEnd().Trim());
 
-            Execute("new C().Foo(3)");
+            Execute("new C().Goo(3)");
             Assert.Equal("3", ReadOutputToEnd().Trim());
 
             Execute("new C().field");
@@ -664,7 +665,7 @@ WriteLine(5);
             // use:
             Execute($@"
 #r ""{file.Path}""
-C foo() => new C();
+C goo() => new C();
 new C().X
 ");
 
@@ -853,7 +854,7 @@ typeof(C).Assembly.GetName()");
 
             var output = SplitLines(ReadOutputToEnd());
             Assert.Equal(2, output.Length);
-            Assert.Equal("Loading context from '" + Path.GetFileName(rspFile.Path) + "'.", output[0]);
+            Assert.Equal($"{ string.Format(FeaturesResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }", output[0]);
             Assert.Equal($"[{assemblyName}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", output[1]);
         }
 
@@ -906,7 +907,7 @@ Console.Write(""OK"")
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", ReadErrorOutputToEnd());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"Loading context from '{Path.GetFileName(rspFile.Path)}'.
+$@"{ string.Format(FeaturesResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) } 
 OK
 ", ReadOutputToEnd());
         }
@@ -929,11 +930,11 @@ OK
             Execute("new Process()");
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-{initFile.Path}(1,3): error CS1002: ; expected
+{initFile.Path}(1,3): error CS1002: { CSharpResources.ERR_SemicolonExpected }
 ", ReadErrorOutputToEnd());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Loading context from '{Path.GetFileName(rspFile.Path)}'.
+{ string.Format(FeaturesResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
 [System.Diagnostics.Process]
 ", ReadOutputToEnd());
         }
@@ -955,7 +956,7 @@ c
             Assert.Equal("", ReadErrorOutputToEnd());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"Loading context from '{Path.GetFileName(rspFile.Path)}'.
+$@"{ string.Format(FeaturesResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
 ""a""
 ""b""
 ""c""
@@ -986,8 +987,8 @@ WriteLine(new Complex(2, 6).Real);
         {
             Execute("nameof(Microsoft.CodeAnalysis)");
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
-(1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)",
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "CodeAnalysis", "Microsoft") }",
                 ReadErrorOutputToEnd());
 
             Assert.Equal("", ReadOutputToEnd());
@@ -1056,9 +1057,9 @@ new object[] { new Class1(), new Class2(), new Class3() }
             var dll = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01);
             var srcDir = Temp.CreateDirectory();
             var dllDir = Path.GetDirectoryName(dll.Path);
-            srcDir.CreateFile("foo.csx").WriteAllText("ReferencePaths.Add(@\"" + dllDir + "\");");
+            srcDir.CreateFile("goo.csx").WriteAllText("ReferencePaths.Add(@\"" + dllDir + "\");");
 
-            Func<string, string> normalizeSeparatorsAndFrameworkFolders = (s) => s.Replace("\\", "\\\\").Replace("Framework64", "Framework");
+            string normalizeSeparatorsAndFrameworkFolders(string s) => s.Replace("\\", "\\\\").Replace("Framework64", "Framework");
 
             // print default:
             _host.ExecuteAsync(@"ReferencePaths").Wait();
@@ -1078,7 +1079,7 @@ new object[] { new Class1(), new Class2(), new Class3() }
             Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", new[] { s_homeDir, srcDir.Path })) + "\" }\r\n", output);
 
             // execute file (uses modified search paths), the file adds a reference path
-            _host.ExecuteFileAsync("foo.csx").Wait();
+            _host.ExecuteFileAsync("goo.csx").Wait();
 
             _host.ExecuteAsync(@"ReferencePaths").Wait();
 
@@ -1193,8 +1194,8 @@ s
             Assert.Equal("2\r\n", output);
 
             Execute(@"
-void foo() { } 
-foo()
+void goo() { } 
+goo()
 ");
 
             output = ReadOutputToEnd();

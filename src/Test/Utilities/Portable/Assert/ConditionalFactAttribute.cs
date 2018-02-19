@@ -47,6 +47,13 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "OS default codepage is not Shift-JIS (932).";
     }
 
+    public class HasEnglishDefaultEncoding : ExecutionCondition
+    {
+        public override bool ShouldSkip => Encoding.GetEncoding(0)?.CodePage != 1252;
+
+        public override string SkipReason => "OS default codepage is not Windows-1252.";
+    }
+
     public class IsEnglishLocal : ExecutionCondition
     {
         public override bool ShouldSkip =>
@@ -70,7 +77,7 @@ namespace Roslyn.Test.Utilities
     public class WindowsOnly : ExecutionCondition
     {
         public override bool ShouldSkip => Path.DirectorySeparatorChar != '\\';
-        public override string SkipReason => "Test not supported on Mono";
+        public override string SkipReason => "Test not supported on Mac and Linux";
     }
 
     public class UnixLikeOnly : ExecutionCondition

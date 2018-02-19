@@ -25,7 +25,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
             try
             {
-                await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
+                // set connection state for this session.
+                // we might remove this in future. see https://github.com/dotnet/roslyn/issues/24836
+                await connection.InvokeAsync(
+                    WellKnownServiceHubServices.ServiceHubServiceBase_Initialize,
+                    new object[] { scope.SolutionInfo },
+                    cancellationToken).ConfigureAwait(false);
+
                 return sessionWithSolution;
             }
             catch
@@ -93,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _callbackTarget = callbackTarget;
         }
 
-        public void Shutdown(CancellationToken cancellationToken)
+        public void Shutdown()
         {
             ReferenceCountedDisposable<RemoteHostClient.Connection> connection;
 
@@ -277,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            Shutdown(CancellationToken.None);
+            Shutdown();
         }
 
         private void Initialize(RemoteHostClient client, RemoteHostClient.Connection connection)

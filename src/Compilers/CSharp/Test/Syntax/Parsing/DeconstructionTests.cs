@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
     // `(T, ...) id;` starts with tuple type
     // `(T, ...)[] id;` starts with a tuple type array
     // `(E, ...) = ...;` is a deconstruction-assignment
-    // `(E, ...).Foo();` starts with a tuple literal/expression
+    // `(E, ...).Goo();` starts with a tuple literal/expression
     // `(E, ...) + ...` also starts with a tuple literal/expression
     // `(T, ...)? id;` starts with a tuple type
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         (x).ToString();
     }
@@ -111,7 +111,7 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         (Int32 a, Int64 b) x;
     }
@@ -189,7 +189,7 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         (Int32, Int64) x;
     }
@@ -265,7 +265,7 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         (Int32, Int64)[] x;
     }
@@ -353,9 +353,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        (Int32, Int64).Foo();
+        (Int32, Int64).Goo();
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -437,9 +437,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        (x, y) = foo;
+        (x, y) = goo;
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -512,9 +512,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        for(Int32 x = foo; ; ) { }
+        for(Int32 x = goo; ; ) { }
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -530,7 +530,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -557,7 +557,7 @@ class C
                                             N(SyntaxKind.EqualsToken);
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "foo");
+                                                N(SyntaxKind.IdentifierToken, "goo");
                                             }
                                         }
                                     }
@@ -588,9 +588,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        (x, (y, z)) = foo;
+        (x, (y, z)) = goo;
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -680,9 +680,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        (Int32 a, Int64 b) = foo;
+        (Int32 a, Int64 b) = goo;
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -698,7 +698,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -748,7 +748,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "foo");
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -770,9 +770,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        ((Int32 a, Int64 b), Int32 c) = foo;
+        ((Int32 a, Int64 b), Int32 c) = goo;
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -788,7 +788,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -861,7 +861,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "foo");
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -883,9 +883,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        var (a, b) = foo;
+        var (a, b) = goo;
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -901,7 +901,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -938,7 +938,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "foo");
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -960,9 +960,9 @@ class C
             var tree = UsingTree(@"
         class C
         {
-            void Foo()
+            void Goo()
             {
-                var ((a, b), c) = foo;
+                var ((a, b), c) = goo;
             }
         }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -978,7 +978,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1025,7 +1025,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "foo");
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -1047,7 +1047,7 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         var(a, b);
     }
@@ -1065,7 +1065,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1121,9 +1121,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        (Int32 x, var (y, z)) = foo;
+        (Int32 x, var (y, z)) = goo;
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -1139,7 +1139,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1199,7 +1199,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "foo");
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -1220,9 +1220,9 @@ class C
             var tree = UsingTree(@"
         class C
         {
-            void Foo()
+            void Goo()
             {
-                for ((Int32 x, Int64 y) = foo; ; ) { }
+                for ((Int32 x, Int64 y) = goo; ; ) { }
             }
         }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -1238,7 +1238,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1290,7 +1290,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "foo");
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -1318,9 +1318,9 @@ class C
             var tree = UsingTree(@"
         class C
         {
-            void Foo()
+            void Goo()
             {
-                for (var (x, y) = foo; ; ) { }
+                for (var (x, y) = goo; ; ) { }
             }
         }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -1336,7 +1336,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1375,7 +1375,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "foo");
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -1403,9 +1403,9 @@ class C
             var tree = UsingTree(@"
         class C
         {
-            void Foo()
+            void Goo()
             {
-                foreach ((int x, var y) in foo) { }
+                foreach ((int x, var y) in goo) { }
             }
         }");
             N(SyntaxKind.CompilationUnit);
@@ -1421,7 +1421,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1471,7 +1471,7 @@ class C
                                 N(SyntaxKind.InKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "foo");
+                                    N(SyntaxKind.IdentifierToken, "goo");
                                 }
                                 N(SyntaxKind.CloseParenToken);
                                 N(SyntaxKind.Block);
@@ -1496,9 +1496,9 @@ class C
             var tree = UsingTree(@"
         class C
         {
-            void Foo()
+            void Goo()
             {
-                foreach (var (x, y) in foo) { }
+                foreach (var (x, y) in goo) { }
             }
         }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -1514,7 +1514,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1551,7 +1551,7 @@ class C
                                 N(SyntaxKind.InKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "foo");
+                                    N(SyntaxKind.IdentifierToken, "goo");
                                 }
                                 N(SyntaxKind.CloseParenToken);
                                 N(SyntaxKind.Block);
@@ -1751,7 +1751,7 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         (int _, var _, var (_, _), _) = e;
     }
@@ -1769,7 +1769,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1936,7 +1936,7 @@ class C
         [Fact]
         public void CastWithTupleType()
         {
-            var text = "(((x, y))z).Foo();";
+            var text = "(((x, y))z).Goo();";
             var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.False(statement.HasErrors);
 
@@ -2028,7 +2028,7 @@ class C
         [WorkItem(12402, "https://github.com/dotnet/roslyn/issues/12402")]
         public void ConfusedForWithDeconstruction()
         {
-            var text = "for ((int x, var (y, z)) in foo) { }";
+            var text = "for ((int x, var (y, z)) in goo) { }";
             var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
 
             // This expectation is wrong. We should expect a foreach statement (because the 'in' keyword is there)
@@ -3317,13 +3317,14 @@ class C
 {
     void M()
     {
-        // Pointer types are not parsed in declaration expressions within a tuple, so
-        // these parse into a mess of error recovery
+        // syntax error: pointer types only permitted as an array element type in a tuple
         (int* x1, int y1) = e;
+
+        // These are OK, because an array is a valid type in a tuple.
         (int*[] x2, int y2) = e;
         (var*[] x3, int y3) = e;
 
-        // However, multiplication in a tuple element is OK
+        // Multiplication in a tuple element is also OK
         (var* x4, int y4) = e;
         (var* x5, var* y5) = e;
         e = (var* x6, var* y6);
@@ -3331,66 +3332,9 @@ class C
 }
 ";
             UsingTree(source).GetDiagnostics().Verify(
-                // (8,10): error CS1525: Invalid expression term 'int'
+                // (7,10): error CS1525: Invalid expression term 'int'
                 //         (int* x1, int y1) = e;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(8, 10),
-                // (9,10): error CS1525: Invalid expression term 'int'
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(9, 10),
-                // (9,14): error CS1525: Invalid expression term '['
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(9, 14),
-                // (9,15): error CS0443: Syntax error; value expected
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(9, 15),
-                // (9,17): error CS1026: ) expected
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x2").WithLocation(9, 17),
-                // (9,17): error CS1002: ; expected
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x2").WithLocation(9, 17),
-                // (9,19): error CS1002: ; expected
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(9, 19),
-                // (9,19): error CS1513: } expected
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(9, 19),
-                // (9,27): error CS1002: ; expected
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(9, 27),
-                // (9,27): error CS1513: } expected
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(9, 27),
-                // (9,29): error CS1525: Invalid expression term '='
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(9, 29),
-                // (10,14): error CS1525: Invalid expression term '['
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(10, 14),
-                // (10,15): error CS0443: Syntax error; value expected
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(10, 15),
-                // (10,17): error CS1026: ) expected
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x3").WithLocation(10, 17),
-                // (10,17): error CS1002: ; expected
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x3").WithLocation(10, 17),
-                // (10,19): error CS1002: ; expected
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(10, 19),
-                // (10,19): error CS1513: } expected
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(10, 19),
-                // (10,27): error CS1002: ; expected
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(10, 27),
-                // (10,27): error CS1513: } expected
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(10, 27),
-                // (10,29): error CS1525: Invalid expression term '='
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(10, 29)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 10)
                 );
             N(SyntaxKind.CompilationUnit);
             {
@@ -3463,70 +3407,57 @@ class C
                             }
                             N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.ParenthesizedExpression);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.MultiplyExpression);
-                                    {
-                                        N(SyntaxKind.PredefinedType);
-                                        {
-                                            N(SyntaxKind.IntKeyword);
-                                        }
-                                        N(SyntaxKind.AsteriskToken);
-                                        N(SyntaxKind.ElementAccessExpression);
-                                        {
-                                            M(SyntaxKind.IdentifierName);
-                                            {
-                                                M(SyntaxKind.IdentifierToken);
-                                            }
-                                            N(SyntaxKind.BracketedArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenBracketToken);
-                                                M(SyntaxKind.Argument);
-                                                {
-                                                    M(SyntaxKind.IdentifierName);
-                                                    {
-                                                        M(SyntaxKind.IdentifierToken);
-                                                    }
-                                                }
-                                                N(SyntaxKind.CloseBracketToken);
-                                            }
-                                        }
-                                    }
-                                    M(SyntaxKind.CloseParenToken);
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.ExpressionStatement);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x2");
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "y2");
-                                    }
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.ExpressionStatement);
-                            {
                                 N(SyntaxKind.SimpleAssignmentExpression);
                                 {
-                                    M(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.TupleExpression);
                                     {
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.DeclarationExpression);
+                                            {
+                                                N(SyntaxKind.ArrayType);
+                                                {
+                                                    N(SyntaxKind.PointerType);
+                                                    {
+                                                        N(SyntaxKind.PredefinedType);
+                                                        {
+                                                            N(SyntaxKind.IntKeyword);
+                                                        }
+                                                        N(SyntaxKind.AsteriskToken);
+                                                    }
+                                                    N(SyntaxKind.ArrayRankSpecifier);
+                                                    {
+                                                        N(SyntaxKind.OpenBracketToken);
+                                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                                        {
+                                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                                        }
+                                                        N(SyntaxKind.CloseBracketToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.SingleVariableDesignation);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "x2");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.DeclarationExpression);
+                                            {
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.SingleVariableDesignation);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "y2");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
                                     }
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
@@ -3538,70 +3469,57 @@ class C
                             }
                             N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.ParenthesizedExpression);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.MultiplyExpression);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "var");
-                                        }
-                                        N(SyntaxKind.AsteriskToken);
-                                        N(SyntaxKind.ElementAccessExpression);
-                                        {
-                                            M(SyntaxKind.IdentifierName);
-                                            {
-                                                M(SyntaxKind.IdentifierToken);
-                                            }
-                                            N(SyntaxKind.BracketedArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenBracketToken);
-                                                M(SyntaxKind.Argument);
-                                                {
-                                                    M(SyntaxKind.IdentifierName);
-                                                    {
-                                                        M(SyntaxKind.IdentifierToken);
-                                                    }
-                                                }
-                                                N(SyntaxKind.CloseBracketToken);
-                                            }
-                                        }
-                                    }
-                                    M(SyntaxKind.CloseParenToken);
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.ExpressionStatement);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x3");
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "y3");
-                                    }
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.ExpressionStatement);
-                            {
                                 N(SyntaxKind.SimpleAssignmentExpression);
                                 {
-                                    M(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.TupleExpression);
                                     {
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.DeclarationExpression);
+                                            {
+                                                N(SyntaxKind.ArrayType);
+                                                {
+                                                    N(SyntaxKind.PointerType);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "var");
+                                                        }
+                                                        N(SyntaxKind.AsteriskToken);
+                                                    }
+                                                    N(SyntaxKind.ArrayRankSpecifier);
+                                                    {
+                                                        N(SyntaxKind.OpenBracketToken);
+                                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                                        {
+                                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                                        }
+                                                        N(SyntaxKind.CloseBracketToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.SingleVariableDesignation);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "x3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.DeclarationExpression);
+                                            {
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.SingleVariableDesignation);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "y3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
                                     }
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);

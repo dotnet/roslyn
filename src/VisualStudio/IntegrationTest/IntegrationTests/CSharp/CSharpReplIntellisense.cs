@@ -82,7 +82,7 @@ Del<C, System");
         {
             using (var temporaryTextFile = new TemporaryTextFile(
                 "c.csx",
-                "int x = 2; class Complex { public int foo() { return 4; } }"))
+                "int x = 2; class Complex { public int goo() { return 4; } }"))
             {
                 temporaryTextFile.Create();
                 VisualStudio.InteractiveWindow.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));

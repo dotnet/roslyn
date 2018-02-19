@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
             await Test_KeywordAsync(
 @"class C
 {
-    vo[||]id foo()
+    vo[||]id goo()
     {
     }
 }", "void");
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
             await Test_KeywordAsync(
 @"class C
 {
-    void foo()
+    void goo()
     {
         ret[||]urn;
     }
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
             await Test_KeywordAsync(
 @"part[||]ial class C
 {
-    partial void foo();
+    partial void goo();
 }", "partialtype");
         }
 
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
             await Test_KeywordAsync(
 @"partial class C
 {
-    par[||]tial void foo();
+    par[||]tial void goo();
 }", "partialmethod");
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
 
 class Program<T> where T : class
 {
-    void foo(string[] args)
+    void goo(string[] args)
     {
         var x = from a in args
                 whe[||]re a.Length > 0
@@ -100,7 +100,7 @@ class Program<T> where T : class
 
 class Program<T> wh[||]ere T : class
 {
-    void foo(string[] args)
+    void goo(string[] args)
     {
         var x = from a in args
                 where a.Length > 0
@@ -125,7 +125,7 @@ class Program<T> wh[||]ere T : class
 {
     class C
     {
-        void foo()
+        void goo()
         {
             var x = new [|C|]();
         }
@@ -141,7 +141,7 @@ class Program<T> wh[||]ere T : class
 {
     class C<T>
     {
-        void foo()
+        void goo()
         {
             [|C|]<int> c;
         }
@@ -157,13 +157,13 @@ class Program<T> wh[||]ere T : class
 {
     class C<T>
     {
-        void foo<T, U, V>(T t, U u, V v)
+        void goo<T, U, V>(T t, U u, V v)
         {
             C<int> c;
-            c.f[|oo|](1, 1, 1);
+            c.g[|oo|](1, 1, 1);
         }
     }
-}", "N.C`1.foo``3");
+}", "N.C`1.goo``3");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
@@ -174,7 +174,7 @@ class Program<T> wh[||]ere T : class
 {
     class C
     {
-        void foo()
+        void goo()
         {
             var two = 1 [|+|] 1;
         }

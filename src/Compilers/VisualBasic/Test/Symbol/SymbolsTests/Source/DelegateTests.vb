@@ -381,10 +381,10 @@ Imports System
 
 Module C
     Sub Main()
-        Dim a As Action(Of Integer) = AddressOf Foo
+        Dim a As Action(Of Integer) = AddressOf Goo
     End Sub
 
-    Sub Foo(Of T)(x As T)
+    Sub Goo(Of T)(x As T)
     End Sub
 End Module                    
                             </file>

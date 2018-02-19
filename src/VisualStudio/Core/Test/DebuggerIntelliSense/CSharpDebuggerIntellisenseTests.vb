@@ -69,7 +69,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
     static void Main(string[] args)
     [|{|]
         int x = 3;
-        string bar = "foo";
+        string bar = "goo";
     }
 }</Document>
                            </Project>
@@ -99,7 +99,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
     static void Main(string[] args)
     [|{|]
         int x = 3;
-        string bar = "foo";
+        string bar = "goo";
     }
 }</Document>
                            </Project>
@@ -130,8 +130,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 {
     static void Main(string[] args)
     {
-        string foo = "green";
-        [|string bar = "foo";|]
+        string goo = "green";
+        [|string bar = "goo";|]
         string green = "yellow";
     }
 }</Document>
@@ -139,9 +139,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                        </Workspace>
 
             Using state = TestState.CreateCSharpTestState(text, False)
-                state.SendTypeChars("foo")
+                state.SendTypeChars("goo")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("foo")
+                Await state.AssertSelectedCompletionItem("goo")
                 state.SendTab()
                 state.SendTypeChars(".ToS")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -329,8 +329,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 {
     static void Main(string[] args)
     {
-        string foo = "green";
-        [|string bar = "foo";|]
+        string goo = "green";
+        [|string bar = "goo";|]
         string green = "yellow";
     }
 }</Document>
@@ -357,8 +357,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
     static void Main(string[] args)
     {
-        string foo = "green";
-        [|string bar = "foo";|]
+        string goo = "green";
+        [|string bar = "goo";|]
         string green = "yellow";
     }
 }</Document>
@@ -386,8 +386,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
     static void Main(string[] args)
     {
-        string foo = "green";
-        [|string bar = "foo";|]
+        string goo = "green";
+        [|string bar = "goo";|]
         string green = "yellow";
     }
 }</Document>
@@ -411,7 +411,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
     static void Main(string[] args)
     {
         int OOO = 3;
-        foreach (var z in "foo")
+        foreach (var z in "goo")
         {
             [|var q = 1;|]
         }
