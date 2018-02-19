@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Public Class FindReferencesCommandHandlerTests
         <WorkItem(47594, "https://developercommunity.visualstudio.com/content/problem/47594/c-postfix-operators-inhibit-find-all-references-sh.html")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24794"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSelection() As Task
             Dim source = "
 class C
@@ -34,13 +34,13 @@ class C
                 view.Selection.Select(
                     testDocument.AnnotatedSpans("Selection").Single().ToSnapshotSpan(snapshot), isReversed:=False)
 
-                Dim waiter = New Waiter()
+                Dim listenerProvider = New AsynchronousOperationListenerProvider()
 
                 Dim context = New FindReferencesTests.TestContext()
                 Dim commandHandler = New FindReferencesCommandHandler(
                     workspace.GetService(Of IWaitIndicator),
                     {New Lazy(Of IStreamingFindUsagesPresenter)(Function() New MockStreamingFindReferencesPresenter(context))},
-                    {New Lazy(Of IAsynchronousOperationListener, FeatureMetadata)(Function() waiter, New FeatureMetadata(FeatureAttribute.FindReferences))})
+                    listenerProvider)
 
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
                 commandHandler.ExecuteCommand(
@@ -48,7 +48,7 @@ class C
                                                                      End Sub)
 
                 ' Wait for the find refs to be done.
-                Await waiter.CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.FindReferences).CreateWaitTask()
 
                 Assert.Equal(1, context.Definitions.Count)
                 Assert.Equal(testDocument.AnnotatedSpans("Definition").Single(),
@@ -76,11 +76,6 @@ class C
             Public Function StartSearch(title As String, supportsReferences As Boolean) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearch
                 Return _context
             End Function
-        End Class
-
-        Private Class Waiter
-            Inherits AsynchronousOperationListener
-
         End Class
     End Class
 End Namespace

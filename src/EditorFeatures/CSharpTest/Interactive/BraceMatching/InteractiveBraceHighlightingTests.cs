@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             var producer = new BraceHighlightingViewTaggerProvider(
                 workspace.GetService<IBraceMatchingService>(),
                 workspace.GetService<IForegroundNotificationService>(),
-                AggregateAsynchronousOperationListener.EmptyListeners);
+                AsynchronousOperationListenerProvider.NullProvider);
 
             var context = new TaggerContext<BraceHighlightTag>(
                 buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault(),

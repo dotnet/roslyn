@@ -71,14 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Duplicates and cycles are removed, although the collection may include
         /// redundant constraints where one constraint is a base type of another.
         /// </summary>
-        public ImmutableArray<TypeSymbol> ConstraintTypes
-        {
-            get
-            {
-                return this.ConstraintTypesNoUseSiteDiagnostics;
-            }
-        }
-
         internal ImmutableArray<TypeSymbol> ConstraintTypesNoUseSiteDiagnostics
         {
             get
@@ -255,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -474,6 +466,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return true;
+            }
+        }
+
+        internal sealed override bool IsByRefLikeType
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal sealed override bool IsReadOnly
+        {
+            get
+            {
+                // even if T is indirectly constrained to a struct, 
+                // we only can use members via constrained calls, so "true" would have no effect
+                return false;
             }
         }
 

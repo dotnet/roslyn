@@ -186,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 accessibility: Accessibility.Protected,
                 modifiers: new DeclarationModifiers(),
                 returnType: targetDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSpecialType(SpecialType.System_Void),
-                returnsByRef: false,
+                refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: eventHandlerName,
                 typeParameters: default,

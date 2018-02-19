@@ -864,10 +864,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' Here we are after parsing " New Blah(a1,a2)"
 
-            If Type.Kind = SyntaxKind.TupleType Then
-                Type = ReportSyntaxError(Type, ERRID.ERR_NewWithTupleTypeSyntax)
-            End If
-
             Dim FromToken As KeywordSyntax = Nothing
             If TryTokenAsContextualKeyword(CurrentToken, SyntaxKind.FromKeyword, FromToken) Then
 

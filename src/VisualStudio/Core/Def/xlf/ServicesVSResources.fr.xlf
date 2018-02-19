@@ -1,0 +1,1513 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="fr" original="../ServicesVSResources.resx">
+    <body>
+      <trans-unit id="Element_is_not_valid">
+        <source>Element is not valid.</source>
+        <target state="translated">L'élément n'est pas valide.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_must_select_at_least_one_member">
+        <source>You must select at least one member.</source>
+        <target state="translated">Vous devez sélectionner au moins un membre.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_name_conflicts_with_an_existing_type_name">
+        <source>Interface name conflicts with an existing type name.</source>
+        <target state="translated">Le nom d'interface est en conflit avec un nom de type existant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_name_is_not_a_valid_0_identifier">
+        <source>Interface name is not a valid {0} identifier.</source>
+        <target state="translated">Le nom de l'interface n'est pas un identificateur {0} valide.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Illegal_characters_in_path">
+        <source>Illegal characters in path.</source>
+        <target state="translated">Caractères non autorisés dans le chemin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_name_must_have_the_0_extension">
+        <source>File name must have the "{0}" extension.</source>
+        <target state="translated">Le nom de fichier doit avoir l'extension "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Debugger">
+        <source>Debugger</source>
+        <target state="translated">Débogueur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Determining_breakpoint_location">
+        <source>Determining breakpoint location...</source>
+        <target state="translated">Détermination de l'emplacement du point d'arrêt...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Determining_autos">
+        <source>Determining autos...</source>
+        <target state="translated">Identification automatique...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resolving_breakpoint_location">
+        <source>Resolving breakpoint location...</source>
+        <target state="translated">Résolution de l'emplacement du point d'arrêt...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Validating_breakpoint_location">
+        <source>Validating breakpoint location...</source>
+        <target state="translated">Validation de l'emplacement du point d'arrêt...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Getting_DataTip_text">
+        <source>Getting DataTip text...</source>
+        <target state="translated">Obtention du texte de DataTip...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_unavailable">
+        <source>Preview unavailable</source>
+        <target state="translated">Aperçu non disponible</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overrides_">
+        <source>Overrides</source>
+        <target state="translated">Substitutions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overridden_By">
+        <source>Overridden By</source>
+        <target state="translated">Remplacée par</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherits_">
+        <source>Inherits</source>
+        <target state="translated">Hérite</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherited_By">
+        <source>Inherited By</source>
+        <target state="translated">Hérité par</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implements_">
+        <source>Implements</source>
+        <target state="translated">Implémente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implemented_By">
+        <source>Implemented By</source>
+        <target state="translated">Implémenté par</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Maximum_number_of_documents_are_open">
+        <source>Maximum number of documents are open.</source>
+        <target state="translated">Le nombre maximum de documents est ouvert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_create_document_in_miscellaneous_files_project">
+        <source>Failed to create document in miscellaneous files project.</source>
+        <target state="translated">Échec de création du document dans le projet de fichiers divers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_access">
+        <source>Invalid access.</source>
+        <target state="translated">Accès non valide.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_following_references_were_not_found_0_Please_locate_and_add_them_manually">
+        <source>The following references were not found. {0}Please locate and add them manually.</source>
+        <target state="translated">Les références suivantes sont introuvables. {0}Recherchez-les et ajoutez-les manuellement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="End_position_must_be_start_position">
+        <source>End position must be &gt;= start position</source>
+        <target state="translated">La position de fin doit être &gt;= à la position de départ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_a_valid_value">
+        <source>Not a valid value</source>
+        <target state="translated">Valeur non valide</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="given_workspace_doesn_t_support_undo">
+        <source>given workspace doesn't support undo</source>
+        <target state="translated">l'espace de travail donné ne prend pas en charge la fonction Annuler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_a_reference_to_0">
+        <source>Add a reference to '{0}'</source>
+        <target state="translated">Ajouter une référence à '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Event_type_is_invalid">
+        <source>Event type is invalid</source>
+        <target state="translated">Type d'événement non valide</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Can_t_find_where_to_insert_member">
+        <source>Can't find where to insert member</source>
+        <target state="translated">Emplacement introuvable pour insérer le membre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Can_t_rename_other_elements">
+        <source>Can't rename 'other' elements</source>
+        <target state="translated">Impossible de renommer les éléments 'other'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown_rename_type">
+        <source>Unknown rename type</source>
+        <target state="translated">Type renommé inconnu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDs_are_not_supported_for_this_symbol_type">
+        <source>IDs are not supported for this symbol type.</source>
+        <target state="translated">Les ID ne sont pas pris en charge pour ce type de symbole.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Can_t_create_a_node_id_for_this_symbol_kind_colon_0">
+        <source>Can't create a node id for this symbol kind: '{0}'</source>
+        <target state="translated">Impossible de créer un ID de nœud pour ce genre de symbole : '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_References">
+        <source>Project References</source>
+        <target state="translated">Références du projet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Base_Types">
+        <source>Base Types</source>
+        <target state="translated">Types de base</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Miscellaneous_Files">
+        <source>Miscellaneous Files</source>
+        <target state="translated">Fichiers divers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_project_0">
+        <source>Could not find project '{0}'</source>
+        <target state="translated">Projet '{0}' introuvable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_location_of_folder_on_disk">
+        <source>Could not find location of folder on disk</source>
+        <target state="translated">Emplacement introuvable du dossier sur le disque</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_while_reading_0_colon_1">
+        <source>Error while reading '{0}': {1}</source>
+        <target state="translated">Erreur de lecture de '{0}' : {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assembly">
+        <source>Assembly </source>
+        <target state="translated">Assembly </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exceptions_colon">
+        <source>Exceptions:</source>
+        <target state="translated">Exceptions :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Member_of_0">
+        <source>Member of {0}</source>
+        <target state="translated">Membre de {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameters_colon1">
+        <source>Parameters:</source>
+        <target state="translated">Paramètres :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project">
+        <source>Project </source>
+        <target state="translated">Projet </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remarks_colon">
+        <source>Remarks:</source>
+        <target state="translated">Notes :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_colon">
+        <source>Returns:</source>
+        <target state="translated">Retourne :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Summary_colon">
+        <source>Summary:</source>
+        <target state="translated">Résumé :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Parameters_colon">
+        <source>Type Parameters:</source>
+        <target state="translated">Paramètres de type :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_already_exists">
+        <source>File already exists</source>
+        <target state="translated">Le fichier existe déjà</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_path_cannot_use_reserved_keywords">
+        <source>File path cannot use reserved keywords</source>
+        <target state="translated">Le chemin du fichier ne peut pas utiliser des mots clés réservés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DocumentPath_is_illegal">
+        <source>DocumentPath is illegal</source>
+        <target state="translated">DocumentPath n'est pas autorisé</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_Path_is_illegal">
+        <source>Project Path is illegal</source>
+        <target state="translated">Le chemin du projet n'est pas autorisé</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path_cannot_have_empty_filename">
+        <source>Path cannot have empty filename</source>
+        <target state="translated">Le chemin ne peut pas avoir un nom de fichier vide</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace">
+        <source>The given DocumentId did not come from the Visual Studio workspace.</source>
+        <target state="translated">Le DocumentId donné ne provient pas de l'espace de travail Visual Studio.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_colon_0_1_Use_the_dropdown_to_view_and_switch_to_other_projects_this_file_may_belong_to">
+        <source>Project: {0} ({1})
+
+Use the dropdown to view and switch to other projects this file may belong to.</source>
+        <target state="translated">Projet : {0} ({1})
+
+Utilisez le menu déroulant pour afficher et basculer vers d'autres projets auquel ce fichier peut appartenir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_Use_the_dropdown_to_view_and_navigate_to_other_items_in_this_file">
+        <source>{0}
+
+Use the dropdown to view and navigate to other items in this file.</source>
+        <target state="translated">{0}
+
+Utilisez le menu déroulant pour afficher d'autres éléments dans ce fichier, et y accéder.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_colon_0_Use_the_dropdown_to_view_and_switch_to_other_projects_this_file_may_belong_to">
+        <source>Project: {0}
+
+Use the dropdown to view and switch to other projects this file may belong to.</source>
+        <target state="translated">Projet : {0}
+
+Utilisez le menu déroulant pour afficher et basculer vers d'autres projets auquel ce fichier peut appartenir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ErrorReadingRuleset">
+        <source>ErrorReadingRuleset</source>
+        <target state="translated">ErrorReadingRuleset</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_reading_ruleset_file_0_1">
+        <source>Error reading ruleset file {0} - {1}</source>
+        <target state="translated">Erreur lors de la lecture du fichier ruleset {0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerChangedOnDisk">
+        <source>AnalyzerChangedOnDisk</source>
+        <target state="translated">AnalyzerChangedOnDisk</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted">
+        <source>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</source>
+        <target state="translated">L'assembly d'analyseur '{0}' a été modifié. Les diagnostics seront incorrects jusqu'au redémarrage de Visual Studio.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_VB_Diagnostics_Table_Data_Source">
+        <source>C#/VB Diagnostics Table Data Source</source>
+        <target state="translated">Source de données de la table de diagnostics C#/VB</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_VB_Todo_List_Table_Data_Source">
+        <source>C#/VB Todo List Table Data Source</source>
+        <target state="translated">Source de données de la table de liste Todo C#/VB</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cancel">
+        <source>Cancel</source>
+        <target state="translated">Annuler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deselect_All">
+        <source>_Deselect All</source>
+        <target state="translated">_Désélectionner tout</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Interface">
+        <source>Extract Interface</source>
+        <target state="translated">Extraire l'interface</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generated_name_colon">
+        <source>Generated name:</source>
+        <target state="translated">Nom généré :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_file_name_colon">
+        <source>New _file name:</source>
+        <target state="translated">Nouveau nom de _fichier :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_interface_name_colon">
+        <source>New _interface name:</source>
+        <target state="translated">Nouveau nom d'_interface :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OK">
+        <source>OK</source>
+        <target state="translated">OK</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_All">
+        <source>_Select All</source>
+        <target state="translated">Tout _sélectionner</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_public_members_to_form_interface">
+        <source>Select public _members to form interface</source>
+        <target state="translated">Sélectionner les _membres publics pour former l'interface</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Access_colon">
+        <source>_Access:</source>
+        <target state="translated">_Accès :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_existing_file">
+        <source>Add to _existing file</source>
+        <target state="translated">Ajouter au fichier e_xistant</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_Signature">
+        <source>Change Signature</source>
+        <target state="translated">Modifier la signature</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_new_file">
+        <source>_Create new file</source>
+        <target state="translated">_Créer un fichier</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default_">
+        <source>Default</source>
+        <target state="translated">Par défaut</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_Name_colon">
+        <source>File Name:</source>
+        <target state="translated">Nom du fichier :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Type">
+        <source>Generate Type</source>
+        <target state="translated">Générer le type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Kind_colon">
+        <source>_Kind:</source>
+        <target state="translated">_Genre :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Location_colon">
+        <source>Location:</source>
+        <target state="translated">Emplacement :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifier">
+        <source>Modifier</source>
+        <target state="translated">Modificateur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_colon1">
+        <source>Name:</source>
+        <target state="translated">Nom :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter">
+        <source>Parameter</source>
+        <target state="translated">Paramètre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameters_colon2">
+        <source>Parameters:</source>
+        <target state="translated">Paramètres :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_method_signature_colon">
+        <source>Preview method signature:</source>
+        <target state="translated">Aperçu de la signature de méthode :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_reference_changes">
+        <source>Preview reference changes</source>
+        <target state="translated">Afficher un aperçu des modifications de la référence</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_colon">
+        <source>_Project:</source>
+        <target state="translated">_Projet :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type">
+        <source>Type</source>
+        <target state="translated">Type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Details_colon">
+        <source>Type Details:</source>
+        <target state="translated">Détails du type :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Re_move">
+        <source>Re_move</source>
+        <target state="translated">Suppri_mer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restore">
+        <source>_Restore</source>
+        <target state="translated">_Restaurer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="More_about_0">
+        <source>More about {0}</source>
+        <target state="translated">En savoir plus sur {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigation_must_be_performed_on_the_foreground_thread">
+        <source>Navigation must be performed on the foreground thread.</source>
+        <target state="translated">La navigation doit être exécutée sur le thread de premier plan.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="bracket_plus_bracket">
+        <source>[+] </source>
+        <target state="translated">[+] </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="bracket_bracket">
+        <source>[-] </source>
+        <target state="translated">[-] </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reference_to_0_in_project_1">
+        <source>Reference to '{0}' in project '{1}'</source>
+        <target state="translated">Référence à '{0}' dans le projet '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown1">
+        <source>&lt;Unknown&gt;</source>
+        <target state="translated">&lt;Inconnu&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_reference_to_0_in_project_1">
+        <source>Analyzer reference to '{0}' in project '{1}'</source>
+        <target state="translated">Référence d'analyseur à '{0}' dans le projet '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_reference_to_0_in_project_1">
+        <source>Project reference to '{0}' in project '{1}'</source>
+        <target state="translated">Référence au projet à '{0}' dans le projet '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerDependencyConflict">
+        <source>AnalyzerDependencyConflict</source>
+        <target state="translated">AnalyzerDependencyConflict</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly">
+        <source>Analyzer assemblies '{0}' and '{1}' both have identity '{2}' but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly.</source>
+        <target state="translated">Les assemblys d'analyseur '{0}' et '{1}' ont tous deux l'identité '{2}', mais des contenus différents. Un seul de ces assemblys est chargé et les analyseurs utilisant ces assemblys peuvent ne pas fonctionner correctement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references">
+        <source>{0} references</source>
+        <target state="translated">{0} références</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1_reference">
+        <source>1 reference</source>
+        <target state="translated">1 référence</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_encountered_an_error_and_has_been_disabled">
+        <source>'{0}' encountered an error and has been disabled.</source>
+        <target state="translated">'{0}' a rencontré une erreur et a été désactivé.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable">
+        <source>Enable</source>
+        <target state="translated">Activer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_and_ignore_future_errors">
+        <source>Enable and ignore future errors</source>
+        <target state="translated">Activer et ignorer les futures erreurs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_Changes">
+        <source>No Changes</source>
+        <target state="translated">Aucune modification</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Current_block">
+        <source>Current block</source>
+        <target state="translated">Bloc actif</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Determining_current_block">
+        <source>Determining current block.</source>
+        <target state="translated">Détermination du bloc actif.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IntelliSense">
+        <source>IntelliSense</source>
+        <target state="translated">IntelliSense</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_VB_Build_Table_Data_Source">
+        <source>C#/VB Build Table Data Source</source>
+        <target state="translated">Source de données de la table de build C#/VB</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingAnalyzerReference">
+        <source>MissingAnalyzerReference</source>
+        <target state="translated">MissingAnalyzerReference</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well">
+        <source>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</source>
+        <target state="translated">L'assembly d'analyseur '{0}' dépend de '{1}', mais il est introuvable. Les analyseurs peuvent ne pas s'exécuter correctement, sauf si l'assembly manquant est aussi ajouté comme référence d'analyseur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppression_State">
+        <source>Suppression State</source>
+        <target state="translated">État de la suppression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Active">
+        <source>Active</source>
+        <target state="translated">Actif</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppressed">
+        <source>Suppressed</source>
+        <target state="translated">Supprimé</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotApplicable">
+        <source>N/A</source>
+        <target state="translated">N/A</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionNotSupportedToolTip">
+        <source>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</source>
+        <target state="translated">L'état de la suppression est pris en charge uniquement pour les diagnostics IntelliSense (ceux-ci portant sur l'instantané de solution actuel). Passez aux diagnostics 'IntelliSense' pour la suppression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_diagnostics">
+        <source>Suppress diagnostics</source>
+        <target state="translated">Supprimer les diagnostics</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Computing_suppressions_fix">
+        <source>Computing suppressions fix...</source>
+        <target state="translated">Calcul de la correction des suppressions...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_suppressions_fix">
+        <source>Applying suppressions fix...</source>
+        <target state="translated">Application de la correction des suppressions...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_suppressions">
+        <source>Remove suppressions</source>
+        <target state="translated">Retirer les suppressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Computing_remove_suppressions_fix">
+        <source>Computing remove suppressions fix...</source>
+        <target state="translated">Calcul de la correction de retrait des suppressions...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_remove_suppressions_fix">
+        <source>Applying remove suppressions fix...</source>
+        <target state="translated">Application de la correction de retrait des suppressions...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_workspace_only_supports_opening_documents_on_the_UI_thread">
+        <source>This workspace only supports opening documents on the UI thread.</source>
+        <target state="translated">Cet espace de travail prend en charge uniquement l'ouverture de documents sur le thread d'interface utilisateur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_parse_options">
+        <source>This workspace does not support updating Visual Basic parse options.</source>
+        <target state="translated">Cet espace de travail ne prend pas en charge la mise à jour des options d'analyse Visual Basic.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Synchronize_0">
+        <source>Synchronize {0}</source>
+        <target state="translated">Synchroniser {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Synchronizing_with_0">
+        <source>Synchronizing with {0}...</source>
+        <target state="translated">Synchronisation avec {0}...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio_has_suspended_some_advanced_features_to_improve_performance">
+        <source>Visual Studio has suspended some advanced features to improve performance.</source>
+        <target state="translated">Visual Studio a interrompu certaines fonctionnalités avancées pour améliorer les performances.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Installing_0">
+        <source>Installing '{0}'</source>
+        <target state="translated">Installation de '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Installing_0_completed">
+        <source>Installing '{0}' completed</source>
+        <target state="translated">Installation de '{0}' terminée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_install_failed_colon_0">
+        <source>Package install failed: {0}</source>
+        <target state="translated">Échec de l'installation du package : {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown2">
+        <source>&lt;Unknown&gt;</source>
+        <target state="translated">&lt;Inconnu&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No">
+        <source>No</source>
+        <target state="translated">Non</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Yes">
+        <source>Yes</source>
+        <target state="translated">Oui</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Choose_a_Symbol_Specification_and_a_Naming_Style">
+        <source>Choose a Symbol Specification and a Naming Style.</source>
+        <target state="translated">Choisissez une spécification de symbole et un style de nommage.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_a_title_for_this_Naming_Rule">
+        <source>Enter a title for this Naming Rule.</source>
+        <target state="translated">Entrez un titre pour cette règle de nommage.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_a_title_for_this_Naming_Style">
+        <source>Enter a title for this Naming Style.</source>
+        <target state="translated">Entrez un titre pour ce style de nommage.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_a_title_for_this_Symbol_Specification">
+        <source>Enter a title for this Symbol Specification.</source>
+        <target state="translated">Entrez un titre pour cette spécification de symbole.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Accessibilities_can_match_any">
+        <source>Accessibilities (can match any)</source>
+        <target state="translated">Niveaux d'accès (peut correspondre à n'importe quel élément)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Capitalization_colon">
+        <source>Capitalization:</source>
+        <target state="translated">Mise en majuscules :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="all_lower">
+        <source>all lower</source>
+        <target state="translated">tout en minuscules</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ALL_UPPER">
+        <source>ALL UPPER</source>
+        <target state="translated">TOUT EN MAJUSCULES</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="camel_Case_Name">
+        <source>camel Case Name</source>
+        <target state="translated">Nom en casse mixte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="First_word_upper">
+        <source>First word upper</source>
+        <target state="translated">Premier mot en majuscules</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pascal_Case_Name">
+        <source>Pascal Case Name</source>
+        <target state="translated">Nom en casse Pascal</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Severity_colon">
+        <source>Severity:</source>
+        <target state="translated">Gravité :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifiers_must_match_all">
+        <source>Modifiers (must match all)</source>
+        <target state="translated">Modificateurs (doivent correspondre à tous les éléments)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_colon2">
+        <source>Name:</source>
+        <target state="translated">Nom :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_Rule">
+        <source>Naming Rule</source>
+        <target state="translated">Règle de nommage</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_Style">
+        <source>Naming Style</source>
+        <target state="translated">Style de nommage</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_Style_colon">
+        <source>Naming Style:</source>
+        <target state="translated">Style de nommage :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_Rules_allow_you_to_define_how_particular_sets_of_symbols_should_be_named_and_how_incorrectly_named_symbols_should_be_handled">
+        <source>Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled.</source>
+        <target state="translated">Les règles de nommage vous permettent de définir le mode d'appellation d'ensembles particuliers de symboles et le traitement des symboles incorrectement nommés.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_first_matching_top_level_Naming_Rule_is_used_by_default_when_naming_a_symbol_while_any_special_cases_are_handled_by_a_matching_child_rule">
+        <source>The first matching top-level Naming Rule is used by default when naming a symbol, while any special cases are handled by a matching child rule.</source>
+        <target state="translated">La première règle de nommage de niveau supérieur correspondante est utilisée par défaut lors de l'appellation d'un symbole, tandis que les cas spéciaux sont gérés par une règle enfant correspondante.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_Style_Title_colon">
+        <source>Naming Style Title:</source>
+        <target state="translated">Titre du style de nommage :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parent_Rule_colon">
+        <source>Parent Rule:</source>
+        <target state="translated">Règle parente :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Required_Prefix_colon">
+        <source>Required Prefix:</source>
+        <target state="translated">Préfixe obligatoire :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Required_Suffix_colon">
+        <source>Required Suffix:</source>
+        <target state="translated">Suffixe obligatoire :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sample_Identifier_colon">
+        <source>Sample Identifier:</source>
+        <target state="translated">Exemple d'identificateur :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Kinds_can_match_any">
+        <source>Symbol Kinds (can match any)</source>
+        <target state="translated">Genres de symboles (peuvent correspondre à n'importe quel élément)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Specification">
+        <source>Symbol Specification</source>
+        <target state="translated">Spécification du symbole</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Specification_colon">
+        <source>Symbol Specification:</source>
+        <target state="translated">Spécification du symbole :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Specification_Title_colon">
+        <source>Symbol Specification Title:</source>
+        <target state="translated">Titre de la spécification du symbole :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Word_Separator_colon">
+        <source>Word Separator:</source>
+        <target state="translated">Séparateur de mots :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="example">
+        <source>example</source>
+        <target state="translated">exemple</target>
+        <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
+      </trans-unit>
+      <trans-unit id="identifier">
+        <source>identifier</source>
+        <target state="translated">identificateur</target>
+        <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
+      </trans-unit>
+      <trans-unit id="Install_0">
+        <source>Install '{0}'</source>
+        <target state="translated">Installer '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Uninstalling_0">
+        <source>Uninstalling '{0}'</source>
+        <target state="translated">Désinstallation de '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Uninstalling_0_completed">
+        <source>Uninstalling '{0}' completed</source>
+        <target state="translated">Désinstallation de '{0}' terminée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Uninstall_0">
+        <source>Uninstall '{0}'</source>
+        <target state="translated">Désinstaller '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_uninstall_failed_colon_0">
+        <source>Package uninstall failed: {0}</source>
+        <target state="translated">Échec de la désinstallation du package : {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled">
+        <source>Error encountered while loading the project. Some project features, such as full solution analysis for the failed project and projects that depend on it, have been disabled.</source>
+        <target state="translated">Erreur pendant le chargement du projet. Certaines fonctionnalités du projet, comme l'analyse complète de la solution pour le projet en échec et les projets qui en dépendent, ont été désactivées.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_loading_failed">
+        <source>Project loading failed.</source>
+        <target state="translated">Échec du chargement du projet.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragraph_follows">
+        <source>To see what caused the issue, please try below.
+
+1. Close Visual Studio
+2. Open a Visual Studio Developer Command Prompt
+3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
+4. Delete .vs directory/.suo file
+5. Restart VS from the command prompt you set the environment variable (devenv)
+6. Open the solution
+7. Check '{0}' and look for the failed tasks (FAILED)</source>
+        <target state="translated">Pour déterminer la cause du problème, essayez d'effectuer les actions ci-dessous.
+
+1. Fermez Visual Studio
+2. Ouvrez une invite de commandes Visual Studio Developer
+3. Affectez à la variable d'environnement "TraceDesignTime" la valeur true (set TraceDesignTime=true)
+4. Supprimez le répertoire .vs/fichier .suo
+5. Redémarrez VS à partir de l'invite de commandes définie dans la variable d'environnement (devenv)
+6. Ouvrez la solution
+7. Recherchez dans '{0}' les tâches qui n'ont pas abouti (FAILED)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Additional_information_colon">
+        <source>Additional information:</source>
+        <target state="translated">Informations supplémentaires :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Installing_0_failed_Additional_information_colon_1">
+        <source>Installing '{0}' failed.
+
+Additional information: {1}</source>
+        <target state="translated">Échec de l'installation de '{0}'.
+
+Informations supplémentaires : {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Uninstalling_0_failed_Additional_information_colon_1">
+        <source>Uninstalling '{0}' failed.
+
+Additional information: {1}</source>
+        <target state="translated">Échec de la désinstallation de '{0}'.
+
+Informations supplémentaires : {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_0_below_1">
+        <source>Move {0} below {1}</source>
+        <target state="translated">Déplacer {0} sous {1}</target>
+        <note>{0} and {1} are parameter descriptions</note>
+      </trans-unit>
+      <trans-unit id="Move_0_above_1">
+        <source>Move {0} above {1}</source>
+        <target state="translated">Déplacer {0} au-dessus de {1}</target>
+        <note>{0} and {1} are parameter descriptions</note>
+      </trans-unit>
+      <trans-unit id="Remove_0">
+        <source>Remove {0}</source>
+        <target state="translated">Supprimer {0}</target>
+        <note>{0} is a parameter description</note>
+      </trans-unit>
+      <trans-unit id="Restore_0">
+        <source>Restore {0}</source>
+        <target state="translated">Restaurer {0}</target>
+        <note>{0} is a parameter description</note>
+      </trans-unit>
+      <trans-unit id="Re_enable">
+        <source>Re-enable</source>
+        <target state="translated">Réactiver</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Learn_more">
+        <source>Learn more</source>
+        <target state="translated">En savoir plus</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_framework_type">
+        <source>Prefer framework type</source>
+        <target state="translated">Préférer le type d'infrastructure</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_predefined_type">
+        <source>Prefer predefined type</source>
+        <target state="translated">Préférer le type prédéfini</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copy_to_Clipboard">
+        <source>Copy to Clipboard</source>
+        <target state="translated">Copier dans le Presse-papiers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Close">
+        <source>Close</source>
+        <target state="translated">Fermer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown_parameters">
+        <source>&lt;Unknown Parameters&gt;</source>
+        <target state="translated">&lt;Paramètres inconnus&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="End_of_inner_exception_stack">
+        <source>--- End of inner exception stack trace ---</source>
+        <target state="translated">--- Fin de la trace de la pile d'exception interne ---</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_locals_parameters_and_members">
+        <source>For locals, parameters and members</source>
+        <target state="translated">Pour les variables locales, les paramètres et les membres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_member_access_expressions">
+        <source>For member access expressions</source>
+        <target state="translated">Pour les expressions d'accès de membre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_object_initializer">
+        <source>Prefer object initializer</source>
+        <target state="translated">Préférer l'initialiseur d'objet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_preferences_colon">
+        <source>Expression preferences:</source>
+        <target state="translated">Préférences en matière d'expressions :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Block_Structure_Guides">
+        <source>Block Structure Guides</source>
+        <target state="translated">Repères de structure de bloc</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Outlining">
+        <source>Outlining</source>
+        <target state="translated">Mode plan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_guides_for_code_level_constructs">
+        <source>Show guides for code level constructs</source>
+        <target state="translated">Afficher les repères pour les constructions au niveau du code</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
+        <source>Show guides for comments and preprocessor regions</source>
+        <target state="translated">Afficher les repères pour les commentaires et les régions du préprocesseur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_guides_for_declaration_level_constructs">
+        <source>Show guides for declaration level constructs</source>
+        <target state="translated">Afficher les repères pour les constructions au niveau des déclarations</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_outlining_for_code_level_constructs">
+        <source>Show outlining for code level constructs</source>
+        <target state="translated">Afficher le mode Plan pour les constructions au niveau du code</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_outlining_for_comments_and_preprocessor_regions">
+        <source>Show outlining for comments and preprocessor regions</source>
+        <target state="translated">Afficher le mode Plan pour les commentaires et les régions du préprocesseur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_outlining_for_declaration_level_constructs">
+        <source>Show outlining for declaration level constructs</source>
+        <target state="translated">Afficher le mode Plan pour les constructions au niveau des déclarations</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variable_preferences_colon">
+        <source>Variable preferences:</source>
+        <target state="translated">Préférences en matière de variables :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inlined_variable_declaration">
+        <source>Prefer inlined variable declaration</source>
+        <target state="translated">Préférer la déclaration de variable inline</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_methods">
+        <source>Use expression body for methods</source>
+        <target state="translated">Utiliser un corps d'expression pour les méthodes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_block_preferences_colon">
+        <source>Code block preferences:</source>
+        <target state="translated">Préférences en matière de blocs de code :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_accessors">
+        <source>Use expression body for accessors</source>
+        <target state="translated">Utiliser un corps d'expression pour les accesseurs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_constructors">
+        <source>Use expression body for constructors</source>
+        <target state="translated">Utiliser un corps d'expression pour les constructeurs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_indexers">
+        <source>Use expression body for indexers</source>
+        <target state="translated">Utiliser un corps d'expression pour les indexeurs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_operators">
+        <source>Use expression body for operators</source>
+        <target state="translated">Utiliser un corps d'expression pour les opérateurs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_properties">
+        <source>Use expression body for properties</source>
+        <target state="translated">Utiliser un corps d'expression pour les propriétés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Some_naming_rules_are_incomplete_Please_complete_or_remove_them">
+        <source>Some naming rules are incomplete. Please complete or remove them.</source>
+        <target state="translated">Certaines règles de nommage sont incomplètes. Complétez-les ou supprimez-les.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_specifications">
+        <source>Manage specifications</source>
+        <target state="translated">Gérer les spécifications</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_styles">
+        <source>Manage styles</source>
+        <target state="translated">Gérer les styles</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reorder">
+        <source>Reorder</source>
+        <target state="translated">Réorganiser</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Severity">
+        <source>Severity</source>
+        <target state="translated">Gravité</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specification">
+        <source>Specification</source>
+        <target state="translated">Spécification</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Required_Style">
+        <source>Required Style</source>
+        <target state="translated">Style obligatoire</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule">
+        <source>This item cannot be deleted because it is used by an existing Naming Rule.</source>
+        <target state="translated">Impossible de supprimer cet élément car il est utilisé par une règle de nommage existante.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_collection_initializer">
+        <source>Prefer collection initializer</source>
+        <target state="translated">Préférer l'initialiseur de collection</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_coalesce_expression">
+        <source>Prefer coalesce expression</source>
+        <target state="translated">Préférer l'expression coalesce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_regions_when_collapsing_to_definitions">
+        <source>Collapse #regions when collapsing to definitions</source>
+        <target state="translated">Réduire #regions lors de la réduction aux définitions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_propagation">
+        <source>Prefer null propagation</source>
+        <target state="translated">Préférer la propagation Null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicit_tuple_name">
+        <source>Prefer explicit tuple name</source>
+        <target state="translated">Préférer un nom de tuple explicite</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Description">
+        <source>Description</source>
+        <target state="translated">Description</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preference">
+        <source>Preference</source>
+        <target state="translated">Préférence</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Interface_or_Abstract_Class">
+        <source>Implement Interface or Abstract Class</source>
+        <target state="translated">Implémenter une interface ou une classe abstraite</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_a_given_symbol_only_the_topmost_rule_with_a_matching_Specification_will_be_applied_Violation_of_that_rules_Required_Style_will_be_reported_at_the_chosen_Severity_level">
+        <source>For a given symbol, only the topmost rule with a matching 'Specification' will be applied. Violation of that rule's 'Required Style' will be reported at the chosen 'Severity' level.</source>
+        <target state="translated">Pour un symbole donné, seule la règle la plus élevée avec une 'Spécification' correspondante est appliquée. Toute violation du 'Style obligatoire' de cette de règle est signalée au niveau de 'Gravité' choisi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="at_the_end">
+        <source>at the end</source>
+        <target state="translated">à la fin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_inserting_properties_events_and_methods_place_them">
+        <source>When inserting properties, events and methods, place them:</source>
+        <target state="translated">Quand vous insérez des propriétés, des événements et des méthodes, placez-les :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="with_other_members_of_the_same_kind">
+        <source>with other members of the same kind</source>
+        <target state="translated">avec d'autres membres du même type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_braces">
+        <source>Prefer braces</source>
+        <target state="translated">Préférer des accolades</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Over_colon">
+        <source>Over:</source>
+        <target state="translated">À :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_colon">
+        <source>Prefer:</source>
+        <target state="translated">Préférer :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="or">
+        <source>or</source>
+        <target state="translated">ou</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="built_in_types">
+        <source>built-in types</source>
+        <target state="translated">types intégrés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="everywhere_else">
+        <source>everywhere else</source>
+        <target state="translated">n'importe où ailleurs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type_is_apparent_from_assignment_expression">
+        <source>type is apparent from assignment expression</source>
+        <target state="translated">le type est visible dans l'expression d'assignation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_help_for_0">
+        <source>Get help for '{0}'</source>
+        <target state="translated">Obtenir de l'aide pour '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_help_for_0_from_Bing">
+        <source>Get help for '{0}' from Bing</source>
+        <target state="translated">Obtenir de l'aide pour '{0}' à partir de Bing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_down">
+        <source>Move down</source>
+        <target state="translated">Descendre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_up">
+        <source>Move up</source>
+        <target state="translated">Monter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove">
+        <source>Remove</source>
+        <target state="translated">Supprimer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pick_members">
+        <source>Pick members</source>
+        <target state="translated">Choisir les membres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio">
+        <source>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</source>
+        <target state="translated">Malheureusement, un processus utilisé par Visual Studio a rencontré une erreur irrécupérable. Nous vous recommandons d'enregistrer votre travail, puis de fermer et de redémarrer Visual Studio.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_a_symbol_specification">
+        <source>Add a symbol specification</source>
+        <target state="translated">Ajouter une spécification de symbole</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_symbol_specification">
+        <source>Remove symbol specification</source>
+        <target state="translated">Supprimer la spécification de symbole</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_item">
+        <source>Add item</source>
+        <target state="translated">Ajouter l'élément</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_item">
+        <source>Edit item</source>
+        <target state="translated">Modifier l'élément</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_item">
+        <source>Remove item</source>
+        <target state="translated">Supprimer l'élément</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_a_naming_rule">
+        <source>Add a naming rule</source>
+        <target state="translated">Ajouter une règle d'affectation de noms</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_naming_rule">
+        <source>Remove naming rule</source>
+        <target state="translated">Supprimer la règle d'affectation de noms</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread">
+        <source>VisualStudioWorkspace.TryApplyChanges cannot be called from a background thread.</source>
+        <target state="translated">Impossible d'appeler VisualStudioWorkspace.TryApplyChanges à partir d'un thread d'arrière-plan.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="prefer_throwing_properties">
+        <source>prefer throwing properties</source>
+        <target state="translated">préférer les propriétés de levée d'exceptions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_generating_properties">
+        <source>When generating properties:</source>
+        <target state="translated">Durant la génération des propriétés :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Options">
+        <source>Options</source>
+        <target state="translated">Options</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues">
+        <source>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</source>
+        <target state="translated">Essayez la préversion de notre extension d'analyse du code en temps réel, qui offre davantage de correctifs pour les problèmes usuels de conception, d'affectation de noms, de performances et de fiabilité des API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_show_this_again">
+        <source>Never show this again</source>
+        <target state="translated">Ne plus afficher</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simple_default_expression">
+        <source>Prefer simple 'default' expression</source>
+        <target state="translated">Préférer l'expression 'default' simple</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inferred_tuple_names">
+        <source>Prefer inferred tuple element names</source>
+        <target state="translated">Préférer les noms d'éléments de tuple déduits</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inferred_anonymous_type_member_names">
+        <source>Prefer inferred anonymous type member names</source>
+        <target state="translated">Préférer les noms de membres de type anonyme déduits</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_pane">
+        <source>Preview pane</source>
+        <target state="translated">Volet d'aperçu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analysis">
+        <source>Analysis</source>
+        <target state="translated">Analyse</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_full_solution_analysis">
+        <source>Enable full solution _analysis</source>
+        <target state="translated">Activer l'_analyse complète de la solution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Perform_editor_feature_analysis_in_external_process">
+        <source>Perform editor _feature analysis in external process (experimental)</source>
+        <target state="translated">Effectuer l'analyse des _fonctionnalités de l'éditeur dans un processus externe (expérimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fade_out_unreachable_code">
+        <source>Fade out unreachable code</source>
+        <target state="translated">Supprimer le code inaccessible</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fading">
+        <source>Fading</source>
+        <target state="translated">Suppression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesNotAllowedIFAssemblyHasNotBeenLoaded">
+        <source>Changes are not allowed if the assembly has not been loaded.</source>
+        <target state="translated">Les changements ne sont pas autorisés si l'assembly n'a pas été chargé.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted">
+        <source>Changes are not allowed if the project wasn't built when debugging started.</source>
+        <target state="translated">Les changements ne sont pas autorisés si le projet n'est pas généré au démarrage du débogage.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging">
+        <source>Changes are not allowed if the project wasn't loaded and built when debugging started.
+
+'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</source>
+        <target state="translated">Les changements ne sont pas autorisés si le projet n'est pas chargé et généré au démarrage du débogage.
+
+'Chargement de solution allégé' est activé pour la solution actuelle. Désactivez cette fonctionnalité pour avoir la certitude que tous les projets sont chargés au démarrage du débogage.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesNotAllowedWhileCodeIsRunning">
+        <source>Changes are not allowed while code is running.</source>
+        <target state="translated">Les changements ne sont pas autorisés durant l'exécution du code.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_local_function_over_anonymous_function">
+        <source>Prefer local function over anonymous function</source>
+        <target state="translated">Préférer une fonction locale à une fonction anonyme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_deconstructed_variable_declaration">
+        <source>Prefer deconstructed variable declaration</source>
+        <target state="translated">Préférer la déclaration de variable déconstruite</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="External_reference_found">
+        <source>External reference found</source>
+        <target state="translated">Référence externe trouvée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_references_found_to_0">
+        <source>No references found to '{0}'</source>
+        <target state="translated">Références introuvables pour '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_found_no_results">
+        <source>Search found no results</source>
+        <target state="translated">La recherche n'a donné aucun résultat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="analyzer_Prefer_auto_properties">
+        <source>Prefer auto properties</source>
+        <target state="translated">Préférer les propriétés automatiques</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="codegen_prefer_auto_properties">
+        <source>prefer auto properties</source>
+        <target state="translated">préférer les propriétés automatiques</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ErrorReadingFile">
+        <source>Error while reading a file</source>
+        <target state="translated">Erreur durant la lecture d'un fichier</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasBeenUnloaded">
+        <source>Module has been unloaded.</source>
+        <target state="translated">Le module a été déchargé.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
+        <source>Can't apply changes -- module '{0}' has been unloaded.</source>
+        <target state="translated">Impossible d'appliquer les changements -- Le module '{0}' a été déchargé.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restore_Visual_Studio_keybindings">
+        <source>Restore Visual Studio keybindings</source>
+        <target state="translated">Restaurer les combinaisons de touches Visual Studio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Keybindings_for_extensions">
+        <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
+        <target state="translated">Utiliser des combinaisons de touches pour ReSharper/IntelliJ/Vim/etc.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_navigation_to_decompiled_sources">
+        <source>Enable navigation to decompiled sources (experimental)</source>
+        <target state="translated">Activer la navigation vers des sources décompilées (expérimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Decompiler_Legal_Notice_Message">
+        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
+ 
+You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
+(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
+(ii) obtain permission to decompile the binary code from the owner of the software.
+ 
+Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
+
+I agree to all of the foregoing:</source>
+        <target state="translated">IMPORTANT : Visual Studio inclut une fonctionnalité de décompilation ("Décompileur") qui permet de reproduire du code source à partir de code binaire. En accédant au Décompileur et en l'utilisant, vous acceptez les termes du contrat de licence Visual Studio et les termes du Décompileur ci-dessous. Si vous n'êtes pas d'accord avec ces termes combinés, n'accédez pas au Décompileur et ne l'utilisez pas.
+
+Vous reconnaissez que le code binaire et le code source peuvent être protégés par des lois sur les droits d'auteur et le droit des marques. Avant d'utiliser le Décompileur sur du code binaire, vous devez d'abord :
+(i) confirmer que les termes du contrat de licence régissant votre utilisation du code binaire ne contiennent aucune disposition vous interdisant de décompiler le logiciel ; ou
+(ii) obtenir l'autorisation de décompiler le code binaire auprès du propriétaire du logiciel.
+
+Votre utilisation du Décompileur est facultative. Microsoft n'accepte aucune responsabilité et décline toute obligation relative à votre utilisation du Décompileur si vous transgressez les lois ou les termes du contrat de licence du logiciel interdisant la décompilation du logiciel.
+
+Je suis d'accord avec tout ce qui précède :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Decompiler_Legal_Notice_Title">
+        <source>Decompiler Legal Notice</source>
+        <target state="translated">Décompileur - Mention légale</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="translated">La désactivation de l'extension '{0}' a annulé la liaison de vos combinaisons de touches.</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="translated">Les paramètres configurés ici s'appliquent uniquement à votre machine. Pour configurer ces paramètres afin qu'ils soient liés à votre solution, utilisez les fichiers .editorconfig.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="new">Live code analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="new">Analyzing '{0}'</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

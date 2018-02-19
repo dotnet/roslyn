@@ -3,9 +3,9 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -14,63 +14,65 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         private const string GetHashCodeName = nameof(object.GetHashCode);
 
-        public static IMethodSymbol CreateGetHashCodeMethod(
+        public static ImmutableArray<SyntaxNode> GetGetHashCodeComponents(
             this SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
-            ImmutableArray<ISymbol> symbols,
+            ImmutableArray<ISymbol> members,
+            bool justMemberReference,
             CancellationToken cancellationToken)
         {
-            var statements = CreateGetHashCodeMethodStatements(factory, compilation, containingType, symbols, cancellationToken);
+            var result = ArrayBuilder<SyntaxNode>.GetInstance();
+            
+            if (GetBaseGetHashCodeMethod(containingType, cancellationToken) != null)
+            {
+                result.Add(factory.InvocationExpression(
+                    factory.MemberAccessExpression(factory.BaseExpression(), GetHashCodeName)));
+            }
 
-            return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: default,
-                accessibility: Accessibility.Public,
-                modifiers: new DeclarationModifiers(isOverride: true),
-                returnType: compilation.GetSpecialType(SpecialType.System_Int32),
-                returnsByRef: false,
-                explicitInterfaceImplementations: default,
-                name: GetHashCodeName,
-                typeParameters: default,
-                parameters: default,
-                statements: statements);
+            foreach (var member in members)
+            {
+                result.Add(GetMemberForGetHashCode(factory, compilation, member, justMemberReference));
+            }
+
+            return result.ToImmutableAndFree();
         }
 
         /// <summary>
-        /// Generates an override of <see cref="object.Equals(object)"/> similar to the one
+        /// Generates an override of <see cref="object.GetHashCode()"/> similar to the one
         /// generated for anonymous types.
         /// </summary>
-        private static ImmutableArray<SyntaxNode> CreateGetHashCodeMethodStatements(
-            SyntaxGenerator factory,
+        public static ImmutableArray<SyntaxNode> CreateGetHashCodeMethodStatements(
+            this SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members,
+            bool useInt64,
             CancellationToken cancellationToken)
         {
-            var hasBaseGetHashCode = HasExistingBaseGetHashCodeMethod(containingType, cancellationToken);
-            var baseHashCode = factory.InvocationExpression(
-                factory.MemberAccessExpression(factory.BaseExpression(), GetHashCodeName));
+            var components = GetGetHashCodeComponents(
+                factory, compilation, containingType, members, justMemberReference: false, cancellationToken);
 
-            if (members.Length == 0)
+            if (components.Length == 0)
             {
-                // Trivial case.  Just directly:
-                //
-                //      return 0; or
-                //      return base.GetHashCode();
-
-                return ImmutableArray.Create(factory.ReturnStatement(
-                    hasBaseGetHashCode ? baseHashCode : factory.LiteralExpression(0)));
+                return ImmutableArray.Create(factory.ReturnStatement(factory.LiteralExpression(0)));
             }
 
             const int hashFactor = -1521134295;
 
             var initHash = 0;
+            var baseHashCode = GetBaseGetHashCodeMethod(containingType, cancellationToken);
+            if (baseHashCode != null)
+            {
+                initHash = initHash * hashFactor + Hash.GetFNVHashCode(baseHashCode.Name);
+            }
+
             foreach (var symbol in members)
             {
                 initHash = initHash * hashFactor + Hash.GetFNVHashCode(symbol.Name);
             }
 
-            if (members.Length == 1 && !hasBaseGetHashCode)
+            if (components.Length == 1 && !useInt64)
             {
                 // If there's just one value to hash, then we can compute and directly
                 // return it.  i.e.  The full computation is:
@@ -81,12 +83,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // is here and directly inject the result value, producing:
                 //
                 //      return someHash + this.S1.GetHashCode();    // or
-
+                 
                 var multiplyResult = initHash * hashFactor;
                 return ImmutableArray.Create(factory.ReturnStatement(
                     factory.AddExpression(
                         CreateLiteralExpression(factory, multiplyResult),
-                        ComputeHashValue(factory, compilation, members[0]))));
+                        components[0])));
             }
 
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();
@@ -94,38 +96,41 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // initialize the initial hashCode:
             //
             //      var hashCode = initialHashCode;
+
             const string HashCodeName = "hashCode";
-            statements.Add(factory.LocalDeclarationStatement(HashCodeName, CreateLiteralExpression(factory, initHash)));
+            statements.Add(!useInt64
+                ? factory.LocalDeclarationStatement(HashCodeName, CreateLiteralExpression(factory, initHash))
+                : factory.LocalDeclarationStatement(compilation.GetSpecialType(SpecialType.System_Int64), HashCodeName, CreateLiteralExpression(factory, initHash)));
 
             var hashCodeNameExpression = factory.IdentifierName(HashCodeName);
 
             // -1521134295
             var permuteValue = CreateLiteralExpression(factory, hashFactor);
-
-            // If our base type overrode GetHashCode, then include it's value in our hashCode
-            // as well.
-            if (hasBaseGetHashCode)
-            {
-                //  hashCode = hashCode * -1521134295 + base.GetHashCode();
-                statements.Add(factory.ExpressionStatement(
-                    factory.AssignmentStatement(hashCodeNameExpression,
-                        factory.AddExpression(
-                            factory.MultiplyExpression(hashCodeNameExpression, permuteValue),
-                            baseHashCode))));
-            }
-
-            foreach (var member in members)
+            foreach (var component in components)
             {
                 // hashCode = hashCode * -1521134295 + this.S.GetHashCode();
+                var rightSide =
+                    factory.AddExpression(
+                        factory.MultiplyExpression(hashCodeNameExpression, permuteValue),
+                        component);
+
+                if (useInt64)
+                {
+                    rightSide = factory.InvocationExpression(
+                        factory.MemberAccessExpression(rightSide, GetHashCodeName));
+                }
+
                 statements.Add(factory.ExpressionStatement(
-                    factory.AssignmentStatement(hashCodeNameExpression,
-                        factory.AddExpression(
-                            factory.MultiplyExpression(hashCodeNameExpression, permuteValue),
-                            ComputeHashValue(factory, compilation, member)))));
+                    factory.AssignmentStatement(hashCodeNameExpression, rightSide)));
             }
 
             // And finally, the "return hashCode;" statement.
-            statements.Add(factory.ReturnStatement(hashCodeNameExpression));
+            statements.Add(!useInt64
+                ? factory.ReturnStatement(hashCodeNameExpression)
+                : factory.ReturnStatement(
+                    factory.ConvertExpression(
+                        compilation.GetSpecialType(SpecialType.System_Int32),
+                        hashCodeNameExpression)));
 
             return statements.ToImmutableAndFree();
         }
@@ -135,8 +140,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 ? factory.NegateExpression(factory.LiteralExpression(-value))
                 : factory.LiteralExpression(value);
 
-        private static bool HasExistingBaseGetHashCodeMethod(INamedTypeSymbol containingType, CancellationToken cancellationToken)
+        public static IMethodSymbol GetBaseGetHashCodeMethod(INamedTypeSymbol containingType, CancellationToken cancellationToken)
         {
+            if (containingType.IsValueType)
+            {
+                // Don't want to produce base.GetHashCode for a value type.  The point with value
+                // types is to produce a good, fast, hash ourselves, avoiding the built in slow
+                // one in System.ValueType.
+                return null;
+            }
+
             // Check if any of our base types override GetHashCode.  If so, first check with them.
             var existingMethods =
                 from baseType in containingType.GetBaseTypes()
@@ -148,21 +161,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                       method.ReturnType.SpecialType == SpecialType.System_Int32
                 select method;
 
-            return existingMethods.Any();
+            return existingMethods.FirstOrDefault();
         }
 
-        private static SyntaxNode ComputeHashValue(
+        private static SyntaxNode GetMemberForGetHashCode(
             SyntaxGenerator factory,
             Compilation compilation,
-            ISymbol member)
+            ISymbol member,
+            bool justMemberReference)
         {
             var getHashCodeNameExpression = factory.IdentifierName(GetHashCodeName);
             var thisSymbol = factory.MemberAccessExpression(factory.ThisExpression(),
                 factory.IdentifierName(member.Name)).WithAdditionalAnnotations(Simplification.Simplifier.Annotation);
 
-#if false
-            EqualityComparer<SType>.Default.GetHashCode(this.S1)
-#endif
+            // Caller only wanted the reference to the member, nothing else added.
+            if (justMemberReference)
+            {
+                return thisSymbol;
+            }
 
             var memberType = member.GetSymbolType();
             var primitiveValue = IsPrimitiveValueType(memberType) && memberType.SpecialType != SpecialType.System_String;

@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Threading;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -19,7 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal sealed class PEMethodSymbol : MethodSymbol
     {
-        private class SignatureData
+        /// <summary>
+        /// internal for testing purpose
+        /// </summary>
+        internal class SignatureData
         {
             public readonly SignatureHeader Header;
             public readonly ImmutableArray<ParameterSymbol> Parameters;
@@ -108,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
                 // method kind mask.
-                var methodKinds = EnumExtensions.GetValues<MethodKind>();
+                var methodKinds = EnumUtilities.GetValues<MethodKind>();
                 var maxMethodKind = (int)System.Linq.Enumerable.Aggregate(methodKinds, (m1, m2) => m1 | m2);
                 Debug.Assert((maxMethodKind & MethodKindMask) == maxMethodKind);
             }
@@ -192,10 +196,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
             }
 
-            if (!_packedFlags.IsUseSiteDiagnosticPopulated)
-            {
-                retVal._lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
-            }
+            //
+            // Do not set _lazyUseSiteDiagnostic !!!!
+            //
+            // "null" Indicates "no errors" or "unknown state",
+            // and we know which one of the states we have from IsUseSiteDiagnosticPopulated
+            //
+            // Setting _lazyUseSiteDiagnostic to a sentinel value here would introduce
+            // a number of extra states for various permutations of IsUseSiteDiagnosticPopulated, UncommonFields and _lazyUseSiteDiagnostic
+            // Some of them, in tight races, may lead to returning the sentinel as the diagnostics.
+            //
 
             if (_packedFlags.IsCustomAttributesPopulated)
             {
@@ -496,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal PEParameterSymbol ReturnTypeParameter => Signature.ReturnParam;
 
-        internal override RefKind RefKind => Signature.ReturnParam.RefKind;
+        public override RefKind RefKind => Signature.ReturnParam.RefKind;
 
         public override TypeSymbol ReturnType => Signature.ReturnParam.Type;
 
@@ -548,7 +558,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return false;
         }
 
-        private SignatureData Signature => _lazySignature ?? LoadSignature();
+        /// <summary>
+        /// internal for testing purpose
+        /// </summary>
+        internal SignatureData Signature => _lazySignature ?? LoadSignature();
 
         private SignatureData LoadSignature()
         {
@@ -576,7 +589,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var builder = ImmutableArray.CreateBuilder<ParameterSymbol>(count);
                 for (int i = 0; i < count; i++)
                 {
-                    builder.Add(PEParameterSymbol.Create(moduleSymbol, this, i, paramInfo[i + 1], out isBadParameter));
+                    builder.Add(PEParameterSymbol.Create(
+                        moduleSymbol, this, this.IsMetadataVirtual(), i,
+                        paramInfo[i + 1], isReturn: false, out isBadParameter));
+
                     if (isBadParameter)
                     {
                         makeBad = true;
@@ -598,7 +614,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             paramInfo[0].Type = returnType;
 
-            var returnParam = PEParameterSymbol.Create(moduleSymbol, this, 0, paramInfo[0], out isBadParameter);
+            var returnParam = PEParameterSymbol.Create(
+                moduleSymbol, this, this.IsMetadataVirtual(), 0,
+                paramInfo[0], isReturn: true, out isBadParameter);
 
             if (makeBad || isBadParameter)
             {
@@ -755,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState) => GetAttributes();
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder) => GetAttributes();
 
         public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes() => Signature.ReturnParam.GetAttributes();
 
@@ -785,16 +803,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var parameter = parameters[0];
-            return (parameter.RefKind == RefKind.None) && !parameter.IsParams;
+            switch(parameter.RefKind)
+            {
+                case RefKind.None:
+                case RefKind.Ref:
+                case RefKind.In:
+                    return !parameter.IsParams;
+                default:
+                    return false;
+            }
         }
 
-        private bool IsValidUserDefinedOperatorSignature(int parameterCount) =>
-                !this.ReturnsVoid &&
-                !this.IsGenericMethod &&
-                !this.IsVararg &&
-                this.ParameterCount == parameterCount &&
-                this.ParameterRefKinds.IsDefault && // No 'ref' or 'out'
-                !this.IsParams();
+        private bool IsValidUserDefinedOperatorSignature(int parameterCount)
+        {
+            if (this.ReturnsVoid || this.IsGenericMethod || this.IsVararg || this.ParameterCount != parameterCount || this.IsParams())
+            {
+                return false;
+            }
+
+            if (this.ParameterRefKinds.IsDefault)
+            {
+                return true;
+            }
+
+            foreach (var kind in this.ParameterRefKinds)
+            {
+                switch (kind)
+                {
+                    case RefKind.None:
+                    case RefKind.In:
+                        continue;
+                    case RefKind.Out:
+                    case RefKind.Ref:
+                        return false;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(kind);
+                }
+            }
+
+            return true;
+        }
 
         private MethodKind ComputeMethodKind()
         {
@@ -992,26 +1040,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return InitializeUseSiteDiagnostic(result);
             }
 
-            var uncommonFields = _uncommonFields;
-            if (uncommonFields == null)
-            {
-                return null;
-            }
-            else
-            {
-                var result = uncommonFields._lazyUseSiteDiagnostic;
-                return CSDiagnosticInfo.IsEmpty(result)
-                       ? InterlockedOperations.Initialize(ref uncommonFields._lazyUseSiteDiagnostic, null, CSDiagnosticInfo.EmptyErrorInfo)
-                       : result;
-            }
+            return _uncommonFields?._lazyUseSiteDiagnostic;
         }
 
         private DiagnosticInfo InitializeUseSiteDiagnostic(DiagnosticInfo diagnostic)
         {
-            Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
+            if (_packedFlags.IsUseSiteDiagnosticPopulated)
+            {
+                return _uncommonFields?._lazyUseSiteDiagnostic;
+            }
+
             if (diagnostic != null)
             {
-                diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic, CSDiagnosticInfo.EmptyErrorInfo);
+                Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
+                diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic);
             }
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated();
@@ -1058,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (!_packedFlags.IsObsoleteAttributePopulated)
                 {
-                    var result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, (PEModuleSymbol)ContainingModule);
+                    var result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, (PEModuleSymbol)ContainingModule, ignoreByRefLikeMarker: false);
                     if (result != null)
                     {
                         result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyObsoleteAttributeData, result, ObsoleteAttributeData.Uninitialized);
@@ -1110,6 +1152,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 return uncommonFields._lazyOverriddenOrHiddenMembersResult ?? InterlockedOperations.Initialize(ref uncommonFields._lazyOverriddenOrHiddenMembersResult, OverriddenOrHiddenMembersResult.Empty);
             }
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         // perf, not correctness

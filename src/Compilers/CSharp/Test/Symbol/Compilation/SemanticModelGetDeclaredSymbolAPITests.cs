@@ -4637,7 +4637,7 @@ class C : A<object>.B<> { }";
             var decl = (ClassDeclarationSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.ClassDeclaration));
             var model = compilation.GetSemanticModel(tree);
             var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            type = type.BaseType;
+            type = type.BaseType();
             Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "A<object>.B<?>");
         }
 
@@ -4652,7 +4652,7 @@ class C : A<,,>.B<object> { }";
             var decl = (ClassDeclarationSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.ClassDeclaration));
             var model = compilation.GetSemanticModel(tree);
             var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            type = type.BaseType;
+            type = type.BaseType();
             Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "A<?, ?, ?>.B<object>");
         }
 
@@ -4667,7 +4667,7 @@ class C : A<>.B<> { }";
             var decl = (ClassDeclarationSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.ClassDeclaration));
             var model = compilation.GetSemanticModel(tree);
             var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            type = type.BaseType;
+            type = type.BaseType();
             Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "A<?>.B<?>");
         }
 
@@ -4953,24 +4953,77 @@ class C
         }
 
         [Fact]
+        public void TupleLiteralElement004_WithoutValueTuple()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (short X, string Y) = (Alice: 1, Bob: null);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib46(source);
+            compilation.VerifyDiagnostics(
+                // (6,31): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         (short X, string Y) = (Alice: 1, Bob: null);
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(Alice: 1, Bob: null)").WithArguments("System.ValueTuple`2").WithLocation(6, 31),
+                // (6,32): warning CS8123: The tuple element name 'Alice' is ignored because a different name or no name is specified by the target type '(short, string)'.
+                //         (short X, string Y) = (Alice: 1, Bob: null);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "Alice: 1").WithArguments("Alice", "(short, string)").WithLocation(6, 32),
+                // (6,42): warning CS8123: The tuple element name 'Bob' is ignored because a different name or no name is specified by the target type '(short, string)'.
+                //         (short X, string Y) = (Alice: 1, Bob: null);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "Bob: null").WithArguments("Bob", "(short, string)").WithLocation(6, 42)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
+            var model = compilation.GetSemanticModel(tree);
+            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob).Bob");
+            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
+            Assert.Equal(element.Locations.Single().IsInSource, true);
+        }
+
+        [Fact]
         public void TupleLiteralElement004()
         {
             var source =
 @"
-
-using System;
-
 class C
 {
-    static void Main() 
-    { 
+    static void Main()
+    {
         (short X, string Y) = (Alice: 1, Bob: null);
     }
 }
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
 
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
 ";
 
             var compilation = CreateStandardCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,32): warning CS8123: The tuple element name 'Alice' is ignored because a different name or no name is specified by the target type '(short, string)'.
+                //         (short X, string Y) = (Alice: 1, Bob: null);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "Alice: 1").WithArguments("Alice", "(short, string)").WithLocation(6, 32),
+                // (6,42): warning CS8123: The tuple element name 'Bob' is ignored because a different name or no name is specified by the target type '(short, string)'.
+                //         (short X, string Y) = (Alice: 1, Bob: null);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "Bob: null").WithArguments("Bob", "(short, string)").WithLocation(6, 42)
+                );
             var tree = compilation.SyntaxTrees[0];
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);

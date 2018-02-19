@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -246,6 +245,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node is ForEachStatementSyntax;
         }
 
+        public bool IsDeconstructionForEachStatement(SyntaxNode node)
+            => node is ForEachVariableStatementSyntax;
+
+        public bool IsDeconstructionAssignment(SyntaxNode node)
+            => node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction();
+
+        public Location GetDeconstructionReferenceLocation(SyntaxNode node)
+        {
+            var tree = node.SyntaxTree;
+            switch (node)
+            {
+                case AssignmentExpressionSyntax assignment:
+                    return assignment.Left.GetLocation();
+
+                case ForEachVariableStatementSyntax @foreach:
+                    return @foreach.Variable.GetLocation();
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
+            }
+        }
+
         public bool IsLockStatement(SyntaxNode node)
         {
             return node is LockStatementSyntax;
@@ -265,6 +286,18 @@ namespace Microsoft.CodeAnalysis.CSharp
  
         public bool IsVariableDeclarator(SyntaxNode node)
             => node is VariableDeclaratorSyntax;
+
+        public bool IsMethodBody(SyntaxNode node)
+        {
+            if (node is BlockSyntax ||
+                node is ArrowExpressionClauseSyntax)
+            {
+                return node.Parent is BaseMethodDeclarationSyntax ||
+                       node.Parent is AccessorDeclarationSyntax;
+            }
+
+            return false;
+        }
 
         public SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node)
             => (node as ReturnStatementSyntax)?.Expression;
@@ -1746,5 +1779,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
             => nodes.FindInnermostCommonBlock();
+
+        public bool IsCastExpression(SyntaxNode node)
+            => node is CastExpressionSyntax;
+
+        public void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression)
+        {
+            var cast = (CastExpressionSyntax)node;
+            type = cast.Type;
+            expression = cast.Expression;
+        }
+
+        public SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token)
+        {
+            if (token.Kind() == SyntaxKind.OverrideKeyword && token.Parent is MemberDeclarationSyntax member)
+            {
+                return member.GetNameToken();
+            }
+
+            return null;
+        }
     }
 }

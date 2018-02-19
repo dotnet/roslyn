@@ -942,9 +942,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the type is one of the restricted types, namely: <see cref="T:System.TypedReference"/>, 
         /// <see cref="T:System.ArgIterator"/>, or <see cref="T:System.RuntimeArgumentHandle"/>.
+        /// or a ref-like type.
         /// </summary>
 #pragma warning restore RS0010
-        internal static bool IsRestrictedType(this TypeSymbol type)
+        internal static bool IsRestrictedType(this TypeSymbol type,
+                                                bool ignoreSpanLikeTypes = false)
         {
             // See Dev10 C# compiler, "type.cpp", bool Type::isSpecialByRefType() const
             Debug.Assert((object)type != null);
@@ -955,7 +957,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SpecialType.System_RuntimeArgumentHandle:
                     return true;
             }
-            return false;
+
+            return ignoreSpanLikeTypes? 
+                        false:
+                        type.IsByRefLikeType;
         }
 
         public static bool IsIntrinsicType(this TypeSymbol type)
@@ -1521,6 +1526,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return new Cci.TypeReferenceWithAttributes(typeRef);
+        }
+
+        internal static bool IsWellKnownTypeInAttribute(this ITypeSymbol typeSymbol)
+        {
+            if (typeSymbol.Name != "InAttribute" || typeSymbol.ContainingType != null)
+            {
+                return false;
+            }
+
+            var interopServicesNamespace = typeSymbol.ContainingNamespace;
+            if (interopServicesNamespace?.Name != "InteropServices")
+            {
+                return false;
+            }
+
+            var runtimeNamespace = interopServicesNamespace.ContainingNamespace;
+            if (runtimeNamespace?.Name != "Runtime")
+            {
+                return false;
+            }
+
+            var systemNamespace = runtimeNamespace.ContainingNamespace;
+            if (systemNamespace?.Name != "System")
+            {
+                return false;
+            }
+
+            var globalNamespace = systemNamespace.ContainingNamespace;
+
+            return globalNamespace != null && globalNamespace.IsGlobalNamespace;
         }
     }
 }

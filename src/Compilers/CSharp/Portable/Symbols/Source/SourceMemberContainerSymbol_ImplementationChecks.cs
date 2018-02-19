@@ -141,7 +141,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)synthesizedImplementation != null)
                     {
-                        synthesizedImplementations.Add(synthesizedImplementation);
+                        if (synthesizedImplementation.IsVararg)
+                        {
+                            diagnostics.Add(
+                                ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, 
+                                GetImplicitImplementationDiagnosticLocation(interfaceMember, this, implementingMember), implementingMember, interfaceMember, this);
+                        }
+                        else
+                        {
+                            synthesizedImplementations.Add(synthesizedImplementation);
+                        }
                     }
 
                     if (wasImplementingMemberFound && interfaceMemberKind == SymbolKind.Event)
@@ -707,9 +716,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             TypeSymbol overriddenMemberType = overriddenProperty.Type;
 
                             // Check for mismatched byref returns and return type. Ignore custom modifiers, because this diagnostic is based on the C# semantics.
-                            if ((overridingProperty.RefKind != RefKind.None) != (overriddenProperty.RefKind != RefKind.None))
+                            if (overridingProperty.RefKind != overriddenProperty.RefKind)
                             {
-                                diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overridingProperty.RefKind != RefKind.None ? "not " : "");
+                                diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the ref kind is mismatched
                             }
                             else if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
@@ -763,9 +772,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var overriddenMethod = (MethodSymbol)overriddenMember;
 
                             // Check for mismatched byref returns and return type. Ignore custom modifiers, because this diagnostic is based on the C# semantics.
-                            if ((overridingMethod.RefKind != RefKind.None) != (overriddenMethod.RefKind != RefKind.None))
+                            if (overridingMethod.RefKind != overriddenMethod.RefKind)
                             {
-                                diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overridingMethod.RefKind != RefKind.None ? "not " : "");
+                                diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                             }
                             else if (!MemberSignatureComparer.HaveSameReturnTypes(overridingMethod, overriddenMethod, considerCustomModifiers: false))
                             {

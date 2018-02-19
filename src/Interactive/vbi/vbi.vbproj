@@ -1,42 +1,45 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\Targets\GenerateCompilerExecutableBindingRedirects.targets" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Exe</OutputType>
     <StartupObject>Sub Main</StartupObject>
-    <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks46)</TargetFrameworks>
+    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
     <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj" />
     <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj" />
   </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <None Include="App.config" />
-    <None Include="vbi.rsp">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\VbiCore\Vbi.vb">
-      <Link>Vbi.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="My Project\" />
-  </ItemGroup>
-  <ItemGroup>
+    <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
     <PackageReference Include="System.Dynamic.Runtime" Version="$(SystemDynamicRuntimeVersion)" />
     <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" />
   </ItemGroup>
-  <Import Project="..\..\..\build\Targets\Imports.targets" />
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="vbi.coreclr.rsp" Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+      <Link>vbi.rsp</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="vbi.desktop.rsp" Condition="'$(TargetFramework)' != 'netcoreapp2.0'">
+      <Link>vbi.rsp</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
 </Project>

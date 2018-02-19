@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
@@ -42,29 +43,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private RoslynServices _lazyRoslynServices;
 
-        [Obsolete("For backward compatibility. this will be removed once all callers moved to new ctor")]
-        protected ServiceHubServiceBase(Stream stream, IServiceProvider serviceProvider)
-        {
-            InstanceId = Interlocked.Add(ref s_instanceId, 1);
-
-            // in unit test, service provider will return asset storage, otherwise, use the default one
-            AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
-
-            Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
-            Logger.TraceInformation($"{DebugInstanceString} Service instance created");
-
-            _shutdownCancellationSource = new CancellationTokenSource();
-            ShutdownCancellationToken = _shutdownCancellationSource.Token;
-
-            Rpc = JsonRpc.Attach(stream, this);
-            Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
-
-            Rpc.Disconnected += OnRpcDisconnected;
-        }
+        private bool _disposed;
 
         protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream)
         {
             InstanceId = Interlocked.Add(ref s_instanceId, 1);
+            _disposed = false;
 
             // in unit test, service provider will return asset storage, otherwise, use the default one
             AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
@@ -130,10 +114,19 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void Dispose()
         {
+            if (_disposed)
+            {
+                // guard us from double disposing. this can happen in unit test
+                // due to how we create test mock service hub stream that tied to
+                // remote host service
+                return;
+            }
+
+            _disposed = true;
             Rpc.Dispose();
             _shutdownCancellationSource.Dispose();
 
-            Dispose(false);
+            Dispose(disposing: true);
 
             Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
         }
@@ -157,10 +150,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (e.Reason != DisconnectedReason.Disposed)
             {
-                // this is common for us since we close connection forcefully when operation
-                // is cancelled. use Warning level so that by default, it doesn't write out to
-                // servicehub\log files. one can still make this to write logs by opting in.
-                Log(TraceEventType.Warning, $"Client stream disconnected unexpectedly: {e.Exception?.GetType().Name} {e.Exception?.Message}");
+                // we no longer close connection forcefully. so connection shouldn't go away 
+                // in normal situation. if it happens, log why it did in more detail.
+                LogError($@"Client stream disconnected unexpectedly: 
+{nameof(e.Description)}: {e.Description}
+{nameof(e.Reason)}: {e.Reason}
+{nameof(e.LastMessage)}: {e.LastMessage}
+{nameof(e.Exception)}: {e.Exception?.ToString()}");
             }
         }
 
@@ -170,54 +166,86 @@ namespace Microsoft.CodeAnalysis.Remote
             return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, cancellationToken);
         }
 
-        protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
+        protected async Task<T> RunServiceAsync<T>(Func<CancellationToken, Task<T>> callAsync, CancellationToken cancellationToken)
         {
-            try
+            AssetStorage.UpdateLastActivityTime();
+
+            // merge given cancellation token with shutdown cancellation token. it looks like if cancellation and disconnection happens
+            // almost same time, we might not get cancellation message back from stream json rpc and get disconnected
+            // https://github.com/Microsoft/vs-streamjsonrpc/issues/64
+            using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ShutdownCancellationToken))
             {
-                return await callAsync().ConfigureAwait(false);
-            }
-            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
-            {
-                // never reach
-                return default(T);
+                try
+                {
+                    return await callAsync(mergedCancellation.Token).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (LogUnlessCanceled(ex, mergedCancellation.Token))
+                {
+                    // never reach
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
         }
 
-        protected async Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken)
+        protected async Task RunServiceAsync(Func<CancellationToken, Task> callAsync, CancellationToken cancellationToken)
         {
-            try
+            AssetStorage.UpdateLastActivityTime();
+
+            // merge given cancellation token with shutdown cancellation token. it looks like if cancellation and disconnection happens
+            // almost same time, we might not get cancellation message back from stream json rpc and get disconnected
+            // https://github.com/Microsoft/vs-streamjsonrpc/issues/64
+            using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ShutdownCancellationToken))
             {
-                await callAsync().ConfigureAwait(false);
-            }
-            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
-            {
-                // never reach
-                return;
+                try
+                {
+                    await callAsync(mergedCancellation.Token).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (LogUnlessCanceled(ex, mergedCancellation.Token))
+                {
+                    // never reach
+                    return;
+                }
             }
         }
 
-        protected T RunService<T>(Func<T> call, CancellationToken cancellationToken)
+        protected T RunService<T>(Func<CancellationToken, T> call, CancellationToken cancellationToken)
         {
-            try
+            AssetStorage.UpdateLastActivityTime();
+
+            // merge given cancellation token with shutdown cancellation token. it looks like if cancellation and disconnection happens
+            // almost same time, we might not get cancellation message back from stream json rpc and get disconnected
+            // https://github.com/Microsoft/vs-streamjsonrpc/issues/64
+            using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ShutdownCancellationToken))
             {
-                return call();
-            }
-            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
-            {
-                // never reach
-                return default;
+                try
+                {
+                    return call(mergedCancellation.Token);
+                }
+                catch (Exception ex) when (LogUnlessCanceled(ex, mergedCancellation.Token))
+                {
+                    // never reach
+                    return default;
+                }
             }
         }
 
-        protected void RunService(Action call, CancellationToken cancellationToken)
+        protected void RunService(Action<CancellationToken> call, CancellationToken cancellationToken)
         {
-            try
+            AssetStorage.UpdateLastActivityTime();
+
+            // merge given cancellation token with shutdown cancellation token. it looks like if cancellation and disconnection happens
+            // almost same time, we might not get cancellation message back from stream json rpc and get disconnected
+            // https://github.com/Microsoft/vs-streamjsonrpc/issues/64
+            using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ShutdownCancellationToken))
             {
-                call();
-            }
-            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
-            {
-                // never reach
+                try
+                {
+                    call(mergedCancellation.Token);
+                }
+                catch (Exception ex) when (LogUnlessCanceled(ex, mergedCancellation.Token))
+                {
+                    // never reach
+                }
             }
         }
 
@@ -227,11 +255,47 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 LogError("Exception: " + ex.ToString());
 
+                LogExtraInformation(ex);
+
                 var callStack = new StackTrace().ToString();
                 LogError("From: " + callStack);
             }
 
             return false;
+        }
+
+        private void LogExtraInformation(Exception ex)
+        {
+            if (ex == null)
+            {
+                return;
+            }
+
+            if (ex is ReflectionTypeLoadException reflection)
+            {
+                foreach (var loaderException in reflection.LoaderExceptions)
+                {
+                    LogError("LoaderException: " + loaderException.ToString());
+                    LogExtraInformation(loaderException);
+                }
+            }
+
+            if (ex is FileNotFoundException file)
+            {
+                LogError("FusionLog: " + file.FusionLog);
+            }
+
+            if (ex is AggregateException agg)
+            {
+                foreach (var innerException in agg.InnerExceptions)
+                {
+                    LogExtraInformation(innerException);
+                }
+            }
+            else
+            {
+                LogExtraInformation(ex.InnerException);
+            }
         }
     }
 }

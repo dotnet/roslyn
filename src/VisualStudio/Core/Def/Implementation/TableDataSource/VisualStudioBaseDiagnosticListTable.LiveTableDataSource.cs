@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -27,23 +28,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
-            private readonly IServiceProvider _serviceProvider;
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticData> _tracker;
 
-            public LiveTableDataSource(IServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
                 base(workspace)
             {
                 _workspace = workspace;
-                _serviceProvider = serviceProvider;
                 _identifier = identifier;
 
                 _tracker = new OpenDocumentTracker<DiagnosticData>(_workspace);
 
                 _diagnosticService = diagnosticService;
-                _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
-                PopulateInitialData(workspace, diagnosticService);
+                ConnectToDiagnosticService(workspace, diagnosticService);
             }
 
             public override string DisplayName => ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source;
@@ -144,31 +142,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                if (_workspace != e.Workspace)
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(a), e, CancellationToken.None))
                 {
-                    return;
-                }
+                    if (_workspace != e.Workspace)
+                    {
+                        return;
+                    }
 
-                if (e.Diagnostics.Length == 0)
-                {
-                    OnDataRemoved(e);
-                    return;
-                }
+                    if (e.Diagnostics.Length == 0)
+                    {
+                        OnDataRemoved(e);
+                        return;
+                    }
 
-                var count = e.Diagnostics.Where(ShouldInclude).Count();
-                if (count <= 0)
-                {
-                    OnDataRemoved(e);
-                    return;
-                }
+                    var count = e.Diagnostics.Where(ShouldInclude).Count();
+                    if (count <= 0)
+                    {
+                        OnDataRemoved(e);
+                        return;
+                    }
 
-                OnDataAddedOrChanged(e);
+                    OnDataAddedOrChanged(e);
+                }
             }
 
             public override AbstractTableEntriesSource<DiagnosticData> CreateTableEntriesSource(object data)
             {
                 var item = (UpdatedEventArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
+            }
+
+            private void ConnectToDiagnosticService(Workspace workspace, IDiagnosticService diagnosticService)
+            {
+                if (diagnosticService == null)
+                {
+                    // it can be null in unit test
+                    return;
+                }
+
+                _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
+
+                PopulateInitialData(workspace, diagnosticService);
             }
 
             private static bool ShouldInclude(DiagnosticData diagnostic)
@@ -536,6 +550,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 #endregion
+            }
+
+            private static string GetDiagnosticUpdatedMessage(DiagnosticsUpdatedArgs e)
+            {
+                var id = e.Id.ToString();
+                if (e.Id is AnalyzerUpdateArgsId analyzer)
+                {
+                    id = analyzer.Analyzer.ToString();
+                }
+
+                return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, e.Diagnostics)})";
             }
         }
     }

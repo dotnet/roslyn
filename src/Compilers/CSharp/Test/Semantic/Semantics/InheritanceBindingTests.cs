@@ -1280,12 +1280,12 @@ class Derived : Base
 ";
 
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (13,29): error CS8148: 'Derived.Method1()' must not return by reference to match overridden member 'Base.Method1()'
+                // (13,29): error CS8148: 'Derived.Method1()' must match by reference return of overridden member 'Base.Method1()'
                 //     public override ref int Method1() { return ref field; }
-                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method1").WithArguments("Derived.Method1()", "Base.Method1()", "not ").WithLocation(13, 29),
-                // (14,25): error CS8148: 'Derived.Method2(ref int)' must return by reference to match overridden member 'Base.Method2(ref int)'
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method1").WithArguments("Derived.Method1()", "Base.Method1()").WithLocation(13, 29),
+                // (14,25): error CS8148: 'Derived.Method2(ref int)' must match by reference return of overridden member 'Base.Method2(ref int)'
                 //     public override int Method2(ref int i) { return i; }
-                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method2").WithArguments("Derived.Method2(ref int)", "Base.Method2(ref int)", "").WithLocation(14, 25));
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method2").WithArguments("Derived.Method2(ref int)", "Base.Method2(ref int)").WithLocation(14, 25));
         }
 
         [Fact]
@@ -1425,12 +1425,12 @@ class Derived : Base
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (15,29): error CS8148: 'Derived.Proprty1' must not return by reference to match overridden member 'Base.Proprty1'
+                // (15,29): error CS8148: 'Derived.Proprty1' must match by reference return of overridden member 'Base.Proprty1'
                 //     public override ref int Proprty1 { get { return ref field; } }
-                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Proprty1").WithArguments("Derived.Proprty1", "Base.Proprty1", "not ").WithLocation(15, 29),
-                // (16,25): error CS8148: 'Derived.Property2' must return by reference to match overridden member 'Base.Property2'
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Proprty1").WithArguments("Derived.Proprty1", "Base.Proprty1").WithLocation(15, 29),
+                // (16,25): error CS8148: 'Derived.Property2' must match by reference return of overridden member 'Base.Property2'
                 //     public override int Property2 { get { return 0; } }
-                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Property2").WithArguments("Derived.Property2", "Base.Property2", "").WithLocation(16, 25));
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Property2").WithArguments("Derived.Property2", "Base.Property2").WithLocation(16, 25));
         }
 
         [Fact]
@@ -1484,12 +1484,12 @@ class Derived : Base
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (15,29): error CS8148: 'Derived.this[int, int]' must not return by reference to match overridden member 'Base.this[int, int]'
+                // (15,29): error CS8148: 'Derived.this[int, int]' must match by reference return of overridden member 'Base.this[int, int]'
                 //     public override ref int this[int x, int y] { get { return ref field; } }
-                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[int, int]", "Base.this[int, int]", "not ").WithLocation(15, 29),
-                // (16,25): error CS8148: 'Derived.this[int, string]' must return by reference to match overridden member 'Base.this[int, string]'
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[int, int]", "Base.this[int, int]").WithLocation(15, 29),
+                // (16,25): error CS8148: 'Derived.this[int, string]' must match by reference return of overridden member 'Base.this[int, string]'
                 //     public override int this[int x, string y] { get { return field; } }
-                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[int, string]", "Base.this[int, string]", "").WithLocation(16, 25));
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[int, string]", "Base.this[int, string]").WithLocation(16, 25));
         }
 
         /// <summary>
@@ -2060,27 +2060,27 @@ class Derived : Base
                 // (16,16): warning CS0114: 'Derived.Method3()' hides inherited member 'Base.Method3()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public int Method3() { return 0; } //wrong return type
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Method3").WithArguments("Derived.Method3()", "Base.Method3()").WithLocation(16, 16),
-                // (18,28): error CS8148: 'Derived.Method5(ref object)' must return by reference to match overridden member 'Base.Method5(ref object)'
+                // (18,28): error CS8148: 'Derived.Method5(ref object)' must match by reference return of overridden member 'Base.Method5(ref object)'
                 //     public override object Method5(ref object o) { return null; } //wrong by-value return
-                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method5").WithArguments("Derived.Method5(ref object)", "Base.Method5(ref object)", "").WithLocation(18, 28),
-                // (19,32): error CS8148: 'Derived.Method6(ref object)' must not return by reference to match overridden member 'Base.Method6(ref object)'
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method5").WithArguments("Derived.Method5(ref object)", "Base.Method5(ref object)").WithLocation(18, 28),
+                // (19,32): error CS8148: 'Derived.Method6(ref object)' must match by reference return of overridden member 'Base.Method6(ref object)'
                 //     public override ref object Method6(ref object o) { return ref o; } //wrong by-ref return
-                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method6").WithArguments("Derived.Method6(ref object)", "Base.Method6(ref object)", "not ").WithLocation(19, 32),
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method6").WithArguments("Derived.Method6(ref object)", "Base.Method6(ref object)").WithLocation(19, 32),
                 // (15,19): warning CS0114: 'Derived.Method2()' hides inherited member 'Base.Method2()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public object Method2() { return null; } //missed override keyword
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Method2").WithArguments("Derived.Method2()", "Base.Method2()").WithLocation(15, 19),
-                // (12,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Method3()'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method3()").WithLocation(12, 7),
                 // (12,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Method2()'
                 // class Derived : Base
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method2()").WithLocation(12, 7),
-                // (12,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Method1()'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method1()").WithLocation(12, 7),
                 // (12,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Method4(int)'
                 // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method4(int)").WithLocation(12, 7));
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method4(int)").WithLocation(12, 7),
+                // (12,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Method3()'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method3()").WithLocation(12, 7),
+                // (12,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Method1()'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method1()").WithLocation(12, 7));
         }
 
         [Fact]
@@ -2140,12 +2140,12 @@ class Derived : Base
                 // (31,40): error CS0545: 'Derived.Property9.get': cannot override because 'Base.Property9' does not have an overridable get accessor
                 //     public override object Property9 { get { return null; } }
                 Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("Derived.Property9.get", "Base.Property9").WithLocation(31, 40),
-                // (35,32): error CS8148: 'Derived.Property10' must not return by reference to match overridden member 'Base.Property10'
+                // (35,32): error CS8148: 'Derived.Property10' must match by reference return of overridden member 'Base.Property10'
                 //     public override ref object Property10 { get { return ref o; } }
-                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Property10").WithArguments("Derived.Property10", "Base.Property10", "not ").WithLocation(35, 32),
-                // (36,28): error CS8148: 'Derived.Property11' must return by reference to match overridden member 'Base.Property11'
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Property10").WithArguments("Derived.Property10", "Base.Property10").WithLocation(35, 32),
+                // (36,28): error CS8148: 'Derived.Property11' must match by reference return of overridden member 'Base.Property11'
                 //     public override object Property11 { get { return null; } }
-                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Property11").WithArguments("Derived.Property11", "Base.Property11", "").WithLocation(36, 28),
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Property11").WithArguments("Derived.Property11", "Base.Property11").WithLocation(36, 28),
                 // (22,19): warning CS0114: 'Derived.Property2' hides inherited member 'Base.Property2'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public object Property2 { get; set; } //missed override keyword
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Property2").WithArguments("Derived.Property2", "Base.Property2").WithLocation(22, 19),
@@ -2186,6 +2186,7 @@ class Derived : Base
                 // class Derived : Base
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property10.get").WithLocation(19, 7));
         }
+
 
         [Fact]
         public void TestNoImplementationOfAbstractIndexer()
@@ -2247,12 +2248,12 @@ class Derived : Base
                 // (31,67): error CS0545: 'Derived.this[string, int, int, int].get': cannot override because 'Base.this[string, int, int, int]' does not have an overridable get accessor
                 //     public override object this[string w, int x, int y , int z] { get { return null; } }
                 Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("Derived.this[string, int, int, int].get", "Base.this[string, int, int, int]").WithLocation(31, 67),
-                // (35,32): error CS8082: 'Derived.this[string, int, int, string]' must not have a by-reference return to match overridden member 'Base.this[string, int, int, string]'
+                // (35,32): error CS8148: 'Derived.this[string, int, int, string]' must match by reference return of overridden member 'Base.this[string, int, int, string]'
                 //     public override ref object this[string w, int x, int y, string z] { get { return ref o; } }
-                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[string, int, int, string]", "Base.this[string, int, int, string]", "not ").WithLocation(35, 32),
-                // (36,28): error CS8082: 'Derived.this[string, int, string, int]' must have a by-reference return to match overridden member 'Base.this[string, int, string, int]'
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[string, int, int, string]", "Base.this[string, int, int, string]").WithLocation(35, 32),
+                // (36,28): error CS8148: 'Derived.this[string, int, string, int]' must match by reference return of overridden member 'Base.this[string, int, string, int]'
                 //     public override object this[string w, int x, string y, int z] { get; }
-                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[string, int, string, int]", "Base.this[string, int, string, int]", "").WithLocation(36, 28),
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[string, int, string, int]", "Base.this[string, int, string, int]").WithLocation(36, 28),
                 // (22,19): warning CS0114: 'Derived.this[int, int, int, string]' hides inherited member 'Base.this[int, int, int, string]'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public object this[int w, int x, int y , string z] { get { return 0; } set { } } //missed override keyword
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "this").WithArguments("Derived.this[int, int, int, string]", "Base.this[int, int, int, string]").WithLocation(22, 19),
@@ -2493,15 +2494,15 @@ class Class : Interface
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (10,15): error CS8152: 'Class' does not implement interface member 'Interface.Method4(ref object)'. 'Class.Method4(ref object)' cannot implement 'Interface.Method4(ref object)' because it does not return by value
+                // (10,15): error CS8152: 'Class' does not implement interface member 'Interface.Method4(ref object)'. 'Class.Method4(ref object)' cannot implement 'Interface.Method4(ref object)' because it does not have matching return by reference.
                 // class Class : Interface
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Method4(ref object)", "Class.Method4(ref object)", "value").WithLocation(10, 15),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Method4(ref object)", "Class.Method4(ref object)").WithLocation(10, 15),
                 // (10,15): error CS0535: 'Class' does not implement interface member 'Interface.Method2(int)'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Method2(int)").WithLocation(10, 15),
-                // (10,15): error CS8152: 'Class' does not implement interface member 'Interface.Method3(ref object)'. 'Class.Method3(ref object)' cannot implement 'Interface.Method3(ref object)' because it does not return by reference
+                // (10,15): error CS8152: 'Class' does not implement interface member 'Interface.Method3(ref object)'. 'Class.Method3(ref object)' cannot implement 'Interface.Method3(ref object)' because it does not have matching return by reference.
                 // class Class : Interface
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Method3(ref object)", "Class.Method3(ref object)", "reference").WithLocation(10, 15),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Method3(ref object)", "Class.Method3(ref object)").WithLocation(10, 15),
                 // (10,15): error CS0535: 'Class' does not implement interface member 'Interface.Method1()'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Method1()").WithLocation(10, 15));
@@ -2557,12 +2558,12 @@ class Class : Interface
                 // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property7.set'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property7.set").WithLocation(17, 15),
-                // (17,15): error CS8152: 'Class' does not implement interface member 'Interface.Property8'. 'Class.Property8' cannot implement 'Interface.Property8' because it does not return by reference
+                // (17,15): error CS8152: 'Class' does not implement interface member 'Interface.Property8'. 'Class.Property8' cannot implement 'Interface.Property8' because it does not have matching return by reference.
                 // class Class : Interface
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Property8", "Class.Property8", "reference").WithLocation(17, 15),
-                // (17,15): error CS8152: 'Class' does not implement interface member 'Interface.Property9'. 'Class.Property9' cannot implement 'Interface.Property9' because it does not return by value
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Property8", "Class.Property8").WithLocation(17, 15),
+                // (17,15): error CS8152: 'Class' does not implement interface member 'Interface.Property9'. 'Class.Property9' cannot implement 'Interface.Property9' because it does not have matching return by reference.
                 // class Class : Interface
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Property9", "Class.Property9", "value").WithLocation(17, 15),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Property9", "Class.Property9").WithLocation(17, 15),
                 // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property1'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property1").WithLocation(17, 15));
@@ -2609,12 +2610,12 @@ class Class : Interface
                 // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.this[int, string, string, string].set'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, string, string, string].set").WithLocation(17, 15),
-                // (17,15): error CS8086: 'Class' does not implement interface member 'Interface.this[string, int, int, int]'. 'Class.this[string, int, int, int]' cannot implement 'Interface.this[string, int, int, int]' because it does not return by reference.
+                // (17,15): error CS8152: 'Class' does not implement interface member 'Interface.this[string, int, int, int]'. 'Class.this[string, int, int, int]' cannot implement 'Interface.this[string, int, int, int]' because it does not have matching return by reference.
                 // class Class : Interface
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.this[string, int, int, int]", "Class.this[string, int, int, int]", "reference").WithLocation(17, 15),
-                // (17,15): error CS8086: 'Class' does not implement interface member 'Interface.this[string, int, int, string]'. 'Class.this[string, int, int, string]' cannot implement 'Interface.this[string, int, int, string]' because it does not return by value.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.this[string, int, int, int]", "Class.this[string, int, int, int]").WithLocation(17, 15),
+                // (17,15): error CS8152: 'Class' does not implement interface member 'Interface.this[string, int, int, string]'. 'Class.this[string, int, int, string]' cannot implement 'Interface.this[string, int, int, string]' because it does not have matching return by reference.
                 // class Class : Interface
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.this[string, int, int, string]", "Class.this[string, int, int, string]", "value").WithLocation(17, 15),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.this[string, int, int, string]", "Class.this[string, int, int, string]").WithLocation(17, 15),
                 // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.this[int, int, string, string].get'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, int, string, string].get").WithLocation(17, 15),
@@ -4246,9 +4247,9 @@ public class Derived : Base<int>, Interface<int, int>
 }
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 12, Column = 17, IsWarning = true }, //Both Base methods implement Interface.Method(int)
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 12, Column = 17, IsWarning = true }, //Both Base methods implement Interface.Method(T)
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 12, Column = 17, IsWarning = true }, //Both Base methods implement Interface.Method(U)
+                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 15, Column = 35, IsWarning = true }, //Both Base methods implement Interface.Method(int)
+                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 15, Column = 35, IsWarning = true }, //Both Base methods implement Interface.Method(T)
+                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 15, Column = 35, IsWarning = true }, //Both Base methods implement Interface.Method(U)
             });
         }
 
@@ -4275,12 +4276,15 @@ public class Derived : Base<int>, Interface<int, int>
 ";
             // CONSIDER: Dev10 doesn't report these warnings -  not sure why
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (12,17): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "this").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived"),
-                // (12,17): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "this").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived"),
-                // (12,17): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "this").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived"));
+                // (15,35): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived").WithLocation(15, 35),
+                // (15,35): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived").WithLocation(15, 35),
+                // (15,35): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived").WithLocation(15, 35));
         }
 
         [Fact]
@@ -5502,8 +5506,9 @@ class Derived2 : Base2
 }";
 
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (14,26): error CS0663: 'Derived2' cannot define overloaded methods that differ only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOut, "Method").WithArguments("Derived2"));
+                // (14,26): error CS0663: 'Derived2' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'out'
+                //     public override void Method(int x, ref int y, out Exception z) { z = null; }
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("Derived2", "method", "ref", "out").WithLocation(14, 26));
         }
 
         [Fact]
@@ -6079,7 +6084,7 @@ class C2 : C1, I1, I2
             var comp = CreateStandardCompilation(text);
             var c2Type = comp.Assembly.Modules[0].GlobalNamespace.GetTypeMembers("C2").Single();
             comp.VerifyDiagnostics(DiagnosticDescription.None);
-            Assert.True(c2Type.Interfaces.All(iface => iface.Name == "I1" || iface.Name == "I2"));
+            Assert.True(c2Type.Interfaces().All(iface => iface.Name == "I1" || iface.Name == "I2"));
         }
         [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         [Fact]

@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -9,20 +8,16 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.Syntax.UnitTests</AssemblyName>
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj" />
     <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj" />
-    <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -37,6 +32,7 @@
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resource.Designer.vb">
@@ -66,5 +62,4 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

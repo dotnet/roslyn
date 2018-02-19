@@ -156,8 +156,9 @@ namespace Roslyn.Test.Utilities
             switch (token.Kind)
             {
                 case HandleKind.TypeReference:
-                    var typeRef = reader.GetTypeReference((TypeReferenceHandle)token);
-                    return typeRef.Name;
+                    return reader.GetTypeReference((TypeReferenceHandle)token).Name;
+                case HandleKind.TypeDefinition:
+                    return reader.GetTypeDefinition((TypeDefinitionHandle)token).Name;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(token.Kind);
             }
@@ -170,6 +171,25 @@ namespace Roslyn.Test.Utilities
                 var attribute = reader.GetCustomAttribute(handle);
                 yield return new CustomAttributeRow(attribute.Parent, attribute.Constructor);
             }
+        }
+
+        public static string GetCustomAttributeName(this MetadataReader reader, CustomAttributeRow row)
+        {
+            EntityHandle parent;
+            var token = row.ConstructorToken;
+            switch (token.Kind)
+            {
+                case HandleKind.MemberReference:
+                    parent = reader.GetMemberReference((MemberReferenceHandle)token).Parent;
+                    break;
+                case HandleKind.MethodDefinition:
+                    parent = reader.GetMethodDefinition((MethodDefinitionHandle)token).GetDeclaringType();
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(token.Kind);
+            }
+            var strHandle = reader.GetName(parent);
+            return reader.GetString(strHandle);
         }
 
         public static bool IsIncluded(this ImmutableArray<byte> metadata, string str)
@@ -289,7 +309,7 @@ namespace Roslyn.Test.Utilities
                         var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
                         var signature = decoder.DecodeMethodSignature(ref blob);
                         var parameters = signature.ParameterTypes.Join(", ");
-                        return $"{signature.ReturnType} {reader.GetString(method.Name)}({parameters})";
+                        return $"{signature.ReturnType} {DumpRec(reader, method.GetDeclaringType())}.{reader.GetString(method.Name)}({parameters})";
                     }
                 case HandleKind.MemberReference:
                     {
@@ -298,7 +318,7 @@ namespace Roslyn.Test.Utilities
                         var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
                         var signature = decoder.DecodeMethodSignature(ref blob);
                         var parameters = signature.ParameterTypes.Join(", ");
-                        return $"{signature.ReturnType} {DumpRec(reader, member.Parent)}{reader.GetString(member.Name)}({parameters})";
+                        return $"{signature.ReturnType} {DumpRec(reader, member.Parent)}.{reader.GetString(member.Name)}({parameters})";
                     }
                 case HandleKind.TypeReference:
                     {

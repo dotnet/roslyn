@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             }
 
             protected abstract ImmutableArray<ITypeParameterSymbol> DetermineTypeParametersWorker(CancellationToken cancellationToken);
-            protected abstract bool DetermineReturnsByRef(CancellationToken cancellationToken);
+            protected abstract RefKind DetermineRefKind(CancellationToken cancellationToken);
 
             public ITypeSymbol DetermineReturnType(CancellationToken cancellationToken)
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     accessibility: accessibility,
                     modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract),
                     type: DetermineReturnType(cancellationToken),
-                    returnsByRef: DetermineReturnsByRef(cancellationToken),
+                    refKind: DetermineRefKind(cancellationToken),
                     explicitInterfaceImplementations: default,
                     name: this.State.IdentifierToken.ValueText,
                     parameters: DetermineParameters(cancellationToken),
@@ -101,14 +101,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     isUnsafe = returnType.IsUnsafe() || parameters.Any(p => p.Type.IsUnsafe());
                 }
 
-                var returnsByRef = DetermineReturnsByRef(cancellationToken);
-
                 var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     attributes: default,
                     accessibility: DetermineAccessibility(isAbstract),
                     modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract, isUnsafe: isUnsafe),
                     returnType: returnType,
-                    returnsByRef: returnsByRef,
+                    refKind: DetermineRefKind(cancellationToken),
                     explicitInterfaceImplementations: default,
                     name: this.State.IdentifierToken.ValueText,
                     typeParameters: DetermineTypeParameters(cancellationToken),

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.GenerateMember;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(CS0103, CS0117, CS0234, CS0246, CS0305, CS0308, CS0426, CS0616); }
+            get { return ImmutableArray.Create(CS0103, CS0117, CS0234, CS0246, CS0305, CS0308, CS0426, CS0616, IDEDiagnosticIds.UnboundIdentifierId); }
         }
 
         protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)

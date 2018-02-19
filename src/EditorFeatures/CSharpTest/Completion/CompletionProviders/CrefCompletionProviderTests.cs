@@ -475,5 +475,21 @@ class C
 
             await VerifyNoItemsExistAsync(text);
         }
+        
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(23957, "https://github.com/dotnet/roslyn/issues/23957")]
+        public async Task CRef_InParameter()
+        {
+            var text = @"
+using System;
+class C 
+{ 
+    /// <see cref=""C.My$$
+    public void MyMethod(in int x) { }
+}
+";
+
+            await VerifyItemExistsAsync(text, "MyMethod(in int)");
+        }
     }
 }

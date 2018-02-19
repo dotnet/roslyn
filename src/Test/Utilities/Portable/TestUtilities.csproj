@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -9,8 +8,7 @@
     <AssemblyName>Roslyn.Test.Utilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nonshipping>true</Nonshipping>
-    <_ExtraTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net46</_ExtraTargetFrameworks>
-    <TargetFrameworks>netstandard1.3;$(RoslynPortableTargetFrameworks);$(_ExtraTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>netstandard1.3;$(RoslynPortableTargetFrameworks);net46</TargetFrameworks>
     <DefineConstants>$(DefineConstants);DNX</DefineConstants>
     <NoStdLib>true</NoStdLib>
     <RootNamespace></RootNamespace>
@@ -23,6 +21,9 @@
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
+  <PropertyGroup Condition="'$(TestIOperationInterface)' == 'true'">
+    <DefineConstants>$(DefineConstants);TEST_IOPERATION_INTERFACE</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.CoreClr" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
@@ -60,6 +61,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
@@ -67,6 +69,9 @@
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Shared\CoreClrShim.cs">
       <Link>Assert\CoreClrShim.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
+      <Link>DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Update="TestResource.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -90,6 +95,7 @@
     <PackageReference Include="Microsoft.DiaSymReader.Converter.Xml" Version="$(MicrosoftDiaSymReaderConverterXmlVersion)" />
     <PackageReference Include="Microsoft.Metadata.Visualizer" Version="$(MicrosoftMetadataVisualizerVersion)" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="$(MicrosoftNETCorePlatformsVersion)" />
+    <PackageReference Include="Microsoft.Win32.Primitives" Version="$(MicrosoftWin32PrimitivesVersion)" />
     <PackageReference Include="System.AppContext" Version="$(SystemAppContextVersion)" />
     <PackageReference Include="System.Collections.Concurrent" Version="$(SystemCollectionsConcurrentVersion)" />
     <PackageReference Include="System.Console" Version="$(SystemConsoleVersion)" />
@@ -109,7 +115,15 @@
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
+
+    <!-- This reference is necessary to pull down the assemblies we compile + run against 
+         in the compiler layer when running on CoreClr. Don't actually want to reference 
+         anything here, just have it available -->
+    <PackageReference Include="NETStandard.Library" Version="$(NETStandardLibraryFixedVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+      <PrivateAssets>all</PrivateAssets>
+      <ExcludeAssets>all</ExcludeAssets>
+    </PackageReference>
   </ItemGroup>
-  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
   <ProjectExtensions />
 </Project>

@@ -62,6 +62,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property IsInQuery As Boolean
             Get
                 ' we should stop at the method or type binder.

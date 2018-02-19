@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -269,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return this.SubstitutedSourceMethod.IsVararg; }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return this.SubstitutedSourceMethod.RefKind; }
         }
@@ -693,24 +694,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return compilation.GetSpecialType(SpecialType.System_Void);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(bodyOpt.Kind);
-            }
-        }
-
-        internal override void AddSynthesizedReturnTypeAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedReturnTypeAttributes(ref attributes);
-
-            var compilation = this.DeclaringCompilation;
-            var returnType = this.ReturnType;
-
-            if (returnType.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
-            {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType, ReturnTypeCustomModifiers.Length + RefCustomModifiers.Length, RefKind));
-            }
-
-            if (returnType.ContainsTupleNames() && compilation.HasTupleNamesAttributes)
-            {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(returnType));
             }
         }
 

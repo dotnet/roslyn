@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -142,10 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyContainsExplicitDefinitionOfNoPiaLocalTypes == ThreeState.Unknown)
                 {
-                    // TODO: This will recursively visit all top level types and bind attributes on them.
-                    //       This might be very expensive to do, but explicitly declared local types are 
-                    //       very uncommon. We should consider optimizing this by analyzing syntax first, 
-                    //       for example, the way VB handles ExtensionAttribute, etc.
                     _lazyContainsExplicitDefinitionOfNoPiaLocalTypes = NamespaceContainsExplicitDefinitionOfNoPiaLocalTypes(GlobalNamespace).ToThreeState();
                 }
 
@@ -513,9 +510,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             var compilation = _assemblySymbol.DeclaringCompilation;
             if (compilation.Options.AllowUnsafe)

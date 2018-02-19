@@ -12,7 +12,9 @@ using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -87,6 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
+            this.ComponentModel.GetService<DiagnosticProgressReporter>();
             this.ComponentModel.GetService<VisualStudioDiagnosticListTable>();
             this.ComponentModel.GetService<VisualStudioTodoListTable>();
             this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
@@ -99,11 +102,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
             LoadAnalyzerNodeComponents();
-            
-            Task.Run(() => LoadComponentsBackground());
+
+            Task.Run(() => LoadComponentsBackgroundAsync());
         }
 
-        private void LoadComponentsBackground()
+        private async Task LoadComponentsBackgroundAsync()
         {
             // Perf: Initialize the command handlers.
             var commandHandlerServiceFactory = this.ComponentModel.GetService<ICommandHandlerServiceFactory>();
@@ -112,6 +115,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             this.ComponentModel.GetService<MiscellaneousTodoListTable>();
             this.ComponentModel.GetService<MiscellaneousDiagnosticListTable>();
+
+            // Initialize any experiments async
+            var experiments = this.ComponentModel.DefaultExportProvider.GetExportedValues<IExperiment>();
+            foreach (var experiment in experiments)
+            {
+                await experiment.InitializeAsync().ConfigureAwait(false);
+            }
         }
 
         private void LoadInteractiveMenus()

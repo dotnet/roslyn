@@ -299,9 +299,18 @@ public class A
                 // (34,18): error CS0266: Cannot implicitly convert type 'float' to 'char'. An explicit conversion exists (are you missing a cast?)
                 //             case 97.0f:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97.0f").WithArguments("float", "char").WithLocation(34, 18),
+                // (34,13): error CS0152: The switch statement contains multiple cases with the label value 'a'
+                //             case 97.0f:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 97.0f:").WithArguments("a").WithLocation(34, 13),
+                // (36,13): error CS0152: The switch statement contains multiple cases with the label value 'a'
+                //             case 'a':
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 'a':").WithArguments("a").WithLocation(36, 13),
                 // (38,18): error CS0266: Cannot implicitly convert type 'int' to 'char'. An explicit conversion exists (are you missing a cast?)
                 //             case 97:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97").WithArguments("int", "char").WithLocation(38, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97").WithArguments("int", "char").WithLocation(38, 18),
+                // (38,13): error CS0152: The switch statement contains multiple cases with the label value 'a'
+                //             case 97:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 97:").WithArguments("a").WithLocation(38, 13)
                 );
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
@@ -322,15 +331,24 @@ public class A
                 // (34,18): error CS0266: Cannot implicitly convert type 'float' to 'char'. An explicit conversion exists (are you missing a cast?)
                 //             case 97.0f:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97.0f").WithArguments("float", "char").WithLocation(34, 18),
+                // (34,13): error CS0152: The switch statement contains multiple cases with the label value 'a'
+                //             case 97.0f:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 97.0f:").WithArguments("a").WithLocation(34, 13),
+                // (36,13): error CS0152: The switch statement contains multiple cases with the label value 'a'
+                //             case 'a':
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 'a':").WithArguments("a").WithLocation(36, 13),
                 // (38,18): error CS0266: Cannot implicitly convert type 'int' to 'char'. An explicit conversion exists (are you missing a cast?)
                 //             case 97:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97").WithArguments("int", "char"),
-                // (33,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(33, 17),
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97").WithArguments("int", "char").WithLocation(38, 18),
+                // (38,13): error CS0152: The switch statement contains multiple cases with the label value 'a'
+                //             case 97:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 97:").WithArguments("a").WithLocation(38, 13),
                 // (35,17): warning CS0162: Unreachable code detected
                 //                 break;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(35, 17),
+                // (37,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(37, 17),
                 // (39,17): warning CS0162: Unreachable code detected
                 //                 break;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(39, 17)
@@ -348,9 +366,18 @@ public class A
                 // (34,18): error CS0266: Cannot implicitly convert type 'float' to 'char'. An explicit conversion exists (are you missing a cast?)
                 //             case 97.0f:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97.0f").WithArguments("float", "char").WithLocation(34, 18),
+                // (34,13): error CS0152: The switch statement contains multiple cases with the label value 'a'
+                //             case 97.0f:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 97.0f:").WithArguments("a").WithLocation(34, 13),
+                // (36,13): error CS0152: The switch statement contains multiple cases with the label value 'a'
+                //             case 'a':
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 'a':").WithArguments("a").WithLocation(36, 13),
                 // (38,18): error CS0266: Cannot implicitly convert type 'int' to 'char'. An explicit conversion exists (are you missing a cast?)
                 //             case 97:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97").WithArguments("int", "char").WithLocation(38, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97").WithArguments("int", "char").WithLocation(38, 18),
+                // (38,13): error CS0152: The switch statement contains multiple cases with the label value 'a'
+                //             case 97:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 97:").WithArguments("a").WithLocation(38, 13)
                 );
         }
 
@@ -416,6 +443,9 @@ public class TestClass
     }
 }";
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
+                // (11,19): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                //             case (default):
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(11, 19),
                 // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
                 //             default:            //CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default").WithLocation(15, 13)
@@ -1228,26 +1258,17 @@ public class Test
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (10,12): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //       case 1.2f:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12),
-                // (13,5): warning CS0162: Unreachable code detected
-                //     return 0;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(13, 5)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12)
                 );
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (10,12): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //       case 1.2f:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12),
-                // (11,9): warning CS0162: Unreachable code detected
-                //         return 1;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(11, 9)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (10,12): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //       case 1.2f:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12),
-                // (13,5): warning CS0162: Unreachable code detected
-                //     return 0;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(13, 5)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12)
                 );
         }
 
@@ -3140,6 +3161,41 @@ class C
 }";
             var comp = CompileAndVerify(source, expectedOutput: @"1001");
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ConstantNullSwitchExpression()
+        {
+            var text = @"
+public class TestClass
+{
+    public static void Main()
+    {
+        const string s = null;
+        switch (s)
+        {
+            default:
+                break; //1
+            case null:
+                break; //2
+        }
+    }
+}";
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break; //1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                );
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break; //1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                );
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break; //1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                );
         }
 
         #endregion

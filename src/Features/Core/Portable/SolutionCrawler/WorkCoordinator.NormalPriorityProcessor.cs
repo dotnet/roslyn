@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         try
                         {
-                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, source.Token))
+                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, source.Token))
                             {
                                 var cancellationToken = source.Token;
                                 var document = _processingSolution.GetDocument(documentId);
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             SolutionCrawlerLogger.LogProcessDocument(this.Processor._logAggregator, documentId.Id, processedEverything);
 
                             // remove one that is finished running
-                            _workItemQueue.RemoveCancellationSource(workItem.DocumentId);
+                            _workItemQueue.MarkWorkItemDoneFor(workItem.DocumentId);
                         }
                     }
 
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         RemoveDocument(this.Analyzers, documentId);
                     }
 
-                    private static void RemoveDocument(IEnumerable<IIncrementalAnalyzer> analyzers, DocumentId documentId)
+                    private static void RemoveDocument(ImmutableArray<IIncrementalAnalyzer> analyzers, DocumentId documentId)
                     {
                         foreach (var analyzer in analyzers)
                         {

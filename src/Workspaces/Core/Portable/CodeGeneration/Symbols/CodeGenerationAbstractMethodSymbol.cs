@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract int Arity { get; }
         public abstract bool ReturnsVoid { get; }
         public abstract bool ReturnsByRef { get; }
+        public abstract bool ReturnsByRefReadonly { get; }
+        public abstract RefKind RefKind { get; }
         public abstract ITypeSymbol ReturnType { get; }
         public abstract ImmutableArray<ITypeSymbol> TypeArguments { get; }
         public abstract ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }

@@ -94,11 +94,28 @@ Public Class ParseExpressionTest
 
 #Region "Literal Test"
 
-
-    <Fact>
-    Public Sub ParseIntegerLiteralTest()
+    <Fact, Trait("IntegerLiteral_Prefix", "Hex")>
+    Public Sub ParseIntegerLiteralTest_HexPrefix()
         ParseExpression("&H1")
+        ParseExpression("&h1")
+        ParseExpression("&Ｈ1")
+        ParseExpression("&ｈ1")
+    End Sub
+
+    <Fact, Trait("IntegerLiteral_Prefix", "Oct")>
+    Public Sub ParseIntegerLiteralTest_OctPrefix()
         ParseExpression("&O1")
+        ParseExpression("&o1")
+        ParseExpression("&Ｏ1")
+        ParseExpression("&ｏ1")
+    End Sub
+
+    <Fact, Trait("IntegerLiteral_Prefix", "Bin")>
+    Public Sub ParseIntegerLiteralTest_BinPrefix()
+        ParseExpression("&B1")
+        ParseExpression("&b1")
+        ParseExpression("&Ｂ1")
+        ParseExpression("&ｂ1")
     End Sub
 
     <Fact>
@@ -445,13 +462,7 @@ ToString]]>.Value)
                     Dim y = New (A As Integer, B$)
                 End Sub
             End Module
-        ]]>,
-<errors>
-    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="87" end="93"/>
-    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="126" End="132"/>
-    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="167" End="185"/>
-</errors>
-        )
+        ]]>)
 
         ParseAndVerify(<![CDATA[
             Module Module1
@@ -466,13 +477,8 @@ ToString]]>.Value)
                     Return (New(Integer, Integer)() {(4, 5)}, 5)
                 End Function
             End Module
-        ]]>,
-                       <errors>
-                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="88" end="94"/>
-                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="128" end="134"/>
-                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="170" end="188"/>
-                       </errors>
-        )
+        ]]>)
+
     End Sub
 
     <Fact>

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -30,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
     {
-        private const string LoggingFunctionIdTextFileName = "ServiceHubFunctionIds.txt";
+        // it is saved here more on debugging purpose.
+        private static Func<FunctionId, bool> s_logChecker = _ => false;
 
         private string _host;
         private int _primaryInstance;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             // this is the very first service which will be called from client (VS)
             // we set up logger here
-            RoslynLogger.SetLogger(new EtwLogger(GetLoggingChecker()));
+            RoslynLogger.SetLogger(new EtwLogger(s_logChecker));
 
             SetNativeDllSearchDirectories();
         }
@@ -51,17 +53,17 @@ namespace Microsoft.CodeAnalysis.Remote
             Rpc.StartListening();
         }
 
-        public string Connect(string host, string serializedSession, CancellationToken cancellationToken)
+        public string Connect(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken)
         {
-            return RunService(() =>
+            return RunService(token =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                token.ThrowIfCancellationRequested();
 
                 _primaryInstance = InstanceId;
 
                 var existing = Interlocked.CompareExchange(ref _host, host, null);
 
-                SetGlobalContext(serializedSession);
+                SetGlobalContext(uiCultureLCID, cultureLCID, serializedSession);
 
                 if (existing != null && existing != host)
                 {
@@ -86,23 +88,23 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async () =>
+            return RunServiceAsync(async token =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, token))
                 {
                     var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, cancellationToken).ConfigureAwait(false);
+                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, token).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
 
         public Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async () =>
+            return RunServiceAsync(async token =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, token))
                 {
-                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
+                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, token).ConfigureAwait(false);
 
                     foreach (var asset in assets)
                     {
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
         {
-            RunService(() =>
+            RunService(_ =>
             {
                 var persistentStorageService = GetPersistentStorageService();
                 persistentStorageService?.RegisterPrimarySolution(solutionId);
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown, CancellationToken cancellationToken)
         {
-            RunService(() =>
+            RunService(_ =>
             {
                 var persistentStorageService = GetPersistentStorageService();
                 persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
@@ -133,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void OnGlobalOperationStarted(string unused)
         {
-            RunService(() =>
+            RunService(_ =>
             {
                 var globalOperationNotificationService = GetGlobalOperationNotificationService();
                 globalOperationNotificationService?.OnStarted();
@@ -142,51 +144,59 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
         {
-            RunService(() =>
+            RunService(_ =>
             {
                 var globalOperationNotificationService = GetGlobalOperationNotificationService();
                 globalOperationNotificationService?.OnStopped(operations, cancelled);
             }, CancellationToken.None);
         }
 
-        private static Func<FunctionId, bool> GetLoggingChecker()
+        public void SetLoggingFunctionIds(List<string> loggerTypes, List<string> functionIds, CancellationToken cancellationToken)
         {
-            try
+            RunService(token =>
             {
-                var loggingConfigFile = Path.Combine(typeof(RemoteHostService).Assembly.Location, LoggingFunctionIdTextFileName);
+                var functionIdType = typeof(FunctionId);
 
-                if (File.Exists(loggingConfigFile))
+                var set = new HashSet<FunctionId>();
+                foreach (var functionIdString in functionIds)
                 {
-                    var set = new HashSet<FunctionId>();
+                    token.ThrowIfCancellationRequested();
 
-                    var functionIdType = typeof(FunctionId);
-                    var functionIdStrings = File.ReadAllLines(loggingConfigFile);
-
-                    foreach (var functionIdString in functionIdStrings)
+                    try
                     {
-                        try
-                        {
-                            set.Add((FunctionId)Enum.Parse(functionIdType, functionIdString.Trim(), ignoreCase: true));
-                        }
-                        catch
-                        {
-                            // unknown functionId, move on
-                            continue;
-                        }
+                        set.Add((FunctionId)Enum.Parse(functionIdType, functionIdString.Trim(), ignoreCase: true));
                     }
-
-                    return id => set.Contains(id);
+                    catch
+                    {
+                        // unknown functionId, move on
+                        continue;
+                    }
                 }
-            }
-            catch
-            {
-                // we don't care any exception here. 
-                // this is for debugging and performance investigation purpose.
-            }
 
-            // if there was any kind of issue, 
-            // don't log anything
-            return _ => false;
+                Func<FunctionId, bool> logChecker = id => set.Contains(id);
+                lock (s_logChecker)
+                {
+                    // holding onto it for debugging purpose
+                    s_logChecker = logChecker;
+                }
+
+                // we only support 2 types of loggers
+                SetRoslynLogger(loggerTypes, () => new EtwLogger(logChecker));
+                SetRoslynLogger(loggerTypes, () => new TraceLogger(logChecker));
+
+            }, cancellationToken);
+        }
+
+        private static void SetRoslynLogger<T>(List<string> loggerTypes, Func<T> creator) where T : ILogger
+        {
+            if (loggerTypes.Contains(typeof(T).Name))
+            {
+                RoslynLogger.SetLogger(AggregateLogger.AddOrReplace(creator(), RoslynLogger.GetLogger(), l => l is T));
+            }
+            else
+            {
+                RoslynLogger.SetLogger(AggregateLogger.Remove(RoslynLogger.GetLogger(), l => l is T));
+            }
         }
 
         private void SetSessionInfo(Dictionary<string, object> m)
@@ -195,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Remote
             m["InstanceId"] = _primaryInstance;
         }
 
-        private static void SetGlobalContext(string serializedSession)
+        private static void SetGlobalContext(int uiCultureLCID, int cultureLCID, string serializedSession)
         {
             // set global telemetry session
             var session = GetTelemetrySession(serializedSession);
@@ -203,6 +213,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return;
             }
+
+            EnsureCulture(uiCultureLCID, cultureLCID);
 
             // set roslyn loggers
             WatsonReporter.SetTelemetrySession(session);
@@ -212,6 +224,31 @@ namespace Microsoft.CodeAnalysis.Remote
             // set both handler as NFW
             FatalError.Handler = WatsonReporter.Report;
             FatalError.NonFatalHandler = WatsonReporter.Report;
+        }
+
+        private static void EnsureCulture(int uiCultureLCID, int cultureLCID)
+        {
+            // this follows what VS does
+            // http://index/?leftProject=Microsoft.VisualStudio.Platform.AppDomainManager&leftSymbol=wok83tw8yxy7&file=VsAppDomainManager.cs&line=106
+            try
+            {
+                // set default culture for Roslyn OOP
+                CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(uiCultureLCID);
+                CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(cultureLCID);
+            }
+            catch (Exception ex) when (ExpectedCultureIssue(ex))
+            {
+                // ignore expected culture issue
+            }
+        }
+
+        private static bool ExpectedCultureIssue(Exception ex)
+        {
+            // report exception
+            WatsonReporter.Report(ex);
+
+            // ignore expected exception
+            return ex is ArgumentOutOfRangeException || ex is CultureNotFoundException;
         }
 
         private static TelemetrySession GetTelemetrySession(string serializedSession)
@@ -226,10 +263,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static AbstractPersistentStorageService GetPersistentStorageService()
         {
-            // A bit slimy.  We just create an adhoc workspace so it will create the singleton
-            // PersistentStorageService.  This service will be shared among all Workspaces we 
-            // create in this process.  So updating it will be seen by all.
-            var workspace = new AdhocWorkspace(RoslynServices.HostServices);
+            var workspace = SolutionService.PrimaryWorkspace;
             var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
             return persistentStorageService;
         }

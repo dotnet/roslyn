@@ -26,13 +26,18 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.VisualBasic.Features.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="EditorFeatures.Wpf" Path="|EditorFeatures.Wpf|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.EditorFeatures.Text.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.LanguageServices.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="XamlVisualStudio" Path="|XamlVisualStudio|" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="remoteHostService.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="snapshotService.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="codeAnalysisService.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="remoteSymbolSearchUpdateEngine.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteHost.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynSnapshot.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynCodeAnalysis.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteSymbolSearchUpdateEngine.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteHost64.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynSnapshot64.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynCodeAnalysis64.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteSymbolSearchUpdateEngine64.servicehub.service.json" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="BasicVisualStudio" Path="|BasicVisualStudio|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CSharpVisualStudio" Path="|CSharpVisualStudio|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="SolutionExplorerShim" Path="|SolutionExplorerShim|" />
@@ -42,6 +47,7 @@
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="CSharpVisualStudio" Path="|CSharpVisualStudio;PkgdefProjectOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="BasicVisualStudio" Path="VisualBasicPackageRegistration.pkgdef" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="CSharpVisualStudio" Path="CSharpPackageRegistration.pkgdef" />
+    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="ServicesVisualStudio" Path="|ServicesVisualStudio;VsdConfigOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.CSharp.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.VisualBasic.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.EditorFeatures.dll" />

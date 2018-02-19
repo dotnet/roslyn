@@ -454,5 +454,97 @@ class B
     }
 }");
         }
+
+        [WorkItem(24628, "https://github.com/dotnet/roslyn/issues/24628")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWhenAccessedOnLineBefore()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class B
+{
+    public B(object arg)
+    {
+        Dictionary<object, object> map = null;
+
+        if (arg == null) [|throw|] new ArgumentNullException();
+        var key = MakeKey(arg);
+        map[key] = arg;
+    }
+
+    object MakeKey(object x) => null;
+}");
+        }
+
+        [WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWhenUnconstrainedTypeParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+class A<T>
+{
+    T x;
+    public A(T t)
+    {
+        if (t == null) [|throw|] new ArgumentNullException();
+        x = t;
+    }
+}");
+        }
+
+        [WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestWhenClassConstrainedTypeParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class A<T> where T: class
+{
+    T x;
+    public A(T t)
+    {
+        if (t == null) [|throw|] new ArgumentNullException();
+        x = t;
+    }
+}",
+@"using System;
+class A<T> where T: class
+{
+    T x;
+    public A(T t)
+    {
+        x = t ?? throw new ArgumentNullException();
+    }
+}");
+        }
+
+        [WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestWhenStructConstrainedTypeParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class A<T> where T: struct
+{
+    T? x;
+    public A(T? t)
+    {
+        if (t == null) [|throw|] new ArgumentNullException();
+        x = t;
+    }
+}",
+@"using System;
+class A<T> where T: struct
+{
+    T? x;
+    public A(T? t)
+    {
+        x = t ?? throw new ArgumentNullException();
+    }
+}");
+        }
     }
 }

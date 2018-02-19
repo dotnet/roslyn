@@ -5,58 +5,79 @@
 set -e
 set -u
 
-BUILD_CONFIGURATION=${1:-Debug}
+build_configuration=${1:-Debug}
+runtime=${2:-dotnet}
 
-THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-source ${THIS_DIR}/build-utils.sh
+this_dir="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${this_dir}"/build-utils.sh
 
-BINARIES_PATH=${THIS_DIR}/../../Binaries
-SRC_PATH=${THIS_DIR}/../..
-UNITTEST_DIR=${BINARIES_PATH}/${BUILD_CONFIGURATION}/UnitTests
-LOG_DIR=${BINARIES_PATH}/${BUILD_CONFIGURATION}/xUnitResults
-NUGET_DIR=${HOME}/.nuget/packages
-RUNTIME_ID=$(dotnet --info | awk '/RID:/{print $2;}')
-TARGET_FRAMEWORK=netcoreapp2.0
-XUNIT_CONSOLE_VERSION=$(get_package_version dotnet-xunit)
-XUNIT_CONSOLE=${NUGET_DIR}/dotnet-xunit/${XUNIT_CONSOLE_VERSION}/tools/${TARGET_FRAMEWORK}/xunit.console.dll
+root_path="$(get_repo_dir)"
+binaries_path="${root_path}"/Binaries
+unittest_dir="${binaries_path}"/"${build_configuration}"/UnitTests
+log_dir="${binaries_path}"/"${build_configuration}"/xUnitResults
+nuget_dir="${HOME}"/.nuget/packages
+xunit_console_version="$(get_package_version dotnet-xunit)"
 
-echo Using $XUNIT_CONSOLE
+if [[ "${runtime}" == "dotnet" ]]; then
+    target_framework=netcoreapp2.0
+    file_list=( "${unittest_dir}"/*/netcoreapp2.0/*.UnitTests.dll )
+    xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
+elif [[ "${runtime}" == "mono" ]]; then
+    file_list=(
+        "${unittest_dir}/CSharpCompilerSymbolTest/net461/Roslyn.Compilers.CSharp.Symbol.UnitTests.dll"
+        "${unittest_dir}/CSharpCompilerSyntaxTest/net461/Roslyn.Compilers.CSharp.Syntax.UnitTests.dll"
+        )
+    xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/net452/xunit.console.exe
+else
+    echo "Unknown runtime: ${runtime}"
+    exit 1
+fi
 
-# Need to publish projects that have runtime assets before running tests
-NEED_PUBLISH=(
-    'src\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj'
-)
-for p in $NEED_PUBLISH
-do
-    echo Publishing ${p}
-    dotnet publish --no-restore ${SRC_PATH}/${p} -p:RuntimeIdentifier=${RUNTIME_ID} -p:TargetFramework=${TARGET_FRAMEWORK} -p:SelfContained=true
-done
+UNAME="$(uname)"
+if [ "$UNAME" == "Darwin" ]; then
+    runtime_id=osx-x64
+elif [ "$UNAME" == "Linux" ]; then
+    runtime_id=linux-x64
+else
+    echo "Unknown OS: $UNAME" 1>&2
+    exit 1
+fi
+
+echo "Publishing ILAsm.csproj"
+dotnet publish "${root_path}/src/Tools/ILAsm" --no-restore --runtime ${runtime_id} --self-contained -o "${binaries_path}/Tools/ILAsm"
+
+echo "Using ${xunit_console}"
 
 # Discover and run the tests
-mkdir -p ${LOG_DIR}
-pushd ${UNITTEST_DIR}
+mkdir -p "${log_dir}"
 
-for d in *
+exit_code=0
+for file_name in "${file_list[@]}"
 do
-    TEST_PATH=${UNITTEST_DIR}/${d}/${TARGET_FRAMEWORK}
-    PUBLISH_TEST_PATH=${TEST_PATH}/${RUNTIME_ID}/publish
-    if [ -d ${PUBLISH_TEST_PATH} ]
+    log_file="${log_dir}"/"$(basename "${file_name%.*}.xml")"
+    deps_json="${file_name%.*}".deps.json
+    runtimeconfig_json="${file_name%.*}".runtimeconfig.json
+
+    # If the user specifies a test on the command line, only run that one
+    # "${3:-}" => take second arg, empty string if unset
+    if [[ ("${3:-}" != "") && (! "${file_name}" =~ "${2:-}") ]]
     then
-        TEST_PATH=${PUBLISH_TEST_PATH}
+        echo "Skipping ${file_name}"
+        continue
     fi
 
-    pushd $TEST_PATH
-    FILE_NAME=$(ls *.UnitTests.dll)
-    LOG_NAME="${FILE_NAME%.*}.xml"
-    echo Running ${TEST_PATH}/${FILE_NAME}
-    dotnet exec --depsfile "${FILE_NAME%.*}.deps.json" --runtimeconfig "${FILE_NAME%.*}.runtimeconfig.json" ${XUNIT_CONSOLE} $FILE_NAME -xml ${LOG_DIR}/${LOG_NAME}
-    if [ $? -ne 0 ]; then
-        echo Unit test failed
-        exit 1
+    echo Running "${runtime} ${file_name[@]}"
+    if [[ "${runtime}" == "dotnet" ]]; then
+        runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
+    elif [[ "${runtime}" == "mono" ]]; then
+        runner=mono
     fi
-    popd
+    if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}"
+    then
+        echo "Assembly ${file_name[@]} passed"
+    else
+        echo "Assembly ${file_name[@]} failed"
+        exit_code=1
+    fi
 done
-
-popd
-
-
+exit ${exit_code}

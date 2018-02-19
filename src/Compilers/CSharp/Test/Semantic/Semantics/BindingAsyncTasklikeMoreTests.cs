@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -824,7 +825,13 @@ class MyTaskMethodBuilder<T>
     public MyTask<T> Task => default(MyTask<T>);
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            compilation.VerifyEmitDiagnostics();
+            compilation.VerifyEmitDiagnostics(
+                // (17,9): error CS0311: The type 'MyTask.Awaiter' cannot be used as type parameter 'TAwaiter' in the generic type or method 'MyTaskMethodBuilder<int>.AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)'. There is no implicit reference conversion from 'MyTask.Awaiter' to 'System.Runtime.CompilerServices.IAsyncStateMachine'.
+                //         await F();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "await F();").WithArguments("MyTaskMethodBuilder<int>.AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)", "System.Runtime.CompilerServices.IAsyncStateMachine", "TAwaiter", "MyTask.Awaiter").WithLocation(17, 9),
+                // (18,16): error CS0311: The type 'MyTask<int>.Awaiter' cannot be used as type parameter 'TAwaiter' in the generic type or method 'MyTaskMethodBuilder<int>.AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)'. There is no implicit reference conversion from 'MyTask<int>.Awaiter' to 'System.Runtime.CompilerServices.IAsyncStateMachine'.
+                //         return await G(3);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "await G(3)").WithArguments("MyTaskMethodBuilder<int>.AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)", "System.Runtime.CompilerServices.IAsyncStateMachine", "TAwaiter", "MyTask<int>.Awaiter").WithLocation(18, 16));
         }
 
         [WorkItem(12616, "https://github.com/dotnet/roslyn/issues/12616")]
@@ -901,7 +908,10 @@ class MyTaskMethodBuilder<T>
     public MyTask<T> Task => default(MyTask<T>);
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            compilation.VerifyEmitDiagnostics();
+            compilation.VerifyEmitDiagnostics(
+                // (14,40): error CS0311: The type 'C.<G>d__1<T>' cannot be used as type parameter 'TStateMachine' in the generic type or method 'MyTaskMethodBuilder<T>.AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)'. There is no implicit reference conversion from 'C.<G>d__1<T>' to 'System.Runtime.CompilerServices.ICriticalNotifyCompletion'.
+                //     static async MyTask<T> G<T>(T t) { await Task.Delay(0); return t; }
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "await Task.Delay(0);").WithArguments("MyTaskMethodBuilder<T>.AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)", "System.Runtime.CompilerServices.ICriticalNotifyCompletion", "TStateMachine", "C.<G>d__1<T>").WithLocation(14, 40));
         }
 
         [WorkItem(15955, "https://github.com/dotnet/roslyn/issues/15955")]
@@ -926,6 +936,385 @@ class B
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugExe);
             compilation.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void AwaiterMissingINotifyCompletion()
+        {
+            var source0 =
+@"using System;
+using System.Runtime.CompilerServices;
+namespace System.Runtime.CompilerServices
+{
+    class AsyncMethodBuilderAttribute : Attribute
+    {
+        public AsyncMethodBuilderAttribute(Type t) { }
+    }
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+public sealed class MyTask
+{
+    public Awaiter GetAwaiter() => null;
+    public class Awaiter
+    {
+        public void OnCompleted(Action a) { }
+        public bool IsCompleted => true;
+        public void GetResult() { }
+    }
+}
+public sealed class MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine)
+        where TStateMachine : IAsyncStateMachine
+    {
+    }
+    public void SetException(Exception e) { }
+    public void SetResult() { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+        where TAwaiter : INotifyCompletion
+        where TStateMachine : IAsyncStateMachine
+    {
+    }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+        where TAwaiter : ICriticalNotifyCompletion
+        where TStateMachine : IAsyncStateMachine
+    {
+    }
+    public MyTask Task => new MyTask();
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(source0);
+            var ref0 = compilation0.EmitToImageReference();
+            var source =
+@"class Program
+{
+    static async MyTask F()
+    {
+        await new MyTask();
+    }
+    static void Main()
+    {
+        var t = F();
+        t.GetAwaiter().GetResult();
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ref0 });
+            compilation.VerifyEmitDiagnostics(
+                // (5,9): error CS4027: 'MyTask.Awaiter' does not implement 'INotifyCompletion'
+                //         await new MyTask();
+                Diagnostic(ErrorCode.ERR_DoesntImplementAwaitInterface, "await new MyTask()").WithArguments("MyTask.Awaiter", "System.Runtime.CompilerServices.INotifyCompletion").WithLocation(5, 9));
+        }
+
+        /// <summary>
+        /// Avoid checking constraints in generic methods in actual AsyncTaskMethodBuilder
+        /// to avoid breaking change.
+        /// </summary>
+        [WorkItem(21500, "https://github.com/dotnet/roslyn/issues/21500")]
+        [Fact]
+        public void AdditionalConstraintMissingFromStateMachine_AsyncTaskMethodBuilder()
+        {
+            var source0 =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+namespace System
+{
+    public delegate void Action();
+}
+namespace System.Runtime.CompilerServices
+{
+    public interface INotifyCompletion
+    {
+        void OnCompleted(Action a);
+    }
+    public interface ICriticalNotifyCompletion : INotifyCompletion
+    {
+        void UnsafeOnCompleted(Action a);
+    }
+    public interface IAsyncStateMachine
+    {
+        void MoveNext();
+        void SetStateMachine(IAsyncStateMachine stateMachine);
+    }
+    public interface IMyStateMachine
+    {
+    }
+    public struct AsyncTaskMethodBuilder
+    {
+        public static AsyncTaskMethodBuilder Create() => new AsyncTaskMethodBuilder();
+        public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+        public void Start<TStateMachine>(ref TStateMachine stateMachine)
+            where TStateMachine : IMyStateMachine, IAsyncStateMachine
+        {
+        }
+        public void SetException(Exception e) { }
+        public void SetResult() { }
+        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : INotifyCompletion
+            where TStateMachine : IMyStateMachine, IAsyncStateMachine
+        {
+        }
+        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : ICriticalNotifyCompletion
+            where TStateMachine : IMyStateMachine, IAsyncStateMachine
+        {
+        }
+        public Task Task => new Task();
+    }
+}
+namespace System.Threading.Tasks
+{
+    public class Task
+    {
+        public Awaiter GetAwaiter() => new Awaiter();
+        public class Awaiter : INotifyCompletion
+        {
+            public void OnCompleted(Action a) { }
+            public bool IsCompleted => true;
+            public void GetResult() { }
+        }
+    }
+}";
+            var compilation0 = CreateCompilation(source0, references: new[] { MscorlibRef_v20 });
+            var ref0 = compilation0.EmitToImageReference();
+            var source =
+@"using System.Threading.Tasks;
+class Program
+{
+    static async Task F()
+    {
+        await new Task();
+    }
+    static void Main()
+    {
+        var t = F();
+        t.GetAwaiter().GetResult();
+    }
+}";
+            var compilation = CreateCompilation(source, references: new[] { MscorlibRef_v20, ref0 });
+            compilation.VerifyEmitDiagnostics();
+        }
+
+        /// <summary>
+        /// Verify constraints at the call-site for generic methods of async method build.
+        /// </summary>
+        [WorkItem(21500, "https://github.com/dotnet/roslyn/issues/21500")]
+        [Fact]
+        public void Start_AdditionalConstraintMissingFromStateMachine()
+        {
+            var source0 =
+@"using System;
+using System.Runtime.CompilerServices;
+namespace System.Runtime.CompilerServices
+{
+    class AsyncMethodBuilderAttribute : Attribute
+    {
+        public AsyncMethodBuilderAttribute(Type t) { }
+    }
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+public sealed class MyTask
+{
+    public Awaiter GetAwaiter() => new Awaiter();
+    public class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        public bool IsCompleted => true;
+        public void GetResult() { }
+    }
+}
+public interface IMyStateMachine { }
+public sealed class MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine)
+        where TStateMachine : IMyStateMachine, IAsyncStateMachine
+    {
+    }
+    public void SetException(Exception e) { }
+    public void SetResult() { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+        where TAwaiter : INotifyCompletion
+        where TStateMachine : IAsyncStateMachine
+    {
+    }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+        where TAwaiter : ICriticalNotifyCompletion
+        where TStateMachine : IAsyncStateMachine
+    {
+    }
+    public MyTask Task => new MyTask();
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(source0);
+            var ref0 = compilation0.EmitToImageReference();
+            var source =
+@"class Program
+{
+    static async MyTask F()
+    {
+        await new MyTask();
+    }
+    static void Main()
+    {
+        var t = F();
+        t.GetAwaiter().GetResult();
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ref0 });
+            compilation.VerifyEmitDiagnostics(
+                // (4,5): error CS0315: The type 'Program.<F>d__0' cannot be used as type parameter 'TStateMachine' in the generic type or method 'MyTaskMethodBuilder.Start<TStateMachine>(ref TStateMachine)'. There is no boxing conversion from 'Program.<F>d__0' to 'IMyStateMachine'.
+                //     {
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, @"{
+        await new MyTask();
+    }").WithArguments("MyTaskMethodBuilder.Start<TStateMachine>(ref TStateMachine)", "IMyStateMachine", "TStateMachine", "Program.<F>d__0").WithLocation(4, 5));
+        }
+
+        /// <summary>
+        /// Verify constraints at the call-site for generic methods of async method build.
+        /// </summary>
+        [WorkItem(21500, "https://github.com/dotnet/roslyn/issues/21500")]
+        [Fact]
+        public void AwaitOnCompleted_AdditionalConstraintMissingFromAwaiter()
+        {
+            var source0 =
+@"using System;
+using System.Runtime.CompilerServices;
+namespace System.Runtime.CompilerServices
+{
+    class AsyncMethodBuilderAttribute : Attribute
+    {
+        public AsyncMethodBuilderAttribute(Type t) { }
+    }
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+public sealed class MyTask
+{
+    public Awaiter GetAwaiter() => null;
+    public abstract class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        public bool IsCompleted => true;
+        public void GetResult() { }
+    }
+}
+public sealed class MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine)
+        where TStateMachine : IAsyncStateMachine
+    {
+    }
+    public void SetException(Exception e) { }
+    public void SetResult() { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+        where TAwaiter : INotifyCompletion, new()
+        where TStateMachine : IAsyncStateMachine
+    {
+    }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+        where TAwaiter : ICriticalNotifyCompletion
+        where TStateMachine : IAsyncStateMachine
+    {
+    }
+    public MyTask Task => new MyTask();
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(source0);
+            var ref0 = compilation0.EmitToImageReference();
+            var source =
+@"class Program
+{
+    static async MyTask F()
+    {
+        await new MyTask();
+    }
+    static void Main()
+    {
+        var t = F();
+        t.GetAwaiter().GetResult();
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ref0 });
+            compilation.VerifyEmitDiagnostics(
+                // (5,9): error CS0310: 'MyTask.Awaiter' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'TAwaiter' in the generic type or method 'MyTaskMethodBuilder.AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)'
+                //         await new MyTask();
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "await new MyTask();").WithArguments("MyTaskMethodBuilder.AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)", "TAwaiter", "MyTask.Awaiter").WithLocation(5, 9));
+        }
+
+        /// <summary>
+        /// Verify constraints at the call-site for generic methods of async method build.
+        /// </summary>
+        [WorkItem(21500, "https://github.com/dotnet/roslyn/issues/21500")]
+        [Fact]
+        public void AwaitUnsafeOnCompleted_AdditionalConstraintMissingFromAwaiter()
+        {
+            var source0 =
+@"using System;
+using System.Runtime.CompilerServices;
+namespace System.Runtime.CompilerServices
+{
+    class AsyncMethodBuilderAttribute : Attribute
+    {
+        public AsyncMethodBuilderAttribute(Type t) { }
+    }
+}
+public interface IMyAwaiter { }
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+public sealed class MyTask
+{
+    public Awaiter GetAwaiter() => new Awaiter();
+    public class Awaiter : ICriticalNotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        public void UnsafeOnCompleted(Action a) { }
+        public bool IsCompleted => true;
+        public void GetResult() { }
+    }
+}
+public sealed class MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine)
+        where TStateMachine : IAsyncStateMachine
+    {
+    }
+    public void SetException(Exception e) { }
+    public void SetResult() { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+        where TAwaiter : INotifyCompletion
+        where TStateMachine : IAsyncStateMachine
+    {
+    }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+        where TAwaiter : IMyAwaiter, ICriticalNotifyCompletion
+        where TStateMachine : IAsyncStateMachine
+    {
+    }
+    public MyTask Task => new MyTask();
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(source0);
+            var ref0 = compilation0.EmitToImageReference();
+            var source =
+@"class Program
+{
+    static async MyTask F()
+    {
+        await new MyTask();
+    }
+    static void Main()
+    {
+        var t = F();
+        t.GetAwaiter().GetResult();
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ref0 });
+            compilation.VerifyEmitDiagnostics(
+                // (5,9): error CS0311: The type 'MyTask.Awaiter' cannot be used as type parameter 'TAwaiter' in the generic type or method 'MyTaskMethodBuilder.AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)'. There is no implicit reference conversion from 'MyTask.Awaiter' to 'IMyAwaiter'.
+                //         await new MyTask();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "await new MyTask();").WithArguments("MyTaskMethodBuilder.AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)", "IMyAwaiter", "TAwaiter", "MyTask.Awaiter").WithLocation(5, 9));
         }
     }
 }

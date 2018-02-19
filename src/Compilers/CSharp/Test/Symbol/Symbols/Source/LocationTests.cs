@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertPos(s, 12, 1);
             var c = s.GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
             AssertPos(c, 20, 1);
-            var obj = c.BaseType;
+            var obj = c.BaseType();
             Assert.Equal("MetadataFile(CommonLanguageRuntimeLibrary)", obj.Locations[0].ToString());
             var f = c.GetMembers("F").Single() as FieldSymbol;
             AssertPos(f, 26, 1);

@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 return;
             }
 
-#if DEBUG
+#if DEBUG && false
             var documentErrorLookup = new HashSet<DocumentId>();
             foreach (var project in workspace.CurrentSolution.Projects)
             {

@@ -87,7 +87,7 @@ commitPullList.each { isPr ->
     def myJob = job(jobName) {
       description("Windows CoreCLR unit tests")
             steps {
-              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testCoreClr""")
+              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -buildCoreClr -testCoreClr""")
             }
     }
 
@@ -99,30 +99,30 @@ commitPullList.each { isPr ->
   }
 }
 
-// Ubuntu 14.04
-commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "ubuntu_14_debug", isPr)
-  def myJob = job(jobName) {
-    description("Ubuntu 14.04 tests")
-                  steps {
-                    shell("./cibuild.sh --debug")
-                  }
-                }
-
-  def triggerPhraseOnly = false
-  def triggerPhraseExtra = "linux"
-  Utilities.setMachineAffinity(myJob, 'Ubuntu14.04', 'latest-or-auto')
-  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
-
 // Ubuntu 16.04
 commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_debug", isPr)
   def myJob = job(jobName) {
     description("Ubuntu 16.04 tests")
                   steps {
-                    shell("./cibuild.sh --debug")
+                    shell("./build/scripts/cibuild.sh --debug")
+                  }
+                }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = "linux"
+  Utilities.setMachineAffinity(myJob, 'Ubuntu16.04', 'latest-or-auto')
+  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
+// Ubuntu 16.04 mono
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_mono_debug", isPr)
+  def myJob = job(jobName) {
+    description("Ubuntu 16.04 mono tests")
+                  steps {
+                    shell("./build/scripts/cibuild.sh --debug --docker --mono")
                   }
                 }
 
@@ -139,7 +139,7 @@ commitPullList.each { isPr ->
   def myJob = job(jobName) {
     description("Mac tests")
     steps {
-      shell("./cibuild.sh --debug")
+      shell("./build/scripts/cibuild.sh --debug")
     }
   }
 

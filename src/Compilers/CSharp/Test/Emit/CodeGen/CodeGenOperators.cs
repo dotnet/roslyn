@@ -3921,8 +3921,7 @@ public class Test
   // Code size       73 (0x49)
   .maxstack  3
   .locals init (int V_0,
-  T V_1,
-  T V_2)
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T Test.Nop<T>(T)""
   IL_0006:  stloc.1
@@ -3938,8 +3937,8 @@ public class Test
   IL_001f:  callvirt   ""void I.IntPropI.set""
   IL_0024:  ldarg.0
   IL_0025:  call       ""T Test.Nop<T>(T)""
-  IL_002a:  stloc.2
-  IL_002b:  ldloca.s   V_2
+  IL_002a:  stloc.1
+  IL_002b:  ldloca.s   V_1
   IL_002d:  dup
   IL_002e:  constrained. ""T""
   IL_0034:  callvirt   ""int I.IntPropI.get""
@@ -4861,7 +4860,7 @@ class Program
         }
 
         [Fact]
-        public void TestCompoundOnAfieldOfGeneric()
+        public void TestCompoundOnAFieldOfGeneric()
         {
             var source = @"
 class Program
@@ -5008,7 +5007,8 @@ class test<T> where T : c0
 ");
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_01()
         {
             var source =
@@ -5067,7 +5067,8 @@ class Test
             return builder.ToString();
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_02()
         {
             var source =
@@ -5095,7 +5096,7 @@ class Test
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
         }
 
-        [Fact]
+        [NoIOperationValidationFact]
         [WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_03()
@@ -5156,7 +5157,8 @@ class Test
             return builder.ToString();
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_04()
         {
             var source =
@@ -5189,7 +5191,8 @@ class Test
                 );
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_05()
         {
             int count = 50;
@@ -5241,7 +5244,8 @@ class Test
 5180801");
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_06()
         {
             var source =

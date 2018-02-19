@@ -34,7 +34,10 @@ namespace Roslyn.Test.Utilities.Remote
             // make sure connection is done right
             var current = $"VS ({Process.GetCurrentProcess().Id})";
             var telemetrySession = default(string);
-            var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, telemetrySession).ConfigureAwait(false);
+            var uiCultureLCIDE = 0;
+            var cultureLCID = 0;
+
+            var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, uiCultureLCIDE, cultureLCID, telemetrySession).ConfigureAwait(false);
 
             // TODO: change this to non fatal watson and make VS to use inproc implementation
             Contract.ThrowIfFalse(host == current.ToString());
@@ -109,7 +112,7 @@ namespace Roslyn.Test.Utilities.Remote
             public ServiceProvider(bool runCacheCleanup)
             {
                 _storage = runCacheCleanup ?
-                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1)) :
+                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(5)) :
                     new AssetStorage();
             }
 

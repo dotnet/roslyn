@@ -829,6 +829,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxFirstTokenReplacer.Replace(node, oldToken, newToken, skippedSyntax.FullWidth);
         }
 
+        protected void AddTrailingSkippedSyntax(SyntaxListBuilder list, GreenNode skippedSyntax)
+        {
+            list[list.Count - 1] = AddTrailingSkippedSyntax((CSharpSyntaxNode)list[list.Count - 1], skippedSyntax);
+        }
+
+        protected void AddTrailingSkippedSyntax<TNode>(SyntaxListBuilder<TNode> list, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
+        {
+            list[list.Count - 1] = AddTrailingSkippedSyntax(list[list.Count - 1], skippedSyntax);
+        }
+
         protected TNode AddTrailingSkippedSyntax<TNode>(TNode node, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
         {
             var token = node as SyntaxToken;
@@ -1058,30 +1068,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var featureName = feature.Localize();
-            var requiredFeature = feature.RequiredFeature();
-            if (requiredFeature != null)
+            var requiredVersion = feature.RequiredVersion();
+
+            if (forceWarning)
             {
-                if (forceWarning)
-                {
-                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, featureName, requiredFeature);
-                    return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
-                }
-
-                return this.AddError(node, ErrorCode.ERR_FeatureIsExperimental, featureName, requiredFeature);
+                SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName,
+                    new CSharpRequiredLanguageVersion(requiredVersion));
+                return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
             }
-            else
-            {
-                var requiredVersion = feature.RequiredVersion();
 
-                if (forceWarning)
-                {
-                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName,
-                        new CSharpRequiredLanguageVersion(requiredVersion));
-                    return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
-                }
-
-                return this.AddError(node, availableVersion.GetErrorCode(), featureName, new CSharpRequiredLanguageVersion(requiredVersion));
-            }
+            return this.AddError(node, availableVersion.GetErrorCode(), featureName, new CSharpRequiredLanguageVersion(requiredVersion));
         }
 
         protected bool IsFeatureEnabled(MessageID feature)

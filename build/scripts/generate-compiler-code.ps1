@@ -86,10 +86,7 @@ function Run-GetText() {
 # Build all of the tools that we need to generate the syntax trees and ensure
 # they are in a published / runnable state.
 function Build-Tools() {
-    $msbuild = Ensure-MSBuild
-    $msbuildDir = Split-Path -parent $msbuild
-    $nuget = Ensure-NuGet
-
+    $dotnet = Ensure-DotnetSdk
     $list = @(
         'boundTreeGenerator;BoundTreeGenerator;BoundTreeGenerator\CompilersBoundTreeGenerator.csproj',
         'csharpErrorFactsGenerator;CSharpErrorFactsGenerator;CSharpErrorFactsGenerator\CSharpErrorFactsGenerator.csproj',
@@ -106,10 +103,10 @@ function Build-Tools() {
             $proj = $all[2]
             $fileName = [IO.Path]::GetFileNameWithoutExtension($proj)
             Write-Host "Building $fileName"
-            Restore-Project $proj -nuget $nuget -msbuildDir $msbuildDir
-            Exec-Command $msbuild "/t:Publish /p:Configuration=Debug /p:RuntimeIdentifier=win7-x64 /v:m $proj" | Out-Null
+            Restore-Project $dotnet $proj
+            Exec-Command $dotnet "publish /p:Configuration=Debug /p:RuntimeIdentifier=win-x64 /v:m $proj" | Out-Null
 
-            $exePath = Join-Path $binariesDir "Debug\Exes\$fileName\win7-x64\publish\$($exeName).exe"
+            $exePath = Join-Path $binariesDir "Debug\Exes\$fileName\win-x64\publish\$($exeName).exe"
             if (-not (Test-Path $exePath)) { 
                 Write-Host "Did not find exe after build: $exePath"
                 throw "Missing exe"

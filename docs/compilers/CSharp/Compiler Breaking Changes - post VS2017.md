@@ -28,3 +28,72 @@ Consider the case where the type of `a` is `System.Func<bool>` and you write `va
 
 - https://github.com/dotnet/roslyn/issues/21582 In C# 7.1, when the default literal was introduced, it was accepted on the left-hand-side of a null-coalescing operator. For instance, in `default ?? 1`. In C# 7.2, this compiler bug was fixed to match the specification, and an error is produced instead ("Operator '??' cannot be applied to operand 'default'").
 
+- https://github.com/dotnet/roslyn/issues/21979 In C# 7.1 and previous, the compiler permitted converting a method group, in which the receiver is of type `System.TypedReference`, to a delegate type. Such code would throw `System.InvalidProgramException` at runtime. In C# 7.2 this is a compile-time error. For example, the line with the comment, below, would cause the compiler to report an error:
+``` c#
+static Func<int> M(__arglist)
+{
+    ArgIterator ai = new ArgIterator(__arglist);
+    while (ai.GetRemainingCount() > 0)
+    {
+        TypedReference tr = ai.GetNextArg();
+        return tr.GetHashCode; // delegate conversion causes a subsequent System.InvalidProgramException
+    }
+
+    return null;
+}
+```
+
+- https://github.com/dotnet/roslyn/issues/21485 In Roslyn 2.0, the `unsafe` modifier could be used on a local function without using the `/unsafe` flag on the compilation. In Roslyn 2.6 (Visual Studio 2017 verion 15.5) the compiler requires the `/unsafe` compilation flag, and produces a diagnostic if the flag is not used.
+
+- https://github.com/dotnet/roslyn/issues/20210 In C# 7.2, there are some uses of the new pattern switch construct, in which the switch expression is a constant, for which the compiler will produce warnings or errors not previously produced.
+``` c#
+    switch (default(object))
+    {
+      case bool _:
+      case true:  // new error: case subsumed by previous cases
+      case false: // new error: case subsumed by previous cases
+        break;
+    }
+
+    switch (1)
+    {
+      case 1 when true:
+        break;
+      default:
+        break; // new warning: unreachable code
+    }
+```
+
+- https://github.com/dotnet/roslyn/issues/20103 In C# 7.2, when testing a constant null expression against a declaration pattern in which the type is not inferred, the compiler will now warn that the expression is never of the provided type.
+``` c#
+const object o = null;
+if (o is object res) { // warning CS0184: The given expression is never of the provided ('object') type
+```
+
+- https://github.com/dotnet/roslyn/issues/22578 In C# 7.1, the compiler would compute the wrong default value for an optional parameter of nullable type declared with the default literal. For instance, `void M(int? x = default)` would use `0` for the default parameter value, instead of `null`. In C# 7.2 (Visual Studio 2017 version 15.5), the proper default parameter value (`null`) is computed in such cases.
+
+- https://github.com/dotnet/roslyn/issues/21979 In C# 7.2 (Visual Studio 2017 version 15.5) and previous it was allowed to convert to a delegate an instance method of a ref-like type such as `TypedReference`. Such operation invariable resulted in code that could not possibly run. The reason is that such conversion requires the receiver be boxed, which ref-like types cannot do.
+In Visual Studio 2017 version 15.6 such conversions will be explicitly disallowed by the compiler and cause compile time errors.
+Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'` 
+   
+- https://github.com/dotnet/roslyn/pull/23416 Before Visual Studio 2017 version 15.6 (Roslyn version 2.8) the compiler accepted `__arglist(...)` expressions with void-typed arguments. For instance, `__arglist(Console.WriteLine())`. But such program would fail at runtime. In Visual Studio 2017 version 15.6, this causes a compile-time error.
+
+- https://github.com/dotnet/roslyn/pull/24023 In Visual Studio 2017 version 15.6, Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax constructor and Update(), the parameter refOrOutKeyword was renamed to refKindKeyword (source breaking change if you're using named arguments).
+
+- Visual Studio 2017 15.0-15.5 shipped with a bug around definite assignment of local functions that did not produce definite assignment errors when an uncalled local function contains a nested lambda which captures a variable. For example:
+    ```csharp
+    void Method()
+    {
+        void Local()
+        {
+            Action a = () =>
+            {
+                int x;
+                x++; // No error in 15.0 - 15.5
+            };
+        }
+    }
+    ```
+    This is changed in 15.6 to now produce an error that the variable is not definitely assigned.
+
+- Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/19792 C# compiler will now reject [IsReadOnly] symbols that should have an [InAttribute] modreq, but don't.

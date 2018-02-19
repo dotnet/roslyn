@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestCleanup()
         {
-            var storage = new AssetStorage(cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2));
+            var storage = new AssetStorage(cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2), gcAfter: TimeSpan.FromMilliseconds(5));
 
             var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();

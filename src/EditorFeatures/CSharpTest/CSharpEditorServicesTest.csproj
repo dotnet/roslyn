@@ -1,19 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <StartupObject />
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj" />
     <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
     <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj" />
-    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
     <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj" />
@@ -24,6 +21,7 @@
     <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj" />
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\Core.Wpf\EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj" />
     <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
     <ProjectReference Include="..\TestUtilities\ServicesTestUtilities.csproj" />
@@ -237,5 +235,4 @@
     <Compile Remove="ReorderParameters\ReorderParametersTests.InvocationErrors.cs" />
     <Compile Remove="ReorderParameters\ReorderParametersTests.InvocationLocation.cs" />
   </ItemGroup>
-  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

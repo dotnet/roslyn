@@ -1,8 +1,10 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -30,6 +32,231 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
+        [Fact]
+        [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
+        public void Repro481125()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+using System.Linq;
+
+public class C
+{
+    static void Main()
+    {
+        var c = new C();
+        Console.WriteLine(c.M(0).Count());
+        Console.WriteLine(c.M(1).Count());
+    }
+
+    public IQueryable<E> M(int salesOrderId)
+    {
+        using (var uow = new D())
+        {
+            return Local();
+
+            IQueryable<E> Local() => uow.ES.Where(so => so.Id == salesOrderId);
+        }
+    }
+}
+
+internal class D : IDisposable
+{
+    public IQueryable<E> ES => new[] { new E() }.AsQueryable();
+
+    public void Dispose() { }
+}
+
+public class E
+{
+    public int Id;
+}", references: new[] { LinqAssemblyRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"1
+0");
+        }
+
+        [Fact]
+        [WorkItem(24647, "https://github.com/dotnet/roslyn/issues/24647")]
+        public void Repro24647()
+        {
+            var comp = CreateStandardCompilation(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        void local() { } => new object();
+    }
+}");
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var creation = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+
+            var operation = model.GetOperation(creation);
+            Assert.Null(operation); // we didn't bind the expression body, but should. See issue https://github.com/dotnet/roslyn/issues/24650
+
+            var info = model.GetTypeInfo(creation);
+            Assert.Equal("System.Object", info.Type.ToTestDisplayString());
+            Assert.Equal("System.Object", info.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(22027, "https://github.com/dotnet/roslyn/issues/22027")]
+        public void Repro22027()
+        {
+            CompileAndVerify(@"
+class Program
+{
+static void Main(string[] args)
+{
+
+ }
+ public object TestLocalFn(object inp)
+ {
+     try
+     {
+         var sr = new object();
+         return sr;
+         void Local1()
+         {
+             var copy = inp;
+             Local2();
+         }
+         void Local2()
+         {
+
+         }
+     }
+     catch { throw; }
+ }
+}");
+        }
+
+        [Fact]
+        [WorkItem(21768, "https://github.com/dotnet/roslyn/issues/21768")]
+        public void Repro21768()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+using System.Linq;
+class C
+{
+    void Function(int someField) //necessary to have a parameter
+    {
+        using (IInterface db = null) //necessary to have this using statement
+        {
+            void LocalFunction() //necessary
+            {
+                var results =
+                    db.Query<Class1>() //need to call this method. using a constant array does not reproduce the bug.
+                    .Where(cje => cje.SomeField >= someField) //need expression tree here referencing parameter
+                    ;
+            }
+        }
+    }
+    interface IInterface : IDisposable
+    {
+        IQueryable<T> Query<T>();
+    }
+    class Class1
+    {
+        public int SomeField { get; set; }
+    }
+}", references: new[] { LinqAssemblyRef });
+            CompileAndVerify(comp);
+        }
+
+        [Fact]
+        [WorkItem(21811, "https://github.com/dotnet/roslyn/issues/21811")]
+        public void Repro21811()
+        {
+            var comp = CreateStandardCompilation(@"
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var history = new List<long>();
+        Enumerable.Range(0, 5)
+            .Select(i =>
+            {
+                history.Insert(0, i);
+                return Test(i);
+
+                bool Test(int v)
+                {
+                    history.Remove(0);
+                    return Square(v) > 5;
+                }
+
+                int Square(int w)
+                {
+                    return w * w;
+                }
+            });
+    }
+}", references: new[] { LinqAssemblyRef });
+        }
+
+        [Fact]
+        [WorkItem(21645, "https://github.com/dotnet/roslyn/issues/21645")]
+        public void Repro21645()
+        {
+            CompileAndVerify(@"
+public class Class1
+{
+    private void Test()
+    {
+        bool outside = true;
+
+        void Inner() //This can also be a lambda (ie. Action action = () => { ... };)
+        {
+            void Bar()
+            {
+            }
+
+            void Foo()
+            {
+                Bar();
+
+                bool captured = outside;
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(21543, "https://github.com/dotnet/roslyn/issues/21543")]
+        public void Repro21543()
+        {
+            CompileAndVerify(@"
+using System;
+
+class Program
+{
+    static void Method(Action action) { }
+
+    static void Main()
+    {
+        int value = 0;
+        Method(() =>
+        {
+            local();
+            void local()
+            {
+                Console.WriteLine(value);
+                Method(() =>
+                {
+                    local();
+                });
+            }
+        });
+    }
+}");
+        }
+
         [Fact]
         [WorkItem(472056, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=472056")]
         public void Repro472056()
@@ -4283,7 +4510,7 @@ class Program
 2
 2
 ";
-            VerifyOutput(source, output, TestOptions.ReleaseExe.WithAllowUnsafe(true).WithWarningLevel(0));
+            VerifyOutput(source, output, TestOptions.ReleaseExe.WithAllowUnsafe(true).WithWarningLevel(0), verify: Verification.Passes);
         }
 
         [Fact]
@@ -4309,7 +4536,7 @@ class Program
     }
 }
 ";
-            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4335,7 +4562,7 @@ class Program
     }
 }
 ";
-            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4362,7 +4589,7 @@ class Program
     }
 }
 ";
-            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4402,7 +4629,7 @@ class C
         Console.WriteLine(y);
     }
 }";
-            VerifyOutput(src, "10\r\n4", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            VerifyOutput(src, "10\r\n4", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4806,7 +5033,7 @@ class Program
 
         [Fact]
         [WorkItem(19119, "https://github.com/dotnet/roslyn/issues/19119")]
-        public void StructFrameInitUnnecesary()
+        public void StructFrameInitUnnecessary()
         {
             var c = CompileAndVerify(@"
     class Program
@@ -4871,10 +5098,10 @@ class Program
 ");
         }
 
-        internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
+        internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options);
-            return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
+            return CompileAndVerify(comp, expectedOutput: output, verify: verify).VerifyDiagnostics(); // no diagnostics
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output)

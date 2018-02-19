@@ -31,15 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         internal FindReferencesCommandHandler(
             IWaitIndicator waitIndicator,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             Contract.ThrowIfNull(streamingPresenters);
-            Contract.ThrowIfNull(asyncListeners);
+            Contract.ThrowIfNull(listenerProvider);
 
             _waitIndicator = waitIndicator;
             _streamingPresenters = streamingPresenters;
-            _asyncListener = new AggregateAsynchronousOperationListener(
-                asyncListeners, FeatureAttribute.FindReferences);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
         }
 
         public CommandState GetCommandState(FindReferencesCommandArgs args, Func<CommandState> nextHandler)

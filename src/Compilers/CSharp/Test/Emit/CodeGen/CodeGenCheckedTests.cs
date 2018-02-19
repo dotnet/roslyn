@@ -383,7 +383,7 @@ unsafe struct C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll);
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             // NOTE: unsigned addition
             verifier.VerifyIL("C.Add_Int1", @"

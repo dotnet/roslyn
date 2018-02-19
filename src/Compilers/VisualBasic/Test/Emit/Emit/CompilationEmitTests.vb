@@ -373,10 +373,10 @@ End Class"
                     Dim reader = assembly.GetMetadataReader()
                     Dim attributes = reader.GetAssemblyDefinition().GetCustomAttributes()
                     AssertEx.Equal(
-                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
-                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
-                            "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)",
-                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()"
+                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor(Int32)",
+                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor()",
+                            "MemberReference:Void System.Diagnostics.DebuggableAttribute..ctor(DebuggingModes)",
+                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute..ctor()"
                         },
                         attributes.Select(Function(a) MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)))
                 End Sub
@@ -384,7 +384,7 @@ End Class"
             Dim source = <compilation>
                              <file name="a.vb"></file>
                          </compilation>
-            CompileAndVerify(source, emitOptions:=emitRefAssembly, verify:=True, validator:=assemblyValidator)
+            CompileAndVerify(source, emitOptions:=emitRefAssembly, verify:=Verification.Passes, validator:=assemblyValidator)
         End Sub
 
         <Fact>
@@ -400,7 +400,7 @@ End Class"
 
             Dim comp = CreateCompilation({Parse("")})
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor)
-            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=True, validator:=assemblyValidator)
+            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.Passes, validator:=assemblyValidator)
         End Sub
 
         <Fact>
@@ -412,10 +412,10 @@ End Class"
                     Dim reader = assembly.GetMetadataReader()
                     Dim attributes = reader.GetAssemblyDefinition().GetCustomAttributes()
                     AssertEx.Equal(
-                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
-                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
-                            "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)",
-                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()"
+                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor(Int32)",
+                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor()",
+                            "MemberReference:Void System.Diagnostics.DebuggableAttribute..ctor(DebuggingModes)",
+                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute..ctor()"
                         },
                         attributes.Select(Function(a) MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)))
                 End Sub
@@ -425,7 +425,7 @@ End Class"
 <assembly:System.Runtime.CompilerServices.ReferenceAssembly()>
                          ]]></file>
                          </compilation>
-            CompileAndVerify(source, emitOptions:=emitRefAssembly, verify:=True, validator:=assemblyValidator)
+            CompileAndVerify(source, emitOptions:=emitRefAssembly, verify:=Verification.Passes, validator:=assemblyValidator)
         End Sub
 
         <Fact>
@@ -1025,7 +1025,7 @@ End Class"
                             parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
-            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=Verification.Passes)
 
             ' verify metadata (types, members, attributes) of the regular assembly
             Dim realImage = comp.EmitToImageReference(EmitOptions.Default)
@@ -1058,7 +1058,7 @@ End Class"
 
             ' verify metadata (types, members, attributes) of the metadata-only assembly
             Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True)
-            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=True)
+            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=Verification.Passes)
 
             Dim metadataImage = comp.EmitToImageReference(emitMetadataOnly)
             Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
@@ -1092,7 +1092,7 @@ End Class"
 
             ' verify metadata (types, members, attributes) of the ref assembly
             Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
-            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=Verification.Passes)
 
             Dim refImage = comp.EmitToImageReference(emitRefOnly)
             Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
@@ -1142,7 +1142,7 @@ End Class"
             Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
-            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=Verification.Passes)
 
             ' verify metadata (types, members, attributes) of the regular assembly
             Dim realImage = comp.EmitToImageReference(EmitOptions.Default)
@@ -1160,7 +1160,7 @@ End Class"
 
             ' verify metadata (types, members, attributes) of the metadata-only assembly
             Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True)
-            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=True)
+            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=Verification.Passes)
 
             Dim metadataImage = comp.EmitToImageReference(emitMetadataOnly)
             Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
@@ -1179,7 +1179,7 @@ End Class"
 
             ' verify metadata (types, members, attributes) of the ref assembly
             Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
-            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=Verification.Passes)
 
             Dim refImage = comp.EmitToImageReference(emitRefOnly)
             Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
@@ -1220,7 +1220,7 @@ End Class"
             Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
-            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=Verification.Passes)
 
             ' verify metadata (types, members, attributes) of the regular assembly
             Dim realImage = comp.EmitToImageReference(EmitOptions.Default)
@@ -1239,7 +1239,7 @@ End Class"
 
             ' verify metadata (types, members, attributes) of the metadata-only assembly
             Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True)
-            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=True)
+            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=Verification.Passes)
 
             Dim metadataImage = comp.EmitToImageReference(emitMetadataOnly)
             Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
@@ -1259,7 +1259,7 @@ End Class"
 
             ' verify metadata (types, members, attributes) of the ref assembly
             Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
-            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=Verification.Passes)
 
             Dim refImage = comp.EmitToImageReference(emitRefOnly)
             Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
@@ -1287,11 +1287,11 @@ End Structure"
             Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
-            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=Verification.Passes)
 
             ' verify metadata (types, members, attributes) of the ref assembly
             Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
-            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=Verification.Passes)
 
             Dim refImage = comp.EmitToImageReference(emitRefOnly)
             Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
@@ -3379,7 +3379,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
             Dim metadataRef = comp.EmitToImageReference()
-            CompileAndVerify(source2, additionalRefs:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=False)
+            CompileAndVerify(source2, additionalRefs:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.Fails)
         End Sub
 
         <Fact>
@@ -3825,7 +3825,7 @@ End interface
 
             Dim compilation = CreateCompilationWithReferences(source, {TestReferences.SymbolsTests.netModule.x64COFF}, TestOptions.DebugDll)
 
-            CompileAndVerify(compilation, verify:=False)
+            CompileAndVerify(compilation, verify:=Verification.Fails)
             Assert.NotSame(compilation.Assembly.CorLibrary, compilation.Assembly)
             compilation.GetSpecialType(SpecialType.System_Int32)
         End Sub

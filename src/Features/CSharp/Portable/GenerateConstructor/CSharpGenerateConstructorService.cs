@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
         protected override ImmutableArray<ParameterName> GenerateParameterNames(
             SemanticModel semanticModel, IEnumerable<AttributeArgumentSyntax> arguments, IList<string> reservedNames, CancellationToken cancellationToken)
-            => semanticModel.GenerateParameterNames(arguments, reservedNames, cancellationToken).ToImmutableArray();
+            => semanticModel.GenerateParameterNames(arguments, reservedNames, cancellationToken);
 
         protected override string GenerateNameForArgument(SemanticModel semanticModel, ArgumentSyntax argument, CancellationToken cancellationToken)
             => semanticModel.GenerateNameForArgument(argument, cancellationToken);
@@ -200,8 +200,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 if (document.SemanticModel.TryGetSpeculativeSemanticModel(ctorInitializer.Span.Start, newCtorInitializer, out var speculativeModel))
                 {
                     var symbolInfo = speculativeModel.GetSymbolInfo(newCtorInitializer, cancellationToken);
-                    return GenerateConstructorHelpers.GetDelegatingConstructor(
+                    var delegatingConstructor = GenerateConstructorHelpers.GetDelegatingConstructor(
                         document, symbolInfo, candidates, namedType, state.ParameterTypes);
+
+                    if (delegatingConstructor == null || thisOrBaseKeyword.IsKind(SyntaxKind.BaseKeyword))
+                    {
+                        return delegatingConstructor;
+                    }
+
+                    return CanDelegeteThisConstructor(state, document, delegatingConstructor, cancellationToken) ? delegatingConstructor : null;
                 }
             }
             else
@@ -268,6 +275,20 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
             var newArguments = oldArgumentList.Arguments.Take(argumentCount);
             return SyntaxFactory.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>().AddRange(newArguments));
+        }
+
+        protected override IMethodSymbol GetCurrentConstructor(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+            => semanticModel.GetDeclaredSymbol(token.GetAncestor<ConstructorDeclarationSyntax>(), cancellationToken);
+
+        protected override IMethodSymbol GetDelegatedConstructor(SemanticModel semanticModel, IMethodSymbol constructor, CancellationToken cancellationToken)
+        {
+            if (constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) is ConstructorDeclarationSyntax constructorDeclarationSyntax &&
+                constructorDeclarationSyntax.Initializer.IsKind(SyntaxKind.ThisConstructorInitializer))
+            {
+                return semanticModel.GetSymbolInfo(constructorDeclarationSyntax.Initializer, cancellationToken).Symbol as IMethodSymbol;
+            }
+
+            return null;
         }
     }
 }
