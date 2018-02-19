@@ -65,7 +65,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
         public void TestMissingGreaterThanToken()
         {
             var text = @"
@@ -90,7 +90,7 @@ class C
             );
         }
 
-        [Fact]
+        [Fact, WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
         public void TestMissingCommaAndGreaterThanToken()
         {
             var text = @"
@@ -109,7 +109,7 @@ class C
             file.Errors().Verify(
                 // error CS1003: Syntax error, ',' expected
                 Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments(",", ""),
-                                // error CS1003: Syntax error, '>' expected
+                // error CS1003: Syntax error, '>' expected
                 Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments(">", "")
 
             );

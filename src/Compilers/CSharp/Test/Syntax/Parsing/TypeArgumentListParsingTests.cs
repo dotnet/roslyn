@@ -1871,5 +1871,160 @@ class C
             }
             EOF();
         }
+
+
+        [Fact, WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        public void TestMissingGreaterThanToken()
+        {
+            UsingTree(@"
+class C
+{
+    public IEnumerable<(String Value, String Description) M(Type t)
+    {
+    }
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "IEnumerable");
+                        }
+                        {
+                            N(SyntaxKind.TypeArgumentList);
+                            N(SyntaxKind.LessThanToken);
+                            {
+                                N(SyntaxKind.TupleType);
+                                N(SyntaxKind.OpenParenToken);
+                                {
+                                    N(SyntaxKind.TupleElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "String");
+                                        }
+                                        
+                                        N(SyntaxKind.IdentifierToken, "Value");
+                                    }
+
+                                    N(SyntaxKind.CommaToken);
+
+                                    N(SyntaxKind.TupleElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "String");
+                                        }
+                                        
+                                        N(SyntaxKind.IdentifierToken, "Description");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+
+                            N(SyntaxKind.IdentifierToken, "M");
+
+                            N(SyntaxKind.ParameterList);
+                            N(SyntaxKind.OpenParenToken);
+                            {
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    
+                                    N(SyntaxKind.IdentifierToken, "t");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+
+                        N(SyntaxKind.Block);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+
+                    N(SyntaxKind.CloseBraceToken);
+                }
+
+                N(SyntaxKind.EndOfFileToken);
+            }
+
+            EOF();
+        }
+
+        [Fact, WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        public void TestMissingCommaAndGreaterThanToken()
+        {
+            UsingTree(@"
+class C
+{
+    public GenericType<K V M()
+    {
+    }
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "GenericType");
+                        }
+                        {
+                            N(SyntaxKind.TypeArgumentList);
+                            N(SyntaxKind.LessThanToken);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "K");
+                                }
+
+                                M(SyntaxKind.CommaToken);
+
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "V");
+                                }
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+
+                            N(SyntaxKind.IdentifierToken, "M");
+
+                            N(SyntaxKind.ParameterList);
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+
+                        N(SyntaxKind.Block);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+
+                    N(SyntaxKind.CloseBraceToken);
+                }
+
+                N(SyntaxKind.EndOfFileToken);
+            }
+
+            EOF();
+        }
     }
 }

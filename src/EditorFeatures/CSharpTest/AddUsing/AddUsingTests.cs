@@ -4784,5 +4784,26 @@ namespace A
     }
 }");
         }
+
+        [WorkItem(867496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867496")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestMalformedGenericParameters()
+        {
+            // This test has been moved here from AddUsingTestsWithAddImportDiagnosticProvider,
+            // because after fixing this issue https://github.com/dotnet/roslyn/issues/24642
+            // parser has become to generate FieldDeclaration node instead of IncompleteMemberSyntax.
+            // As a result CSharpUnboundIdentifiersDiagnosticAnalyzer, which is used in AddUsingTestsWithAddImportDiagnosticProvider,
+            // has become to unable to find IncompleteMemberSyntax in parse tree and it causes test to fail.
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|List<Y x;|] }",
+@"using System.Collections.Generic;
+
+class Class
+{
+    List<Y x; }");
+        }
+
     }
 }

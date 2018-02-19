@@ -2777,15 +2777,16 @@ parse_member_name:;
             {
                 switch (this.PeekToken(1).Kind)
                 {
-                    case SyntaxKind.OpenParenToken:
-                    case SyntaxKind.OpenBraceToken:
-                    case SyntaxKind.SemicolonToken:
+                    case SyntaxKind.OpenParenToken: // methodName (
+                    case SyntaxKind.OpenBraceToken: // propertyName {
+                    case SyntaxKind.SemicolonToken: // fieldName ;
                         return true;
                 }
             }
             else if (this.CurrentToken.Kind == SyntaxKind.ThisKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken)
             {
-                return true;
+                // In case of indexer: this [
+                return true;  
             }
 
             return false;
@@ -5369,10 +5370,19 @@ tryAgain:
             return isDefinitelyTypeArgumentList;
         }
 
-        private bool isPossibleTypeInTypeArgumentList()
+        private bool IsPossibleTypeInTypeArgumentList()
         {
-            return this.IsPossibleType()
-                && !((_termState & TerminatorState.IsEndOfReturnType) == TerminatorState.IsEndOfReturnType && this.IsEndOfReturnType());
+            if (!this.IsPossibleType())
+            {
+                return false;
+            }
+
+            // If type argument list is part of return type then also check whether this "possible type" is a member's name
+            if ((_termState & TerminatorState.IsEndOfReturnType) == TerminatorState.IsEndOfReturnType && this.IsEndOfReturnType()) {
+                return false;
+            }
+
+            return true;
         }
 
         // ParseInstantiation: Parses the generic argument/parameter parts of the name.
@@ -5408,7 +5418,7 @@ tryAgain:
                 {
                     break;
                 }
-                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.isPossibleTypeInTypeArgumentList())
+                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleTypeInTypeArgumentList())
                 {
                     types.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     types.Add(this.ParseTypeArgument());
