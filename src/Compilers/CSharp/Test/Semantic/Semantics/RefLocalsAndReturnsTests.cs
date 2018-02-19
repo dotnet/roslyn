@@ -13,6 +13,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class RefLocalsAndReturnsTests : CompilingTestBase
     {
         [Fact]
+        public void RefReassignIdentityConversion()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        string s = ""s"";
+        object o = s;
+        ref string rs = ref s;
+        ref object ro = ref o;
+
+        rs = ref (string)o;
+        ro = ref s;
+        ro = s;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (11,18): error CS1510: A ref or out value must be an assignable variable
+                //         rs = ref (string)o;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(string)o").WithLocation(11, 18),
+                // (12,18): error CS8173: The expression must be of type 'object' because it is being assigned by reference
+                //         ro = ref s;
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "s").WithArguments("object").WithLocation(12, 18));
+        }
+
+        [Fact]
         public void RefReassign71()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(@"

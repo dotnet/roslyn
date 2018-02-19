@@ -13,6 +13,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CodeGenRefLocalTests : CompilingTestBase
     {
         [Fact]
+        public void RefReassignDifferentTupleNames()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var t = (x: 0, y: 0);
+        ref (int x, int y) rt = ref t;
+
+        var t2 = (a: 2, b: 2);
+        rt = ref t2;
+
+        Console.Write(rt.x);
+        Console.Write(rt.y);
+    }
+}", references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "22");
+        }
+
+        [Fact]
         public void RefReassignParamByVal()
         {
             var comp = CompileAndVerify(@"
