@@ -561,6 +561,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal Binder TryGetInMethodBinder(BinderFactory binderFactoryOpt = null)
+        {
+            CSharpSyntaxNode contextNode = null;
+
+            CSharpSyntaxNode syntaxNode = this.SyntaxNode;
+
+            switch (syntaxNode)
+            {
+                case ConstructorDeclarationSyntax constructor:
+                    contextNode = constructor.Initializer ?? (CSharpSyntaxNode)constructor.Body ?? constructor.ExpressionBody;
+                    break;
+
+                case BaseMethodDeclarationSyntax method:
+                    contextNode = (CSharpSyntaxNode)method.Body ?? method.ExpressionBody;
+                    break;
+
+                case AccessorDeclarationSyntax accessor:
+                    contextNode = (CSharpSyntaxNode)accessor.Body ?? accessor.ExpressionBody;
+                    break;
+
+                case ArrowExpressionClauseSyntax arrowExpression:
+                    Debug.Assert(arrowExpression.Parent.Kind() == SyntaxKind.PropertyDeclaration ||
+                                 arrowExpression.Parent.Kind() == SyntaxKind.IndexerDeclaration);
+                    contextNode = arrowExpression;
+                    break;
+            }
+
+            if (contextNode == null)
+            {
+                return null;
+            }
+
+            Binder result = (binderFactoryOpt ?? this.DeclaringCompilation.GetBinderFactory(contextNode.SyntaxTree)).GetBinder(contextNode);
+#if DEBUG
+            Binder current = result;
+            do
+            {
+                if (current is InMethodBinder)
+                {
+                    break;
+                }
+
+                current = current.Next;
+            }
+            while (current != null);
+
+            Debug.Assert(current is InMethodBinder);
+#endif
+            return result;
+        }
+
+        internal ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, BinderFlags additionalFlags = BinderFlags.None)
+        {
+            Binder inMethod = TryGetInMethodBinder(binderFactoryOpt);
+            return inMethod == null ? null : new ExecutableCodeBinder(SyntaxNode, this, inMethod.WithAdditionalFlags(additionalFlags));
+        }
+
         internal SyntaxReference SyntaxRef
         {
             get
@@ -1612,17 +1669,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.SyntaxNode.SyntaxTree == localTree);
 
-            (BlockSyntax, ArrowExpressionClauseSyntax) bodies = Bodies;
+            (BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody) = Bodies;
             CSharpSyntaxNode bodySyntax = null;
 
             // All locals are declared within the body of the method.
-            if (bodies.Item1?.Span.Contains(localPosition) == true)
+            if (blockBody?.Span.Contains(localPosition) == true)
             {
-                bodySyntax = bodies.Item1;
+                bodySyntax = blockBody;
             }
-            else if (bodies.Item2?.Span.Contains(localPosition) == true)
+            else if (expressionBody?.Span.Contains(localPosition) == true)
             {
-                bodySyntax = bodies.Item2;
+                bodySyntax = expressionBody;
             }
             else
             {

@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSymbol _explicitInterfaceType;
         private readonly string _name;
         private readonly bool _isExpressionBodied;
+        private readonly bool _hasAnyBody;
         private readonly RefKind _refKind;
 
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
@@ -108,9 +109,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            _hasAnyBody = hasBlockBody || _isExpressionBodied;
             _refKind = syntax.ReturnType.GetRefKind();
 
-            if (hasBlockBody || _isExpressionBodied)
+            if (_hasAnyBody)
             {
                 CheckModifiersForBody(location, diagnostics);
             }
@@ -365,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            CheckModifiers((syntax.Body ?? (SyntaxNode)syntax.ExpressionBody) != null, location, diagnostics);
+            CheckModifiers(_hasAnyBody, location, diagnostics);
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
@@ -588,9 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                MethodDeclarationSyntax declaration;
-                return this.IsPartial
-                    && (declaration = GetSyntax()).Body == null && declaration.ExpressionBody == null;
+                return this.IsPartial && !_hasAnyBody;
             }
         }
 
@@ -601,9 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                MethodDeclarationSyntax declaration;
-                return this.IsPartial
-                    && ((declaration = GetSyntax()).Body ?? (SyntaxNode)declaration.ExpressionBody) != null;
+                return this.IsPartial && _hasAnyBody;
             }
         }
 

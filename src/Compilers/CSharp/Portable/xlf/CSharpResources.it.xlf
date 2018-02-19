@@ -8285,11 +8285,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <target state="translated">La sintassi 'var (...)' come lvalue è riservata.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
-        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
-        <target state="translated">Le dichiarazioni di variabile out e pattern non sono consentite all'interno di inizializzatori di costruttori, inizializzatori di campi o inizializzatori di proprietà.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">È previsto { oppure ; o =&gt;</target>

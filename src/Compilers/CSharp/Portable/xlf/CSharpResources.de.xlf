@@ -8285,11 +8285,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <target state="translated">Die Syntax "var (...)" als lvalue ist reserviert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
-        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
-        <target state="translated">Deklarationen von out-Variablen und Mustervariablen sind in Konstruktor-, Feld- oder Eigenschafteninitialisierern unzulässig.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">{ oder ; oder =&gt; erwartet</target>

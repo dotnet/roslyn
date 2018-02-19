@@ -2733,6 +2733,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
+
+        public override BoundNode VisitConstructorMethodBody(BoundConstructorMethodBody node)
+        {
+            Visit(node.Initializer);
+            VisitMethodBodies(node.BlockBody, node.ExpressionBody);
+            return null;
+        }
+
+        public override BoundNode VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node)
+        {
+            VisitMethodBodies(node.BlockBody, node.ExpressionBody);
+            return null;
+        }
+
+        private void VisitMethodBodies(BoundBlock blockBody, BoundBlock expressionBody)
+        { 
+            if (blockBody == null)
+            {
+                Visit(expressionBody);
+                return;
+            }
+            else if (expressionBody == null)
+            {
+                Visit(blockBody);
+                return;
+            }
+
+            // In error cases we have two bodies. These are two unrelated pieces of code,
+            // they are not executed one after another. As we don't really know which one the developer
+            // intended to use, we need to visit both. We are going to pretend that there is
+            // an unconditional fork in execution and then we are converging after each body is executed. 
+            // For example, if only one body assigns an out parameter, then after visiting both bodies
+            // we should consider that parameter is not definitely assigned.
+            // Note, that today this code is not executed for regular definite assignment analysis. It is 
+            // only executed for region analysis.
+            LocalState initialState = this.State.Clone();
+            Visit(blockBody);
+            LocalState afterBlock = this.State;
+            SetState(initialState);
+            Visit(expressionBody);
+
+            IntersectWith(ref this.State, ref afterBlock);
+        }
         #endregion visitors
     }
 }

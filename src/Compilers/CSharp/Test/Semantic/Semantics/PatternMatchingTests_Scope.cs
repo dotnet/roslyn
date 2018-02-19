@@ -3777,36 +3777,15 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (9,21): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //         : this(3 is int x3 && x3 > 0)
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 21),
     // (13,16): error CS0841: Cannot use local variable 'x4' before it is declared
     //         : this(x4 && 4 is int x4)
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(13, 16),
-    // (13,27): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //         : this(x4 && 4 is int x4)
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 27),
-    // (17,22): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //         : this(51 is int x5 && 
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(17, 22),
-    // (18,22): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //                52 is int x5 && 
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(18, 22),
     // (18,26): error CS0128: A local variable named 'x5' is already defined in this scope
     //                52 is int x5 && 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(18, 26),
-    // (23,21): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //         : this(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(23, 21),
-    // (23,44): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //         : this(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(23, 44),
     // (23,48): error CS0128: A local variable named 'x6' is already defined in this scope
     //         : this(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(23, 48),
-    // (27,21): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //         : this(7 is int x7 && x7 > 0)
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x7").WithLocation(27, 21),
     // (30,16): error CS0103: The name 'x7' does not exist in the current context
     //         : this(x7, 2)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(30, 16),
@@ -3894,36 +3873,15 @@ public class Y
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (9,21): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //         : base(3 is int x3 && x3 > 0)
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 21),
     // (13,16): error CS0841: Cannot use local variable 'x4' before it is declared
     //         : base(x4 && 4 is int x4)
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(13, 16),
-    // (13,27): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //         : base(x4 && 4 is int x4)
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 27),
-    // (17,22): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //         : base(51 is int x5 && 
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(17, 22),
-    // (18,22): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //                52 is int x5 && 
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(18, 22),
     // (18,26): error CS0128: A local variable named 'x5' is already defined in this scope
     //                52 is int x5 && 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(18, 26),
-    // (23,21): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //         : base(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(23, 21),
-    // (23,44): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //         : base(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(23, 44),
     // (23,48): error CS0128: A local variable named 'x6' is already defined in this scope
     //         : base(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(23, 48),
-    // (27,21): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //         : base(7 is int x7 && x7 > 0)
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x7").WithLocation(27, 21),
     // (30,16): error CS0103: The name 'x7' does not exist in the current context
     //         : base(x7, 2)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(30, 16),
@@ -3990,12 +3948,9 @@ class D
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (15,27): error CS0103: The name 'x' does not exist in the current context
-    //         Console.WriteLine(x);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 27),
-    // (13,36): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //     public D(object o) : this(o is int x && x >= 5) 
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x").WithLocation(13, 36)
+                // (15,27): error CS0165: Use of unassigned local variable 'x'
+                //         Console.WriteLine(x);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(15, 27)
                 );
         }
 
@@ -4028,12 +3983,9 @@ class C
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (15,27): error CS0103: The name 'x' does not exist in the current context
-    //         Console.WriteLine(x);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 27),
-    // (13,36): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-    //     public D(object o) : base(o is int x && x >= 5) 
-    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x").WithLocation(13, 36)
+                // (15,27): error CS0165: Use of unassigned local variable 'x'
+                //         Console.WriteLine(x);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(15, 27)
                 );
         }
 

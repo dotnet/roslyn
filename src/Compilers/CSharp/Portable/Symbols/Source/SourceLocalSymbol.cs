@@ -165,6 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(
                 nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
+                nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
+                nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
                 nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
                 nodeToBind.Kind() == SyntaxKind.VariableDeclarator &&
                     new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
@@ -717,6 +719,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(
                     nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
+                    nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
+                    nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
                     nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
                     nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
                     nodeToBind is ExpressionSyntax);
@@ -736,9 +740,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 switch (_nodeToBind.Kind())
                 {
+                    case SyntaxKind.ThisConstructorInitializer:
+                    case SyntaxKind.BaseConstructorInitializer:
+                        var initializer = (ConstructorInitializerSyntax)_nodeToBind;
+                        _nodeBinder.BindConstructorInitializer(initializer, diagnostics);
+                        break;
                     case SyntaxKind.ArgumentList:
                         var invocation = (ConstructorInitializerSyntax)_nodeToBind.Parent;
-                        _nodeBinder.BindConstructorInitializer(invocation.ArgumentList, (MethodSymbol)ContainingSymbol, diagnostics);
+                        _nodeBinder.BindConstructorInitializer(invocation, diagnostics);
                         break;
                     case SyntaxKind.CasePatternSwitchLabel:
                         _nodeBinder.BindPatternSwitchLabelForInference((CasePatternSwitchLabelSyntax)_nodeToBind, diagnostics);

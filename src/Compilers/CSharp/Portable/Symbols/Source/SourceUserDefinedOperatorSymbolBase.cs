@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: its operator body consists of a semicolon. For expression-bodied
             // SPEC: operators, the body is an expression. For all other operators,
             // SPEC: the operator body consists of a block...
-            bool hasBody = (syntax.Body ?? (SyntaxNode)syntax.ExpressionBody) != null;
+            bool hasBody = syntax.HasAnyBody();
             if (hasBody && IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);

@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // create a SemanticModel for:
         // (a) A true field initializer (field = value) of a named type (incl. Enums) OR
-        // (b) A constructor initializer (": this(...)" or ": base(...)") OR
-        // (c) A parameter default value
+        // (b) A parameter default value
         private InitializerSemanticModel(CSharpCompilation compilation,
                                      CSharpSyntaxNode syntax,
                                      Symbol symbol,
@@ -28,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                      int speculatedPosition = 0) :
             base(compilation, syntax, symbol, rootBinder, parentSemanticModelOpt, speculatedPosition)
         {
+            Debug.Assert(!(syntax is ConstructorInitializerSyntax));
         }
 
         /// <summary>
@@ -49,22 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a SemanticModel for a constructor initializer (": this(...)" or ": base(...)").
-        /// </summary>
-        internal static InitializerSemanticModel Create(CSharpCompilation compilation, ConstructorInitializerSyntax syntax, MethodSymbol methodSymbol, Binder rootBinder)
-        {
-            return new InitializerSemanticModel(compilation, syntax, methodSymbol, rootBinder);
-        }
-
-        /// <summary>
-        /// Creates a SemanticModel for a constructor initializer (": base-class(...)").
-        /// </summary>
-        internal static InitializerSemanticModel Create(CSharpCompilation compilation, ArgumentListSyntax syntax, MethodSymbol methodSymbol, Binder rootBinder)
-        {
-            return new InitializerSemanticModel(compilation, syntax, methodSymbol, rootBinder);
-        }
-
-        /// <summary>
         /// Creates a SemanticModel for a parameter default value.
         /// </summary>
         internal static InitializerSemanticModel Create(CSharpCompilation compilation, ParameterSyntax syntax, ParameterSymbol parameterSymbol, Binder rootBinder)
@@ -80,10 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(parentSemanticModel != null);
             Debug.Assert(syntax != null);
-            Debug.Assert(syntax.IsKind(SyntaxKind.EqualsValueClause) ||
-                syntax.IsKind(SyntaxKind.ThisConstructorInitializer) ||
-                syntax.IsKind(SyntaxKind.BaseConstructorInitializer) ||
-                syntax.IsKind(SyntaxKind.ArgumentList));
+            Debug.Assert(syntax.IsKind(SyntaxKind.EqualsValueClause));
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
@@ -158,13 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumMemberDeclaration:
                     equalsValue = ((EnumMemberDeclarationSyntax)node).EqualsValue;
                     break;
-
-                case SyntaxKind.BaseConstructorInitializer:
-                case SyntaxKind.ThisConstructorInitializer:
-                    return binder.BindConstructorInitializer(((ConstructorInitializerSyntax)node).ArgumentList, (MethodSymbol)MemberSymbol, diagnostics);
-
-                case SyntaxKind.ArgumentList:
-                    return binder.BindConstructorInitializer((ArgumentListSyntax)node, (MethodSymbol)MemberSymbol, diagnostics);
             }
 
             if (equalsValue != null)
@@ -257,18 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel)
         {
-            return TryGetSpeculativeSemanticModelCore(parentModel, position, initializer, out speculativeModel);
-        }
-
-        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
-        {
-            return TryGetSpeculativeSemanticModelCore(parentModel, position, constructorInitializer, out speculativeModel);
-        }
-
-        private bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, CSharpSyntaxNode initializer, out SemanticModel speculativeModel)
-        {
-            Debug.Assert(initializer is EqualsValueClauseSyntax || initializer is ConstructorInitializerSyntax);
-
             var binder = this.GetEnclosingBinder(position);
             if (binder == null)
             {
@@ -276,24 +238,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            switch (initializer.Kind())
-            {
-                case SyntaxKind.EqualsValueClause:
-                    binder = new ExecutableCodeBinder(initializer, binder.ContainingMemberOrLambda, binder);
-                    break;
-
-                case SyntaxKind.ThisConstructorInitializer:
-                case SyntaxKind.BaseConstructorInitializer:
-                    ArgumentListSyntax argList = ((ConstructorInitializerSyntax)initializer).ArgumentList;
-                    if (argList != null)
-                    {
-                        binder = new ExecutableCodeBinder(argList, binder.ContainingMemberOrLambda, binder);
-                    }
-                    break;
-            }
-
+            binder = new ExecutableCodeBinder(initializer, binder.ContainingMemberOrLambda, binder);
             speculativeModel = CreateSpeculative(parentModel, this.MemberSymbol, initializer, binder, position);
             return true;
+        }
+
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
+        {
+            speculativeModel = null;
+            return false;
         }
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel)

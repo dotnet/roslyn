@@ -8285,11 +8285,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <target state="translated">La sintaxis 'var (...)' como valor L está reservada.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
-        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
-        <target state="translated">La variable out y las declaraciones de variable de patrón no se permiten en los inicializadores de constructor, de campo o de propiedades.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">Se esperaba { o ; o =&gt;.</target>
