@@ -897,7 +897,7 @@ LanguageVersion.CSharp7_1);
         private static void TupleContextNoSystemRuntime(string source, string methodName, string expression, string expectedIL,
             LanguageVersion languageVersion = LanguageVersion.CSharp7)
         {
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
             using (var systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance())
             {

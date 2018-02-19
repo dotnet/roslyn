@@ -115,7 +115,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {

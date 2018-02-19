@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 references,
                 expectedOutput: expectedOutput,
                 targetFramework: TargetFramework.WinRT,
+                options: options,
                 verify: verify);
         }
 

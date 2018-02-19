@@ -3833,7 +3833,7 @@ class C
                 locals.Free();
             });
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 EvaluationContext context;

@@ -2352,6 +2352,7 @@ public partial class A : I
 }";
             var verifier = CompileAndVerify(
                 new[] { src, DynamicCommonSrc },
+                targetFramework: TargetFramework.None,
                 references: new[] {
                     MscorlibRef_v4_0_30316_17626,
                     SystemCoreRef_v4_0_30319_17929,
@@ -3230,7 +3231,7 @@ class C
 ";
 
             // NB: not referencing WinRtRefs
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseWinMD);
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyDiagnostics(
                 // Add accessor signature:
                 // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
@@ -3336,7 +3337,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
     }
 }
 ";
-            CreateCompilation(source, options: TestOptions.ReleaseWinMD).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseWinMD).VerifyEmitDiagnostics(
                 // (4,32): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.AddEventHandler'
                 //     public event System.Action E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "AddEventHandler"),
