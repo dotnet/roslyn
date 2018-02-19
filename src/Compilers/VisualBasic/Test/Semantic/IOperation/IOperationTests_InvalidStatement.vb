@@ -250,7 +250,13 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid)
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'For i As Integer = 0')
+        Statement: 
+          null
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next i')
+        Statement: 
+          null
   NextVariables(1):
       ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
 ]]>.Value
@@ -298,7 +304,13 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid)
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'For Step (M ... Next')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For Step (M ... Next')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For Step (M ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'For ')
+        Statement: 
+          null
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -352,7 +364,13 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid)
         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x')
           Children(0)
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'For i As In ... gram Step x')
+        Statement: 
+          null
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next i')
+        Statement: 
+          null
   NextVariables(1):
       ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
 ]]>.Value

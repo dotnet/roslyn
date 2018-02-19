@@ -29,7 +29,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 0')
         Expression: 
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = 0')
@@ -37,6 +37,9 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
               IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch ex As ... Throw ex')
         Locals: Local_1: ex As System.Exception
@@ -92,7 +95,7 @@ End Class]]>.Value
 IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Private Sub ... End Sub')
   ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try ... End Try')
     Body: 
-      IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try ... End Try')
+      IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try ... End Try')
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 0')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = 0')
@@ -100,6 +103,9 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Priva
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+          Statement: 
+            null
     Catch clauses(1):
         ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch ex As ... Throw ex')
           Locals: Local_1: ex As System.Exception
@@ -155,7 +161,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... IOException')
         Locals: Local_1: e As System.IO.IOException
@@ -192,7 +201,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
         Locals: Local_1: e As System.IO.IOException
@@ -242,7 +254,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(2):
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... IOException')
         Locals: Local_1: e As System.IO.IOException
@@ -302,7 +317,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(2):
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... IOException')
         Locals: Local_1: e As System.IO.IOException
@@ -365,7 +383,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(1):
       ICatchClauseOperation (Exception type: ?) (OperationKind.CatchClause, Type: null, IsInvalid) (Syntax: 'Catch System')
         ExceptionDeclarationOrExpression: 
@@ -409,7 +430,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e')
         ExceptionDeclarationOrExpression: 
@@ -443,7 +467,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e')
         ExceptionDeclarationOrExpression: 
@@ -479,7 +506,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'Try 'BIND:" ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Try 'BIND:" ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Try 'BIND:" ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null, IsInvalid) (Syntax: 'Catch e')
         ExceptionDeclarationOrExpression: 
@@ -519,7 +549,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(1):
       ICatchClauseOperation (Exception type: ?) (OperationKind.CatchClause, Type: null, IsInvalid) (Syntax: 'Catch e')
         ExceptionDeclarationOrExpression: 
@@ -562,7 +595,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(1):
       ICatchClauseOperation (Exception type: ?) (OperationKind.CatchClause, Type: null, IsInvalid) (Syntax: 'Catch M2')
         ExceptionDeclarationOrExpression: 
@@ -607,7 +643,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch')
         ExceptionDeclarationOrExpression: 
@@ -642,7 +681,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(0)
   Finally: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Finally ... riteLine(s)')
@@ -680,7 +722,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
       Locals: Local_1: i As System.Int32
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim i As Integer = 0')
         IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i As Integer = 0')
@@ -691,6 +733,9 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(0)
   Finally: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Finally')
@@ -718,7 +763,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch ex As ... Integer = 0')
         Locals: Local_1: ex As System.Exception
@@ -766,7 +814,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(0)
   Finally: 
     IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'Finally ... Integer = 0')
@@ -803,7 +854,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+        Statement: 
+          null
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.Int32) (OperationKind.CatchClause, Type: null, IsInvalid) (Syntax: 'Catch i As Integer')
         Locals: Local_1: i As System.Int32

@@ -37,7 +37,10 @@ IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.W
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do'BIND:"Do ... While i < 4')
+    IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do'BIND:"Do ... While i < 4')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Do')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'sum += ids(i)')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'sum += ids(i)')
@@ -60,6 +63,9 @@ IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.W
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Loop While i < 4')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -91,7 +97,10 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: True) (LoopKind.Whi
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do Until X  ... Loop')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do Until X  ... Loop')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Do Until X < 0')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'X = X - 1')
         Expression: 
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'X = X - 1')
@@ -107,6 +116,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: True) (LoopKind.Whi
                       IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
                 Right: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Loop')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -139,8 +151,11 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   Condition: 
     ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
   Body: 
-    IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While condi ... End While')
+    IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While condi ... End While')
       Locals: Local_1: value As System.Int32
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While condition')
+        Statement: 
+          null
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim value A ... ment(index)')
         IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'value As In ... ment(index)')
           Declarators:
@@ -174,6 +189,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
         WhenFalse: 
+          null
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
           null
   IgnoredCondition: 
     null
@@ -211,7 +229,10 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i < 5 ... End While')
+    IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i < 5 ... End While')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While i < 5')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'sum += i')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'sum += i')
@@ -230,6 +251,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -261,8 +285,11 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
-    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While True' ... End While')
+    IBlockOperation (5 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While True' ... End While')
       Locals: Local_1: value As System.Int32
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While True')
+        Statement: 
+          null
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim value A ... ment(index)')
         IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'value As In ... ment(index)')
           Declarators:
@@ -311,6 +338,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "While-loop statement") (Syntax: '"While-loop statement"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -341,8 +371,11 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
-    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While True' ... End While')
+    IBlockOperation (5 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While True' ... End While')
       Locals: Local_1: value As System.Int32
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While True')
+        Statement: 
+          null
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim value A ... ment(index)')
         IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'value As In ... ment(index)')
           Declarators:
@@ -389,6 +422,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "While-loop statement") (Syntax: '"While-loop statement"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -438,7 +474,10 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While (Inli ... End While')
+    IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While (Inli ... End While')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While (Inli ... alue)) >= 0')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... , i, value)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... , i, value)')
@@ -472,6 +511,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
               ILocalReferenceOperation: value (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'value')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -500,7 +542,13 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
       Operand: 
         ILocalReferenceOperation: number (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'number')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While numbe ... End While')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While numbe ... End While')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While number')
+        Statement: 
+          null
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -533,7 +581,10 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While True' ... End While')
+    IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While True' ... End While')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While True')
+        Statement: 
+          null
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (number  ... End If')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(number Mod 2) = 0')
@@ -563,6 +614,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
               IParameterReferenceOperation: number (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'number')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -596,7 +650,10 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
-    IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While True' ... End While')
+    IBlockOperation (6 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While True' ... End While')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While True')
+        Statement: 
+          null
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (number  ... End If')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(number Mod 2) = 0')
@@ -630,6 +687,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
       IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return number')
         ReturnedValue: 
           IParameterReferenceOperation: number (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'number')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -661,8 +721,11 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   Body: 
-    IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'While 'BIND ... End While')
+    IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'While 'BIND ... End While')
       Locals: Local_1: value As System.Int32
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'While ')
+        Statement: 
+          null
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim value A ... ment(index)')
         IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'value As In ... ment(index)')
           Declarators:
@@ -697,6 +760,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
         WhenFalse: 
           null
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -726,7 +792,13 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
       Operand: 
         ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While (cond ... End While')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While (cond ... End While')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While (condition)')
+        Statement: 
+          null
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -761,7 +833,10 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   Body: 
-    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i <=  ... End While')
+    IBlockOperation (5 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i <=  ... End While')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While i <= 10')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
@@ -793,6 +868,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -834,7 +912,10 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While IsTru ... End While')
+    IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While IsTru ... End While')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While IsTrue(i)')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
@@ -854,6 +935,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -890,8 +974,11 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   Body: 
-    IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i < 1 ... End While')
+    IBlockOperation (6 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i < 1 ... End While')
       Locals: Local_1: j As System.Int32
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While i < 10')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
@@ -918,7 +1005,10 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
         Body: 
-          IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While j < 1 ... End While')
+          IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While j < 1 ... End While')
+            ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While j < 10')
+              Statement: 
+                null
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j += 1')
               Expression: 
                 ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'j += 1')
@@ -938,6 +1028,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+              Statement: 
+                null
         IgnoredCondition: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(i)')
@@ -950,6 +1043,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -987,8 +1083,11 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   Body: 
-    IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i < 1 ... End While')
+    IBlockOperation (6 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i < 1 ... End While')
       Locals: Local_1: j As System.Int32
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While i < 10')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
@@ -1015,7 +1114,10 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
         Body: 
-          IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While j < 1 ... End While')
+          IBlockOperation (5 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While j < 1 ... End While')
+            ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While j < 10')
+              Statement: 
+                null
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j += 1')
               Expression: 
                 ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'j += 1')
@@ -1046,6 +1148,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+              Statement: 
+                null
         IgnoredCondition: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(i)')
@@ -1058,6 +1163,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -1095,7 +1203,10 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While Syste ... End While')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While Syste ... End While')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While Syste ... ment(i) < 5')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(i)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
@@ -1106,6 +1217,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -1137,7 +1251,10 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i > 0 ... End While')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i > 0 ... End While')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While i > 0')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
@@ -1147,6 +1264,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -1178,10 +1298,16 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
       Right: 
         ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Boolean, Constant: True) (Syntax: 'b')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While b = b ... End While')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While b = b ... End While')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While b = b')
+        Statement: 
+          null
       IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return b')
         ReturnedValue: 
           ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Boolean, Constant: True) (Syntax: 'b')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -1238,10 +1364,13 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
           Right: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'While Syste ... End While')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'While Syste ... End While')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'While Syste ...  x + 1) > 0')
+        Statement: 
+          null
       ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try ... End Try')
         Body: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try ... End Try')
+          IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try ... End Try')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'y = CSByte(x / 2)')
               Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.SByte, IsImplicit) (Syntax: 'y = CSByte(x / 2)')
@@ -1262,6 +1391,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Try')
+              Statement: 
+                null
         Catch clauses(0)
         Finally: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Finally ... Exception()')
@@ -1270,6 +1402,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                 Arguments(0)
                 Initializer: 
                   null
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -1304,7 +1439,10 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'G')
       Arguments(0)
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do While G( ... Loop')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do While G( ... Loop')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Do While G()')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(1)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(1)')
@@ -1315,6 +1453,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Loop')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -1349,7 +1490,10 @@ IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.W
         IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'G')
       Arguments(0)
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do'BIND:"Do ... p While G()')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do'BIND:"Do ... p While G()')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Do')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(1)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(1)')
@@ -1360,6 +1504,9 @@ IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.W
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Loop While G()')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -1391,7 +1538,10 @@ IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: True) (LoopKind.Wh
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do'BIND:"Do ... Until X < 0')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do'BIND:"Do ... Until X < 0')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Do')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'X = X - 1')
         Expression: 
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'X = X - 1')
@@ -1407,6 +1557,9 @@ IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: True) (LoopKind.Wh
                       IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
                 Right: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Loop Until X < 0')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -1443,7 +1596,10 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
       Operand: 
         ILocalReferenceOperation: breakLoop (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'breakLoop')
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While Not b ... End While')
+    IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While Not b ... End While')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While Not breakLoop')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... te {0}", x)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(format As System.String, arg0 As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... te {0}", x)')
@@ -1468,6 +1624,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
               ILocalReferenceOperation: breakLoop (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'breakLoop')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+        Statement: 
+          null
   IgnoredCondition: 
     null
 ]]>.Value
@@ -1496,7 +1655,10 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Do While i  ... ntil i <= 0')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Do While i  ... ntil i <= 0')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Do While i > 0')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = i + 1')
         Expression: 
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = i + 1')
@@ -1508,6 +1670,9 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                   IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'Loop Until i <= 0')
+        Statement: 
+          null
   IgnoredCondition: 
     IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i <= 0')
       Left: 
@@ -1528,23 +1693,13 @@ BC30238: 'Loop' cannot have a condition if matching 'Do' has one.
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub WhileFlow_01()
-            Dim source1 = <![CDATA[
+            Dim source = <![CDATA[
 Imports System
 Public Class C
     Sub M(condition As Boolean)'BIND:"Sub M"
         While condition
             condition = false
         End While
-    End Sub
-End Class]]>.Value
-
-            Dim source2 = <![CDATA[
-Imports System
-Public Class C
-    Sub M(condition As Boolean)'BIND:"Sub M"
-        Do While condition
-            condition = false
-        Loop
     End Sub
 End Class]]>.Value
 
@@ -1563,7 +1718,11 @@ Block[B1] - Block
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (1)
+    Statements (3)
+        ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'While condition')
+          Statement: 
+            null
+
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
@@ -1571,6 +1730,10 @@ Block[B2] - Block
                 IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End While')
+          Statement: 
+            null
 
     Next (Regular) Block[B1]
 Block[B3] - Block
@@ -1590,8 +1753,7 @@ Block[B4] - Exit
     Statements (0)
 ]]>.Value
 
-            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source1, expectedFlowGraph, expectedDiagnostics)
-            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source2, expectedFlowGraph, expectedDiagnostics)
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
@@ -1617,13 +1779,25 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
 Block[B1] - Block
-    Predecessors: [B0] [B1]
+    Predecessors: [B0] [B2]
     Statements (0)
-    Jump if False (Regular) to Block[B2]
+    Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
-    Next (Regular) Block[B1]
+    Next (Regular) Block[B2]
 Block[B2] - Block
+    Predecessors: [B1]
+    Statements (2)
+        ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Do While condition1')
+          Statement: 
+            null
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'Loop While condition2')
+          Statement: 
+            null
+
+    Next (Regular) Block[B1]
+Block[B3] - Block
     Predecessors: [B1]
     Statements (2)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
@@ -1634,9 +1808,9 @@ Block[B2] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B2]
+    Next (Regular) Block[B4]
+Block[B4] - Exit
+    Predecessors: [B3]
     Statements (0)
 ]]>.Value
 
@@ -1666,13 +1840,25 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
 Block[B1] - Block
-    Predecessors: [B0] [B1]
+    Predecessors: [B0] [B2]
     Statements (0)
-    Jump if False (Regular) to Block[B2]
+    Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
-    Next (Regular) Block[B1]
+    Next (Regular) Block[B2]
 Block[B2] - Block
+    Predecessors: [B1]
+    Statements (2)
+        ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Do While condition1')
+          Statement: 
+            null
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'Loop Until condition2')
+          Statement: 
+            null
+
+    Next (Regular) Block[B1]
+Block[B3] - Block
     Predecessors: [B1]
     Statements (2)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
@@ -1683,9 +1869,75 @@ Block[B2] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B2]
+    Next (Regular) Block[B4]
+Block[B4] - Exit
+    Predecessors: [B3]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub WhileFlow_04()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(condition As Boolean)'BIND:"Sub M"
+        Do While condition
+            condition = false
+        Loop
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B3]
+        IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (3)
+        ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Do While condition')
+          Statement: 
+            null
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Left: 
+                IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Loop')
+          Statement: 
+            null
+
+    Next (Regular) Block[B1]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (2)
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+          Statement: 
+            null
+
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+          ReturnedValue: 
+            null
+
+    Next (Regular) Block[B4]
+Block[B4] - Exit
+    Predecessors: [B3]
     Statements (0)
 ]]>.Value
 
@@ -1720,7 +1972,11 @@ Block[B1] - Block
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (1)
+    Statements (3)
+        ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Do Until condition')
+          Statement: 
+            null
+
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
@@ -1728,6 +1984,10 @@ Block[B2] - Block
                 IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Loop')
+          Statement: 
+            null
 
     Next (Regular) Block[B1]
 Block[B3] - Block
@@ -1773,13 +2033,25 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
 Block[B1] - Block
-    Predecessors: [B0] [B1]
+    Predecessors: [B0] [B2]
     Statements (0)
-    Jump if True (Regular) to Block[B2]
+    Jump if True (Regular) to Block[B3]
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
-    Next (Regular) Block[B1]
+    Next (Regular) Block[B2]
 Block[B2] - Block
+    Predecessors: [B1]
+    Statements (2)
+        ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Do Until condition1')
+          Statement: 
+            null
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'Loop While condition2')
+          Statement: 
+            null
+
+    Next (Regular) Block[B1]
+Block[B3] - Block
     Predecessors: [B1]
     Statements (2)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
@@ -1790,9 +2062,9 @@ Block[B2] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B2]
+    Next (Regular) Block[B4]
+Block[B4] - Exit
+    Predecessors: [B3]
     Statements (0)
 ]]>.Value
 
@@ -1822,13 +2094,25 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
 Block[B1] - Block
-    Predecessors: [B0] [B1]
+    Predecessors: [B0] [B2]
     Statements (0)
-    Jump if True (Regular) to Block[B2]
+    Jump if True (Regular) to Block[B3]
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
-    Next (Regular) Block[B1]
+    Next (Regular) Block[B2]
 Block[B2] - Block
+    Predecessors: [B1]
+    Statements (2)
+        ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Do Until condition1')
+          Statement: 
+            null
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'Loop Until condition2')
+          Statement: 
+            null
+
+    Next (Regular) Block[B1]
+Block[B3] - Block
     Predecessors: [B1]
     Statements (2)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
@@ -1839,9 +2123,9 @@ Block[B2] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B2]
+    Next (Regular) Block[B4]
+Block[B4] - Exit
+    Predecessors: [B3]
     Statements (0)
 ]]>.Value
 
@@ -1869,7 +2153,11 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0] [B1]
-    Statements (1)
+    Statements (3)
+        ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Do')
+          Statement: 
+            null
+
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
@@ -1877,6 +2165,10 @@ Block[B1] - Block
                 IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Loop While condition')
+          Statement: 
+            null
 
     Jump if True (Regular) to Block[B1]
         IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
@@ -1923,7 +2215,11 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0] [B1]
-    Statements (1)
+    Statements (3)
+        ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Do')
+          Statement: 
+            null
+
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
@@ -1931,6 +2227,10 @@ Block[B1] - Block
                 IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Loop Until condition')
+          Statement: 
+            null
 
     Jump if False (Regular) to Block[B1]
         IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')

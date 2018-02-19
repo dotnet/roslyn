@@ -40,7 +40,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
       Operand: 
         ILocalReferenceOperation: arr (OperationKind.LocalReference, Type: System.String()) (Syntax: 'arr')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each s  ... Next')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each s  ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each s  ... ring In arr')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(s)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
@@ -51,6 +54,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                   ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String) (Syntax: 's')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -85,7 +91,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
   Collection: 
     ILocalReferenceOperation: list (OperationKind.LocalReference, Type: System.Collections.Generic.List(Of System.String)) (Syntax: 'list')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each it ... Next')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each it ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each it ... ing In list')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... eLine(item)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... eLine(item)')
@@ -96,6 +105,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                   ILocalReferenceOperation: item (OperationKind.LocalReference, Type: System.String) (Syntax: 'item')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -133,7 +145,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
   Collection: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.String) (Syntax: 'x')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each y  ... Next')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each y  ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each y As Char In x')
+        Statement: 
+          null
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If y = "B"c ... End If')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'y = "B"c')
@@ -156,6 +171,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                         ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Char) (Syntax: 'y')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -182,54 +200,70 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next y, x')
-  Locals: Local_1: x As System.String
+IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For I = 1 T ... Next')
+  Locals: Local_1: I As System.Int32
   LoopControlVariable: 
-    IVariableDeclaratorOperation (Symbol: x As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x As String')
+    IVariableDeclaratorOperation (Symbol: I As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'I')
       Initializer: 
         null
-  Collection: 
-    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'S')
-      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+  InitialValue: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  LimitValue: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+  StepValue: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For I = 1 T ... Next')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ILocalReferenceOperation: S (OperationKind.LocalReference, Type: System.String()) (Syntax: 'S')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For I = 1 T ... Next')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each x  ... Next y, x')
-      IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next y, x')
-        Locals: Local_1: y As System.Char
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For I = 1 T ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For I = 1 To 2')
+        Statement: 
+          null
+      IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For J = 1 T ... Next')
+        Locals: Local_1: J As System.Int32
         LoopControlVariable: 
-          IVariableDeclaratorOperation (Symbol: y As System.Char) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y As Char')
+          IVariableDeclaratorOperation (Symbol: J As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'J')
             Initializer: 
               null
-        Collection: 
-          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.String) (Syntax: 'x')
+        InitialValue: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        LimitValue: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        StepValue: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For J = 1 T ... Next')
+            Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For J = 1 T ... Next')
         Body: 
-          IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each y  ... Next y, x')
-            IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If y = "B"c ... End If')
-              Condition: 
-                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'y = "B"c')
-                  Left: 
-                    ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Char) (Syntax: 'y')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: B) (Syntax: '"B"c')
-              WhenTrue: 
-                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If y = "B"c ... End If')
-                  IBranchOperation (BranchKind.Continue, Label: continue) (OperationKind.Branch, Type: null) (Syntax: 'Continue For')
-              WhenFalse: 
+          IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For J = 1 T ... Next')
+            ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For J = 1 To 2')
+              Statement: 
                 null
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(y)')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'I = 3')
               Expression: 
-                IInvocationOperation (Sub System.Console.WriteLine(value As System.Char)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(y)')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'I = 3')
+                  Left: 
+                    ILocalReferenceOperation: I (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'I')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(I)')
+              Expression: 
+                IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(I)')
                   Instance Receiver: 
                     null
                   Arguments(1):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'y')
-                        ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Char) (Syntax: 'y')
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'I')
+                        ILocalReferenceOperation: I (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'I')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        NextVariables(2):
-            ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Char) (Syntax: 'y')
-            ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.String) (Syntax: 'x')
+            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+              Statement: 
+                null
+        NextVariables(0)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -270,7 +304,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
       Operand: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32()) (Syntax: 'x')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each y  ... Next')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each y  ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each y  ... nteger In x')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(y)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(y)')
@@ -281,6 +318,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -317,7 +357,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
       Operand: 
         ILocalReferenceOperation: S (OperationKind.LocalReference, Type: System.String()) (Syntax: 'S')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each x  ... Next')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each x  ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each x  ... String In S')
+        Statement: 
+          null
       IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next')
         Locals: Local_1: y As System.Char
         LoopControlVariable: 
@@ -327,7 +370,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
         Collection: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.String) (Syntax: 'x')
         Body: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each y  ... Next')
+          IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each y  ... Next')
+            ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each y As Char In x')
+              Statement: 
+                null
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(y)')
               Expression: 
                 IInvocationOperation (Sub System.Console.WriteLine(value As System.Char)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(y)')
@@ -338,7 +384,13 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                         ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Char) (Syntax: 'y')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+              Statement: 
+                null
         NextVariables(0)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -387,7 +439,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
           Initializer: 
             null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each x  ... Next')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each x  ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each x  ... numerable()')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(x)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(x)')
@@ -398,6 +453,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                   ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Object) (Syntax: 'x')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -429,7 +487,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
   Collection: 
     ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String, Constant: null) (Syntax: 's')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each y  ... Next')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each y  ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each y In s')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(y)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Char)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(y)')
@@ -440,6 +501,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Char) (Syntax: 'y')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -483,7 +547,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
           Initializer: 
             null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each x  ... Next')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each x  ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each x  ... numerable()')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(x)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(x)')
@@ -494,6 +561,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                   ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Object) (Syntax: 'x')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -560,7 +630,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
   Collection: 
     ILocalReferenceOperation: countries (OperationKind.LocalReference, Type: System.Linq.IOrderedEnumerable(Of <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>)) (Syntax: 'countries')
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each co ... Next')
+    IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each co ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each co ... n countries')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Debug.Write ... ntry.Count)')
         Expression: 
           IInvocationOperation (Sub System.Diagnostics.Debug.WriteLine(message As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Debug.Write ... ntry.Count)')
@@ -597,7 +670,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
             Instance Receiver: 
               ILocalReferenceOperation: country (OperationKind.LocalReference, Type: <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>) (Syntax: 'country')
         Body: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each cu ... Next')
+          IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each cu ... Next')
+            ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each cu ... rsInCountry')
+              Statement: 
+                null
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Debug.Write ... tomer.City)')
               Expression: 
                 IInvocationOperation (Sub System.Diagnostics.Debug.WriteLine(message As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Debug.Write ... tomer.City)')
@@ -624,7 +700,13 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                                 ILocalReferenceOperation: customer (OperationKind.LocalReference, Type: Customer) (Syntax: 'customer')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+              Statement: 
+                null
         NextVariables(0)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -670,7 +752,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
   Collection: 
     ILocalReferenceOperation: k (OperationKind.LocalReference, Type: System.Int32(,)) (Syntax: 'k')
   Body: 
-    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each [C ... Next')
+    IBlockOperation (5 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each [C ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each [Custom] In k')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... (Integer)))')
         Expression: 
           IInvocationOperation (Sub System.Console.Write(value As System.Boolean)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... (Integer)))')
@@ -716,6 +801,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IBranchOperation (BranchKind.Break, Label: exit) (OperationKind.Branch, Type: null) (Syntax: 'Exit For')
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -752,7 +840,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
       Operand: 
         ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each x  ... Next')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each x  ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each x In o')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(x)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(x)')
@@ -763,6 +854,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                   ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Object) (Syntax: 'x')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -814,7 +908,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
       Initializer: 
         null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each x  ... Next')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each x  ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each x  ... numerable()')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(x)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(x)')
@@ -825,6 +922,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                   ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -878,7 +978,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
       Operand: 
         ILocalReferenceOperation: arr (OperationKind.LocalReference, Type: System.Int32()) (Syntax: 'arr')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each el ... ambda_local')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each el ... ambda_local')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each el ... ocal In arr')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... mbda_local)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... mbda_local)')
@@ -889,6 +992,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                   ILocalReferenceOperation: element_lambda_local (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'element_lambda_local')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next elemen ... ambda_local')
+        Statement: 
+          null
   NextVariables(1):
       ILocalReferenceOperation: element_lambda_local (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'element_lambda_local')
 ]]>.Value
@@ -921,7 +1027,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInva
   Collection: 
     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World.", IsInvalid) (Syntax: '"Hello World."')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For Each el ... Next')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For Each el ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'For Each el ... llo World."')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... ne(element)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... ne(element)')
@@ -932,6 +1041,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInva
                   ILocalReferenceOperation: element (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'element')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -971,7 +1083,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
       Operand: 
         ILocalReferenceOperation: arr (OperationKind.LocalReference, Type: System.String()) (Syntax: 'arr')
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each s  ... Next')
+    IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each s  ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each s  ... ring In arr')
+        Statement: 
+          null
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (s = "on ... End If')
         Condition: 
           IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(s = "one")')
@@ -1000,6 +1115,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                   ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String) (Syntax: 's')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
@@ -1034,7 +1152,10 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
       Operand: 
         IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Object()) (Syntax: 'c')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each o  ... Next')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each o  ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each o In c')
+        Statement: 
+          null
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If o IsNot  ... Return True')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'o IsNot Nothing')
@@ -1051,6 +1172,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
               ReturnedValue: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
         WhenFalse: 
+          null
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
           null
   NextVariables(0)
 ]]>.Value
@@ -1086,7 +1210,13 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
       Operand: 
         IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'args')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each X  ... Next X')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each X  ... Next X')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each X In args')
+        Statement: 
+          null
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next X')
+        Statement: 
+          null
   NextVariables(1):
       IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
         Instance Receiver: 
@@ -1126,7 +1256,13 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
       Operand: 
         IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'args')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each c. ... Next c.X')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each c. ... Next c.X')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For Each c.X In args')
+        Statement: 
+          null
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next c.X')
+        Statement: 
+          null
   NextVariables(1):
       IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'c.X')
         Instance Receiver: 
@@ -1167,7 +1303,13 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInva
       Operand: 
         IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'args')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For Each i  ... Next i')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For Each i  ... Next i')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'For Each i  ... ger In args')
+        Statement: 
+          null
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next i')
+        Statement: 
+          null
   NextVariables(1):
       ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
 ]]>.Value
