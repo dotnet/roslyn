@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [ImportingConstructor]
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
+            IAsynchronousOperationListenerProvider listenerProvider,
             [Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null,
             [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
             : this(diagnosticAnalyzerProviderService != null ? diagnosticAnalyzerProviderService.GetHostDiagnosticAnalyzerPackages() : SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(),
                 diagnosticAnalyzerProviderService?.GetAnalyzerAssemblyLoader(),
                 hostDiagnosticUpdateSource,
-                registrationService, new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService))
+                registrationService, listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
         {
             // diagnosticAnalyzerProviderService and hostDiagnosticUpdateSource can only be null in test hardness otherwise, it should
             // never be null
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             _hostAnalyzerManager = hostAnalyzerManager;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            _listener = listener ?? AggregateAsynchronousOperationListener.CreateEmptyListener();
+            _listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
         }
 
         public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(Project projectOpt)

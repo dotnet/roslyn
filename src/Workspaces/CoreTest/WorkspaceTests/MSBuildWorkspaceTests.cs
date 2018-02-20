@@ -717,16 +717,18 @@ class C1
         public void TestOpenProject_WithInvalidFileExtension()
         {
             // make sure the file does in fact exist, but with an unrecognized extension
+            const string projFileName = @"CSharpProject\CSharpProject.csproj.nyi";
             CreateFiles(GetSimpleCSharpSolutionFiles()
-                .WithFile(@"CSharpProject\CSharpProject.csproj.nyi", GetResourceText("CSharpProject_CSharpProject.csproj")));
+                .WithFile(projFileName, GetResourceText("CSharpProject_CSharpProject.csproj")));
 
             AssertThrows<InvalidOperationException>(delegate
             {
-                MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj.nyi")).Wait();
+                MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(projFileName)).Wait();
             },
             (e) =>
             {
-                Assert.Equal(true, e.Message.Contains("extension"));
+                var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, GetSolutionFileName(projFileName), ".nyi");
+                Assert.Equal(expected, e.Message);
             });
         }
 
@@ -734,17 +736,19 @@ class C1
         public void TestOpenProject_ProjectFileExtensionAssociatedWithUnknownLanguage()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
-
+            var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+            var language = "lingo";
             AssertThrows<InvalidOperationException>(delegate
             {
                 var ws = MSBuildWorkspace.Create();
-                ws.AssociateFileExtensionWithLanguage("csproj", "lingo"); // non-existent language
-                ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Wait();
+                ws.AssociateFileExtensionWithLanguage("csproj", language); // non-existent language
+                ws.OpenProjectAsync(projFileName).Wait();
             },
             (e) =>
             {
                 // the exception should tell us something about the language being unrecognized.
-                Assert.Equal(true, e.Message.Contains("language"));
+                var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projFileName, language);
+                Assert.Equal(expected, e.Message);
             });
         }
 
@@ -1037,9 +1041,10 @@ class C1
         public void TestOpenSolution_WithUnrecognizedProjectTypeGuidAndUnrecognizedExtension_WithSkipFalse_Fails()
         {
             // proves that if both project type guid and file extension are unrecognized, then open project fails.
+            const string noProjFileName = @"CSharpProject\CSharpProject.noproj";
             CreateFiles(GetSimpleCSharpSolutionFiles()
                 .WithFile(@"TestSolution.sln", GetResourceText("TestSolution_CSharp_UnknownProjectTypeGuidAndUnknownExtension.sln"))
-                .WithFile(@"CSharpProject\CSharpProject.noproj", GetResourceText("CSharpProject_CSharpProject.csproj")));
+                .WithFile(noProjFileName, GetResourceText("CSharpProject_CSharpProject.csproj")));
 
             AssertThrows<InvalidOperationException>(() =>
             {
@@ -1049,7 +1054,9 @@ class C1
             },
             e =>
             {
-                Assert.Equal(true, e.Message.Contains("extension"));
+                var noProjFullFileName = GetSolutionFileName(noProjFileName);
+                var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, noProjFullFileName, ".noproj");
+                Assert.Equal(expected, e.Message);
             });
         }
 
@@ -1070,7 +1077,9 @@ class C1
             },
             e =>
             {
-                Assert.Equal(true, e.Message.Contains("extension"));
+                var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+                var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projFileName, ".csproj");
+                Assert.Equal(expected, e.Message);
             });
         }
 
@@ -1093,7 +1102,10 @@ class C1
             var solution = ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
 
             Assert.Equal(1, dx.Count);
-            Assert.True(dx[0].Message.Contains("extension"));
+
+            var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projFileName, ".csproj");
+            Assert.Equal(expected, dx[0].Message);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -1102,15 +1114,16 @@ class C1
         {
             // proves that if the language libraries are missing then the appropriate error occurs
             CreateFiles(GetSimpleCSharpSolutionFiles());
-
+            var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
+            var projectName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             AssertThrows<InvalidOperationException>(() =>
             {
-                var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
-                var project = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
+                var project = ws.OpenProjectAsync(projectName).Result;
             },
             e =>
             {
-                Assert.Equal(true, e.Message.Contains("extension"));
+                var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectName, ".csproj");
+                Assert.Equal(expected, e.Message);
             });
         }
 
@@ -2899,7 +2912,7 @@ class C { }";
                 Assert.Equal(false, projFileText.Contains(@"<Reference Include=""System.Xaml,"));
             }
         }
- 
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
         [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddRemoveMetadataReference_ReferenceAssembly()

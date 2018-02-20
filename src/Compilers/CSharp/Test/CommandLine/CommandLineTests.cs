@@ -31,6 +31,7 @@ using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 using CscExe.Microsoft.CodeAnalysis.CSharp.CommandLine;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -4544,20 +4545,23 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/codepage+"));
         }
 
-        [Fact]
+        [Fact, WorkItem(24735, "https://github.com/dotnet/roslyn/issues/24735")]
         public void ChecksumAlgorithm()
         {
             CSharpCommandLineArguments parsedArgs = DefaultParse(new[] { "/checksumAlgorithm:sHa1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm);
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
 
             parsedArgs = DefaultParse(new[] { "/checksumAlgorithm:sha256", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm);
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
 
             parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm);
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
 
             //  error
             parsedArgs = DefaultParse(new[] { "/checksumAlgorithm:256", "a.cs" }, _baseDirectory);
@@ -7248,7 +7252,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                PdbValidation.ValidateDebugDirectory(peFile, null, pdb.Path, isDeterministic: false);
+                PdbValidation.ValidateDebugDirectory(peFile, null, pdb.Path, hashAlgorithm: default, hasEmbeddedPdb: false, isDeterministic: false);
             }
 
             Assert.True(new FileInfo(exe.Path).Length < oldSize);
@@ -7259,7 +7263,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                PdbValidation.ValidateDebugDirectory(peFile, null, pdb.Path, isDeterministic: false);
+                PdbValidation.ValidateDebugDirectory(peFile, null, pdb.Path, hashAlgorithm: default, hasEmbeddedPdb: false, isDeterministic: false);
             }
         }
 
@@ -7553,7 +7557,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
                     throw new IOException();
                 }
 
-                return File.Open(file, (FileMode)mode, (FileAccess)access, (FileShare)share);
+                return File.Open(file, mode, access, share);
             };
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -9297,7 +9301,7 @@ class C {
                 Assert.True(File.Exists(pdbPath));
                 using (var peStream = File.OpenRead(exePath))
                 {
-                    PdbValidation.ValidateDebugDirectory(peStream, null, pePdbPath, isDeterministic);
+                    PdbValidation.ValidateDebugDirectory(peStream, null, pePdbPath, hashAlgorithm: default, hasEmbeddedPdb: false, isDeterministic);
                 }
             }
 
@@ -9478,7 +9482,7 @@ public class C
 
             MetadataReaderUtils.VerifyPEMetadata(exe,
                 new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
-                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void PrivateMethod()", "MethodDefinition:Void .ctor()" },
+                new[] { "MethodDefinition:Void C.Main()", "MethodDefinition:Void C.PrivateMethod()", "MethodDefinition:Void C..ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
                 );
 
@@ -9513,7 +9517,7 @@ public class C
             // See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
-                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
+                new[] { "MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
                 );
 
@@ -9596,7 +9600,7 @@ class C
             // See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 new[] { "TypeDefinition:<Module>", "TypeDefinition:C", "TypeDefinition:S" },
-                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
+                new[] { "MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
                 );
 

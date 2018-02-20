@@ -269,12 +269,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionModeItem)
         {
-            Glyph? expectedGlyph = null;
-            if (glyph.HasValue)
-            {
-                expectedGlyph = (Glyph)glyph.Value;
-            }
-
             var document1 = WorkspaceFixture.UpdateDocument(code, sourceCodeKind);
             await CheckResultsAsync(
                 document1, position, expectedItemOrNull, 

@@ -21,16 +21,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
     {
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextBufferUndoManagerProvider _undoManager;
-        private readonly AggregateAsynchronousOperationListener _listener;
+        private readonly IAsynchronousOperationListener _listener;
 
         public AbstractEncapsulateFieldCommandHandler(
             IWaitIndicator waitIndicator,
             ITextBufferUndoManagerProvider undoManager,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _waitIndicator = waitIndicator;
             _undoManager = undoManager;
-            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.EncapsulateField);
+            _listener = listenerProvider.GetListener(FeatureAttribute.EncapsulateField);
         }
 
         public void ExecuteCommand(EncapsulateFieldCommandArgs args, Action nextHandler)

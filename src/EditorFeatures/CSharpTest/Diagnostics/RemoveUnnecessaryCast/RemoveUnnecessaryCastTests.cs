@@ -3790,6 +3790,29 @@ class Program
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [WorkItem(24791, "https://github.com/dotnet/roslyn/issues/24791")]
+        public async Task SimpleBoolCast()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        if (![|(bool)|]M()) throw null;
+        throw null;
+    }
+}",
+@"class C
+{
+    bool M()
+    {
+        if (!M()) throw null;
+        throw null;
+    }
+}");
+        }
+
         [WorkItem(12572, "https://github.com/dotnet/roslyn/issues/12572")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastThatUnboxes()
