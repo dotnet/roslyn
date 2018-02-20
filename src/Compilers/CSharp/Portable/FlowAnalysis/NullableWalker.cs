@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (EmptyStructTypeCache.IsTrackableStructType(fieldOrPropertyType.TypeSymbol))
             {
-                var targetMemberSlot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
+                int targetMemberSlot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
                 if (targetMemberSlot > 0)
                 {
                     int valueMemberSlot = -1;
@@ -1835,7 +1835,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (resultType.TypeSymbol != targetType)
                             {
-                                // PROTOTYPE(NullableReferenceTypes): Should handle nested nullability.
+                                // PROTOTYPE(NullableReferenceTypes): Should handle nested nullability
+                                // and top-level nullability. Conversion from resultType to targetType
+                                // should be treated as a built-in conversion.
                                 resultType = TypeSymbolWithAnnotations.Create(targetType);
                             }
                         }
@@ -2015,7 +2017,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Left.Kind == BoundKind.EventAccess && ((BoundEventAccess)node.Left).EventSymbol.IsWindowsRuntimeEvent)
             {
-                // Event assignment is a call to an Add method.
+                // Event assignment is a call to an Add method. (Note that assignment
+                // of non-field-like events uses BoundEventAssignmentOperator
+                // rather than BoundAssignmentOperator.)
                 SetResult(node);
             }
             else
@@ -3104,7 +3108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly TypeSymbolWithAnnotations Type;
             internal readonly int Slot;
 
-            internal static readonly Result Unset = new Result(null, -1);
+            internal static readonly Result Unset = new Result(type: null, slot: -1);
 
             internal static Result Create(TypeSymbolWithAnnotations type, int slot = -1)
             {
