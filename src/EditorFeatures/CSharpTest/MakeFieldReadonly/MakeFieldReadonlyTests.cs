@@ -15,17 +15,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpMakeFieldReadonlyDiagnosticAnalyzer(), new CSharpMakeFieldReadonlyCodeFixProvider());
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly),
-        InlineData("public"),
-        InlineData("internal"),
-        InlineData("protected"),
-        InlineData("protected internal")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("protected")]
+        [InlineData("protected internal")]
         public async Task NonPrivateField(string accessibility)
         {
             await TestMissingInRegularAndScriptAsync(
 $@"class MyClass
 {{
-    {accessibility} int[| _foo |];
+    {accessibility} int[| _goo |];
 }}");
         }
         
@@ -35,7 +35,7 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private event System.EventHandler [|Foo|];
+    private event System.EventHandler [|Goo|];
 }");
         }
 
@@ -45,7 +45,7 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private readonly int [|_foo|];
+    private readonly int [|_goo|];
 }");
         }
 
@@ -55,7 +55,7 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private const int [|_foo|];
+    private const int [|_goo|];
 }");
         }
 
@@ -65,11 +65,11 @@ $@"class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
 }",
 @"class MyClass
 {
-    private readonly int _foo;
+    private readonly int _goo;
 }");
         }
 
@@ -79,11 +79,11 @@ $@"class MyClass
             await TestInRegularAndScriptAsync(
 @"struct MyStruct
 {
-    private int [|_foo|];
+    private int [|_goo|];
 }",
 @"struct MyStruct
 {
-    private readonly int _foo;
+    private readonly int _goo;
 }");
         }
 
@@ -93,11 +93,11 @@ $@"class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|] = 0;
+    private int [|_goo|] = 0;
 }",
 @"class MyClass
 {
-    private readonly int _foo = 0;
+    private readonly int _goo = 0;
 }");
         }
 
@@ -107,11 +107,11 @@ $@"class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|] = 0, _bar = 0;
+    private int [|_goo|] = 0, _bar = 0;
 }",
 @"class MyClass
 {
-    private readonly int _foo = 0;
+    private readonly int _goo = 0;
     private int _bar = 0;
 }");
         }
@@ -122,11 +122,11 @@ $@"class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int _foo = 0, [|_bar|] = 0, _fizz = 0;
+    private int _goo = 0, [|_bar|] = 0, _fizz = 0;
 }",
 @"class MyClass
 {
-    private int _foo = 0;
+    private int _goo = 0;
     private readonly int _bar = 0;
     private int _fizz = 0;
 }");
@@ -138,20 +138,20 @@ $@"class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int _foo = 0, [|_bar|] = 0;
-    Foo()
+    private int _goo = 0, [|_bar|] = 0;
+    Goo()
     {
-        _foo = 0;
+        _goo = 0;
     }
 }",
 @"class MyClass
 {
-    private int _foo = 0;
+    private int _goo = 0;
     private readonly int _bar = 0;
 
-    Foo()
+    Goo()
     {
-        _foo = 0;
+        _goo = 0;
     }
 }");
         }
@@ -162,11 +162,11 @@ $@"class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|], _bar = 0;
+    private int [|_goo|], _bar = 0;
 }",
 @"class MyClass
 {
-    private readonly int _foo;
+    private readonly int _goo;
     private int _bar = 0;
 }");
         }
@@ -177,18 +177,18 @@ $@"class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
     MyClass()
     {
-        _foo = 0;
+        _goo = 0;
     }
 }",
 @"class MyClass
 {
-    private readonly int _foo;
+    private readonly int _goo;
     MyClass()
     {
-        _foo = 0;
+        _goo = 0;
     }
 }");
         }
@@ -199,10 +199,10 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"public class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
     public MyClass()
     {
-        this.E = x => this._foo = 0;
+        this.E = x => this._goo = 0;
     }
 
     public Action<int> E;
@@ -215,10 +215,10 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"public class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
     public MyClass()
     {
-        this.E += (_, __) => this._foo = 0;
+        this.E += (_, __) => this._goo = 0;
     }
 
     public event EventHandler E;
@@ -231,10 +231,10 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"public class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
     public MyClass()
     {
-        this.E += (_, __) => { this._foo = 0; }
+        this.E += (_, __) => { this._goo = 0; }
     }
 
     public event EventHandler E;
@@ -247,10 +247,10 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"public class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
     public MyClass()
     {
-        this.E = delegate { this._foo = 0; };
+        this.E = delegate { this._goo = 0; };
     }
 
     public Action<int> E;
@@ -263,10 +263,10 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"public class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
     public MyClass()
     {
-        void LocalFunction() => this._foo = 0;
+        void LocalFunction() => this._goo = 0;
     }
 }");
         }
@@ -277,10 +277,10 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"public class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
     public MyClass()
     {
-        void LocalFunction() { this._foo = 0; }
+        void LocalFunction() { this._goo = 0; }
     }
 }");
         }
@@ -291,11 +291,11 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
     MyClass()
     {
-        var foo = new MyClass();
-        foo._foo = 0;
+        var goo = new MyClass();
+        goo._goo = 0;
     }
 }");
         }
@@ -306,10 +306,10 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
     MyClass()
     {
-        var foo = new MyClass { _foo = 0 };
+        var goo = new MyClass { _goo = 0 };
     }
 }");
         }
@@ -320,18 +320,18 @@ $@"class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
     MyClass()
     {
-        this._foo = 0;
+        this._goo = 0;
     }
 }",
 @"class MyClass
 {
-    private readonly int _foo;
+    private readonly int _goo;
     MyClass()
     {
-        this._foo = 0;
+        this._goo = 0;
     }
 }");
         }
@@ -342,18 +342,18 @@ $@"class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
-    int Foo
+    private int [|_goo|];
+    int Goo
     {
-        get { return _foo; }
+        get { return _goo; }
     }
 }",
 @"class MyClass
 {
-    private readonly int _foo;
-    int Foo
+    private readonly int _goo;
+    int Goo
     {
-        get { return _foo; }
+        get { return _goo; }
     }
 }");
         }
@@ -364,11 +364,11 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
-    int Foo
+    private int [|_goo|];
+    int Goo
     {
-        get { return _foo; }
-        set { _foo = value; }
+        get { return _goo; }
+        set { _goo = value; }
     }
 }");
         }
@@ -379,10 +379,10 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
-    int Foo()
+    private int [|_goo|];
+    int Goo()
     {
-        _foo = 0;
+        _goo = 0;
     }
 }");
         }
@@ -393,13 +393,13 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
 
     class Derived : MyClass
     {
         Derived()
         {
-            _foo = 1;
+            _goo = 1;
         }
     }
 }");
@@ -411,13 +411,13 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
 
     class Derived : MyClass
     {
         void Method()
         {
-            _foo = 1;
+            _goo = 1;
         }
     }
 }");
@@ -429,18 +429,18 @@ $@"class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
-    int Foo()
+    private int [|_goo|];
+    int Goo()
     {
-        var i = _foo;
+        var i = _goo;
     }
 }",
 @"class MyClass
 {
-    private readonly int _foo;
-    int Foo()
+    private readonly int _goo;
+    int Goo()
     {
-        var i = _foo;
+        var i = _goo;
     }
 }");
         }
@@ -451,10 +451,10 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|] = 0;
-    int Foo(int value)
+    private int [|_goo|] = 0;
+    int Goo(int value)
     {
-        _foo += value;
+        _goo += value;
     }
 }");
         }
@@ -465,10 +465,10 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|] = 0;
-    int Foo(int value)
+    private int [|_goo|] = 0;
+    int Goo(int value)
     {
-        _foo++;
+        _goo++;
     }
 }");
         }
@@ -479,10 +479,10 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|] = 0;
-    int Foo(int value)
+    private int [|_goo|] = 0;
+    int Goo(int value)
     {
-        --_foo;
+        --_goo;
     }
 }");
         }
@@ -493,13 +493,13 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"partial class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
 }
 partial class MyClass
 {
-    void SetFoo()
+    void SetGoo()
     {
-        _foo = 0;
+        _goo = 0;
     }
 }");
         }
@@ -510,23 +510,23 @@ partial class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
-    void Foo()
+    private int [|_goo|];
+    void Goo()
     {
-        Bar(_foo);
+        Bar(_goo);
     }
-    void Bar(int foo)
+    void Bar(int goo)
     {
     }
 }",
 @"class MyClass
 {
-    private readonly int _foo;
-    void Foo()
+    private readonly int _goo;
+    void Goo()
     {
-        Bar(_foo);
+        Bar(_goo);
     }
-    void Bar(int foo)
+    void Bar(int goo)
     {
     }
 }");
@@ -538,10 +538,10 @@ partial class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
-    void Foo()
+    private int [|_goo|];
+    void Goo()
     {
-        int.TryParse(""123"", out _foo);
+        int.TryParse(""123"", out _goo);
     }
 }");
         }
@@ -552,12 +552,12 @@ partial class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
-    void Foo()
+    private int [|_goo|];
+    void Goo()
     {
-        Bar(ref _foo);
+        Bar(ref _goo);
     }
-    void Bar(ref int foo)
+    void Bar(ref int goo)
     {
     }
 }");
@@ -569,18 +569,18 @@ partial class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
     MyClass()
     {
-        int.TryParse(""123"", out _foo);
+        int.TryParse(""123"", out _goo);
     }
 }",
 @"class MyClass
 {
-    private readonly int _foo;
+    private readonly int _goo;
     MyClass()
     {
-        int.TryParse(""123"", out _foo);
+        int.TryParse(""123"", out _goo);
     }
 }");
         }
@@ -591,23 +591,23 @@ partial class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int [|_foo|];
+    private int [|_goo|];
     MyClass()
     {
-        Bar(ref _foo);
+        Bar(ref _goo);
     }
-    void Bar(ref int foo)
+    void Bar(ref int goo)
     {
     }
 }",
 @"class MyClass
 {
-    private readonly int _foo;
+    private readonly int _goo;
     MyClass()
     {
-        Bar(ref _foo);
+        Bar(ref _goo);
     }
-    void Bar(ref int foo)
+    void Bar(ref int goo)
     {
     }
 }");
@@ -619,18 +619,18 @@ partial class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private static int [|_foo|];
+    private static int [|_goo|];
     static MyClass()
     {
-        _foo = 0;
+        _goo = 0;
     }
 }",
 @"class MyClass
 {
-    private static readonly int _foo;
+    private static readonly int _goo;
     static MyClass()
     {
-        _foo = 0;
+        _goo = 0;
     }
 }");
         }
@@ -641,10 +641,10 @@ partial class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
-    private static int [|_foo|];
+    private static int [|_goo|];
     MyClass()
     {
-        _foo = 0;
+        _goo = 0;
     }
 }");
         }
@@ -655,11 +655,11 @@ partial class MyClass
             await TestMissingInRegularAndScriptAsync(
 @"struct MyStruct
 {
-    private int _foo;
+    private int _goo;
 }
 class MyClass
 {
-    private MyStruct [|_foo|];
+    private MyStruct [|_goo|];
 }");
         }
 
@@ -669,23 +669,23 @@ class MyClass
             await TestInRegularAndScriptAsync(
 @"struct MyStruct
 {
-    private readonly int _foo;
+    private readonly int _goo;
     private const int _bar = 0;
     private static int _fizz;
 }
 class MyClass
 {
-    private MyStruct [|_foo|];
+    private MyStruct [|_goo|];
 }",
 @"struct MyStruct
 {
-    private readonly int _foo;
+    private readonly int _goo;
     private const int _bar = 0;
     private static int _fizz;
 }
 class MyClass
 {
-    private readonly MyStruct _foo;
+    private readonly MyStruct _goo;
 }");
         }
 
@@ -695,12 +695,12 @@ class MyClass
             await TestInRegularAndScriptAsync(
 @"class MyClass
 {
-    private int {|FixAllInDocument:_foo|} = 0, _bar = 0;
+    private int {|FixAllInDocument:_goo|} = 0, _bar = 0;
     private int _fizz = 0;
 }",
 @"class MyClass
 {
-    private readonly int _foo = 0, _bar = 0;
+    private readonly int _goo = 0, _bar = 0;
     private readonly int _fizz = 0;
 }");
         }

@@ -14,15 +14,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeFieldReadonly
                 New VisualBasicMakeFieldReadonlyCodeFixProvider())
         End Function
 
-        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly),
-        InlineData("Public"),
-        InlineData("Friend"),
-        InlineData("Protected"),
-        InlineData("Protected Friend")>
+        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <InlineData("Public")>
+        <InlineData("Friend")>
+        <InlineData("Protected")>
+        <InlineData("Protected Friend")>
         Public Async Function FieldIsPublic(accessibility As String) As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Class C
-    {accessibility} [|_foo|] As Integer
+    {accessibility} [|_goo|] As Integer
 End Class")
         End Function
 
@@ -38,7 +38,7 @@ End Class")
         Public Async Function FieldIsReadonly() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
-    Private ReadOnly [|_foo|] As Integer
+    Private ReadOnly [|_goo|] As Integer
 End Class")
         End Function
 
@@ -46,7 +46,7 @@ End Class")
         Public Async Function FieldIsConst() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
-    Private Const [|_foo|] As Integer
+    Private Const [|_goo|] As Integer
 End Class")
         End Function
 
@@ -54,10 +54,10 @@ End Class")
         Public Async Function FieldNotAssigned() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer
+    Private [|_goo|] As Integer
 End Class",
 "Class C
-    Private ReadOnly _foo As Integer
+    Private ReadOnly _goo As Integer
 End Class")
         End Function
 
@@ -65,10 +65,10 @@ End Class")
         Public Async Function FieldNotAssigned_Struct() As Task
             Await TestInRegularAndScriptAsync(
 "Structure C
-    Private [|_foo|] As Integer
+    Private [|_goo|] As Integer
 End Structure",
 "Structure C
-    Private ReadOnly _foo As Integer
+    Private ReadOnly _goo As Integer
 End Structure")
         End Function
 
@@ -76,10 +76,10 @@ End Structure")
         Public Async Function FieldNotAssigned_Module() As Task
             Await TestInRegularAndScriptAsync(
 "Module C
-    Private [|_foo|] As Integer
+    Private [|_goo|] As Integer
 End Module",
 "Module C
-    Private ReadOnly _foo As Integer
+    Private ReadOnly _goo As Integer
 End Module")
         End Function
 
@@ -87,10 +87,10 @@ End Module")
         Public Async Function FieldNotAssigned_FieldDeclaredWithDim() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Dim [|_foo|] As Integer
+    Dim [|_goo|] As Integer
 End Class",
 "Class C
-    ReadOnly _foo As Integer
+    ReadOnly _goo As Integer
 End Class")
         End Function
 
@@ -98,10 +98,10 @@ End Class")
         Public Async Function FieldAssignedInline() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
+    Private [|_goo|] As Integer = 0
 End Class",
 "Class C
-    Private ReadOnly _foo As Integer = 0
+    Private ReadOnly _goo As Integer = 0
 End Class")
         End Function
 
@@ -109,10 +109,10 @@ End Class")
         Public Async Function MultipleFieldsAssignedInline_AllCanBeReadonly() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0, _bar As Integer = 0
+    Private [|_goo|] As Integer = 0, _bar As Integer = 0
 End Class",
 "Class C
-    Private ReadOnly _foo As Integer = 0
+    Private ReadOnly _goo As Integer = 0
     Private _bar As Integer = 0
 End Class")
         End Function
@@ -121,10 +121,10 @@ End Class")
         Public Async Function MultipleFieldsAssignedInline_AllCanBeReadonly_MultipleNamesInDeclarator() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|], _bar As Integer, _fizz As String = """"
+    Private [|_goo|], _bar As Integer, _fizz As String = """"
 End Class",
 "Class C
-    Private ReadOnly _foo As Integer
+    Private ReadOnly _goo As Integer
     Private _bar As Integer
     Private _fizz As String = """"
 End Class")
@@ -134,10 +134,10 @@ End Class")
         Public Async Function ThreeFieldsAssignedInline_AllCanBeReadonly_SeparatesAllAndKeepsThemInOrder() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private _foo As Integer = 0, [|_bar|] As Integer = 0, _fizz As Integer = 0
+    Private _goo As Integer = 0, [|_bar|] As Integer = 0, _fizz As Integer = 0
 End Class",
 "Class C
-    Private _foo As Integer = 0
+    Private _goo As Integer = 0
     Private ReadOnly _bar As Integer = 0
     Private _fizz As Integer = 0
 End Class")
@@ -147,16 +147,16 @@ End Class")
         Public Async Function MultipleFieldsAssignedInline_OneAssignedInMethod() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private _foo As Integer = 0, [|_bar|] As Integer = 0
-    Private Sub Foo()
-        _foo = 0
+    Private _goo As Integer = 0, [|_bar|] As Integer = 0
+    Private Sub Goo()
+        _goo = 0
     End Sub
 End Class",
 "Class C
-    Private _foo As Integer = 0
+    Private _goo As Integer = 0
     Private ReadOnly _bar As Integer = 0
-    Private Sub Foo()
-        _foo = 0
+    Private Sub Goo()
+        _goo = 0
     End Sub
 End Class")
         End Function
@@ -165,10 +165,10 @@ End Class")
         Public Async Function MultipleFieldsAssignedInline_NoInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer, _bar As Integer = 0
+    Private [|_goo|] As Integer, _bar As Integer = 0
 End Class",
 "Class C
-    Private ReadOnly _foo As Integer
+    Private ReadOnly _goo As Integer
     Private _bar As Integer = 0
 End Class")
         End Function
@@ -177,15 +177,15 @@ End Class")
         Public Async Function FieldAssignedInCtor() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
+    Private [|_goo|] As Integer = 0
     Public Sub New()
-        _foo = 0
+        _goo = 0
     End Sub
 End Class",
 "Class C
-    Private ReadOnly _foo As Integer = 0
+    Private ReadOnly _goo As Integer = 0
     Public Sub New()
-        _foo = 0
+        _goo = 0
     End Sub
 End Class")
         End Function
@@ -194,13 +194,13 @@ End Class")
         Public Async Function FieldAssignedInMultilineLambdaInCtor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
+    Private [|_goo|] As Integer = 0
 
     Public Event SomeEvent()
 
     Public Sub New()
         AddHandler SomeEvent, Sub()
-                                  Me._foo = 0
+                                  Me._goo = 0
                               End Sub
     End Sub
 End Class")
@@ -210,12 +210,12 @@ End Class")
         Public Async Function FieldAssignedInLambdaInCtor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
+    Private [|_goo|] As Integer = 0
 
     Public Event SomeEvent()
 
     Public Sub New()
-        AddHandler SomeEvent, Sub() Me._foo = 0
+        AddHandler SomeEvent, Sub() Me._goo = 0
     End Sub
 End Class")
         End Function
@@ -224,10 +224,10 @@ End Class")
         Public Async Function FieldAssignedInCtor_DifferentInstance() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
+    Private [|_goo|] As Integer = 0
     Public Sub New()
         Dim bar = New C()
-        bar._foo = 0
+        bar._goo = 0
     End Sub
 End Class")
         End Function
@@ -236,10 +236,10 @@ End Class")
         Public Async Function FieldAssignedInCtor_DifferentInstance_QualifiedWithObjectInitializer() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
+    Private [|_goo|] As Integer = 0
     Public Sub New()
         Dim bar = New C() With {
-            ._foo = 0
+            ._goo = 0
         }
     End Sub
 End Class")
@@ -249,15 +249,15 @@ End Class")
         Public Async Function FieldAssignedInCtor_QualifiedWithMe() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
+    Private [|_goo|] As Integer = 0
     Public Sub New()
-        Me._foo = 0
+        Me._goo = 0
     End Sub
 End Class",
 "Class C
-    Private ReadOnly _foo As Integer = 0
+    Private ReadOnly _goo As Integer = 0
     Public Sub New()
-        Me._foo = 0
+        Me._goo = 0
     End Sub
 End Class")
         End Function
@@ -266,18 +266,18 @@ End Class")
         Public Async Function FieldReturnedInProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
-    ReadOnly Property Foo As Integer
+    Private [|_goo|] As Integer = 0
+    ReadOnly Property Goo As Integer
         Get
-            Return _foo
+            Return _goo
         End Get
     End Property
 End Class",
 "Class C
-    Private ReadOnly _foo As Integer = 0
-    ReadOnly Property Foo As Integer
+    Private ReadOnly _goo As Integer = 0
+    ReadOnly Property Goo As Integer
         Get
-            Return _foo
+            Return _goo
         End Get
     End Property
 End Class")
@@ -287,13 +287,13 @@ End Class")
         Public Async Function FieldAssignedInProperty() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
-    ReadOnly Property Foo As Integer
+    Private [|_goo|] As Integer = 0
+    ReadOnly Property Goo As Integer
         Get
-            Return _foo
+            Return _goo
         End Get
         Set(value As Integer)
-            _foo = value
+            _goo = value
         End Set
     End Property
 End Class")
@@ -303,9 +303,9 @@ End Class")
         Public Async Function FieldAssignedInMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
-    Sub Foo
-        _foo = 0
+    Private [|_goo|] As Integer = 0
+    Sub Goo
+        _goo = 0
     End Sub
 End Class")
         End Function
@@ -314,12 +314,12 @@ End Class")
         Public Async Function FieldAssignedInNestedTypeConstructor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
+    Private [|_goo|] As Integer = 0
     Class Derived
         Inherits C
 
         Sub New
-            _foo = 0
+            _goo = 0
         End Sub
     End Sub
 End Class")
@@ -329,12 +329,12 @@ End Class")
         Public Async Function FieldAssignedInNestedTypeMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
+    Private [|_goo|] As Integer = 0
     Class Derived
         Inherits C
 
         Sub Method
-            _foo = 0
+            _goo = 0
         End Sub
     End Sub
 End Class")
@@ -344,15 +344,15 @@ End Class")
         Public Async Function VariableAssignedToFieldInMethod() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
-    Sub Foo
-        Dim i = _foo
+    Private [|_goo|] As Integer = 0
+    Sub Goo
+        Dim i = _goo
     End Sub
 End Class",
 "Class C
-    Private ReadOnly _foo As Integer = 0
-    Sub Foo
-        Dim i = _foo
+    Private ReadOnly _goo As Integer = 0
+    Sub Goo
+        Dim i = _goo
     End Sub
 End Class")
         End Function
@@ -361,9 +361,9 @@ End Class")
         Public Async Function FieldAssignedInMethodWithCompoundOperator() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
-    Sub Foo
-        _foo += 0
+    Private [|_goo|] As Integer = 0
+    Sub Goo
+        _goo += 0
     End Sub
 End Class")
         End Function
@@ -372,12 +372,12 @@ End Class")
         Public Async Function AssignedInPartialClass() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Partial Class C
-    Private [|_foo|] As Integer = 0
+    Private [|_goo|] As Integer = 0
 End Class
 
 Partial Class C
-    Sub Foo()
-        _foo = 0
+    Sub Goo()
+        _goo = 0
     End Sub
 End Class")
         End Function
@@ -386,9 +386,9 @@ End Class")
         Public Async Function PassedAsByRefParameter() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
-    Sub Foo()
-        Bar(_foo)
+    Private [|_goo|] As Integer = 0
+    Sub Goo()
+        Bar(_goo)
     End Sub
     Sub Bar(ByRef value As Integer)
     End Sub
@@ -399,17 +399,17 @@ End Class")
         Public Async Function PassedAsByRefParameterInCtor() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
+    Private [|_goo|] As Integer = 0
     Sub New()
-        Bar(_foo)
+        Bar(_goo)
     End Sub
     Sub Bar(ByRef value As Integer)
     End Sub
 End Class",
 "Class C
-    Private ReadOnly _foo As Integer = 0
+    Private ReadOnly _goo As Integer = 0
     Sub New()
-        Bar(_foo)
+        Bar(_goo)
     End Sub
     Sub Bar(ByRef value As Integer)
     End Sub
@@ -420,17 +420,17 @@ End Class")
         Public Async Function PassedAsByValParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private [|_foo|] As Integer = 0
-    Sub Foo()
-        Bar(_foo)
+    Private [|_goo|] As Integer = 0
+    Sub Goo()
+        Bar(_goo)
     End Sub
     Sub Bar(ByVal value As Integer)
     End Sub
 End Class",
 "Class C
-    Private ReadOnly _foo As Integer = 0
-    Sub Foo()
-        Bar(_foo)
+    Private ReadOnly _goo As Integer = 0
+    Sub Goo()
+        Bar(_goo)
     End Sub
     Sub Bar(ByVal value As Integer)
     End Sub
@@ -441,15 +441,15 @@ End Class")
         Public Async Function SharedFieldAssignedInSharedCtor() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private Shared [|_foo|] As Integer = 0
+    Private Shared [|_goo|] As Integer = 0
     Shared Sub New()
-        _foo = 0
+        _goo = 0
     End Sub
 End Class",
 "Class C
-    Private Shared ReadOnly _foo As Integer = 0
+    Private Shared ReadOnly _goo As Integer = 0
     Shared Sub New()
-        _foo = 0
+        _goo = 0
     End Sub
 End Class")
         End Function
@@ -458,9 +458,9 @@ End Class")
         Public Async Function SharedFieldAssignedInNonSharedCtor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
-    Private Shared [|_foo|] As Integer = 0
+    Private Shared [|_goo|] As Integer = 0
     Sub New()
-        _foo = 0
+        _goo = 0
     End Sub
 End Class")
         End Function
@@ -469,10 +469,10 @@ End Class")
         Public Async Function FieldIsMutableStructure() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Structure S
-    Private _foo As Integer
+    Private _goo As Integer
 End Structure
 Class C
-    Private [|_foo|] As S
+    Private [|_goo|] As S
 End Class")
         End Function
 
@@ -480,20 +480,20 @@ End Class")
         Public Async Function FieldIsCustomImmutableStructure() As Task
             Await TestInRegularAndScriptAsync(
 "Structure S
-    Private readonly _foo As Integer
+    Private readonly _goo As Integer
     Private Const _bar As Integer = 0
     Private Shared _fizz As Integer
 End Structure
 Class C
-    Private [|_foo|] As S
+    Private [|_goo|] As S
 End Class",
 "Structure S
-    Private readonly _foo As Integer
+    Private readonly _goo As Integer
     Private Const _bar As Integer = 0
     Private Shared _fizz As Integer
 End Structure
 Class C
-    Private ReadOnly _foo As S
+    Private ReadOnly _goo As S
 End Class")
         End Function
 
@@ -501,11 +501,11 @@ End Class")
         Public Async Function FixAll() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private {|FixAllInDocument:_foo|} As Integer = 0, _bar As Integer = 0
+    Private {|FixAllInDocument:_goo|} As Integer = 0, _bar As Integer = 0
     Private _fizz As Integer = 0
 End Class",
 "Class C
-    Private ReadOnly _foo As Integer = 0, _bar As Integer = 0
+    Private ReadOnly _goo As Integer = 0, _bar As Integer = 0
     Private ReadOnly _fizz As Integer = 0
 End Class")
         End Function
@@ -514,17 +514,17 @@ End Class")
         Public Async Function FixAll_MultipleFieldsAssignedInline_TwoCanBeReadonly_MultipleNamesInDeclarator() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private _foo, {|FixAllInDocument:_bar|} As Integer, _fizz As String = """"
-    Sub Foo()
-        _foo = 0
+    Private _goo, {|FixAllInDocument:_bar|} As Integer, _fizz As String = """"
+    Sub Goo()
+        _goo = 0
     End Sub
 End Class",
 "Class C
-    Private _foo As Integer
+    Private _goo As Integer
     Private ReadOnly _bar As Integer
     Private ReadOnly _fizz As String = """"
-    Sub Foo()
-        _foo = 0
+    Sub Goo()
+        _goo = 0
     End Sub
 End Class")
         End Function
