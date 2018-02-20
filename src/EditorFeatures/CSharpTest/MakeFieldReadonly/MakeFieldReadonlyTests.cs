@@ -148,6 +148,7 @@ $@"class MyClass
 {
     private int _foo = 0;
     private readonly int _bar = 0;
+
     Foo()
     {
         _foo = 0;
