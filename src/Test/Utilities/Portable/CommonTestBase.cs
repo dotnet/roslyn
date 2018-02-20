@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Test.Utilities;
@@ -499,6 +500,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 minorSubsystemVersion: 0,
                 linkerMajorVersion: 0,
                 linkerMinorVersion: 0);
+        }
+
+        internal void AssertDeclaresType(PEModuleSymbol peModule, WellKnownType type, Accessibility expectedAccessibility)
+        {
+            var name = MetadataTypeName.FromFullName(type.GetMetadataName());
+            Assert.Equal(expectedAccessibility, peModule.LookupTopLevelMetadataType(ref name).DeclaredAccessibility);
         }
 
         #endregion

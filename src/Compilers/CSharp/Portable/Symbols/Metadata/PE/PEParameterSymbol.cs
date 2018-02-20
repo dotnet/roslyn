@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
                 out bool isBad) :
                     base(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle,
-                         refCustomModifiers.NullToEmpty().Length + customModifiers.NullToEmpty().Length, 
+                         refCustomModifiers.NullToEmpty().Length + customModifiers.NullToEmpty().Length,
                          out isBad)
             {
                 _customModifiers = CSharpCustomModifier.Convert(customModifiers);
@@ -766,18 +766,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                if (filterOutParamArrayAttribute || filterOutConstantAttributeDescription.Signatures != null)
+                bool filterIsReadOnlyAttribute = this.RefKind == RefKind.In;
+
+                if (filterOutParamArrayAttribute || filterOutConstantAttributeDescription.Signatures != null || filterIsReadOnlyAttribute)
                 {
                     CustomAttributeHandle paramArrayAttribute;
                     CustomAttributeHandle constantAttribute;
+                    CustomAttributeHandle isReadOnlyAttribute;
 
                     ImmutableArray<CSharpAttributeData> attributes =
                         containingPEModuleSymbol.GetCustomAttributesForToken(
                             _handle,
                             out paramArrayAttribute,
-                            filterOutParamArrayAttribute ? AttributeDescription.ParamArrayAttribute : default(AttributeDescription),
+                            filterOutParamArrayAttribute ? AttributeDescription.ParamArrayAttribute : default,
                             out constantAttribute,
-                            filterOutConstantAttributeDescription);
+                            filterOutConstantAttributeDescription,
+                            out isReadOnlyAttribute,
+                            filterIsReadOnlyAttribute ? AttributeDescription.IsReadOnlyAttribute : default,
+                            out _,
+                            default);
 
                     if (!paramArrayAttribute.IsNil || !constantAttribute.IsNil)
                     {
