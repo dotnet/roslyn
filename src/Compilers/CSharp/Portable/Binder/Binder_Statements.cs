@@ -1082,55 +1082,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (initializerType.IsArray())
                     {
                         // See ExpressionBinder::BindPtrToArray (though most of that functionality is now in LocalRewriter).
-                        var arrayType = (ArrayTypeSymbol)initializerType;
-                        elementType = arrayType.ElementType;
+                        elementType = ((ArrayTypeSymbol)initializerType).ElementType;
                         break;
                     }
 
                     // check for a special ref-returning method
                     var additionalDiagnostics = DiagnosticBag.GetInstance();
-                    try
+                    getPinnableMethod = GetDangerousGetPinnableReferenceMethodOpt(initializerOpt, additionalDiagnostics);
+
+                    // check for String
+                    // NOTE: We will allow DangerousGetPinnableReferenceMethod to take precendence, but only if it is a member of System.String
+                    if (initializerType.SpecialType == SpecialType.System_String &&
+                        ((object)getPinnableMethod == null || getPinnableMethod.ContainingType.SpecialType != SpecialType.System_String))
                     {
-                        getPinnableMethod = GetDangerousGetPinnableReferenceMethod(initializerOpt, additionalDiagnostics);
-
-                        bool extensisbleFixedEnabled = ((CSharpParseOptions)initializerOpt.SyntaxTree.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureExtensibleFixedStatement) != false;
-
-                        // check for String
-                        // NOTE: We will allow DangerousGetPinnableReferenceMethod to take precendence, but only if it is a member of System.String
-                        if (initializerType.SpecialType == SpecialType.System_String &&
-                            ((object)getPinnableMethod == null || !extensisbleFixedEnabled || getPinnableMethod.ContainingType.SpecialType != SpecialType.System_String))
-                        {
-                            elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
-                            Debug.Assert(!elementType.IsManagedType);
-                            break;
-                        }
-
-                        if (extensisbleFixedEnabled)
-                        {
-                            // not a specially known type, check for getPinnableMethod
-                            if (getPinnableMethod != null)
-                            {
-                                elementType = getPinnableMethod.ReturnType;
-                                break;
-                            }
-                            else if (additionalDiagnostics != null)
-                            {
-                                diagnostics.AddRange(additionalDiagnostics);
-                            }
-                        }
-                        else if (getPinnableMethod != null)
-                        {
-                            CheckFeatureAvailability(initializerOpt.Syntax, MessageID.IDS_FeatureExtensibleFixedStatement, diagnostics);
-                        }
-
-                        Error(diagnostics, ErrorCode.ERR_ExprCannotBeFixed, initializerSyntax);
-                    }
-                    finally
-                    {
+                        elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
                         additionalDiagnostics.Free();
+                        break;
                     }
 
-                    return false;
+                    if ((object)getPinnableMethod != null)
+                    {
+                        elementType = getPinnableMethod.ReturnType;
+                        CheckFeatureAvailability(initializerOpt.Syntax, MessageID.IDS_FeatureExtensibleFixedStatement, diagnostics);
+                        additionalDiagnostics.Free();
+                        break;
+                    }
+                    else
+                    {
+                        // if feature was enabled but somethng went wrong with the method, report that
+                        bool extensibleFixedEnabled = ((CSharpParseOptions)initializerOpt.SyntaxTree.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureExtensibleFixedStatement) != false;
+                        if (extensibleFixedEnabled && additionalDiagnostics != null)
+                        {
+                            diagnostics.AddRange(additionalDiagnostics);
+                        }
+                        Error(diagnostics, ErrorCode.ERR_ExprCannotBeFixed, initializerSyntax);
+                        additionalDiagnostics.Free();
+                        return false;
+                    }
             }
 
             if (elementType.IsManagedType)
@@ -1143,7 +1131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private MethodSymbol GetDangerousGetPinnableReferenceMethod(BoundExpression initializer, DiagnosticBag additionalDiagnostics)
+        private MethodSymbol GetDangerousGetPinnableReferenceMethodOpt(BoundExpression initializer, DiagnosticBag additionalDiagnostics)
         {
             if (initializer.Type.SpecialType == SpecialType.System_Void)
             {
@@ -1155,7 +1143,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag bindingDiagnostics = DiagnosticBag.GetInstance();
             try
             {
-                var boundAccess = BindInstanceMemberAccess(initializer.Syntax, initializer.Syntax, initializer, methodName, rightArity:0, typeArgumentsSyntax: default, typeArguments: default, invoked:true, bindingDiagnostics);
+                var boundAccess = BindInstanceMemberAccess(
+                    initializer.Syntax,
+                    initializer.Syntax,
+                    initializer,
+                    methodName,
+                    rightArity: 0,
+                    typeArgumentsSyntax: default,
+                    typeArguments: default,
+                    invoked: true,
+                    bindingDiagnostics);
 
                 if (boundAccess.Kind != BoundKind.MethodGroup)
                 {
@@ -1164,12 +1161,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                BoundExpression getPinnableReferenceCall = BindMethodGroupInvocation(initializer.Syntax, initializer.Syntax, methodName, (BoundMethodGroup)boundAccess, analyzedArguments, bindingDiagnostics, queryClause: null, allowUnexpandedForm: false);
+                BoundExpression getPinnableReferenceCall = BindMethodGroupInvocation(
+                    initializer.Syntax, 
+                    initializer.Syntax, 
+                    methodName, 
+                    (BoundMethodGroup)boundAccess, 
+                    analyzedArguments, 
+                    bindingDiagnostics, 
+                    queryClause: null, 
+                    allowUnexpandedForm: false);
+
                 analyzedArguments.Free();
 
                 if (getPinnableReferenceCall.Kind != BoundKind.Call)
                 {
-                    // did not find anythig callable
+                    // did not find anything callable
                     return null;
                 }
 

@@ -4071,10 +4071,7 @@ unsafe class C
             compVerifier.VerifyDiagnostics(
                 // (6,25): error CS8320: Feature 'extensible fixed statement' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         fixed (int* p = new Fixable())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "new Fixable()").WithArguments("extensible fixed statement", "7.3").WithLocation(6, 25),
-                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
-                //         fixed (int* p = new Fixable())
-                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable()").WithLocation(6, 25)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "new Fixable()").WithArguments("extensible fixed statement", "7.3").WithLocation(6, 25)
                 );
         }
 
@@ -4276,6 +4273,143 @@ public struct Fixable
                 // (8,25): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = f)
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "f").WithLocation(8, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedErrAmbiguous()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+
+        var f = new Fixable(1);
+        fixed (int* p = f)
+        {
+            System.Console.Write(p[2]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    public static ref readonly int DangerousGetPinnableReference(in this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+public static class FixableExt1
+{
+    public static ref readonly int DangerousGetPinnableReference(in this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS0121: The call is ambiguous between the following methods or properties: 'FixableExt.DangerousGetPinnableReference(in Fixable)' and 'FixableExt1.DangerousGetPinnableReference(in Fixable)'
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new Fixable(1)").WithArguments("FixableExt.DangerousGetPinnableReference(in Fixable)", "FixableExt1.DangerousGetPinnableReference(in Fixable)").WithLocation(6, 25),
+                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25),
+                // (12,25): error CS0121: The call is ambiguous between the following methods or properties: 'FixableExt.DangerousGetPinnableReference(in Fixable)' and 'FixableExt1.DangerousGetPinnableReference(in Fixable)'
+                //         fixed (int* p = f)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "f").WithArguments("FixableExt.DangerousGetPinnableReference(in Fixable)", "FixableExt1.DangerousGetPinnableReference(in Fixable)").WithLocation(12, 25),
+                // (12,25): error CS9365: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = f)
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "f").WithLocation(12, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedErrDynamic()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = (dynamic)(new Fixable(1)))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    public static ref readonly int DangerousGetPinnableReference(in this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = (dynamic)(new Fixable(1)))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(dynamic)(new Fixable(1))").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedErrBad()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = (HocusPocus)(new Fixable(1)))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    public static ref readonly int DangerousGetPinnableReference(in this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,26): error CS0246: The type or namespace name 'HocusPocus' could not be found (are you missing a using directive or an assembly reference?)
+                //         fixed (int* p = (HocusPocus)(new Fixable(1)))
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "HocusPocus").WithArguments("HocusPocus").WithLocation(6, 26)
                 );
         }
 
@@ -4668,7 +4802,7 @@ public struct Fixable
 
 public static class FixableExt
 {
-    public static ref int DangerousGetPinnableReference(in this Fixable f)
+    public static ref readonly int DangerousGetPinnableReference(in this Fixable f)
     {
         return ref (new int[]{1,2,3})[0];
     }
@@ -4689,7 +4823,7 @@ public static class FixableExt
   IL_0001:  newobj     ""Fixable..ctor(int)""
   IL_0006:  stloc.2
   IL_0007:  ldloca.s   V_2
-  IL_0009:  call       ""ref int FixableExt.DangerousGetPinnableReference(in Fixable)""
+  IL_0009:  call       ""ref readonly int FixableExt.DangerousGetPinnableReference(in Fixable)""
   IL_000e:  stloc.1
   IL_000f:  ldloc.1
   IL_0010:  conv.u
@@ -4704,7 +4838,7 @@ public static class FixableExt
   IL_001e:  ldc.i4.1
   IL_001f:  call       ""Fixable..ctor(int)""
   IL_0024:  ldloca.s   V_0
-  IL_0026:  call       ""ref int FixableExt.DangerousGetPinnableReference(in Fixable)""
+  IL_0026:  call       ""ref readonly int FixableExt.DangerousGetPinnableReference(in Fixable)""
   IL_002b:  stloc.1
   IL_002c:  ldloc.1
   IL_002d:  conv.u

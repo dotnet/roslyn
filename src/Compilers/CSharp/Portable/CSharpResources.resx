@@ -931,7 +931,7 @@
     <value>The given expression cannot be used in a fixed statement</value>
   </data>
   <data name="ERR_FixableHelperDoesNotFitThePattern" xml:space="preserve">
-    <value>The method '{0}' does not meet requirements necessary </value>
+    <value>The method '{0}' does not meet necessary requirements</value>
   </data>
   <data name="ERR_UnsafeNeeded" xml:space="preserve">
     <value>Pointers and fixed size buffers may only be used in an unsafe context</value>

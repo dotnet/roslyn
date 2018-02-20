@@ -8616,8 +8616,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixableHelperDoesNotFitThePattern">
-        <source>The method '{0}' does not meet requirements necessary </source>
-        <target state="new">The method '{0}' does not meet requirements necessary </target>
+        <source>The method '{0}' does not meet necessary requirements</source>
+        <target state="new">The method '{0}' does not meet necessary requirements</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">

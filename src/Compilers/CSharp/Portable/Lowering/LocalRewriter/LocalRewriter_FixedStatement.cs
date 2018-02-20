@@ -224,11 +224,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// <![CDATA[
         /// fixed(int* ptr = &amp;v){ ... }    == becomes ===>
         /// 
         /// pinned ref int pinnedTemp = ref v;    // pinning managed ref
-        /// int* ptr = (int*)&amp;pinnedTemp;         // unsafe cast to unmanaged ptr
+        /// int* ptr = (int*)&pinnedTemp;         // unsafe cast to unmanaged ptr
         ///   . . . 
+        /// ]]>
         /// </summary>
         private BoundStatement InitializeFixedStatementRegularLocal(
             BoundLocalDeclaration localDecl,
@@ -291,11 +293,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// <![CDATA[
         /// fixed(int* ptr = &amp;v){ ... }    == becomes ===>
         /// 
         /// pinned ref int pinnedTemp = ref v;    // pinning managed ref
-        /// int* ptr = (int*)&amp;pinnedTemp;         // unsafe cast to unmanaged ptr
+        /// int* ptr = (int*)&pinnedTemp;         // unsafe cast to unmanaged ptr
         ///   . . . 
+        /// ]]>
         /// </summary>
         private BoundStatement InitializeFixedStatementGetPinnable(
             BoundLocalDeclaration localDecl,
@@ -315,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableDeclaratorSyntax declarator = fixedInitializer.Syntax.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             Debug.Assert(declarator != null);
 
+            // pinned ref int pinnedTemp
             pinnedTemp = factory.SynthesizedLocal(
                 getPinnableMethod.ReturnType,
                 syntax: declarator,
@@ -344,8 +349,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // .GetPinnable()
             var getPinnableCall = getPinnableMethod.IsStatic?
-                                            factory.Call(null, getPinnableMethod, callReceiver):
-                                            factory.Call(callReceiver, getPinnableMethod);
+                factory.Call(null, getPinnableMethod, callReceiver):
+                factory.Call(callReceiver, getPinnableMethod);
 
             // temp =ref .GetPinnable()
             var tempAssignment = factory.AssignmentExpression(

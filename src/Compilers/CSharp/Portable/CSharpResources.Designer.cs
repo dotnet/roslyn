@@ -4751,7 +4751,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The method &apos;{0}&apos; does not meet requirements necessary .
+        ///   Looks up a localized string similar to The method &apos;{0}&apos; does not meet necessary requirements.
         /// </summary>
         internal static string ERR_FixableHelperDoesNotFitThePattern {
             get {
