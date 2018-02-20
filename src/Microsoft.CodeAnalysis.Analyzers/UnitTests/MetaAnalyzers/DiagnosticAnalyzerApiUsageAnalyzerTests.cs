@@ -273,6 +273,305 @@ End Class
         }
 
         [Fact]
+        public void DirectlyAccessedType_StaticMember_Diagnostic()
+        {
+            VerifyCSharp(@"
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using static Microsoft.CodeAnalysis.CodeActions.WarningAnnotation;
+
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    void Method()
+    {
+        var c = Kind;
+    }
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}",
+            // Test0.cs(11,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeActions.WarningAnnotation'.
+            GetCSharpExpectedDiagnostic(11, 7, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeActions.WarningAnnotation"));
+
+            VerifyBasic(@"
+Imports System
+Imports System.Collections.Generic
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic
+Imports WarningAnnotation = Microsoft.CodeAnalysis.CodeActions.WarningAnnotation
+
+Class MyAnalyzer
+    Inherits DiagnosticAnalyzer
+
+    Sub Method()
+        Dim c = WarningAnnotation.Kind
+    End Sub
+
+    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+        Get
+            Throw New NotImplementedException
+        End Get
+    End Property
+
+    Public Overrides Sub Initialize(context As AnalysisContext)
+    End Sub
+End Class
+",
+            // Test0.vb(11,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeActions.WarningAnnotation'.
+            GetBasicExpectedDiagnostic(11, 7, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeActions.WarningAnnotation"));
+        }
+
+        [Fact]
+        public void DirectlyAccessedType_StaticMember_02_Diagnostic()
+        {
+            VerifyCSharp(@"
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using static Microsoft.CodeAnalysis.CodeFixes.WellKnownFixAllProviders;
+
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    void Method()
+    {
+        var c = BatchFixer;
+    }
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}",
+            // Test0.cs(11,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeFixes.FixAllProvider, Microsoft.CodeAnalysis.CodeFixes.WellKnownFixAllProviders'.
+            GetCSharpExpectedDiagnostic(11, 7, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeFixes.FixAllProvider, Microsoft.CodeAnalysis.CodeFixes.WellKnownFixAllProviders"));
+
+            VerifyBasic(@"
+Imports System
+Imports System.Collections.Generic
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic
+Imports WellKnownFixAllProviders = Microsoft.CodeAnalysis.CodeFixes.WellKnownFixAllProviders
+
+Class MyAnalyzer
+    Inherits DiagnosticAnalyzer
+
+    Sub Method()
+        Dim c = WellKnownFixAllProviders.BatchFixer
+    End Sub
+
+    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+        Get
+            Throw New NotImplementedException
+        End Get
+    End Property
+
+    Public Overrides Sub Initialize(context As AnalysisContext)
+    End Sub
+End Class
+",
+            // Test0.vb(11,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeFixes.FixAllProvider, Microsoft.CodeAnalysis.CodeFixes.WellKnownFixAllProviders'.
+            GetBasicExpectedDiagnostic(11, 7, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeFixes.FixAllProvider, Microsoft.CodeAnalysis.CodeFixes.WellKnownFixAllProviders"));
+        }
+
+        [Fact]
+        public void DirectlyAccessedType_CastAndTypeCheck_Diagnostic()
+        {
+            VerifyCSharp(@"
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    void Method(object o)
+    {
+        var c = (CodeFixProvider)o;
+        var c2 = o is FixAllProvider;
+    }
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}",
+            // Test0.cs(10,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllProvider'.
+            GetCSharpExpectedDiagnostic(10, 7, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllProvider"));
+
+            VerifyBasic(@"
+Imports System
+Imports System.Collections.Generic
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic
+
+Class MyAnalyzer
+    Inherits DiagnosticAnalyzer
+
+    Sub Method(o As Object)
+        Dim c = DirectCast(o, CodeFixProvider)
+        Dim c2 = TypeOf o Is FixAllProvider
+    End Sub
+
+    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+        Get
+            Throw New NotImplementedException
+        End Get
+    End Property
+
+    Public Overrides Sub Initialize(context As AnalysisContext)
+    End Sub
+End Class
+",
+            // Test0.vb(10,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllProvider'.
+            GetBasicExpectedDiagnostic(10, 7, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllProvider"));
+        }
+
+        [Fact]
+        public void IndirectlyAccessedType_StaticMember_Diagnostic()
+        {
+            VerifyCSharp(@"
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using static Fixer;
+
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private string Value => FixerValue;
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}
+
+class Fixer : CodeFixProvider
+{
+    internal static readonly string FixerValue = ""something"";
+
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => throw new NotImplementedException();
+
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        return null;
+    }
+
+}
+",
+            // Test0.cs(12,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct and/or indirect accesses to type(s) 'Fixer', which access type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixContext, Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider'.
+            GetCSharpExpectedDiagnostic(12, 7, "MyAnalyzer", "Fixer", "Microsoft.CodeAnalysis.CodeFixes.CodeFixContext, Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider"));
+        }
+
+        [Fact]
+        public void IndirectlyAccessedType_ExtensionMethod_Diagnostic()
+        {
+            VerifyCSharp(@"
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using static FixerExtensions;
+
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    void M()
+    {
+        this.ExtensionMethod();
+    }
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}
+
+public static class FixerExtensions
+{
+    public static void ExtensionMethod(this DiagnosticAnalyzer analyzer)
+    {
+        CodeFixProvider c = null;
+    }
+}
+",
+            // Test0.cs(11,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct and/or indirect accesses to type(s) 'FixerExtensions', which access type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider'.
+            GetCSharpExpectedDiagnostic(11, 7, "MyAnalyzer", "FixerExtensions", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider"));
+
+            VerifyBasic(@"
+Imports System
+Imports System.Collections.Generic
+Imports System.Collections.Immutable
+Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic
+Imports FixerExtensions
+
+Class MyAnalyzer
+    Inherits DiagnosticAnalyzer
+
+    Private Sub M()
+        Me.ExtensionMethod()
+    End Sub
+
+    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+        Get
+            Throw New NotImplementedException
+        End Get
+    End Property
+
+    Public Overrides Sub Initialize(context As AnalysisContext)
+    End Sub
+End Class
+
+Module FixerExtensions
+    <Extension()>
+    Sub ExtensionMethod(analyzer As DiagnosticAnalyzer)
+        Dim c As CodeFixProvider = Nothing
+    End Sub
+End Module
+",
+            // Test0.vb(12,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct and/or indirect accesses to type(s) 'FixerExtensions', which access type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider'.
+            GetBasicExpectedDiagnostic(12, 7, "MyAnalyzer", "FixerExtensions", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider"));
+        }
+
+        [Fact]
         public void IndirectlyAccessedType_InvokedFromAnalyzer_Diagnostic()
         {
             VerifyCSharp(@"

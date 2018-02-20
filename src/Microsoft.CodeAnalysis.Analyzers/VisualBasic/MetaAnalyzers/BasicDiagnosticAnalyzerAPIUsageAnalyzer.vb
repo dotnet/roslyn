@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
 
         Protected Overrides Function IsNamedTypeDeclarationBlock(syntax As SyntaxNode) As Boolean
             Select Case syntax.Kind()
-                Case SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.EnumBlock, SyntaxKind.InterfaceBlock
+                Case SyntaxKind.ModuleBlock, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.EnumBlock, SyntaxKind.InterfaceBlock
                     Return True
 
                 Case Else

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System;
 using System.Diagnostics;
-using System.Text;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
@@ -176,25 +176,83 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 // GetSyntax for VB returns the StatementSyntax instead of BlockSyntax node.
                 syntax = syntax.FirstAncestorOrSelf<SyntaxNode>(node => IsNamedTypeDeclarationBlock(node), ascendOutOfTrivia: false);
 
-                Func<SyntaxNode, bool> descendantIntoChildren = node => ReferenceEquals(node, syntax) || !IsNamedTypeDeclarationBlock(node);
                 var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
-                foreach (TTypeSyntax typeSyntax in syntax.DescendantNodes(descendantIntoChildren).OfType<TTypeSyntax>())
-                {
-                    var typeInfo = semanticModel.GetTypeInfo(typeSyntax, cancellationToken);
-                    if (typeInfo.Type is INamedTypeSymbol usedType)
-                    {
-                        builder.Add(usedType);
+                var nodesToProcess = new Queue<(SyntaxNode node, bool inExecutableCode)>();
+                nodesToProcess.Enqueue((node: syntax, inExecutableCode: false));
 
-                        if (!hasAccessToTypeFromWorkspaceAssemblies &&
-                            s_WorkspaceAssemblyNames.Contains(usedType.ContainingAssembly.Name))
+                do
+                {
+                    (SyntaxNode node, bool inExecutableCode) nodeToProcess = nodesToProcess.Dequeue();
+                    var node = nodeToProcess.node;
+                    var inExecutableCode = nodeToProcess.inExecutableCode;
+                    if (!inExecutableCode && !ReferenceEquals(node, syntax) && IsNamedTypeDeclarationBlock(node))
+                    {
+                        // Skip type member declarations.
+                        continue;
+                    }
+
+                    if (node is TTypeSyntax typeSyntax)
+                    {
+                        var typeInfo = semanticModel.GetTypeInfo(typeSyntax, cancellationToken);
+                        AddUsedNamedTypeCore(typeInfo.Type, builder, ref hasAccessToTypeFromWorkspaceAssemblies);
+                    }
+
+                    if (!inExecutableCode)
+                    {
+                        var operationBlock = semanticModel.GetOperation(node, cancellationToken);
+                        if (operationBlock != null)
                         {
-                            hasAccessToTypeFromWorkspaceAssemblies = true;
+                            // Add used types within executable code in the operation tree.
+                            inExecutableCode = true;
+                            foreach (var operation in operationBlock.DescendantsAndSelf())
+                            {
+                                AddUsedNamedTypeCore(operation.Type, builder, ref hasAccessToTypeFromWorkspaceAssemblies);
+
+                                // Handle static member accesses specially as there is no operation for static type off which the member is accessed.
+                                if (operation is IMemberReferenceOperation memberReference &&
+                                    memberReference.Member.IsStatic)
+                                {
+                                    AddUsedNamedTypeCore(memberReference.Member.ContainingType, builder, ref hasAccessToTypeFromWorkspaceAssemblies);
+                                }
+                                else if (operation is IInvocationOperation invocation &&
+                                    (invocation.TargetMethod.IsStatic || invocation.TargetMethod.IsExtensionMethod))
+                                {
+                                    AddUsedNamedTypeCore(invocation.TargetMethod.ContainingType, builder, ref hasAccessToTypeFromWorkspaceAssemblies);
+                                }
+                            }
                         }
                     }
-                }
+
+                    foreach (var child in node.ChildNodes())
+                    {
+                        nodesToProcess.Enqueue((child, inExecutableCode));
+                    }
+                } while (nodesToProcess.Count != 0);
             }
 
             return builder.ToImmutable();
+        }
+
+        private static void AddUsedNamedTypeCore(ITypeSymbol typeOpt, ImmutableHashSet<INamedTypeSymbol>.Builder builder, ref bool hasAccessToTypeFromWorkspaceAssemblies)
+        {
+            if (typeOpt is INamedTypeSymbol usedType)
+            {
+                builder.Add(usedType);
+
+                if (!hasAccessToTypeFromWorkspaceAssemblies &&
+                    s_WorkspaceAssemblyNames.Contains(usedType.ContainingAssembly.Name))
+                {
+                    hasAccessToTypeFromWorkspaceAssemblies = true;
+                }
+
+                if (usedType.IsGenericType)
+                {
+                    foreach (var type in usedType.TypeArguments)
+                    {
+                        AddUsedNamedTypeCore(type, builder, ref hasAccessToTypeFromWorkspaceAssemblies);
+                    }
+                }
+            }
         }
     }
 }
