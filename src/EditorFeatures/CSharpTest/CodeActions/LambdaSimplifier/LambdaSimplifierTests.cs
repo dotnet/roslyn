@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.LambdaSimpl
     public class LambdaSimplifierTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return (new LambdaSimplifierDiagnosticAnalyzer(), new LambdaSimplifierCodeFixProvider());
-        }
+            => (new LambdaSimplifierDiagnosticAnalyzer(), new LambdaSimplifierCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll1()
@@ -35,7 +33,7 @@ class C
 }",
 @"using System;
 class C
-{ 
+{
     void Foo()
     {
         Bar(Quux);
@@ -120,7 +118,7 @@ class C
 { 
     void Foo()
     {
-        Bar(Quux); 
+        Bar(Quux);
     }
     void Bar(Func<string, string> f);
     object Quux(object o);
@@ -491,7 +489,7 @@ class Program
 {
     static void Main()
     {
-        Action a = Console.WriteLine;
+        Action a =             Console.WriteLine;
     }
 }");
         }

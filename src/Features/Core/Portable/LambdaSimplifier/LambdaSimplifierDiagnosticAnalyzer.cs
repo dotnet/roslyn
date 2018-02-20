@@ -89,16 +89,25 @@ namespace Microsoft.CodeAnalysis.LambdaSimplifier
         public static IInvocationOperation TryGetInvocationExpression(IAnonymousFunctionOperation lambdaExpression)
         {
             var body = lambdaExpression?.Body;
-            if (body?.Operations.Length != 1)
+            if (body == null)
             {
                 return null;
             }
 
-            var firstStatement = body.Operations[0];
+            var nonImplicitOps = body.Operations.Where(o => !IsImplicitEmptyReturn(o)).ToImmutableArray();
+            if (nonImplicitOps.Length != 1)
+            {
+                return null;
+            }
+
+            var firstStatement = nonImplicitOps[0];
             return lambdaExpression.Symbol.ReturnsVoid
                 ? TryGetInvocationExpressionForSubLambda(firstStatement)
                 : TryGetInvocationExpressionForFuncLambda(firstStatement);
         }
+
+        private static bool IsImplicitEmptyReturn(IOperation operation)
+            => operation.IsImplicit && operation is IReturnOperation returnOp && returnOp.ReturnedValue == null;
 
         private static IInvocationOperation TryGetInvocationExpressionForSubLambda(
             IOperation operation)
