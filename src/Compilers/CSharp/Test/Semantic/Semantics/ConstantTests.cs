@@ -2977,8 +2977,52 @@ void f() { if () const int i = 0; }
                 //             case (object)"b":
                 Diagnostic(ErrorCode.ERR_ConstantExpected, @"(object)""b""").WithLocation(23, 18));
         }
-    }
 
+        [Fact]
+        [WorkItem(24869, "https://github.com/dotnet/roslyn/issues/24869")]
+        public void TestSelfReferencingViaLambda()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    static void F(IEnumerable<C> c)
+    {
+        const int F =
+        c.Select(o => new { E = F });
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: new[] { LinqAssemblyRef });
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.IEnumerable<<anonymous type: int E>>' to 'int'
+                //         c.Select(o => new { E = F });
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.Select(o => new { E = F })").WithArguments("System.Collections.Generic.IEnumerable<<anonymous type: int E>>", "int").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(24869, "https://github.com/dotnet/roslyn/issues/24869")]
+        public void TestSelfReferencingViaLambda2()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    static void F(IEnumerable<C> c)
+    {
+        const int F = c.Sum(o => F);
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: new[] { LinqAssemblyRef });
+            comp.VerifyDiagnostics(
+                // (8,34): error CS0110: The evaluation of the constant value for 'F' involves a circular definition
+                //         const int F = c.Sum(o => F);
+                Diagnostic(ErrorCode.ERR_CircConstValue, "F").WithArguments("F").WithLocation(8, 34)
+                );
+        }
+    }
 
     internal sealed class BoundTreeSequencer : BoundTreeWalkerWithStackGuard
     {
