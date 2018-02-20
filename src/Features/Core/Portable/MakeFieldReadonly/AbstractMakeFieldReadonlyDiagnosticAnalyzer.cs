@@ -103,6 +103,11 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 if (IsDescendentOf<TConstructorDeclarationSyntax>(descendant, out var ctorNode))
                 {
                     var ctorSymbol = model.GetDeclaredSymbol(ctorNode);
+                    if (!ctorSymbol.ContainingType.Equals(symbol.ContainingType))
+                    {
+                        unassignedSymbols.Remove(symbol);
+                    }
+
                     if (!ctorSymbol.IsStatic && symbol.IsStatic)
                     {
                         unassignedSymbols.Remove(symbol);

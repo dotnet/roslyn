@@ -311,6 +311,36 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldAssignedInNestedTypeConstructor() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private [|_foo|] As Integer = 0
+    Class Derived
+        Inherits C
+
+        Sub New
+            _foo = 0
+        End Sub
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldAssignedInNestedTypeMethod() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private [|_foo|] As Integer = 0
+    Class Derived
+        Inherits C
+
+        Sub Method
+            _foo = 0
+        End Sub
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function VariableAssignedToFieldInMethod() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

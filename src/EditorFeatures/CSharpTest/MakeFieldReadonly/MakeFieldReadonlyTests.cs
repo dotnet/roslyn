@@ -328,6 +328,42 @@ $@"class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInNestedTypeConstructor()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_foo|];
+
+    class Derived : MyClass
+    {
+        Derived()
+        {
+            _foo = 1;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInNestedTypeMethod()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_foo|];
+
+    class Derived : MyClass
+    {
+        void Method()
+        {
+            _foo = 1;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task VariableAssignedToFieldInMethod()
         {
             await TestInRegularAndScriptAsync(
