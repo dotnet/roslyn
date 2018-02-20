@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             TargetFramework targetFramework = TargetFramework.Standard,
             string assemblyName = "") => CreateCompilationWithNone(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
 
-        public static CSharpCompilation CreateCompilationRaw(
+        public static CSharpCompilation CreateCompilationWithNone(
             IEnumerable<string> source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             var single = new[] { MscorlibRef };
             references = references != null ? single.Concat(references) : single;
-            return CreateCompilationRaw(
+            return CreateCompilationWithNone(
                 source.ToArray(),
                 references: (IEnumerable<MetadataReference>)references,
                 options: (CSharpCompilationOptions)options,
@@ -1217,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpanSrc(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var textWitSpan = new string[] { text, spanSource };
-            var comp = CreateCompilationRaw(
+            var comp = CreateCompilationWithNone(
                 textWitSpan,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: options ?? TestOptions.UnsafeReleaseDll,

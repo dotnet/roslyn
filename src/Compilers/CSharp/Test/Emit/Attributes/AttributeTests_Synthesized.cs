@@ -1514,11 +1514,11 @@ namespace System
             #endregion
 
             // Build an mscorlib including String
-            var mslibComp = CreateCompilationRaw(new string[] { mslib }).VerifyDiagnostics();
+            var mslibComp = CreateCompilationWithNone(new string[] { mslib }).VerifyDiagnostics();
             var mslibRef = mslibComp.EmitToImageReference();
 
             // Build an mscorlib without String
-            var mslibNoStringComp = CreateCompilationRaw(new string[] { mslibNoString }).VerifyDiagnostics();
+            var mslibNoStringComp = CreateCompilationWithNone(new string[] { mslibNoString }).VerifyDiagnostics();
             var mslibNoStringRef = mslibNoStringComp.EmitToImageReference();
 
             var diagLibSource = @"
@@ -1535,7 +1535,7 @@ namespace System.Runtime.CompilerServices
     public class CompilerGeneratedAttribute { } 
 }";
             // Build Diagnostics referencing mscorlib with String
-            var diagLibComp = CreateCompilationRaw(new string[] { diagLibSource }, references: new[] { mslibRef }).VerifyDiagnostics();
+            var diagLibComp = CreateCompilationWithNone(new string[] { diagLibSource }, references: new[] { mslibRef }).VerifyDiagnostics();
             var diagLibRef = diagLibComp.EmitToImageReference();
 
             // Create compilation using Diagnostics but referencing mscorlib without String

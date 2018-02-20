@@ -1376,7 +1376,7 @@ partial class Broken {
   class B2 : B {} // error: B not found
 }
 ";
-            var comp = CreateCompilationRaw(new[] { text1, text2 });
+            var comp = CreateCompilationWithNone(new[] { text1, text2 });
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var n2 = global.GetMembers("N2").Single() as NamespaceSymbol;

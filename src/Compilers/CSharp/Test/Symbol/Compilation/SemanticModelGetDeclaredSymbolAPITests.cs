@@ -3660,7 +3660,7 @@ class Program
         [Fact]
         public void SourceNamespaceSymbolMergeWithMetadata()
         {
-            var compilation = CreateCompilationRaw(new string[] {
+            var compilation = CreateCompilationWithNone(new string[] {
 @"namespace System {
     public partial class PartialClass 
     {

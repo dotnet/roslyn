@@ -3420,7 +3420,7 @@ class Program
 }";
             string expectedOutput = @"Convert(Call(null.[System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1), Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo)) Type:System.Delegate) Type:Del)";
 
-            var comp = CreateCompilationRaw(
+            var comp = CreateCompilationWithNone(
                 new[] { source, ExpressionTestLibrary },
                 new[] { MscorlibRef, SystemCoreRef },
                 TestOptions.ReleaseExe);

@@ -201,7 +201,7 @@ namespace NS.NS1 {
             var compRef1 = new CSharpCompilationReference(comp1);
             var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateCompilationRaw(new string[] { text3 }, references: new MetadataReference[] { compRef1, compRef2 }.ToList(), assemblyName: "Test3");
+            var comp = CreateCompilationWithNone(new string[] { text3 }, references: new MetadataReference[] { compRef1, compRef2 }.ToList(), assemblyName: "Test3");
             //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
             //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text3) },
             //                        references: new MetadataReference[] { compRef1, compRef2 });
