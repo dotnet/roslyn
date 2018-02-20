@@ -15531,7 +15531,7 @@ class M
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
                 // (6,16): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
                 //     object a = Test((dynamic)2);
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test").WithArguments("M.Test(object)").WithLocation(6, 16)
             );
         }
 
@@ -15622,7 +15622,7 @@ class M : B
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
                 // (16,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
                 //     public M() : base((object)Test((dynamic)2))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(16, 31)
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test").WithArguments("M.Test(object)").WithLocation(16, 31)
             );
         }
 
@@ -15655,7 +15655,7 @@ class M
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
                 // (8,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
                 //         Console.Write((object)Test((dynamic)2));
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(8, 31)
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test").WithArguments("M.Test(object)").WithLocation(8, 31)
             );
         }
 
@@ -15683,7 +15683,7 @@ class M
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
                 // (4,31): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
                 //     static object o = (object)Test((dynamic)2);
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test").WithArguments("M.Test(object)").WithLocation(4, 31)
             );
         }
 
@@ -15742,22 +15742,22 @@ class M
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
                 // (16,29): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     static int field = (int)InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
                 // (30,30): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     int instanceField = (int)InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(30, 30),
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(30, 30),
                 // (21,25): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //             return (int)InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(21, 25),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(21, 25),
                 // (26,21): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //         return (int)InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(26, 21),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(26, 21),
                 // (31,33): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     public C(int x) : base((int)InstanceMethod((dynamic)x))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)x)").WithArguments("C.InstanceMethod(int)").WithLocation(31, 33),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(31, 33),
                 // (34,28): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     public C() : this((int)InstanceMethod((dynamic)2))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
             );
         }
 
@@ -15821,22 +15821,22 @@ class M
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
                 // (16,29): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     static int field = (int)C.InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
                 // (30,30): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     int instanceField = (int)C.InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(30, 30),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(30, 30),
                 // (21,25): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //             return (int)C.InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(21, 25),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(21, 25),
                 // (26,21): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //         return (int)C.InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(26, 21),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(26, 21),
                 // (31,33): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     public C(int x) : base((int)C.InstanceMethod((dynamic)x))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)x)").WithArguments("C.InstanceMethod(int)").WithLocation(31, 33),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(31, 33),
                 // (34,28): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     public C() : this((int)C.InstanceMethod((dynamic)2))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
             );
         }
 

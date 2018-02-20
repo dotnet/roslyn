@@ -2607,7 +2607,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>#r is only allowed in scripts</value>
   </data>
   <data name="ERR_ForEachMissingMember" xml:space="preserve">
-    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</value>
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
   </data>
   <data name="WRN_BadXMLRefParamType" xml:space="preserve">
     <value>Invalid type for parameter {0} in XML comment cref attribute: '{1}'</value>

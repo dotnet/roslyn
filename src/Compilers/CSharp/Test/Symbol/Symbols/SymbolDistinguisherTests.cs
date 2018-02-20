@@ -609,9 +609,9 @@ public class C
                 // file.cs(6,15): warning CS0436: The type 'C' in 'file.cs' conflicts with the imported type 'C' in 'Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'file.cs'.
                 //         Lib.M<C>();
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "C").WithArguments("file.cs", "C", "Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C").WithLocation(6, 15),
-                // file.cs(6,9): error CS0311: The type 'C [file.cs(2)]' cannot be used as type parameter 'T' in the generic type or method 'Lib.M<T>()'. There is no implicit reference conversion from 'C [file.cs(2)]' to 'C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]'.
+                // file.cs(6,13): error CS0311: The type 'C [file.cs(2)]' cannot be used as type parameter 'T' in the generic type or method 'Lib.M<T>()'. There is no implicit reference conversion from 'C [file.cs(2)]' to 'C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]'.
                 //         Lib.M<C>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Lib.M<C>").WithArguments("Lib.M<T>()", "C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", "T", "C [file.cs(2)]").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<C>").WithArguments("Lib.M<T>()", "C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", "T", "C [file.cs(2)]").WithLocation(6, 13));
         }
 
         // Not relevant: will always have one nullable and one non-nullable.
@@ -643,9 +643,9 @@ public class Test<C> where C : struct
 
             var libRef = CreateStandardCompilation(libSource, assemblyName: "Metadata").EmitToImageReference();
             CreateStandardCompilation(Parse(source, "file.cs"), new[] { libRef }, assemblyName: "Source").VerifyDiagnostics(
-                // file.cs(6,9): error CS0314: The type 'C [file.cs(2)]' cannot be used as type parameter 'T' in the generic type or method 'Lib.M<T>()'. There is no boxing conversion or type parameter conversion from 'C [file.cs(2)]' to 'C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]'.
+                // file.cs(6,13): error CS0314: The type 'C [file.cs(2)]' cannot be used as type parameter 'T' in the generic type or method 'Lib.M<T>()'. There is no boxing conversion or type parameter conversion from 'C [file.cs(2)]' to 'C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]'.
                 //         Lib.M<C>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "Lib.M<C>").WithArguments("Lib.M<T>()", "C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", "T", "C [file.cs(2)]").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "M<C>").WithArguments("Lib.M<T>()", "C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", "T", "C [file.cs(2)]").WithLocation(6, 13));
         }
 
         [Fact]
@@ -677,9 +677,9 @@ public class Test
                 // file.cs(8,15): warning CS0436: The type 'C' in 'file.cs' conflicts with the imported type 'C' in 'Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'file.cs'.
                 //         Lib.M<C>();
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "C").WithArguments("file.cs", "C", "Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C").WithLocation(8, 15),
-                // file.cs(8,9): error CS0315: The type 'C [file.cs(2)]' cannot be used as type parameter 'T' in the generic type or method 'Lib.M<T>()'. There is no boxing conversion from 'C [file.cs(2)]' to 'C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]'.
+                // file.cs(8,13): error CS0315: The type 'C [file.cs(2)]' cannot be used as type parameter 'T' in the generic type or method 'Lib.M<T>()'. There is no boxing conversion from 'C [file.cs(2)]' to 'C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]'.
                 //         Lib.M<C>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Lib.M<C>").WithArguments("Lib.M<T>()", "C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", "T", "C [file.cs(2)]").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M<C>").WithArguments("Lib.M<T>()", "C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", "T", "C [file.cs(2)]").WithLocation(8, 13));
         }
 
         [WorkItem(6262, "https://github.com/dotnet/roslyn/issues/6262")]
