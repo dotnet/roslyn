@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -10,18 +9,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class BestTypeInferrer
     {
-        private readonly Conversions _conversions;
-
-        private BestTypeInferrer(Conversions conversions)
-        {
-            _conversions = conversions;
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): Remove includeNullability parameter. Nullability should be calculated in flow analysis.
         public static TypeSymbolWithAnnotations InferBestType(ImmutableArray<TypeSymbolWithAnnotations> types, Conversions conversions, bool includeNullability, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var inferrer = new BestTypeInferrer(conversions);
-            return inferrer.GetBestType(types, includeNullability, ref useSiteDiagnostics);
+            return GetBestType(types, conversions, includeNullability, ref useSiteDiagnostics);
+        }
+
+        internal static bool? GetIsNullable(ImmutableArray<TypeSymbolWithAnnotations> types)
+        {
+            bool isNullable = false;
+            foreach (var type in types)
+            {
+                if (type is null)
+                {
+                    // PROTOTYPE(NullableReferenceTypes): Should ignore untyped
+                    // expressions such as unbound lambdas and typeless tuples.
+                    // See StaticNullChecking.LocalVar_Array_02 test.
+                    isNullable = true;
+                    continue;
+                }
+                if (!type.IsReferenceType)
+                {
+                    return null;
+                }
+                switch (type.IsNullable)
+                {
+                    case null:
+                        return null;
+                    case true:
+                        isNullable = true;
+                        break;
+                }
+            }
+            return isNullable;
         }
 
         /// <remarks>
@@ -92,7 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return type1;
                 }
 
-                // PROTOTYPE(NullableReferenceTypes): Consider nullability in conversion.
                 if (conversions.ClassifyImplicitConversionFromExpression(expr2, type1.TypeSymbol, ref useSiteDiagnostics).Exists)
                 {
                     candidateTypes.Add(type1);
@@ -101,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var type2 = expr2.GetTypeAndNullability(includeNullability);
 
-            if ((object)type2 != null && !type2.Equals(type1, TypeCompareKind.ConsiderEverything))
+            if ((object)type2 != null)
             {
                 if (type2.IsErrorType())
                 {
@@ -110,7 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return type2;
                 }
 
-                // PROTOTYPE(NullableReferenceTypes): Consider nullability in conversion.
                 if (conversions.ClassifyImplicitConversionFromExpression(expr1, type2.TypeSymbol, ref useSiteDiagnostics).Exists)
                 {
                     candidateTypes.Add(type2);
@@ -122,10 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return InferBestType(candidateTypes.ToImmutableAndFree(), conversions, includeNullability, ref useSiteDiagnostics);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should be a two-pass approach
-        // similar to MethodTypeInferrer which compares with nullability and
-        // without and prefers the result with nullability.
-        private TypeSymbolWithAnnotations GetBestType(ImmutableArray<TypeSymbolWithAnnotations> types, bool includeNullability, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static TypeSymbolWithAnnotations GetBestType(ImmutableArray<TypeSymbolWithAnnotations> types, Conversions conversions, bool includeNullability, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // This code assumes that the types in the list are unique. 
 
@@ -155,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var better = Better(best, type, ref useSiteDiagnostics);
+                    var better = Better(best, type, conversions, ref useSiteDiagnostics);
 
                     if ((object)better == null)
                     {
@@ -179,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < bestIndex; i++)
             {
                 var type = types[i];
-                var better = Better(best, type, ref useSiteDiagnostics);
+                var better = Better(best, type, conversions, ref useSiteDiagnostics);
 
                 if (!best.Equals(better, TypeCompareKind.ConsiderEverything))
                 {
@@ -187,16 +201,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // If any of the types are null, the result should be nullable.
-            // PROTOTYPE(NullableReferenceTypes): Should ignore untyped
-            // expressions such as unbound lambdas and typeless tuples.
-            // See StaticNullChecking.LocalVar_Array_02 test.
+            // If any of the types are nullable, the result should be nullable.
             if (includeNullability &&
-                types.Any(t => (object)t == null) &&
                 best.IsReferenceType &&
                 best.IsNullable == false)
             {
-                best = best.AsNullableReferenceType();
+                best = TypeSymbolWithAnnotations.Create(best.TypeSymbol, GetIsNullable(types));
             }
 
             return best;
@@ -205,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns the better type amongst the two, with some possible modifications (dynamic/object or tuple names).
         /// </summary>
-        private TypeSymbolWithAnnotations Better(TypeSymbolWithAnnotations type1, TypeSymbolWithAnnotations type2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static TypeSymbolWithAnnotations Better(TypeSymbolWithAnnotations type1, TypeSymbolWithAnnotations type2, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Anything is better than an error sym.
             if (type1.IsErrorType())
@@ -218,8 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return type1;
             }
 
-            var t1tot2 = _conversions.ClassifyImplicitConversionFromType(type1.TypeSymbol, type2.TypeSymbol, ref useSiteDiagnostics).Exists;
-            var t2tot1 = _conversions.ClassifyImplicitConversionFromType(type2.TypeSymbol, type1.TypeSymbol, ref useSiteDiagnostics).Exists;
+            var t1tot2 = conversions.ClassifyImplicitConversionFromType(type1.TypeSymbol, type2.TypeSymbol, ref useSiteDiagnostics).Exists;
+            var t2tot1 = conversions.ClassifyImplicitConversionFromType(type2.TypeSymbol, type1.TypeSymbol, ref useSiteDiagnostics).Exists;
 
             if (t1tot2 && t2tot1)
             {
@@ -235,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (type1.Equals(type2, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
-                    return MethodTypeInferrer.Merge(type1, type2, _conversions.CorLibrary);
+                    return MethodTypeInferrer.Merge(type1, type2, conversions.CorLibrary);
                 }
 
                 return null;
