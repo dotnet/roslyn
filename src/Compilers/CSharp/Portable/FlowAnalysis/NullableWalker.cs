@@ -1233,10 +1233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-//#if DEBUG
-//                Debug.Assert((object)leftType == null || AreCloseEnough(leftType.TypeSymbol, node.Type));
-//                Debug.Assert((object)rightType == null || AreCloseEnough(rightType.TypeSymbol, node.Type));
-//#endif
+#if DEBUG
+                //Debug.Assert((object)leftType == null || AreCloseEnough(leftType.TypeSymbol, node.Type));
+                //Debug.Assert((object)rightType == null || AreCloseEnough(rightType.TypeSymbol, node.Type));
+#endif
 
                 // PROTOTYPE(NullableReferenceTypes): Capture in BindNullCoalescingOperator
                 // which side provides type and use that to determine nullability.
