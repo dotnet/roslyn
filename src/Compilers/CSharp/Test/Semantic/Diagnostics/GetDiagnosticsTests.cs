@@ -298,7 +298,7 @@ namespace N1
         [Fact]
         public void TestEventQueueCompletionForEmptyCompilation()
         {
-            var compilation = CreateCompilationWithMscorlib45(SpecializedCollections.EmptyEnumerable<SyntaxTree>()).WithEventQueue(new AsyncQueue<CompilationEvent>());
+            var compilation = CreateCompilationWithMscorlib45(CSharpTestSource.None).WithEventQueue(new AsyncQueue<CompilationEvent>());
 
             // Force complete compilation event queue
             var unused = compilation.GetDiagnostics();

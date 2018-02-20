@@ -743,7 +743,7 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
             var r2 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(filePath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
             var r2_SysCore = r2.WithAliases(new[] { "SysCore" });
 
-            var compilation = CreateCompilationWithNone(new List<SyntaxTree> { tree }, new[] { MscorlibRef, r1, r2_SysCore }, new CSharpCompilationOptions(OutputKind.ConsoleApplication), "Test");
+            var compilation = CreateCompilationWithNone(tree, new[] { MscorlibRef, r1, r2_SysCore }, new CSharpCompilationOptions(OutputKind.ConsoleApplication), assemblyName: "Test");
             CompileAndVerify(compilation, expectedOutput: "k");
         }
 

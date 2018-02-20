@@ -79,8 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                     new CSharpCompilationReference(localType1)
                 });
 
-
-            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy3", source: (IEnumerable<string>)null,
+            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy3", source: CSharpTestSource.None,
                 references: new MetadataReference[]
                 {
                     TestReferences.SymbolsTests.NoPia.GeneralPiaCopy,
@@ -312,7 +311,7 @@ static class TypeSubstitution
         {
             //Check type substitution when a class implement a PIA interface
 
-            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy", source: (IEnumerable<string>)null,
+            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy", source: CSharpTestSource.None,
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
@@ -334,7 +333,7 @@ static class TypeSubstitution
         {
             //Check type substitution for a method of a class that implement PIA interface
 
-            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy", source: (IEnumerable<string>)null,
+            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy", source: CSharpTestSource.None,
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
@@ -354,7 +353,7 @@ static class TypeSubstitution
         {
             //NoPiaAmbiguousCanonicalTypeSymbol for the corresponding interface type. 
 
-            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy", source: (IEnumerable<string>)null,
+            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy", source: CSharpTestSource.None,
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPiaCopy,

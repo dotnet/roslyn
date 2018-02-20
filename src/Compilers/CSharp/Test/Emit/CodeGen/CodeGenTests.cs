@@ -447,7 +447,7 @@ class C
     }
 }";
             var tree = Parse(source);
-            var compilation = CreateCompilationWithNone(new List<SyntaxTree> { tree }, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, "Test");
+            var compilation = CreateCompilationWithNone(tree, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, assemblyName: "Test");
             CompileAndVerify(compilation, expectedOutput: "k");
         }
 

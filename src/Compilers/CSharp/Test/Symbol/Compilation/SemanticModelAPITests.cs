@@ -703,7 +703,7 @@ partial class Partial001
 ";
             var tree1 = Parse(text1);
             var tree2 = Parse(text2);
-            var comp = CreateCompilation(new List<SyntaxTree> { tree1, tree2 });
+            var comp = CreateCompilation(new[] { tree1, tree2 });
 
             var model1 = comp.GetSemanticModel(tree1);
             var model2 = comp.GetSemanticModel(tree2);
