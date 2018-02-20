@@ -592,7 +592,7 @@ class C
         }
 
         [Fact]
-        public void TestSimpleTypelessTupleAndTupleType()
+        public void TestSimpleTupleAndTupleType()
         {
             var source = @"
 class C
@@ -618,7 +618,7 @@ class C
         }
 
         [Fact]
-        public void TestNestedTypelessTupleAndTupleType()
+        public void TestNestedTupleAndTupleType()
         {
             var source = @"
 class C
@@ -645,7 +645,7 @@ class C
         }
 
         [Fact]
-        public void TestTypelessTupleAndTupleType2()
+        public void TestTypelessTupleAndTupleType()
         {
             var source = @"
 class C

@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return outerSequence;
         }
 
-        private BoundExpression WithoutImplicitNullableConversions(BoundExpression expr)
+        private static BoundExpression WithoutImplicitNullableConversions(BoundExpression expr)
         {
             while (true)
             {
@@ -161,9 +161,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression MakeTemp(BoundExpression expression, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
+        private BoundExpression MakeTemp(BoundExpression loweredExpression, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
         {
-            BoundLocal temp = _factory.StoreToTemp(VisitExpression(expression), out BoundAssignmentOperator assignmentToTemp);
+            BoundLocal temp = _factory.StoreToTemp(loweredExpression, out BoundAssignmentOperator assignmentToTemp);
             effects.Add(assignmentToTemp);
             temps.Add(temp.LocalSymbol);
             return temp;
