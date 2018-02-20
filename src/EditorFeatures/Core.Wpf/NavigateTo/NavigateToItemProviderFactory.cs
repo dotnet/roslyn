@@ -15,15 +15,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         private readonly IAsynchronousOperationListener _asyncListener;
 
         [ImportingConstructor]
-        public NavigateToItemProviderFactory(
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+        public NavigateToItemProviderFactory(IAsynchronousOperationListenerProvider listenerProvider)
         {
-            if (asyncListeners == null)
+            if (listenerProvider == null)
             {
-                throw new ArgumentNullException(nameof(asyncListeners));
+                throw new ArgumentNullException(nameof(listenerProvider));
             }
 
-            _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.NavigateTo);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigateTo);
         }
 
         public bool TryCreateNavigateToItemProvider(IServiceProvider serviceProvider, out INavigateToItemProvider provider)

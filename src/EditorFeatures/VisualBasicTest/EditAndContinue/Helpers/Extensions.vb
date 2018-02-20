@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
             VisualBasicEditAndContinueTestHelpers.Instance.VerifyUnchangedDocument(
                 ActiveStatementsDescription.ClearTags(source),
-                description.OldSpans,
+                description.OldStatements,
                 description.OldTrackingSpans,
                 description.NewSpans,
                 description.OldRegions,

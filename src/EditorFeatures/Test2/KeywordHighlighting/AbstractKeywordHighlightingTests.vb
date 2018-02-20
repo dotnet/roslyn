@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 Dim tagProducer = New HighlighterViewTaggerProvider(
                     highlightingService,
                     workspace.GetService(Of IForegroundNotificationService),
-                    AggregateAsynchronousOperationListener.EmptyListeners)
+                    AsynchronousOperationListenerProvider.NullProvider)
 
                 Dim context = New TaggerContext(Of KeywordHighlightTag)(document, snapshot, New SnapshotPoint(snapshot, caretPosition))
                 Await tagProducer.ProduceTagsAsync_ForTestingPurposesOnly(context)

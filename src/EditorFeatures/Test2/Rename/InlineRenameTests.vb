@@ -861,7 +861,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/15225")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VerifyRenameTrackingWorksAfterInlineRenameCommit() As Task
             Using workspace = CreateWorkspaceWithWaiter(
