@@ -3320,12 +3320,6 @@ parse_member_name:;
             SyntaxKind expected,
             out GreenNode trailingTrivia)
         {
-            if (abortFunction(this))
-            {
-                trailingTrivia = null;
-                return PostSkipAction.Abort;
-            }
-
             var nodes = _pool.Allocate();
             try
             {
@@ -5437,7 +5431,7 @@ tryAgain:
             CSharpSyntaxNode tmp = null;
             Debug.Assert(list.Count > 0);
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
-                p => this.CurrentToken.Kind != SyntaxKind.CommaToken && !this.IsPossibleType(),
+                p => this.CurrentToken.Kind != SyntaxKind.CommaToken && !this.IsPossibleTypeInTypeArgumentList(),
                 p => this.CurrentToken.Kind == SyntaxKind.GreaterThanToken || this.IsTerminator(),
                 expected);
         }
