@@ -274,15 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return finalConversion;
         }
 
-        internal static bool RequiresLiftedUserDefinedConversion(MethodSymbol conversionMethod, TypeSymbol operandType)
-        {
-            var parameterType = conversionMethod.ParameterTypes[0].TypeSymbol;
-            return operandType.IsNullableType() &&
-                parameterType.Equals(operandType.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions) &&
-                !parameterType.IsNullableType() &&
-                parameterType.IsValueType;
-        }
-
         private static BoundExpression CreateAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful anonymous function conversion; rather than producing a node

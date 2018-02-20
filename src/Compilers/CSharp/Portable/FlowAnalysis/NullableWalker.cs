@@ -1821,22 +1821,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var methodOpt = conversion.Method;
                     if ((object)methodOpt != null && methodOpt.ParameterCount == 1)
                     {
-                        if (Binder.RequiresLiftedUserDefinedConversion(methodOpt, operandType.TypeSymbol))
+                        if (conversion.BestUserDefinedConversionAnalysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInLiftedForm)
                         {
                             // PROTOTYPE(NullableReferenceTypes): Conversions: Lifted operator
                             break;
                         }
                         // PROTOTYPE(NullableReferenceTypes): Update method based on operandType.
                         var resultType = methodOpt.ReturnType;
-                        // Ensure converted type matches expected ToType, specifically for lifted
-                        // conversions. See LocalRewriter.MakeConversionNode for similar handling.
+                        // Ensure converted type matches expected target type, specifically for lifted
+                        // conversions. See LocalRewriter.MakeConversionNode for similar handling
+                        // based on conversion.BestUserDefinedConversionAnalysis.ToType.
                         if (!fromConversionNode)
                         {
-                            var toType = conversion.BestUserDefinedConversionAnalysis.ToType;
-                            if (resultType.TypeSymbol != toType)
+                            if (resultType.TypeSymbol != targetType)
                             {
                                 // PROTOTYPE(NullableReferenceTypes): Should handle nested nullability.
-                                resultType = TypeSymbolWithAnnotations.Create(toType);
+                                resultType = TypeSymbolWithAnnotations.Create(targetType);
                             }
                         }
                         return resultType;
