@@ -1109,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // if feature was enabled but somethng went wrong with the method, report that
+                        // if the feature was enabled but something went wrong with the method, report that
                         bool extensibleFixedEnabled = ((CSharpParseOptions)initializerOpt.SyntaxTree.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureExtensibleFixedStatement) != false;
                         if (extensibleFixedEnabled && additionalDiagnostics != null)
                         {

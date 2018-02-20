@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// <![CDATA[
-        /// fixed(int* ptr = &amp;v){ ... }    == becomes ===>
+        /// fixed(int* ptr = &v){ ... }    == becomes ===>
         /// 
         /// pinned ref int pinnedTemp = ref v;    // pinning managed ref
         /// int* ptr = (int*)&pinnedTemp;         // unsafe cast to unmanaged ptr
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // pinnedTemp = ref v;
             BoundStatement pinnedTempInit = factory.Assignment(factory.Local(pinnedTemp), initializerExpr, isRef: true);
 
-            // &pinnedTemp;
+            // &pinnedTemp
             var addr = new BoundAddressOfOperator(
                 factory.Syntax,
                  factory.Local(pinnedTemp),
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// <![CDATA[
-        /// fixed(int* ptr = &amp;v){ ... }    == becomes ===>
+        /// fixed(int* ptr = &v){ ... }    == becomes ===>
         /// 
         /// pinned ref int pinnedTemp = ref v;    // pinning managed ref
         /// int* ptr = (int*)&pinnedTemp;         // unsafe cast to unmanaged ptr
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 getPinnableCall,
                 isRef: true);
 
-            // &pinnedTemp;
+            // &pinnedTemp
             var addr = new BoundAddressOfOperator(
                 factory.Syntax,
                 factory.Local(pinnedTemp),
@@ -464,13 +464,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// <![CDATA[
         /// fixed(int* ptr = arr){ ... }    == becomes ===>
         /// 
         /// pinned int[] pinnedTemp = arr;         // pinning managed ref
-        /// int* ptr = pinnedTemp != null &amp;&amp; pinnedTemp.Length != 0
-        ///                (int*)&amp;pinnedTemp[0]:   // unsafe cast to unmanaged ptr
+        /// int* ptr = pinnedTemp != null && pinnedTemp.Length != 0
+        ///                (int*)&pinnedTemp[0]:   // unsafe cast to unmanaged ptr
         ///                0;
         ///   . . . 
+        ///   ]]>
         /// </summary>
         private BoundStatement InitializeFixedStatementArrayLocal(
             BoundLocalDeclaration localDecl,
