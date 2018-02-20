@@ -36,8 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         private List<string> _csharpTypeKindList;
         private List<string> _visualBasicTypeKindList;
 
-        private string _csharpExtension = ".cs";
-        private string _visualBasicExtension = ".vb";
+        private readonly string _csharpExtension = ".cs";
+        private readonly string _visualBasicExtension = ".vb";
 
         // reserved names that cannot be a folder name or filename
         private string[] _reservedKeywords = new string[]
@@ -817,7 +817,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
         public class DocumentSelectItem
         {
-            private Document _document;
+            private readonly Document _document;
             public Document Document
             {
                 get
@@ -826,7 +826,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 }
             }
 
-            private string _name;
+            private readonly string _name;
             public string Name
             {
                 get

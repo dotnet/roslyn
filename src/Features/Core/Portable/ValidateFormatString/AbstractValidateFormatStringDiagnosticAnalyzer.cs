@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             FeaturesResources.ResourceManager,
             typeof(FeaturesResources));
 
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticID,
             Title,
             MessageFormat,

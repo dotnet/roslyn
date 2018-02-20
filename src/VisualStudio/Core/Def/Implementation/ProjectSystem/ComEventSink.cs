@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private class ComEventSinkImpl : IComEventSink
         {
             private IConnectionPoint _connectionPoint;
-            private uint _cookie;
+            private readonly uint _cookie;
             private bool _unadvised;
 
             public ComEventSinkImpl(IConnectionPoint connectionPoint, uint cookie)

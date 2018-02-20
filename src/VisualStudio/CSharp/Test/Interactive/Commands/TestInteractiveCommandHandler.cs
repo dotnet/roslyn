@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
     internal class TestInteractiveCommandHandler : InteractiveCommandHandler
     {
-        private IInteractiveWindow _interactiveWindow;
+        private readonly IInteractiveWindow _interactiveWindow;
 
-        private ISendToInteractiveSubmissionProvider _sendToInteractiveSubmissionProvider;
+        private readonly ISendToInteractiveSubmissionProvider _sendToInteractiveSubmissionProvider;
 
         public TestInteractiveCommandHandler(
             IInteractiveWindow interactiveWindow,

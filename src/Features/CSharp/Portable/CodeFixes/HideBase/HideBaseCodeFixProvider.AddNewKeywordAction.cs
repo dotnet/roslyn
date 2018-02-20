@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
         private class AddNewKeywordAction : CodeActions.CodeAction
         {
             private Document _document;
-            private SyntaxNode _node;
+            private readonly SyntaxNode _node;
 
             public override string Title => CSharpFeaturesResources.Hide_base_member;
 

@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private IComponentModel _componentModel;
         private IWpfTextViewHost _textViewHost;
 
-        private IContentType _contentType;
+        private readonly IContentType _contentType;
         private IEditorOptionsFactoryService _editorOptions;
         private ITextEditorFactoryService _textEditorFactoryService;
         private ITextBufferFactoryService _textBufferFactoryService;

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
     {
         public InteractiveWindowTestHost TestHost { get; }
 
-        private InteractiveCommandHandler _commandHandler;
+        private readonly InteractiveCommandHandler _commandHandler;
 
         public ITextView WindowTextView => TestHost.Window.TextView;
 

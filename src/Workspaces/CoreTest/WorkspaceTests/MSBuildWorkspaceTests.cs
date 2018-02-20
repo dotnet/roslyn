@@ -1060,7 +1060,7 @@ class C1
             });
         }
 
-        private HostServices _hostServicesWithoutCSharp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp")));
+        private readonly HostServices _hostServicesWithoutCSharp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp")));
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]

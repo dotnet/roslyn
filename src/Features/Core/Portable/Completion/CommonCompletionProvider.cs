@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return Task.FromResult<TextChange?>(null);
         }
 
-        private static CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
+        private static readonly CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
         protected CompletionItem CreateSuggestionModeItem(string displayText, string description)
         {

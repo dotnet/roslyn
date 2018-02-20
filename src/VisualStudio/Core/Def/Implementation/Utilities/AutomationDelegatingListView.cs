@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
     {
         private CheckBoxAutomationPeer checkBoxItem;
         private RadioButtonAutomationPeer radioButtonItem;
-        private TextBlockAutomationPeer textBlockItem;
+        private readonly TextBlockAutomationPeer textBlockItem;
 
         public AutomationDelegatingListViewItemAutomationPeer(AutomationDelegatingListViewItem listViewItem)
             : base(listViewItem) 

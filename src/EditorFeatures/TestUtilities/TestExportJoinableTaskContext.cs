@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     internal class TestExportJoinableTaskContext : ForegroundThreadAffinitizedObject
     {
         [Export]
-        private JoinableTaskContext _joinableTaskContext = new JoinableTaskContext(
+        private readonly JoinableTaskContext _joinableTaskContext = new JoinableTaskContext(
             mainThread: ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Thread);
     }
 }

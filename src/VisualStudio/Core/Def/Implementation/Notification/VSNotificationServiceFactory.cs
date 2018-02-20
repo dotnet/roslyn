@@ -15,9 +15,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
     [ExportWorkspaceServiceFactory(typeof(INotificationService), ServiceLayer.Host), Shared]
     internal class VSNotificationServiceFactory : IWorkspaceServiceFactory
     {
-        private IVsUIShell _uiShellService;
+        private readonly IVsUIShell _uiShellService;
 
-        private static object s_gate = new object();
+        private static readonly object s_gate = new object();
 
         private static VSDialogService s_singleton;
 

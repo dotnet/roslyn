@@ -28,12 +28,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal static partial class DependentTypeFinder
     {
-        private static Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
-        private static Func<Location, bool> s_isInSource = loc => loc.IsInSource;
-
-        private static Func<INamedTypeSymbol, bool> s_isNonSealedClass =
-            t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
-
+        private static readonly Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
+        private static readonly Func<Location, bool> s_isInSource = loc => loc.IsInSource;
+        private static readonly Func<INamedTypeSymbol, bool> s_isNonSealedClass = t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
         private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass =
             t => t.TypeKind == TypeKind.Interface || s_isNonSealedClass(t);
 

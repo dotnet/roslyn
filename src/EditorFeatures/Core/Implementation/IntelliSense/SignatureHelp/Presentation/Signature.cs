@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         private string _content;
         public string Content => InitializedThis._content;
 
-        private int _parameterIndex = -1;
+        private readonly int _parameterIndex = -1;
         public IParameter CurrentParameter
         {
             get

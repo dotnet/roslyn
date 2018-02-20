@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         internal class PreviewTagger : ITagger<HighlightTag>
         {
             private ITextBuffer _textBuffer;
-            private ITextView _textView;
+            private readonly ITextView _textView;
 
             public PreviewTagger(ITextView textView, ITextBuffer textBuffer)
             {

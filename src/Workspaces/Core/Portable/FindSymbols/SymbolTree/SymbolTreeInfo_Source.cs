@@ -178,8 +178,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static Action<ISymbol, MultiDictionary<string, ISymbol>> s_getMembersNoPrivate =
-            (symbol, symbolMap) => AddSymbol(symbol, symbolMap, s_useSymbolNoPrivate);
+        private static readonly Action<ISymbol, MultiDictionary<string, ISymbol>> s_getMembersNoPrivate = (symbol, symbolMap) => AddSymbol(symbol, symbolMap, s_useSymbolNoPrivate);
 
         private static void AddSymbol(ISymbol symbol, MultiDictionary<string, ISymbol> symbolMap, Func<ISymbol, bool> useSymbol)
         {

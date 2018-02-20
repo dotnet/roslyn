@@ -190,8 +190,8 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             {
                 private readonly VisualBasicProjectFile _projectFile;
                 private bool _initialized;
-                private string _projectDirectory;
-                private string _outputDirectory;
+                private readonly string _projectDirectory;
+                private readonly string _outputDirectory;
                 private List<string> _commandLineArgs;
                 private IEnumerable<MSB.Framework.ITaskItem> _sources;
                 private IEnumerable<MSB.Framework.ITaskItem> _additionalFiles;

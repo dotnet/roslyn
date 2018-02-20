@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         int IIntervalIntrospector<TextChange>.GetStart(TextChange value) => value.Span.Start;
         int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
 
-        private static Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
+        private static readonly Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
             _ => new ConcurrentBag<(CodeAction, Document)>();
 
         private async Task GetChangedDocumentsAsync(

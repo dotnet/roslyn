@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private readonly AsynchronousSerialWorkQueue _workQueue;
 
             private readonly AbstractAsynchronousTaggerProvider<TTag> _dataSource;
-
-            private IEqualityComparer<ITagSpan<TTag>> _tagSpanComparer;
+            private readonly IEqualityComparer<ITagSpan<TTag>> _tagSpanComparer;
 
             /// <summary>
             /// async operation notifier

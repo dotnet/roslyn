@@ -23,10 +23,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     internal struct HACK_VariantStructure
     {
         [FieldOffset(0)]
-        private short _type;
+        private readonly short _type;
 
         [FieldOffset(8)]
-        private short _booleanValue;
+        private readonly short _booleanValue;
 
         public unsafe object ConvertToObject()
         {

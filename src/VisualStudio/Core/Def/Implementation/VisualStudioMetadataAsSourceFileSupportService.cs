@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal sealed class VisualStudioMetadataAsSourceFileSupportService : IVsSolutionEvents
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-        private uint _eventCookie;
+        private readonly uint _eventCookie;
 
         [ImportingConstructor]
         public VisualStudioMetadataAsSourceFileSupportService(SVsServiceProvider serviceProvider, IMetadataAsSourceFileService metadataAsSourceFileService)

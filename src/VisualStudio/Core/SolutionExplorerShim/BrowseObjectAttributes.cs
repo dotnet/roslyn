@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [AttributeUsage(AttributeTargets.Property)]
     internal sealed class BrowseObjectDisplayNameAttribute : DisplayNameAttribute
     {
-        private string m_key;
+        private readonly string m_key;
         private bool m_initialized;
 
         public BrowseObjectDisplayNameAttribute(string key)

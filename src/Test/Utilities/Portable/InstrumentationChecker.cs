@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Runtime
     /// </summary>
     public sealed class VBInstrumentationChecker : BaseInstrumentationChecker
     {
-        private string tab = "    ";
+        private readonly string tab = "    ";
 
         public XCData ExpectedOutput { get { return new XCData(_consoleExpectations.ToString()); } }
 

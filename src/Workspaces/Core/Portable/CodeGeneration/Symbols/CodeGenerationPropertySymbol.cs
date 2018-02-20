@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationPropertySymbol : CodeGenerationSymbol, IPropertySymbol
     {
-        private RefKind _refKind;
+        private readonly RefKind _refKind;
         public ITypeSymbol Type { get; }
         public bool IsIndexer { get; }
 

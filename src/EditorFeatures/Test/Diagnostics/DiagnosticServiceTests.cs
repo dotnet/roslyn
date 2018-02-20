@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
         {
-            private bool _support;
+            private readonly bool _support;
             private ImmutableArray<DiagnosticData> _diagnosticData;
 
             public TestDiagnosticUpdateSource(bool support, DiagnosticData[] diagnosticData)

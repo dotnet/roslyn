@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         private ComHandle<EnvDTE.FileCodeModel, FileCodeModel> _fileCodeModel;
-        private SyntaxNodeKey _nodeKey;
+        private readonly SyntaxNodeKey _nodeKey;
 
         private BasesCollection(
             CodeModelState state,

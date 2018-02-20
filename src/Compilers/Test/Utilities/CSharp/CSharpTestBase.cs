@@ -1215,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return comp;
         }
 
-        private static string spanSource = @"
+        private static readonly string spanSource = @"
 namespace System
     {
         public readonly ref struct Span<T>

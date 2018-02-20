@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Used to distinguish the default instance from one created by <see cref="Boost()"/>.
         /// </summary>
-        private bool _isBoosted;
+        private readonly bool _isBoosted;
 
         private UserOperationBooster(bool isBoosted)
         {
