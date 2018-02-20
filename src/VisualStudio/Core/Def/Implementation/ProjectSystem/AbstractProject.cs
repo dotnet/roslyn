@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -37,6 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal abstract partial class AbstractProject : ForegroundThreadAffinitizedObject, IVisualStudioHostProject
 #pragma warning restore CS0618 // IVisualStudioHostProject is obsolete
     {
+        private const string ProjectGuidPropertyName = "ProjectGuid";
+
         internal static object RuleSetErrorId = new object();
         private readonly object _gate = new object();
 
@@ -169,6 +172,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             UpdateAssemblyName();
+
+            Logger.Log(FunctionId.AbstractProject_Created,
+                KeyValueLogMessage.Create(LogType.Trace, m =>
+                {
+                    m[ProjectGuidPropertyName] = Guid;
+                }));
         }
 
         internal IServiceProvider ServiceProvider { get; }
@@ -306,8 +315,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void SetIntellisenseBuildResultAndNotifyWorkspaceHosts(bool succeeded)
         {
-            // set intellisense related info
+            // set IntelliSense related info
             LastDesignTimeBuildSucceeded = succeeded;
+
+            Logger.Log(FunctionId.AbstractProject_SetIntelliSenseBuild,
+                KeyValueLogMessage.Create(LogType.Trace, m =>
+                {
+                    m[ProjectGuidPropertyName] = Guid;
+                    m[nameof(LastDesignTimeBuildSucceeded)] = LastDesignTimeBuildSucceeded;
+                    m[nameof(PushingChangesToWorkspaceHosts)] = PushingChangesToWorkspaceHosts;
+                }));
 
             if (PushingChangesToWorkspaceHosts)
             {
@@ -716,6 +733,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // always manipulate current state after workspace is told so it will correctly observe the initial state
                 _projectReferences.Add(projectReference);
+
+                var otherProject = ProjectTracker.GetProject(projectReference.ProjectId);
+                otherProject?.RecordNewReferencingProject(this, new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes));
             }
 
             if (_pushingChangesToWorkspaceHosts)
@@ -726,6 +746,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.ProjectTracker.StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(targetProject));
 
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnProjectReferenceAdded(this.Id, projectReference));
+            }
+        }
+
+        private void RecordNewReferencingProject(AbstractProject referencingProject, MetadataReferenceProperties properties)
+        {
+            _projectsReferencingMe.Add((referencingProject, properties));
+        }
+
+        private void RecordNoLongerReferencingProject(AbstractProject referencingProject, MetadataReferenceProperties properties)
+        {
+            if (!_projectsReferencingMe.Remove((referencingProject, properties)))
+            {
+                FatalError.ReportWithoutCrash(new Exception($"We didn't know that {nameof(referencingProject)} was referencing us."));
             }
         }
 
@@ -806,6 +839,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 Contract.ThrowIfFalse(_projectReferences.Remove(projectReference));
+
+                var otherProject = ProjectTracker.GetProject(projectReference.ProjectId);
+
+                otherProject?.RecordNoLongerReferencingProject(this, new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes));
             }
 
             if (_pushingChangesToWorkspaceHosts)
@@ -1129,6 +1166,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // reinstate pushing down to workspace, so the workspace project remove event fires
                     _pushingChangesToWorkspaceHosts = wasPushing;
 
+                    if (_projectsReferencingMe.Count > 0)
+                    {
+                        FatalError.ReportWithoutCrash(new Exception("We still have projects referencing us. That's not expected."));
+
+                        // Clear just so we don't cause a leak
+                        _projectsReferencingMe.Clear();
+                    }
+
                     this.ProjectTracker.RemoveProject(this);
 
                     _pushingChangesToWorkspaceHosts = false;
@@ -1281,6 +1326,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal void StartPushingToWorkspaceHosts()
         {
             _pushingChangesToWorkspaceHosts = true;
+            Logger.Log(FunctionId.AbstractProject_PushedToWorkspace,
+                KeyValueLogMessage.Create(LogType.Trace, m =>
+                {
+                    m[ProjectGuidPropertyName] = Guid;
+                }));
         }
 
         internal void StopPushingToWorkspaceHosts()
