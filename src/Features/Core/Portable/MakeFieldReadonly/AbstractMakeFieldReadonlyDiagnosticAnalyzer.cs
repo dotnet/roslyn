@@ -3,15 +3,15 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 {
-    internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TIdentifierNameSyntax, TConstructorDeclarationSyntax, TLambdaSyntax>
+    internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TIdentifierNameSyntax, TConstructorDeclarationSyntax>
         : AbstractCodeStyleDiagnosticAnalyzer
         where TIdentifierNameSyntax : SyntaxNode
         where TConstructorDeclarationSyntax : SyntaxNode
-        where TLambdaSyntax : SyntaxNode
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_readonly_modifier), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Make_field_readonly), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
@@ -55,13 +55,14 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     nonReadonlyFieldMembers.Add(symbol);
                 }
             }
-            
+
+            var syntaxFactsService = GetSyntaxFactsService();
             foreach (var syntaxReference in typeSymbol.DeclaringSyntaxReferences)
             {
                 var typeNode = syntaxReference.SyntaxTree.GetRoot(context.CancellationToken).FindNode(syntaxReference.Span);
 
                 var semanticModelForTree = context.SemanticModel.Compilation.GetSemanticModel(syntaxReference.SyntaxTree);
-                RemoveAssignedSymbols(semanticModelForTree, typeNode, nonReadonlyFieldMembers, context.CancellationToken);
+                RemoveAssignedSymbols(semanticModelForTree, syntaxFactsService, typeNode, nonReadonlyFieldMembers, context.CancellationToken);
             }
 
             foreach (var symbol in nonReadonlyFieldMembers)
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             nonReadonlyFieldMembers.Free();
         }
 
-        private void RemoveAssignedSymbols(SemanticModel model, SyntaxNode node, PooledHashSet<IFieldSymbol> unassignedSymbols, CancellationToken cancellationToken)
+        private void RemoveAssignedSymbols(SemanticModel model, ISyntaxFactsService syntaxFactsService, SyntaxNode node, PooledHashSet<IFieldSymbol> unassignedSymbols, CancellationToken cancellationToken)
         {
             foreach (var descendant in node.DescendantNodes())
             {
@@ -102,20 +103,32 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
                 if (IsDescendentOf<TConstructorDeclarationSyntax>(descendant, out var ctorNode))
                 {
-                    var ctorSymbol = model.GetDeclaredSymbol(ctorNode);
-                    if (!ctorSymbol.ContainingType.Equals(symbol.ContainingType))
+                    var isInAnonymousOrLocalFunction = false;
+                    for (var current = descendant.Parent; current != ctorNode; current = current.Parent)
+                    {
+                        if (syntaxFactsService.IsAnonymousOrLocalFunction(current))
+                        {
+                            isInAnonymousOrLocalFunction = true;
+                            break;
+                        }
+                    }
+
+                    if (isInAnonymousOrLocalFunction)
                     {
                         unassignedSymbols.Remove(symbol);
                     }
-
-                    if (!ctorSymbol.IsStatic && symbol.IsStatic)
+                    else
                     {
-                        unassignedSymbols.Remove(symbol);
-                    }
+                        var ctorSymbol = model.GetDeclaredSymbol(ctorNode);
+                        if (!ctorSymbol.ContainingType.Equals(symbol.ContainingType))
+                        {
+                            unassignedSymbols.Remove(symbol);
+                        }
 
-                    if (descendant.FirstAncestorOrSelf<TLambdaSyntax>() != null)
-                    {
-                        unassignedSymbols.Remove(symbol);
+                        if (!ctorSymbol.IsStatic && symbol.IsStatic)
+                        {
+                            unassignedSymbols.Remove(symbol);
+                        }
                     }
 
                     // assignments in the ctor don't matter other than the static modifiers and lambdas point checked above
@@ -154,6 +167,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             return false;
         }
 
+        protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract bool IsWrittenTo(TIdentifierNameSyntax node, SemanticModel model, CancellationToken cancellationToken);
         protected abstract bool IsMemberOfThisInstance(SyntaxNode node);
     }

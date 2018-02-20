@@ -2,17 +2,22 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.MakeFieldReadonly
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicMakeFieldReadonlyDiagnosticAnalyzer
-        Inherits AbstractMakeFieldReadonlyDiagnosticAnalyzer(Of IdentifierNameSyntax, ConstructorBlockSyntax, LambdaExpressionSyntax)
+        Inherits AbstractMakeFieldReadonlyDiagnosticAnalyzer(Of IdentifierNameSyntax, ConstructorBlockSyntax)
 
         Protected Overrides Sub InitializeWorker(context As AnalysisContext)
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeType, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.ModuleBlock)
         End Sub
+
+        Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
+            Return VisualBasicSyntaxFactsService.Instance
+        End Function
 
         Protected Overrides Function IsWrittenTo(name As IdentifierNameSyntax, model As SemanticModel, cancellationToken As CancellationToken) As Boolean
             Return name.IsWrittenTo(model, cancellationToken)

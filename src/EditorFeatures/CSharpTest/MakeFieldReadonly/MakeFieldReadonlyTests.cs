@@ -194,6 +194,22 @@ $@"class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInSimpleLambdaInCtor()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public class MyClass
+{
+    private int [|_foo|];
+    public MyClass()
+    {
+        this.E = x => this._foo = 0;
+    }
+
+    public Action<int> E;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldAssignedInLambdaInCtor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -222,6 +238,50 @@ $@"class MyClass
     }
 
     public event EventHandler E;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInAnonymousFunctionInCtor()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public class MyClass
+{
+    private int [|_foo|];
+    public MyClass()
+    {
+        this.E = delegate { this._foo = 0; };
+    }
+
+    public Action<int> E;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInLocalFunctionExpressionBodyInCtor()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public class MyClass
+{
+    private int [|_foo|];
+    public MyClass()
+    {
+        void LocalFunction() => this._foo = 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInLocalFunctionBlockBodyInCtor()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public class MyClass
+{
+    private int [|_foo|];
+    public MyClass()
+    {
+        void LocalFunction() { this._foo = 0; }
+    }
 }");
         }
 
