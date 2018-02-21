@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -202,10 +203,9 @@ namespace RoslynCompletionPrototype
 
             var description = await provider.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
 
-            // TODO: Tagged Text
             // TODO: Snippet invocation part?
 
-            return description.Text;
+            return new ClassifiedTextElement(description.TaggedParts.Select(p => new ClassifiedTextRun(p.Tag.ToClassificationTypeName(), p.Text)));
         }
 
         public void CustomCommit(
