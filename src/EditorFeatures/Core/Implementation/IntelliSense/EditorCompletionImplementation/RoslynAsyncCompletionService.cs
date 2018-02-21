@@ -229,6 +229,7 @@ namespace RoslynCompletionPrototype
 
             var filteredItems = filterResults.Select(r => r.CompletionItem).AsImmutable();
             var highlightedList = GetHighlightedList(filterResults, filterText, patternMatcherMap).ToImmutableArray();
+            var updatedFilters = GetUpdatedFilters(filterResults, filters);
 
             if (bestFilterResult != null)
             {
@@ -240,12 +241,24 @@ namespace RoslynCompletionPrototype
                 // This also preserves the behavior the VB had through Dev12.
                 var hardSelect = bestFilterResult.Value.CompletionItem.FilterText.StartsWith(filterText, StringComparison.CurrentCultureIgnoreCase);
 
-                return Task.FromResult(new FilteredCompletionModel(highlightedList, filteredItems.IndexOf(bestFilterResult.Value.CompletionItem), filters, matchCount == 1 ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, uniqueItem: null));
+                return Task.FromResult(new FilteredCompletionModel(highlightedList, filteredItems.IndexOf(bestFilterResult.Value.CompletionItem), updatedFilters, matchCount == 1 ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, uniqueItem: null));
             }
             else
             {
-                return Task.FromResult(new FilteredCompletionModel(highlightedList, 0, filters, CompletionItemSelection.SoftSelected, uniqueItem: null));
+                return Task.FromResult(new FilteredCompletionModel(highlightedList, 0, updatedFilters, CompletionItemSelection.SoftSelected, uniqueItem: null));
             }
+        }
+
+        private ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(List<FilterResult> filterResults, ImmutableArray<CompletionFilterWithState> filters)
+        {
+            var filtersInAction = filterResults.Select(r => r.CompletionItem).SelectMany(i => i.Filters);
+            var resultingFilters = new List<CompletionFilterWithState>();
+            foreach (var filter in filters)
+            {
+                resultingFilters.Add(new CompletionFilterWithState(filter.Filter, isAvailable: filtersInAction.Contains(filter.Filter)));
+            }
+
+            return resultingFilters.ToImmutableArray();
         }
 
         private bool IsBetterDeletionMatch(FilterResult result1, FilterResult result2)
@@ -305,10 +318,11 @@ namespace RoslynCompletionPrototype
             var recentItems = _recentItems;
             var bestItem = GetBestItemBasedOnMRU(chosenItems, recentItems);
             var highlightedList = GetHighlightedList(filterResults, filterText, patternMatcherMap).ToImmutableArray();
+            var updatedFilters = GetUpdatedFilters(filterResults, filters);
 
             if (bestItem == null)
             {
-                return Task.FromResult(new FilteredCompletionModel(highlightedList, 0));
+                return Task.FromResult(new FilteredCompletionModel(highlightedList, 0, updatedFilters));
             }
 
             // TODO: Better conversion between Roslyn/Editor completion items
@@ -320,7 +334,7 @@ namespace RoslynCompletionPrototype
                 uniqueItem = highlightedList[selectedItemIndex].CompletionItem;
             }
 
-            return Task.FromResult(new FilteredCompletionModel(highlightedList, selectedItemIndex, filters, CompletionItemSelection.NoChange, uniqueItem));
+            return Task.FromResult(new FilteredCompletionModel(highlightedList, selectedItemIndex, updatedFilters, CompletionItemSelection.NoChange, uniqueItem));
         }
 
         private static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
