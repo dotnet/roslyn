@@ -52,7 +52,27 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     !symbol.IsImplicitlyDeclared &&
                     !IsMutableValueType(symbol.Type))
                 {
-                    nonReadonlyFieldMembers.Add(symbol);
+                    var isInCurrentNode = false;
+                    foreach (var syntaxReference in item.DeclaringSyntaxReferences)
+                    {
+                        if (!syntaxReference.SyntaxTree.Equals(context.Node.SyntaxTree))
+                        {
+                            continue;
+                        }
+
+                        if (!context.Node.Span.Contains(syntaxReference.Span))
+                        {
+                            continue;
+                        }
+
+                        isInCurrentNode = true;
+                        break;
+                    }
+
+                    if (isInCurrentNode)
+                    {
+                        nonReadonlyFieldMembers.Add(symbol);
+                    }
                 }
             }
 
