@@ -3082,7 +3082,10 @@ class B: A
 {
     public override I<T> F<T>() { return null; }
 }";
-            CompileAndVerify(source);
+            // PROTOTYPE(NullableReferenceTypes): Return type and parameter types of
+            // overridden generic methods have nullability set.
+            var comp = CreateStandardCompilation(source, skipUsesIsNullable: true);
+            CompileAndVerify(comp);
         }
 
         [WorkItem(542264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542264")]

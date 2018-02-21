@@ -5780,6 +5780,75 @@ class C
         }
 
         [Fact]
+        public void NullableReferenceTypes()
+        {
+            var source =
+@"class A<T>
+{
+}
+class B
+{
+    static object F1(object? o) => null!;
+    static object?[] F2(object[]? o) => null;
+    static A<object>? F3(A<object?> o) => null;
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var formatWithoutNonNullableModifier = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+            var formatWithNonNullableModifier = formatWithoutNonNullableModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+
+            var method = comp.GetMember<MethodSymbol>("B.F1");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutNonNullableModifier),
+                "static object F1(object? o)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithNonNullableModifier),
+                "static object! F1(object? o)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+
+            method = comp.GetMember<MethodSymbol>("B.F2");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutNonNullableModifier),
+                "static object?[] F2(object[]? o)");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithNonNullableModifier),
+                "static object?[]! F2(object![]? o)");
+
+            method = comp.GetMember<MethodSymbol>("B.F3");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutNonNullableModifier),
+                "static A<object>? F3(A<object?> o)");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithNonNullableModifier),
+                "static A<object!>? F3(A<object?>! o)");
+        }
+
+        [Fact]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public void LocalFunction()
         {

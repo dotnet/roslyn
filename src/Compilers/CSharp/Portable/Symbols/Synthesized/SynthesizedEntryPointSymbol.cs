@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 var systemVoid = Binder.GetSpecialType(compilation, SpecialType.System_Void, DummySyntax(), diagnostics);
-                return new ScriptEntryPoint(containingType, TypeSymbolWithAnnotations.Create(systemVoid));
+                return new ScriptEntryPoint(containingType, TypeSymbolWithAnnotations.Create(compilation, systemVoid));
             }
         }
 
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
 
-            public override TypeSymbolWithAnnotations ReturnType => TypeSymbolWithAnnotations.Create(_getAwaiterGetResultCall.Type);
+            public override TypeSymbolWithAnnotations ReturnType => TypeSymbolWithAnnotations.Create(ContainingModule, _getAwaiterGetResultCall.Type);
 
             internal override BoundBlock CreateBody(DiagnosticBag diagnostics)
             {
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(containingType.IsSubmissionClass);
                 Debug.Assert(returnType.SpecialType != SpecialType.System_Void);
-                _parameters = ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(submissionArrayType), 0, RefKind.None, "submissionArray"));
+                _parameters = ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(ContainingModule, submissionArrayType), 0, RefKind.None, "submissionArray"));
                 _returnType = returnType;
             }
 

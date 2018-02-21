@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                                                                constraintHandle,
                                                                                moduleSymbol);
 
-                    symbolsBuilder.Add(TypeSymbolWithAnnotations.Create(typeSymbol));
+                    symbolsBuilder.Add(TypeSymbolWithAnnotations.Create(moduleSymbol, typeSymbol));
                 }
 
                 return symbolsBuilder.ToImmutableAndFree();

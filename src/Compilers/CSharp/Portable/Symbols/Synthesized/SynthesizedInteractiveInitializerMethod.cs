@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override TypeSymbolWithAnnotations ReturnType
         {
-            get { return TypeSymbolWithAnnotations.Create(_returnType); }
+            get { return TypeSymbolWithAnnotations.Create(_returnType).SetUnknownNullabilityForReferenceTypesIfNecessary(ContainingModule); }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers

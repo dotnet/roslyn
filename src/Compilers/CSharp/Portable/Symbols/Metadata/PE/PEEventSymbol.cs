@@ -99,11 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, handle, moduleSymbol);
 
                 var type = TypeSymbolWithAnnotations.Create(typeSymbol);
-
-                if (moduleSymbol.UtilizesNullableReferenceTypes)
-                {
-                    type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol);
-                }
+                type = NullableTypeDecoder.TransformOrEraseNullability(type, handle, moduleSymbol);
 
                 _eventType = type;
             }

@@ -30,5 +30,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // No NullableAttribute applied to the target symbol, or flags do not line-up, return unchanged metadataType.
             return metadataType;
         }
+
+        internal static TypeSymbolWithAnnotations TransformOrEraseNullability(
+            TypeSymbolWithAnnotations metadataType,
+            EntityHandle targetSymbolToken,
+            PEModuleSymbol containingModule)
+        {
+            if (containingModule.UtilizesNullableReferenceTypes)
+            {
+                return NullableTypeDecoder.TransformType(metadataType, targetSymbolToken, containingModule);
+            }
+            return metadataType.SetUnknownNullabilityForReferenceTypes();
+        }
     }
 }

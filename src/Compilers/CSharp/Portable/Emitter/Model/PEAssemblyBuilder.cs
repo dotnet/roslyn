@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
         }
 
-        protected override SynthesizedAttributeData SynthesizeNullableAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments = default)
+        internal override SynthesizedAttributeData SynthesizeNullableAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
         {
             if ((object)_lazyNullableAttribute != null)
             {

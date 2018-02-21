@@ -89,18 +89,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 
             // Preserve nullable modifiers as well.
-            // TODO: Do this only when feature is enabled?
-            var flagsBuilder = ArrayBuilder<bool>.GetInstance();
-            destinationType.AddNullableTransforms(flagsBuilder);
-            int position = 0;
-            int length = flagsBuilder.Count;
-            bool transformResult = resultType.ApplyNullableTransforms(flagsBuilder.ToImmutableAndFree(), ref position, out resultType);
-            Debug.Assert(transformResult && position == length);
+            if (containingAssembly.Modules[0].UtilizesNullableReferenceTypes)
+            {
+                var flagsBuilder = ArrayBuilder<bool>.GetInstance();
+                destinationType.AddNullableTransforms(flagsBuilder);
+                int position = 0;
+                int length = flagsBuilder.Count;
+                bool transformResult = resultType.ApplyNullableTransforms(flagsBuilder.ToImmutableAndFree(), ref position, out resultType);
+                Debug.Assert(transformResult && position == length);
 
-            Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames)); // Same custom modifiers as source type.
-            Debug.Assert(resultType.Equals(destinationType,
-                                           TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | // Same object/dynamic and tuple names as destination type.
-                                           TypeCompareKind.CompareNullableModifiersForReferenceTypes)); // Same nullability as destination type.
+                Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames)); // Same custom modifiers as source type.
+                Debug.Assert(resultType.Equals(destinationType,
+                                               TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | // Same object/dynamic and tuple names as destination type.
+                                               TypeCompareKind.CompareNullableModifiersForReferenceTypes)); // Same nullability as destination type.
+            }
 
             return resultType;
         }

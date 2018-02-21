@@ -729,5 +729,25 @@ namespace Microsoft.CodeAnalysis
         {
             return this.WithLocalOptions(this.LocalOptions & ~options);
         }
+
+        /// <summary>
+        /// Creates a copy of the SymbolDisplayFormat but with replaced set of <seealso cref="SymbolDisplayCompilerInternalOptions"/>.
+        /// </summary>
+        internal SymbolDisplayFormat WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions options)
+        {
+            return new SymbolDisplayFormat(
+                options,
+                this.GlobalNamespaceStyle,
+                this.TypeQualificationStyle,
+                this.GenericsOptions,
+                this.MemberOptions,
+                this.ParameterOptions,
+                this.DelegateStyle,
+                this.ExtensionMethodStyle,
+                this.PropertyStyle,
+                this.LocalOptions,
+                this.KindOptions,
+                this.MiscellaneousOptions);
+        }
     }
 }

@@ -2360,7 +2360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 get
                 {
                     // This is always the instance type, so the type arguments are the same as the type parameters.
-                    return this.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
+                    return GetTypeParametersAsTypeArguments();
                 }
             }
 

@@ -6495,7 +6495,8 @@ public class C
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [Fact, WorkItem(530024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530024")]
+        // PROTOTYPE(NullableReferenceTypes): Do not emit [module: NullablAttribute] if no nullable types.
+        [Fact(Skip = "TODO"), WorkItem(530024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530024")]
         public void NoStdLib()
         {
             var src = Temp.CreateFile("a.cs");

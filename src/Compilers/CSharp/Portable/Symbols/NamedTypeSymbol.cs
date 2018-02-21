@@ -913,7 +913,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsErrorType = type => (object)type != null && type.IsErrorType();
 
-        internal NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> typeArguments, bool unbound)
+        private NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> typeArguments, bool unbound)
         {
             ImmutableArray<TypeSymbolWithAnnotations> modifiedArguments;
 
@@ -1066,6 +1066,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return count;
+        }
+
+        internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments()
+        {
+            return this.TypeParameters.SelectAsArray(tp => TypeSymbolWithAnnotations.Create(tp.ContainingModule, tp));
         }
 
         /// <summary>

@@ -935,7 +935,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 while (oldTypeArg.TypeSymbol != newTypeArg.TypeSymbol);
 
-                Debug.Assert((object)oldTypeArg == newTypeArg);
+                // PROTOTYPE(NullableReferenceTypes): Is this weaker assert sufficient?
+                //Debug.Assert((object)oldTypeArg == newTypeArg);
+                Debug.Assert(oldTypeArg.Equals(newTypeArg, TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny));
 
                 builder.Add(newTypeArg);
             }

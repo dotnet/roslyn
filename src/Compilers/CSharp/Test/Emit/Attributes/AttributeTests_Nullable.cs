@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class AttributeTests_Nullable : CSharpTestBase
     {
         // An empty project should not require System.Attribute.
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): Do not emit [module: NullablAttribute] if no nullable types.
+        [Fact(Skip = "TODO")]
         public void EmptyProject_MissingAttribute()
         {
             var source = "";
@@ -225,7 +226,8 @@ class C
 {
     public object F = new object();
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            // C# 7.0: No NullableAttribute.
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var assembly = module.ContainingAssembly;
@@ -238,10 +240,23 @@ class C
                     "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
                     "System.Diagnostics.DebuggableAttribute");
             });
+            // C# 8.0: NullableAttribute included always.
+            comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var assembly = module.ContainingAssembly;
+                var type = assembly.GetTypeByMetadataName("C");
+                var field = (FieldSymbol)type.GetMembers("F").Single();
+                AssertNoNullableAttribute(field.GetAttributes());
+                AssertNullableAttribute(module.GetAttributes());
+                AssertAttributes(assembly.GetAttributes(),
+                    "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
+                    "System.Diagnostics.DebuggableAttribute");
+            });
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should generate [module: Nullable].
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void EmitAttribute_Module()
         {
             var source =
@@ -261,6 +276,32 @@ class C
                     "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
                     "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
                     "System.Diagnostics.DebuggableAttribute");
+            });
+        }
+
+        [Fact]
+        public void EmitAttribute_NetModule()
+        {
+            var source =
+@"public class C
+{
+    public object? F = new object();
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (3,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     public object? F = new object();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "F").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 20));
+        }
+
+        [Fact]
+        public void EmitAttribute_NetModuleNoDeclarations()
+        {
+            var source = "";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            CompileAndVerify(comp, verify: Verification.Skipped, symbolValidator: module =>
+            {
+                AssertAttributes(module.GetAttributes());
             });
         }
 

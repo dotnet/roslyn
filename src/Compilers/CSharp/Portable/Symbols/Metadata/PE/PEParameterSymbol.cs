@@ -241,10 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var typeSymbol = DynamicTypeDecoder.TransformType(type.TypeSymbol, countOfCustomModifiers, handle, moduleSymbol, refKind);
                 typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, handle, moduleSymbol);
                 type = type.Update(typeSymbol, type.CustomModifiers);
-                if (moduleSymbol.UtilizesNullableReferenceTypes)
-                {
-                    type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol);
-                }
+                type = NullableTypeDecoder.TransformOrEraseNullability(type, _handle, moduleSymbol);
                 _type = type;
             }
 
@@ -281,6 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             out bool isBad)
         {
             var typeWithModifiers = TypeSymbolWithAnnotations.Create(type, CSharpCustomModifier.Convert(customModifiers));
+            typeWithModifiers = typeWithModifiers.SetUnknownNullabilityForReferenceTypesIfNecessary(moduleSymbol);
+
             if (customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty)
             {
                 return new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, typeWithModifiers, handle, 0, out isBad);
