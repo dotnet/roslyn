@@ -1548,7 +1548,8 @@ class C
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
-        private static readonly string trivial2uple = @"
+        private static readonly string trivial2uple =
+                    @"
 namespace System
 {
     public class ValueTuple

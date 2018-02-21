@@ -165,30 +165,32 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private static readonly Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsLower(val[span.Start]);
         private static readonly Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsUpper(val[span.Start]);
+
         private static readonly Func<string, TextSpan, bool> s_wordIsAllUpperCase = (val, span) =>
-{
-for (int i = span.Start, n = span.End; i < n; i++)
-{
-if (DoesCharacterHaveCasing(val[i]) && !char.IsUpper(val[i]))
-{
-return false;
-}
-}
+        {
+            for (int i = span.Start, n = span.End; i < n; i++)
+            {
+                if (DoesCharacterHaveCasing(val[i]) && !char.IsUpper(val[i]))
+                {
+                    return false;
+                }
+            }
 
-return true;
-};
+            return true;
+        };
+
         private static readonly Func<string, TextSpan, bool> s_wordIsAllLowerCase = (val, span) =>
-              {
-                  for (int i = span.Start, n = span.End; i < n; i++)
-                  {
-                      if (DoesCharacterHaveCasing(val[i]) && !char.IsLower(val[i]))
-                      {
-                          return false;
-                      }
-                  }
+        {
+            for (int i = span.Start, n = span.End; i < n; i++)
+            {
+                if (DoesCharacterHaveCasing(val[i]) && !char.IsLower(val[i]))
+                {
+                    return false;
+                }
+            }
 
-                  return true;
-              };
+            return true;
+        };
 
         private bool CheckAllWords(
             string name, TextSpan nameSpan, Func<string, TextSpan, bool> wordCheck,
