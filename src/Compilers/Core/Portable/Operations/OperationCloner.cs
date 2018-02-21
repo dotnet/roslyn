@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, object argument)
         {
-            return new FieldInitializer(operation.InitializedFields, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new FieldInitializer(operation.Locals, operation.InitializedFields, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitVariableInitializer(IVariableInitializerOperation operation, object argument)
@@ -352,12 +352,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitPropertyInitializer(IPropertyInitializerOperation operation, object argument)
         {
-            return new PropertyInitializer(operation.InitializedProperties, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new PropertyInitializer(operation.Locals, operation.InitializedProperties, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, object argument)
         {
-            return new ParameterInitializer(operation.Parameter, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ParameterInitializer(operation.Locals, operation.Parameter, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitArrayCreation(IArrayCreationOperation operation, object argument)

@@ -82,9 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 null;
         }
 
-        private static BoundStatement RewriteFieldInitializer(BoundFieldInitializer fieldInit)
+        private static BoundStatement RewriteFieldInitializer(BoundFieldEqualsValue fieldInit)
         {
-            var syntax = fieldInit.Syntax;
+            SyntaxNode syntax = fieldInit.Syntax;
+            syntax = (syntax as EqualsValueClauseSyntax)?.Value ?? syntax; //we want the attached sequence point to indicate the value node
             var boundReceiver = fieldInit.Field.IsStatic ? null :
                                         new BoundThisReference(syntax, fieldInit.Field.ContainingType);
 
@@ -95,7 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             boundReceiver,
                             fieldInit.Field,
                             constantValueOpt: null),
-                        fieldInit.InitialValue,
+                        fieldInit.Locals.IsEmpty ? 
+                            fieldInit.Value : 
+                            new BoundSequence(fieldInit.Syntax, fieldInit.Locals, ImmutableArray<BoundExpression>.Empty, fieldInit.Value, fieldInit.Value.Type)
+                                             { WasCompilerGenerated = true },
                         fieldInit.Field.Type)
                     { WasCompilerGenerated = true })
                 { WasCompilerGenerated = fieldInit.WasCompilerGenerated };
@@ -108,8 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (initializer.Kind)
             {
-                case BoundKind.FieldInitializer:
-                    return RewriteFieldInitializer((BoundFieldInitializer)initializer);
+                case BoundKind.FieldEqualsValue:
+                    return RewriteFieldInitializer((BoundFieldEqualsValue)initializer);
                 case BoundKind.GlobalStatementInitializer:
                     return ((BoundGlobalStatementInitializer)initializer).Statement;
                 default:

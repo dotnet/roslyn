@@ -1169,12 +1169,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitFieldInitializer(BoundFieldInitializer node)
-        {
-            Visit(node.InitialValue);
-            return null;
-        }
-
         public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)
         {
             VisitRvalue(node.Expression);
