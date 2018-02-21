@@ -1779,6 +1779,59 @@ class C
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, int[]> [||]onUpdateSolutionCancel = x => { return null; };
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        int[] onUpdateSolutionCancel(int x) { return null; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine5()
+        {
+
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Task<int[]>> [||]onUpdateSolutionCancel = async x => { return null; };
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        async Task<int[]> onUpdateSolutionCancel(int x) { return null; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_SingleLine1()
         {
             await TestInRegularAndScriptAsync(
