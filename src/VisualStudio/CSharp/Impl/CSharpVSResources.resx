@@ -531,4 +531,7 @@
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
   </data>
+  <data name="Generate Event Subscription" xml:space="preserve">
+    <value>Generate Event Subscription</value>
+  </data>
 </root>
