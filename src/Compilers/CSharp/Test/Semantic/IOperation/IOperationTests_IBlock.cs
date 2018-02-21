@@ -711,13 +711,11 @@ Block[B0] - Entry
         Block[B2] - Block
             Predecessors: [B1]
             Statements (1)
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = 2')
-                  Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'j = 2')
-                      Left: 
-                        ILocalReferenceOperation: j (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'j = 2')
-                      Right: 
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'j = 2')
+                  Left: 
+                    ILocalReferenceOperation: j (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'j = 2')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
             Next (Regular) Block[B3]
                 Leaving: {R2}
@@ -726,13 +724,11 @@ Block[B0] - Entry
     Block[B3] - Block
         Predecessors: [B2]
         Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'k = 3')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'k = 3')
-                  Left: 
-                    ILocalReferenceOperation: k (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'k = 3')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'k = 3')
+              Left: 
+                ILocalReferenceOperation: k (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'k = 3')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 
         Next (Regular) Block[B4]
             Entering: {R3}
@@ -743,13 +739,11 @@ Block[B0] - Entry
         Block[B4] - Block
             Predecessors: [B3]
             Statements (1)
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'l = 4')
-                  Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'l = 4')
-                      Left: 
-                        ILocalReferenceOperation: l (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'l = 4')
-                      Right: 
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'l = 4')
+                  Left: 
+                    ILocalReferenceOperation: l (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'l = 4')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
 
             Next (Regular) Block[B5]
                 Leaving: {R3}
@@ -758,13 +752,11 @@ Block[B0] - Entry
     Block[B5] - Block
         Predecessors: [B4]
         Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'm = 5')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'm = 5')
-                  Left: 
-                    ILocalReferenceOperation: m (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'm = 5')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'm = 5')
+              Left: 
+                ILocalReferenceOperation: m (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'm = 5')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 
         Next (Regular) Block[B6]
             Leaving: {R1}
@@ -824,13 +816,11 @@ Block[B0] - Entry
         Block[B1] - Block
             Predecessors: [B0]
             Statements (1)
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = 1')
-                  Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = 1')
-                      Left: 
-                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'i = 1')
-                      Right: 
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = 1')
+                  Left: 
+                    ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'i = 1')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
             Next (Regular) Block[B2]
                 Leaving: {R2}
@@ -856,13 +846,11 @@ Block[B0] - Entry
         Block[B3] - Block
             Predecessors: [B2]
             Statements (1)
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'k = 3')
-                  Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'k = 3')
-                      Left: 
-                        ILocalReferenceOperation: k (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'k = 3')
-                      Right: 
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'k = 3')
+                  Left: 
+                    ILocalReferenceOperation: k (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'k = 3')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 
             Next (Regular) Block[B4]
                 Leaving: {R3}
@@ -871,13 +859,11 @@ Block[B0] - Entry
     Block[B4] - Block
         Predecessors: [B3]
         Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'l = 4')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'l = 4')
-                  Left: 
-                    ILocalReferenceOperation: l (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'l = 4')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'l = 4')
+              Left: 
+                ILocalReferenceOperation: l (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'l = 4')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
 
         Next (Regular) Block[B5]
             Entering: {R4}
@@ -888,13 +874,11 @@ Block[B0] - Entry
         Block[B5] - Block
             Predecessors: [B4]
             Statements (1)
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'm = 5')
-                  Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'm = 5')
-                      Left: 
-                        ILocalReferenceOperation: m (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'm = 5')
-                      Right: 
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'm = 5')
+                  Left: 
+                    ILocalReferenceOperation: m (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'm = 5')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 
             Next (Regular) Block[B6]
                 Leaving: {R4} {R1}
