@@ -24,6 +24,13 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return node.Kind = BoundKind.MidResult
         End Function
 
+        Private Function CreateLoopLabels(boundLoop As BoundLoopStatement, continueSyntax As SyntaxNode, exitSyntax As SyntaxNode
+                                          ) As (continueLabel As ILabeledOperation, exitLabel As ILabeledOperation)
+            Dim continueLabel = New LabeledStatement(boundLoop.ContinueLabel, operation:=Nothing, _semanticModel, continueSyntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+            Dim exitLabel = New LabeledStatement(boundLoop.ExitLabel, operation:=Nothing, _semanticModel, exitSyntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+            Return (continueLabel, exitLabel)
+        End Function
+
         Private Function CreateCompoundAssignment(boundAssignment As BoundAssignmentOperator) As ICompoundAssignmentOperation
             Debug.Assert(boundAssignment.LeftOnTheRightOpt IsNot Nothing)
             Dim binaryOperator As BoundExpression = Nothing

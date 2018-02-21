@@ -1019,7 +1019,12 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundDoLoopStatementOperation(boundDoLoopStatement As BoundDoLoopStatement) As IWhileLoopOperation
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDoLoopStatement.ConditionOpt))
-            Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDoLoopStatement.Body))
+            Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function()
+                                                                          Dim doSyntax = DirectCast(boundDoLoopStatement.Syntax, DoLoopBlockSyntax)
+                                                                          Dim labels = CreateLoopLabels(boundDoLoopStatement, doSyntax.DoStatement, doSyntax.LoopStatement)
+                                                                          Dim blockBody = DirectCast(boundDoLoopStatement.Body, BoundBlock)
+                                                                          Return CreateBoundBlockOperationCached(blockBody, labels.continueLabel, labels.exitLabel)
+                                                                      End Function)
             Dim ignoredConditionOpt As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function()
                                                                                          If boundDoLoopStatement.TopConditionOpt IsNot Nothing AndAlso boundDoLoopStatement.BottomConditionOpt IsNot Nothing Then
                                                                                              Debug.Assert(boundDoLoopStatement.ConditionOpt Is boundDoLoopStatement.TopConditionOpt)
@@ -1046,7 +1051,12 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim initialValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForToStatement.InitialValue))
             Dim limitValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForToStatement.LimitValue))
             Dim stepValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForToStatement.StepValue))
-            Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForToStatement.Body))
+            Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function()
+                                                                          Dim forSyntax = DirectCast(boundForToStatement.Syntax, ForOrForEachBlockSyntax)
+                                                                          Dim labels = CreateLoopLabels(boundForToStatement, forSyntax.ForOrForEachStatement, forSyntax.NextStatement)
+                                                                          Dim blockBody = DirectCast(boundForToStatement.Body, BoundBlock)
+                                                                          Return CreateBoundBlockOperationCached(blockBody, labels.continueLabel, labels.exitLabel)
+                                                                      End Function)
             Dim nextVariables As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
                     Return If(boundForToStatement.NextVariablesOpt.IsDefault,
@@ -1066,7 +1076,12 @@ Namespace Microsoft.CodeAnalysis.Operations
                 ImmutableArray(Of ILocalSymbol).Empty)
             Dim loopControlVariable As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateBoundControlVariableOperation(boundForEachStatement))
             Dim collection As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForEachStatement.Collection))
-            Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForEachStatement.Body))
+            Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function()
+                                                                          Dim forSyntax = DirectCast(boundForEachStatement.Syntax, ForOrForEachBlockSyntax)
+                                                                          Dim labels = CreateLoopLabels(boundForEachStatement, forSyntax.ForOrForEachStatement, forSyntax.NextStatement)
+                                                                          Dim blockBody = DirectCast(boundForEachStatement.Body, BoundBlock)
+                                                                          Return CreateBoundBlockOperationCached(blockBody, labels.continueLabel, labels.exitLabel)
+                                                                      End Function)
             Dim nextVariables As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
                     Return If(boundForEachStatement.NextVariablesOpt.IsDefault,
@@ -1089,7 +1104,21 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundTryStatementOperation(boundTryStatement As BoundTryStatement) As ITryOperation
-            Dim body As Lazy(Of IBlockOperation) = New Lazy(Of IBlockOperation)(Function() DirectCast(Create(boundTryStatement.TryBlock), IBlockOperation))
+            Dim body As Lazy(Of IBlockOperation) = New Lazy(Of IBlockOperation)(Function()
+                                                                                    If boundTryStatement.ExitLabelOpt IsNot Nothing Then
+                                                                                        Dim trySyntax = DirectCast(boundTryStatement.Syntax, TryBlockSyntax)
+                                                                                        Dim exitLabel = New LabeledStatement(boundTryStatement.ExitLabelOpt,
+                                                                                                                             operation:=Nothing,
+                                                                                                                             _semanticModel,
+                                                                                                                             syntax:=trySyntax.EndTryStatement,
+                                                                                                                             type:=Nothing,
+                                                                                                                             constantValue:=Nothing,
+                                                                                                                             isImplicit:=True)
+                                                                                        Return CreateBoundBlockOperationCached(boundTryStatement.TryBlock, continueLabel:=Nothing, exitLabel)
+                                                                                    Else
+                                                                                        Return DirectCast(Create(boundTryStatement.TryBlock), IBlockOperation)
+                                                                                    End If
+                                                                                End Function)
             Dim catches As Lazy(Of ImmutableArray(Of ICatchClauseOperation)) = New Lazy(Of ImmutableArray(Of ICatchClauseOperation))(Function() boundTryStatement.CatchBlocks.SelectAsArray(Function(n) DirectCast(Create(n), ICatchClauseOperation)))
             Dim finallyHandler As Lazy(Of IBlockOperation) = New Lazy(Of IBlockOperation)(Function() DirectCast(Create(boundTryStatement.FinallyBlockOpt), IBlockOperation))
             Dim syntax As SyntaxNode = boundTryStatement.Syntax
@@ -1123,18 +1152,37 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return New LazyCatchClause(exceptionDeclarationOrExpression, exceptionType, locals, filter, handler, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundBlockOperation(boundBlock As BoundBlock) As IBlockOperation
+        Private Function CreateBoundBlockOperationCached(boundBlock As BoundBlock, continueLabel As ILabeledOperation, exitLabel As ILabeledOperation
+                                                   ) As IBlockOperation
+            Debug.Assert(boundBlock IsNot Nothing)
+            ' Continue label can be Nothing, as Try statements do not have continues
+            Debug.Assert(exitLabel IsNot Nothing)
+            Return DirectCast(_cache.GetOrAdd(boundBlock, Function(n) CreateBoundBlockOperation(DirectCast(n, BoundBlock), continueLabel, exitLabel)),
+                              IBlockOperation)
+        End Function
+
+        Private Function CreateBoundBlockOperation(boundBlock As BoundBlock, Optional continueLabel As ILabeledOperation = Nothing, Optional exitLabel As ILabeledOperation = Nothing
+                                                   ) As IBlockOperation
             Dim statements As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
+                    Dim builder = ArrayBuilder(Of IOperation).GetInstance()
+                    If continueLabel IsNot Nothing Then
+                        Debug.Assert(exitLabel IsNot Nothing)
+                        builder.Add(continueLabel)
+                    End If
                     ' We should not be filtering OperationKind.None statements.
                     ' https://github.com/dotnet/roslyn/issues/21776
-                    Return boundBlock.Statements.Select(Function(n) (s:=Create(n), bound:=n)).Where(
+                    builder.AddRange(boundBlock.Statements.Select(Function(n) (s:=Create(n), bound:=n)).Where(
                         Function(tuple)
                             Return tuple.s.Kind <> OperationKind.None OrElse
                                 tuple.bound.Kind = BoundKind.WithStatement OrElse tuple.bound.Kind = BoundKind.StopStatement OrElse
                                 tuple.bound.Kind = BoundKind.EndStatement OrElse tuple.bound.Kind = BoundKind.UnstructuredExceptionHandlingStatement OrElse
                                 tuple.bound.Kind = BoundKind.ResumeStatement
-                        End Function).Select(Function(tuple) tuple.s).ToImmutableArray()
+                        End Function).Select(Function(tuple) tuple.s))
+                    If exitLabel IsNot Nothing Then
+                        builder.Add(exitLabel)
+                    End If
+                    Return builder.ToImmutableAndFree()
                 End Function)
             Dim locals As ImmutableArray(Of ILocalSymbol) = boundBlock.Locals.As(Of ILocalSymbol)()
             Dim syntax As SyntaxNode = boundBlock.Syntax
@@ -1191,7 +1239,12 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundWhileStatementOperation(boundWhileStatement As BoundWhileStatement) As IWhileLoopOperation
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundWhileStatement.Condition))
-            Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundWhileStatement.Body))
+            Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function()
+                                                                          Dim whileSyntax = DirectCast(boundWhileStatement.Syntax, WhileBlockSyntax)
+                                                                          Dim labels = CreateLoopLabels(boundWhileStatement, whileSyntax.WhileStatement, whileSyntax.EndWhileStatement)
+                                                                          Dim blockBody = DirectCast(boundWhileStatement.Body, BoundBlock)
+                                                                          Return CreateBoundBlockOperationCached(blockBody, labels.continueLabel, labels.exitLabel)
+                                                                      End Function)
             Dim ignoredCondition As Lazy(Of IOperation) = OperationFactory.NullOperation
             Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).Empty
             Dim conditionIsTop As Boolean = True

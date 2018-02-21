@@ -3049,6 +3049,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public LabeledStatement(ILabelSymbol label, IOperation operation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            Debug.Assert(syntax != null);
             Operation = SetParentOperation(operation, this);
         }
 

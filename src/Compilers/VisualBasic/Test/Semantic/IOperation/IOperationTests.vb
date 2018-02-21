@@ -306,7 +306,10 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: '
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = 0 T ... Next')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For i = 0 T ... Next')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For i = 0 T ... Next')
+      ILabeledOperation (Label: continue) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'For i = 0 To 10')
+        Statement: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i)')
         Expression: 
           IInvocationOperation (Sub System.Console.Write(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
@@ -317,6 +320,9 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: '
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Next')
+        Statement: 
+          null
   NextVariables(0)
 ]]>.Value
 
