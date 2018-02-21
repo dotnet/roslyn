@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         // PERF: Cache the culture's compareInfo to avoid the overhead of asking for them repeatedly in inner loops
         private readonly CompareInfo _compareInfo;
         private readonly TextInfo _textInfo;
-        private readonly bool _invalidPattern;
+
+        private bool _invalidPattern;
 
         /// <summary>
         /// Construct a new PatternMatcher using the specified culture.
