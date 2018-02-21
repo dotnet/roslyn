@@ -51,7 +51,80 @@ static unsafe class C
         }
 
         [Fact]
-        public void TestIdenticalBytes()
+        public void TestEmpty()
+        {
+            var text = @"
+using System;
+
+static unsafe class C
+{
+    static void Use(int* p)
+    {
+    }
+
+    static void Main()
+    {
+        var p = stackalloc int[] {};
+        Use(p);
+    }
+}
+";
+            CompileAndVerify(text,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
+                options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Fails).VerifyIL("C.Main",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  call       ""void C.Use(int*)""
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        public void TestIdenticalBytes1()
+        {
+            var text = @"
+using System;
+
+static unsafe class C
+{
+    static void Print(byte* p)
+    {
+        for (int i = 0; i < 3; i++)
+            Console.Write(p[i]);
+    }
+
+    static void Main()
+    {
+        byte* p = stackalloc byte[3] { 42, 42, 42 };
+        Print(p);
+    }
+}
+";
+            CompileAndVerify(text,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
+                options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Fails, expectedOutput: @"424242").VerifyIL("C.Main",
+@"{
+  // Code size       16 (0x10)
+  .maxstack  4
+  IL_0000:  ldc.i4.3
+  IL_0001:  conv.u
+  IL_0002:  localloc
+  IL_0004:  dup
+  IL_0005:  ldc.i4.s   42
+  IL_0007:  ldc.i4.3
+  IL_0008:  initblk
+  IL_000a:  call       ""void C.Print(byte*)""
+  IL_000f:  ret
+}");
+        }
+
+        [Fact]
+        public void TestIdenticalBytes2()
         {
             var text = @"
 using System;
