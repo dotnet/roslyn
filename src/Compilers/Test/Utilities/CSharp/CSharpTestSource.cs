@@ -50,6 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static implicit operator CSharpTestSource(SyntaxTree source) => new CSharpTestSource(source);
         public static implicit operator CSharpTestSource(SyntaxTree[] source) => new CSharpTestSource(source);
         public static implicit operator CSharpTestSource(List<SyntaxTree> source) => new CSharpTestSource(source.ToArray());
-        public static implicit operator CSharpTestSource(ImmutableArray<SyntaxTree> source) => new CSharpTestSource(source);
+        public static implicit operator CSharpTestSource(ImmutableArray<SyntaxTree> source) => new CSharpTestSource(source.ToArray());
     }
 }

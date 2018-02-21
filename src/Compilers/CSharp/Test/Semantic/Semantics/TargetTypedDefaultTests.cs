@@ -1991,7 +1991,7 @@ static class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 // (6,35): error CS8311: Use of default literal is not valid in this context
                 //         var q = from x in default select x;
