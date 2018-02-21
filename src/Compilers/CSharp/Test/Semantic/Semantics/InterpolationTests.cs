@@ -784,7 +784,7 @@ class Program {
         IFormattable f = $""test"";
     }
 }";
-            CreateStandardCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyEmitDiagnostics(
                 // (5,26): error CS0518: Predefined type 'System.Runtime.CompilerServices.FormattableStringFactory' is not defined or imported
                 //         IFormattable f = $"test";
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"$""test""").WithArguments("System.Runtime.CompilerServices.FormattableStringFactory").WithLocation(5, 26)
@@ -809,8 +809,8 @@ class Program {
         Console.WriteLine($""{ await hello }, { await world }!"");
     }
 }";
-            CompileAndVerify(
-                source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 }, expectedOutput: "Hello, world!");
+            CompileAndVerifyWithMscorlib40(
+                source, references: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 }, expectedOutput: "Hello, world!", targetFramework: TargetFramework.None);
         }
 
         [Fact]
@@ -843,7 +843,7 @@ class Program {
         Console.WriteLine($""X = { 123 , int.MinValue }."");
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (5,42): warning CS8094: Alignment value 32768 has a magnitude greater than 32767 and may result in a large formatted string.
                 //         Console.WriteLine($"X = { 123 , (32768) }.");
                 Diagnostic(ErrorCode.WRN_AlignmentMagnitude, "32768").WithArguments("32768", "32767").WithLocation(5, 42),
@@ -872,7 +872,7 @@ class Program {
         Console.WriteLine($""X = { null }."");
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (5,35): error CS0119: 'string' is a type, which is not valid in the given context
                 //         Console.WriteLine($"X = { String }.");
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "String").WithArguments("string", "type").WithLocation(5, 35)
@@ -892,7 +892,7 @@ class Program {
         Console.WriteLine($""X = { Program.Main(null) }."");
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (5,35): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
                 //         Console.WriteLine($"X = { x=>3 }.");
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x=>3").WithArguments("lambda expression", "object").WithLocation(5, 35),
@@ -928,7 +928,7 @@ class Program {
         }
     }
 }";
-            CreateCompilation(text, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication))
+            CreateCompilationWithNone(text, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication))
             .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
                 // (15,21): error CS0117: 'string' does not contain a definition for 'Format'
                 //             var s = $"X = { 1 } ";
@@ -961,7 +961,7 @@ class Program {
         }
     }
 }";
-            CreateCompilation(text, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication))
+            CreateCompilationWithNone(text, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication))
             .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
                 // (17,21): error CS0029: Cannot implicitly convert type 'bool' to 'string'
                 //             var s = $"X = { 1 } ";
@@ -1006,7 +1006,7 @@ class Program {
         }
     }
 }";
-            var comp = CreateCompilation(text, options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            var comp = CreateCompilationWithNone(text, options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             var compilation = CompileAndVerify(comp, verify: Verification.Fails);
             compilation.VerifyIL("System.Program.Main",
 @"{
@@ -1041,7 +1041,7 @@ class Program
         }
     } 
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (6,40): error CS8087: A '}' character may only be escaped by doubling '}}' in an interpolated string.
                 //         var x = $"{ Math.Abs(value: 1):\}";
                 Diagnostic(ErrorCode.ERR_EscapedCurly, @"\").WithArguments("}").WithLocation(6, 40),
@@ -1083,7 +1083,7 @@ class Program
         }
     } 
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (6,18): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
                 //         var x = $"{ Math.Abs(value: 1):}}";
                 Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, @"""{").WithLocation(6, 18)

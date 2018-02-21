@@ -1422,7 +1422,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1626,7 +1626,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource, new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(csSource, new[] { LinqAssemblyRef });
             foreach (var dd in compilation.GetDiagnostics()) Console.WriteLine(dd);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
@@ -1687,7 +1687,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1725,7 +1725,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1902,7 +1902,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 3 4 4");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 3 4 4");
         }
 
         [WorkItem(541782, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541782")]
@@ -1929,7 +1929,7 @@ class Program
         System.Console.Write(serializer.Trim());
     }
 }";
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
         }
 
 
@@ -1959,7 +1959,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "1 2 3");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "1 2 3");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2093,7 +2093,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
         }
 
         [WorkItem(541942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541942")]
@@ -2124,7 +2124,7 @@ class P
     }
 }";
 
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "45");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "45");
         }
 
         [Fact]
@@ -3331,7 +3331,7 @@ class Query
 ";
             var queryStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3375,7 +3375,7 @@ class Query
 
             var queryStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

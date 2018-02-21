@@ -59,7 +59,7 @@ public static class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "67");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "67");
         }
 
         [Fact]
@@ -82,7 +82,7 @@ public static class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "55");
         }
 
         [Fact]
@@ -106,7 +106,7 @@ public static class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "55");
         }
 
         [Fact]
@@ -189,8 +189,8 @@ public static class Program2
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
         }
 
         [Fact]
@@ -222,7 +222,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -266,7 +266,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("System.IComparable", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -310,7 +310,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -359,8 +359,8 @@ public static class Program2
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
         }
 
         [Fact]
@@ -392,7 +392,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -436,7 +436,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -482,7 +482,7 @@ public static class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "55");
         }
 
         [Fact]
@@ -625,7 +625,7 @@ public static class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "55");
         }
 
         [Fact]
@@ -734,8 +734,8 @@ public static class Program2
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
         }
 
         [Fact]
@@ -767,7 +767,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -811,7 +811,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("System.IComparable", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -855,7 +855,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -899,7 +899,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("int", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -943,7 +943,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -987,7 +987,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -1036,7 +1036,7 @@ public static class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "55");
         }
 
         [Fact]
@@ -1693,7 +1693,7 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "Instance,Extension,Static");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "Instance,Extension,Static");
         }
 
         [Fact]
@@ -1732,7 +1732,7 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "Instance,Extension,Static");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "Instance,Extension,Static");
         }
 
         [Fact]
@@ -1768,7 +1768,7 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "54321");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "54321");
         }
 
         [Fact]
@@ -1792,7 +1792,7 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "7");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "7");
         }
 
         [Fact]
@@ -1833,7 +1833,7 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5554535251");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "5554535251");
         }
 
         [Fact]
@@ -2096,7 +2096,7 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(14, 9)
             );
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "5");
         }
 
         [Fact]
@@ -2122,7 +2122,7 @@ public static class Program
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(
-                text: code,
+                source: code,
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
                 // (7,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
@@ -2130,15 +2130,15 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(7, 9));
 
             CreateCompilationWithMscorlibAndSystemCore(
-                text: code,
+                source: code,
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { reference.EmitToImageReference() }).VerifyDiagnostics(
                 // (7,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
                 //         p.Print();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(7, 9));
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef, reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef, reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { SystemCoreRef, reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { SystemCoreRef, reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
@@ -2173,7 +2173,7 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(14, 9)
             );
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "5");
         }
 
         [Fact]
@@ -2199,7 +2199,7 @@ public static class Program
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(
-                text: code,
+                source: code,
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
                 // (7,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
@@ -2207,15 +2207,15 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(7, 9));
 
             CreateCompilationWithMscorlibAndSystemCore(
-                text: code,
+                source: code,
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { reference.EmitToImageReference() }).VerifyDiagnostics(
                 // (7,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
                 //         p.Print();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(7, 9));
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef, reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef, reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { SystemCoreRef, reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { SystemCoreRef, reference.EmitToImageReference() }, expectedOutput: "5");
         }
         
         private const string ExtraRefReadOnlyIL = @"

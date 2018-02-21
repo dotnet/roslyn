@@ -132,7 +132,7 @@ class A
 {
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             Assert.Equal(0, comp.GetDiagnostics().Count());
         }
     }

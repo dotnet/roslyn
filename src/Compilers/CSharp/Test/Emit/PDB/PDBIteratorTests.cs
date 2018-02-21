@@ -1326,7 +1326,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1410,7 +1410,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1472,7 +1472,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1572,7 +1572,7 @@ public class C
 {
     IEnumerable<int> M() { yield return 1; }
 }";
-            var compilation = CreateStandardCompilation(src, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(src, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
 
             var peStream = new MemoryStream();

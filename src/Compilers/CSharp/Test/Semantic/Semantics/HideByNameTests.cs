@@ -750,7 +750,7 @@ public class C : B, I
         [Fact, WorkItem(897971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897971")]
         public void LocalHideFieldByName()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System;
 
 public class M
@@ -773,7 +773,7 @@ public class M
 }
 ").VerifyDiagnostics();
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System;
 
 public class M
@@ -794,7 +794,7 @@ public class M
 }
 ").VerifyDiagnostics();
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System;
 
 public class M

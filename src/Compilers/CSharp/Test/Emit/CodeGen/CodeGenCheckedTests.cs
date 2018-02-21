@@ -1372,7 +1372,7 @@ class C
         }
     }
 }
-", new[] { SystemCoreRef }).VerifyIL("C.<>c.<F>b__0_0(int)", @"
+").VerifyIL("C.<>c.<F>b__0_0(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1397,7 +1397,7 @@ class C
         var a = checked(from x in new[] { 1 } select x * 2);  // mul_ovf
     }
 }
-", new[] { SystemCoreRef }).VerifyIL("C.<>c.<F>b__0_0(int)", @"
+").VerifyIL("C.<>c.<F>b__0_0(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1982,7 +1982,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0220: The operation overflows at compile time in checked mode
                 //         r = int.MaxValue + 1;
@@ -2114,7 +2114,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,81): error CS0220: The operation overflows at compile time in checked mode
                 //         d1 = unchecked(delegate (int i) { r1 = int.MaxValue + 1; return checked(int.MaxValue + 1); });
@@ -2152,7 +2152,7 @@ class M
         var r1 = decimal.MaxValue + 1;
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,25): error CS0463: Evaluation of the decimal constant expression failed
                 //         var r = checked(decimal.MaxValue + 1);

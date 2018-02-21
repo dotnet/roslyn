@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataMethodSymbolCtor01()
         {
             var text = "public class A {}";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataMethodSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateCompilationWithNone(text, new[] { MscorlibRef });
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataParameterSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateCompilationWithNone(text, new[] { MscorlibRef });
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataMethodSymbolGen02()
         {
             var text = "public class A {}";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataParameterSymbolGen02()
         {
             var text = "public class A {}";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -383,7 +383,7 @@ class C
     C() { }
     static C() { }
 }";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             Assert.False(compilation.GetDiagnostics().Any());
             var classC = compilation.SourceModule.GlobalNamespace.GetTypeMembers("C").Single();
             // NamedTypeSymbol.Constructors only contains instance constructors
@@ -608,7 +608,7 @@ class Test
 ";
             var members = new[] { "F", "P", "E", "M" };
 
-            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll);
+            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
 
             var test1 = comp1.GetTypeByMetadataName("Test");
             var memberNames1 = new HashSet<string>(test1.MemberNames);
@@ -618,7 +618,7 @@ class Test
                 Assert.True(memberNames1.Contains(m), m);
             }
 
-            var comp2 = CreateStandardCompilation("", new[] { comp1.EmitToImageReference() });
+            var comp2 = CreateCompilation("", new[] { comp1.EmitToImageReference() });
 
             var test2 = comp2.GetTypeByMetadataName("Test");
             var memberNames2 = new HashSet<string>(test2.MemberNames);
@@ -648,7 +648,7 @@ class Test
 ";
             var members = new[] { "F", "P", "E", "M" };
 
-            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll);
+            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
 
             var test1 = comp1.GetTypeByMetadataName("Test");
             test1.GetMembers();
@@ -659,7 +659,7 @@ class Test
                 Assert.True(memberNames1.Contains(m), m);
             }
 
-            var comp2 = CreateStandardCompilation("", new[] { comp1.EmitToImageReference() });
+            var comp2 = CreateCompilation("", new[] { comp1.EmitToImageReference() });
 
             var test2 = comp2.GetTypeByMetadataName("Test");
             test2.GetMembers();
@@ -701,10 +701,10 @@ public class C
     private int P3 {get; set;}
 }
 ";
-            var compilation0 = CreateStandardCompilation(source);
+            var compilation0 = CreateCompilation(source);
 
             options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-            var compilation = CreateStandardCompilation("", options: options, references: new[] { compilation0.EmitToImageReference() });
+            var compilation = CreateCompilation("", options: options, references: new[] { compilation0.EmitToImageReference() });
             var c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.Empty(c.GetMembers("P2"));

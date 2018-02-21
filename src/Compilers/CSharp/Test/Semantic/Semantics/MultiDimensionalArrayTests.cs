@@ -191,7 +191,7 @@ class Program {
         int?[ , ] ar1 = { null  };
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
 // (5,27): error CS0846: A nested array initializer is expected
 //         int?[ , ] ar1 = { null  };
 Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
@@ -1671,7 +1671,7 @@ class C
         return (System.Type)typeof(Program).GetMember(target)[0].GetCustomAttributesData().ElementAt(0).ConstructorArguments[0].Value;
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, new [] { SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, references: new [] { SystemCoreRef }, options: TestOptions.ReleaseExe);
 
             var p = compilation.GetTypeByMetadataName("Program");
             var a1 = (ArrayTypeSymbol)p.GetMember<MethodSymbol>("Test1").GetAttributes().Single().ConstructorArguments.Single().Value;

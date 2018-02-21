@@ -685,7 +685,7 @@ public class B : A
     ~B() { }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll);
 
             // NOTE: has warnings, but not errors.
             compilation.VerifyDiagnostics(

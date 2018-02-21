@@ -59,7 +59,7 @@ namespace N
     }
     [Experimental] public enum E { A }
 }";
-            var comp1 = CreateStandardCompilation(new[] { Parse(ExperimentalAttributeSource), Parse(source1) });
+            var comp1 = CreateCompilation(new[] { Parse(ExperimentalAttributeSource), Parse(source1) });
             comp1.VerifyDiagnostics(
                 // (11,17): warning CS8305: 'N.A<T>.B' is for evaluation purposes only and is subject to change or removal in future updates.
                 //             new B();
@@ -82,7 +82,7 @@ class C
         e = E.A;
     }
 }";
-            var comp2A = CreateStandardCompilation(source2, new[] { comp1.EmitToImageReference() });
+            var comp2A = CreateCompilation(source2, new[] { comp1.EmitToImageReference() });
             comp2A.VerifyDiagnostics(
                 // (8,24): warning CS8305: 'N.A<int>.B' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         object o = new B();
@@ -97,7 +97,7 @@ class C
                 //         e = E.A;
                 Diagnostic(ErrorCode.WRN_Experimental, "E").WithArguments("N.E").WithLocation(11, 13));
 
-            var comp2B = CreateStandardCompilation(source2, new[] { new CSharpCompilationReference(comp1) });
+            var comp2B = CreateCompilation(source2, new[] { new CSharpCompilationReference(comp1) });
             comp2B.VerifyDiagnostics(
                 // (8,24): warning CS8305: 'N.A<int>.B' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         object o = new B();
@@ -157,7 +157,7 @@ class Program
         ((I)o).F();     // warning CS8305: 'I.F()' is for evaluation purposes only
     }
 }";
-            var comp1 = CreateStandardCompilation(source1, new[] { ref0 });
+            var comp1 = CreateCompilation(source1, new[] { ref0 });
             comp1.VerifyDiagnostics(
                 // (7,13): warning CS8305: 'E.A' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         e = E.A;        // warning CS8305: 'F.A' is for evaluation purposes only

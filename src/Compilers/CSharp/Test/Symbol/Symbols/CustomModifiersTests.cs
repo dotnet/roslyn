@@ -1817,7 +1817,7 @@ class CL3 : CL2
         }
     }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Mscorlib40, references: new[] { SystemCoreRef });
 
             System.Action<IModuleSymbol> validator = (m) =>
             {
@@ -2270,7 +2270,7 @@ class CL2 : CL1
         return c;
     }
 }";
-            var compilation = CreateStandardCompilation(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll }, 
+            var compilation = CreateCompilation(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll }, 
                                                             options: TestOptions.ReleaseExe);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
@@ -2316,7 +2316,7 @@ class CL3 : I1
         return c;
     }
 }";
-            var compilation = CreateStandardCompilation(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll },
+            var compilation = CreateCompilation(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll },
                                                             options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
@@ -2376,7 +2376,7 @@ internal class Program
 }";
             var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(compilation, expectedOutput: @"Implemented A
+            CompileAndVerifyCommon(compilation, expectedOutput: @"Implemented A
 Implemented B",
                 assemblyValidator: assembly =>
                 {
@@ -2413,7 +2413,7 @@ Implemented B",
     }
 }";
             var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: "2",
+            CompileAndVerifyCommon(compilation, expectedOutput: "2",
                 assemblyValidator: assembly =>
                 {
                     var reader = assembly.GetMetadataReader();
@@ -2577,7 +2577,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Standard);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
             var test2 = cl2.GetMember<PropertySymbol>("Test");
@@ -2691,7 +2691,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Standard);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
             var test2 = cl2.GetMember<EventSymbol>("Test");
@@ -2785,7 +2785,7 @@ class CL3 : CL1
     public void Raise() => Test(null);
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Standard);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
             var test2 = cl2.GetMember<EventSymbol>("Test");

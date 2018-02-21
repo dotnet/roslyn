@@ -278,7 +278,7 @@ null
             var verifier1 = CompileAndVerify(source1 + source2, expectedOutput: expectedOutput);
 
             // When the method with the attribute is from metadata.
-            var comp2 = CreateStandardCompilation(source2, new[] { MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData) }, TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation(source2, new[] { MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData) }, TestOptions.ReleaseExe);
             CompileAndVerify(comp2, expectedOutput: expectedOutput);
         }
 
@@ -376,7 +376,7 @@ null
             var verifier1 = CompileAndVerify(source1 + source2, expectedOutput: expectedOutput);
 
             // When the method with the attribute is from metadata.
-            var comp2 = CreateStandardCompilation(source2, new[] { MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData) }, TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation(source2, new[] { MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData) }, TestOptions.ReleaseExe);
             CompileAndVerify(comp2, expectedOutput: expectedOutput);
         }
 
@@ -675,7 +675,7 @@ class C
             // The native compiler does not consider an encompassing conversion from
             // a constant zero to an enum type to exist.  We reproduce that bug in
             // Roslyn for compatibility.
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(844635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
@@ -744,7 +744,7 @@ class Program
 }
 ";
 
-            CreateStandardCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (8,17): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         var x = ICloneable.Clone is object;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "ICloneable.Clone is object").WithLocation(8, 17));

@@ -447,7 +447,7 @@ class C
     }
 }";
             var tree = Parse(source);
-            var compilation = CreateCompilation(new List<SyntaxTree> { tree }, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, "Test");
+            var compilation = CreateCompilationWithNone(new List<SyntaxTree> { tree }, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, "Test");
             CompileAndVerify(compilation, expectedOutput: "k");
         }
 
@@ -504,7 +504,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithCustomILSource(source, il, TargetFramework.Mscorlib45, options: TestOptions.ReleaseDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A", @"
@@ -578,7 +578,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithCustomILSource(source, il, TargetFramework.Mscorlib45, options: TestOptions.DebugDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A",
@@ -823,7 +823,7 @@ class Clazz
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, il, TargetFramework.Mscorlib45, options: TestOptions.ReleaseExe);
             var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ");
 
             result.VerifyIL("Clazz.Main", @"
@@ -6892,7 +6892,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerifyWithMscorlib40(source, expectedOutput: @"
 Byte
 Char
 DBNull
@@ -10413,7 +10413,7 @@ class Test
         (new Test()).Goo();
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             // Both Dev10 and Roslyn currently generate unverifiable code for this case...
             // Dev10 reports warning CS0626: Method, operator, or accessor 'Test.Goo()' is marked external
@@ -10454,9 +10454,9 @@ public class Test
         }
     }
 }";
-            CompileAndVerify(
+            CompileAndVerifyWithMscorlib40(
                 source,
-                additionalRefs: new[] { SystemCoreRef },
+                references: new[] { SystemCoreRef },
                 expectedOutput: @"Success");
         }
 
@@ -10481,7 +10481,7 @@ class Test
     }
 }
 ";
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilationWithNone(source).VerifyEmitDiagnostics(
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion));
         }
 
@@ -10782,11 +10782,11 @@ class C
             decimal d;
             if (decimal.TryParse("0E1", System.Globalization.NumberStyles.AllowExponent, null, out d))
             {
-                CreateStandardCompilation(source).VerifyDiagnostics();
+                CreateCompilation(source).VerifyDiagnostics();
             }
             else
             {
-                CreateStandardCompilation(source).VerifyDiagnostics(
+                CreateCompilation(source).VerifyDiagnostics(
                     // (6,27): error CS0594: Floating-point constant is outside the range of type 'decimal'
                     Diagnostic(ErrorCode.ERR_FloatOverflow, "0E1M").WithArguments("decimal").WithLocation(6, 27),
                     // (7,27): error CS0594: Floating-point constant is outside the range of type 'decimal'
@@ -11711,7 +11711,7 @@ public class DefaultParameterValues
             System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1);
+            var compilation1 = CreateCompilation(source1);
 
             var source2 = @"
 public class Test
@@ -12847,7 +12847,7 @@ class C
         Console.WriteLine((decimal)2e-30f);
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,27): error CS0031: Constant value '-1E+30' cannot be converted to a 'decimal'
                 //         Console.WriteLine((decimal)-1e30d); // Dev11: CS0031
                 Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)-1e30d").WithArguments("-1E+30", "decimal"),
@@ -12869,7 +12869,7 @@ class C
         }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,31): error CS0031: Constant value '-3E+30' cannot be converted to a 'decimal'
                 //             Console.WriteLine((decimal)-3e30d); // Dev11: CS0030
                 Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)-3e30d").WithArguments("-3E+30", "decimal"),
@@ -13188,7 +13188,7 @@ expectedOutput: "-100");
         return () => { }; // generate lambda
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithConcurrentBuild(false));
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithConcurrentBuild(false));
             var options = compilation.Options;
             var diagnostics = DiagnosticBag.GetInstance();
 
@@ -13328,14 +13328,14 @@ public static class P
 }
 ";
 
-            var compilation = CompileAndVerify(code, expectedOutput: "4");
+            var compilation = CompileAndVerifyWithMscorlib40(code, expectedOutput: "4");
         }
 
         [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
         [Fact]
         public void VarargBridgeMeta()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class VarArgs
 {
     public void Invoke(__arglist)
@@ -13367,14 +13367,14 @@ public static class P
 }
 ";
 
-            var comp = CreateStandardCompilation(code, references: new[] { reference.ToMetadataReference() });
+            var comp = CreateCompilation(code, references: new[] { reference.ToMetadataReference() });
             comp.VerifyDiagnostics(
                 // (7,28): error CS0630: 'VarArgs.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs' because it has an __arglist parameter.
                 // class MyVarArgs : VarArgs, IVarArgs
                 Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "IVarArgs").WithArguments("VarArgs.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs").WithLocation(7, 28)
                 );
 
-            comp = CreateStandardCompilation(code, references: new[] { reference.EmitToImageReference() });
+            comp = CreateCompilation(code, references: new[] { reference.EmitToImageReference() });
             comp.VerifyDiagnostics(
                 // (7,28): error CS0630: 'VarArgs.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs' because it has an __arglist parameter.
                 // class MyVarArgs : VarArgs, IVarArgs
@@ -13437,7 +13437,7 @@ public static class P
 }
 ";
 
-            var comp = CreateStandardCompilation(code, references: new[] { reference});
+            var comp = CreateCompilation(code, references: new[] { reference});
             comp.VerifyDiagnostics(
                 // (15,16): error CS0630: 'MyVarArgs2.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs2' because it has an __arglist parameter
                 //     public int Invoke(__arglist) => throw null;
@@ -13470,8 +13470,8 @@ class C
 }
 ";
 
-            var compRelease = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
-            var compDebug = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compRelease = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var compDebug = CreateCompilation(source, options: TestOptions.DebugExe);
 
             // (2) is not met.
             CompileAndVerify(compRelease).VerifyIL("C.Main", @"
@@ -13514,7 +13514,7 @@ class C
 }
 ";
             // Nop after Debugger.Break(), even though it isn't at the end of a statement.
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             var v = CompileAndVerify(comp);
 
             v.VerifyIL("C.Main", @"
@@ -14067,7 +14067,7 @@ public class Test
 }
 ";
 
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"0");
+            CompileAndVerifyWithMscorlib40(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"0");
         }
 
 
@@ -14424,7 +14424,7 @@ class C
         switch (s) { case ""A"": break; case ""B"": break; }
     }
 }";
-            var compilation = CreateCompilation(text);
+            var compilation = CreateCompilationWithNone(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -14457,7 +14457,7 @@ class C
 {
     static object F = typeof(C);
 }";
-            var compilation = CreateCompilation(text);
+            var compilation = CreateCompilationWithNone(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -14493,7 +14493,7 @@ class C
         return __reftype(__makeref(o));
     }
 }";
-            var compilation = CreateCompilation(text);
+            var compilation = CreateCompilationWithNone(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -14515,7 +14515,7 @@ class C
         return __reftype(__makeref(o));
     }
 }";
-            compilation = CreateStandardCompilation(text);
+            compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -14967,7 +14967,7 @@ class Program
 }";
 
             var testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference();
-            var compilation = CompileAndVerify(source, additionalRefs: new[] { testReference });
+            var compilation = CompileAndVerify(source, references: new[] { testReference });
             compilation.VerifyIL("Program.Main", @"
 {
   // Code size       12 (0xc)
@@ -15391,7 +15391,7 @@ class M
 }
 ";
 
-            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
+            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
 
             // the main point of this test is to have it PEVerify/run correctly, although checking IL too can't hurt.
             compilation.VerifyIL("M..ctor",
@@ -15460,7 +15460,7 @@ class M
 }
 ";
 
-            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
+            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
 
             compilation.VerifyIL("M..ctor",
 @"{
@@ -15573,7 +15573,7 @@ class M
 }
 ";
 
-            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
+            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
         }
 
         [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
@@ -16019,7 +16019,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, additionalRefs: new[] { SystemRef, SystemCoreRef },
+            CompileAndVerifyWithMscorlib40(source, references: new[] { SystemRef, SystemCoreRef },
                 expectedOutput: "0");
         }
 

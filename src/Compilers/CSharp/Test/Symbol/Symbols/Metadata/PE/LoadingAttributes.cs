@@ -1289,7 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
         public void Bug530209_DecimalConstant()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Class1
 {

@@ -1147,7 +1147,7 @@ class Gen<T>
 	}
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "obj").WithArguments("T"));
+            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "obj").WithArguments("T"));
         }
 
         [Fact]
@@ -1182,7 +1182,7 @@ class Gen<T> where T : new()
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (13,16): error CS1674: 'T': type used in a using statement must be implicitly convertible to 'System.IDisposable'
                 //         using (val)
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "val").WithArguments("T"),
@@ -1216,7 +1216,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_UseDefViolationOut, "y").WithArguments("y"));
+            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_UseDefViolationOut, "y").WithArguments("y"));
         }
 
         // Doesn't implement IDisposable, but has a Dispose() function
@@ -1240,7 +1240,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass"));
+            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass"));
         }
 
         [Fact]
@@ -1263,7 +1263,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass"));
+            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass"));
         }
 
         // Implicit implement IDisposable
@@ -2281,7 +2281,7 @@ struct  MyManagedClass : IDisposable
     {  }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS1026: ) expected
                 //         using (r1;r2) // Invalid
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";"),
@@ -2317,7 +2317,7 @@ struct MyManagedClass1 : IDisposable
     { }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FixedMustInit, "res2"));
+            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FixedMustInit, "res2"));
         }
 
         // Dispose() called for both objects when exception thrown in compound case
@@ -2399,7 +2399,7 @@ class A
 	}
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,8): error CS1003: Syntax error, '(' expected
                 // 		using
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "}"),
@@ -2438,7 +2438,7 @@ class MyManagedClass1 : IDisposable
     {  }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         // Query expression in using statement
@@ -2481,7 +2481,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,16): error CS1674: 'lambda expression': type used in a using statement must be implicitly convertible to 'System.IDisposable'
                 //         using (x => x)     // err
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "x => x").WithArguments("lambda expression"),
@@ -2521,7 +2521,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
     //         using (var a = new { })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var a = new { }").WithArguments("<empty anonymous type>"),

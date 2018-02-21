@@ -239,7 +239,7 @@ class Program { }
 class Program { }
 ";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments);
             compilation.VerifyDiagnostics(
                 // (3,20): warning CS1574: XML comment has cref attribute 'Gibberish' that could not be resolved
                 // /// See <see cref="Gibberish"/>.
@@ -269,7 +269,7 @@ class Program { }
 class Program { }
 ";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments);
             compilation.VerifyDiagnostics(
                 // (4,20): warning CS1584: XML comment has syntactically incorrect cref attribute ':'
                 // /// See <see cref=":"/> - first character is colon.
@@ -1857,8 +1857,8 @@ class Outer
 class Test { }
 ";
 
-            var lib1Ref = CreateStandardCompilation(lib1Source, assemblyName: "A").EmitToImageReference();
-            var lib2Ref = CreateStandardCompilation(lib2Source, assemblyName: "B").EmitToImageReference();
+            var lib1Ref = CreateCompilation(lib1Source, assemblyName: "A").EmitToImageReference();
+            var lib2Ref = CreateCompilation(lib2Source, assemblyName: "B").EmitToImageReference();
 
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source, new[] { lib1Ref, lib2Ref });
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
@@ -4373,7 +4373,7 @@ public partial class E { }
             var tree2 = Parse(source2, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
 
             // This scenario does not exist in dev11, but the diagnostics seem reasonable.
-            CreateStandardCompilation(new[] { tree1, tree2 }).VerifyDiagnostics(
+            CreateCompilation(new[] { tree1, tree2 }).VerifyDiagnostics(
                 // (5,22): warning CS1591: Missing XML comment for publicly visible type or member 'D'
                 // public partial class D { }
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "D").WithArguments("D"),
@@ -5824,7 +5824,7 @@ enum E { }
 ";
 
             // Restore compat: include inaccessible members in cref lookup
-            var comp = CreateCompilation(
+            var comp = CreateCompilationWithNone(
                 new[] { Parse(source, options: TestOptions.RegularWithDocumentationComments) },
                 new[] { MscorlibRef },
                 TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default));
@@ -6650,7 +6650,7 @@ class Test
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments).VerifyDiagnostics();
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments).VerifyDiagnostics();
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
 

@@ -532,7 +532,7 @@ Correct");
         [Fact]
         public void TestNameofLowerLangVersion()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class Program
 {
     Program(string s = nameof(Program))
@@ -610,7 +610,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
@@ -634,7 +634,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -653,7 +653,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
@@ -675,7 +675,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
@@ -701,7 +701,7 @@ class Program
         return 1;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Goo").OfType<ExpressionSyntax>().First();
@@ -727,7 +727,7 @@ class Program
         return string.Empty;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Goo").OfType<ExpressionSyntax>().First();

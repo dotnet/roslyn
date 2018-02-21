@@ -347,7 +347,7 @@ partial class Partial {{ }}
             var trees = AllModes.Select(mode =>
                 Parse(string.Format(sourceTemplate, xml, mode), string.Format("{0}.cs", mode), GetOptions(mode)));
 
-            var comp = CreateStandardCompilation(trees, assemblyName: "Test");
+            var comp = CreateCompilation(trees, assemblyName: "Test");
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var actualText = GetDocumentationCommentText(comp, expectedDiagnostics: null);
@@ -376,7 +376,7 @@ partial class Partial {{ }}
             var trees = AllModes.Select(mode =>
                 Parse(string.Format(sourceTemplate, includeElement, mode), string.Format("{0}.cs", mode), GetOptions(mode)));
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 trees,
                 options: TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
                 assemblyName: "Test");
