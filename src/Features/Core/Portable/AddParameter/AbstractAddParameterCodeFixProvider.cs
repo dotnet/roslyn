@@ -65,6 +65,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
         }
 
+        /// <summary>
+        /// If the diagnostic is on a argument, the argument is considered to be the argument to fix.
+        /// There are some exceptions to this rule. Returning null indicates that the fixer needs
+        /// to find the relevant argument by itself.
+        /// </summary>
         private TArgumentSyntax TryGetRelevantArgument(
             SyntaxNode initialNode, SyntaxNode node, Diagnostic diagnostic)
         {
@@ -138,6 +143,52 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
             RegisterFixForMethodOverloads(context, arguments, insertionData);
         }
+
+        private ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> GetArgumentInsertPositionForMethodCandidates(
+            TArgumentSyntax argumentOpt,
+            SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFacts,
+            SeparatedSyntaxList<TArgumentSyntax> arguments,
+            ImmutableArray<IMethodSymbol> methodCandidates)
+        {
+            var comparer = syntaxFacts.StringComparer;
+            var methodsAndArgumentToAdd = ArrayBuilder<ArgumentInsertPositionData<TArgumentSyntax>>.GetInstance();
+
+            foreach (var method in methodCandidates.OrderBy(m => m.Parameters.Length))
+            {
+                if (method.IsNonImplicitAndFromSource())
+                {
+                    var isNamedArgument = !string.IsNullOrWhiteSpace(syntaxFacts.GetNameForArgument(argumentOpt));
+
+                    if (isNamedArgument || NonParamsParameterCount(method) < arguments.Count)
+                    {
+                        var argumentToAdd = DetermineFirstArgumentToAdd(
+                        semanticModel, syntaxFacts, comparer, method,
+                        arguments, argumentOpt);
+
+                        if (argumentToAdd != null)
+                        {
+                            if (argumentOpt != null && argumentToAdd != argumentOpt)
+                            {
+                                // We were trying to fix a specific argument, but the argument we want
+                                // to fix is something different.  That means there was an error earlier
+                                // than this argument.  Which means we're looking at a non-viable 
+                                // constructor or method.  Skip this one.
+                                continue;
+                            }
+
+                            methodsAndArgumentToAdd.Add(new ArgumentInsertPositionData<TArgumentSyntax>(
+                                method, argumentToAdd, arguments.IndexOf(argumentToAdd)));
+                        }
+                    }
+                }
+            }
+
+            return methodsAndArgumentToAdd.ToImmutableAndFree();
+        }
+
+        private int NonParamsParameterCount(IMethodSymbol method)
+            => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
         private void RegisterFixForMethodOverloads(
             CodeFixContext context,
@@ -229,52 +280,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var title = string.Format(FeaturesResources.Add_parameter_to_0, signature);
             return title;
         }
-
-        private ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> GetArgumentInsertPositionForMethodCandidates(
-            TArgumentSyntax argumentOpt,
-            SemanticModel semanticModel,
-            ISyntaxFactsService syntaxFacts,
-            SeparatedSyntaxList<TArgumentSyntax> arguments,
-            ImmutableArray<IMethodSymbol> methodCandidates)
-        {
-            var comparer = syntaxFacts.StringComparer;
-            var methodsAndArgumentToAdd = ArrayBuilder<ArgumentInsertPositionData<TArgumentSyntax>>.GetInstance();
-
-            foreach (var method in methodCandidates.OrderBy(m => m.Parameters.Length))
-            {
-                if (method.IsNonImplicitAndFromSource())
-                {
-                    var isNamedArgument = !string.IsNullOrWhiteSpace(syntaxFacts.GetNameForArgument(argumentOpt));
-
-                    if (isNamedArgument || NonParamsParameterCount(method) < arguments.Count)
-                    {
-                        var argumentToAdd = DetermineFirstArgumentToAdd(
-                        semanticModel, syntaxFacts, comparer, method,
-                        arguments, argumentOpt);
-
-                        if (argumentToAdd != null)
-                        {
-                            if (argumentOpt != null && argumentToAdd != argumentOpt)
-                            {
-                                // We were trying to fix a specific argument, but the argument we want
-                                // to fix is something different.  That means there was an error earlier
-                                // than this argument.  Which means we're looking at a non-viable 
-                                // constructor or method.  Skip this one.
-                                continue;
-                            }
-
-                            methodsAndArgumentToAdd.Add(new ArgumentInsertPositionData<TArgumentSyntax>(
-                                method, argumentToAdd, arguments.IndexOf(argumentToAdd)));
-                        }
-                    }
-                }
-            }
-
-            return methodsAndArgumentToAdd.ToImmutableAndFree();
-        }
-
-        private int NonParamsParameterCount(IMethodSymbol method)
-            => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
         private async Task<Solution> FixAsync(
             Document invocationDocument,
