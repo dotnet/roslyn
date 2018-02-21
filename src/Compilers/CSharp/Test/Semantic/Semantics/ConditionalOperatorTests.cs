@@ -96,8 +96,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestConditional("true ? GetInt() : null", null,
                 Diagnostic(ErrorCode.ERR_InvalidQM, "true ? GetInt() : null").WithArguments("int", "<null>"));
-            TestConditional("false ? GetString : (System.Func<int>)null", null,
+            TestConditional("false ? GetString : (System.Func<int>)null", null, TestOptions.WithoutImprovedOverloadCandidates,
                 Diagnostic(ErrorCode.ERR_BadRetType, "GetString").WithArguments("C.GetString()", "string"));
+            TestConditional("false ? GetString : (System.Func<int>)null", null,
+                // (6,34): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'Func<int>'
+                //         System.Console.WriteLine(false ? GetString : (System.Func<int>)null);
+                Diagnostic(ErrorCode.ERR_InvalidQM, "false ? GetString : (System.Func<int>)null").WithArguments("method group", "System.Func<int>").WithLocation(6, 34));
             TestConditional("true ? (System.Func<int, short>)null : x => x", null,
                 Diagnostic(ErrorCode.ERR_InvalidQM, "true ? (System.Func<int, short>)null : x => x").WithArguments("System.Func<int, short>", "lambda expression"));
         }
@@ -1188,6 +1192,11 @@ System.Collections.Generic.List`1[System.Int32]
 
         private static void TestConditional(string conditionalExpression, string expectedType, params DiagnosticDescription[] expectedDiagnostics)
         {
+            TestConditional(conditionalExpression, expectedType, null, expectedDiagnostics);
+        }
+
+        private static void TestConditional(string conditionalExpression, string expectedType, CSharpParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
+        {
             string sourceTemplate = @"
 class C
 {{
@@ -1215,7 +1224,7 @@ public enum color {{ Red, Blue, Green }};
 interface I<in T, out U> {{ }}";
 
             var source = string.Format(sourceTemplate, conditionalExpression);
-            var tree = Parse(source);
+            var tree = Parse(source, options: parseOptions);
 
             var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics(expectedDiagnostics);

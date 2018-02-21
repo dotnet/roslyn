@@ -1036,6 +1036,7 @@ public class ClassC : ClassB {}
             Assert.IsType<Retargeting.RetargetingNamedTypeSymbol>(B2);
             Assert.Same(B1, ((Retargeting.RetargetingNamedTypeSymbol)B2).UnderlyingNamedType);
             Assert.Same(C.BaseType(), B2);
+            Assert.False(((INamedTypeSymbol)B2).IsSerializable);
 
             var errorBase = B2.BaseType() as ErrorTypeSymbol;
             var er = errorBase.ErrorInfo;
