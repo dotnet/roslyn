@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-            int x = 1$$23;
+            [|int|] x = 1$$23;
         </Document>
     </Project>
 </Workspace>
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-            string x = "wo$$ow";
+            [|string|] x = "wo$$ow";
         </Document>
     </Project>
 </Workspace>
@@ -1491,7 +1491,7 @@ class D
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Dim x as Integer = 12$$3
+            Dim x as [|Integer|] = 12$$3
         </Document>
     </Project>
 </Workspace>
@@ -1505,7 +1505,7 @@ class D
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Dim x as String = "wo$$ow"
+            Dim x as [|String|] = "wo$$ow"
         </Document>
     </Project>
 </Workspace>
