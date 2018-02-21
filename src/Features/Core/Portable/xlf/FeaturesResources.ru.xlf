@@ -1985,6 +1985,16 @@ This version used in: {2}</source>
         <target state="translated">индексатор</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_parameter_to_0_including_overrides_implementations">
+        <source>Add parameter to '{0}' (including overrides/implementations)</source>
+        <target state="new">Add parameter to '{0}' (including overrides/implementations)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
+        <source>Related method signatures found in metadata will not be updated.</source>
+        <target state="new">Related method signatures found in metadata will not be updated.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
