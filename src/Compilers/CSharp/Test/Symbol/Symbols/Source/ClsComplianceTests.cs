@@ -3048,7 +3048,7 @@ public sealed class C
 }
 ";
 
-            var comp = CreateCompilationWithNone(source, WinRtRefs, options: TestOptions.ReleaseWinMD);
+            var comp = CreateEmptyCompilation(source, WinRtRefs, options: TestOptions.ReleaseWinMD);
 
             // CONSIDER: The CLS spec requires that event accessors have a certain shape and WinRT event
             // accessors do not.  However, dev11 does not report a diagnostic.

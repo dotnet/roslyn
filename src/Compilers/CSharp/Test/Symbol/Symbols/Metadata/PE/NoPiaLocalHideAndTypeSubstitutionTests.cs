@@ -66,20 +66,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
     }
 }";
 
-            var localType1 = CreateCompilationWithNone(assemblyName: "Dummy1", source: new string[] { localTypeSource1 },
+            var localType1 = CreateEmptyCompilation(assemblyName: "Dummy1", source: new string[] { localTypeSource1 },
                 references: new MetadataReference[]
                 {
                     TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(true)
                 });
 
-            var localType2 = CreateCompilationWithNone(assemblyName: "Dummy2", source: new string[] { localTypeSource2 },
+            var localType2 = CreateEmptyCompilation(assemblyName: "Dummy2", source: new string[] { localTypeSource2 },
                 references: new MetadataReference[]
                 {
                     TestReferences.SymbolsTests.NoPia.GeneralPia,
                     new CSharpCompilationReference(localType1)
                 });
 
-            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy3", source: CSharpTestSource.None,
+            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy3", source: CSharpTestSource.None,
                 references: new MetadataReference[]
                 {
                     TestReferences.SymbolsTests.NoPia.GeneralPiaCopy,
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 }
 ";
 
-            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy", source: new string[] { localTypeSource },
+            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
                                                                 references: new MetadataReference[] {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1,
@@ -179,7 +179,7 @@ static class TypeSubstitution
     }
 }";
 
-            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy", source: new string[] { localTypeSource },
+            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
@@ -217,7 +217,7 @@ static class TypeSubstitution
     }
 }";
 
-            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy", source: new string[] { localTypeSource },
+            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
@@ -252,7 +252,7 @@ static class TypeSubstitution
     ISubFuncProp myLocalType = ExternalAsm1.Scen4;
 }";
 
-            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy", source: new string[] { localTypeSource },
+            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
@@ -283,7 +283,7 @@ static class TypeSubstitution
     GeneralEventScenario.EventHandler myLocalType = ExternalAsm1.Scen5;
 }";
 
-            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy", source: new string[] { localTypeSource },
+            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
@@ -311,7 +311,7 @@ static class TypeSubstitution
         {
             //Check type substitution when a class implement a PIA interface
 
-            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy", source: CSharpTestSource.None,
+            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: CSharpTestSource.None,
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
@@ -333,7 +333,7 @@ static class TypeSubstitution
         {
             //Check type substitution for a method of a class that implement PIA interface
 
-            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy", source: CSharpTestSource.None,
+            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: CSharpTestSource.None,
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
@@ -353,7 +353,7 @@ static class TypeSubstitution
         {
             //NoPiaAmbiguousCanonicalTypeSymbol for the corresponding interface type. 
 
-            var localConsumer = CreateCompilationWithNone(assemblyName: "Dummy", source: CSharpTestSource.None,
+            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: CSharpTestSource.None,
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPiaCopy,

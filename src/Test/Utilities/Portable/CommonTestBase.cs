@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             EmitOptions emitOptions = null,
             Verification verify = Verification.Passes)
         {
-            return CompileAndVerifyiCommon(
+            return CompileAndVerifyCommon(
                 sources: new string[] { source },
                 additionalRefs: additionalRefs,
                 dependencies: dependencies,
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 verify: verify);
         }
 
-        internal CompilationVerifier CompileAndVerifyiCommon(
+        internal CompilationVerifier CompileAndVerifyCommon(
             IEnumerable<string> sources,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,

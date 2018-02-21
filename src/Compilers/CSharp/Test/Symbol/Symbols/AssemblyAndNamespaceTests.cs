@@ -201,7 +201,7 @@ namespace NS.NS1 {
             var compRef1 = new CSharpCompilationReference(comp1);
             var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateCompilationWithNone(new string[] { text3 }, references: new MetadataReference[] { compRef1, compRef2 }.ToList(), assemblyName: "Test3");
+            var comp = CreateEmptyCompilation(new string[] { text3 }, references: new MetadataReference[] { compRef1, compRef2 }.ToList(), assemblyName: "Test3");
             //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
             //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text3) },
             //                        references: new MetadataReference[] { compRef1, compRef2 });
@@ -306,7 +306,7 @@ namespace NS.NS1 {
         [Fact]
         public void GetDeclaredSymbolDupNsAliasErr()
         {
-            var compilation = CreateCompilationWithNone(@"
+            var compilation = CreateEmptyCompilation(@"
 namespace NS1 {
 	class A { }
 }	
@@ -337,7 +337,7 @@ namespace NS
         [Fact]
         public void GenericNamespace()
         {
-            var compilation = CreateCompilationWithNone(@"
+            var compilation = CreateEmptyCompilation(@"
 namespace Goo<T>
 {
     class Program    
@@ -368,7 +368,7 @@ namespace Goo<T>
 
             var aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Goo"));
 
-            var comp = CreateCompilationWithNone(source, new[] { aliasedCorlib });
+            var comp = CreateEmptyCompilation(source, new[] { aliasedCorlib });
 
             // NOTE: this doesn't compile in dev11 - it reports that it cannot find System.Object.
             // However, we've already changed how special type lookup works, so this is not a major issue.

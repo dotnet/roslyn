@@ -615,11 +615,11 @@ namespace EventDeserialization
 }
 ";
 
-            var comp1 = CreateCompilationWithNone(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular, "Lib");
+            var comp1 = CreateEmptyCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular, "Lib");
 
             var serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization;
 
-            var comp2 = CreateCompilationWithNone(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef }), TestOptions.ReleaseExe);
+            var comp2 = CreateEmptyCompilation(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef }), TestOptions.ReleaseExe);
             CompileAndVerify(comp2, expectedOutput: @"A
 False
 null
@@ -640,7 +640,7 @@ B");
         var f = E = null;
     }
 }";
-            var comp = CreateCompilationWithNone(source, WinRtRefs, TestOptions.ReleaseWinMD);
+            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0815: Cannot assign void to an implicitly-typed variable
                 //         var f = E = null;
@@ -660,7 +660,7 @@ B");
         E = null;
     }
 }";
-            var comp = CreateCompilationWithNone(source, WinRtRefs, TestOptions.ReleaseWinMD);
+            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var syntax = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();

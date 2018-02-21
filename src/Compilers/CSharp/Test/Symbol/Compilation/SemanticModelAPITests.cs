@@ -2105,7 +2105,7 @@ class C
         [WorkItem(10211, "https://github.com/dotnet/roslyn/issues/10211")]
         public void GetDependenceChainRegression_10211_working()
         {
-            var compilation = CreateCompilationWithNone(@"
+            var compilation = CreateEmptyCompilation(@"
 class Parent {}
 class Child : Parent {}
 ");
@@ -2118,7 +2118,7 @@ class Child : Parent {}
         [WorkItem(10211, "https://github.com/dotnet/roslyn/issues/10211")]
         public void GetDependenceChainRegression_10211()
         {
-            var compilation = CreateCompilationWithNone(@"
+            var compilation = CreateEmptyCompilation(@"
 class Child : Parent {}
 class Parent {}
 ");

@@ -135,7 +135,7 @@ namespace WinRTDelegateLibrary
                 SystemCoreRef_v4_0_30319_17929
             };
 
-            var winRtDelegateLibrary = CreateCompilationWithNone(
+            var winRtDelegateLibrary = CreateEmptyCompilation(
                 winRtDelegateLibrarySrc,
                 references: coreRefs45,
                 options: TestOptions.ReleaseWinMD.WithAllowUnsafe(true),
@@ -143,7 +143,7 @@ namespace WinRTDelegateLibrary
 
             var nonWinRtLibrarySrc = winRtDelegateLibrarySrc.Replace("WinRTDelegateLibrary", "NonWinRTDelegateLibrary");
 
-            var nonWinRtDelegateLibrary = CreateCompilationWithNone(
+            var nonWinRtDelegateLibrary = CreateEmptyCompilation(
                 nonWinRtLibrarySrc,
                 references: coreRefs45,
                 options: TestOptions.UnsafeReleaseDll,

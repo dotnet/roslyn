@@ -1144,10 +1144,10 @@ class C
         d(null);
     }
 }";
-            var comp = CreateCompilationWithNone(source0);
+            var comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateCompilationWithNone(source1, references: new[] { ref0, SystemCoreRef });
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef });
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
             CompileAndVerify(comp, verify: Verification.Fails);
@@ -1178,10 +1178,10 @@ class C
         D d = () => { dynamic y = x; };
     }
 }";
-            var comp = CreateCompilationWithNone(source0);
+            var comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateCompilationWithNone(source1, references: new[] { ref0, SystemCoreRef });
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef });
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
             CompileAndVerify(comp, verify: Verification.Fails);

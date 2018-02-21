@@ -1076,7 +1076,7 @@ namespace System.Threading.Tasks
         }
     }
 }";
-            var compilation0 = CreateCompilationWithNone(source0, references: new[] { MscorlibRef_v20 });
+            var compilation0 = CreateEmptyCompilation(source0, references: new[] { MscorlibRef_v20 });
             var ref0 = compilation0.EmitToImageReference();
             var source =
 @"using System.Threading.Tasks;
@@ -1092,7 +1092,7 @@ class Program
         t.GetAwaiter().GetResult();
     }
 }";
-            var compilation = CreateCompilationWithNone(source, references: new[] { MscorlibRef_v20, ref0 });
+            var compilation = CreateEmptyCompilation(source, references: new[] { MscorlibRef_v20, ref0 });
             compilation.VerifyEmitDiagnostics();
         }
 

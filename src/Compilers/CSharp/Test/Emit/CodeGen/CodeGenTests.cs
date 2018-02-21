@@ -447,7 +447,7 @@ class C
     }
 }";
             var tree = Parse(source);
-            var compilation = CreateCompilationWithNone(tree, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, assemblyName: "Test");
+            var compilation = CreateEmptyCompilation(tree, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, assemblyName: "Test");
             CompileAndVerify(compilation, expectedOutput: "k");
         }
 
@@ -10481,7 +10481,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithNone(source).VerifyEmitDiagnostics(
+            CreateEmptyCompilation(source).VerifyEmitDiagnostics(
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion));
         }
 
@@ -14424,7 +14424,7 @@ class C
         switch (s) { case ""A"": break; case ""B"": break; }
     }
 }";
-            var compilation = CreateCompilationWithNone(text);
+            var compilation = CreateEmptyCompilation(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -14457,7 +14457,7 @@ class C
 {
     static object F = typeof(C);
 }";
-            var compilation = CreateCompilationWithNone(text);
+            var compilation = CreateEmptyCompilation(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -14493,7 +14493,7 @@ class C
         return __reftype(__makeref(o));
     }
 }";
-            var compilation = CreateCompilationWithNone(text);
+            var compilation = CreateEmptyCompilation(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {

@@ -59,7 +59,7 @@ class C
 }
 ";
 
-            var c1 = CreateCompilationWithNone(src1, references);
+            var c1 = CreateEmptyCompilation(src1, references);
             var c2 = c1.WithSource(src2);
             var md1 = AssemblyMetadata.CreateFromStream(c1.EmitToStream());
             var baseline = EmitBaseline.CreateInitialBaseline(md1.GetModules()[0], handle => default(EditAndContinueMethodDebugInformation));
@@ -129,9 +129,9 @@ class C
     public static void Main() { F(null); }
 }
 ";
-            var md1 = AssemblyMetadata.CreateFromStream(CreateCompilationWithNone(srcPE, new[] { MscorlibRef, SystemRef }).EmitToStream());
+            var md1 = AssemblyMetadata.CreateFromStream(CreateEmptyCompilation(srcPE, new[] { MscorlibRef, SystemRef }).EmitToStream());
 
-            var c1 = CreateCompilationWithNone(src1, new[] { MscorlibRef });
+            var c1 = CreateEmptyCompilation(src1, new[] { MscorlibRef });
             var c2 = c1.WithSource(src2);
             var baseline = EmitBaseline.CreateInitialBaseline(md1.GetModules()[0], handle => default(EditAndContinueMethodDebugInformation));
 
@@ -203,7 +203,7 @@ class C
             var lib2 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             lib2.VerifyDiagnostics();
 
-            var compilation0 = CreateCompilationWithNone(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
             var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
 
@@ -307,7 +307,7 @@ class C
 
             lib2.VerifyDiagnostics();
 
-            var compilation0 = CreateCompilationWithNone(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
             var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
 
@@ -390,7 +390,7 @@ class C
             ((SourceAssemblySymbol)lib2.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", new Version(1, 0, 2000, 1003));
             lib2.VerifyDiagnostics();
 
-            var compilation0 = CreateCompilationWithNone(src0, new[] { MscorlibRef, lib0.EmitToImageReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.EmitToImageReference() }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.EmitToImageReference() });
             var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.EmitToImageReference() });
 
@@ -470,7 +470,7 @@ class C
             var lib12 = CreateCompilation(srcLib12, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
             var ref12 = lib12.ToMetadataReference(ImmutableArray.Create("L1"));
 
-            var compilation0 = CreateCompilationWithNone(src0, new[] { MscorlibRef, ref01, ref11 }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, ref01, ref11 }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, ref02, ref12 });
 
             var v0 = CompileAndVerify(compilation0);

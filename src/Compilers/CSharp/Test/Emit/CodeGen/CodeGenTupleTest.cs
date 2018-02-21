@@ -3938,7 +3938,7 @@ static class Extension
         F(t);
     }
 }";
-            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyEmitDiagnostics();
         }
@@ -23297,15 +23297,15 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) => (Item1, Item2) = (item1, item2);
     }
 }";
-            var corlibWithoutVT = CreateCompilationWithNone(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs) }, assemblyName: "corlib");
+            var corlibWithoutVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs) }, assemblyName: "corlib");
             corlibWithoutVT.VerifyDiagnostics();
             var corlibWithoutVTRef = corlibWithoutVT.EmitToImageReference();
 
-            var corlibWithVT = CreateCompilationWithNone(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs) }, assemblyName: "corlib");
+            var corlibWithVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs) }, assemblyName: "corlib");
             corlibWithVT.VerifyDiagnostics();
             var corlibWithVTRef = corlibWithVT.EmitToImageReference();
 
-            var libWithVT = CreateCompilationWithNone(valuetuple_cs, references: new[] { corlibWithoutVTRef }, options: TestOptions.DebugDll);
+            var libWithVT = CreateEmptyCompilation(valuetuple_cs, references: new[] { corlibWithoutVTRef }, options: TestOptions.DebugDll);
             libWithVT.VerifyDiagnostics();
             var libWithVTRef = libWithVT.EmitToImageReference();
 
@@ -23671,7 +23671,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,28): error CS0029: Cannot implicitly convert type 'int?' to 'int'
@@ -23716,7 +23716,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,17): error CS0029: Cannot implicitly convert type 'int?' to 'int'
@@ -23742,7 +23742,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,28): error CS8135: Tuple with 2 elements cannot be converted to type '(int, string)?'.
@@ -23787,7 +23787,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,16): error CS8135: Tuple with 2 elements cannot be converted to type '(int, string)?'.
@@ -23813,7 +23813,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,32): error CS8135: Tuple with 2 elements cannot be converted to type '(int, string, int)'.
@@ -23852,7 +23852,7 @@ class C
 	}
 }
 ";
-            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,14): warning CS0219: The variable 't1' is assigned but its value is never used
@@ -23885,7 +23885,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,32): error CS0029: Cannot implicitly convert type '(int? e, string)' to '(int, string, int)'

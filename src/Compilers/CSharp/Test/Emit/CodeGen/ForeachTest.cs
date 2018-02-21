@@ -526,7 +526,7 @@ class Test
         [Fact]
         public void TestSpanValIndexer()
         {
-            var comp = CreateCompilationWithNone(@"
+            var comp = CreateEmptyCompilation(@"
 using System;
 
 class Test

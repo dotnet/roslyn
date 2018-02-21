@@ -8260,7 +8260,7 @@ class C
 }
 ";
 
-            CreateCompilationWithNone(text).VerifyDiagnostics(
+            CreateEmptyCompilation(text).VerifyDiagnostics(
                 // (3,11): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     class Test
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Object"),
@@ -9220,7 +9220,7 @@ public class B : A { }   // CS0535 A::F is not implemented
     }
 }";
             //compile without corlib, since otherwise this System.Object won't count as a special type
-            CreateCompilationWithNone(text).VerifyDiagnostics(
+            CreateEmptyCompilation(text).VerifyDiagnostics(
                 // (3,20): error CS0246: The type or namespace name 'ICloneable' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ICloneable").WithArguments("ICloneable"),
                 // (3,11): error CS0537: The class System.Object cannot have a base class or implement an interface
@@ -9243,7 +9243,7 @@ public class B : A { }   // CS0535 A::F is not implemented
 }";
 
             //compile without corlib, since otherwise this System.Object won't count as a special type
-            CreateCompilationWithNone(text).VerifyDiagnostics(
+            CreateEmptyCompilation(text).VerifyDiagnostics(
                 // (6,11): error CS0537: The class System.Object cannot have a base class or implement an interface
                 Diagnostic(ErrorCode.ERR_ObjectCantHaveBases, "Object"));
         }
@@ -9264,7 +9264,7 @@ public class B : A { }   // CS0535 A::F is not implemented
 
             // When System.Object is defined in both source and metadata, dev10 favors
             // the source version and reports ERR_ObjectCantHaveBases.
-            CreateCompilationWithNone(text).VerifyDiagnostics(
+            CreateEmptyCompilation(text).VerifyDiagnostics(
                 // (6,11): error CS0537: The class System.Object cannot have a base class or implement an interface
                 Diagnostic(ErrorCode.ERR_ObjectCantHaveBases, "Object"));
         }
@@ -14204,7 +14204,7 @@ class B
 {
     public static void M4(this object o) { }
 }";
-            var compilation = CreateCompilationWithNone(source, new[] { MscorlibRef });
+            var compilation = CreateEmptyCompilation(source, new[] { MscorlibRef });
             compilation.VerifyDiagnostics(
                 // (3,27): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 27),
@@ -18119,7 +18119,7 @@ public class C
         [Fact]
         public void CS3013WRN_CLS_ModuleMissingCLS()
         {
-            var netModule = CreateCompilationWithNone("", options: TestOptions.ReleaseModule, assemblyName: "lib").EmitToImageReference(expectedWarnings: new[] { Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion) });
+            var netModule = CreateEmptyCompilation("", options: TestOptions.ReleaseModule, assemblyName: "lib").EmitToImageReference(expectedWarnings: new[] { Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion) });
             CreateCompilation("[assembly: System.CLSCompliant(true)]", new[] { netModule }).VerifyDiagnostics(
                 // lib.netmodule: warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
                 Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS));
@@ -19924,7 +19924,7 @@ namespace Testspace
 }";
 
             var ilModuleReference = GetILModuleReference(ilSource, prependDefaultHeader: false);
-            var forwarderCompilation = CreateCompilationWithNone(
+            var forwarderCompilation = CreateEmptyCompilation(
                 source: string.Empty,
                 references: new MetadataReference[] { ilModuleReference },
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
@@ -19989,7 +19989,7 @@ namespace UserSpace
 
             var module2Reference = GetILModuleReference(module2IL, prependDefaultHeader: false);
 
-            var forwarderCompilation = CreateCompilationWithNone(
+            var forwarderCompilation = CreateEmptyCompilation(
                 source: string.Empty,
                 references: new MetadataReference[] { module1Reference, module2Reference },
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),

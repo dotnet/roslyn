@@ -115,7 +115,7 @@ class Program
         Enumerable.Repeat(1, 1);
     }
 }";
-            var comp = CreateCompilationWithNone(text, new[] { MscorlibRef });
+            var comp = CreateEmptyCompilation(text, new[] { MscorlibRef });
             //all unused because system.core was not included and Enumerable didn't bind
             comp.VerifyDiagnostics(
                 // (4,14): error CS0234: The type or namespace name 'Linq' does not exist in the namespace 'System' (are you missing an assembly reference?)
@@ -310,7 +310,7 @@ using C = System.Console;
             var source = @"
 extern alias A;
 ";
-            var lib = CreateCompilationWithNone("", assemblyName: "lib");
+            var lib = CreateEmptyCompilation("", assemblyName: "lib");
             var comp = CreateCompilation(source, new[] { new CSharpCompilationReference(lib, aliases: ImmutableArray.Create("A")) });
 
             comp.VerifyDiagnostics(

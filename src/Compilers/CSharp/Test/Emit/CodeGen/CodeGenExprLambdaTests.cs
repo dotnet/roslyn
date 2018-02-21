@@ -3420,7 +3420,7 @@ class Program
 }";
             string expectedOutput = @"Convert(Call(null.[System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1), Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo)) Type:System.Delegate) Type:Del)";
 
-            var comp = CreateCompilationWithNone(
+            var comp = CreateEmptyCompilation(
                 new[] { source, ExpressionTestLibrary },
                 new[] { MscorlibRef, SystemCoreRef },
                 TestOptions.ReleaseExe);
@@ -5247,7 +5247,7 @@ class C
 {
     static Expression<D> E = () => new C();
 }";
-            var compilation = CreateCompilationWithNone(text);
+            var compilation = CreateEmptyCompilation(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -5309,7 +5309,7 @@ class B<T>
     static object F = null;
     static Expression<D> G = () => F;
 }";
-            var compilation = CreateCompilationWithNone(text);
+            var compilation = CreateEmptyCompilation(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -5382,7 +5382,7 @@ class B<T>
     static void M() { }
     B(object o) { }
 }";
-            var compilation = CreateCompilationWithNone(text);
+            var compilation = CreateEmptyCompilation(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {

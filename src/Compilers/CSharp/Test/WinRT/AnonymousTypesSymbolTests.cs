@@ -1780,7 +1780,7 @@ class Program
             // Dev11: omits methods that are not defined on Object (see also Dev10 bug 487707)
             // Roslyn: we require Equals, ToString, GetHashCode, Format to be defined
 
-            var comp = CreateCompilationWithNone(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef });
+            var comp = CreateEmptyCompilation(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef });
             var result = comp.Emit(new MemoryStream());
 
             result.Diagnostics.Verify(
@@ -1808,7 +1808,7 @@ namespace System.Diagnostics
     }
 }
 ";
-            var stateLib = CreateCompilationWithNone(stateSource, new[] { MinCorlibRef });
+            var stateLib = CreateEmptyCompilation(stateSource, new[] { MinCorlibRef });
 
             var attributeSource = @"
 namespace System.Diagnostics
@@ -1822,7 +1822,7 @@ namespace System.Diagnostics
     }
 }
 ";
-            var attributeLib = CreateCompilationWithNone(attributeSource, new[] { MinCorlibRef, stateLib.ToMetadataReference() });
+            var attributeLib = CreateEmptyCompilation(attributeSource, new[] { MinCorlibRef, stateLib.ToMetadataReference() });
 
             var source = @"
 class Program
@@ -1834,7 +1834,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithNone(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef, attributeLib.ToMetadataReference() });
+            var comp = CreateEmptyCompilation(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef, attributeLib.ToMetadataReference() });
             var result = comp.Emit(new MemoryStream());
 
             result.Diagnostics.Verify(

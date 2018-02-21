@@ -4192,7 +4192,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithNone(
+            var comp = CreateEmptyCompilation(
                 source: new[] { Parse(text) },
                 references: new[] { AacorlibRef });
 

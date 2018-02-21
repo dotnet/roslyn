@@ -2381,7 +2381,7 @@ public class C
     }
 }";
             // The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
-            var compilation = CreateCompilationWithNone(new[] { Parse(source), Parse(corlib) });
+            var compilation = CreateEmptyCompilation(new[] { Parse(source), Parse(corlib) });
             var verifier = CompileAndVerify(compilation, verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -2425,7 +2425,7 @@ public class C
 {
     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
 }";
-            var compilation = CreateCompilationWithNone(new[] { Parse(source) });
+            var compilation = CreateEmptyCompilation(new[] { Parse(source) });
 
             compilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -2489,7 +2489,7 @@ public class C
 {
     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
 }";
-            var compilation = CreateCompilationWithNone(new[] { Parse(source) });
+            var compilation = CreateEmptyCompilation(new[] { Parse(source) });
 
             // No error about IEnumerable
             compilation.VerifyEmitDiagnostics(

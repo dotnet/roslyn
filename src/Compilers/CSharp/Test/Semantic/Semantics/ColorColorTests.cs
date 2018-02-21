@@ -2072,7 +2072,7 @@ class C
 public enum Color { Red }
 ";
 
-            var refLib = CreateCompilationWithNone(
+            var refLib = CreateEmptyCompilation(
                 sourceRefLib,
                 assemblyName: "RefLib",
                 references: new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
@@ -2090,7 +2090,7 @@ class M
 }
 ";
 
-            var main = CreateCompilationWithNone(
+            var main = CreateEmptyCompilation(
                 sourceMain,
                 assemblyName: "Main",
                 references: new MetadataReference[]

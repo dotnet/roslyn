@@ -14,7 +14,7 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Explicit pick a target framework that has no references
         /// </summary>
-        None,
+        Empty,
 
         NetStandard20,
         WinRT,
@@ -43,7 +43,7 @@ namespace Roslyn.Test.Utilities
 
     public static class TargetFrameworkUtil
     {
-        public static readonly ImmutableArray<MetadataReference> NoneReferences = ImmutableArray<MetadataReference>.Empty;
+        public static ImmutableArray<MetadataReference> EmptyReferences => ImmutableArray<MetadataReference>.Empty;
         public static readonly ImmutableArray<MetadataReference> Mscorlib40References = ImmutableArray.Create(TestBase.MscorlibRef);
         public static readonly ImmutableArray<MetadataReference> Mscorlib40ExtendedReferences = ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
         public static readonly ImmutableArray<MetadataReference> Mscorlib40andSystemCoreReferences = ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemCoreRef);
@@ -61,7 +61,7 @@ namespace Roslyn.Test.Utilities
         {
             switch (tf)
             {
-                case TargetFramework.None: return NoneReferences;
+                case TargetFramework.Empty: return EmptyReferences;
                 case TargetFramework.Mscorlib40: return Mscorlib40References;
                 case TargetFramework.Mscorlib40Extended: return Mscorlib40ExtendedReferences;
                 case TargetFramework.Mscorlib40AndSystemCore: return Mscorlib40andSystemCoreReferences;

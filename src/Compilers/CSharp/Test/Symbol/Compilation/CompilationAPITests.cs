@@ -1664,7 +1664,7 @@ using alias=alias;
 class myClass : alias::Uri
 {
 }";
-            var comp = CreateCompilationWithNone(text, references: new[] { MscorlibRef, alias });
+            var comp = CreateEmptyCompilation(text, references: new[] { MscorlibRef, alias });
             Assert.Equal(2, comp.References.Count());
             Assert.Equal("alias", comp.References.Last().Properties.Aliases.Single());
             comp.VerifyDiagnostics(
@@ -1928,7 +1928,7 @@ class C { }", options: TestOptions.Script);
 
             var reference = new EvolvingTestReference(new[] { md1, md2 });
 
-            var c1 = CreateCompilationWithNone("public class Main { public static C C; }", new[] { MscorlibRef, reference, reference });
+            var c1 = CreateEmptyCompilation("public class Main { public static C C; }", new[] { MscorlibRef, reference, reference });
             var c2 = c1.WithAssemblyName("c2");
             var c3 = c2.AddSyntaxTrees(Parse("public class Main2 { public static int a; }"));
             var c4 = c3.WithOptions(new CSharpCompilationOptions(OutputKind.NetModule));
@@ -1977,7 +1977,7 @@ class C { }", options: TestOptions.Script);
                 TestReferences.NetFx.silverlight_v5_0_5_0.System
             };
 
-            var compilation = CreateCompilationWithNone(
+            var compilation = CreateEmptyCompilation(
                 new[] { Parse("") },
                 references,
                 options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
@@ -1998,7 +1998,7 @@ class C { }", options: TestOptions.Script);
 
             var comparer = DesktopAssemblyIdentityComparer.LoadFromXml(appConfig);
 
-            compilation = CreateCompilationWithNone(
+            compilation = CreateEmptyCompilation(
                 new[] { Parse("") },
                 references,
                 options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(comparer));
@@ -2013,7 +2013,7 @@ class C { }", options: TestOptions.Script);
             string libSource = @"
 using System.Runtime.Versioning;
 public class C { public static FrameworkName Goo() { return null; }}";
-            var libComp = CreateCompilationWithNone(
+            var libComp = CreateEmptyCompilation(
                 libSource,
                 references: new[] { MscorlibRef, TestReferences.NetFx.v4_0_30319.System },
                 options: TestOptions.ReleaseDll);
@@ -2034,7 +2034,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             // Source references the type in the dll
             string src1 = @"class A { public static void Main(string[] args) { C.Goo(); } }";
 
-            var c1 = CreateCompilationWithNone(
+            var c1 = CreateEmptyCompilation(
                 new[] { Parse(src1) },
                 references,
                 options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
@@ -2059,7 +2059,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             var comparer = DesktopAssemblyIdentityComparer.LoadFromXml(appConfig);
 
             var src2 = @"class A { public static void Main(string[] args) { C.Goo(); } }";
-            var c2 = CreateCompilationWithNone(
+            var c2 = CreateEmptyCompilation(
                 new[] { Parse(src2) },
                 references,
                 options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(comparer));

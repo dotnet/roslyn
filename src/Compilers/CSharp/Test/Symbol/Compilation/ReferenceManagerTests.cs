@@ -514,7 +514,7 @@ namespace System.Reflection
 public class CGAttribute : System.Attribute { }
 ";
 
-            var libV1 = CreateCompilationWithNone(
+            var libV1 = CreateEmptyCompilation(
                 sourceLibV1,
                 assemblyName: "Lib",
                 references: new[] { MinCorlibRef },
@@ -538,7 +538,7 @@ namespace System.Reflection
 public class CGAttribute : System.Attribute { }
 ";
 
-            var libV2 = CreateCompilationWithNone(
+            var libV2 = CreateEmptyCompilation(
                 sourceLibV2,
                 assemblyName: "Lib",
                 references: new[] { MinCorlibRef },
@@ -554,7 +554,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-            var refLibV1 = CreateCompilationWithNone(
+            var refLibV1 = CreateEmptyCompilation(
                sourceRefLibV1,
                assemblyName: "RefLibV1",
                references: new MetadataReference[] { MinCorlibRef, new CSharpCompilationReference(libV1) },
@@ -568,7 +568,7 @@ public class C
     public int P { get; set; }   // error: backing field is marked by CompilerGeneratedAttribute, whose base type is in the unified assembly
 }
 ";
-            var main = CreateCompilationWithNone(
+            var main = CreateEmptyCompilation(
                sourceMain,
                assemblyName: "Main",
                references: new MetadataReference[] { MinCorlibRef, new CSharpCompilationReference(refLibV1), new CSharpCompilationReference(libV2) });
@@ -743,7 +743,7 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
             var r2 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(filePath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
             var r2_SysCore = r2.WithAliases(new[] { "SysCore" });
 
-            var compilation = CreateCompilationWithNone(tree, new[] { MscorlibRef, r1, r2_SysCore }, new CSharpCompilationOptions(OutputKind.ConsoleApplication), assemblyName: "Test");
+            var compilation = CreateEmptyCompilation(tree, new[] { MscorlibRef, r1, r2_SysCore }, new CSharpCompilationOptions(OutputKind.ConsoleApplication), assemblyName: "Test");
             CompileAndVerify(compilation, expectedOutput: "k");
         }
 
@@ -1885,19 +1885,19 @@ internal class C
         public void PortableLibrary()
         {
             var plSource = @"public class C {}";
-            var pl = CreateCompilationWithNone(plSource, new[] { MscorlibPP7Ref, SystemRuntimePP7Ref });
+            var pl = CreateEmptyCompilation(plSource, new[] { MscorlibPP7Ref, SystemRuntimePP7Ref });
             var r1 = new CSharpCompilationReference(pl);
 
             var mainSource = @"public class D : C { }";
 
             // w/o facades:
-            var main = CreateCompilationWithNone(mainSource, new MetadataReference[] { r1, MscorlibFacadeRef }, options: TestOptions.ReleaseDll);
+            var main = CreateEmptyCompilation(mainSource, new MetadataReference[] { r1, MscorlibFacadeRef }, options: TestOptions.ReleaseDll);
             main.VerifyDiagnostics(
                 // (1,18): error CS0012: The type 'System.Object' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("System.Object", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"));
 
             // facade specified:
-            main = CreateCompilationWithNone(mainSource, new MetadataReference[] { r1, MscorlibFacadeRef, SystemRuntimeFacadeRef });
+            main = CreateEmptyCompilation(mainSource, new MetadataReference[] { r1, MscorlibFacadeRef, SystemRuntimeFacadeRef });
             main.VerifyDiagnostics();
         }
 
@@ -2153,7 +2153,7 @@ public class Source
         [Fact]
         public void ReusingCorLibManager()
         {
-            var corlib1 = CreateCompilationWithNone("");
+            var corlib1 = CreateEmptyCompilation("");
             var assembly1 = corlib1.Assembly;
 
             var corlib2 = corlib1.Clone();
@@ -2246,8 +2246,8 @@ public class Source
             var c = CreateSubmissionWithExactReferences("new C()", new[]
             {
                 MscorlibRef_v4_0_30316_17626,
-                CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").EmitToImageReference(),
-                CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference(),
+                CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").EmitToImageReference(),
+                CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference(),
             });
 
             c.VerifyDiagnostics();
@@ -2264,11 +2264,11 @@ public class Source
             var c = CreateSubmissionWithExactReferences("new C()", new[]
             {
                 MscorlibRef_v4_0_30316_17626,
-                CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""0.0.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference(),
-                CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.1"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference(),
-                CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference(),
-                CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference(),
-                CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.1.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference().
+                CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""0.0.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference(),
+                CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.1"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference(),
+                CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference(),
+                CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference(),
+                CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.1.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference().
                     WithProperties(MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("Z")).WithRecursiveAliases(true)),
             });
 
@@ -2391,7 +2391,7 @@ public class P
 }
 ";
 
-            var c = CreateCompilationWithNone(source, new[]
+            var c = CreateEmptyCompilation(source, new[]
             {
                 bRef.WithAliases(ImmutableArray.Create("X")),
                 aRef,
@@ -2427,7 +2427,7 @@ public class P
 }
 ";
 
-            var c = CreateCompilationWithNone(source, new[]
+            var c = CreateEmptyCompilation(source, new[]
             {
                 bRef.WithAliases(ImmutableArray.Create("X")),
                 aRef.WithProperties(MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("Y")).WithRecursiveAliases(true)),
@@ -2463,7 +2463,7 @@ public class P
 }
 ";
 
-            var c = CreateCompilationWithNone(source, new[]
+            var c = CreateEmptyCompilation(source, new[]
             {
                 bRef.WithAliases(ImmutableArray.Create("X")),
                 aRef,
@@ -2504,7 +2504,7 @@ public class P
 }
 ";
 
-            var c = CreateCompilationWithNone(source, new[]
+            var c = CreateEmptyCompilation(source, new[]
             {
                 bRef.WithAliases(ImmutableArray.Create("X")),
                 aRef.WithProperties(MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("Y", "Y")).WithRecursiveAliases(true)),
@@ -2575,12 +2575,12 @@ public class C : A
         {
             // c - a -> "b, V1" resolved to "b, V3" with alias X
             //   - d -> "b, V2" resolved to "b, V3" with alias Y
-            var b1Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
-            var b2Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
-            var b3Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public class B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b1Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b3Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public class B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
 
-            var aRef = CreateCompilationWithNone("public class A : B { }", new[] { MscorlibRef, b1Ref }, assemblyName: "A").EmitToImageReference();
-            var dRef = CreateCompilationWithNone("public class D : B { }", new[] { MscorlibRef, b2Ref }, assemblyName: "D").EmitToImageReference();
+            var aRef = CreateEmptyCompilation("public class A : B { }", new[] { MscorlibRef, b1Ref }, assemblyName: "A").EmitToImageReference();
+            var dRef = CreateEmptyCompilation("public class D : B { }", new[] { MscorlibRef, b2Ref }, assemblyName: "D").EmitToImageReference();
 
             var b3RefX = b3Ref.WithAliases(ImmutableArray.Create("X"));
             var b3RefY = b3Ref.WithAliases(ImmutableArray.Create("Y"));
@@ -2591,7 +2591,7 @@ public class C : A
                 { "B, 2.0.0.0", b3RefY },
             });
 
-            var c = CreateCompilationWithNone(@"
+            var c = CreateEmptyCompilation(@"
 extern alias X;
 extern alias Y;
 
@@ -2629,13 +2629,13 @@ public class C : A
         {
             // c - a -> "b,v1,PKT=null" 
             //   - d -> "b,v2,PKT=null"
-            var b1Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
-            var b2Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
-            var b3Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
-            var b4Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
+            var b1Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
+            var b3Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
+            var b4Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
 
-            var aRef = CreateCompilationWithNone(@"public interface A : B { }", new[] { MscorlibRef, b1Ref }, assemblyName: "A").EmitToImageReference();
-            var dRef = CreateCompilationWithNone(@"public interface D : B { }", new[] { MscorlibRef, b2Ref }, assemblyName: "D").EmitToImageReference();
+            var aRef = CreateEmptyCompilation(@"public interface A : B { }", new[] { MscorlibRef, b1Ref }, assemblyName: "A").EmitToImageReference();
+            var dRef = CreateEmptyCompilation(@"public interface D : B { }", new[] { MscorlibRef, b2Ref }, assemblyName: "D").EmitToImageReference();
 
             var resolver = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
             {
@@ -2665,13 +2665,13 @@ public class C : A
         {
             // c - a -> "b,v1,PKT=null"
             //   - d -> "b,v2,PKT=null"
-            var b1Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
-            var b2Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
-            var b3Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
-            var b4Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
+            var b1Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
+            var b3Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
+            var b4Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")] public interface B { }", new[] { MscorlibRef }, assemblyName: "B").EmitToImageReference();
 
-            var aRef = CreateCompilationWithNone(@"public interface A : B { }", new[] { MscorlibRef, b1Ref }, assemblyName: "A").EmitToImageReference();
-            var dRef = CreateCompilationWithNone(@"public interface D : B { }", new[] { MscorlibRef, b2Ref }, assemblyName: "D").EmitToImageReference();
+            var aRef = CreateEmptyCompilation(@"public interface A : B { }", new[] { MscorlibRef, b1Ref }, assemblyName: "A").EmitToImageReference();
+            var dRef = CreateEmptyCompilation(@"public interface D : B { }", new[] { MscorlibRef, b2Ref }, assemblyName: "D").EmitToImageReference();
 
             var resolver = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
             {
@@ -2871,11 +2871,11 @@ public class C : A
             // c - a -> d -> "b,v2"
             //          e -> "b,v1"
             //   - "b,v1"  
-            var b1Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
-            var b2Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b1Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
 
-            var dRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface D : B { }", new[] { MscorlibRef, b2Ref }, options: s_signedDll, assemblyName: "D").EmitToImageReference();
-            var eRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface E : B { }", new[] { MscorlibRef, b1Ref }, options: s_signedDll, assemblyName: "E").EmitToImageReference();
+            var dRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface D : B { }", new[] { MscorlibRef, b2Ref }, options: s_signedDll, assemblyName: "D").EmitToImageReference();
+            var eRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface E : B { }", new[] { MscorlibRef, b1Ref }, options: s_signedDll, assemblyName: "E").EmitToImageReference();
 
             var resolverA = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
             {
@@ -2883,7 +2883,7 @@ public class C : A
                 { "B, 1.0.0.0", b1Ref },
             });
 
-            var aRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface A : D, E { }", new[] { MscorlibRef, dRef, eRef },
+            var aRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface A : D, E { }", new[] { MscorlibRef, dRef, eRef },
                 s_signedDll.WithMetadataReferenceResolver(resolverA), assemblyName: "A").EmitToImageReference();
 
             Assert.Equal(2, resolverA.ResolutionAttempts.Count);
@@ -2894,7 +2894,7 @@ public class C : A
                 { "E, 1.0.0.0", eRef },
             });
 
-            var c = CreateCompilationWithNone("public class C : A { }", new[] { MscorlibRef, aRef, b1Ref },
+            var c = CreateEmptyCompilation("public class C : A { }", new[] { MscorlibRef, aRef, b1Ref },
                 s_signedDll.WithMetadataReferenceResolver(resolverC));
 
             c.VerifyEmitDiagnostics(
@@ -2937,11 +2937,11 @@ public class C : A
             // c - a -> d -> "b,v2"
             //          e -> "b,v1"
             //   - "b,v2"  
-            var b1Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", references: new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
-            var b2Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", references: new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b1Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", references: new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", references: new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
 
-            var dRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface D : B { }", new[] { MscorlibRef, b2Ref }, options: s_signedDll, assemblyName: "D").EmitToImageReference();
-            var eRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface E : B { }", new[] { MscorlibRef, b1Ref }, options: s_signedDll, assemblyName: "E").EmitToImageReference();
+            var dRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface D : B { }", new[] { MscorlibRef, b2Ref }, options: s_signedDll, assemblyName: "D").EmitToImageReference();
+            var eRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface E : B { }", new[] { MscorlibRef, b1Ref }, options: s_signedDll, assemblyName: "E").EmitToImageReference();
 
             var resolverA = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
             {
@@ -2949,7 +2949,7 @@ public class C : A
                 { "B, 1.0.0.0", b1Ref },
             });
 
-            var aRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface A : D, E { }", new[] { MscorlibRef, dRef, eRef },
+            var aRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface A : D, E { }", new[] { MscorlibRef, dRef, eRef },
                 s_signedDll.WithMetadataReferenceResolver(resolverA), assemblyName: "A").EmitToImageReference();
 
             Assert.Equal(2, resolverA.ResolutionAttempts.Count);
@@ -2960,7 +2960,7 @@ public class C : A
                 { "E, 1.0.0.0", eRef },
             });
 
-            var c = CreateCompilationWithNone("public class C : A { }", new[] { MscorlibRef, aRef, b2Ref },
+            var c = CreateEmptyCompilation("public class C : A { }", new[] { MscorlibRef, aRef, b2Ref },
                 s_signedDll.WithMetadataReferenceResolver(resolverC));
 
             c.VerifyEmitDiagnostics(
@@ -2997,13 +2997,13 @@ public class C : A
             //          e -> "b,v1"
             //          "b,v1"
             //          "b,v2"
-            var b1Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
-            var b2Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b1Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
 
-            var dRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface D : B { }", new[] { MscorlibRef, b2Ref }, options: s_signedDll, assemblyName: "D").EmitToImageReference();
-            var eRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface E : B { }", new[] { MscorlibRef, b1Ref }, options: s_signedDll, assemblyName: "E").EmitToImageReference();
+            var dRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface D : B { }", new[] { MscorlibRef, b2Ref }, options: s_signedDll, assemblyName: "D").EmitToImageReference();
+            var eRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface E : B { }", new[] { MscorlibRef, b1Ref }, options: s_signedDll, assemblyName: "E").EmitToImageReference();
 
-            var aRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface A : D, E { }", new[] { MscorlibRef, dRef, eRef, b1Ref, b2Ref },
+            var aRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface A : D, E { }", new[] { MscorlibRef, dRef, eRef, b1Ref, b2Ref },
                 s_signedDll, assemblyName: "A").EmitToImageReference();
 
             var resolverC = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
@@ -3041,15 +3041,15 @@ public class C : A
             //          e -> "b,v1"
             //          "b,v1"
             //          "b,v2"
-            var b1Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
-            var b2Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
-            var b3Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
-            var b4Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b1Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b3Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b4Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
 
-            var dRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface D : B { }", new[] { MscorlibRef, b2Ref }, options: s_signedDll, assemblyName: "D").EmitToImageReference();
-            var eRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface E : B { }", new[] { MscorlibRef, b1Ref }, options: s_signedDll, assemblyName: "E").EmitToImageReference();
+            var dRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface D : B { }", new[] { MscorlibRef, b2Ref }, options: s_signedDll, assemblyName: "D").EmitToImageReference();
+            var eRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface E : B { }", new[] { MscorlibRef, b1Ref }, options: s_signedDll, assemblyName: "E").EmitToImageReference();
 
-            var aRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface A : D, E { }", new[] { MscorlibRef, dRef, eRef, b1Ref, b2Ref },
+            var aRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface A : D, E { }", new[] { MscorlibRef, dRef, eRef, b1Ref, b2Ref },
                 s_signedDll, assemblyName: "A").EmitToImageReference();
 
             var resolverC = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
@@ -3060,7 +3060,7 @@ public class C : A
                 { "B, 2.0.0.0", b4Ref },
             });
 
-            var c = CreateCompilationWithNone("public class C : A { }", new[] { MscorlibRef, aRef },
+            var c = CreateEmptyCompilation("public class C : A { }", new[] { MscorlibRef, aRef },
                 s_signedDll.WithMetadataReferenceResolver(resolverC));
 
             c.VerifyEmitDiagnostics(
@@ -3107,15 +3107,15 @@ public class C : A
             //          e -> "b,v1"
             //          "b,v1"
             //          "b,v2"
-            var b1Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
-            var b2Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
-            var b3Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
-            var b4Ref = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b1Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b3Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b4Ref = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")] public interface B { }", new[] { MscorlibRef }, options: s_signedDll, assemblyName: "B").EmitToImageReference();
 
-            var dRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface D : B { }", new[] { MscorlibRef, b2Ref }, options: s_signedDll, assemblyName: "D").EmitToImageReference();
-            var eRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface E : B { }", new[] { MscorlibRef, b1Ref }, options: s_signedDll, assemblyName: "E").EmitToImageReference();
+            var dRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface D : B { }", new[] { MscorlibRef, b2Ref }, options: s_signedDll, assemblyName: "D").EmitToImageReference();
+            var eRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface E : B { }", new[] { MscorlibRef, b1Ref }, options: s_signedDll, assemblyName: "E").EmitToImageReference();
 
-            var aRef = CreateCompilationWithNone(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface A : D, E { }", new[] { MscorlibRef, dRef, eRef, b1Ref, b2Ref },
+            var aRef = CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface A : D, E { }", new[] { MscorlibRef, dRef, eRef, b1Ref, b2Ref },
                 s_signedDll, assemblyName: "A").EmitToImageReference();
 
             var resolverC = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
@@ -3176,10 +3176,10 @@ public class C : A
             //          "System, v2"
             //     b -> "mscorlib, v4"
             //          "System, v4"
-            var aRef = CreateCompilationWithNone(@"public interface A { System.Diagnostics.Process PA { get; } }", new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v2_0_50727.System },
+            var aRef = CreateEmptyCompilation(@"public interface A { System.Diagnostics.Process PA { get; } }", new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v2_0_50727.System },
                 options: options, assemblyName: "A").EmitToImageReference();
 
-            var bRef = CreateCompilationWithNone(@"public interface B { System.Diagnostics.Process PB { get; } }", new[] { MscorlibRef_v4_0_30316_17626, TestReferences.NetFx.v4_0_30319.System },
+            var bRef = CreateEmptyCompilation(@"public interface B { System.Diagnostics.Process PB { get; } }", new[] { MscorlibRef_v4_0_30316_17626, TestReferences.NetFx.v4_0_30319.System },
                 options: options, assemblyName: "B").EmitToImageReference();
 
             var resolverC = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
@@ -3216,10 +3216,10 @@ public class C : A
 
             // c - a -> "C, v2"
             //     b -> "C, v1"
-            var aRef = CreateCompilationWithNone(@"public interface A { C CA { get; } }", new[] { MscorlibRef, TestReferences.SymbolsTests.Versioning.C2 },
+            var aRef = CreateEmptyCompilation(@"public interface A { C CA { get; } }", new[] { MscorlibRef, TestReferences.SymbolsTests.Versioning.C2 },
                 options: options, assemblyName: "A").EmitToImageReference();
 
-            var bRef = CreateCompilationWithNone(@"public interface B { C CB { get; } }", new[] { MscorlibRef, TestReferences.SymbolsTests.Versioning.C1 },
+            var bRef = CreateEmptyCompilation(@"public interface B { C CB { get; } }", new[] { MscorlibRef, TestReferences.SymbolsTests.Versioning.C1 },
                 options: options, assemblyName: "B").EmitToImageReference();
 
             var resolverC = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>

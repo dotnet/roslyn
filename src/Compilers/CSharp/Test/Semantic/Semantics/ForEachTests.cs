@@ -1922,7 +1922,7 @@ public class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithNone(text);
+            var compilation = CreateEmptyCompilation(text);
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
@@ -1942,7 +1942,7 @@ public class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithNone(text);
+            var compilation = CreateEmptyCompilation(text);
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
@@ -1961,7 +1961,7 @@ public class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithNone(text);
+            var compilation = CreateEmptyCompilation(text);
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
@@ -2088,7 +2088,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithNone(source, new[] { MscorlibRefPortable });
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRefPortable });
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -2195,7 +2195,7 @@ class Element
 {
 }
 ";
-            var comp = CreateCompilationWithNone(text);
+            var comp = CreateEmptyCompilation(text);
             comp.GetDiagnostics();
         }
 
@@ -2236,7 +2236,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(text);
+            var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // (30,27): error CS0656: Missing compiler required member 'System.Nullable`1.get_Value'
                 //         foreach (var c in e) { }
@@ -2273,7 +2273,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(text);
+            var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2335,7 +2335,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(text);
+            var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2405,7 +2405,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(text);
+            var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2475,7 +2475,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(text);
+            var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2520,7 +2520,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(text);
+            var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2585,7 +2585,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(text);
+            var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2648,7 +2648,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(text);
+            var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2711,7 +2711,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithNone(text);
+            var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2764,7 +2764,7 @@ namespace System
     public class String : Object { }
 }
 ";
-            var comp = CreateCompilationWithNone(source); // Lots of errors, since corlib is missing.
+            var comp = CreateEmptyCompilation(source); // Lots of errors, since corlib is missing.
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -2945,7 +2945,7 @@ namespace System.Collections
         bool MoveNext();
     }
 }";
-            var compilation1 = CreateCompilationWithNone(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var text =
 @"class C
@@ -2959,7 +2959,7 @@ namespace System.Collections
     }
 }";
 
-            var comp = CreateCompilationWithNone(text, new[] { reference1 });
+            var comp = CreateEmptyCompilation(text, new[] { reference1 });
             CompileAndVerify(comp, verify: Verification.Fails).
             VerifyIL("C.M", @"
 {
@@ -3129,7 +3129,7 @@ namespace System
 }
 ";
 
-            var comp1 = CreateCompilationWithNone(source1, options: TestOptions.DebugDll, assemblyName: "MissingBaseType1");
+            var comp1 = CreateEmptyCompilation(source1, options: TestOptions.DebugDll, assemblyName: "MissingBaseType1");
             comp1.VerifyDiagnostics();
 
             var source2 = @"
@@ -3157,7 +3157,7 @@ public struct Enumerator
     }
 }";
 
-            var comp2 = CreateCompilationWithNone(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            var comp2 = CreateEmptyCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugDll);
             comp2.VerifyDiagnostics();
 
             var source3 = @"
@@ -3172,7 +3172,7 @@ namespace System
 }
 ";
 
-            var comp3 = CreateCompilationWithNone(source3, options: TestOptions.DebugDll, assemblyName: "MissingBaseType2");
+            var comp3 = CreateEmptyCompilation(source3, options: TestOptions.DebugDll, assemblyName: "MissingBaseType2");
             comp3.VerifyDiagnostics();
 
             var source4 = @"
@@ -3185,7 +3185,7 @@ class Program
     }
 }";
 
-            var comp4 = CreateCompilationWithNone(source4, new[] { comp2.ToMetadataReference(), comp3.ToMetadataReference() });
+            var comp4 = CreateEmptyCompilation(source4, new[] { comp2.ToMetadataReference(), comp3.ToMetadataReference() });
             comp4.VerifyDiagnostics(
                 // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         foreach (var x in new Enumerable())

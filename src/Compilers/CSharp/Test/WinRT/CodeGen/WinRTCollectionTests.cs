@@ -341,7 +341,7 @@ public class Class1
         en = new WwwFormUrlDecoder(""?param1=test"").GetEnumerator();
     }
 }";
-            var comp = CreateCompilationWithNone(source, references: WinRtRefs);
+            var comp = CreateEmptyCompilation(source, references: WinRtRefs);
             // JsonArray implements both IEnumerable and IList, which both have a GetEnumerator
             // method. We can't know which interface method to call, so we shouldn't emit a
             // GetEnumerator method at all.

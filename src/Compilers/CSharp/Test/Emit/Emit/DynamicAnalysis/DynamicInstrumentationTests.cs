@@ -2310,7 +2310,7 @@ public class Program
 }
 ";
 
-            ImmutableArray<Diagnostic> diagnostics = CreateCompilationWithNone(source + InstrumentationHelperSource).GetEmitDiagnostics(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+            ImmutableArray<Diagnostic> diagnostics = CreateEmptyCompilation(source + InstrumentationHelperSource).GetEmitDiagnostics(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
             foreach (Diagnostic diagnostic in diagnostics)
             {
                 if (diagnostic.Code == (int)ErrorCode.ERR_MissingPredefinedMember &&

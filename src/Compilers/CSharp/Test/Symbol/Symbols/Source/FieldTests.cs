@@ -60,7 +60,7 @@ class A {
     A F;
 }
 ";
-            var comp = CreateCompilationWithNone(text);
+            var comp = CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var sym = a.GetMembers("F").Single() as FieldSymbol;
@@ -117,7 +117,7 @@ class A {
     A F;
 }
 ";
-            var comp = CreateCompilationWithNone(text);
+            var comp = CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var fs = a.GetMembers("F");
@@ -141,7 +141,7 @@ class A
     private static char N3 = ' ';
 }
 ";
-            var comp = CreateCompilationWithNone(text);
+            var comp = CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var n1 = a.GetMembers("N1").Single() as FieldSymbol;

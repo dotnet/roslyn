@@ -1613,7 +1613,7 @@ public class C
                 .WithCryptoKeyFile(s_keyPairFile)
                 .WithStrongNameProvider(provider);
 
-            var other = CreateCompilationWithNone(
+            var other = CreateEmptyCompilation(
                 @"
 [assembly: System.Reflection.AssemblyDelaySign(true)]
 [assembly: System.Reflection.AssemblySignatureKey(""002400000c800000140100000602000000240000525341310008000001000100613399aff18ef1a2c2514a273a42d9042b72321f1757102df9ebada69923e2738406c21e5b801552ab8d200a65a235e001ac9adc25f2d811eb09496a4c6a59d4619589c69f5baf0c4179a47311d92555cd006acc8b5959f2bd6e10e360c34537a1d266da8085856583c85d81da7f3ec01ed9564c58d93d713cd0172c8e23a10f0239b80c96b07736f5d8b022542a4e74251a5f432824318b3539a5a087f8e53d2f135f9ca47f3bb2e10aff0af0849504fb7cea3ff192dc8de0edad64c68efde34c56d302ad55fd6e80f302d5efcdeae953658d3452561b5f36c542efdbdd9f888538d374cef106acf7d93a4445c3c73cd911f0571aaf3d54da12b11ddec375b3"", ""a5a866e1ee186f807668209f3b11236ace5e21f117803a3143abb126dd035d7d2f876b6938aaf2ee3414d5420d753621400db44a49c486ce134300a2106adb6bdb433590fef8ad5c43cba82290dc49530effd86523d9483c00f458af46890036b0e2c61d077d7fbac467a506eba29e467a87198b053c749aa2a4d2840c784e6d"")]
@@ -2140,7 +2140,7 @@ e29df38b5c72727c1333f32001949a0a0e2c10f8af0a344300ab2123052840cb16e30176c7281810
         [Fact]
         public void AssemblySignatureKeyAttribute_1()
         {
-            var other = CreateCompilationWithNone(
+            var other = CreateEmptyCompilation(
             @"
 [assembly: System.Reflection.AssemblySignatureKeyAttribute(
 ""00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"",
@@ -2166,7 +2166,7 @@ public class C
         [Fact]
         public void AssemblySignatureKeyAttribute_2()
         {
-            var other = CreateCompilationWithNone(
+            var other = CreateEmptyCompilation(
             @"
 [assembly: System.Reflection.AssemblySignatureKeyAttribute(
 ""xxx 00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"",
@@ -2206,7 +2206,7 @@ public class C
 
             var options = TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider);
 
-            var other = CreateCompilationWithNone(source, options: options, references: new[] { MscorlibRef_v4_0_30316_17626 });
+            var other = CreateEmptyCompilation(source, options: options, references: new[] { MscorlibRef_v4_0_30316_17626 });
 
             var tempFile = Temp.CreateFile();
 
@@ -2223,7 +2223,7 @@ public class C
         [Fact]
         public void AssemblySignatureKeyAttribute_4()
         {
-            var other = CreateCompilationWithNone(
+            var other = CreateEmptyCompilation(
             @"
 [assembly: System.Reflection.AssemblySignatureKeyAttribute(
 ""xxx 00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"",
@@ -2252,7 +2252,7 @@ public class C
         [Fact]
         public void AssemblySignatureKeyAttribute_5()
         {
-            var other = CreateCompilationWithNone(
+            var other = CreateEmptyCompilation(
             @"
 [assembly: System.Reflection.AssemblySignatureKeyAttribute(
 ""00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"",
@@ -2276,7 +2276,7 @@ public class C
         [Fact]
         public void AssemblySignatureKeyAttribute_6()
         {
-            var other = CreateCompilationWithNone(
+            var other = CreateEmptyCompilation(
             @"
 [assembly: System.Reflection.AssemblySignatureKeyAttribute(
 null,
@@ -2305,7 +2305,7 @@ public class C
         [Fact]
         public void AssemblySignatureKeyAttribute_7()
         {
-            var other = CreateCompilationWithNone(
+            var other = CreateEmptyCompilation(
             @"
 [assembly: System.Reflection.AssemblySignatureKeyAttribute(
 ""00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"",

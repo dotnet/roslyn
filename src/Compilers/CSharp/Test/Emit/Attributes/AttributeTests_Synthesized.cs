@@ -118,7 +118,7 @@ class C
 ";
             var reference = CreateCompilation(source).EmitToImageReference();
 
-            var comp = CreateCompilationWithNone("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var comp = CreateEmptyCompilation("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var pid = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers().Where(s => s.Name.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal)).Single();
 
@@ -139,7 +139,7 @@ unsafe struct S
 }
 ";
             var reference = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
-            var comp = CreateCompilationWithNone("", new[] { reference }, options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var comp = CreateEmptyCompilation("", new[] { reference }, options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var s = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("S").Single();
             var bufferType = (NamedTypeSymbol)s.GetMembers().Where(t => t.Name == "<C>e__FixedBuffer").Single();
@@ -840,7 +840,7 @@ public class Test
         public void MissingWellKnownAttributesNoDiagnosticsAndNoSynthesizedAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
         {
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            var compilation = CreateCompilationWithNone("", options: options);
+            var compilation = CreateEmptyCompilation("", options: options);
 
             if (outputKind.IsApplication())
             {
@@ -1514,11 +1514,11 @@ namespace System
             #endregion
 
             // Build an mscorlib including String
-            var mslibComp = CreateCompilationWithNone(new string[] { mslib }).VerifyDiagnostics();
+            var mslibComp = CreateEmptyCompilation(new string[] { mslib }).VerifyDiagnostics();
             var mslibRef = mslibComp.EmitToImageReference();
 
             // Build an mscorlib without String
-            var mslibNoStringComp = CreateCompilationWithNone(new string[] { mslibNoString }).VerifyDiagnostics();
+            var mslibNoStringComp = CreateEmptyCompilation(new string[] { mslibNoString }).VerifyDiagnostics();
             var mslibNoStringRef = mslibNoStringComp.EmitToImageReference();
 
             var diagLibSource = @"
@@ -1535,11 +1535,11 @@ namespace System.Runtime.CompilerServices
     public class CompilerGeneratedAttribute { } 
 }";
             // Build Diagnostics referencing mscorlib with String
-            var diagLibComp = CreateCompilationWithNone(new string[] { diagLibSource }, references: new[] { mslibRef }).VerifyDiagnostics();
+            var diagLibComp = CreateEmptyCompilation(new string[] { diagLibSource }, references: new[] { mslibRef }).VerifyDiagnostics();
             var diagLibRef = diagLibComp.EmitToImageReference();
 
             // Create compilation using Diagnostics but referencing mscorlib without String
-            var comp = CreateCompilationWithNone(new SyntaxTree[] { Parse("") }, references: new[] { diagLibRef, mslibNoStringRef });
+            var comp = CreateEmptyCompilation(new SyntaxTree[] { Parse("") }, references: new[] { diagLibRef, mslibNoStringRef });
 
             // Attribute cannot be synthesized because ctor has a use-site error (String type missing)
             var attribute = comp.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor);

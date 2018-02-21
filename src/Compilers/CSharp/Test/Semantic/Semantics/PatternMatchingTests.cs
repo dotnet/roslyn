@@ -4027,7 +4027,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithNone(source, options: TestOptions.DebugExe,
+            var compilation = CreateEmptyCompilation(source, options: TestOptions.DebugExe,
                 references: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
             compilation.VerifyDiagnostics(
                 );
@@ -5601,7 +5601,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilationWithNone(source);
+            var compilation = CreateEmptyCompilation(source);
             compilation.VerifyDiagnostics(
                 );
             compilation.GetEmitDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Warning).Verify(

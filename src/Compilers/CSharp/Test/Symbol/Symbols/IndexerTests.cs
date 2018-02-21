@@ -2815,7 +2815,7 @@ class Test
 ";
             #endregion
 
-            var comp1 = CreateCompilationWithNone(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            var comp1 = CreateEmptyCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
             var comp2 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp1) });
 
             var typeSymbol = comp1.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("IGoo");

@@ -307,9 +307,9 @@ public class C
         [Fact]
         public void TestMissingTypeLocation()
         {
-            var dummyComp = CreateCompilationWithNone("", assemblyName: "Error");
+            var dummyComp = CreateEmptyCompilation("", assemblyName: "Error");
             var errorType = dummyComp.GetSpecialType(SpecialType.System_Int32);
-            var validType = CreateCompilationWithNone("", new[] { MscorlibRef }).GetSpecialType(SpecialType.System_Int32);
+            var validType = CreateEmptyCompilation("", new[] { MscorlibRef }).GetSpecialType(SpecialType.System_Int32);
 
             Assert.NotEqual(TypeKind.Error, validType.TypeKind);
             Assert.Equal(TypeKind.Error, errorType.TypeKind);

@@ -28,7 +28,7 @@ End Interface
 
             var text = @"class C : I {}";
             var tree = Parse(text);
-            var comp = CreateCompilationWithNone(new[] { tree }, new[] { ref1 });
+            var comp = CreateEmptyCompilation(new[] { tree }, new[] { ref1 });
 
             var t = comp.GetTypeByMetadataName("I");
             Assert.Empty(t.GetMembersUnordered().Where(x => x.Kind == SymbolKind.Method && !x.CanBeReferencedByName));
