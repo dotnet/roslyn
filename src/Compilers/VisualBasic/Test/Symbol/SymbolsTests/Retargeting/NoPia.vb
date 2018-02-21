@@ -1687,7 +1687,7 @@ End Module
 
         <Fact>
         <WorkItem(24964, "https://github.com/dotnet/roslyn/issues/24964")>
-        Public Sub UnificationAcrossDistincCoreLibs()
+        Public Sub UnificationAcrossDistinctCoreLibs()
             Dim pia = "
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices

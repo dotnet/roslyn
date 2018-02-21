@@ -2614,7 +2614,7 @@ public class Consumer
 
         [Fact]
         [WorkItem(24964, "https://github.com/dotnet/roslyn/issues/24964")]
-        public void UnificationAcrossDistincCoreLibs()
+        public void UnificationAcrossDistinctCoreLibs()
         {
             string pia = @"
 using System;
