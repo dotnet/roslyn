@@ -130,17 +130,20 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsDisposeImplementation(this IMethodSymbol method, INamedTypeSymbol iDisposable)
         {
-            if (method.ReturnType.SpecialType == SpecialType.System_Void && method.Parameters.Length == 0)
-            {
-                // Identify the implementor of IDisposable.Dispose in the given method's containing type and check
-                // if it is the given method.
-                if (method.IsImplementationOfInterfaceMethod(null, iDisposable, "Dispose"))
-                {
-                    return true;
-                }
-            }
+            // Identify the implementor of IDisposable.Dispose in the given method's containing type and check
+            // if it is the given method.
+            return method.ReturnsVoid &&
+                method.Parameters.Length == 0 &&
+                method.IsImplementationOfInterfaceMethod(null, iDisposable, "Dispose");
+        }
 
-            return false;
+        /// <summary>
+        /// Checks if the given method has the signature "void Dispose()".
+        /// </summary>
+        private static bool HasDisposeMethodSignature(this IMethodSymbol method)
+        {
+            return method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
+                method.ReturnsVoid && method.Parameters.IsEmpty;
         }
 
         /// <summary>
@@ -161,6 +164,15 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Checks if the given method has the signature "void Close()".
+        /// </summary>
+        private static bool HasDisposeCloseMethodSignature(this IMethodSymbol method)
+        {
+            return method.Name == "Close" && method.MethodKind == MethodKind.Ordinary &&
+                method.ReturnsVoid && method.Parameters.IsEmpty;
+        }
+
+        /// <summary>
         /// Gets the <see cref="DisposeMethodKind"/> for the given method.
         /// </summary>
         public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, Compilation compilation)
@@ -176,18 +188,17 @@ namespace Analyzer.Utilities.Extensions
         {
             if (method.ContainingType.IsDisposable(iDisposable))
             {
-                if (IsDisposeImplementation(method, iDisposable))
+                if (IsDisposeImplementation(method, iDisposable) ||
+                    (method.ContainingType == iDisposable &&
+                     method.HasDisposeMethodSignature()))
                 {
                     return DisposeMethodKind.Dispose;
                 }
-                else if (HasDisposeBoolMethodSignature(method))
+                else if (method.HasDisposeBoolMethodSignature())
                 {
                     return DisposeMethodKind.DisposeBool;
                 }
-                else if (method.Name == "Close" &&
-                    method.MethodKind == MethodKind.Ordinary &&
-                    method.ReturnsVoid &&
-                    method.Parameters.IsEmpty)
+                else if (method.HasDisposeCloseMethodSignature())
                 {
                     return DisposeMethodKind.Close;
                 }
