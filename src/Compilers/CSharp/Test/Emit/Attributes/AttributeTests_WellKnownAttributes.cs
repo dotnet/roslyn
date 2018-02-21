@@ -8676,9 +8676,35 @@ public class C
         System.Console.WriteLine(ptr[0]);
     }
 
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public unsafe void M_skip_copy()
+    {
+        int *ptr = stackalloc int[10];
+        System.Console.WriteLine(ptr[0]);
+    }
+
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public unsafe void M_skip_diff()
+    {
+        int *ptr = stackalloc int[11];
+        System.Console.WriteLine(ptr[0]);
+    }
+
     public unsafe void M_init()
     {
         int *ptr = stackalloc int[10];
+        System.Console.WriteLine(ptr[0]);
+    }
+
+    public unsafe void M_init_copy()
+    {
+        int *ptr = stackalloc int[10];
+        System.Console.WriteLine(ptr[0]);
+    }
+
+    public unsafe void M_init_diff()
+    {
+        int *ptr = stackalloc int[11];
         System.Console.WriteLine(ptr[0]);
     }
 }
@@ -8706,6 +8732,10 @@ public class C
 
             MethodDefinition methodInit = default;
             MethodDefinition methodSkip = default;
+            MethodDefinition methodInitCopy = default;
+            MethodDefinition methodSkipCopy = default;
+            MethodDefinition methodInitDiff = default;
+            MethodDefinition methodSkipDiff = default;
 
             foreach (var methodHandle in typeC.GetMethods())
             {
@@ -8720,12 +8750,36 @@ public class C
                 {
                     methodSkip = method;
                 }
+                else if (name == "M_init_copy")
+                {
+                    methodInitCopy = method;
+                }
+                else if (name == "M_skip_copy")
+                {
+                    methodSkipCopy = method;
+                }
+                else if (name == "M_init_diff")
+                {
+                    methodInitDiff = method;
+                }
+                else if (name == "M_skip_diff")
+                {
+                    methodSkipDiff = method;
+                }
             }
 
             Assert.NotEqual(methodInit, default);
             Assert.NotEqual(methodSkip, default);
+            Assert.NotEqual(methodInitCopy, default);
+            Assert.NotEqual(methodSkipCopy, default);
+            Assert.NotEqual(methodInitDiff, default);
+            Assert.NotEqual(methodSkipDiff, default);
 
             Assert.NotEqual(methodInit.RelativeVirtualAddress, methodSkip.RelativeVirtualAddress);
+            Assert.Equal(methodInit.RelativeVirtualAddress, methodInitCopy.RelativeVirtualAddress);
+            Assert.Equal(methodSkip.RelativeVirtualAddress, methodSkipCopy.RelativeVirtualAddress);
+            Assert.NotEqual(methodInit.RelativeVirtualAddress, methodInitDiff.RelativeVirtualAddress);
+            Assert.NotEqual(methodSkip.RelativeVirtualAddress, methodSkipDiff.RelativeVirtualAddress);
         }
 
         [Fact]

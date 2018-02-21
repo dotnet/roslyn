@@ -2941,6 +2941,7 @@ namespace Microsoft.Cci
             int ilLength = methodBody.IL.Length;
             var exceptionRegions = methodBody.ExceptionRegions;
             bool isSmallBody = ilLength < 64 && methodBody.MaxStack <= 8 && localSignatureHandleOpt.IsNil && exceptionRegions.Length == 0;
+            var smallBodyKey = (methodBody.IL, methodBody.AreLocalsZeroed);
 
             // Check if an identical method body has already been serialized.
             // If so, use the RVA of the already serialized one.
@@ -2949,7 +2950,7 @@ namespace Microsoft.Cci
             // Don't do small body method caching during deterministic builds until this issue is fixed
             // https://github.com/dotnet/roslyn/issues/7595
             int bodyOffset;
-            if (!_deterministic && isSmallBody && _smallMethodBodies.TryGetValue((methodBody.IL, methodBody.AreLocalsZeroed), out bodyOffset))
+            if (!_deterministic && isSmallBody && _smallMethodBodies.TryGetValue(smallBodyKey, out bodyOffset))
             {
                 return bodyOffset;
             }
@@ -2966,7 +2967,7 @@ namespace Microsoft.Cci
             // https://github.com/dotnet/roslyn/issues/7595
             if (isSmallBody && !_deterministic)
             {
-                _smallMethodBodies.Add((methodBody.IL, methodBody.AreLocalsZeroed), encodedBody.Offset);
+                _smallMethodBodies.Add(smallBodyKey, encodedBody.Offset);
             }
 
             WriteInstructions(encodedBody.Instructions, methodBody.IL, ref mvidStringHandle, ref mvidStringFixup);
@@ -4181,6 +4182,10 @@ namespace Microsoft.Cci
         private class ByteSequenceBoolTupleComparer : IEqualityComparer<(ImmutableArray<byte>, bool)>
         {
             internal static readonly ByteSequenceBoolTupleComparer Instance = new ByteSequenceBoolTupleComparer();
+
+            private ByteSequenceBoolTupleComparer()
+            {
+            }
 
             bool IEqualityComparer<(ImmutableArray<byte>, bool)>.Equals((ImmutableArray<byte>, bool) x, (ImmutableArray<byte>, bool) y)
             {
