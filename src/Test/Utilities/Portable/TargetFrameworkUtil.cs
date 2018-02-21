@@ -43,7 +43,6 @@ namespace Roslyn.Test.Utilities
 
     public static class TargetFrameworkUtil
     {
-        public static ImmutableArray<MetadataReference> EmptyReferences => ImmutableArray<MetadataReference>.Empty;
         public static readonly ImmutableArray<MetadataReference> Mscorlib40References = ImmutableArray.Create(TestBase.MscorlibRef);
         public static readonly ImmutableArray<MetadataReference> Mscorlib40ExtendedReferences = ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
         public static readonly ImmutableArray<MetadataReference> Mscorlib40andSystemCoreReferences = ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemCoreRef);
@@ -61,7 +60,7 @@ namespace Roslyn.Test.Utilities
         {
             switch (tf)
             {
-                case TargetFramework.Empty: return EmptyReferences;
+                case TargetFramework.Empty: return ImmutableArray<MetadataReference>.Empty;
                 case TargetFramework.Mscorlib40: return Mscorlib40References;
                 case TargetFramework.Mscorlib40Extended: return Mscorlib40ExtendedReferences;
                 case TargetFramework.Mscorlib40AndSystemCore: return Mscorlib40andSystemCoreReferences;
