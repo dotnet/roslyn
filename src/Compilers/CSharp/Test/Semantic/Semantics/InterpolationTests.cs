@@ -809,7 +809,7 @@ class Program {
         Console.WriteLine($""{ await hello }, { await world }!"");
     }
 }";
-            CompileAndVerifyWithMscorlib40(
+            CompileAndVerify(
                 source, references: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 }, expectedOutput: "Hello, world!", targetFramework: TargetFramework.None);
         }
 

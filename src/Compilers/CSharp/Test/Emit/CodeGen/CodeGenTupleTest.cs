@@ -1775,7 +1775,7 @@ namespace System
 }
 ";
 
-            var comp = CompileAndVerifyWithMscorlib40(source, targetFramework: TargetFramework.Mscorlib46Extended, expectedOutput: @"42");
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Mscorlib46Extended, expectedOutput: @"42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.<>c__DisplayClass1_0<T>.<Test>b__0()", @"
 {

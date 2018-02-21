@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
             references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
-            return base.CompileAndVerifyWithMscorlib40(source, expectedOutput: expectedOutput, references: references, options: options, targetFramework: TargetFramework.None);
+            return base.CompileAndVerifyWithMscorlib40(source, expectedOutput: expectedOutput, references: references, options: options);
         }
 
         [Fact]

@@ -1370,8 +1370,7 @@ class C
         Console.WriteLine(x);
     }
 }";
-            CompileAndVerifyWithMscorlib40(src,
-                targetFramework: TargetFramework.Mscorlib46,
+            CompileAndVerifyWithMscorlib46(src,
                 expectedOutput: @"1
 0");
         }

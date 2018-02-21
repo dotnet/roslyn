@@ -28,41 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     public abstract class CSharpTestBase : CommonTestBase
     {
         internal CompilationVerifier CompileAndVerifyWithMscorlib40(
-            string source,
-            IEnumerable<MetadataReference> references = null,
-            IEnumerable<ResourceDescription> manifestResources = null,
-            IEnumerable<ModuleData> dependencies = null,
-            Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> assemblyValidator = null,
-            Action<ModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            string expectedOutput = null,
-            int? expectedReturnCode = null,
-            string[] args = null,
-            CSharpCompilationOptions options = null,
-            CSharpParseOptions parseOptions = null,
-            EmitOptions emitOptions = null,
-            TargetFramework targetFramework = TargetFramework.Mscorlib40,
-            Verification verify = Verification.Passes) =>
-            CompileAndVerifyWithMscorlib40(
-                source: new[] { source },
-                references,
-                manifestResources,
-                dependencies,
-                sourceSymbolValidator,
-                assemblyValidator,
-                symbolValidator,
-                expectedSignatures,
-                expectedOutput,
-                expectedReturnCode,
-                args,
-                options,
-                parseOptions,
-                emitOptions,
-                verify);
-
-        internal CompilationVerifier CompileAndVerifyWithMscorlib40(
-            string[] source,
+            CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
             IEnumerable<ResourceDescription> manifestResources = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -95,6 +61,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 TargetFramework.Mscorlib40,
                 verify);
 
+        internal CompilationVerifier CompileAndVerifyWithMscorlib46(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference> references = null,
+            IEnumerable<ResourceDescription> manifestResources = null,
+            IEnumerable<ModuleData> dependencies = null,
+            Action<ModuleSymbol> sourceSymbolValidator = null,
+            Action<PEAssembly> assemblyValidator = null,
+            Action<ModuleSymbol> symbolValidator = null,
+            SignatureDescription[] expectedSignatures = null,
+            string expectedOutput = null,
+            int? expectedReturnCode = null,
+            string[] args = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            EmitOptions emitOptions = null,
+            Verification verify = Verification.Passes) => 
+            CompileAndVerify(
+                source,
+                references,
+                manifestResources,
+                dependencies,
+                sourceSymbolValidator,
+                assemblyValidator,
+                symbolValidator,
+                expectedSignatures,
+                expectedOutput,
+                expectedReturnCode,
+                args,
+                options,
+                parseOptions,
+                emitOptions,
+                TargetFramework.Mscorlib46,
+                verify);
+
         internal CompilationVerifier CompileAndVerifyWithWinRt(
             string source,
             string expectedOutput = null,
@@ -113,42 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         }
 
         internal CompilationVerifier CompileAndVerify(
-            string source,
-            IEnumerable<MetadataReference> references = null,
-            IEnumerable<ResourceDescription> manifestResources = null,
-            IEnumerable<ModuleData> dependencies = null,
-            Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> assemblyValidator = null,
-            Action<ModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            string expectedOutput = null,
-            int? expectedReturnCode = null,
-            string[] args = null,
-            CSharpCompilationOptions options = null,
-            CSharpParseOptions parseOptions = null,
-            EmitOptions emitOptions = null,
-            TargetFramework targetFramework = TargetFramework.Standard,
-            Verification verify = Verification.Passes) =>
-            CompileAndVerify(
-                source: new[] { source },
-                references,
-                manifestResources,
-                dependencies,
-                sourceSymbolValidator,
-                assemblyValidator,
-                symbolValidator,
-                expectedSignatures,
-                expectedOutput,
-                expectedReturnCode,
-                args,
-                options,
-                parseOptions,
-                emitOptions,
-                targetFramework,
-                verify);
-
-        internal CompilationVerifier CompileAndVerify(
-            string[] source,
+            CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
             IEnumerable<ResourceDescription> manifestResources = null,
             IEnumerable<ModuleData> dependencies = null,
