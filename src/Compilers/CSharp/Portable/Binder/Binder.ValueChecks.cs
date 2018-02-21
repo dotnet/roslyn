@@ -372,8 +372,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ArrayAccess:
                 case BoundKind.PointerIndirectionOperator:
-                case BoundKind.PointerElementAccess:
                     // array elements and pointer dereferencing are readwrite variables
+                    return true;
+
+                case BoundKind.PointerElementAccess:
+                    var receiver = ((BoundPointerElementAccess)expr).Expression;
+                    if (receiver is BoundFieldAccess fieldAcess && fieldAcess.FieldSymbol.IsFixed)
+                    {
+                        return CheckValueKind(node, fieldAcess.ReceiverOpt, valueKind, checkingReceiver: true, diagnostics);
+                    }
+
                     return true;
 
                 case BoundKind.RefValueOperator:

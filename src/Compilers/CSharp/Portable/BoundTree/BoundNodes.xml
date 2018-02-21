@@ -263,6 +263,16 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Operand" Type="BoundExpression"/>
+    
+    <!-- True only in some lowered/synthesized nodes. 
+         It suppresses conversion of operand reference to unmanaged pointer
+         (which has effect of losing GC-tracking)
+    
+         NB: The language does not have a concept of managed pointers. 
+         However, managed (GC-tracked) pointers have some limited support
+         at IL level and could be used in lowering of certain kinds
+         of unsafe code - such as fixed field indexing. -->
+    <Field Name="IsManaged" Type="bool"/>  
   </Node>
   <Node Name="BoundPointerIndirectionOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
@@ -275,7 +285,7 @@
 
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="Index" Type="BoundExpression"/>
-    <Field Name="Checked" Type="Boolean"/>
+    <Field Name="Checked" Type="bool"/>
   </Node>
   
   <Node Name="BoundRefTypeOperator" Base="BoundExpression">
@@ -393,7 +403,7 @@
 
     <Field Name="Left" Type="BoundTupleExpression" Null="disallow"/>
     <Field Name="Right" Type="BoundConversion" Null="disallow"/>
-    <Field Name="IsUsed" Type="Boolean" Null="NotApplicable"/>
+    <Field Name="IsUsed" Type="bool" Null="NotApplicable"/>
   </Node>
 
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">
@@ -555,9 +565,9 @@
     <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="Conversion" Type="Conversion"/>
 
-    <Field Name="IsBaseConversion" Type="Boolean"/>
-    <Field Name="Checked" Type="Boolean"/>
-    <Field Name="ExplicitCastInCode" Type="Boolean"/>
+    <Field Name="IsBaseConversion" Type="bool"/>
+    <Field Name="Checked" Type="bool"/>
+    <Field Name="ExplicitCastInCode" Type="bool"/>
     
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
@@ -884,7 +894,7 @@
     <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep" Null="allow"/>
     <Field Name="Body" Type="BoundStatement"/>
   
-    <Field Name="Checked" Type="Boolean"/>
+    <Field Name="Checked" Type="bool"/>
   </Node>
 
   <!-- All the information need to apply a deconstruction at each iteration of a foreach loop involving a deconstruction-declaration. -->
@@ -945,7 +955,7 @@
     
     -->
     
-    <Field Name="PreferFaultHandler" Type="Boolean"/>
+    <Field Name="PreferFaultHandler" Type="bool"/>
   </Node>
 
   <Node Name="BoundCatchBlock" Base="BoundNode">

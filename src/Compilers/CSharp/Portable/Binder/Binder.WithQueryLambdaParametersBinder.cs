@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupMembersWithFallback(lookupResult, receiver.Type, name, 0, ref useSiteDiagnostics, basesBeingResolved: null, options: options);
                 diagnostics.Add(node, useSiteDiagnostics);
 
-                var result = BindMemberOfType(node, node, name, 0, receiver, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbol>), lookupResult, BoundMethodGroupFlags.None, diagnostics);
+                var result = BindMemberOfType(node, node, name, 0, indexed: false, receiver, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbol>), lookupResult, BoundMethodGroupFlags.None, diagnostics);
                 lookupResult.Free();
                 return result;
             }
