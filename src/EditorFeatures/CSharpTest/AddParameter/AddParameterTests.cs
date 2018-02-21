@@ -1929,5 +1929,211 @@ namespace N
             await TestInRegularAndScriptAsync(code, fix, index: 1);
         }
 
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_InvocationStyles_Positional_MoreThanOneArgumentToMuch()
+        {
+            var code =
+@"
+class C
+{
+    void M() { }
+    void Test()
+    {
+        [|M|](1, 2, 3, 4);
+    }
+}";
+            var fix0 =
+@"
+class C
+{
+    void M(int v) { }
+    void Test()
+    {
+        M(1, 2, 3, 4);
+    }
+}";
+            await TestActionCountAsync(code, 1);
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_InvocationStyles_Positional_WithOptionalParam()
+        {
+            // The fix places new parameter after optional parameters (which is not allowed)
+            // I don't see what we can do about it without also changing the call site.
+            // error CS1501: No overload for method 'M' takes 2 arguments
+            var code =
+@"
+class C
+{
+    void M(int i = 1) { }
+    void Test()
+    {
+        [|M|](1, 2);
+    }
+}";
+            // error CS1737: Optional parameters must appear after all required parameters
+            var fix0 =
+@"
+class C
+{
+    void M(int i = 1, int v) { }
+    void Test()
+    {
+        M(1, 2);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
+
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_InvocationStyles_Positional_WithParams()
+        {
+            // error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            var code =
+@"
+class C
+{
+    void M(params int[] ints) { }
+    void Test()
+    {
+        M([|""text""|]);
+    }
+}";
+            var fix0 =
+@"
+class C
+{
+    void M(string v, params int[] ints) { }
+    void Test()
+    {
+        M(""text"");
+    }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_InvocationStyles_Named_WithTypemissmatch()
+        {
+            // error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            var code =
+@"
+class C
+{
+    void M(int i) { }
+    void Test()
+    {
+        M(i: [|""text""|]);
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_InvocationStyles_NamedAndPositional1()
+        {
+            // error CS1739: The best overload for 'M' does not have a parameter named 'i2'
+            var code =
+@"
+class C
+{
+    void M(int i1, string s) { }
+    void Test()
+    {
+        M(1, s: ""text"", [|i2|]: 0);
+    }
+}";
+            var fix0 =
+@"
+class C
+{
+    void M(int i1, string s, int i2) { }
+    void Test()
+    {
+        M(1, s: ""text"", i2: 0);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_InvocationStyles_NamedAndPositional2()
+        {
+            // CS1744 is not yet a supported diagnostic (just declaring the diagnostic as supported does not work)
+            // error CS1744: Named argument 's' specifies a parameter for which a positional argument has already been given
+            var code =
+@"
+class C
+{
+    void M(string s) { }
+    void Test()
+    {
+        M(1, [|s|]: ""text"");
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_InvocationStyles_Incomplete_1()
+        {
+            // error CS1501: No overload for method 'M' takes 1 arguments
+            var code =
+@"
+class C
+{
+    void M() { }
+    void Test()
+    {
+        [|M|](1
+    }
+}";
+            var fix0 =
+@"
+class C
+{
+    void M(int v) { }
+    void Test()
+    {
+        M(1
+    }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_InvocationStyles_Incomplete_2()
+        {
+            // error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            var code =
+@"
+class C
+{
+    void M(int v) { }
+    void Test()
+    {
+        [|M|](""text"", 1
+"; 
+            var fix0 =
+@"
+class C
+{
+    void M(string v1, int v) { }
+    void Test()
+    {
+        M(""text"", 1
+";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
     }
 }
