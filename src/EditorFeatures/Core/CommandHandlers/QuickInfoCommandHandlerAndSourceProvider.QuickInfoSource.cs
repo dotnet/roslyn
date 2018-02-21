@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     internal partial class QuickInfoCommandHandlerAndSourceProvider
@@ -46,32 +45,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return Task.FromResult<QuickInfoItem>(null);
             }
 
-            public void AugmentQuickInfoSession(IAsyncQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
-            {
-                applicableToSpan = null;
-                if (quickInfoContent.Count != 0 ||
-                    session.Properties.TryGetProperty(QuickInfoUtilities.EventHookupKey, out object eventHookupValue))
-                {
-                    // No quickinfo if it's the event hookup popup.
-                    return;
-                }
-
-                var position = session.GetTriggerPoint(_subjectBuffer.CurrentSnapshot);
-                if (position.HasValue)
-                {
-                    var textView = session.TextView;
-                    var args = new InvokeQuickInfoCommandArgs(textView, _subjectBuffer);
-                    if (_commandHandler.TryGetController(args, out var controller))
-                    {
-                        //controller.InvokeQuickInfo(position.Value, session);
-                    }
-                }
-            }
-
             public void Dispose()
             {
             }
         }
     }
 }
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
