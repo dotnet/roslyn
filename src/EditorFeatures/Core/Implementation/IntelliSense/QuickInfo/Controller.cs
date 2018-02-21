@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal partial class Controller :
-        AbstractController<Session<Controller, Model, IQuickInfoPresenterSession>, Model, IQuickInfoPresenterSession, IQuickInfoSession>
+        AbstractController<Session<Controller, Model, IQuickInfoPresenterSession>, Model, IQuickInfoPresenterSession, IAsyncQuickInfoSession>
     {
         private static readonly object s_quickInfoPropertyKey = new object();
         private QuickInfoService _service;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         public Controller(
             ITextView textView,
             ITextBuffer subjectBuffer,
-            IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
+            IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider)
             : base(textView, subjectBuffer, presenter, asyncListener, documentProvider, "QuickInfo")
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         internal Controller(
             ITextView textView,
             ITextBuffer subjectBuffer,
-            IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
+            IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
             QuickInfoService service)
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         internal static Controller GetInstance(
             EditorCommandArgs args,
-            IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
+            IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> presenter,
             IAsynchronousOperationListener asyncListener)
         {
             var textView = args.TextView;
@@ -83,11 +83,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         public void StartSession(
             int position,
-            bool trackMouse,
-            IQuickInfoSession augmentSession = null)
+            IAsyncQuickInfoSession augmentSession = null)
         {
-            AssertIsForeground();
-
             var service = GetService();
             if (service == null)
             {
@@ -98,14 +95,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             this.sessionOpt = new Session<Controller, Model, IQuickInfoPresenterSession>(this, new ModelComputation<Model>(this, TaskScheduler.Default),
                 this.Presenter.CreateSession(this.TextView, this.SubjectBuffer, augmentSession));
 
+            var trackMouse = augmentSession != null && augmentSession.Options == QuickInfoSessionOptions.TrackMouse;
             this.sessionOpt.Computation.ChainTaskAndNotifyControllerWhenFinished(
                 (model, cancellationToken) => ComputeModelInBackgroundAsync(position, snapshot, service, trackMouse, cancellationToken));
         }
 
         public QuickInfoService GetService()
         {
-            this.AssertIsForeground();
-
             if (_service == null)
             {
                 var snapshot = this.SubjectBuffer.CurrentSnapshot;

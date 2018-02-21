@@ -6,13 +6,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal partial class Controller
     {
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
-        public void InvokeQuickInfo(int position, bool trackMouse, IQuickInfoSession augmentSession)
+        public void InvokeQuickInfo(int position, IAsyncQuickInfoSession augmentSession)
         {
-            AssertIsForeground();
-            DismissSessionIfActive();
-            StartSession(position, trackMouse, augmentSession);
+            StartSession(position, augmentSession);
         }
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
     }
 }

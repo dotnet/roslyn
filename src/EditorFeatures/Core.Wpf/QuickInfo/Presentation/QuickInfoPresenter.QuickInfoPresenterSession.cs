@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
             private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
             private readonly ITextEditorFactoryService _textEditorFactoryService;
 
-            private IQuickInfoSession _editorSessionOpt;
+            private IAsyncQuickInfoSession _editorSessionOpt;
 
             private QuickInfoItem _item;
             private ITrackingSpan _triggerSpan;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                 IQuickInfoBroker quickInfoBroker,
                 ITextView textView,
                 ITextBuffer subjectBuffer,
-                IQuickInfoSession sessionOpt,
+                IAsyncQuickInfoSession sessionOpt,
                 ClassificationTypeMap classificationTypeMap,
                 IClassificationFormatMapService classificationFormatMapService,
                 IProjectionBufferFactoryService projectionBufferFactoryService,
@@ -75,14 +75,14 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 
                 // It's a new list of items.  Either create the editor session if this is the first time, or ask the
                 // editor session that we already have to recalculate.
-                if (_editorSessionOpt == null || _editorSessionOpt.IsDismissed)
-                {
-                    // We're tracking the caret.  Don't have the editor do it.
-                    var triggerPoint = triggerSpan.GetStartTrackingPoint(PointTrackingMode.Negative);
+                //if (_editorSessionOpt == null || _editorSessionOpt.IsDismissed)
+                //{
+                //    // We're tracking the caret.  Don't have the editor do it.
+                //    var triggerPoint = triggerSpan.GetStartTrackingPoint(PointTrackingMode.Negative);
 
-                    _editorSessionOpt = _quickInfoBroker.CreateQuickInfoSession(_textView, triggerPoint, trackMouse: trackMouse);
-                    _editorSessionOpt.Dismissed += (s, e) => OnEditorSessionDismissed();
-                }
+                //    _editorSessionOpt = _quickInfoBroker.CreateQuickInfoSession(_textView, triggerPoint, trackMouse: trackMouse);
+                //    _editorSessionOpt.Dismissed += (s, e) => OnEditorSessionDismissed();
+                //}
 
                 // So here's the deal.  We cannot create the editor session and give it the right
                 // signatures (even though we know what they are).  Instead, the session with
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                     _editorSessionOpt.Properties.AddProperty(s_augmentSessionKey, this);
                 }
 
-                _editorSessionOpt.Recalculate();
+                //_editorSessionOpt.Recalculate();
             }
 
             public void Dismiss()
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                     return;
                 }
 
-                _editorSessionOpt.Dismiss();
+                //_editorSessionOpt.Dismiss();
                 _editorSessionOpt = null;
             }
 

@@ -13,11 +13,11 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 {
     [Export(typeof(IQuickInfoSourceProvider))]
-    [Export(typeof(IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>))]
+    [Export(typeof(IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession>))]
     [Order]
     [Name(PredefinedQuickInfoPresenterNames.RoslynQuickInfoPresenter)]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal partial class QuickInfoPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>, IQuickInfoSourceProvider
+    internal partial class QuickInfoPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession>, IQuickInfoSourceProvider
     {
         private static readonly object s_augmentSessionKey = new object();
 
@@ -45,10 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
             _textEditorFactoryService = textEditorFactoryService;
         }
 
-        IQuickInfoPresenterSession IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, IQuickInfoSession sessionOpt)
+        IQuickInfoPresenterSession IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, IAsyncQuickInfoSession sessionOpt)
         {
-            AssertIsForeground();
-
             return new QuickInfoPresenterSession(
                 _quickInfoBroker,
                 textView, subjectBuffer, sessionOpt,

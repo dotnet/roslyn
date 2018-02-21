@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.QuickInfo;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
 #pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     internal partial class QuickInfoCommandHandlerAndSourceProvider
     {
-        private class QuickInfoSource : IQuickInfoSource
+        private class QuickInfoSource : IAsyncQuickInfoSource
         {
             private readonly QuickInfoCommandHandlerAndSourceProvider _commandHandler;
             private readonly ITextBuffer _subjectBuffer;
@@ -22,7 +24,29 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 _subjectBuffer = subjectBuffer;
             }
 
-            public void AugmentQuickInfoSession(IQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
+            public Task<QuickInfoItem> GetQuickInfoItemAsync(IAsyncQuickInfoSession session, CancellationToken cancellationToken)
+            {
+                if (session.Properties.TryGetProperty(QuickInfoUtilities.EventHookupKey, out object eventHookupValue))
+                {
+                    // No quickinfo if it's the event hookup popup.
+                    return Task.FromResult<QuickInfoItem>(null);
+                }
+
+                var position = session.GetTriggerPoint(_subjectBuffer.CurrentSnapshot);
+                if (position != null && position.HasValue)
+                {
+                    var textView = session.TextView;
+                    var args = new InvokeQuickInfoCommandArgs(textView, _subjectBuffer);
+                    if (_commandHandler.TryGetController(args, out var controller))
+                    {
+                        controller.InvokeQuickInfo(position.Value, session);
+                    }
+                }
+
+                return Task.FromResult<QuickInfoItem>(null);
+            }
+
+            public void AugmentQuickInfoSession(IAsyncQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
             {
                 applicableToSpan = null;
                 if (quickInfoContent.Count != 0 ||
@@ -39,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     var args = new InvokeQuickInfoCommandArgs(textView, _subjectBuffer);
                     if (_commandHandler.TryGetController(args, out var controller))
                     {
-                        controller.InvokeQuickInfo(position.Value, trackMouse: session.TrackMouse, augmentSession: session);
+                        //controller.InvokeQuickInfo(position.Value, session);
                     }
                 }
             }

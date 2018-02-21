@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         IAsyncQuickInfoSourceProvider
     {
         private readonly IAsynchronousOperationListener _listener;
-        private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> _presenter;
+        private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> _presenter;
 
         [ImportingConstructor]
         public QuickInfoCommandHandlerAndSourceProvider(
-            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>, OrderableMetadata>> presenters,
+            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession>, OrderableMetadata>> presenters,
             IAsynchronousOperationListenerProvider listenerProvider)
             : this(ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).FirstOrDefault(),
                    listenerProvider)
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         // For testing purposes.
         public QuickInfoCommandHandlerAndSourceProvider(
-            IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
+            IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> presenter,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _presenter = presenter;
@@ -51,8 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         private bool TryGetController(EditorCommandArgs args, out Controller controller)
         {
-            AssertIsForeground();
-
             // check whether this feature is on.
             if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.QuickInfo))
             {

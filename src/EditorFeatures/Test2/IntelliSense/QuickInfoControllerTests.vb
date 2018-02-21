@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Optional presenter As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession)) = Nothing,
             Optional noDocument As Boolean = False,
             Optional triggerQuickInfo As Boolean = False,
-            Optional augmentSession As IQuickInfoSession = Nothing
+            Optional augmentSession As IAsyncQuickInfoSession = Nothing
         ) As QuickInfoMocks
 
             Dim view = New Mock(Of ITextView) With {
@@ -310,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim mocks = New QuickInfoMocks(controller, service, view, presenter)
 
             If triggerQuickInfo Then
-                controller.InvokeQuickInfo(position:=0, trackMouse:=False, augmentSession)
+                controller.InvokeQuickInfo(position:=0, augmentSession)
             End If
 
             Return mocks
