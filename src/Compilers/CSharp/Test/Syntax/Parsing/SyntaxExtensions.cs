@@ -106,7 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             foreach (var item in l)
             {
                 if (item.Severity == (errorsOnly ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning))
+                {
                     b.Add(item);
+                }
             }
 
             return b.ToImmutableAndFree();

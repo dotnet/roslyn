@@ -873,7 +873,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private QueryClauseInfo GetQueryClauseInfo(BoundQueryClause bound)
         {
-            if (bound == null) return default(QueryClauseInfo);
+            if (bound == null)
+            {
+                return default(QueryClauseInfo);
+            }
+
             var castInfo = (bound.Cast == null) ? SymbolInfo.None : GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bound.Cast, bound.Cast, boundNodeForSyntacticParent: null, binderOpt: null);
             var operationInfo = GetSymbolInfoForQuery(bound);
             return new QueryClauseInfo(castInfo: castInfo, operationInfo: operationInfo);
@@ -1113,7 +1117,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode bindableNode = this.GetBindableSyntaxNode(node);
             BoundExpression boundExpr = this.GetLowerBoundNode(bindableNode) as BoundExpression;
 
-            if (boundExpr == null) return default(Optional<object>);
+            if (boundExpr == null)
+            {
+                return default(Optional<object>);
+            }
 
             ConstantValue constantValue = boundExpr.ConstantValue;
             return constantValue == null || constantValue.IsBad
@@ -1395,7 +1402,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If we have a root binder with no tokens in it, position can be outside the span event
             // after position is adjusted. If this happens, there can't be any 
             if (!this.Root.FullSpan.Contains(position))
+            {
                 return this.RootBinder;
+            }
 
             SyntaxToken token = this.Root.FindToken(position);
             CSharpSyntaxNode node = (CSharpSyntaxNode)token.Parent;
@@ -1922,7 +1931,11 @@ done:
                     case SyntaxKind.RefExpression:
                     case SyntaxKind.RefType:
                         var pp = parent.Parent;
-                        if (pp == null) break;
+                        if (pp == null)
+                        {
+                            break;
+                        }
+
                         parent = pp;
                         break;
                     default:

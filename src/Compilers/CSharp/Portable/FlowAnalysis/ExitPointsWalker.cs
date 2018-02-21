@@ -62,7 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLabelStatement(BoundLabelStatement node)
         {
-            if (IsInside) _labelsInside.Add(node.Label);
+            if (IsInside)
+            {
+                _labelsInside.Add(node.Label);
+            }
+
             return base.VisitLabelStatement(node);
         }
 
@@ -123,17 +127,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var pending in PendingBranches)
             {
-                if (pending.Branch == null || !RegionContains(pending.Branch.Syntax.Span)) continue;
+                if (pending.Branch == null || !RegionContains(pending.Branch.Syntax.Span))
+                {
+                    continue;
+                }
+
                 switch (pending.Branch.Kind)
                 {
                     case BoundKind.GotoStatement:
-                        if (_labelsInside.Contains(((BoundGotoStatement)pending.Branch).Label)) continue;
+                        if (_labelsInside.Contains(((BoundGotoStatement)pending.Branch).Label))
+                        {
+                            continue;
+                        }
+
                         break;
                     case BoundKind.BreakStatement:
-                        if (_labelsInside.Contains(((BoundBreakStatement)pending.Branch).Label)) continue;
+                        if (_labelsInside.Contains(((BoundBreakStatement)pending.Branch).Label))
+                        {
+                            continue;
+                        }
+
                         break;
                     case BoundKind.ContinueStatement:
-                        if (_labelsInside.Contains(((BoundContinueStatement)pending.Branch).Label)) continue;
+                        if (_labelsInside.Contains(((BoundContinueStatement)pending.Branch).Label))
+                        {
+                            continue;
+                        }
+
                         break;
                     case BoundKind.YieldBreakStatement:
                     case BoundKind.ReturnStatement:

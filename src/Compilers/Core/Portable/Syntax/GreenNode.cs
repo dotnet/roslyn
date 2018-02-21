@@ -77,7 +77,10 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var annotation in annotations)
                 {
-                    if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
+                    if (annotation == null)
+                    {
+                        throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
+                    }
                 }
 
                 this.flags |= NodeFlags.ContainsAnnotations;
@@ -92,7 +95,10 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var annotation in annotations)
                 {
-                    if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
+                    if (annotation == null)
+                    {
+                        throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
+                    }
                 }
 
                 this.flags |= NodeFlags.ContainsAnnotations;

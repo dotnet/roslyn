@@ -456,7 +456,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool Equals(object symbol)
         {
-            if ((object)this == symbol) return true;
+            if ((object)this == symbol)
+            {
+                return true;
+            }
 
             var localFunction = symbol as LocalFunctionSymbol;
             return (object)localFunction != null

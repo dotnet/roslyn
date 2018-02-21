@@ -170,7 +170,11 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
                         return;
 
                     case SignatureTypeCode.ByReference:
-                        if (!allowByRef) goto default;
+                        if (!allowByRef)
+                        {
+                            goto default;
+                        }
+
                         break;
 
                     case SignatureTypeCode.SZArray:

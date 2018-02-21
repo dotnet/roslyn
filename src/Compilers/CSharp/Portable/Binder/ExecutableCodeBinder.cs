@@ -78,7 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             inMethod = binder as InMethodBinder;
                             if (inMethod != null)
+                            {
                                 break;
+                            }
+
                             binder = binder.Next;
                         }
                         if (inMethod != null && (object)inMethod.ContainingMemberOrLambda == containing)

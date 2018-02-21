@@ -916,7 +916,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             LanguageVersion availableVersion = this.Options.LanguageVersion;
             var requiredVersion = feature.RequiredVersion();
-            if (availableVersion >= requiredVersion) return;
+            if (availableVersion >= requiredVersion)
+            {
+                return;
+            }
+
             var featureName = feature.Localize();
 
             this.AddError(availableVersion.GetErrorCode(), featureName, new CSharpRequiredLanguageVersion(requiredVersion));
@@ -2725,7 +2729,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         followedByDirective = false;
                         return TextWindow.Width > 0 ? SyntaxFactory.DisabledText(TextWindow.GetText(false)) : null;
                     case '#':
-                        if (!_allowPreprocessorDirectives) goto default;
+                        if (!_allowPreprocessorDirectives)
+                        {
+                            goto default;
+                        }
+
                         followedByDirective = true;
                         if (lastLineStart < TextWindow.Position && !allWhitespace)
                         {
@@ -3972,35 +3980,87 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 //// Multi-Character Punctuation/Operators ////
                 case ':':
-                    if (AdvanceIfMatches(':')) info.Kind = SyntaxKind.ColonColonToken;
-                    else info.Kind = SyntaxKind.ColonToken;
+                    if (AdvanceIfMatches(':'))
+                    {
+                        info.Kind = SyntaxKind.ColonColonToken;
+                    }
+                    else
+                    {
+                        info.Kind = SyntaxKind.ColonToken;
+                    }
+
                     break;
                 case '=':
-                    if (AdvanceIfMatches('=')) info.Kind = SyntaxKind.EqualsEqualsToken;
-                    else info.Kind = SyntaxKind.EqualsToken;
+                    if (AdvanceIfMatches('='))
+                    {
+                        info.Kind = SyntaxKind.EqualsEqualsToken;
+                    }
+                    else
+                    {
+                        info.Kind = SyntaxKind.EqualsToken;
+                    }
+
                     break;
                 case '!':
-                    if (AdvanceIfMatches('=')) info.Kind = SyntaxKind.ExclamationEqualsToken;
-                    else info.Kind = SyntaxKind.ExclamationToken;
+                    if (AdvanceIfMatches('='))
+                    {
+                        info.Kind = SyntaxKind.ExclamationEqualsToken;
+                    }
+                    else
+                    {
+                        info.Kind = SyntaxKind.ExclamationToken;
+                    }
+
                     break;
                 case '>':
-                    if (AdvanceIfMatches('=')) info.Kind = SyntaxKind.GreaterThanEqualsToken;
+                    if (AdvanceIfMatches('='))
+                    {
+                        info.Kind = SyntaxKind.GreaterThanEqualsToken;
+                    }
                     // GreaterThanGreaterThanToken is synthesized in the parser since it is ambiguous (with closing nested type parameter lists)
                     // else if (AdvanceIfMatches('>')) info.Kind = SyntaxKind.GreaterThanGreaterThanToken;
-                    else info.Kind = SyntaxKind.GreaterThanToken;
+                    else
+                    {
+                        info.Kind = SyntaxKind.GreaterThanToken;
+                    }
+
                     break;
                 case '<':
-                    if (AdvanceIfMatches('=')) info.Kind = SyntaxKind.LessThanEqualsToken;
-                    else if (AdvanceIfMatches('<')) info.Kind = SyntaxKind.LessThanLessThanToken;
-                    else info.Kind = SyntaxKind.LessThanToken;
+                    if (AdvanceIfMatches('='))
+                    {
+                        info.Kind = SyntaxKind.LessThanEqualsToken;
+                    }
+                    else if (AdvanceIfMatches('<'))
+                    {
+                        info.Kind = SyntaxKind.LessThanLessThanToken;
+                    }
+                    else
+                    {
+                        info.Kind = SyntaxKind.LessThanToken;
+                    }
+
                     break;
                 case '+':
-                    if (AdvanceIfMatches('+')) info.Kind = SyntaxKind.PlusPlusToken;
-                    else info.Kind = SyntaxKind.PlusToken;
+                    if (AdvanceIfMatches('+'))
+                    {
+                        info.Kind = SyntaxKind.PlusPlusToken;
+                    }
+                    else
+                    {
+                        info.Kind = SyntaxKind.PlusToken;
+                    }
+
                     break;
                 case '-':
-                    if (AdvanceIfMatches('-')) info.Kind = SyntaxKind.MinusMinusToken;
-                    else info.Kind = SyntaxKind.MinusToken;
+                    if (AdvanceIfMatches('-'))
+                    {
+                        info.Kind = SyntaxKind.MinusMinusToken;
+                    }
+                    else
+                    {
+                        info.Kind = SyntaxKind.MinusToken;
+                    }
+
                     break;
             }
 
@@ -4693,7 +4753,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                                 var text = TextWindow.GetText(true);
                                 if (!String.IsNullOrEmpty(text))
+                                {
                                     this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
+                                }
+
                                 this.MutateLocation(XmlDocCommentLocation.Interior);
                             }
 

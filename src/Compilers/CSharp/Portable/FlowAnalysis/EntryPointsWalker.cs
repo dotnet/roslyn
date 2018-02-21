@@ -55,7 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             targetStmt.AssertIsLabeledStatement();
             if (!gotoStmt.WasCompilerGenerated && !targetStmt.WasCompilerGenerated && RegionContains(targetStmt.Syntax.Span) && !RegionContains(gotoStmt.Syntax.Span))
+            {
                 _entryPoints.Add((LabeledStatementSyntax)targetStmt.Syntax);
+            }
         }
     }
 }

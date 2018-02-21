@@ -115,16 +115,24 @@ namespace Microsoft.CodeAnalysis.Text
         private bool CheckCopyToArguments(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
             if (destination == null)
+            {
                 throw new ArgumentNullException(nameof(destination));
+            }
 
             if (sourceIndex < 0)
+            {
                 throw new ArgumentOutOfRangeException(nameof(sourceIndex));
+            }
 
             if (destinationIndex < 0)
+            {
                 throw new ArgumentOutOfRangeException(nameof(destinationIndex));
+            }
 
             if (count < 0 || count > this.Length - sourceIndex || count > destination.Length - destinationIndex)
+            {
                 throw new ArgumentOutOfRangeException(nameof(count));
+            }
 
             return count > 0;
         }
@@ -132,7 +140,9 @@ namespace Microsoft.CodeAnalysis.Text
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
             if (!CheckCopyToArguments(sourceIndex, destination, destinationIndex, count))
+            {
                 return;
+            }
 
             int segIndex;
             int segOffset;

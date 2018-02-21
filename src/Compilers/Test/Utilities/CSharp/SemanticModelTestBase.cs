@@ -34,7 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private List<ExpressionSyntax> GetExprSyntaxList(SyntaxNode node, List<ExpressionSyntax> exprSynList)
         {
             if (exprSynList == null)
+            {
                 exprSynList = new List<ExpressionSyntax>();
+            }
 
             if (node is ExpressionSyntax)
             {
@@ -44,7 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             foreach (var child in node.ChildNodesAndTokens())
             {
                 if (child.IsNode)
+                {
                     exprSynList = GetExprSyntaxList(child.AsNode(), exprSynList);
+                }
             }
 
             return exprSynList;
@@ -64,23 +68,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 if (exprFullText.StartsWith(startComment, StringComparison.Ordinal))
                 {
                     if (exprFullText.Contains(endComment))
+                    {
                         if (exprFullText.EndsWith(endComment, StringComparison.Ordinal))
+                        {
                             return exprSyntax;
+                        }
                         else
+                        {
                             continue;
+                        }
+                    }
                     else
+                    {
                         return exprSyntax;
+                    }
                 }
 
                 if (exprFullText.EndsWith(endComment, StringComparison.Ordinal))
                 {
                     if (exprFullText.Contains(startComment))
+                    {
                         if (exprFullText.StartsWith(startComment, StringComparison.Ordinal))
+                        {
                             return exprSyntax;
+                        }
                         else
+                        {
                             continue;
+                        }
+                    }
                     else
+                    {
                         return exprSyntax;
+                    }
                 }
             }
 

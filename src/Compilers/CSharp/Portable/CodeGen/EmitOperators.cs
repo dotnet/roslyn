@@ -337,9 +337,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     // Xor is equivalent to not equal.
                     if (sense)
+                    {
                         EmitBinaryCondOperatorHelper(ILOpCode.Xor, binOp.Left, binOp.Right, true);
+                    }
                     else
+                    {
                         EmitBinaryCondOperatorHelper(ILOpCode.Ceq, binOp.Left, binOp.Right, true);
+                    }
+
                     return;
 
                 case BinaryOperatorKind.NotEqual:

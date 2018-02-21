@@ -422,7 +422,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool Equals(object obj)
         {
-            if ((object)this == obj) return true;
+            if ((object)this == obj)
+            {
+                return true;
+            }
 
             ReducedExtensionMethodSymbol other = obj as ReducedExtensionMethodSymbol;
             return (object)other != null && _reducedFrom.Equals(other._reducedFrom);

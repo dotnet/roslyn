@@ -611,7 +611,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     // Since we need to allow multiple constructions of the same generic type at the source
                     // level, we need to de-dup the original definitions before emitting.
-                    if (!seenTopLevelTypes.Add(originalDefinition)) continue;
+                    if (!seenTopLevelTypes.Add(originalDefinition))
+                    {
+                        continue;
+                    }
 
                     // Return all nested types.
                     // Note the order: depth first, children in reverse order (to match dev10, not a requirement).
@@ -989,7 +992,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal static Cci.IGenericParameterReference Translate(TypeParameterSymbol param)
         {
             if (!param.IsDefinition)
+            {
                 throw new InvalidOperationException(string.Format(CSharpResources.GenericParameterDefinition, param.Name));
+            }
 
             return param;
         }

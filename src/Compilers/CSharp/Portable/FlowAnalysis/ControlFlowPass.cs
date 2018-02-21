@@ -273,7 +273,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             RestorePending(oldPending2); // resolve branches that remain within the finally block
             foreach (var branch in PendingBranches)
             {
-                if (branch.Branch == null) continue; // a tracked exception
+                if (branch.Branch == null)
+                {
+                    continue; // a tracked exception
+                }
+
                 var location = new SourceLocation(branch.Branch.Syntax.GetFirstToken());
                 switch (branch.Branch.Kind)
                 {

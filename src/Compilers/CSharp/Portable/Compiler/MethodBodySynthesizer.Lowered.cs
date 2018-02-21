@@ -39,7 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             start:
                 if (i < text.Length)
+                {
                     goto again;
+                }
             }
             return hashCode;
         }
@@ -234,7 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     BoundBlock body = MethodBodySynthesizer.ConstructSingleInvocationMethodBody(F, methodBeingWrapped, useBaseReference: true);
-                    if (body.Kind != BoundKind.Block) body = F.Block(body);
+                    if (body.Kind != BoundKind.Block)
+                    {
+                        body = F.Block(body);
+                    }
+
                     F.CompilationState.AddMethodWrapper(methodBeingWrapped, this, body);
                 }
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)

@@ -311,12 +311,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             node = node.Parent;
             // Dig through parens because dev10 does (even though the spec doesn't say so)
             // Dig through casts because there's a special error code (CS0254) for such casts.
-            while (node != null && (node.IsKind(ParenthesizedExpression) || node.IsKind(CastExpression))) node = node.Parent;
-            if (node == null || !node.IsKind(EqualsValueClause)) return false;
+            while (node != null && (node.IsKind(ParenthesizedExpression) || node.IsKind(CastExpression)))
+            {
+                node = node.Parent;
+            }
+
+            if (node == null || !node.IsKind(EqualsValueClause))
+            {
+                return false;
+            }
+
             node = node.Parent;
-            if (node == null || !node.IsKind(VariableDeclarator)) return false;
+            if (node == null || !node.IsKind(VariableDeclarator))
+            {
+                return false;
+            }
+
             node = node.Parent;
-            if (node == null || !node.IsKind(VariableDeclaration)) return false;
+            if (node == null || !node.IsKind(VariableDeclaration))
+            {
+                return false;
+            }
+
             node = node.Parent;
             return node != null && node.IsKind(FixedStatement);
         }

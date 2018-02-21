@@ -698,8 +698,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static bool WasImplicitReceiver(BoundExpression receiverOpt)
         {
-            if (receiverOpt == null) return true;
-            if (!receiverOpt.WasCompilerGenerated) return false;
+            if (receiverOpt == null)
+            {
+                return true;
+            }
+
+            if (!receiverOpt.WasCompilerGenerated)
+            {
+                return false;
+            }
+
             switch (receiverOpt.Kind)
             {
                 case BoundKind.ThisReference:

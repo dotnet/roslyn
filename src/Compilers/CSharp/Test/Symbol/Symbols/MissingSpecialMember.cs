@@ -523,7 +523,10 @@ namespace System
 
             foreach (SpecialMember special in Enum.GetValues(typeof(SpecialMember)))
             {
-                if (special == SpecialMember.Count) continue; // Not a real value;
+                if (special == SpecialMember.Count)
+                {
+                    continue; // Not a real value;
+                }
 
                 var symbol = comp.GetSpecialTypeMember(special);
                 Assert.NotNull(symbol);
@@ -874,7 +877,10 @@ namespace System
                         // Not always available.
                         continue;
                 }
-                if (wkm == WellKnownMember.Count) continue; // Not a real value.
+                if (wkm == WellKnownMember.Count)
+                {
+                    continue; // Not a real value.
+                }
 
                 var symbol = comp.GetWellKnownTypeMember(wkm);
                 Assert.NotNull(symbol);

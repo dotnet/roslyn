@@ -426,7 +426,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SyntaxToken token = Root.FindToken(position);
             if (position == 0 && position != token.SpanStart)
+            {
                 return position;
+            }
 
             CSharpSyntaxNode node = (CSharpSyntaxNode)token.Parent;
             if (position == node.SpanStart)
@@ -685,7 +687,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public SymbolInfo GetSpeculativeSymbolInfo(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
         {
-            if (!CanGetSemanticInfo(expression, isSpeculative: true)) return SymbolInfo.None;
+            if (!CanGetSemanticInfo(expression, isSpeculative: true))
+            {
+                return SymbolInfo.None;
+            }
 
             Binder binder;
             ImmutableArray<Symbol> crefSymbols;
@@ -721,7 +726,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder;
             BoundNode boundNode = GetSpeculativelyBoundAttribute(position, attribute, out binder); //calls CheckAndAdjustPosition
             if (boundNode == null)
+            {
                 return SymbolInfo.None;
+            }
 
             var symbolInfo = this.GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, boundNode, boundNode, boundNodeForSyntacticParent: null, binderOpt: binder);
 
@@ -1056,7 +1063,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(nameSyntax);
 
             if (!CanGetSemanticInfo(nameSyntax))
+            {
                 return null;
+            }
 
             SymbolInfo info = GetSymbolInfoWorker(nameSyntax, SymbolInfoOptions.PreferTypeToConstructors | SymbolInfoOptions.PreserveAliases, cancellationToken);
             return info.Symbol as AliasSymbol;
@@ -2123,11 +2132,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (Symbol symbol in symbols)
             {
                 if (symbol.Kind == SymbolKind.Alias)
+                {
                     anyAliases = true;
+                }
             }
 
             if (!anyAliases)
+            {
                 return symbols;
+            }
 
             ArrayBuilder<Symbol> builder = ArrayBuilder<Symbol>.GetInstance();
             foreach (Symbol symbol in symbols)
@@ -3242,9 +3255,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var query = (BoundQueryClause)boundNode;
                         var builder = ArrayBuilder<Symbol>.GetInstance();
-                        if (query.Operation != null && (object)query.Operation.ExpressionSymbol != null) builder.Add(query.Operation.ExpressionSymbol);
-                        if ((object)query.DefinedSymbol != null) builder.Add(query.DefinedSymbol);
-                        if (query.Cast != null && (object)query.Cast.ExpressionSymbol != null) builder.Add(query.Cast.ExpressionSymbol);
+                        if (query.Operation != null && (object)query.Operation.ExpressionSymbol != null)
+                        {
+                            builder.Add(query.Operation.ExpressionSymbol);
+                        }
+
+                        if ((object)query.DefinedSymbol != null)
+                        {
+                            builder.Add(query.DefinedSymbol);
+                        }
+
+                        if (query.Cast != null && (object)query.Cast.ExpressionSymbol != null)
+                        {
+                            builder.Add(query.Cast.ExpressionSymbol);
+                        }
+
                         symbols = builder.ToImmutableAndFree();
                     }
                     break;
@@ -4079,7 +4104,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             string argumentName = identifierNameSyntax.Identifier.ValueText;
             if (argumentName.Length == 0)
+            {
                 return SymbolInfo.None;    // missing name.
+            }
 
             // argument could be an argument of a tuple expression
             // var x = (Identifier: 1, AnotherIdentifier: 2);
@@ -4141,7 +4168,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (ParameterSymbol param in parameters)
             {
                 if (param.Name == argumentName)
+                {
                     return param;
+                }
             }
 
             return null;

@@ -2360,8 +2360,15 @@ parse_member_name:;
             SyntaxToken identifierOrThisOpt,
             TypeParameterListSyntax typeParameterListOpt)
         {
-            if (type.Kind != SyntaxKind.IdentifierName) return false;
-            if (identifierOrThisOpt.Kind != SyntaxKind.IdentifierToken) return false;
+            if (type.Kind != SyntaxKind.IdentifierName)
+            {
+                return false;
+            }
+
+            if (identifierOrThisOpt.Kind != SyntaxKind.IdentifierToken)
+            {
+                return false;
+            }
 
             var identifier = ((IdentifierNameSyntax)type).Identifier;
             var contextualKind = identifier.ContextualKind;
@@ -8537,7 +8544,9 @@ tryAgain:
                     // "await x(y)" still parses as a parameter list, so check to see if it's a valid parameter (like "x(t y)")
                     forceLocalFunc |= !paramListSyntax[i].ContainsDiagnostics;
                     if (forceLocalFunc)
+                    {
                         break;
+                    }
                 }
             }
 
@@ -11450,7 +11459,11 @@ tryAgain:
 
         internal TNode ConsumeUnexpectedTokens<TNode>(TNode node) where TNode : CSharpSyntaxNode
         {
-            if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken) return node;
+            if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken)
+            {
+                return node;
+            }
+
             SyntaxListBuilder<SyntaxToken> b = _pool.Allocate<SyntaxToken>();
             while (this.CurrentToken.Kind != SyntaxKind.EndOfFileToken)
             {

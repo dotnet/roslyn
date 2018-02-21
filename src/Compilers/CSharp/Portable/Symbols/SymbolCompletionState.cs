@@ -119,10 +119,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; ; i++)
             {
                 int bit = (1 << i);
-                if ((bit & (int)CompletionPart.All) == 0) break;
+                if ((bit & (int)CompletionPart.All) == 0)
+                {
+                    break;
+                }
+
                 if ((bit & _completeParts) != 0)
                 {
-                    if (any) result.Append(", ");
+                    if (any)
+                    {
+                        result.Append(", ");
+                    }
+
                     result.Append(i);
                     any = true;
                 }

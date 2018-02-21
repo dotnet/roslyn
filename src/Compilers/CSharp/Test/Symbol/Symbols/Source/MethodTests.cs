@@ -69,7 +69,9 @@ class A {
                         );
 
                         if (accessibility != null)
+                        {
                             Assert.Equal(accessibility, ct.DeclaredAccessibility);
+                        }
                     }
                 };
 

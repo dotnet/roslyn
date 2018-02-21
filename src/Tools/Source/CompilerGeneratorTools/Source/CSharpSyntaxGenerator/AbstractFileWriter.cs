@@ -157,11 +157,17 @@ namespace CSharpSyntaxGenerator
         protected static string GetElementType(string typeName)
         {
             if (!typeName.Contains("<"))
+            {
                 return string.Empty;
+            }
+
             int iStart = typeName.IndexOf('<');
             int iEnd = typeName.IndexOf('>', iStart + 1);
             if (iEnd < iStart)
+            {
                 return string.Empty;
+            }
+
             var sub = typeName.Substring(iStart + 1, iEnd - iStart - 1);
             return sub;
         }
@@ -174,7 +180,10 @@ namespace CSharpSyntaxGenerator
         protected bool IsDerivedType(string typeName, string derivedTypeName)
         {
             if (typeName == derivedTypeName)
+            {
                 return true;
+            }
+
             if (derivedTypeName != null && _parentMap.TryGetValue(derivedTypeName, out var baseType))
             {
                 return IsDerivedType(typeName, baseType);

@@ -120,7 +120,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while ((object)containingMember != null && containingMember.Kind == SymbolKind.Method)
             {
                 MethodSymbol method = (MethodSymbol)containingMember;
-                if (method.MethodKind != MethodKind.AnonymousFunction && method.MethodKind != MethodKind.LocalFunction) break;
+                if (method.MethodKind != MethodKind.AnonymousFunction && method.MethodKind != MethodKind.LocalFunction)
+                {
+                    break;
+                }
+
                 containingMember = containingMember.ContainingSymbol;
             }
 

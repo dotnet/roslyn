@@ -65,7 +65,11 @@ namespace Microsoft.CodeAnalysis
 
         private static int WordsForCapacity(int capacity)
         {
-            if (capacity <= 0) return 0;
+            if (capacity <= 0)
+            {
+                return 0;
+            }
+
             int lastIndex = (capacity - 1) >> Log2BitsPerWord;
             return lastIndex;
         }
@@ -83,7 +87,11 @@ namespace Microsoft.CodeAnalysis
             if (newCapacity > _capacity)
             {
                 int requiredWords = WordsForCapacity(newCapacity);
-                if (requiredWords > _bits.Length) Array.Resize(ref _bits, requiredWords);
+                if (requiredWords > _bits.Length)
+                {
+                    Array.Resize(ref _bits, requiredWords);
+                }
+
                 _capacity = newCapacity;
                 Check();
             }
@@ -113,7 +121,11 @@ namespace Microsoft.CodeAnalysis
                     Word mask = ((Word)1) << bit;
                     if ((_bits0 & mask) != 0)
                     {
-                        if (bit >= _capacity) yield break;
+                        if (bit >= _capacity)
+                        {
+                            yield break;
+                        }
+
                         yield return bit;
                     }
                 }
@@ -129,7 +141,11 @@ namespace Microsoft.CodeAnalysis
                         if ((w & mask) != 0)
                         {
                             int bit = ((i + 1) << Log2BitsPerWord) | b;
-                            if (bit >= _capacity) yield break;
+                            if (bit >= _capacity)
+                            {
+                                yield break;
+                            }
+
                             yield return bit;
                         }
                     }
@@ -164,7 +180,10 @@ namespace Microsoft.CodeAnalysis
             int lastWord = requiredWords - 1;
             Word bits0 = ~ZeroWord;
             for (int j = 0; j < lastWord; j++)
+            {
                 bits[j] = ~ZeroWord;
+            }
+
             int numTrailingBits = capacity & ((BitsPerWord) - 1);
             if (numTrailingBits > 0)
             {
@@ -224,7 +243,9 @@ namespace Microsoft.CodeAnalysis
             int thisLength = thisBits.Length;
 
             if (otherLength > thisLength)
+            {
                 otherLength = thisLength;
+            }
 
             // intersect the inline portion
             {
@@ -273,13 +294,17 @@ namespace Microsoft.CodeAnalysis
             bool anyChanged = false;
 
             if (other._capacity > _capacity)
+            {
                 EnsureCapacity(other._capacity);
+            }
 
             Word oldbits = _bits0;
             _bits0 |= other._bits0;
 
             if (oldbits != _bits0)
+            {
                 anyChanged = true;
+            }
 
             for (int i = 0; i < other._bits.Length; i++)
             {
@@ -287,7 +312,9 @@ namespace Microsoft.CodeAnalysis
                 _bits[i] |= other._bits[i];
 
                 if (_bits[i] != oldbits)
+                {
                     anyChanged = true;
+                }
             }
 
             Check();
@@ -300,7 +327,10 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 if (index >= _capacity)
+                {
                     return false;
+                }
+
                 int i = (index >> Log2BitsPerWord) - 1;
                 var word = (i < 0) ? _bits0 : _bits[i];
 
@@ -310,23 +340,34 @@ namespace Microsoft.CodeAnalysis
             set
             {
                 if (index >= _capacity)
+                {
                     EnsureCapacity(index + 1);
+                }
+
                 int i = (index >> Log2BitsPerWord) - 1;
                 int b = index & (BitsPerWord - 1);
                 Word mask = ((Word)1) << b;
                 if (i < 0)
                 {
                     if (value)
+                    {
                         _bits0 |= mask;
+                    }
                     else
+                    {
                         _bits0 &= ~mask;
+                    }
                 }
                 else
                 {
                     if (value)
+                    {
                         _bits[i] |= mask;
+                    }
                     else
+                    {
                         _bits[i] &= ~mask;
+                    }
                 }
             }
         }
@@ -334,7 +375,10 @@ namespace Microsoft.CodeAnalysis
         public void Clear()
         {
             _bits0 = 0;
-            if (_bits != null) Array.Clear(_bits, 0, _bits.Length);
+            if (_bits != null)
+            {
+                Array.Clear(_bits, 0, _bits.Length);
+            }
         }
 
         public static bool IsTrue(Word word, int index)
@@ -346,7 +390,11 @@ namespace Microsoft.CodeAnalysis
 
         public static int WordsRequired(int capacity)
         {
-            if (capacity <= 0) return 0;
+            if (capacity <= 0)
+            {
+                return 0;
+            }
+
             return WordsForCapacity(capacity) + 1;
         }
     }

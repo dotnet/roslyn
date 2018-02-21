@@ -236,14 +236,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (ShouldAnalyzeOutParameters(out location))
             {
                 LeaveParameters(methodParameters, null, location);
-                if ((object)methodThisParameter != null) LeaveParameter(methodThisParameter, null, location);
+                if ((object)methodThisParameter != null)
+                {
+                    LeaveParameter(methodThisParameter, null, location);
+                }
 
                 var savedState = this.State;
                 foreach (PendingBranch returnBranch in pendingReturns)
                 {
                     this.State = returnBranch.State;
                     LeaveParameters(methodParameters, returnBranch.Branch.Syntax, null);
-                    if ((object)methodThisParameter != null) LeaveParameter(methodThisParameter, returnBranch.Branch.Syntax, null);
+                    if ((object)methodThisParameter != null)
+                    {
+                        LeaveParameter(methodThisParameter, returnBranch.Branch.Syntax, null);
+                    }
+
                     IntersectWith(ref savedState, ref this.State);
                 }
 
@@ -303,13 +310,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(parameter.Type))
                         {
-                            if (_emptyStructTypeCache.IsEmptyStructType(field.Type)) continue;
+                            if (_emptyStructTypeCache.IsEmptyStructType(field.Type))
+                            {
+                                continue;
+                            }
 
                             var sourceField = field as SourceMemberFieldSymbol;
-                            if (sourceField?.HasInitializer == true) continue;
+                            if (sourceField?.HasInitializer == true)
+                            {
+                                continue;
+                            }
 
                             var backingField = field as SynthesizedBackingFieldSymbol;
-                            if (backingField?.HasInitializer == true) continue;
+                            if (backingField?.HasInitializer == true)
+                            {
+                                continue;
+                            }
 
                             int fieldSlot = VariableSlot(field, thisSlot);
                             if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
@@ -608,7 +624,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static bool WriteConsideredUse(TypeSymbol type, BoundExpression value)
         {
-            if (value == null || value.HasAnyErrors) return true;
+            if (value == null || value.HasAnyErrors)
+            {
+                return true;
+            }
+
             if ((object)type != null && type.IsReferenceType && type.SpecialType != SpecialType.System_String)
             {
                 return value.ConstantValue != ConstantValue.Null;
@@ -620,7 +640,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (value.ConstantValue != null) return false;
+            if (value.ConstantValue != null)
+            {
+                return false;
+            }
+
             switch (value.Kind)
             {
                 case BoundKind.Conversion:
@@ -749,7 +773,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
         {
-            if (symbol is RangeVariableSymbol) return -1;
+            if (symbol is RangeVariableSymbol)
+            {
+                return -1;
+            }
 
             containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: true);
 
@@ -862,9 +889,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var fieldAccess = (BoundFieldAccess)node;
                         var fieldSymbol = fieldAccess.FieldSymbol;
                         var receiverOpt = fieldAccess.ReceiverOpt;
-                        if (fieldSymbol.IsStatic || receiverOpt == null || receiverOpt.Kind == BoundKind.TypeExpression) return -1; // access of static field
-                        if (fieldSymbol.IsFixed) return -1; // fixed buffers are not tracked
-                        if ((object)receiverOpt.Type == null || receiverOpt.Type.TypeKind != TypeKind.Struct) return -1; // field of non-struct
+                        if (fieldSymbol.IsStatic || receiverOpt == null || receiverOpt.Kind == BoundKind.TypeExpression)
+                        {
+                            return -1; // access of static field
+                        }
+
+                        if (fieldSymbol.IsFixed)
+                        {
+                            return -1; // fixed buffers are not tracked
+                        }
+
+                        if ((object)receiverOpt.Type == null || receiverOpt.Type.TypeKind != TypeKind.Struct)
+                        {
+                            return -1; // field of non-struct
+                        }
+
                         int containingSlot = MakeSlot(receiverOpt);
                         return (containingSlot == -1) ? -1 : GetOrCreateSlot(fieldSymbol, containingSlot);
                     }
@@ -873,9 +912,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var eventAccess = (BoundEventAccess)node;
                         var eventSymbol = eventAccess.EventSymbol;
                         var receiverOpt = eventAccess.ReceiverOpt;
-                        if (eventSymbol.IsStatic || receiverOpt == null || receiverOpt.Kind == BoundKind.TypeExpression) return -1; // access of static event
-                        if ((object)receiverOpt.Type == null || receiverOpt.Type.TypeKind != TypeKind.Struct) return -1; // event of non-struct
-                        if (!eventSymbol.HasAssociatedField) return -1;
+                        if (eventSymbol.IsStatic || receiverOpt == null || receiverOpt.Kind == BoundKind.TypeExpression)
+                        {
+                            return -1; // access of static event
+                        }
+
+                        if ((object)receiverOpt.Type == null || receiverOpt.Type.TypeKind != TypeKind.Struct)
+                        {
+                            return -1; // event of non-struct
+                        }
+
+                        if (!eventSymbol.HasAssociatedField)
+                        {
+                            return -1;
+                        }
+
                         int containingSlot = MakeSlot(receiverOpt);
                         return (containingSlot == -1) ? -1 : GetOrCreateSlot(eventSymbol.AssociatedField, containingSlot);
                     }
@@ -890,8 +941,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (backingField != null)
                             {
                                 var receiverOpt = propAccess.ReceiverOpt;
-                                if (propSymbol.IsStatic || receiverOpt == null || receiverOpt.Kind == BoundKind.TypeExpression) return -1; // access of static property
-                                if ((object)receiverOpt.Type == null || receiverOpt.Type.TypeKind != TypeKind.Struct) return -1; // property of non-struct
+                                if (propSymbol.IsStatic || receiverOpt == null || receiverOpt.Kind == BoundKind.TypeExpression)
+                                {
+                                    return -1; // access of static property
+                                }
+
+                                if ((object)receiverOpt.Type == null || receiverOpt.Type.TypeKind != TypeKind.Struct)
+                                {
+                                    return -1; // property of non-struct
+                                }
+
                                 int containingSlot = MakeSlot(receiverOpt);
                                 return (containingSlot == -1) ? -1 : GetOrCreateSlot(backingField, containingSlot);
                             }
@@ -917,7 +976,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (this.State.Reachable)
                 {
                     int slot = VariableSlot(symbol);
-                    if (slot >= this.State.Assigned.Capacity) Normalize(ref this.State);
+                    if (slot >= this.State.Assigned.Capacity)
+                    {
+                        Normalize(ref this.State);
+                    }
+
                     if (slot > 0 && !this.State.IsAssigned(slot))
                     {
                         ReportUnassignedIfNotCapturedInLocalFunction(symbol, node, slot);
@@ -1036,7 +1099,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsAssigned(BoundExpression node, out int unassignedSlot)
         {
             unassignedSlot = -1;
-            if (_emptyStructTypeCache.IsEmptyStructType(node.Type)) return true;
+            if (_emptyStructTypeCache.IsEmptyStructType(node.Type))
+            {
+                return true;
+            }
+
             switch (node.Kind)
             {
                 case BoundKind.ThisReference:
@@ -1146,8 +1213,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var fieldAccess = (BoundFieldAccess)expression;
                             var fieldSymbol = fieldAccess.FieldSymbol;
-                            if ((object)_sourceAssembly != null) _sourceAssembly.NoteFieldAccess(fieldSymbol, true, true);
-                            if (fieldSymbol.ContainingType.IsReferenceType || fieldSymbol.IsStatic) return null;
+                            if ((object)_sourceAssembly != null)
+                            {
+                                _sourceAssembly.NoteFieldAccess(fieldSymbol, true, true);
+                            }
+
+                            if (fieldSymbol.ContainingType.IsReferenceType || fieldSymbol.IsStatic)
+                            {
+                                return null;
+                            }
+
                             expression = fieldAccess.ReceiverOpt;
                             continue;
                         }
@@ -1200,7 +1275,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             SetSlotState(slot, assigned: written || !this.State.Reachable);
                         }
 
-                        if (written) NoteWrite(pattern.VariableAccess, value, read);
+                        if (written)
+                        {
+                            NoteWrite(pattern.VariableAccess, value, read);
+                        }
+
                         break;
                     }
 
@@ -1211,7 +1290,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LocalSymbol symbol = local.LocalSymbol;
                         int slot = GetOrCreateSlot(symbol);
                         SetSlotState(slot, assigned: written || !this.State.Reachable);
-                        if (written) NoteWrite(symbol, value, read);
+                        if (written)
+                        {
+                            NoteWrite(symbol, value, read);
+                        }
+
                         break;
                     }
 
@@ -1222,13 +1305,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Writing through the (reference) value of a reference local
                             // requires us to read the reference itself.
-                            if (written) VisitRvalue(local);
+                            if (written)
+                            {
+                                VisitRvalue(local);
+                            }
                         }
                         else
                         {
                             int slot = MakeSlot(local);
                             SetSlotState(slot, written);
-                            if (written) NoteWrite(local, value, read);
+                            if (written)
+                            {
+                                NoteWrite(local, value, read);
+                            }
                         }
                         break;
                     }
@@ -1242,7 +1331,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var expression = (BoundExpression)node;
                         int slot = MakeSlot(expression);
                         SetSlotState(slot, written);
-                        if (written) NoteWrite(expression, value, read);
+                        if (written)
+                        {
+                            NoteWrite(expression, value, read);
+                        }
+
                         break;
                     }
 
@@ -1283,9 +1376,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol structType = VariableType(variable.Symbol) as NamedTypeSymbol;
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(structType))
             {
-                if (_emptyStructTypeCache.IsEmptyStructType(field.Type)) continue;
+                if (_emptyStructTypeCache.IsEmptyStructType(field.Type))
+                {
+                    continue;
+                }
+
                 int slot = VariableSlot(field, containingSlot);
-                if (slot == -1 || !state.IsAssigned(slot)) return false;
+                if (slot == -1 || !state.IsAssigned(slot))
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -1311,7 +1411,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void SetSlotState(int slot, bool assigned)
         {
-            if (slot <= 0) return;
+            if (slot <= 0)
+            {
+                return;
+            }
+
             if (assigned)
             {
                 SetSlotAssigned(slot);
@@ -1324,12 +1428,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SetSlotAssigned(int slot, ref LocalState state)
         {
-            if (slot < 0) return;
+            if (slot < 0)
+            {
+                return;
+            }
+
             VariableIdentifier id = variableBySlot[slot];
             TypeSymbol type = VariableType(id.Symbol);
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
-            if (slot >= state.Assigned.Capacity) Normalize(ref state);
-            if (state.IsAssigned(slot)) return; // was already fully assigned.
+            if (slot >= state.Assigned.Capacity)
+            {
+                Normalize(ref state);
+            }
+
+            if (state.IsAssigned(slot))
+            {
+                return; // was already fully assigned.
+            }
+
             state.Assign(slot);
             bool fieldsTracked = EmptyStructTypeCache.IsTrackableStructType(type);
 
@@ -1339,7 +1455,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(type))
                 {
                     int s2 = VariableSlot(field, slot);
-                    if (s2 > 0) SetSlotAssigned(s2, ref state);
+                    if (s2 > 0)
+                    {
+                        SetSlotAssigned(s2, ref state);
+                    }
                 }
             }
 
@@ -1347,7 +1466,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (id.ContainingSlot > 0)
             {
                 slot = id.ContainingSlot;
-                if (state.IsAssigned(slot) || !FieldsAllSet(slot, state)) break;
+                if (state.IsAssigned(slot) || !FieldsAllSet(slot, state))
+                {
+                    break;
+                }
+
                 state.Assign(slot);
                 id = variableBySlot[slot];
             }
@@ -1360,11 +1483,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SetSlotUnassigned(int slot, ref LocalState state)
         {
-            if (slot < 0) return;
+            if (slot < 0)
+            {
+                return;
+            }
+
             VariableIdentifier id = variableBySlot[slot];
             TypeSymbol type = VariableType(id.Symbol);
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
-            if (!state.IsAssigned(slot)) return; // was already unassigned
+            if (!state.IsAssigned(slot))
+            {
+                return; // was already unassigned
+            }
+
             state.Unassign(slot);
             bool fieldsTracked = EmptyStructTypeCache.IsTrackableStructType(type);
 
@@ -1374,7 +1505,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(type))
                 {
                     int s2 = VariableSlot(field, slot);
-                    if (s2 > 0) SetSlotUnassigned(s2, ref state);
+                    if (s2 > 0)
+                    {
+                        SetSlotUnassigned(s2, ref state);
+                    }
                 }
             }
 
@@ -1425,13 +1559,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter.RefKind == RefKind.Out && !this.currentMethodOrLambda.IsAsync) // out parameters not allowed in async
             {
                 int slot = GetOrCreateSlot(parameter);
-                if (slot > 0) SetSlotState(slot, initiallyAssignedVariables?.Contains(parameter) == true);
+                if (slot > 0)
+                {
+                    SetSlotState(slot, initiallyAssignedVariables?.Contains(parameter) == true);
+                }
             }
             else
             {
                 // this code has no effect except in region analysis APIs such as DataFlowsOut where we unassign things
                 int slot = GetOrCreateSlot(parameter);
-                if (slot > 0) SetSlotState(slot, true);
+                if (slot > 0)
+                {
+                    SetSlotState(slot, true);
+                }
+
                 NoteWrite(parameter, value: null, read: true);
             }
         }
@@ -1819,7 +1960,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.State = this.State.Reachable ? this.State.Clone() : AllBitsSet();
 
-            if (!node.WasCompilerGenerated) EnterParameters(node.Symbol.Parameters);
+            if (!node.WasCompilerGenerated)
+            {
+                EnterParameters(node.Symbol.Parameters);
+            }
+
             var oldPending2 = SavePending();
             VisitAlways(node.Body);
             RestorePending(oldPending2); // process any forward branches within the lambda body
@@ -1965,7 +2110,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void CheckAssigned(BoundExpression expr, SyntaxNode node)
         {
-            if (!this.State.Reachable) return;
+            if (!this.State.Reachable)
+            {
+                return;
+            }
+
             int slot = MakeSlot(expr);
             switch (expr.Kind)
             {
@@ -2213,7 +2362,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)iterationVariable != null);
                 int slot = GetOrCreateSlot(iterationVariable);
-                if (slot > 0) SetSlotAssigned(slot);
+                if (slot > 0)
+                {
+                    SetSlotAssigned(slot);
+                }
                 // NOTE: do not report unused iteration variables. They are always considered used.
                 NoteWrite(iterationVariable, null, read: true);
             }
@@ -2252,7 +2404,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool any = false;
             foreach (int bit in a.TrueBits())
             {
-                if (any) builder.Append(", ");
+                if (any)
+                {
+                    builder.Append(", ");
+                }
+
                 any = true;
                 AppendBitName(bit, builder);
             }
@@ -2281,7 +2437,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Normalize(ref other);
             }
 
-            if (!other.Reachable) self.Assigned[0] = true;
+            if (!other.Reachable)
+            {
+                self.Assigned[0] = true;
+            }
 
             for (int slot = 1; slot < self.Assigned.Capacity; slot++)
             {
@@ -2347,14 +2506,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             public void Assign(int slot)
             {
                 if (slot == -1)
+                {
                     return;
+                }
+
                 Assigned[slot] = true;
             }
 
             public void Unassign(int slot)
             {
                 if (slot == -1)
+                {
                     return;
+                }
+
                 Assigned[slot] = false;
             }
 

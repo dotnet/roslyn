@@ -333,7 +333,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalSymbol result = null;
             if (LocalsMap != null && LocalsMap.TryGetValue(nameToken.ValueText, out result))
             {
-                if (result.IdentifierToken == nameToken) return (SourceLocalSymbol)result;
+                if (result.IdentifierToken == nameToken)
+                {
+                    return (SourceLocalSymbol)result;
+                }
 
                 // in error cases we might have more than one declaration of the same name in the same scope
                 foreach (var local in this.Locals)
@@ -353,7 +356,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalFunctionSymbol result = null;
             if (LocalFunctionsMap != null && LocalFunctionsMap.TryGetValue(nameToken.ValueText, out result))
             {
-                if (result.NameToken == nameToken) return result;
+                if (result.NameToken == nameToken)
+                {
+                    return result;
+                }
 
                 // in error cases we might have more than one declaration of the same name in the same scope
                 foreach (var local in this.LocalFunctions)
@@ -455,7 +461,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Quirk of the way we represent lambda parameters.
             SymbolKind newSymbolKind = (object)newSymbol == null ? SymbolKind.Parameter : newSymbol.Kind;
 
-            if (newSymbolKind == SymbolKind.ErrorType) return true;
+            if (newSymbolKind == SymbolKind.ErrorType)
+            {
+                return true;
+            }
 
             var declaredInThisScope = false;
 

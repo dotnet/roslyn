@@ -18,8 +18,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public unsafe void CreateFromMetadata_Errors()
         {
             Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromMetadata(IntPtr.Zero, 0));
-            Assert.Throws<ArgumentOutOfRangeException>(() => { fixed (byte* ptr = new byte[] { 1, 2, 3 }) ModuleMetadata.CreateFromMetadata((IntPtr)ptr, 0); });
-            Assert.Throws<ArgumentOutOfRangeException>(() => { fixed (byte* ptr = new byte[] { 1, 2, 3 }) ModuleMetadata.CreateFromMetadata((IntPtr)ptr, -1); });
+            Assert.Throws<ArgumentOutOfRangeException>(() => { fixed (byte* ptr = new byte[] { 1, 2, 3 })
+                {
+                    ModuleMetadata.CreateFromMetadata((IntPtr)ptr, 0);
+                }
+            });
+            Assert.Throws<ArgumentOutOfRangeException>(() => { fixed (byte* ptr = new byte[] { 1, 2, 3 })
+                {
+                    ModuleMetadata.CreateFromMetadata((IntPtr)ptr, -1);
+                }
+            });
 
             fixed (byte* ptr = new byte[] { 1, 2, 3 })
             {
@@ -57,8 +65,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public unsafe void CreateFromImage()
         {
             Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(IntPtr.Zero, 0));
-            Assert.Throws<ArgumentOutOfRangeException>(() => { fixed (byte* ptr = new byte[] { 1, 2, 3 }) ModuleMetadata.CreateFromImage((IntPtr)ptr, 0); });
-            Assert.Throws<ArgumentOutOfRangeException>(() => { fixed (byte* ptr = new byte[] { 1, 2, 3 }) ModuleMetadata.CreateFromImage((IntPtr)ptr, -1); });
+            Assert.Throws<ArgumentOutOfRangeException>(() => { fixed (byte* ptr = new byte[] { 1, 2, 3 })
+                {
+                    ModuleMetadata.CreateFromImage((IntPtr)ptr, 0);
+                }
+            });
+            Assert.Throws<ArgumentOutOfRangeException>(() => { fixed (byte* ptr = new byte[] { 1, 2, 3 })
+                {
+                    ModuleMetadata.CreateFromImage((IntPtr)ptr, -1);
+                }
+            });
 
             Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(default(ImmutableArray<byte>)));
             Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(default(IEnumerable<byte>)));

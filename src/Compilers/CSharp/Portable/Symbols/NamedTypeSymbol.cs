@@ -661,8 +661,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!this.IsTupleType);
 
-            if ((object)t2 == this) return true;
-            if ((object)t2 == null) return false;
+            if ((object)t2 == this)
+            {
+                return true;
+            }
+
+            if ((object)t2 == null)
+            {
+                return false;
+            }
 
             if ((comparison & TypeCompareKind.IgnoreDynamic) != 0)
             {
@@ -682,12 +689,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (t2.IsTupleType)
                 {
                     t2 = t2.TupleUnderlyingType;
-                    if (this.Equals(t2, comparison)) return true;
+                    if (this.Equals(t2, comparison))
+                    {
+                        return true;
+                    }
                 }
             }
 
             NamedTypeSymbol other = t2 as NamedTypeSymbol;
-            if ((object)other == null) return false;
+            if ((object)other == null)
+            {
+                return false;
+            }
 
             // Compare OriginalDefinitions.
             var thisOriginalDefinition = this.OriginalDefinition;
@@ -760,7 +773,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < count; i++)
             {
-                if (!typeArguments[i].Equals(otherTypeArguments[i], comparison)) return false;
+                if (!typeArguments[i].Equals(otherTypeArguments[i], comparison))
+                {
+                    return false;
+                }
             }
 
             if ((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0 && hasTypeArgumentsCustomModifiers)

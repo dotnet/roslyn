@@ -357,7 +357,10 @@ namespace Roslyn.Test.Utilities.Desktop
             var typeNames = new SortedSet<string>();
             Assembly assembly = GetAssembly(assemblyName, true);
             foreach (var typ in assembly.GetTypes())
+            {
                 typeNames.Add(typ.FullName);
+            }
+
             return typeNames;
         }
 

@@ -85,9 +85,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ErrorTypeSymbol errorType = this.Type.OriginalDefinition as ErrorTypeSymbol;
                 if ((object)errorType != null)
+                {
                     return errorType.ResultKind;
+                }
                 else
+                {
                     return LookupResultKind.Viable;
+                }
             }
         }
     }

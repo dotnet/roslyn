@@ -55,14 +55,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             if (meth != null)
             {
                 foreach (ParameterSymbol p in meth.Parameters)
+                {
                     CheckDeclaringSyntaxNodes(compilation, p, meth.IsAccessor() ? 0 : expectedNumber);
+                }
             }
 
             PropertySymbol prop = symbol as PropertySymbol;
             if (prop != null)
             {
                 foreach (ParameterSymbol p in prop.Parameters)
+                {
                     CheckDeclaringSyntaxNodes(compilation, p, expectedNumber);
+                }
             }
 
             return nodes;
@@ -518,9 +522,13 @@ namespace N1 {
             foreach (Symbol memb in e1.GetMembers())
             {
                 if (memb.Kind == SymbolKind.Method && ((MethodSymbol)memb).MethodKind == MethodKind.Constructor)
+                {
                     CheckDeclaringSyntaxNodesIncludingParameters(comp, memb, 0);  // implicit constructor
+                }
                 else
+                {
                     CheckDeclaringSyntaxNodesIncludingParameters(comp, memb, 1);
+                }
             }
 
             var ev1 = c1.GetMembers("ev1").Single() as EventSymbol;
@@ -534,13 +542,17 @@ namespace N1 {
                 {
                     MethodSymbol meth = (MethodSymbol)memb;
                     if (meth.AssociatedSymbol != null && meth.AssociatedSymbol.OriginalDefinition.Equals(ev1))
+                    {
                         expectedDeclaringNodes = 0;  // implicit accessor.
+                    }
                 }
                 if (memb is FieldSymbol)
                 {
                     FieldSymbol fld = (FieldSymbol)memb;
                     if (fld.AssociatedSymbol != null && fld.AssociatedSymbol.OriginalDefinition.Equals(prop3))
+                    {
                         expectedDeclaringNodes = 0;  // auto-prop backing field.
+                    }
                 }
 
                 CheckDeclaringSyntaxNodesIncludingParameters(comp, memb, expectedDeclaringNodes);
@@ -557,13 +569,17 @@ namespace N1 {
                 {
                     MethodSymbol meth = (MethodSymbol)memb;
                     if (meth.AssociatedSymbol != null && meth.AssociatedSymbol.OriginalDefinition.Equals(ev1))
+                    {
                         expectedDeclaringNodes = 0;  // implicit accessor.
+                    }
                 }
                 if (memb is FieldSymbol)
                 {
                     FieldSymbol fld = (FieldSymbol)memb;
                     if (fld.AssociatedSymbol != null && fld.AssociatedSymbol.OriginalDefinition.Equals(prop3))
+                    {
                         expectedDeclaringNodes = 0;  // auto-prop backing field.
+                    }
                 }
 
                 CheckDeclaringSyntaxNodesIncludingParameters(comp, memb, expectedDeclaringNodes);
@@ -572,7 +588,9 @@ namespace N1 {
             foreach (Symbol memb in c2.GetMembers())
             {
                 if (memb.Kind == SymbolKind.Method)
+                {
                     CheckDeclaringSyntaxNodesIncludingParameters(comp, memb, 0);
+                }
             }
         }
 

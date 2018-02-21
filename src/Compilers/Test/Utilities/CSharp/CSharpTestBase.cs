@@ -660,14 +660,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode> synList)
         {
             if (synList == null)
+            {
                 synList = new List<SyntaxNode>();
+            }
 
             synList.Add(node);
 
             foreach (var child in node.ChildNodesAndTokens())
             {
                 if (child.IsNode)
+                {
                     synList = GetSyntaxNodeList(child.AsNode(), synList);
+                }
             }
 
             return synList;
@@ -792,7 +796,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                     var bindNode = FindBindingNode<TNode>(tree, start, end);
                     // done
                     if (bindNode == null)
+                    {
                         break;
+                    }
 
                     nodeList.Add(bindNode);
                 }
@@ -805,7 +811,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 var bindNode = FindBindingNode<TNode>(tree, start2, end2);
                 // done
                 if (bindNode != null)
+                {
                     nodeList.Add(bindNode);
+                }
             }
 
             return nodeList;
@@ -818,7 +826,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string text = tree.GetRoot().ToFullString();
             int start = text.IndexOf(startTag, StringComparison.Ordinal);
             if (start < 0)
+            {
                 return null;
+            }
 
             start += startTag.Length;
             int end = text.IndexOf(endTag, StringComparison.Ordinal);
@@ -826,7 +836,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             // get rid of white spaces if any
             var bindText = text.Substring(start, end - start).Trim();
             if (String.IsNullOrWhiteSpace(bindText))
+            {
                 return null;
+            }
 
             // =================
             // Get Binding Node

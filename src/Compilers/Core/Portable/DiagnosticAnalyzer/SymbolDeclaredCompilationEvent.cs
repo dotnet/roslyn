@@ -74,7 +74,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var semanticModel = _semanticModel;
                 _lazySemanticModel = null;
-                if (semanticModel == null) return;
+                if (semanticModel == null)
+                {
+                    return;
+                }
+
                 _weakModel = new WeakReference<SemanticModel>(semanticModel);
                 _semanticModel = null;
             }
@@ -88,7 +92,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override string ToString()
         {
             var name = this.Symbol.Name;
-            if (name == "") name = "<empty>";
+            if (name == "")
+            {
+                name = "<empty>";
+            }
+
             var loc = DeclaringSyntaxReferences.Length != 0 ? " @ " + String.Join(", ", System.Linq.Enumerable.Select(DeclaringSyntaxReferences, r => r.GetLocation().GetLineSpan())) : null;
             return "SymbolDeclaredCompilationEvent(" + name + " " + this.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) + loc + ")";
         }

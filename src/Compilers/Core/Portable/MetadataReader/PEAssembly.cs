@@ -133,7 +133,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     List<ImmutableArray<byte>> keys;
                     if (ivtMap.TryGetValue(identity.Name, out keys))
+                    {
                         keys.Add(identity.PublicKey);
+                    }
                     else
                     {
                         keys = new List<ImmutableArray<byte>>();
@@ -156,7 +158,9 @@ namespace Microsoft.CodeAnalysis
         internal IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
         {
             if (_lazyInternalsVisibleToMap == null)
+            {
                 Interlocked.CompareExchange(ref _lazyInternalsVisibleToMap, BuildInternalsVisibleToMap(), null);
+            }
 
             List<ImmutableArray<byte>> result;
 

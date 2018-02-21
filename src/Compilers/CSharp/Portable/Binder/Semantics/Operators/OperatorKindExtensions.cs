@@ -396,25 +396,61 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string Dump(this BinaryOperatorKind kind)
         {
             var b = new StringBuilder();
-            if ((kind & BinaryOperatorKind.Lifted) != 0) b.Append("Lifted");
-            if ((kind & BinaryOperatorKind.Logical) != 0) b.Append("Logical");
-            if ((kind & BinaryOperatorKind.Checked) != 0) b.Append("Checked");
+            if ((kind & BinaryOperatorKind.Lifted) != 0)
+            {
+                b.Append("Lifted");
+            }
+
+            if ((kind & BinaryOperatorKind.Logical) != 0)
+            {
+                b.Append("Logical");
+            }
+
+            if ((kind & BinaryOperatorKind.Checked) != 0)
+            {
+                b.Append("Checked");
+            }
+
             var type = kind & BinaryOperatorKind.TypeMask;
-            if (type != 0) b.Append(type.ToString());
+            if (type != 0)
+            {
+                b.Append(type.ToString());
+            }
+
             var op = kind & BinaryOperatorKind.OpMask;
-            if (op != 0) b.Append(op.ToString());
+            if (op != 0)
+            {
+                b.Append(op.ToString());
+            }
+
             return b.ToString();
         }
 
         public static string Dump(this UnaryOperatorKind kind)
         {
             var b = new StringBuilder();
-            if ((kind & UnaryOperatorKind.Lifted) != 0) b.Append("Lifted");
-            if ((kind & UnaryOperatorKind.Checked) != 0) b.Append("Checked");
+            if ((kind & UnaryOperatorKind.Lifted) != 0)
+            {
+                b.Append("Lifted");
+            }
+
+            if ((kind & UnaryOperatorKind.Checked) != 0)
+            {
+                b.Append("Checked");
+            }
+
             var type = kind & UnaryOperatorKind.TypeMask;
-            if (type != 0) b.Append(type.ToString());
+            if (type != 0)
+            {
+                b.Append(type.ToString());
+            }
+
             var op = kind & UnaryOperatorKind.OpMask;
-            if (op != 0) b.Append(op.ToString());
+            if (op != 0)
+            {
+                b.Append(op.ToString());
+            }
+
             return b.ToString();
         }
 #endif

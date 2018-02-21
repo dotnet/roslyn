@@ -577,7 +577,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (s.Kind)
                 {
                     case SymbolKind.Alias:
-                        if (((AliasSymbol)s).Target.Kind == SymbolKind.NamedType) return true;
+                        if (((AliasSymbol)s).Target.Kind == SymbolKind.NamedType)
+                        {
+                            return true;
+                        }
+
                         break;
                     case SymbolKind.NamedType:
                     case SymbolKind.TypeParameter:
@@ -1292,21 +1296,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static readonly ConsistentSymbolOrder Instance = new ConsistentSymbolOrder();
             public int Compare(Symbol fst, Symbol snd)
             {
-                if (snd == fst) return 0;
-                if ((object)fst == null) return -1;
-                if ((object)snd == null) return 1;
-                if (snd.Name != fst.Name) return string.CompareOrdinal(fst.Name, snd.Name);
-                if (snd.Kind != fst.Kind) return (int)fst.Kind - (int)snd.Kind;
+                if (snd == fst)
+                {
+                    return 0;
+                }
+
+                if ((object)fst == null)
+                {
+                    return -1;
+                }
+
+                if ((object)snd == null)
+                {
+                    return 1;
+                }
+
+                if (snd.Name != fst.Name)
+                {
+                    return string.CompareOrdinal(fst.Name, snd.Name);
+                }
+
+                if (snd.Kind != fst.Kind)
+                {
+                    return (int)fst.Kind - (int)snd.Kind;
+                }
+
                 int aLocationsCount = !snd.Locations.IsDefault ? snd.Locations.Length : 0;
                 int bLocationsCount = fst.Locations.Length;
-                if (aLocationsCount != bLocationsCount) return aLocationsCount - bLocationsCount;
-                if (aLocationsCount == 0 && bLocationsCount == 0) return Compare(fst.ContainingSymbol, snd.ContainingSymbol);
+                if (aLocationsCount != bLocationsCount)
+                {
+                    return aLocationsCount - bLocationsCount;
+                }
+
+                if (aLocationsCount == 0 && bLocationsCount == 0)
+                {
+                    return Compare(fst.ContainingSymbol, snd.ContainingSymbol);
+                }
+
                 Location la = snd.Locations[0];
                 Location lb = fst.Locations[0];
-                if (la.IsInSource != lb.IsInSource) return la.IsInSource ? 1 : -1;
+                if (la.IsInSource != lb.IsInSource)
+                {
+                    return la.IsInSource ? 1 : -1;
+                }
+
                 int containerResult = Compare(fst.ContainingSymbol, snd.ContainingSymbol);
-                if (!la.IsInSource) return containerResult;
-                if (containerResult == 0 && la.SourceTree == lb.SourceTree) return lb.SourceSpan.Start - la.SourceSpan.Start;
+                if (!la.IsInSource)
+                {
+                    return containerResult;
+                }
+
+                if (containerResult == 0 && la.SourceTree == lb.SourceTree)
+                {
+                    return lb.SourceSpan.Start - la.SourceSpan.Start;
+                }
+
                 return containerResult;
             }
         }

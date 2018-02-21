@@ -36,10 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal NamedTypeSymbol SubstituteNamedType(NamedTypeSymbol previous)
         {
             if (ReferenceEquals(previous, null))
+            {
                 return null;
+            }
 
             if (previous.IsUnboundGenericType)
+            {
                 return previous;
+            }
 
             if (previous.IsAnonymousType)
             {
@@ -99,7 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeWithModifiers SubstituteType(TypeSymbol previous)
         {
             if (ReferenceEquals(previous, null))
+            {
                 return default(TypeWithModifiers);
+            }
 
             TypeSymbol result;
 

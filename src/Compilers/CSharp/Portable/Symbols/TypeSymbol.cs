@@ -289,7 +289,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool Equals(object obj)
         {
             var t2 = obj as TypeSymbol;
-            if ((object)t2 == null) return false;
+            if ((object)t2 == null)
+            {
+                return false;
+            }
+
             return this.Equals(t2, TypeCompareKind.ConsiderEverything);
         }
 

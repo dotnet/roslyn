@@ -1627,7 +1627,11 @@ class Query
     }
 }";
             var compilation = CreateStandardCompilation(csSource, new[] { LinqAssemblyRef });
-            foreach (var dd in compilation.GetDiagnostics()) Console.WriteLine(dd);
+            foreach (var dd in compilation.GetDiagnostics())
+            {
+                Console.WriteLine(dd);
+            }
+
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

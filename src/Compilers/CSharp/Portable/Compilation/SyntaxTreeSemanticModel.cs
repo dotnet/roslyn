@@ -948,7 +948,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var symbol = (SourceMemberMethodSymbol)GetDeclaredSymbol(memberDecl);
                         if ((object)symbol == null)
+                        {
                             return null;
+                        }
 
                         return MethodBodySemanticModel.Create(this.Compilation, symbol, outer, memberDecl);
                     }
@@ -956,7 +958,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var symbol = (SourceMemberMethodSymbol)GetDeclaredSymbol(accessorDecl);
                         if ((object)symbol == null)
+                        {
                             return null;
+                        }
 
                         return MethodBodySemanticModel.Create(this.Compilation, symbol, outer, accessorDecl);
                     }
@@ -1001,7 +1005,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ParameterSyntax parameterDecl = (ParameterSyntax)node.Parent;
                                 ParameterSymbol parameterSymbol = GetDeclaredNonLambdaParameterSymbol(parameterDecl);
                                 if ((object)parameterSymbol == null)
+                                {
                                     return null;
+                                }
 
                                 return InitializerSemanticModel.Create(
                                     this.Compilation,
@@ -1015,7 +1021,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var enumDecl = (EnumMemberDeclarationSyntax)node.Parent;
                                 var enumSymbol = (FieldSymbol)GetDeclaredSymbol(enumDecl);
                                 if ((object)enumSymbol == null)
+                                {
                                     return null;
+                                }
 
                                 return InitializerSemanticModel.Create(
                                     this.Compilation,
@@ -1054,7 +1062,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         if ((object)symbol == null)
+                        {
                             return null;
+                        }
+
                         return MethodBodySemanticModel.Create(
                             _compilation, symbol, outer.WithContainingMemberOrLambda(symbol), exprDecl);
                     }
@@ -1095,7 +1106,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var constructorDecl = (ConstructorDeclarationSyntax)node.Parent;
                         var constructorSymbol = (SourceMemberMethodSymbol)GetDeclaredSymbol(constructorDecl);
                         if ((object)constructorSymbol == null)
+                        {
                             return null;
+                        }
 
                         // insert an extra binder to perform constructor initialization checks
                         // Handle scoping for possible pattern variables declared in the initializer

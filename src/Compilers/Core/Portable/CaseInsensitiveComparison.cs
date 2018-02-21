@@ -284,10 +284,14 @@ namespace Microsoft.CodeAnalysis
         public static string ToLower(string value)
         {
             if ((object)value == null)
+            {
                 return null;
+            }
 
             if (value.Length == 0)
+            {
                 return value;
+            }
 
             var pooledStrbuilder = PooledStringBuilder.GetInstance();
             StringBuilder builder = pooledStrbuilder.Builder;
@@ -305,7 +309,9 @@ namespace Microsoft.CodeAnalysis
         public static void ToLower(StringBuilder builder)
         {
             if (builder == null)
+            {
                 return;
+            }
 
             for (int i = 0; i < builder.Length; i++)
             {

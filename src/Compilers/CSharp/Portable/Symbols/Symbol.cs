@@ -311,7 +311,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         CSharpSyntaxNode node = token.Parent.FirstAncestorOrSelf<TNode>();
                         if (node != null)
+                        {
                             builder.Add(node.GetReference());
+                        }
                     }
                 }
             }

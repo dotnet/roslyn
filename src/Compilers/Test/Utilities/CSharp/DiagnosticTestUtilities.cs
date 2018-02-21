@@ -126,7 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static void VerifyErrorCodes(IEnumerable<Diagnostic> actualErrors, params ErrorDescription[] expectedErrorDesp)
         {
             if (expectedErrorDesp == null)
+            {
                 return;
+            }
 
             int expectedLength = expectedErrorDesp.Length;
             int actualLength = actualErrors.Count();
@@ -200,7 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static void VerifyErrorCodesNoLineColumn(IEnumerable<Diagnostic> actualErrors, params ErrorDescription[] expectedErrorDesp)
         {
             if (expectedErrorDesp == null)
+            {
                 return;
+            }
 
             // TODO: for now, we only expected actual errors including all expected errors
             // Assert.Equal(expectedErrorDesp.Length, actualErrors.Count);

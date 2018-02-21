@@ -103,7 +103,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // the other place this is possible is in a local function
             if (builder._sawYield)
+            {
                 methodsWithYields.Add(syntax);
+            }
+
             return builder._map;
         }
 

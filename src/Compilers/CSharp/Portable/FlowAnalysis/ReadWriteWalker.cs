@@ -65,7 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var p in m.Parameters)
                 {
-                    if (p.RefKind != RefKind.None) _readOutside.Add(p);
+                    if (p.RefKind != RefKind.None)
+                    {
+                        _readOutside.Add(p);
+                    }
                 }
 
                 var thisParameter = m.ThisParameter;
@@ -85,14 +88,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
         protected override void NoteRead(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
-            if ((object)variable == null) return;
-            if (variable.Kind != SymbolKind.Field) (IsInside ? _readInside : _readOutside).Add(variable);
+            if ((object)variable == null)
+            {
+                return;
+            }
+
+            if (variable.Kind != SymbolKind.Field)
+            {
+                (IsInside ? _readInside : _readOutside).Add(variable);
+            }
+
             base.NoteRead(variable, rangeVariableUnderlyingParameter);
         }
 
         protected override void NoteWrite(Symbol variable, BoundExpression value, bool read)
         {
-            if ((object)variable == null) return;
+            if ((object)variable == null)
+            {
+                return;
+            }
+
             (IsInside ? _writtenInside : _writtenOutside).Add(variable);
             base.NoteWrite(variable, value, read);
         }
@@ -125,12 +140,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void NoteReceiverReadOrWritten(BoundFieldAccess expr, HashSet<Symbol> readOrWritten)
         {
-            if (expr.FieldSymbol.IsStatic) return;
-            if (expr.FieldSymbol.ContainingType.IsReferenceType) return;
+            if (expr.FieldSymbol.IsStatic)
+            {
+                return;
+            }
+
+            if (expr.FieldSymbol.ContainingType.IsReferenceType)
+            {
+                return;
+            }
+
             var receiver = expr.ReceiverOpt;
-            if (receiver == null) return;
+            if (receiver == null)
+            {
+                return;
+            }
+
             var receiverSyntax = receiver.Syntax;
-            if (receiverSyntax == null) return;
+            if (receiverSyntax == null)
+            {
+                return;
+            }
+
             switch (receiver.Kind)
             {
                 case BoundKind.Local:
@@ -177,7 +208,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind)
             {
                 case BoundKind.RangeVariable:
-                    if (written) NoteWrite(((BoundRangeVariable)node).RangeVariableSymbol, value, read);
+                    if (written)
+                    {
+                        NoteWrite(((BoundRangeVariable)node).RangeVariableSymbol, value, read);
+                    }
+
                     break;
 
                 case BoundKind.QueryClause:
@@ -186,7 +221,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var symbol = ((BoundQueryClause)node).DefinedSymbol;
                         if ((object)symbol != null)
                         {
-                            if (written) NoteWrite(symbol, value, read);
+                            if (written)
+                            {
+                                NoteWrite(symbol, value, read);
+                            }
                         }
                     }
                     break;

@@ -640,7 +640,9 @@ namespace Microsoft.CodeAnalysis.Text
 
                 // ignore changes that don't change anything
                 if (change.Span.Length == 0 && newTextLength == 0)
+                {
                     continue;
+                }
 
                 // if we've skipped a range, add
                 if (change.Span.Start > position)

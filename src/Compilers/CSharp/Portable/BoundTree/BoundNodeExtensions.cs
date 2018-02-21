@@ -15,12 +15,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             where T : BoundNode
         {
             if (nodeArray.IsDefault)
+            {
                 return false;
+            }
 
             for (int i = 0, n = nodeArray.Length; i < n; ++i)
             {
                 if (nodeArray[i].HasErrors)
+                {
                     return true;
+                }
             }
 
             return false;

@@ -727,7 +727,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var kinds = symbolAction.Kinds;
                     foreach (int kind in kinds.Distinct())
                     {
-                        if (kind > MaxSymbolKind) continue; // protect against vicious analyzers
+                        if (kind > MaxSymbolKind)
+                        {
+                            continue; // protect against vicious analyzers
+                        }
+
                         while (kind >= actionsByKindBuilder.Count)
                         {
                             actionsByKindBuilder.Add(ArrayBuilder<SymbolAnalyzerAction>.GetInstance());

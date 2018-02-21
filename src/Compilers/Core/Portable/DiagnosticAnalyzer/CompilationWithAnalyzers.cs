@@ -1050,7 +1050,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (eventQueue.Count > 0)
             {
                 CompilationEvent discarded;
-                while (eventQueue.TryDequeue(out discarded)) ;
+                while (eventQueue.TryDequeue(out discarded))
+                {
+                    ;
+                }
             }
 
             if (!eventQueue.IsCompleted)

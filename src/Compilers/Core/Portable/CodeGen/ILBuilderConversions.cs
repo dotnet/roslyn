@@ -23,9 +23,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             break; // NOP
                         default:
                             if (@checked)
+                            {
                                 this.EmitOpCode(fromUnsigned ? ILOpCode.Conv_ovf_i1_un : ILOpCode.Conv_ovf_i1);
+                            }
                             else
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_i1);
+                            }
+
                             break;
                     }
                     break;
@@ -37,9 +42,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             break; // NOP
                         default:
                             if (@checked)
+                            {
                                 this.EmitOpCode(fromUnsigned ? ILOpCode.Conv_ovf_u1_un : ILOpCode.Conv_ovf_u1);
+                            }
                             else
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_u1);
+                            }
+
                             break;
                     }
                     break;
@@ -53,9 +63,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             break; // NOP
                         default:
                             if (@checked)
+                            {
                                 this.EmitOpCode(fromUnsigned ? ILOpCode.Conv_ovf_i2_un : ILOpCode.Conv_ovf_i2);
+                            }
                             else
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_i2);
+                            }
+
                             break;
                     }
                     break;
@@ -70,9 +85,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             break; // NOP
                         default:
                             if (@checked)
+                            {
                                 this.EmitOpCode(fromUnsigned ? ILOpCode.Conv_ovf_u2_un : ILOpCode.Conv_ovf_u2);
+                            }
                             else
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_u2);
+                            }
+
                             break;
                     }
                     break;
@@ -89,13 +109,21 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             break; // NOP
                         case Microsoft.Cci.PrimitiveTypeCode.UInt32:
                             if (@checked)
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_ovf_i4_un);
+                            }
+
                             break; // NOP in unchecked
                         default:
                             if (@checked)
+                            {
                                 this.EmitOpCode(fromUnsigned ? ILOpCode.Conv_ovf_i4_un : ILOpCode.Conv_ovf_i4);
+                            }
                             else
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_i4);
+                            }
+
                             break;
                     }
                     break;
@@ -112,13 +140,21 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         case Microsoft.Cci.PrimitiveTypeCode.Int16:
                         case Microsoft.Cci.PrimitiveTypeCode.Int32:
                             if (@checked)
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_ovf_u4);
+                            }
+
                             break; // NOP in unchecked
                         default:
                             if (@checked)
+                            {
                                 this.EmitOpCode(fromUnsigned ? ILOpCode.Conv_ovf_u4_un : ILOpCode.Conv_ovf_u4);
+                            }
                             else
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_u4);
+                            }
+
                             break;
                     }
                     break;
@@ -142,16 +178,26 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             break;
                         case Microsoft.Cci.PrimitiveTypeCode.UInt32:
                             if (@checked)
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_ovf_i_un);
+                            }
                             else
+                            {
                                 // Don't want to sign extend if this is a widening conversion.
                                 this.EmitOpCode(ILOpCode.Conv_u); // potentially widening, so not NOP
+                            }
+
                             break;
                         default:
                             if (@checked)
+                            {
                                 this.EmitOpCode(fromUnsigned ? ILOpCode.Conv_ovf_i_un : ILOpCode.Conv_ovf_i);
+                            }
                             else
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_i);
+                            }
+
                             break;
                     }
                     break;
@@ -171,15 +217,25 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         case Microsoft.Cci.PrimitiveTypeCode.Int16:
                         case Microsoft.Cci.PrimitiveTypeCode.Int32:
                             if (@checked)
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_ovf_u);
+                            }
                             else
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_i); // potentially widening, so not NOP
+                            }
+
                             break;
                         default:
                             if (@checked)
+                            {
                                 this.EmitOpCode(fromUnsigned ? ILOpCode.Conv_ovf_u_un : ILOpCode.Conv_ovf_u);
+                            }
                             else
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_u);
+                            }
+
                             break;
                     }
                     break;
@@ -204,20 +260,33 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         case Microsoft.Cci.PrimitiveTypeCode.Pointer:
                         case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                             if (@checked)
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_ovf_i8_un);
+                            }
                             else
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_u8); // 0 extend if unchecked
+                            }
+
                             break;
                         case Microsoft.Cci.PrimitiveTypeCode.UInt64:
                             if (@checked)
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_ovf_i8_un);
+                            }
+
                             break; // NOP in unchecked
                         default:
                             Debug.Assert(fromPredefTypeKind.IsFloatingPoint());
                             if (@checked)
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_ovf_i8);
+                            }
                             else
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_i8);
+                            }
+
                             break;
                     }
                     break;
@@ -240,20 +309,33 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         case Microsoft.Cci.PrimitiveTypeCode.Int32:
                         case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
                             if (@checked)
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_ovf_u8);
+                            }
                             else
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_i8); // sign extend if unchecked
+                            }
+
                             break;
                         case Microsoft.Cci.PrimitiveTypeCode.Int64:
                             if (@checked)
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_ovf_u8);
+                            }
+
                             break; // NOP in unchecked
                         default:
                             Debug.Assert(fromPredefTypeKind.IsFloatingPoint());
                             if (@checked)
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_ovf_u8);
+                            }
                             else
+                            {
                                 this.EmitOpCode(ILOpCode.Conv_u8);
+                            }
+
                             break;
                     }
                     break;

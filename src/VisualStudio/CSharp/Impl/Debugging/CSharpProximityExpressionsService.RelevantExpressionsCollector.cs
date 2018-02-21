@@ -128,7 +128,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                 ExpressionSyntax component,
                 IList<string> expressions)
             {
-                if (!_includeDeclarations) return;
+                if (!_includeDeclarations)
+                {
+                    return;
+                }
 
                 switch (component.Kind())
                 {
@@ -155,14 +158,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                 VariableDesignationSyntax component,
                 IList<string> expressions)
             {
-                if (!_includeDeclarations) return;
+                if (!_includeDeclarations)
+                {
+                    return;
+                }
 
                 switch (component.Kind())
                 {
                     case SyntaxKind.ParenthesizedVariableDesignation:
                         {
                             var t = (ParenthesizedVariableDesignationSyntax)component;
-                            foreach (VariableDesignationSyntax v in t.Variables) AddVariableExpressions(v, expressions);
+                            foreach (VariableDesignationSyntax v in t.Variables)
+                            {
+                                AddVariableExpressions(v, expressions);
+                            }
+
                             break;
                         }
                     case SyntaxKind.SingleVariableDesignation:

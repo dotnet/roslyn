@@ -12,7 +12,6 @@
   
   <PropertyGroup>
     <!-- We only build to validate the code, we are not interested in any outputs. -->
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <DebugType>none</DebugType>
     <GenerateDependencyFile>false</GenerateDependencyFile>
@@ -24,6 +23,20 @@
     <!-- Disables copying any dependent files to output dir -->
     <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
   </PropertyGroup>
+
+  <!-- Avoid copying the documentation file to the output directory. https://github.com/Microsoft/msbuild/issues/3005 -->
+  <Target Name="DisableCopyDocumentationFile" BeforeTargets="CopyFilesToOutputDirectory">
+    <PropertyGroup>
+      <_OriginalDocumentationFileProduced>$(_DocumentationFileProduced)</_OriginalDocumentationFileProduced>
+      <_DocumentationFileProduced>False</_DocumentationFileProduced>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="RestoreDocumentationFileProduced" AfterTargets="CopyFilesToOutputDirectory">
+    <PropertyGroup>
+      <_DocumentationFileProduced>$(_OriginalDocumentationFileProduced)</_DocumentationFileProduced>
+    </PropertyGroup>
+  </Target>
 
   <PropertyGroup>
     <_SourcePackagePropsDirPath>$(OutputPath)SourcePackages\$(MSBuildProjectName)\</_SourcePackagePropsDirPath>

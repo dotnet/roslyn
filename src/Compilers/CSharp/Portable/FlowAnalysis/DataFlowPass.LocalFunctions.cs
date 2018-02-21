@@ -131,7 +131,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var savedState = this.State;
             this.State = this.ReachableState();
 
-            if (!localFunc.WasCompilerGenerated) EnterParameters(localFuncSymbol.Parameters);
+            if (!localFunc.WasCompilerGenerated)
+            {
+                EnterParameters(localFuncSymbol.Parameters);
+            }
 
             // Captured variables are definitely assigned if they are assigned on
             // all branches into the local function, so we store all reads from
@@ -283,7 +286,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsCapturedInLocalFunction(int slot)
         {
-            if (slot <= 0) return false;
+            if (slot <= 0)
+            {
+                return false;
+            }
 
             // Find the root slot, since that would be the only
             // slot, if any, that is captured in a local function

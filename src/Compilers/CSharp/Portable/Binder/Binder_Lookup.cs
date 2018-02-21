@@ -981,7 +981,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(baseType != derivedType);
             for (NamedTypeSymbol b = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics); (object)b != null; b = b.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
-                if (b == baseType) return true;
+                if (b == baseType)
+                {
+                    return true;
+                }
             }
             return baseType.IsInterface && derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics).Contains(baseType);
         }

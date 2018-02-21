@@ -26,16 +26,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             IntPtr hrsrc = FindResource(lib, resourceId, resourceType);
             if (hrsrc == IntPtr.Zero)
+            {
                 throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
 
             size = SizeofResource(lib, hrsrc);
             IntPtr resource = LoadResource(lib, hrsrc);
             if (resource == IntPtr.Zero)
+            {
                 throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
 
             IntPtr manifest = LockResource(resource);
             if (resource == IntPtr.Zero)
+            {
                 throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
 
             return manifest;
         }
@@ -211,7 +217,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     IEnumerable<Tuple<string, string>> keyValPairs;
                     if (s == "VarFileInfo")
+                    {
                         ReadVarFileInfo(reader);
+                    }
                     else if (s == "StringFileInfo")
                     {
                         keyValPairs = ReadStringFileInfo(reader, length);
@@ -252,12 +260,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             int keyLength = length - (valueLength * 2) - (3 * sizeof(short));
 
             char[] key = new char[keyLength / sizeof(char)];
-            for (int i = 0; i < key.Length; i++) key[i] = reader.ReadChar();
+            for (int i = 0; i < key.Length; i++)
+            {
+                key[i] = reader.ReadChar();
+            }
 
             reader.BaseStream.Position = (reader.BaseStream.Position + 3) & ~3;
 
             char[] value = new char[valueLength];
-            for (int i = 0; i < value.Length; i++) value[i] = reader.ReadChar();
+            for (int i = 0; i < value.Length; i++)
+            {
+                value[i] = reader.ReadChar();
+            }
 
             System.Diagnostics.Debug.Assert(length == (reader.BaseStream.Position - startPos));
             return new Tuple<string, string>(new string(key), new string(value));

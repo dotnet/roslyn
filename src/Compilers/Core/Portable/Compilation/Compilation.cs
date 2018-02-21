@@ -1213,7 +1213,9 @@ namespace Microsoft.CodeAnalysis
                 AppendNullResource(result);
 
                 if (versionResource)
+                {
                     AppendDefaultVersionResource(result);
+                }
 
                 if (!noManifest)
                 {
@@ -1282,12 +1284,18 @@ namespace Microsoft.CodeAnalysis
 
             //RC.EXE output starts with a resource that contains no data.
             if (initial32Bits == 0)
+            {
                 return Win32ResourceForm.RES;
+            }
             else if ((initial32Bits & 0xFFFF0000) != 0 || (initial32Bits & 0x0000FFFF) != 0xFFFF)
+            {
                 // See CLiteWeightStgdbRW::FindObjMetaData in peparse.cpp
                 return Win32ResourceForm.COFF;
+            }
             else
+            {
                 return Win32ResourceForm.UNKNOWN;
+            }
         }
 
         internal Cci.ResourceSection MakeWin32ResourcesFromCOFF(Stream win32Resources, DiagnosticBag diagnostics)
@@ -1370,7 +1378,9 @@ namespace Microsoft.CodeAnalysis
         internal void SetupWin32Resources(CommonPEModuleBuilder moduleBeingBuilt, Stream win32Resources, DiagnosticBag diagnostics)
         {
             if (win32Resources == null)
+            {
                 return;
+            }
 
             Win32ResourceForm resourceForm;
 
@@ -2884,7 +2894,11 @@ namespace Microsoft.CodeAnalysis
 
         internal string GetMessage(ITypeSymbol source, ITypeSymbol destination)
         {
-            if (source == null || destination == null) return this.AssemblyName;
+            if (source == null || destination == null)
+            {
+                return this.AssemblyName;
+            }
+
             return string.Format("{0}: {1} {2} -> {3} {4}", this.AssemblyName, source.TypeKind.ToString(), source.Name, destination.TypeKind.ToString(), destination.Name);
         }
 

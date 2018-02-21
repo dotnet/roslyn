@@ -273,7 +273,9 @@ var x = from c in ""goo"" select /*<bind>*/c/*</bind>*/";
         private List<ExpressionSyntax> GetExprSyntaxList(SyntaxNode node, List<ExpressionSyntax> exprSynList)
         {
             if (exprSynList == null)
+            {
                 exprSynList = new List<ExpressionSyntax>();
+            }
 
             if (node is ExpressionSyntax)
             {
@@ -283,7 +285,9 @@ var x = from c in ""goo"" select /*<bind>*/c/*</bind>*/";
             foreach (var child in node.ChildNodesAndTokens())
             {
                 if (child.IsNode)
+                {
                     exprSynList = GetExprSyntaxList(child.AsNode(), exprSynList);
+                }
             }
 
             return exprSynList;

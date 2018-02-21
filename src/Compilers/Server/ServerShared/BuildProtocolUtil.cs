@@ -58,7 +58,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     int argIndex = arg.ArgumentIndex;
                     while (argIndex >= commandLineArguments.Count)
+                    {
                         commandLineArguments.Add("");
+                    }
+
                     commandLineArguments[argIndex] = arg.Value;
                 }
             }

@@ -233,7 +233,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TypeSymbol type = oldError._candidateSymbols[0] as TypeSymbol;
                 if ((object)type != null)
+                {
                     return type.GetNonErrorGuess();
+                }
             }
 
             return null;
@@ -266,9 +268,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if ((object)type != null && type.TypeKind != TypeKind.Error)
                     {
                         if (commonTypeKind == TypeKind.Error)
+                        {
                             commonTypeKind = type.TypeKind;
+                        }
                         else if (commonTypeKind != type.TypeKind)
+                        {
                             return TypeKind.Error;  // no common kind.
+                        }
                     }
                 }
             }

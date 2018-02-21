@@ -21,7 +21,10 @@ namespace Roslyn.Test.Utilities
             IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null,
             string stdInput = null)
         {
-            if (fileName == null) throw new ArgumentNullException(nameof(fileName));
+            if (fileName == null)
+            {
+                throw new ArgumentNullException(nameof(fileName));
+            }
 
             var startInfo = new ProcessStartInfo
             {
@@ -57,12 +60,16 @@ namespace Roslyn.Test.Utilities
                 process.OutputDataReceived += (sender, args) =>
                 {
                     if (args.Data != null)
+                    {
                         outputBuilder.AppendLine(args.Data);
+                    }
                 };
                 process.ErrorDataReceived += (sender, args) =>
                 {
                     if (args.Data != null)
+                    {
                         errorBuilder.AppendLine(args.Data);
+                    }
                 };
 
                 process.Start();

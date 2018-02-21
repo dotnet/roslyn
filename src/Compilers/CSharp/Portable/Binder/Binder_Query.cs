@@ -93,11 +93,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsDegenerateQuery(QueryTranslationState state)
         {
-            if (!state.clauses.IsEmpty()) return false;
+            if (!state.clauses.IsEmpty())
+            {
+                return false;
+            }
 
             // A degenerate query is of the form "from x in e select x".
             var select = state.selectOrGroup as SelectClauseSyntax;
-            if (select == null) return false;
+            if (select == null)
+            {
+                return false;
+            }
+
             var name = select.Expression as IdentifierNameSyntax;
             return name != null && state.rangeVariable.Name == name.Identifier.ValueText;
         }
@@ -126,7 +133,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var unoptimized = FinalTranslation(state, discarded);
                         discarded.Free();
 
-                        if (unoptimized.HasAnyErrors && !result.HasAnyErrors) unoptimized = null;
+                        if (unoptimized.HasAnyErrors && !result.HasAnyErrors)
+                        {
+                            unoptimized = null;
+                        }
+
                         return MakeQueryClause(state.selectOrGroup, result, unoptimizedForm: unoptimized);
                     }
 
@@ -186,7 +197,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // The optimized form.  We store the unoptimized form for analysis
                             unoptimizedForm = result;
                             result = MakeQueryInvocation(state.selectOrGroup, e, "GroupBy", lambdaLeft, diagnostics);
-                            if (unoptimizedForm.HasAnyErrors && !result.HasAnyErrors) unoptimizedForm = null;
+                            if (unoptimizedForm.HasAnyErrors && !result.HasAnyErrors)
+                            {
+                                unoptimizedForm = null;
+                            }
                         }
                         else
                         {
@@ -614,7 +628,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression castInvocation = null,
             BoundExpression unoptimizedForm = null)
         {
-            if (unoptimizedForm != null && unoptimizedForm.HasAnyErrors && !expression.HasAnyErrors) unoptimizedForm = null;
+            if (unoptimizedForm != null && unoptimizedForm.HasAnyErrors && !expression.HasAnyErrors)
+            {
+                unoptimizedForm = null;
+            }
+
             return new BoundQueryClause(
                 syntax: syntax, value: expression,
                 definedSymbol: definedSymbol,
@@ -714,7 +732,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // clean up the receiver
             var ultimateReceiver = receiver;
-            while (ultimateReceiver.Kind == BoundKind.QueryClause) ultimateReceiver = ((BoundQueryClause)ultimateReceiver).Value;
+            while (ultimateReceiver.Kind == BoundKind.QueryClause)
+            {
+                ultimateReceiver = ((BoundQueryClause)ultimateReceiver).Value;
+            }
+
             if ((object)ultimateReceiver.Type == null)
             {
                 if (ultimateReceiver.HasAnyErrors || node.HasErrors)

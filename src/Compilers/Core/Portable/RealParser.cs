@@ -292,7 +292,11 @@ namespace Microsoft.CodeAnalysis
                 var mantissaBuilder = new StringBuilder();
                 var exponent = 0;
                 int i = 0;
-                while (i < source.Length && source[i] == '0') i++;
+                while (i < source.Length && source[i] == '0')
+                {
+                    i++;
+                }
+
                 int skippedDecimals = 0;
                 while (i < source.Length && source[i] >= '0' && source[i] <= '9')
                 {
@@ -341,7 +345,10 @@ namespace Microsoft.CodeAnalysis
                     }
                     int firstExponent = i;
                     int lastExponent = i;
-                    while (i < source.Length && source[i] >= '0' && source[i] <= '9') lastExponent = ++i;
+                    while (i < source.Length && source[i] >= '0' && source[i] <= '9')
+                    {
+                        lastExponent = ++i;
+                    }
 
                     int exponentMagnitude = 0;
 
@@ -603,7 +610,10 @@ namespace Microsoft.CodeAnalysis
             }
             for (int i = bottomElementIndex - 1; has_zero_tail && i >= 0; i--)
             {
-                if (integerValueAsBytes[i] != 0) has_zero_tail = false;
+                if (integerValueAsBytes[i] != 0)
+                {
+                    has_zero_tail = false;
+                }
             }
 
             return type.AssembleFloatingPointValue(mantissa, exponent, has_zero_tail, out result);
@@ -618,7 +628,11 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The BigInteger result</returns>
         private static BigInteger AccumulateDecimalDigitsIntoBigInteger(DecimalFloatingPointString data, uint integer_first_index, uint integer_last_index)
         {
-            if (integer_first_index == integer_last_index) return s_bigZero;
+            if (integer_first_index == integer_last_index)
+            {
+                return s_bigZero;
+            }
+
             var valueString = data.Mantissa.Substring((int)integer_first_index, (int)(integer_last_index - integer_first_index));
             return BigInteger.Parse(valueString);
         }
@@ -668,7 +682,10 @@ namespace Microsoft.CodeAnalysis
             for (int i = dataBytes.Length - 1; i >= 0; i--)
             {
                 var v = dataBytes[i];
-                if (v != 0) return 8 * (uint)i + CountSignificantBits(v);
+                if (v != 0)
+                {
+                    return 8 * (uint)i + CountSignificantBits(v);
+                }
             }
 
             return 0;
@@ -697,7 +714,10 @@ namespace Microsoft.CodeAnalysis
         {
             // If we'd need to shift further than it is possible to shift, the answer  
             // is always zero:  
-            if (shift >= 64) return 0;
+            if (shift >= 64)
+            {
+                return 0;
+            }
 
             ulong extraBitsMask = (1UL << (shift - 1)) - 1;
             ulong roundBitMask = (1UL << (shift - 1));

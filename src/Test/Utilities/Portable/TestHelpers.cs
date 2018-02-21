@@ -24,7 +24,9 @@ namespace Roslyn.Test.Utilities
         public static string GetCultureInvariantString(object value)
         {
             if (value == null)
+            {
                 return null;
+            }
 
             var valueType = value.GetType();
             if (valueType == typeof(string))

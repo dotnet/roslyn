@@ -44,7 +44,9 @@ namespace BoundTreeGenerator
         {
             _valueTypes = new Dictionary<string, bool>();
             foreach (ValueType t in _tree.Types.Where(t => t is ValueType))
+            {
                 _valueTypes.Add(t.Name, true);
+            }
 
             switch (_targetLang)
             {
@@ -239,7 +241,10 @@ namespace BoundTreeGenerator
                     WriteLine("internal enum BoundKind: byte");
                     Brace();
                     foreach (var node in _tree.Types.OfType<Node>())
+                    {
                         WriteLine("{0},", FixKeyword(StripBound(node.Name)));
+                    }
+
                     Unbrace();
                     break;
 
@@ -247,7 +252,10 @@ namespace BoundTreeGenerator
                     WriteLine("Friend Enum BoundKind as Byte");
                     Indent();
                     foreach (var node in _tree.Types.OfType<Node>())
+                    {
                         WriteLine("{0}", FixKeyword(StripBound(node.Name)));
+                    }
+
                     Outdent();
                     WriteLine("End Enum");
                     break;
@@ -280,9 +288,14 @@ namespace BoundTreeGenerator
                     {
                         string abstr = "";
                         if (node is AbstractNode)
+                        {
                             abstr = "abstract ";
+                        }
                         else if (CanBeSealed(node))
+                        {
                             abstr = "sealed ";
+                        }
+
                         WriteLine("internal {2}partial class {0} : {1}", node.Name, node.Base, abstr);
                         Brace();
                         break;
@@ -292,9 +305,14 @@ namespace BoundTreeGenerator
                     {
                         string abstr = "";
                         if (node is AbstractNode)
+                        {
                             abstr = "MustInherit ";
+                        }
                         else if (CanBeSealed(node))
+                        {
                             abstr = "NotInheritable ";
+                        }
+
                         WriteLine("Friend {1}Partial Class {0}", node.Name, abstr);
                         Indent();
                         WriteLine("Inherits {0}", node.Base);
@@ -341,7 +359,10 @@ namespace BoundTreeGenerator
             foreach (T item in items)
             {
                 if (!first)
+                {
                     _writer.Write(separator);
+                }
+
                 first = false;
                 _writer.Write(func(item));
             }
@@ -409,9 +430,13 @@ namespace BoundTreeGenerator
                                                select field.Type + " " + ToCamelCase(field.Name));
 
                         if (hasErrorsIsOptional)
+                        {
                             fields = fields.Concat(new[] { "bool hasErrors = false" });
+                        }
                         else
+                        {
                             fields = fields.Concat(new[] { "bool hasErrors" });
+                        }
 
                         ParenList(fields, x => x);
                         Blank();
@@ -423,7 +448,10 @@ namespace BoundTreeGenerator
                             Write(string.Format("BoundKind.{0}", StripBound(node.Name)));
                             Write(", syntax, ");
                             foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
+                            {
                                 Write("{0}, ", FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "null" : ToCamelCase(baseField.Name));
+                            }
+
                             Or((new[] { "hasErrors" })
                                 .Concat(from field in AllNodeOrNodeListFields(node)
                                         select ToCamelCase(field.Name) + ".HasErrors()"), x => x);
@@ -433,7 +461,10 @@ namespace BoundTreeGenerator
                             // Base call has kind, syntax, and hasErrors. No merging of hasErrors because derived class already did the merge.
                             Write("kind, syntax, ");
                             foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
+                            {
                                 Write("{0}, ", FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "null" : ToCamelCase(baseField.Name));
+                            }
+
                             Write("hasErrors");
                         }
                         Write(")");
@@ -468,9 +499,13 @@ namespace BoundTreeGenerator
                                                select ToCamelCase(field.Name) + " As " + field.Type);
 
                         if (hasErrorsIsOptional)
+                        {
                             fields = fields.Concat(new[] { "Optional hasErrors As Boolean = False" });
+                        }
                         else
+                        {
                             fields = fields.Concat(new[] { "hasErrors As Boolean" });
+                        }
 
                         ParenList(fields, x => x);
                         Blank();
@@ -482,7 +517,10 @@ namespace BoundTreeGenerator
                             Write(string.Format("BoundKind.{0}", StripBound(node.Name)));
                             Write(", syntax, ");
                             foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
+                            {
                                 Write("{0}, ", FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "Nothing" : ToCamelCase(baseField.Name));
+                            }
+
                             Or((new[] { "hasErrors" })
                                 .Concat(from field in AllNodeOrNodeListFields(node)
                                         select ToCamelCase(field.Name) + ".NonNullAndHasErrors()"), x => x);
@@ -492,7 +530,10 @@ namespace BoundTreeGenerator
                             // Base call has kind, syntax, and hasErrors. No merging of hasErrors because derived class already did the merge.
                             Write("kind, syntax, ");
                             foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
+                            {
                                 Write("{0}, ", FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "Nothing" : ToCamelCase(baseField.Name));
+                            }
+
                             Write("hasErrors");
                         }
                         Write(")");
@@ -501,7 +542,9 @@ namespace BoundTreeGenerator
                         WriteNullChecks(node);
 
                         foreach (var field in Fields(node))
+                        {
                             WriteLine("Me._{0} = {1}", field.Name, FieldNullHandling(node, field.Name) == NullHandling.Always ? "Nothing" : ToCamelCase(field.Name));
+                        }
 
                         bool hasValidate = HasValidate(node);
 
@@ -553,14 +596,18 @@ namespace BoundTreeGenerator
                             Write(string.Format("BoundKind.{0}", StripBound(node.Name)));
                             Write(", syntax");
                             foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
+                            {
                                 Write(", {0}", FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "null" : ToCamelCase(baseField.Name));
+                            }
                         }
                         else
                         {
                             // Base call has kind, syntax, fields
                             Write("kind, syntax");
                             foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
+                            {
                                 Write(", {0}", FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "null" : ToCamelCase(baseField.Name));
+                            }
                         }
                         Write(")");
                         Blank();
@@ -602,14 +649,18 @@ namespace BoundTreeGenerator
                             Write(string.Format("BoundKind.{0}", StripBound(node.Name)));
                             Write(", syntax");
                             foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
+                            {
                                 Write(", {0}", FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "Nothing" : ToCamelCase(baseField.Name));
+                            }
                         }
                         else
                         {
                             // Base call has kind, syntax, fields
                             Write("kind, syntax");
                             foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
+                            {
                                 Write(", {0}", FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "Nothing" : ToCamelCase(baseField.Name));
+                            }
                         }
                         Write(")");
                         Blank();
@@ -617,7 +668,9 @@ namespace BoundTreeGenerator
                         WriteNullChecks(node);
 
                         foreach (var field in Fields(node))
+                        {
                             WriteLine("Me._{0} = {1}", field.Name, FieldNullHandling(node, field.Name) == NullHandling.Always ? "Nothing" : ToCamelCase(field.Name));
+                        }
 
                         if (HasValidate(node))
                         {
@@ -652,16 +705,26 @@ namespace BoundTreeGenerator
                     {
                         case TargetLanguage.CSharp:
                             if (isROArray)
+                            {
                                 WriteLine("Debug.Assert(!{0}.IsDefault, \"Field '{0}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
+                            }
                             else
+                            {
                                 WriteLine("Debug.Assert({0} != null, \"Field '{0}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
+                            }
+
                             break;
 
                         case TargetLanguage.VB:
                             if (isROArray)
+                            {
                                 WriteLine("Debug.Assert(Not ({0}.IsDefault), \"Field '{0}' cannot be null (use Null=\"\"allow\"\" in BoundNodes.xml to remove this check)\")", ToCamelCase(field.Name));
+                            }
                             else
+                            {
                                 WriteLine("Debug.Assert({0} IsNot Nothing, \"Field '{0}' cannot be null (use Null=\"\"allow\"\" in BoundNodes.xml to remove this check)\")", ToCamelCase(field.Name));
+                            }
+
                             break;
                     }
                 }
@@ -673,18 +736,30 @@ namespace BoundTreeGenerator
         private static IEnumerable<Field> Fields(TreeType node)
         {
             if (node is Node)
+            {
                 return from n in ((Node)node).Fields where !n.Override select n;
+            }
+
             if (node is AbstractNode)
+            {
                 return from n in ((AbstractNode)node).Fields where !n.Override select n;
+            }
+
             return Enumerable.Empty<Field>();
         }
 
         private static IEnumerable<Field> FieldsIncludingOverrides(TreeType node)
         {
             if (node is Node)
+            {
                 return ((Node)node).Fields;
+            }
+
             if (node is AbstractNode)
+            {
                 return ((AbstractNode)node).Fields;
+            }
+
             return Enumerable.Empty<Field>();
         }
 
@@ -692,7 +767,10 @@ namespace BoundTreeGenerator
         {
             string name = _typeMap[node.Name];
             if (name == _tree.Root)
+            {
                 return null;
+            }
+
             return _tree.Types.Single(t => t.Name == name);
         }
 
@@ -714,7 +792,10 @@ namespace BoundTreeGenerator
         private IEnumerable<Field> AllFields(TreeType node)
         {
             if (node == null)
+            {
                 return Enumerable.Empty<Field>();
+            }
+
             return from t in TypeAndBaseTypes(node)
                    from f in Fields(t)
                    select f;
@@ -766,22 +847,34 @@ namespace BoundTreeGenerator
             }
 
             if (f.Override)
+            {
                 return FieldNullHandling(BaseType(node), fieldName);
+            }
             else if (!IsValueType(f.Type) || GetGenericType(f.Type) == "ImmutableArray")
+            {
                 return NullHandling.Disallow; // default is to disallow nulls.
+            }
             else
+            {
                 return NullHandling.NotApplicable;   // value types can't check nulls.
+            }
         }
 
         private Field GetField(TreeType node, string fieldName)
         {
             var fieldsWithName = from f in FieldsIncludingOverrides(node) where f.Name == fieldName select f;
             if (fieldsWithName.Any())
+            {
                 return fieldsWithName.Single();
+            }
             else if (BaseType(node) != null)
+            {
                 return GetField(BaseType(node), fieldName);
+            }
             else
+            {
                 throw new InvalidOperationException($"Field {fieldName} not found in type {node.Name}");
+            }
         }
 
         private void WriteField(Field field)
@@ -863,7 +956,10 @@ namespace BoundTreeGenerator
         private void WriteType(TreeType node)
         {
             if (!(node is AbstractNode) && !(node is Node))
+            {
                 return;
+            }
+
             WriteClassHeader(node);
 
             bool unsealed = !CanBeSealed(node);
@@ -880,7 +976,10 @@ namespace BoundTreeGenerator
             }
 
             foreach (var field in Fields(node))
+            {
                 WriteField(field);
+            }
+
             if (node is Node)
             {
                 WriteAccept(node.Name);
@@ -893,7 +992,10 @@ namespace BoundTreeGenerator
         private void WriteUpdateMethod(Node node)
         {
             if (!AllFields(node).Any())
+            {
                 return;
+            }
+
             bool emitNew = (!Fields(node).Any()) && !(BaseType(node) is AbstractNode);
 
             switch (_targetLang)
@@ -1189,7 +1291,10 @@ namespace BoundTreeGenerator
                         WriteLine("Public Overrides Function Visit{0}(node as {1}) As BoundNode", StripBound(node.Name), node.Name);
                         Indent();
                         foreach (Field field in AllFields(node).Where(f => IsDerivedOrListOfDerived("BoundNode", f.Type) && !SkipInVisitor(f)))
+                        {
                             WriteLine("Me.Visit{1}(node.{0})", field.Name, IsNodeList(field.Type) ? "List" : "");
+                        }
+
                         WriteLine("Return Nothing");
                         Outdent();
                         WriteLine("End Function");
@@ -1236,7 +1341,9 @@ namespace BoundTreeGenerator
                             {
                                 Field field = allFields[i];
                                 if (IsDerivedType("BoundNode", field.Type))
+                                {
                                     Write("new TreeDumperNode(\"{0}\", null, new TreeDumperNode[] {{ Visit(node.{1}, null) }})", ToCamelCase(field.Name), field.Name);
+                                }
                                 else if (IsListOfDerived("BoundNode", field.Type))
                                 {
                                     if (IsImmutableArray(field.Type) && FieldNullHandling(node, field.Name) == NullHandling.Disallow)
@@ -1249,12 +1356,18 @@ namespace BoundTreeGenerator
                                     }
                                 }
                                 else
+                                {
                                     Write("new TreeDumperNode(\"{0}\", node.{1}, null)", ToCamelCase(field.Name), field.Name);
+                                }
 
                                 if (i == allFields.Length - 1)
+                                {
                                     WriteLine("");
+                                }
                                 else
+                                {
                                     WriteLine(",");
+                                }
                             }
                             Unbrace();
                         }
@@ -1298,16 +1411,26 @@ namespace BoundTreeGenerator
                             {
                                 Field field = allFields[i];
                                 if (IsDerivedType("BoundNode", field.Type))
+                                {
                                     Write("New TreeDumperNode(\"{0}\", Nothing, new TreeDumperNode() {{ Visit(node.{1}, Nothing) }})", ToCamelCase(field.Name), field.Name);
+                                }
                                 else if (IsListOfDerived("BoundNode", field.Type))
+                                {
                                     Write("New TreeDumperNode(\"{0}\", Nothing, From x In node.{1} Select Visit(x, Nothing))", ToCamelCase(field.Name), field.Name);
+                                }
                                 else
+                                {
                                     Write("New TreeDumperNode(\"{0}\", node.{1}, Nothing)", ToCamelCase(field.Name), field.Name);
+                                }
 
                                 if (i == allFields.Length - 1)
+                                {
                                     WriteLine("");
+                                }
                                 else
+                                {
                                     WriteLine(",");
+                                }
                             }
                             Outdent();
                             WriteLine("}})");
@@ -1395,11 +1518,17 @@ namespace BoundTreeGenerator
                                 hadField = true;
 
                                 if (SkipInVisitor(field))
+                                {
                                     WriteLine("Dim {0} As {2} = node.{1}", ToCamelCase(field.Name), field.Name, field.Type);
+                                }
                                 else if (IsNodeList(field.Type))
+                                {
                                     WriteLine("Dim {0} As {2} = Me.VisitList(node.{1})", ToCamelCase(field.Name), field.Name, field.Type);
+                                }
                                 else
+                                {
                                     WriteLine("Dim {0} As {2} = DirectCast(Me.Visit(node.{1}), {2})", ToCamelCase(field.Name), field.Name, field.Type);
+                                }
                             }
                             foreach (Field field in AllTypeFields(node))
                             {
@@ -1482,7 +1611,10 @@ namespace BoundTreeGenerator
                 case TargetLanguage.CSharp:
                     {
                         if (!typeName.Contains("<"))
+                        {
                             return typeName;
+                        }
+
                         int iStart = typeName.IndexOf('<');
                         return typeName.Substring(0, iStart);
                     }
@@ -1492,7 +1624,9 @@ namespace BoundTreeGenerator
                         int iStart = typeName.IndexOf("(Of", StringComparison.OrdinalIgnoreCase);
 
                         if (iStart == -1)
+                        {
                             return typeName;
+                        }
 
                         return typeName.Substring(0, iStart);
                     }
@@ -1509,11 +1643,17 @@ namespace BoundTreeGenerator
                 case TargetLanguage.CSharp:
                     {
                         if (!typeName.Contains("<"))
+                        {
                             return string.Empty;
+                        }
+
                         int iStart = typeName.IndexOf('<');
                         int iEnd = typeName.IndexOf('>', iStart + 1);
                         if (iEnd < iStart)
+                        {
                             return string.Empty;
+                        }
+
                         var sub = typeName.Substring(iStart + 1, iEnd - iStart - 1);
                         return sub;
                     }
@@ -1523,11 +1663,16 @@ namespace BoundTreeGenerator
                         int iStart = typeName.IndexOf("(Of", StringComparison.OrdinalIgnoreCase);
 
                         if (iStart == -1)
+                        {
                             return string.Empty;
+                        }
 
                         int iEnd = typeName.IndexOf(')', iStart + 3);
                         if (iEnd < iStart)
+                        {
                             return string.Empty;
+                        }
+
                         var sub = typeName.Substring(iStart + 3, iEnd - iStart - 3).Trim();
                         return sub;
                     }
@@ -1547,15 +1692,22 @@ namespace BoundTreeGenerator
             string genericType = GetGenericType(typeName);
 
             if (_valueTypes.TryGetValue(genericType, out bool isValueType))
+            {
                 return isValueType;
+            }
             else
+            {
                 return false;
+            }
         }
 
         private bool IsDerivedType(string typeName, string derivedTypeName)
         {
             if (typeName == derivedTypeName)
+            {
                 return true;
+            }
+
             if (derivedTypeName != null && _typeMap.TryGetValue(derivedTypeName, out var baseType))
             {
                 return IsDerivedType(typeName, baseType);

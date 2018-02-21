@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private RegionAnalysisContext RegionAnalysisContext(ExpressionSyntax expression)
         {
             while (expression.Kind() == SyntaxKind.ParenthesizedExpression)
+            {
                 expression = ((ParenthesizedExpressionSyntax)expression).Expression;
+            }
 
             var memberModel = GetMemberModel(expression);
             if (memberModel == null)

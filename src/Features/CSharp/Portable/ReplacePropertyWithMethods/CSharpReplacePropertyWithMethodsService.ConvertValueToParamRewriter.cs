@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             public override SyntaxNode VisitXmlElementStartTag(XmlElementStartTagSyntax node)
             {
                 if (!IsValueName(node.Name))
+                {
                     return base.VisitXmlElementStartTag(node);
+                }
 
                 return node.ReplaceNode(node.Name, ConvertToParam(node.Name))
                     .AddAttributes(SyntaxFactory.XmlNameAttribute("value"));

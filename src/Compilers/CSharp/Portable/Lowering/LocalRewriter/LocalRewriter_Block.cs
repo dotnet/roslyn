@@ -23,7 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < node.Statements.Length; i++)
             {
                 var stmt = (BoundStatement)Visit(node.Statements[i]);
-                if (stmt != null) builder.Add(stmt);
+                if (stmt != null)
+                {
+                    builder.Add(stmt);
+                }
             }
 
             LocalSymbol synthesizedLocal;
