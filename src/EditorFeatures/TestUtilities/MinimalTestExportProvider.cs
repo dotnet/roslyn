@@ -79,7 +79,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(BasicUndo.IBasicUndoHistory).Assembly,
 
                 // Microsoft.VisualStudio.Language.StandardClassification.dll:
-                typeof(Microsoft.VisualStudio.Language.StandardClassification.PredefinedClassificationTypeNames).Assembly
+                typeof(Microsoft.VisualStudio.Language.StandardClassification.PredefinedClassificationTypeNames).Assembly,
+
+                typeof(Microsoft.VisualStudio.Language.Intellisense.IAsyncCompletionServiceProvider).Assembly
             };
 
             return assemblies;
