@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 case string source:
                     return new[] { CSharpTestBase.Parse(source, filename: sourceFileName, parseOptions) };
                 case string[] sources:
-                    Debug.Assert(parseOptions == null);
+                    Debug.Assert(string.IsNullOrEmpty(sourceFileName));
                     return CSharpTestBase.Parse(parseOptions, sources);
                 case SyntaxTree tree:
                     Debug.Assert(parseOptions == null);

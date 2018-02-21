@@ -5680,7 +5680,7 @@ namespace Test
         }
     }
 }";
-            var comp = CreateCompilationWithWinRT(source, references: LegacyRefs);
+            var comp = CreateCompilationWithWinRT(source, references: LegacyRefs, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
     // (30,36): error CS0539: 'R.this[int]' in explicit interface declaration is not a member of interface
     //         int IObservableVector<int>.this[int index]

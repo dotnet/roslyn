@@ -96,21 +96,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 verify);
 
         internal CompilationVerifier CompileAndVerifyWithWinRt(
-            string source,
+            CSharpTestSource source,
+            IEnumerable<MetadataReference> references = null,
+            IEnumerable<ResourceDescription> manifestResources = null,
+            IEnumerable<ModuleData> dependencies = null,
+            Action<ModuleSymbol> sourceSymbolValidator = null,
+            Action<PEAssembly> assemblyValidator = null,
+            Action<ModuleSymbol> symbolValidator = null,
+            SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
-            MetadataReference[] references = null,
+            int? expectedReturnCode = null,
+            string[] args = null,
             CSharpCompilationOptions options = null,
-            Verification verify = Verification.Passes)
-        {
-            options = options ?? (expectedOutput != null ? TestOptions.ReleaseExe : TestOptions.ReleaseDll);
-            return CompileAndVerify(
+            CSharpParseOptions parseOptions = null,
+            EmitOptions emitOptions = null,
+            Verification verify = Verification.Passes) => 
+            CompileAndVerify(
                 source,
                 references,
-                expectedOutput: expectedOutput,
-                targetFramework: TargetFramework.WinRT,
-                options: options,
-                verify: verify);
-        }
+                manifestResources,
+                dependencies,
+                sourceSymbolValidator,
+                assemblyValidator,
+                symbolValidator,
+                expectedSignatures,
+                expectedOutput,
+                expectedReturnCode,
+                args,
+                options,
+                parseOptions,
+                emitOptions,
+                TargetFramework.WinRT,
+                verify);
 
         internal CompilationVerifier CompileAndVerify(
             CSharpTestSource source,
@@ -188,15 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 verify);
         }
 
-        public static CSharpCompilation CreateCompilationWithWinRT(string source, MetadataReference[] references = null)
-        {
-            return CreateCompilation(
-                source,
-                references: references,
-                targetFramework: TargetFramework.WinRT,
-                options: TestOptions.ReleaseExe);
-        }
-        
         protected override CompilationOptions CompilationOptionsReleaseDll
         {
             get { return TestOptions.ReleaseDll; }
@@ -301,6 +309,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
             string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib46, assemblyName, sourceFileName);
+
+        public static CSharpCompilation CreateCompilationWithWinRT(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string assemblyName = "",
+            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.WinRT, assemblyName, sourceFileName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib45AndCSruntime(
             string source,

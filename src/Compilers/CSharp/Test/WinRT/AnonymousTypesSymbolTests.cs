@@ -1475,7 +1475,7 @@ class Class3
     }
 }
 ";
-            var compilation = (CSharpCompilation)GetCompilationForEmit(new string[] { source1, source2, source3 }, null, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal), TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib40(new string[] { source1, source2, source3 }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal), parseOptions: TestOptions.Regular);
 
             for (int i = 0; i < 10; i++)
             {
