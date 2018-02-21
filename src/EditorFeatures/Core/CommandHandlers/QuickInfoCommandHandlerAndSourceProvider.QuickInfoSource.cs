@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
@@ -38,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     var args = new InvokeQuickInfoCommandArgs(textView, _subjectBuffer);
                     if (_commandHandler.TryGetController(args, out var controller))
                     {
-                        controller.InvokeQuickInfo(position.Value, session);
+                        return controller.GetQuickInfoItemAsync(position.Value, session);
                     }
                 }
 

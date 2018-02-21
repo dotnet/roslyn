@@ -81,14 +81,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
         }
 
-        public void StartSession(
+        public Task<VisualStudio.Language.Intellisense.QuickInfoItem> GetQuickInfoItemAsync(
             int position,
             IAsyncQuickInfoSession augmentSession = null)
         {
             var service = GetService();
             if (service == null)
             {
-                return;
+                return Task.FromResult<VisualStudio.Language.Intellisense.QuickInfoItem>(null);
             }
 
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
@@ -98,6 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             var trackMouse = augmentSession != null && augmentSession.Options == QuickInfoSessionOptions.TrackMouse;
             this.sessionOpt.Computation.ChainTaskAndNotifyControllerWhenFinished(
                 (model, cancellationToken) => ComputeModelInBackgroundAsync(position, snapshot, service, trackMouse, cancellationToken));
+
+            return Task.FromResult<VisualStudio.Language.Intellisense.QuickInfoItem>(null);
         }
 
         public QuickInfoService GetService()
