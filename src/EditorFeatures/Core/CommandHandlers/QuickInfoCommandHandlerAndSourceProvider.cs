@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Export]
     [Order(After = PredefinedQuickInfoPresenterNames.RoslynQuickInfoPresenter)]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [Export(typeof(IQuickInfoSourceProvider))]
+    [Export(typeof(IAsyncQuickInfoSourceProvider))]
     [Name("RoslynQuickInfoProvider")]
     internal partial class QuickInfoCommandHandlerAndSourceProvider :
         ForegroundThreadAffinitizedObject,
-        IQuickInfoSourceProvider
+        IAsyncQuickInfoSourceProvider
     {
         private readonly IAsynchronousOperationListener _listener;
         private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> _presenter;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             return true;
         }
 
-        public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
+        public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
             return new QuickInfoSource(this, textBuffer);
         }
