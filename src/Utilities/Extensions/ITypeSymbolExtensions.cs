@@ -113,7 +113,7 @@ namespace Analyzer.Utilities.Extensions
         /// Indicates if the given <paramref name="type"/> is a reference type that implements <paramref name="iDisposable"/>.
         /// </summary>
         public static bool IsDisposable(this ITypeSymbol type, INamedTypeSymbol iDisposable)
-            => type.IsReferenceType && type.ImplementsIDisposable(iDisposable);
+            => type.IsReferenceType && (type == iDisposable || type.ImplementsIDisposable(iDisposable));
 
         public static IEnumerable<AttributeData> GetApplicableAttributes(this INamedTypeSymbol type)
         {
