@@ -2186,6 +2186,7 @@ moreArguments:
                     return scopeOfTheContainingExpression;
 
                 case BoundKind.PointerElementAccess:
+                case BoundKind.PointerIndirectionOperator:
                     // Unsafe code will always be allowed to escape.
                     return Binder.ExternalScope;
 
@@ -2500,12 +2501,15 @@ moreArguments:
                     var accessedExpression = ((BoundPointerElementAccess)expr).Expression;
                     return CheckValEscape(accessedExpression.Syntax, accessedExpression, escapeFrom, escapeTo, checkingReceiver, diagnostics);
 
+                case BoundKind.PointerIndirectionOperator:
+                    var operandExpression = ((BoundPointerIndirectionOperator)expr).Operand;
+                    return CheckValEscape(operandExpression.Syntax, operandExpression, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue($"{expr.Kind} expression of {expr.Type} type");
 
                 #region "cannot produce ref-like values"
 //                case BoundKind.ThrowExpression:
-//                case BoundKind.PointerIndirectionOperator:
 //                case BoundKind.ArgListOperator:
 //                case BoundKind.ArgList:
 //                case BoundKind.RefTypeOperator:
