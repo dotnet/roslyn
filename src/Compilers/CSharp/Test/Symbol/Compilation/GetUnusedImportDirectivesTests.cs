@@ -337,7 +337,7 @@ public class C { }
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
 
             // Binding doc comments.
-            CreateCompilationWithMscorlibAndDocumentationComments(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics();
         }
 
         [WorkItem(770147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770147")]

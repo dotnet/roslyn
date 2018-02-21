@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public MethodDocumentationCommentTests()
         {
-            _compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"namespace Acme
+            _compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"namespace Acme
 {
     struct ValueType
     {

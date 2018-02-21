@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public TypeDocumentationCommentTests()
         {
-            _compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"enum Color { Red, Blue, Green }
+            _compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"enum Color { Red, Blue, Green }
 namespace Acme
 {
 	interface IProcess {...}

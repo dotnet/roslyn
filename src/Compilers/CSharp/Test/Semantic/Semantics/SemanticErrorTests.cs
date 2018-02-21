@@ -19141,7 +19141,7 @@ public class MyClass
    }
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (7,14): warning CS1591: Missing XML comment for publicly visible type or member 'MyClass'
                 // public class MyClass
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "MyClass").WithArguments("MyClass"),
@@ -20731,7 +20731,7 @@ namespace ns
    }
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (5,35): warning CS1570: XML comment has badly formed XML -- 'An identifier was expected.'
                 //    /// <summary> returns true if < 5 </summary>
                 Diagnostic(ErrorCode.WRN_XMLParseError, ""),
@@ -20763,7 +20763,7 @@ public class MyClass
    }
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (7,15): warning CS1571: XML comment has a duplicate param tag for 'Int1'
                 //    /// <param name='Int1'>Used to indicate status.</param> // CS1571
                 Diagnostic(ErrorCode.WRN_DuplicateParamTag, "name='Int1'").WithArguments("Int1"));
@@ -20789,7 +20789,7 @@ public class MyClass
    }
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (7,21): warning CS1572: XML comment has a param tag for 'Char2', but there is no parameter by that name
                 //    /// <param name='Char2'>???</param> // CS1572
                 Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "Char2").WithArguments("Char2"));
@@ -20813,7 +20813,7 @@ public class MyClass
     }
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (7,48): warning CS1573: Parameter 'Char1' has no matching param tag in the XML comment for 'MyClass.MyMethod(int, char)' (but other parameters do)
                 //     public static void MyMethod(int Int1, char Char1)
                 Diagnostic(ErrorCode.WRN_MissingParamTag, "Char1").WithArguments("Char1", "MyClass.MyMethod(int, char)"));
@@ -20828,7 +20828,7 @@ public class C
 {
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (2,16): warning CS1574: XML comment has cref attribute 'D' that could not be resolved
                 // /// <see cref="D"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "D").WithArguments("D"));
@@ -20855,7 +20855,7 @@ public class MyClass
    }
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (2,20): warning CS1580: Invalid type for parameter 'i' in XML comment cref attribute: 'Test(i)'
                 // /// <seealso cref="Test(i)"/>   // CS1580
                 Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "i").WithArguments("i", "Test(i)"),
@@ -20886,7 +20886,7 @@ public class MyClass2
 {
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (15,20): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <seealso cref="MyClass.explicit operator intt(MyClass)"/>   // CS1581
                 Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "intt").WithArguments("intt", "MyClass.explicit operator intt(MyClass)"),
@@ -20913,7 +20913,7 @@ public class MyClass1
     }
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (10,24): warning CS1584: XML comment has syntactically incorrect cref attribute 'MyClass1.operator@'
                 //     /// <seealso cref="MyClass1.operator@"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "MyClass1.operator").WithArguments("MyClass1.operator@"),
@@ -20940,7 +20940,7 @@ namespace MySpace
    }
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).
                 VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/"));
         }
 
@@ -20979,7 +20979,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (2,5): warning CS1589: Unable to include XML fragment 'MyDocs/MyMembers[@name="test"]/' of file 'CS1589.doc' -- Unable to find the specified file.
                 // /// <include file='CS1589.doc' path='MyDocs/MyMembers[@name="test"]/' />   // CS1589
                 Diagnostic(ErrorCode.WRN_FailedInclude, @"<include file='CS1589.doc' path='MyDocs/MyMembers[@name=""test""]/' />").
@@ -20998,7 +20998,7 @@ class Test
    }
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (2,5): warning CS1590: Invalid XML include element -- Missing file attribute
                 // /// <include path='MyDocs/MyMembers[@name="test"]/*' />   // CS1590
                 Diagnostic(ErrorCode.WRN_InvalidInclude, @"<include path='MyDocs/MyMembers[@name=""test""]/*' />").WithArguments("Missing file attribute"));
@@ -21017,7 +21017,7 @@ public class Test
    }
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (6,23): warning CS1591: Missing XML comment for publicly visible type or member 'Test.Main()'
                 //    public static void Main()   // CS1591
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "Main").WithArguments("Test.Main()"));
@@ -21031,7 +21031,7 @@ public class Test
 /// <include file='{0}' path='element'/>
 public class Test {{ }}
 ";
-            var comp = CreateCompilationWithMscorlibAndDocumentationComments(string.Format(sourceTemplate, xmlFile.Path));
+            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(string.Format(sourceTemplate, xmlFile.Path));
 
             using (new EnsureEnglishUICulture())
             {
@@ -21055,7 +21055,7 @@ public class Test
     }
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (2,20): warning CS1584: XML comment has syntactically incorrect cref attribute ''
                 // /// <seealso cref=""/>    
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, @"""").WithArguments(""),
@@ -21258,7 +21258,7 @@ class CMain
     }
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (6,16): warning CS1710: XML comment has a duplicate typeparam tag for 'MyType'
                 // /// <typeparam name="MyType">can be an int</typeparam>
                 Diagnostic(ErrorCode.WRN_DuplicateTypeParamTag, @"name=""MyType""").WithArguments("MyType"));
@@ -21274,7 +21274,7 @@ class CMain
     public static void Main() { }
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (2,21): warning CS1711: XML comment has a typeparam tag for 'WrongName', but there is no type parameter by that name
                 // ///<typeparam name="WrongName">can be an int</typeparam>
                 Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, "WrongName").WithArguments("WrongName"));
@@ -21297,7 +21297,7 @@ public class Test
     }
 }	
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (4,29): warning CS1712: Type parameter 'W' has no matching typeparam tag in the XML comment on 'List<T, W>' (but other type parameters do)
                 // public delegate void List<T,W>();
                 Diagnostic(ErrorCode.WRN_MissingTypeParamTag, "W").WithArguments("W", "List<T, W>"));
@@ -21751,7 +21751,7 @@ public class List<T>
 {
 }
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (3,15): warning CS1723: XML comment has cref attribute 'T' that refers to a type parameter
                 // ///<see cref="T" />   // CS1723
                 Diagnostic(ErrorCode.WRN_BadXMLRefTypeVar, "T").WithArguments("T"));

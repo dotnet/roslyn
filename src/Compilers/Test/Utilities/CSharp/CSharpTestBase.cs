@@ -334,19 +334,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string assemblyName = "",
             string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40AndSystemCore, assemblyName, sourceFileName);
 
-        private static readonly ImmutableArray<MetadataReference> s_mscorlibRefArray = ImmutableArray.Create(MscorlibRef);
-
-        public static CSharpCompilation CreateCompilationWithMscorlibAndDocumentationComments(
-            string source,
+        public static CSharpCompilation CreateCompilationWithMscorlib40AndDocumentationComments(
+            CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
-            string assemblyName = "Test")
+            CSharpParseOptions parseOptions = null,
+            string assemblyName = "",
+            string sourceFileName = "")
         {
-            return CreateCompilationWithNone(
-                new[] { Parse(source, options: TestOptions.RegularWithDocumentationComments) },
-                references: references?.Concat(s_mscorlibRefArray) ?? s_mscorlibRefArray,
-                options: (options ?? TestOptions.ReleaseDll).WithXmlReferenceResolver(XmlFileResolver.Default),
-                assemblyName: assemblyName);
+            parseOptions = parseOptions != null ? parseOptions.WithDocumentationMode(DocumentationMode.Diagnose) : TestOptions.RegularWithDocumentationComments;
+            options = (options ?? TestOptions.ReleaseDll).WithXmlReferenceResolver(XmlFileResolver.Default);
+            return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40, assemblyName, sourceFileName);
         }
 
         public static CSharpCompilation CreateCompilation(

@@ -2643,7 +2643,7 @@ class Program
         [Fact]
         public void TestGetSpeculativeSemanticModelForTypeCrefSyntax()
         {
-            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"
+            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"
 /// <summary>
 /// <see cref=""int""/>
 /// </summary>
@@ -2683,7 +2683,7 @@ class A { }
         [Fact]
         public void TestGetSpeculativeSemanticModelForNameMemberCrefSyntax()
         {
-            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"
+            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"
 /// <summary>
 /// <see cref=""int""/>
 /// </summary>
@@ -2723,7 +2723,7 @@ class A { }
         [Fact]
         public void TestGetSpeculativeSemanticModelForQualifiedCrefSyntax()
         {
-            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"
+            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"
 /// <summary>
 /// <see cref=""int""/>
 /// </summary>
@@ -2806,7 +2806,7 @@ class A
         [Fact]
         public void TestGetSpeculativeSemanticModelForCrefSyntax_InvalidPosition()
         {
-            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"
+            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"
 /// <summary>
 /// <see cref=""int""/>
 /// </summary>
@@ -2948,7 +2948,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -2985,7 +2985,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -3026,7 +3026,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -3067,7 +3067,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -3101,7 +3101,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -3143,7 +3143,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -3184,7 +3184,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -3225,7 +3225,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -3697,7 +3697,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             for (var match = System.Text.RegularExpressions.Regex.Match(source, " => x"); match.Success; match = match.NextMatch())
             {
@@ -3724,7 +3724,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             for (var match = System.Text.RegularExpressions.Regex.Match(source, " => x"); match.Success; match = match.NextMatch())
@@ -3753,7 +3753,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var discarded1 = model.GetEnclosingSymbol(source.LastIndexOf(" => x"));
             var discarded2 = model.GetEnclosingSymbol(source.IndexOf(" => x"));
