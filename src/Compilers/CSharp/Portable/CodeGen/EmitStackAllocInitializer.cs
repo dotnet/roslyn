@@ -30,11 +30,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 ImmutableArray<byte> data = this.GetRawData(initExprs);
-                _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, _diagnostics);
-
-                if (initializationStyle == ArrayInitializerStyle.Mixed)
+                if (data.All(datum => datum == data[0]))
                 {
-                    EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: false);
+                    _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: true, _diagnostics);
+                }
+                else if (elementType.SpecialType.SizeInBytes() == 1)
+                {
+                    _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: false, _diagnostics);
+
+                    if (initializationStyle == ArrayInitializerStyle.Mixed)
+                    {
+                        EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: false);
+                    }
+                }
+                else
+                {
+                    EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: true);
                 }
             }
         }
@@ -48,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             elementType = elementType.EnumUnderlyingType();
 
-            if (elementType.SpecialType.SizeInBytes() == 1)
+            if (elementType.SpecialType.IsBlittable())
             {
                 int initCount = 0;
                 int constCount = 0;

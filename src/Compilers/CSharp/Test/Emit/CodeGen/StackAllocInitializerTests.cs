@@ -51,7 +51,40 @@ static unsafe class C
         }
 
         [Fact]
-        public void TestIdenticalBytes()
+        public void TestEmpty()
+        {
+            var text = @"
+using System;
+
+static unsafe class C
+{
+    static void Use(int* p)
+    {
+    }
+
+    static void Main()
+    {
+        var p = stackalloc int[] {};
+        Use(p);
+    }
+}
+";
+            CompileAndVerify(text,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
+                options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Fails).VerifyIL("C.Main",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  call       ""void C.Use(int*)""
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        public void TestIdenticalBytes1()
         {
             var text = @"
 using System;
@@ -87,6 +120,46 @@ static unsafe class C
   IL_0008:  initblk
   IL_000a:  call       ""void C.Print(byte*)""
   IL_000f:  ret
+}");
+        }
+
+        [Fact]
+        public void TestIdenticalBytes2()
+        {
+            var text = @"
+using System;
+
+static unsafe class C
+{
+    static void Print(uint* p)
+    {
+        for (int i = 0; i < 3; i++)
+            Console.Write(p[i].ToString(""x""));
+    }
+
+    static void Main()
+    {
+        var p = stackalloc[] { 0xffffffff, 0xffffffff, 0xffffffff };
+        Print(p);
+    }
+}
+";
+            CompileAndVerify(text,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
+                options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Fails, expectedOutput: @"ffffffffffffffffffffffff").VerifyIL("C.Main",
+@"{
+  // Code size       21 (0x15)
+  .maxstack  4
+  IL_0000:  ldc.i4.s   12
+  IL_0002:  conv.u
+  IL_0003:  localloc
+  IL_0005:  dup
+  IL_0006:  ldc.i4     0xff
+  IL_000b:  ldc.i4.s   12
+  IL_000d:  initblk
+  IL_000f:  call       ""void C.Print(uint*)""
+  IL_0014:  ret
 }");
         }
 
