@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.IntelliSense)]
+    [Order(After = "CompletionCommandHandlers")]
     internal sealed class IntelliSenseCommandHandler : AbstractIntelliSenseCommandHandler
     {
         [ImportingConstructor]

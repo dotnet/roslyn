@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.SignatureHelp)]
     [Order(Before = PredefinedCommandHandlerNames.Completion)]
+    [Order(After = "CompletionCommandHandlers")]
     internal class SignatureHelpCommandHandler :
         ForegroundThreadAffinitizedObject,
         IChainedCommandHandler<TypeCharCommandArgs>,
