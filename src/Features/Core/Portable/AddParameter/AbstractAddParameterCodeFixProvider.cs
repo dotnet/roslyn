@@ -203,16 +203,16 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var methodToUpdate = argumentInsertPositionData.MethodToUpdate;
                 var argumentToInsert = argumentInsertPositionData.ArgumentToInsert;
                 var parameters = methodToUpdate.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
-                var title = GetCodeFixTitle(methodToUpdate, parameters);
+                var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, methodToUpdate, parameters);
                 var hasCascadingDeclarations = HasCascadingDeclarations(methodToUpdate);
 
                 if (hasCascadingDeclarations)
                 {
-                    // TODO Localization of titles
+                    var titleForCascadingFix = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_including_overrides_implementations, methodToUpdate, parameters);
                     context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(title, ImmutableArray.Create<CodeAction>(
                             new MyCodeAction(title,
                                 c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c)),
-                            new MyCodeAction(title + " (including overrides/implementations)",
+                            new MyCodeAction(titleForCascadingFix,
                                 c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))),
                             isInlinable: true),
                         context.Diagnostics);
@@ -273,11 +273,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return false;
         }
 
-        private static string GetCodeFixTitle(IMethodSymbol methodToUpdate, IEnumerable<string> parameters)
+        private static string GetCodeFixTitle(string resourceString, IMethodSymbol methodToUpdate, IEnumerable<string> parameters)
         {
-            var methodPrefix = methodToUpdate.IsConstructor() ? "" : $"{methodToUpdate.ContainingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}.";
+            var methodPrefix = methodToUpdate.IsConstructor()
+                ? ""
+                : $"{methodToUpdate.ContainingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}.";
             var signature = $"{methodPrefix}{methodToUpdate.Name}({string.Join(", ", parameters)})";
-            var title = string.Format(FeaturesResources.Add_parameter_to_0, signature);
+            var title = string.Format(resourceString, signature);
             return title;
         }
 
@@ -320,7 +322,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     if (anySymbolReferencesNotInSource && methodDeclaration == method)
                     {
                         parameterDeclaration = parameterDeclaration.WithAdditionalAnnotations(
-                            ConflictAnnotation.Create("One or more method declarations that needed to be updated are not available as source code."));
+                            ConflictAnnotation.Create(FeaturesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
                     }
                     var existingParameters = generator.GetParameters(methodNode);
                     var insertionIndex = isNamedArgument
