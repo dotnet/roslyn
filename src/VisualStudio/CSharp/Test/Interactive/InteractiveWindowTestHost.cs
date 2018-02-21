@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 {
@@ -18,8 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 
         private static readonly Lazy<AggregateCatalog> s_lazyCatalog = new Lazy<AggregateCatalog>(() =>
         {
-            var types = new[] { typeof(TestWaitIndicator), typeof(TestInteractiveEvaluator), typeof(IInteractiveWindow) }.Concat(GetVisualStudioTypes());
-            return new AggregateCatalog(types.Select(t => new AssemblyCatalog(t.Assembly)));
+            var assemblies = new[] 
+            {
+                typeof(TestWaitIndicator).Assembly,
+                typeof(TestInteractiveEvaluator).Assembly,
+                typeof(IInteractiveWindow).Assembly
+            }.Concat(MinimalTestExportProvider.GetEditorAssemblies());
+            return new AggregateCatalog(assemblies.Select(a => new AssemblyCatalog(a)));
         });
 
         internal InteractiveWindowTestHost()
@@ -32,39 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
             Evaluator = new TestInteractiveEvaluator();
             Window = _exportProvider.GetExport<IInteractiveWindowFactoryService>().Value.CreateWindow(Evaluator);
             Window.InitializeAsync().Wait();
-        }
-
-        private static Type[] GetVisualStudioTypes()
-        {
-            var types = new[]
-            {
-                // EDITOR
-
-                // Microsoft.VisualStudio.Platform.VSEditor.dll:
-                typeof(VisualStudio.Platform.VSEditor.EventArgsHelper),
-
-                // Microsoft.VisualStudio.Text.Logic.dll:
-                //   Must include this because several editor options are actually stored as exported information 
-                //   on this DLL.  Including most importantly, the tab size information.
-                typeof(VisualStudio.Text.Editor.DefaultOptions),
-
-                // Microsoft.VisualStudio.Text.UI.dll:
-                //   Include this DLL to get several more EditorOptions including WordWrapStyle.
-                typeof(VisualStudio.Text.Editor.WordWrapStyle),
-
-                // Microsoft.VisualStudio.Text.UI.Wpf.dll:
-                //   Include this DLL to get more EditorOptions values.
-                typeof(VisualStudio.Text.Editor.HighlightCurrentLineOption),
-
-                // BasicUndo.dll:
-                //   Include this DLL to satisfy ITextUndoHistoryRegistry
-                typeof(BasicUndo.IBasicUndoHistory),
-
-                // Microsoft.VisualStudio.Language.StandardClassification.dll:
-                typeof(VisualStudio.Language.StandardClassification.PredefinedClassificationTypeNames)
-            };
-
-            return types;
         }
 
         public void Dispose()
