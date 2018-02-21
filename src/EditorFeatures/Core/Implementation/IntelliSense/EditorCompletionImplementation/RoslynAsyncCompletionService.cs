@@ -120,25 +120,25 @@ namespace RoslynCompletionPrototype
             }
 
             // We need to filter if a non-empty strict subset of filters are selected
-            var activeFilters = filters.Where(f => f.IsSelected).Select(f => f.Filter).ToImmutableArray();
-            var needToFilter = activeFilters.Length > 0 && activeFilters.Length < filters.Length;
+            var selectedFilters = filters.Where(f => f.IsSelected).Select(f => f.Filter).ToImmutableArray();
+            var needToFilter = selectedFilters.Length > 0 && selectedFilters.Length < filters.Length;
 
             // Cache PatternMatchers across this round of filtering
             var patternMatcherMap = new Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher>();
 
-            var filterResults = new List<FilterResult>();
+            var initialListOfItemsToBeIncluded = new List<FilterResult>();
             foreach (var item in sortedList)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (needToFilter && ShouldBeFilteredOutOfCompletionList(item, activeFilters))
+                if (needToFilter && ShouldBeFilteredOutOfCompletionList(item, selectedFilters))
                 {
                     continue;
                 }
 
                 if (MatchesFilterText(item, filterText, triggerReason, filterReason, patternMatcherMap))
                 {
-                    filterResults.Add(new FilterResult(item, filterText, matchedFilterText: true));
+                    initialListOfItemsToBeIncluded.Add(new FilterResult(item, filterText, matchedFilterText: true));
                 }
                 else
                 {
@@ -146,24 +146,24 @@ namespace RoslynCompletionPrototype
                         triggerReason == CompletionTriggerReason.Invoke ||
                         filterText.Length <= 1)
                     {
-                        filterResults.Add(new FilterResult(item, filterText, matchedFilterText: false));
+                        initialListOfItemsToBeIncluded.Add(new FilterResult(item, filterText, matchedFilterText: false));
                     }
                 }
             }
 
-            if (filterResults.Count == 0)
+            if (initialListOfItemsToBeIncluded.Count == 0)
             {
-                return Task.FromResult(HandleAllItemsFilteredOut(triggerReason, filters, activeFilters));
+                return Task.FromResult(HandleAllItemsFilteredOut(triggerReason, filters, selectedFilters));
             }
 
             // If this was deletion, then we control the entire behavior of deletion
             // ourselves.
             if (triggerReason == CompletionTriggerReason.Deletion)
             {
-                return HandleDeletionTrigger(triggerReason, filters, filterReason, filterText, filterResults, patternMatcherMap);
+                return HandleDeletionTrigger(sortedList, triggerReason, filters, filterReason, filterText, initialListOfItemsToBeIncluded, patternMatcherMap);
             }
 
-            return HandleNormalFiltering(snapshot, filterText, filters, filterResults, patternMatcherMap);
+            return HandleNormalFiltering(sortedList, snapshot, filterText, filters, initialListOfItemsToBeIncluded, patternMatcherMap);
         }
 
         private IEnumerable<CompletionItemWithHighlight> GetHighlightedList(
@@ -191,6 +191,7 @@ namespace RoslynCompletionPrototype
         }
 
         private Task<FilteredCompletionModel> HandleDeletionTrigger(
+            ImmutableArray<EditorCompletion.CompletionItem> sortedList,
             CompletionTriggerReason triggerReason,
             ImmutableArray<CompletionFilterWithState> filters,
             EditorCompletion.CompletionFilterReason filterReason,
@@ -229,7 +230,7 @@ namespace RoslynCompletionPrototype
 
             var filteredItems = filterResults.Select(r => r.CompletionItem).AsImmutable();
             var highlightedList = GetHighlightedList(filterResults, filterText, patternMatcherMap).ToImmutableArray();
-            var updatedFilters = GetUpdatedFilters(filterResults, filters);
+            var updatedFilters = GetUpdatedFilters(sortedList, filterResults, filters, filterText, patternMatcherMap);
 
             if (bestFilterResult != null)
             {
@@ -249,13 +250,60 @@ namespace RoslynCompletionPrototype
             }
         }
 
-        private ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(List<FilterResult> filterResults, ImmutableArray<CompletionFilterWithState> filters)
+        private ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(
+            ImmutableArray<EditorCompletion.CompletionItem> originalList, 
+            List<FilterResult> filteredList, 
+            ImmutableArray<CompletionFilterWithState> filters, 
+            string filterText, 
+            Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> patternMatcherMap)
         {
-            var filtersInAction = filterResults.Select(r => r.CompletionItem).SelectMany(i => i.Filters);
+            var missingItems = new List<EditorCompletion.CompletionItem>();
+            int filteredListIndex = 0;
+            for (int originalListIndex = 0; originalListIndex < originalList.Length; originalListIndex++)
+            {
+                if (filteredListIndex < filteredList.Count && originalList[originalListIndex] == filteredList[filteredListIndex].CompletionItem)
+                {
+                    filteredListIndex++;
+                }
+                else
+                {
+                    missingItems.Add(originalList[originalListIndex]);
+                }
+            }
+
+            var filtersPresentInMissingItems = new HashSet<CompletionFilter>();
+            foreach (var missingItem in missingItems)
+            {
+                if (MatchesPattern(missingItem.FilterText, filterText, CultureInfo.CurrentCulture, patternMatcherMap))
+                {
+                    foreach (var filter in missingItem.Filters)
+                    {
+                        filtersPresentInMissingItems.Add(filter);
+                    }
+                }
+            }
+
             var resultingFilters = new List<CompletionFilterWithState>();
+
+            if (filters.All(f => f.IsSelected) || filters.All(f => !f.IsSelected))
+            {
+                return filters;
+            }
+
             foreach (var filter in filters)
             {
-                resultingFilters.Add(new CompletionFilterWithState(filter.Filter, isAvailable: filtersInAction.Contains(filter.Filter), isSelected: filter.IsSelected));
+                if (filter.IsSelected)
+                {
+                    resultingFilters.Add(new CompletionFilterWithState(filter.Filter, isAvailable: true, isSelected: true));
+                }
+                else if (filtersPresentInMissingItems.Contains(filter.Filter))
+                {
+                    resultingFilters.Add(new CompletionFilterWithState(filter.Filter, isAvailable: true, filter.IsSelected));
+                }
+                else
+                {
+                    resultingFilters.Add(new CompletionFilterWithState(filter.Filter, isAvailable: false, filter.IsSelected));
+                }
             }
 
             return resultingFilters.ToImmutableArray();
@@ -296,20 +344,21 @@ namespace RoslynCompletionPrototype
         }
 
         private Task<FilteredCompletionModel> HandleNormalFiltering(
+            ImmutableArray<EditorCompletion.CompletionItem> sortedList,
             ITextSnapshot snapshot, 
             string filterText,
             ImmutableArray<CompletionFilterWithState> filters,
-            List<FilterResult> filterResults, 
+            List<FilterResult> itemsInList, 
             Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> patternMatcherMap)
         {
             var service = GetCompletionService(snapshot);
             if (service == null)
             {
-                var listWithSelections = GetHighlightedList(filterResults, filterText, patternMatcherMap);
+                var listWithSelections = GetHighlightedList(itemsInList, filterText, patternMatcherMap);
                 return Task.FromResult(new FilteredCompletionModel(listWithSelections.ToImmutableArray(), 0));
             }
 
-            var matchingItems = filterResults
+            var matchingItems = itemsInList
                 .Where(r => r.MatchedFilterText)
                 .Select(t => t.CompletionItem.Properties.GetProperty<RoslynCompletionItem>("RoslynItem"))
                 .AsImmutable();
@@ -317,8 +366,8 @@ namespace RoslynCompletionPrototype
 
             var recentItems = _recentItems;
             var bestItem = GetBestItemBasedOnMRU(chosenItems, recentItems);
-            var highlightedList = GetHighlightedList(filterResults, filterText, patternMatcherMap).ToImmutableArray();
-            var updatedFilters = GetUpdatedFilters(filterResults, filters);
+            var highlightedList = GetHighlightedList(itemsInList, filterText, patternMatcherMap).ToImmutableArray();
+            var updatedFilters = GetUpdatedFilters(sortedList, itemsInList, filters, filterText, patternMatcherMap);
 
             if (bestItem == null)
             {
@@ -326,7 +375,7 @@ namespace RoslynCompletionPrototype
             }
 
             // TODO: Better conversion between Roslyn/Editor completion items
-            var selectedItemIndex = filterResults.IndexOf(i => i.CompletionItem.DisplayText == bestItem.DisplayText);
+            var selectedItemIndex = itemsInList.IndexOf(i => i.CompletionItem.DisplayText == bestItem.DisplayText);
 
             EditorCompletion.CompletionItem uniqueItem = null;
             if (bestItem != null && matchingItems.Length == 1 && filterText.Length > 0)
