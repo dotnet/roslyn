@@ -255,7 +255,7 @@ namespace RoslynCompletionPrototype
             var resultingFilters = new List<CompletionFilterWithState>();
             foreach (var filter in filters)
             {
-                resultingFilters.Add(new CompletionFilterWithState(filter.Filter, isAvailable: filtersInAction.Contains(filter.Filter)));
+                resultingFilters.Add(new CompletionFilterWithState(filter.Filter, isAvailable: filtersInAction.Contains(filter.Filter), isSelected: filter.IsSelected));
             }
 
             return resultingFilters.ToImmutableArray();
