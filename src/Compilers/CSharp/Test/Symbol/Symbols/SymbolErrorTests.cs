@@ -1222,7 +1222,7 @@ partial class B
         [Fact]
         public void CS0082ERR_MemberReserved04()
         {
-            CreateCompilationWithMscorlibAndSystemCore(
+            CreateCompilationWithMscorlib40AndSystemCore(
 @"class A<T, U>
 {
     public T P { get; set; } // CS0082
@@ -2594,7 +2594,7 @@ public class A4 : Attribute
     public A4(C<dynamic>.D[] i = null) { }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (6,2): error CS0181: Attribute constructor parameter 'i' has type 'dynamic', which is not a valid attribute parameter type
                 // [A1]                                             // Dev11 error
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A1").WithArguments("i", "dynamic"),
@@ -2855,7 +2855,7 @@ class C
     public override int GetHashCode() { return 1; }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -11299,7 +11299,7 @@ public class A4 : Attribute
     public C<dynamic>.D[] P { get; set; }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (6,5): error CS0655: 'P' is not a valid named attribute argument because it is not a valid attribute parameter type
                 // [A1(P = null)]                                    // Dev11 error
                 Diagnostic(ErrorCode.ERR_BadNamedAttributeArgumentType, "P").WithArguments("P"),
@@ -15821,7 +15821,7 @@ public interface ISomeInterface
             var text = @"public class ErrorCode : dynamic
 {  
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (1,26): error CS1965: 'ErrorCode': cannot derive from the dynamic type
                 Diagnostic(ErrorCode.ERR_DeriveFromDynamic, "dynamic").WithArguments("ErrorCode"));
         }
@@ -15842,7 +15842,7 @@ class E1 : I<dynamic> {}
 class E2 : I<C<dynamic>.D*[]> {}
 
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (11,12): error CS1966: 'E2': cannot implement a dynamic interface 'I<C<dynamic>.D*[]>'
                 // class E2 : I<C<dynamic>.D*[]> {}
                 Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<C<dynamic>.D*[]>").WithArguments("E2", "I<C<dynamic>.D*[]>"),
@@ -15856,7 +15856,7 @@ class E2 : I<C<dynamic>.D*[]> {}
         {
             var source =
 @"delegate void D<T>() where T : dynamic;";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (1,32): error CS1967: Constraint cannot be the dynamic type
                 Diagnostic(ErrorCode.ERR_DynamicTypeAsBound, "dynamic"));
         }
@@ -15906,7 +15906,7 @@ class A : Attribute
     public Type T;
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -17333,7 +17333,7 @@ public class C
     public static bool operator !=(C v1, C v2) { return false; }
     public override int GetHashCode() { return base.GetHashCode(); }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [Fact]

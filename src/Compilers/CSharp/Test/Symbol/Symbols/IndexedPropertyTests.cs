@@ -2697,7 +2697,7 @@ End Class";
     }
 }";
 
-            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.ReleaseExe);
+            var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(compilation2); // As in dev11.
         }
 
@@ -2756,7 +2756,7 @@ End Class";
     }
 }";
 
-            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.ReleaseExe);
+            var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.ReleaseExe);
             compilation2.VerifyEmitDiagnostics(); // Used to assert.
 
             CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(compilation2); // As in dev11.

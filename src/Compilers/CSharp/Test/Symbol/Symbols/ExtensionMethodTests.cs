@@ -2658,7 +2658,7 @@ class Program
         int i2 = numbers.Cast<T1>();
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(code);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
 
@@ -2706,7 +2706,7 @@ class Program
         M(x);
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (5,9): error CS1501: No overload for method 'M' takes 2 arguments
                 //         x.M(x, y);
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "2").WithLocation(5, 11),
@@ -2729,7 +2729,7 @@ class Program
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
 
             var extensionMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
@@ -2781,7 +2781,7 @@ static class Extensions
 }";
             // Dev11 also reports:
             // (17,17): error CS0122: 'Extensions.Test<T>(T)' is inaccessible due to its protection level
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (6,16): error CS1503: Argument 1: cannot convert from 'double' to 'float'
                 Diagnostic(ErrorCode.ERR_BadArgType, "1d").WithArguments("1", "double", "float").WithLocation(6, 16));
         }
@@ -2811,7 +2811,7 @@ static class Extensions
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var globalNamespace = compilation.GlobalNamespace;
             var type = globalNamespace.GetMember<NamedTypeSymbol>("C");
             var tree = compilation.SyntaxTrees.Single();
@@ -2869,7 +2869,7 @@ static class Extensions
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var globalNamespace = compilation.GlobalNamespace;
             var type = globalNamespace.GetMember<NamedTypeSymbol>("C");
             var tree = compilation.SyntaxTrees.Single();
@@ -2908,7 +2908,7 @@ static class C
             // TODO: Dev10 reports CS1113 for all of these.  Roslyn reports various other diagnostics
             // because we detect the condition for CS1113 and then indicate that no conversion exists,
             // resulting in various cascaded errors.
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (9,13): error CS1113: Extension method 'C.Goo(int)' defined on value type 'int' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "x.Goo").WithArguments("C.Goo(int)", "int").WithLocation(9, 13),
                 // (10,13): error CS1113: Extension method 'C.Goo(int)' defined on value type 'int' cannot be used to create delegates
@@ -2935,7 +2935,7 @@ static class DevDivBugs142219
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (8,26): error CS1113: Extension method 'DevDivBugs142219.Goo<T>(T)' defined on value type 'T' cannot be used to create delegates
                 //         VoidDelegate f = x.Goo; // CS1113
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "x.Goo").WithArguments("DevDivBugs142219.Goo<T>(T)", "T"));
@@ -2966,7 +2966,7 @@ static class Program
         symbolName.TryGetWithoutAttributeSuffix(out nameWithoutAttributeSuffix);
     }
 }";
-            var libCompilation = CreateCompilationWithMscorlibAndSystemCore(lib, assemblyName: Guid.NewGuid().ToString());
+            var libCompilation = CreateCompilationWithMscorlib40AndSystemCore(lib, assemblyName: Guid.NewGuid().ToString());
             var libReference = new CSharpCompilationReference(libCompilation);
 
             CompileAndVerify(consumer, references: new[] { libReference });
@@ -3159,7 +3159,7 @@ End Module";
         public static void F(this object o) { }
     }
 }";
-            var compilation1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "A");
+            var compilation1 = CreateCompilationWithMscorlib40AndSystemCore(source1, assemblyName: "A");
             compilation1.VerifyDiagnostics();
             var compilationVerifier = CompileAndVerify(compilation1);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
@@ -3172,7 +3172,7 @@ namespace NB
         public static void F(this object o) { }
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "B");
+            var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, assemblyName: "B");
             compilation2.VerifyDiagnostics();
             compilationVerifier = CompileAndVerify(compilation2);
             var reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
@@ -3225,7 +3225,7 @@ namespace NA
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -3262,7 +3262,7 @@ namespace NB
         public static void F(this object o) { }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (16,13): error CS0121: The call is ambiguous between the following methods or properties: 'NA.A.F(object)' and 'NA.B.F(object)'
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("NA.A.F(object)", "NA.B.F(object)").WithLocation(16, 26),
@@ -3370,7 +3370,7 @@ namespace N
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (10,9): error CS0103: The name 'Goo' does not exist in the current context
                 //         Goo(1);
@@ -3438,7 +3438,7 @@ namespace N
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (9,11): error CS0121: The call is ambiguous between the following methods or properties: 'S.Goo(int)' and 'R.Goo(int)'
                 //         1.Goo();
@@ -3525,7 +3525,7 @@ namespace N
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (13,15): error CS0121: The call is ambiguous between the following methods or properties: 'S.Goo(int)' and 'R.Goo(int)'
                 //             1.Goo();
@@ -3559,7 +3559,7 @@ namespace N
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (10,15): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Goo(int)' and 'R.Goo(int)'
                 //             1.Goo();
@@ -3594,7 +3594,7 @@ namespace N
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (9,15): error CS1061: 'int' does not contain a definition for 'Goo' and no extension method 'Goo' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //             1.Goo();

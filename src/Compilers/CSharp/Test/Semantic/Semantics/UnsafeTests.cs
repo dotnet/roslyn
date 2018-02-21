@@ -2248,7 +2248,7 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
 
         private static void CheckNonMoveableVariables(string text, string expected, bool expectError = false)
         {
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll);
             var compilationDiagnostics = compilation.GetDiagnostics();
             if (expectError != compilationDiagnostics.Any(diag => diag.Severity == DiagnosticSeverity.Error))
             {
@@ -3117,7 +3117,7 @@ unsafe class C
 }
 ";
             // NOTE: this is a breaking change - dev10 allows this.
-            CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,50): error CS0211: Cannot take the address of the given expression
                 //         var z = from x in new int[2] select Goo(&x);
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x").WithArguments("x"));
@@ -3163,7 +3163,7 @@ struct S : System.IDisposable
     public void Dispose() { }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,14): error CS0211: Cannot take the address of the given expression
                 //         p = &x; //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x").WithLocation(13, 14),
@@ -3850,7 +3850,7 @@ public class Test
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         #endregion AddressOf diagnostics
@@ -4367,7 +4367,7 @@ static class Extensions
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (26,9): error CS0176: Member 'S.StaticField' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         p->StaticField = 1; //CS0176
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticField").WithArguments("S.StaticField"),

@@ -786,7 +786,7 @@ public unsafe partial class A : C, I
 }
 ";
 
-            var source = CreateCompilationWithMscorlibAndSystemCore(code);
+            var source = CreateCompilationWithMscorlib40AndSystemCore(code);
 
             // the following should not crash
             source.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, source.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true);
@@ -4158,7 +4158,7 @@ class C<T>
         [Fact]
         public void AttributeConstructorErrors1()
         {
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(@"
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(@"
 using System;
 static class m
 {

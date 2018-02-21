@@ -3339,7 +3339,7 @@ class Program
         var o = mgr.Reports.Where(e => e.Salary < 100).Select(e => new { e.Name, e.Salary }).First();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "Program.F");
@@ -3396,7 +3396,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -3456,7 +3456,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -3517,7 +3517,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -3551,7 +3551,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -5853,7 +5853,7 @@ class C
         var q = new[] { new C() }.AsQueryable();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M");
@@ -6093,7 +6093,7 @@ class C
         var useLinq = list.Last();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");

@@ -553,7 +553,7 @@ public class Test
         [Fact]
         public void LockQuery()
         {
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(
 @"
 using System.Linq;
 class Test

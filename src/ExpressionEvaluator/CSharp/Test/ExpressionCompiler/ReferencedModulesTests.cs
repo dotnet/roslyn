@@ -344,11 +344,11 @@ public class B
         var x = new A();
     }
 }";
-            var compilationA = CreateCompilationWithMscorlibAndSystemCore(sourceA, options: TestOptions.DebugDll);
+            var compilationA = CreateCompilationWithMscorlib40AndSystemCore(sourceA, options: TestOptions.DebugDll);
             var identityA = compilationA.Assembly.Identity;
             var moduleA = compilationA.ToModuleInstance();
 
-            var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.GetReference() });
+            var compilationB = CreateCompilationWithMscorlib40AndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.GetReference() });
             var moduleB = compilationB.ToModuleInstance();
 
             var runtime = CreateRuntimeInstance(new[] { MscorlibRef.ToModuleInstance(), SystemCoreRef.ToModuleInstance(), moduleA, moduleB });
@@ -638,10 +638,10 @@ public class B
     {
     }
 }";
-            var compilationA = CreateCompilationWithMscorlibAndSystemCore(sourceA, options: TestOptions.DebugDll);
+            var compilationA = CreateCompilationWithMscorlib40AndSystemCore(sourceA, options: TestOptions.DebugDll);
             var moduleA = compilationA.ToModuleInstance();
 
-            var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.GetReference() });
+            var compilationB = CreateCompilationWithMscorlib40AndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.GetReference() });
             var moduleB = compilationB.ToModuleInstance();
 
             var runtime = CreateRuntimeInstance(new[]

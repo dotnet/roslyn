@@ -4092,7 +4092,7 @@ unsafe class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source,
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 options: TestOptions.UnsafeDebugDll);
 

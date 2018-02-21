@@ -5276,9 +5276,9 @@ public static class C2
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1");
+            var comp1 = CreateCompilationWithMscorlib40AndSystemCore(source1, assemblyName: "comp1");
             comp1.VerifyDiagnostics();
-            var comp2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "comp2");
+            var comp2 = CreateCompilationWithMscorlib40AndSystemCore(source2, assemblyName: "comp2");
             comp2.VerifyDiagnostics();
 
             var source = @"
@@ -9545,7 +9545,7 @@ class C
         (int, int) t1 = t0;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (14,33): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
                 //     static void Main((int, int) p)
@@ -9575,7 +9575,7 @@ class Program
         ValueTuple<int, int*> t3 = t2;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, references: s_valueTupleRefs,
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, references: s_valueTupleRefs,
                options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (5,31): error CS0306: The type 'int*' may not be used as a type argument
@@ -9627,7 +9627,7 @@ class C<T>
         return default((U, U));
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (16,12): error CS0452: The type 'U' must be a reference type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
                 //     (U, U) M<U>(U x)
@@ -9669,7 +9669,7 @@ class C<T> where T : class
         return default((U, U));
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (18,24): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C<T>'
                 //         var t0 = new C<int>();
@@ -9708,7 +9708,7 @@ class C<T> where T : class
         return default((U, U));
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (16,12): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
                 //     (U, U) M<U>(U x) where U : class
@@ -9781,7 +9781,7 @@ class C
         (int, int, int, int, int, int, int, int) t1 = t0;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (42,53): error CS0452: The type '(int)' must be a reference type in order to use it as parameter 'TRest' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'
                 //     void M((int, int, int, int, int, int, int, int) p)
@@ -9827,7 +9827,7 @@ class Program
         var v2 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, (int*)null);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, references: s_valueTupleRefs,
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, references: s_valueTupleRefs,
                options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (15,102): error CS0306: The type 'int*' may not be used as a type argument
@@ -15516,9 +15516,9 @@ public static class C2
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1");
+            var comp1 = CreateCompilationWithMscorlib40AndSystemCore(source1, assemblyName: "comp1");
             comp1.VerifyDiagnostics();
-            var comp2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "comp2");
+            var comp2 = CreateCompilationWithMscorlib40AndSystemCore(source2, assemblyName: "comp2");
             comp2.VerifyDiagnostics();
 
             var source3 = @"
@@ -15588,9 +15588,9 @@ public static class C2
 }
 " + trivial2uple + trivial3uple + trivialRemainingTuples + tupleattributes_cs;
 
-            var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1");
+            var comp1 = CreateCompilationWithMscorlib40AndSystemCore(source1, assemblyName: "comp1");
             comp1.VerifyDiagnostics();
-            var comp2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "comp2");
+            var comp2 = CreateCompilationWithMscorlib40AndSystemCore(source2, assemblyName: "comp2");
             comp2.VerifyDiagnostics();
 
             var source3 = @"
@@ -15677,11 +15677,11 @@ namespace NS2
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1,
+            var comp1 = CreateCompilationWithMscorlib40AndSystemCore(source1,
                 references: s_valueTupleRefs,
                 assemblyName: "comp1");
             comp1.VerifyDiagnostics();
-            var comp2 = CreateCompilationWithMscorlibAndSystemCore(source2,
+            var comp2 = CreateCompilationWithMscorlib40AndSystemCore(source2,
                 references: s_valueTupleRefs,
                 assemblyName: "comp2");
             comp2.VerifyDiagnostics();
@@ -15783,9 +15783,9 @@ public class C2
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1");
+            var comp1 = CreateCompilationWithMscorlib40AndSystemCore(source1, assemblyName: "comp1");
             comp1.VerifyDiagnostics();
-            var comp2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "comp2");
+            var comp2 = CreateCompilationWithMscorlib40AndSystemCore(source2, assemblyName: "comp2");
             comp2.VerifyDiagnostics();
 
 
@@ -15839,9 +15839,9 @@ public class C2
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1");
+            var comp1 = CreateCompilationWithMscorlib40AndSystemCore(source1, assemblyName: "comp1");
             comp1.VerifyDiagnostics();
-            var comp2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "comp2");
+            var comp2 = CreateCompilationWithMscorlib40AndSystemCore(source2, assemblyName: "comp2");
             comp2.VerifyDiagnostics();
 
 
@@ -20479,9 +20479,9 @@ public static class C2
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1",
+            var comp1 = CreateCompilationWithMscorlib40AndSystemCore(source1, assemblyName: "comp1",
                           parseOptions: TestOptions.Regular.WithTuplesFeature());
-            var comp2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "comp2",
+            var comp2 = CreateCompilationWithMscorlib40AndSystemCore(source2, assemblyName: "comp2",
                           parseOptions: TestOptions.Regular.WithTuplesFeature());
 
             var source = @"
@@ -21523,7 +21523,7 @@ namespace ClassLibrary1
     }
 }
 ";
-            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var libComp = CreateCompilationWithMscorlib45AndCSharp(lib, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             libComp.VerifyDiagnostics();
 
             var source = @"
@@ -21577,7 +21577,7 @@ namespace ClassLibrary1
     }
 }
 ";
-            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var libComp = CreateCompilationWithMscorlib45AndCSharp(lib, options: TestOptions.DebugDll, references: s_valueTupleRefs);
             libComp.VerifyDiagnostics();
 
             var source = @"
@@ -21951,7 +21951,7 @@ namespace ConsoleApplication5
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, references: (new[] { libCompRef }).Concat(s_valueTupleRefs).ToArray(), options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, references: (new[] { libCompRef }).Concat(s_valueTupleRefs).ToArray(), options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: "42qq", verify: Verification.Fails);
 
@@ -21980,7 +21980,7 @@ namespace ClassLibrary1
     }
 }
 ";
-            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var libComp = CreateCompilationWithMscorlib45AndCSharp(lib, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             libComp.VerifyDiagnostics();
 
             var source = @"
@@ -22189,7 +22189,7 @@ public class C
 }
 public struct S { }
 ";
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, references: s_valueTupleRefs, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, references: s_valueTupleRefs, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (13,18): error CS0306: The type 'int*' may not be used as a type argument
                 //                 (int*, int*) t1 = (p, p); // converted tuple literal with a pointer type

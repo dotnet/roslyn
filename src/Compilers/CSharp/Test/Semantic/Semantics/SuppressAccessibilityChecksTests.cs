@@ -124,7 +124,7 @@ class C
         [Fact]
         public void TestExtensionMethodInInternalClass()
         {
-            var compilationA = CreateCompilationWithMscorlibAndSystemCore(@"
+            var compilationA = CreateCompilationWithMscorlib40AndSystemCore(@"
 public class A
 {
     A M() { return new A(); }

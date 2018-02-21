@@ -2777,7 +2777,7 @@ class A
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceText, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceText, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics();
 
@@ -3462,7 +3462,7 @@ public class Class1
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             compilation.VerifyDiagnostics(
                 // (13,27): error CS0305: Using the generic method group 'ExtensionMethod0' requires 1 type arguments
@@ -3572,7 +3572,7 @@ static class E
     }
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (10,17): error CS0120: An object reference is required for the non-static field, method, or property 'A.G(string)'
                 //             c.S(G);

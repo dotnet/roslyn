@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = @"using System.Linq; public class C { public void M() { var q = from c in string.Empty select c; } }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
 
             var model1 = comp.GetSemanticModel(tree);
             var model2 = comp.GetSemanticModel(tree);
@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = @"using System.Linq; public class C { public void M() { var q = from c in string.Empty select c; } }";
             var tree = Parse(text);
-            var comp1 = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
-            var comp2 = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp1 = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
+            var comp2 = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
 
             var model1 = comp1.GetSemanticModel(tree);
             var model2 = comp2.GetSemanticModel(tree);
@@ -1675,7 +1675,7 @@ switch (y)
         [Fact]
         public void TestGetSpeculativeSemanticModelForStatement_GetDeclaredLambdaParameterSymbol()
         {
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(@"
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 
 class C 
@@ -2394,7 +2394,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForMethodBody_GetDeclaredLambdaParameterSymbol()
         {
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(@"
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 
 class C 
@@ -3508,7 +3508,7 @@ static class Extensions
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var extensionMethod = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Extensions").GetMember<MethodSymbol>("ToString");

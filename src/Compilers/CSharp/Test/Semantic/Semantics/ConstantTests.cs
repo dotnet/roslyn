@@ -1566,7 +1566,7 @@ class C
         return string.Join("""", decimal.GetBits(d).Select(word => string.Format(""{0:x8}"", word)));
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput:
 @"00000000000000000000000000010000
 00000000000000000000000080010000

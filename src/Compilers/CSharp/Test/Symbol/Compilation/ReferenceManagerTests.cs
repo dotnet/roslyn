@@ -2060,8 +2060,8 @@ public static class Extensions
 }}
 ";
 
-            var libBv1 = CreateCompilationWithMscorlibAndSystemCore(string.Format(libBTemplate, "1"), assemblyName: "B", options: s_signedDll);
-            var libBv2 = CreateCompilationWithMscorlibAndSystemCore(string.Format(libBTemplate, "2"), assemblyName: "B", options: s_signedDll);
+            var libBv1 = CreateCompilationWithMscorlib40AndSystemCore(string.Format(libBTemplate, "1"), assemblyName: "B", options: s_signedDll);
+            var libBv2 = CreateCompilationWithMscorlib40AndSystemCore(string.Format(libBTemplate, "2"), assemblyName: "B", options: s_signedDll);
 
             Assert.Equal("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", libBv1.Assembly.Identity.GetDisplayName());
             Assert.Equal("B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", libBv2.Assembly.Identity.GetDisplayName());

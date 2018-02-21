@@ -33,8 +33,10 @@ namespace Roslyn.Test.Utilities
         // The flavors of mscorlib we support + extending them with LINQ and dynamic.
         Mscorlib40,
         Mscorlib40Extended, 
+        Mscorlib40AndSystemCore,
         Mscorlib45,
         Mscorlib45Extended,
+        Mscorlib45AndCSharp,
         Mscorlib46,
         Mscorlib46Extended,
     }
@@ -44,8 +46,10 @@ namespace Roslyn.Test.Utilities
         public static readonly ImmutableArray<MetadataReference> NoneReferences = ImmutableArray<MetadataReference>.Empty;
         public static readonly ImmutableArray<MetadataReference> Mscorlib40References = ImmutableArray.Create(TestBase.MscorlibRef);
         public static readonly ImmutableArray<MetadataReference> Mscorlib40ExtendedReferences = ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
+        public static readonly ImmutableArray<MetadataReference> Mscorlib40andSystemCoreReferences = ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemCoreRef);
         public static readonly ImmutableArray<MetadataReference> Mscorlib45References = ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626);
         public static readonly ImmutableArray<MetadataReference> Mscorlib45ExtendedReferences = ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
+        public static readonly ImmutableArray<MetadataReference> Mscorlib45AndCSharpReferences = ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemCoreRef, TestBase.CSharpRef);
         public static readonly ImmutableArray<MetadataReference> Mscorlib46References = ImmutableArray.Create(TestBase.MscorlibRef_v46);
         public static readonly ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences = ImmutableArray.Create(TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
         public static readonly ImmutableArray<MetadataReference> NetStandard20References = ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemDynamicRuntimeRef);
@@ -60,8 +64,10 @@ namespace Roslyn.Test.Utilities
                 case TargetFramework.None: return NoneReferences;
                 case TargetFramework.Mscorlib40: return Mscorlib40References;
                 case TargetFramework.Mscorlib40Extended: return Mscorlib40ExtendedReferences;
+                case TargetFramework.Mscorlib40AndSystemCore: return Mscorlib40andSystemCoreReferences;
                 case TargetFramework.Mscorlib45: return Mscorlib45References;
                 case TargetFramework.Mscorlib45Extended: return Mscorlib45ExtendedReferences;
+                case TargetFramework.Mscorlib45AndCSharp: return Mscorlib45AndCSharpReferences;
                 case TargetFramework.Mscorlib46: return Mscorlib46References;
                 case TargetFramework.Mscorlib46Extended: return Mscorlib46ExtendedReferences;
                 case TargetFramework.NetStandard20: return NetStandard20References;

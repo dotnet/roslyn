@@ -96,7 +96,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
         [Fact]
         public void TestCompileDynamicAttributes()
         {
-            var comp = CreateCompilationWithMscorlibAndSystemCore(s_dynamicTestSource, options: TestOptions.UnsafeReleaseDll, references: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(s_dynamicTestSource, options: TestOptions.UnsafeReleaseDll, references: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef });
 
             CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: module =>
             {
@@ -974,7 +974,7 @@ public class C
 [Dynamic(new bool[] { true })]
 public struct S { }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (4,2): error CS1970: Do not use 'System.Runtime.CompilerServices.DynamicAttribute'. Use the 'dynamic' keyword instead.
                 Diagnostic(ErrorCode.ERR_ExplicitDynamicAttr, "Dynamic(new[] { true })"),
                 // (19,2): error CS1970: Do not use 'System.Runtime.CompilerServices.DynamicAttribute'. Use the 'dynamic' keyword instead.
@@ -1001,7 +1001,7 @@ public class C
     public void dynamic([dynamic]dynamic dynamic) { }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (2,2): error CS0246: The type or namespace name 'dynamicAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 // [dynamic]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamicAttribute").WithLocation(2, 2),

@@ -217,7 +217,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyEmitDiagnostics(
     // (9,18): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
     //         var a1 = d * d;
     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(9, 18)

@@ -2772,7 +2772,7 @@ static class C
   IL_0006:  ret
 }";
 
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext");

@@ -1294,7 +1294,7 @@ public class Test
 b
 c
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }

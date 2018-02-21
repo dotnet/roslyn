@@ -1466,7 +1466,7 @@ class C
         /*<bind>*/this.F/*</bind>*/();
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             compilation.VerifyDiagnostics();
@@ -1498,7 +1498,7 @@ class C
         (new System.Action(/*<bind1>*/this.F/*</bind1>*/))();
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             compilation.VerifyDiagnostics();
@@ -1912,7 +1912,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var ms = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").OfType<MethodSymbol>();
@@ -1943,7 +1943,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var m = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").Single();
@@ -1973,7 +1973,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var m = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").Single();
@@ -2001,7 +2001,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();

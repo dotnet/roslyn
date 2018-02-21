@@ -162,7 +162,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).
+            CreateCompilationWithMscorlib40AndSystemCore(text).
                 VerifyDiagnostics(
                     Diagnostic(ErrorCode.ERR_NoImplicitConv,
 @"from x in new[] { 1, 2, 3 }

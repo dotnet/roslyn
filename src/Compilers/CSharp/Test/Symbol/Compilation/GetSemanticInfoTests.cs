@@ -1923,7 +1923,7 @@ public class C<T> where T : IA, IB // can find IA.P in two different ways
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1959,7 +1959,7 @@ public class C<T> where T : IA, IB
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1995,7 +1995,7 @@ public class C<T> where T : IB, IA
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -2030,7 +2030,7 @@ public class C<T> where T : IB, IC
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -2202,7 +2202,7 @@ public class C<T> where T : {1}
 ";
 
             var tree = Parse(string.Format(template, types, constraints));
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             comp.VerifyDiagnostics();
             var model = comp.GetSemanticModel(tree);
 
@@ -4010,7 +4010,7 @@ static class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -4080,7 +4080,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             var tree = comp.SyntaxTrees.Single();
 
@@ -4135,7 +4135,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             var tree = comp.SyntaxTrees.Single();
 
@@ -4846,7 +4846,7 @@ public class D : C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -4883,7 +4883,7 @@ void M()
 
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -5444,7 +5444,7 @@ class Program
 
             for (int i = 0; i < 10; i++) // Ten runs to ensure consistency.
             {
-                var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+                var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
                 comp.VerifyDiagnostics(
                     // (13,51): error CS1503: Argument 1: cannot convert from 'Program.A' to 'int'
                     //             var list = tasks.Result.Select(t => X(t.Result)); // Wrong argument type for X.
@@ -5495,7 +5495,7 @@ class Program
 ";
 
             {
-                var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+                var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
                 var tree = comp.SyntaxTrees.Single();
                 var model = comp.GetSemanticModel(tree);
 
@@ -5509,7 +5509,7 @@ class Program
             }
 
             {
-                var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+                var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
                 var tree = comp.SyntaxTrees.Single();
                 var model = comp.GetSemanticModel(tree);
 
@@ -5550,7 +5550,7 @@ class B { }
 class C { }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(A)' and 'Program.M(B)'
                 //         M(null); // Ambiguous.
@@ -5590,7 +5590,7 @@ class A { }
 class B { }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -5633,7 +5633,7 @@ class B { }
 class C { }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(System.Func<A>)' and 'Program.M(System.Func<B>)'
                 //         M(() => null); // Ambiguous.
@@ -5685,7 +5685,7 @@ class B { }
 class C { }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Derived.M(System.Func<int, A>)' and 'Derived.M(System.Func<int, B>)'
                 //         M(N); // Ambiguous.

@@ -1005,7 +1005,7 @@ public class DynamicEnumerable
 }
 ";
             // It's not entirely clear why this doesn't work, but it doesn't work in Dev10 either.
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (6,27): error CS0117: 'dynamic' does not contain a definition for 'Current'
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "e").WithArguments("dynamic", "Current"),
                 // (6,27): error CS0202: foreach requires that the return type 'dynamic' of 'DynamicEnumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
@@ -3011,7 +3011,7 @@ namespace System.Collections
         private static BoundForEachStatement GetBoundForEachStatement(string text, params DiagnosticDescription[] diagnostics)
         {
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
 
             comp.VerifyDiagnostics(diagnostics);
 

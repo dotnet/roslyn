@@ -2183,7 +2183,7 @@ class Test
         var query = sourceA.Join(sourceB, a => b, b => 5, (a, b) => a + b);
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(9, 48));
         }
 
@@ -3723,7 +3723,7 @@ public class MyClass2
         [Fact]
         public void CS0135ERR_NameIllegallyOverrides02()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 
 class Test
@@ -5705,7 +5705,7 @@ public class B<V> : A<EG<dynamic>> where V : EG<object>
     void Goo() { } 
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (22,16): error CS0160: A previous catch clause already catches all exceptions of this or of a super type ('EG<dynamic>')
                 Diagnostic(ErrorCode.ERR_UnreachableCatch, "V").WithArguments("EG<dynamic>"),
                 // (25,16): error CS0160: A previous catch clause already catches all exceptions of this or of a super type ('EG<dynamic>')
@@ -5753,7 +5753,7 @@ public class B<V> : A<EG<dynamic>> where V : EG<object>
     void Goo() { } 
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
 
@@ -5792,7 +5792,7 @@ public class B<V> : A<EG<dynamic>> where V : EG<object>
     void Goo() { } 
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (22,16): error CS0160: A previous catch clause already catches all exceptions of this or of a super type ('EG<object>')
                 Diagnostic(ErrorCode.ERR_UnreachableCatch, "V").WithArguments("EG<object>"),
                 // (25,16): error CS0160: A previous catch clause already catches all exceptions of this or of a super type ('EG<object>')
@@ -6719,7 +6719,7 @@ struct S
         
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "F is Action").WithLocation(10, 18),
                 // (10,18): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
@@ -6747,7 +6747,7 @@ struct S
         
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         var b1 = this.F is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "this.F is Action").WithLocation(10, 18),
@@ -6778,7 +6778,7 @@ struct S
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (10,19): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
                 Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Add").WithArguments("this"));
         }
@@ -6805,7 +6805,7 @@ struct S
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (10,9): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
                 Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this"));
         }
@@ -6857,7 +6857,7 @@ public class C
   {
   }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (10,14): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
                 //     f = x=>f(__arglist);
@@ -7768,7 +7768,7 @@ unsafe class C
     I* i;
     C* c;
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
                 //     object* _object;
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"),
@@ -11565,7 +11565,7 @@ public partial class PartClass : IEnumerable
         Expression<dele> testExpr2 = () => ConClass.TestMethod(); // CS0765
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (30,71): error CS0765: Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees
                 //         Expression<Func<PartClass>> testExpr1 = () => new PartClass { 1, 2 }; // CS0765
                 Diagnostic(ErrorCode.ERR_PartialMethodInExpressionTree, "1"),
@@ -11990,7 +11990,7 @@ public class C : A
         return 1;
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (14,41): error CS0831: An expression tree may not contain a base access
                 //         Expression<Func<int>> e = () => base.BaseMethod(); // CS0831
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBaseAccess, "base")
@@ -12013,7 +12013,7 @@ public class C
         return 1;
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,46): error CS0832: An expression tree may not contain an assignment operator
                 //         Expression<Func<int, int>> e1 = x => x += 5; // CS0843
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "x += 5"),
@@ -12088,7 +12088,7 @@ public class C
         Expression<Func<int, int>> e = x => { return x; }; // CS0834
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,40): error CS0834: A lambda expression with a statement body cannot be converted to an expression tree
                 //         Expression<Func<int, int>> e = x => { return x; }; // CS0834
                 Diagnostic(ErrorCode.ERR_StatementLambdaToExpressionTree, "x => { return x; }")
@@ -12345,7 +12345,7 @@ namespace TestNamespace
         public void CS0841ERR_VariableUsedBeforeDeclaration04()
         {
             var systemRef = TestReferences.NetFx.v4_0_30319.System;
-            CreateCompilationWithMscorlibAndSystemCore(
+            CreateCompilationWithMscorlib40AndSystemCore(
 @"using System.Collections.Generic;
 class Base
 {
@@ -12466,7 +12466,7 @@ namespace ConsoleApplication1
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (11,48): error CS0845: An expression tree lambda may not contain a coalescing operator with a null literal left-hand side
                 //             Expression<Func<object>> e = () => null ?? "x"; // CS0845
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null")
@@ -12533,7 +12533,7 @@ namespace ConsoleApplication3
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (10,40): error CS0853: An expression tree may not contain a named argument specification
                 //             Expression<dg> myET = x => Index(minSessions:5);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "Index(minSessions:5)").WithLocation(10, 40)
@@ -12557,7 +12557,7 @@ class A
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (10,41): error CS0853: An expression tree may not contain a named argument specification
                 //         Expression<Func<int>> f = () => new List<int> { 1 } [index: 0];
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "new List<int> { 1 } [index: 0]").WithLocation(10, 41)
@@ -12585,7 +12585,7 @@ namespace ConsoleApplication3
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (10,40): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
                 //             Expression<dg> myET = x => Index();
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "Index()").WithLocation(10, 40)
@@ -12624,7 +12624,7 @@ class C
         e2 = () => b[4, 5] = null;
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (22,20): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "a[0]").WithLocation(22, 20),
                 // (25,20): error CS0832: An expression tree may not contain an assignment operator
@@ -12667,7 +12667,7 @@ class C
         e2 = () => i.set_P(5, 6); // no error
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { reference1 });
+            var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (8,20): error CS0855: An expression tree may not contain an indexed property
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsIndexedProperty, "i.P[1]").WithLocation(8, 20),
@@ -13051,7 +13051,7 @@ class C
         [Fact]
         public void CS1061ERR_NoSuchMemberOrExtension05()
         {
-            CreateCompilationWithMscorlibAndSystemCore(
+            CreateCompilationWithMscorlib40AndSystemCore(
 @"using System.Linq;
 
 class Test
@@ -13083,7 +13083,7 @@ static class C
     static void M1<T>(this I<T> o, object arg) { }
     static void M2<T>(this I<T> o, params object[] args) { }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (6,9): error CS1501: No overload for method 'M1' takes 2 arguments
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "2").WithLocation(6, 11),
                 // (7,9): error CS1061: 'object' does not contain a definition for 'M2' and no extension method 'M2' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
@@ -16236,7 +16236,7 @@ static class S
         [Fact]
         public void CS1930ERR_QueryDuplicateRangeVariable()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 class Program
 {
@@ -16256,7 +16256,7 @@ class Program
         [Fact]
         public void CS1931ERR_QueryRangeVariableOverrides01()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 
 class Test
@@ -16281,7 +16281,7 @@ class Test
         [Fact]
         public void CS1932ERR_QueryRangeVariableAssignedBadValue()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 class Test
 {
@@ -16302,7 +16302,7 @@ class Test
         [Fact]
         public void CS1932ERR_QueryRangeVariableAssignedBadValue02()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 class Test
 {
@@ -16323,7 +16323,7 @@ class Test
         [Fact]
         public void CS1932ERR_QueryRangeVariableAssignedBadValue03()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 class Test
 {
@@ -16344,7 +16344,7 @@ class Test
         [Fact]
         public void CS1932ERR_QueryRangeVariableAssignedBadValue04()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 class Test
 {
@@ -16367,7 +16367,7 @@ class Test
         [Fact()]
         public void CS1933ERR_QueryNotAllowed()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 using System.Collections;
 
@@ -16394,7 +16394,7 @@ class P
         [Fact]
         public void CS1934ERR_QueryNoProviderCastable()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 using System.Collections;
 static class Test
@@ -16415,7 +16415,7 @@ static class Test
         [Fact]
         public void CS1935ERR_QueryNoProviderStandard()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Collections.Generic;
 class Test
 {
@@ -16437,7 +16437,7 @@ class Test
         [Fact]
         public void CS1936ERR_QueryNoProvider()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Collections;
 using System.Linq;
 class Test
@@ -16483,7 +16483,7 @@ class Program
         [Fact]
         public void CS1937ERR_QueryOuterKey()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 class Test
 {
@@ -16507,7 +16507,7 @@ class Test
         [Fact]
         public void CS1938ERR_QueryInnerKey()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 class Test
 {
@@ -16574,7 +16574,7 @@ class Test
         select x; // CS1940
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (18,17): error CS1940: Multiple implementations of the query pattern were found for source type 'Test'.  Ambiguous call to 'Select'.
                 // select
                 Diagnostic(ErrorCode.ERR_QueryMultipleProviders, "select x").WithArguments("Test", "Select")
@@ -16584,7 +16584,7 @@ class Test
         [Fact]
         public void CS1941ERR_QueryTypeInferenceFailedMulti()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Collections;
 using System.Linq;
 class Test
@@ -16623,7 +16623,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
                 // (12,17): error CS1942: The type of the expression in the select clause is incorrect.  Type inference failed in the call to 'Select'.
                 //                 select i; //CS1942
@@ -16634,7 +16634,7 @@ class Program
         [Fact]
         public void CS1943ERR_QueryTypeInferenceFailedSelectMany()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 class Test
 {
@@ -16659,7 +16659,7 @@ class Test
         [Fact]
         public void CS1943ERR_QueryTypeInferenceFailedSelectMany02()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System;
 class Test
 {
@@ -16701,7 +16701,7 @@ unsafe class Test
 }
 ";
             //Assert.Equal("", text);
-            CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (10,35): error CS1944: An expression tree may not contain an unsafe pointer operation
                 //         Expression<D> tree = x => &x; // CS1944
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "&x"),
@@ -16726,7 +16726,7 @@ class Test
         Expression<Func<int, Func<int, bool>>> tree = (x => delegate(int i) { return true; }); // CS1945
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (10,61): error CS1945: An expression tree may not contain an anonymous method expression
                 //         Expression<Func<int, Func<int, bool>>> tree = (x => delegate(int i) { return true; }); // CS1945
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAnonymousMethod, "delegate(int i) { return true; }")
@@ -16749,7 +16749,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (10,30): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         Expression<D> tree = delegate() { }; //CS1946
                 Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate() { }")
@@ -16780,7 +16780,7 @@ class Test
         [Fact]
         public void CS1948ERR_QueryRangeVariableSameAsTypeParam()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 class Test
 {
@@ -16812,7 +16812,7 @@ class Test
         select i;
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (7,22): error CS1949: The contextual keyword 'var' cannot be used in a range variable declaration
                 //         var x = from var i in Enumerable.Range(1, 100) // CS1949
                 Diagnostic(ErrorCode.ERR_TypeVarNotFoundRangeVariable, "var")
@@ -16834,7 +16834,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (7,75): error CS1951: An expression tree lambda may not contain an out or ref parameter
                 //         System.Linq.Expressions.Expression<TestDelegate> tree1 = (ref int x) => x; // CS1951
                 Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x")
@@ -16861,7 +16861,7 @@ class Test
         return 1;
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (14,52): error CS1952: An expression tree lambda may not contain a method with variable arguments
                 //         Expression<Func<int, int>> f = x => Test.M(__arglist(x)); // CS1952
                 Diagnostic(ErrorCode.ERR_VarArgsInExpressionTree, "__arglist(x)")
@@ -16885,7 +16885,7 @@ class CS1953
     }
 }";
             // Used to be CS1953, but now a method group in an is expression is illegal anyway.
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (10,21): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //               () => num.GetType is int; // CS1953 
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "num.GetType is int").WithLocation(10, 21));
@@ -17604,7 +17604,7 @@ class A
 }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,37): error CS1964: 'A.implicit operator A(dynamic)': user-defined conversions to or from the dynamic type are not allowed
                 Diagnostic(ErrorCode.ERR_BadDynamicConversion, "A").WithArguments("A.implicit operator A(dynamic)"),
                 // (4,37): error CS1964: 'A.implicit operator dynamic(A)': user-defined conversions to or from the dynamic type are not allowed
@@ -17632,7 +17632,7 @@ public class D : B
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
                 // (12,9): error CS1971: The call to method 'M' needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.
                 //         base.M(d);
@@ -17660,7 +17660,7 @@ public class D : B
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
                 // (14,17): error CS1972: The indexer access needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.
                 //         int s = base[(dynamic)o];
@@ -17686,7 +17686,7 @@ static public class Extension
     public static void Goo(this B b, int x) { }
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
 // (8,9): error CS1973: 'B' has no applicable method named 'Goo' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
 //         b.Goo(d);
@@ -17711,7 +17711,7 @@ class B : A
     { }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (12,9): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
                 Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "base"));
         }
@@ -17730,7 +17730,7 @@ class B
     { }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (12,9): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
                 Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "this"));
         }
@@ -17747,7 +17747,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
                 // (6,15): error CS1976: Cannot use a method group as an argument to a dynamically dispatched operation. Did you intend to invoke the method?
                 //         d.Goo(M);
@@ -17766,7 +17766,7 @@ class Program
         d.Goo(delegate () {});
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
                 // (6,15): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //         d.Goo(()=>{});
@@ -17794,7 +17794,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, new[] { CSharpRef });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, new[] { CSharpRef });
             comp.VerifyDiagnostics(
                 // (9,15): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "delegate { }"));
@@ -17851,7 +17851,7 @@ unsafe  class C : IEnumerable<object>
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, new[] { CSharpRef }, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, new[] { CSharpRef }, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (16,18): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "delegate() { }"),
@@ -17889,7 +17889,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,15): error CS1978: Cannot use an expression of type 'int*' as an argument to a dynamically dispatched operation.
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "i").WithArguments("int*"),
@@ -21443,7 +21443,7 @@ class Program
 }
 ";
             // CONSIDER: dev11 reports WRN_AssignmentToSelf.
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (8,44): error CS1947: Range variable 'x' cannot be assigned to -- it is read only
                 //         var unused = from x in args select x = x;
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableReadOnly, "x").WithArguments("x"));
@@ -21496,7 +21496,7 @@ struct S
 ";
             // CONSIDER: dev11 does not strip off float or double identity-conversions and, thus,
             // does not warn about those assignments.
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (21,9): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         b = (byte)b;
                 Diagnostic(ErrorCode.WRN_AssignmentToSelf, "b = (byte)b"),
@@ -21585,7 +21585,7 @@ class Tester
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (8,15): warning CS1718: Comparison made to same variable; did you mean to compare something else?
                 //         where x1 > x1 // CS1718
                 Diagnostic(ErrorCode.WRN_ComparisonToSelf, "x1 > x1"));
@@ -21782,7 +21782,7 @@ class Myclass
     static void Bar(string x) {}
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
 // (9,9): warning CS1974: The dynamically dispatched call to method 'Goo' may fail at runtime because one or more applicable overloads are conditional methods.
 //         Goo(d); 
@@ -23454,7 +23454,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (34,50): error CS8185: A declaration is not allowed in this context.
                 //         Expression<Func<object>> e12 = () => _ = var (a, _) = GetTuple();
@@ -23687,7 +23687,7 @@ namespace ConsoleApplication1
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (13,54): error CS8188: An expression tree may not contain a throw-expression.
                 //             Expression<Func<object>> e1 = () => o ?? throw null;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsThrowExpression, "throw null").WithLocation(13, 54),
@@ -23716,7 +23716,7 @@ class Program
     static void M() { }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (6,9): error CS8209: A value of type 'void' may not be assigned.
                 //         _ = M();
                 Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9)
@@ -23737,7 +23737,7 @@ class B : System.Attribute {
   B(in int x = 1) { }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (7,2): error CS8355: Cannot use attribute constructor 'B.B(in int)' because it is has 'in' parameters.
                 // [B()]
                 Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(in int)").WithLocation(7, 2),

@@ -3081,7 +3081,7 @@ public class C : I<object>
             // We don't consider the methods a match because we don't want to return it from 
             // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
             // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,10): error CS0540: 'C.I<dynamic>.F()': containing type does not implement interface 'I<dynamic>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.F()", "I<dynamic>"),
                  // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.F()'
@@ -3107,7 +3107,7 @@ public class C : I<object>
             // We don't consider the methods a match because we don't want to return it from 
             // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
             // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,9): error CS0540: 'C.I<dynamic>.P': containing type does not implement interface 'I<dynamic>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.P", "I<dynamic>"),
                // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.P'
@@ -3133,7 +3133,7 @@ public class C : I<object>
             // We don't consider the methods a match because we don't want to return it from 
             // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
             // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,9): error CS0540: 'C.I<dynamic>.this[int]': containing type does not implement interface 'I<dynamic>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.this[int]", "I<dynamic>"),
                 // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.this[int]'
@@ -3159,7 +3159,7 @@ public class C : I<object>
             // We don't consider the methods a match because we don't want to return it from 
             // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
             // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,25): error CS0540: 'C.I<dynamic>.E': containing type does not implement interface 'I<dynamic>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.E", "I<dynamic>"),
                 // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.E'

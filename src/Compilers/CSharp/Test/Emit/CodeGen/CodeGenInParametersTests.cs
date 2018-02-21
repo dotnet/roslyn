@@ -2883,7 +2883,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: "XX");
 
             verifier.VerifyIL("X.M()", @"

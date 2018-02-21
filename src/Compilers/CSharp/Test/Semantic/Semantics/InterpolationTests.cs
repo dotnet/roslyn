@@ -1122,7 +1122,7 @@ class Program {
     const dynamic a = a;
     string s = $""{0,a}"";
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (3,19): error CS0110: The evaluation of the constant value for 'C.a' involves a circular definition
                 //     const dynamic a = a;
                 Diagnostic(ErrorCode.ERR_CircConstValue, "a").WithArguments("C.a").WithLocation(3, 19),
@@ -1151,7 +1151,7 @@ class Program
         Console.WriteLine(e);
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (8,46): error CS1009: Unrecognized escape sequence
                 //         Expression<Func<string>> e = () => $"\u1{0:\u2}";
                 Diagnostic(ErrorCode.ERR_IllegalEscape, @"\u1").WithLocation(8, 46),
@@ -1190,7 +1190,7 @@ static class C
         System.IFormattable i = $""{""""}"";
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyEmitDiagnostics(
                 // (23,33): error CS0029: Cannot implicitly convert type 'FormattableString' to 'IFormattable'
                 //         System.IFormattable i = $"{""}";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{""""}""").WithArguments("System.FormattableString", "System.IFormattable").WithLocation(23, 33)

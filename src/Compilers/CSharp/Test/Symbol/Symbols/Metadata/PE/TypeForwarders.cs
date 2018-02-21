@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void TypeInNamespace()
         {
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(new SyntaxTree[0]);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(new SyntaxTree[0]);
 
             var corlibAssembly = compilation.GetReferencedAssemblySymbol(MscorlibRef);
             Assert.NotNull(corlibAssembly);

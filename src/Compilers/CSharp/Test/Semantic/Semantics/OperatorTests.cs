@@ -1409,7 +1409,7 @@ class C<T>
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(624274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624274")]
@@ -1431,7 +1431,7 @@ class C<T>
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (10,19): error CS0034: Operator '&' is ambiguous on operands of type 'C<dynamic>.E' and 'C<object>.E'
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "C<dynamic>.E.A & C<object>.E.A").WithArguments("&", "C<dynamic>.E", "C<object>.E"),
                 // (11,18): error CS0034: Operator '|' is ambiguous on operands of type 'C<dynamic>.E' and 'C<object>.E'
@@ -1472,7 +1472,7 @@ class C<T>
 }
 ";
             // Dev11 reports error CS0034: Operator '...' is ambiguous on operands ... and ... for all combinations
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1584,7 +1584,7 @@ class C<T>
     }      
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (17,20): error CS0034: Operator '+' is ambiguous on operands of type 'C<dynamic>.A<object, object>' and 'C<object>.A<object, object>'
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "d1 + d2").WithArguments("+", "C<dynamic>.A<object, object>", "C<object>.A<object, object>"),
                 // (18,20): error CS0034: Operator '+' is ambiguous on operands of type 'C<dynamic>.A<object, object>' and 'C<dynamic>.A<object, dynamic>'
@@ -1624,7 +1624,7 @@ class Program
 ";
             // Dev11 considers Action<object> == Action<dynamic> ambiguous and thus chooses Goo(Func<Action<object>, IComparable>) overload.
 
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Goo(System.Func<System.Action<object>, System.IComparable>)' and 'Program.Goo(System.Func<System.Action<dynamic>, System.IConvertible>)'
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Program.Goo(System.Func<System.Action<object>, System.IComparable>)", "Program.Goo(System.Func<System.Action<dynamic>, System.IConvertible>)"));
         }
@@ -1681,7 +1681,7 @@ unsafe class C<T>
 }
 ";
             // Dev11 reports "error CS0034: Operator '-' is ambiguous on operands ... and ..." for all ptr - ptr
-            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4929,7 +4929,7 @@ public class X
         Console.Write(obj == null);
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "True"); ;
 
             source = @"
@@ -4954,7 +4954,7 @@ public class X
         var unused = new X();
     }
 }";
-            comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
 
@@ -4964,7 +4964,7 @@ public class X
 {
     public X(object param = default(dynamic)) {}
 }";
-            comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (4,21): error CS1750: A value of type 'dynamic' cannot be used as a default parameter because there are no standard conversions to type 'object'
                 //     public X(object param = default(dynamic)) {}

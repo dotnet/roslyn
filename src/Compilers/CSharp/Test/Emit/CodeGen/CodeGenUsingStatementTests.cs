@@ -2457,7 +2457,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "from x in new int[] { 1 } select x").WithArguments("System.Collections.Generic.IEnumerable<int>"));
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "from x in new int[] { 1 } select x").WithArguments("System.Collections.Generic.IEnumerable<int>"));
         }
 
         // Error when using a lambda in a using()
@@ -2602,7 +2602,7 @@ class A1
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         // Put the using around the try

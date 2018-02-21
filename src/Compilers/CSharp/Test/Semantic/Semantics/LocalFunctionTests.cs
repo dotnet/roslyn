@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
 
         internal void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
     }

@@ -2507,7 +2507,7 @@ class B9 : A<Unknown>
 {
     internal override void M<U>() { }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (49,14): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(49, 14));
         }
@@ -5823,7 +5823,7 @@ static class M
     internal static void E1(this IEnumerable o) { }
     internal static void E2(this IEnumerable<object> o) { }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (15,12): error CS1503: Argument 1: cannot convert from 'U' to 'System.Collections.Generic.IEnumerable<object>'
                 //         M2(o);
                 Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("1", "U", "System.Collections.Generic.IEnumerable<object>"),
@@ -6330,14 +6330,14 @@ class B2 : A<dynamic>, I
 {
     public override void F<T>() { }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [WorkItem(654522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654522")]
         [ClrOnlyFact]
         public void Bug654522()
         {
-            var compilation = CreateCompilationWithMscorlibAndSystemCore("public interface I<W> where W : struct {}").VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore("public interface I<W> where W : struct {}").VerifyDiagnostics();
 
             Action<ModuleSymbol> metadataValidator =
                 delegate (ModuleSymbol module)
@@ -6389,7 +6389,7 @@ class C
         o.E3();
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
             source =
 @"class A<T> { }
 class B<T> : A<T> { }
@@ -6413,7 +6413,7 @@ class E : D<A<string>, C<string>, B<string>>
         o.E3();
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
             source =
 @"interface IA<T> { }
 class A<T> : IA<T> { }
@@ -6443,7 +6443,7 @@ class D2 : C<B<object>, A<object>>
         o.E1();
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (18,9): error CS1061: 'X' does not contain a definition for 'E1' and no extension method 'E1' accepting a first argument of type 'X' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "E1").WithArguments("X", "E1").WithLocation(18, 11));
         }

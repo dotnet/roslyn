@@ -2139,7 +2139,7 @@ class P
     }
 }";
             // the grammar does not allow a query on the right-hand-side of &&, but we allow it except in strict mode.
-            CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (23,26): error CS1525: Invalid expression term 'from'
                 //         var b = false && from x in src select x; // WRN CS0429
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "from x in src").WithArguments("from").WithLocation(23, 26),

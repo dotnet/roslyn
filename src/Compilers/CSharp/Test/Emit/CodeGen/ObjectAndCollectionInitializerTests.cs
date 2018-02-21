@@ -1209,7 +1209,7 @@ class A
 -
 5";
 
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -1307,7 +1307,7 @@ class A
 -
 5";
 
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -1645,7 +1645,7 @@ get
 get
 3";
 
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 

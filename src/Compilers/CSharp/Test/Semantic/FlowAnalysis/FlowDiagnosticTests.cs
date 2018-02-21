@@ -2271,7 +2271,7 @@ class Program
     {
     }
 }";
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (17,17): error CS0177: The out parameter 'f' must be assigned to before control leaves the current method
                 //                 return 123;                 // <==== ERROR EXPECTED HERE
@@ -2298,7 +2298,7 @@ class Program
     {
     }
 }";
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (8,13): error CS1501: No overload for method 'Goo' takes 2 arguments
                 //             Goo(y, null);
@@ -2338,7 +2338,7 @@ namespace ConsoleApplication1
         }
     }
 }";
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (17,24): error CS0165: Use of unassigned local variable 'val'
                 //                 return val;
@@ -2375,7 +2375,7 @@ namespace ConsoleApplication1
     }
 }
 ";
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -2397,7 +2397,7 @@ static class Program
         View(myInts.Add);
     }
 }";
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -2420,7 +2420,7 @@ class Derived2 : Base
     {
     }
 }";
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (11,28): error CS1628: Cannot use ref or out parameter 'p1' inside an anonymous method, lambda expression, or query expression
                 //         : base(out p1, ()=>p1)
@@ -2445,7 +2445,7 @@ class Derived2 : Base
     }
     private int x;
 }";
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (3,5): error CS0171: Field 'Derived.x' must be fully assigned before control is returned to the caller
                 //     Derived(int x) { }

@@ -5098,13 +5098,13 @@ class Program
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options);
             return CompileAndVerify(comp, expectedOutput: output, verify: verify).VerifyDiagnostics(); // no diagnostics
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
             return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 

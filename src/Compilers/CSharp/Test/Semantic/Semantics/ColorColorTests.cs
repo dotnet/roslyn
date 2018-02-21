@@ -717,7 +717,7 @@ class Program
     }
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var info = model.GetSymbolInfo(expr);
@@ -1510,7 +1510,7 @@ static class Test
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugExe);
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
 {
   // Code size       54 (0x36)
@@ -1727,7 +1727,7 @@ class X
     public bool Instance() { return true; }
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "42");
@@ -1749,7 +1749,7 @@ public class Example
     //                          ^^^^^^^^
 }";
             var analyzer = new ColorColorSymbolInfoInArrowExpressionClauseSyntaxAnalyzer();
-            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll)
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll)
                 .VerifyAnalyzerOccurrenceCount(new[] { analyzer }, 0);
 
             Assert.True(analyzer.ActionFired);
@@ -1798,7 +1798,7 @@ public class Example
     public Lifetime Lifetime => Lifetime.Persistent;
     //                          ^^^^^^^^
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];

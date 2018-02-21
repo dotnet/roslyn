@@ -4302,7 +4302,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -4341,7 +4341,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "is int _: True, is var _: True, case int _, case var _");
             var tree = compilation.SyntaxTrees.Single();
@@ -4399,7 +4399,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
                 // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
                 //         Write($"is _: {i is _}, ");
@@ -4435,7 +4435,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
                 // (9,29): error CS0150: A constant value is expected
                 //         Write($"is _: {i is _}, ");
@@ -4477,7 +4477,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,33): error CS0103: The name '_' does not exist in the current context
                 //         if (i is int _) { Write(_); }
@@ -4521,7 +4521,7 @@ unsafe public class Typ
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
                 // (8,22): error CS1525: Invalid expression term 'int'
                 //             if (a is int* b) {}

@@ -2679,7 +2679,7 @@ class Derived2 : Base1
         private void CheckedConversionInExpressionTree_Implicit(string fromType, string toType, ConvertMethod expectedMethod, string additionalTypes = "")
         {
             var source = CheckedConversionInExpressionTree_ImplicitSource(fromType, toType, additionalTypes);
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             string expectedOutput;
             switch (expectedMethod)
             {
@@ -2702,7 +2702,7 @@ class Derived2 : Base1
         private void CheckedConversionInExpressionTree_Implicit(string fromType, string toType, string expectedOutput)
         {
             var source = CheckedConversionInExpressionTree_ImplicitSource(fromType, toType, additionalTypes: "");
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -2726,7 +2726,7 @@ class C
         private void CheckedConversionInExpressionTree_Explicit(string fromType, string toType, ConvertMethod expectedMethod, string additionalTypes = "")
         {
             var source = CheckedConversionInExpressionTree_ExplicitSource(fromType, toType, additionalTypes);
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             string expectedOutput;
             switch (expectedMethod)
             {
@@ -2749,7 +2749,7 @@ class C
         private void CheckedConversionInExpressionTree_Explicit(string fromType, string toType, string expectedOutput)
         {
             var source = CheckedConversionInExpressionTree_ExplicitSource(fromType, toType, additionalTypes: "");
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 

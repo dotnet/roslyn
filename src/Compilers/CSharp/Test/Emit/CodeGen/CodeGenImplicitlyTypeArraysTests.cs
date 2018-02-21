@@ -476,7 +476,7 @@ namespace Test
             // NYI: error checking below with:
             // var compilation = CompileAndVerify(testSrc, emitOptions: EmitOptions.CCI, 
             //    additionalRefs: GetReferences(), expectedOutput: "");
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(testSrc);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(testSrc);
             compilation.VerifyDiagnostics();
         }
 
@@ -518,7 +518,7 @@ namespace Test
             // var compilation = CompileAndVerify(testSrc, emitOptions: EmitOptions.CCI, 
             //     additionalRefs: GetReferences(), expectedOutput: "");
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(testSrc);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(testSrc);
             compilation.VerifyDiagnostics();
         }
 
@@ -551,7 +551,7 @@ namespace Test
             // var compilation = CompileAndVerify(testSrc, emitOptions: EmitOptions.CCI,
             //     additionalRefs: GetReferences(), expectedOutput: "");
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(testSrc);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(testSrc);
             compilation.VerifyDiagnostics();
         }
 

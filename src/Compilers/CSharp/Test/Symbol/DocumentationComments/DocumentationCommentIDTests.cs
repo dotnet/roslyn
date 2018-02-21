@@ -299,7 +299,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<FromClauseSyntax>().Single();

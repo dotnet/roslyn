@@ -470,7 +470,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(text);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text);
             CompileAndVerify(compilation).VerifyIL("Test.Main", @"
 {
   // Code size       95 (0x5f)
@@ -643,7 +643,7 @@ public static partial class Extensions
     public static object Test(this object o) { return o; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(text);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text);
             CompileAndVerify(compilation).VerifyIL("Test.Main", @"
 {
   // Code size       72 (0x48)

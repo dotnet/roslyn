@@ -530,7 +530,7 @@ class Program
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Main", @"
 <symbols>
   <files>
@@ -584,7 +584,7 @@ class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Method", @"
 <symbols>
   <files>
@@ -649,7 +649,7 @@ class C
         object y = x;
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor",
 @"<symbols>
   <files>
@@ -717,7 +717,7 @@ class C
         object y = x;
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor",
 @"<symbols>
   <files>
@@ -810,7 +810,7 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -897,7 +897,7 @@ class C
         return g(f)(null);
     };
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -993,7 +993,7 @@ class C
     public static void Main1() /*Comment1*/{/*Comment2*/int a = 1;/*Comment3*/}/*Comment4*/
     public static void Main2() {/*Comment2*/int a = 2;/*Comment3*/}/*Comment4*/
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             // verify that both syntax offsets are the same
             c.VerifyPdb(@"
@@ -1061,7 +1061,7 @@ class C2
     public static Func<int> g=() => 2;
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             // verify that syntax offsets of both .cctor's are the same
             c.VerifyPdb("C1..cctor", @"
@@ -1399,7 +1399,7 @@ class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Method", @"
 <symbols>
   <files>
@@ -1512,7 +1512,7 @@ public class SeqPointForWhile
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
 
             // Offset 0x01 should be:
             //  <entry offset=""0x1"" hidden=""true"" document=""1"" />
@@ -1592,7 +1592,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M", @"
 <symbols>
   <files>
@@ -1643,7 +1643,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M", @"
 <symbols>
   <files>
@@ -1685,7 +1685,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M", @"<symbols>
   <files>
     <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
@@ -1737,7 +1737,7 @@ public class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
 
             // Sequence points:
             // 1) Open brace at start of method
@@ -1795,7 +1795,7 @@ public class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             // Sequence points:
             // 1) Open brace at start of method
@@ -2762,7 +2762,7 @@ class Program
 }
 ";
             // we just want this to compile without crashing/asserting
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Main", @"<symbols>
   <files>
     <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
@@ -2993,7 +2993,7 @@ class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
 ";
             // we just want this to compile without crashing/asserting
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Operate",
 @"<symbols>
   <files>
@@ -3085,7 +3085,7 @@ class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
 ";
             // we just want this to compile without crashing/asserting
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Operate",
 @"<symbols>
   <files>
@@ -3185,7 +3185,7 @@ class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
 ";
             // we just want this to compile without crashing/asserting
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Operate", @"
 <symbols>
   <files>
@@ -3286,7 +3286,7 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             c.VerifyDiagnostics();
             var verifier = CompileAndVerify(c, expectedOutput: "1M2");
 
@@ -3332,7 +3332,7 @@ expectedIL: @"{
 }");
 
             // Check the release code generation too.
-            c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             c.VerifyDiagnostics();
             verifier = CompileAndVerify(c, expectedOutput: "1M2");
 
@@ -3399,7 +3399,7 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
             c.VerifyDiagnostics();
             var verifier = CompileAndVerify(c, expectedOutput: "1234");
 
@@ -3507,7 +3507,7 @@ expectedIL: @"{
 }");
 
             // Check the release code generation too.
-            c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             c.VerifyDiagnostics();
             verifier = CompileAndVerify(c, expectedOutput: "1234");
 
@@ -3598,7 +3598,7 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
             c.VerifyDiagnostics();
             var verifier = CompileAndVerify(c, expectedOutput: "66");
 
@@ -3626,7 +3626,7 @@ expectedIL: @"{
 }");
 
             // Check the release code generation too.
-            c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             c.VerifyDiagnostics();
             verifier = CompileAndVerify(c, expectedOutput: "66");
 
@@ -3683,7 +3683,7 @@ public class SeqPointForWhile
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             c.VerifyPdb(@"
 <symbols>
@@ -3786,7 +3786,7 @@ public class SeqPointForWhile
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             // Dev10 vs. Roslyn
             // 
@@ -3957,7 +3957,7 @@ public class Derived : Base
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -4160,7 +4160,7 @@ class C
     int x = ((System.Func<int, int>)(z => z))(1);
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"<symbols>
   <files>
     <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
@@ -4201,7 +4201,7 @@ class C
     int x = 1, y = 2;
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -4332,7 +4332,7 @@ public class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Main", @"
 <symbols>
   <files>
@@ -4366,7 +4366,7 @@ public class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Main", @"
 <symbols>
   <files>
@@ -4448,7 +4448,7 @@ public class SeqPointAfterReturn
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             // Expected are current actual output plus Two extra expected SeqPt:
             //  <entry offset=""0x73"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" document=""1"" />
@@ -4596,7 +4596,7 @@ class Test
             // the exception object is assigned to the variable. We don't place that sequence point.
             // Also the scope of he exception variable is different.
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Test.Main", @"
 <symbols>
   <files>
@@ -4673,7 +4673,7 @@ class Test
     }
 }
 ";
-            var v = CompileAndVerify(CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll));
+            var v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
 
             v.VerifyIL("Test.Main", @"
 {
@@ -4821,7 +4821,7 @@ class Test
     }
 }
 ";
-            var v = CompileAndVerify(CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll));
+            var v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
             v.VerifyIL("Test.Main", @"
 {
   // Code size       33 (0x21)
@@ -4909,7 +4909,7 @@ class Test
     }
 }
 ";
-            var v = CompileAndVerify(CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll));
+            var v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
             v.VerifyIL("Test.Main", @"
 {
   // Code size       33 (0x21)
@@ -4997,7 +4997,7 @@ class Test
     }
 }
 ";
-            var v = CompileAndVerify(CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll));
+            var v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll));
             v.VerifyIL("Test.Main", @"
 {
   // Code size       26 (0x1a)
@@ -5079,7 +5079,7 @@ class Program
 }
 ";
             // Note the hidden sequence point @IL_0019.
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5168,7 +5168,7 @@ class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Main", @"
 <symbols>
   <files>
@@ -5247,7 +5247,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
             v.VerifyIL("C.F", @"
 {
@@ -5338,7 +5338,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
             v.VerifyIL("C.F", @"
 {
@@ -5423,7 +5423,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
             v.VerifyIL("C.F", @"
 {
@@ -5483,7 +5483,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
             v.VerifyIL("C.F", @"
 {
@@ -5546,7 +5546,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
             v.VerifyIL("C.F", @"
 {
@@ -5627,7 +5627,7 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5668,7 +5668,7 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5722,7 +5722,7 @@ unsafe class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5781,7 +5781,7 @@ unsafe class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5840,7 +5840,7 @@ unsafe class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5915,7 +5915,7 @@ unsafe class C
 }
 ";
             // NOTE: stop on each declarator.
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5981,7 +5981,7 @@ unsafe class C
 }
 ";
             // NOTE: stop on each declarator.
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -6049,7 +6049,7 @@ unsafe class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -6131,7 +6131,7 @@ unsafe class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"<symbols>
   <files>
     <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
@@ -6209,7 +6209,7 @@ unsafe class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -6255,7 +6255,7 @@ unsafe class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -6417,7 +6417,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
 
             c.VerifyPdb(@"
 <symbols>
@@ -6455,7 +6455,7 @@ class C
     {
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
 
             // Note: Dev10 emitted a hidden sequence point to #line hidden method, 
             // which enabled the debugger to locate the first user visible sequence point starting from the entry point.
@@ -6509,7 +6509,7 @@ class C
         yield return 1;
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             
             // We don't really need the debug info for kickoff method when the entire iterator method is hidden, 
             // but it doesn't hurt and removing it would need extra effort that's unnecessary.
@@ -7159,7 +7159,7 @@ class C
         public void SyntaxOffset_Pattern()
         {
             var source = @"class C { bool F(object o) => o is int i && o is 3 && o is bool; }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.F", @"<symbols>
   <files>
     <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
@@ -7194,7 +7194,7 @@ class C
         public void SyntaxOffset_TupleDeconstruction()
         {
             var source = @"class C { int F() { (int a, (_, int c)) = (1, (2, 3)); return a + c; } }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
   <files>
@@ -7277,7 +7277,7 @@ public class C
         public void SyntaxOffset_TupleParenthesized()
         {
             var source = @"class C { int F() { (int, (int, int)) x = (1, (2, 3)); return x.Item1 + x.Item2.Item1 + x.Item2.Item2; } }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
   <files>
@@ -7313,7 +7313,7 @@ public class C
         public void SyntaxOffset_TupleVarDefined()
         {
             var source = @"class C { int F() { var x = (1, 2); return x.Item1 + x.Item2; } }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
   <files>
@@ -7348,7 +7348,7 @@ public class C
         public void SyntaxOffset_TupleIgnoreDeconstructionIfVariableDeclared()
         {
             var source = @"class C { int F() { (int x, int y) a = (1, 2); return a.Item1 + a.Item2; } }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
   <files>
@@ -7414,7 +7414,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics(
                 // (9,19): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
                 //     int F = G(out var v1);    
@@ -7435,7 +7435,7 @@ class C
         {
             var source = @"class C { int G(out int x) { int z = 1; G(out var y); G(out var w); return x = y; } }";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.G", @"
 <symbols>
   <files>
@@ -7624,7 +7624,7 @@ partial class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             CompileAndVerify(c).VerifyIL("Program.M",
 @"{
   // Code size      170 (0xaa)
@@ -7792,7 +7792,7 @@ partial class C
         return Local1(args) + Local2(args);          // 12
     }                                                // 13
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(
 @"<symbols>
   <files>

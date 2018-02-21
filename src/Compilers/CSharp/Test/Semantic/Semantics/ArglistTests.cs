@@ -128,7 +128,7 @@ public struct C
     public static bool N(__arglist) { return true;}
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
 // (8,44): error CS7053: An expression tree may not contain '__makeref'
 //         Expression<Func<bool>> ex1 = ()=>M(__makeref(S)); // CS7053
@@ -856,7 +856,7 @@ public struct C
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics();
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]

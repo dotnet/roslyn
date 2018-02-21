@@ -35,7 +35,7 @@ class Program
     static void Goo(Action a) { }
     static void Goo(Expression<Action> a) { }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -1245,7 +1245,7 @@ class p
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (14,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Func<string, string>'
                 //         Goo<string>(x => x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Func<string, string>").WithLocation(14, 21),
@@ -6574,7 +6574,7 @@ class MainClass
 
 ";
             // Roslyn matches the native behavior - it compiles cleanly.
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -6605,7 +6605,7 @@ class MainClass
     { return new MainClass(); }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0019: Operator '+' cannot be applied to operands of type 'MainClass' and 'lambda expression'
                 //         r = r + ((MainClass x) => x + (MainClass)((MainClass y) => (y + null)));
@@ -6646,7 +6646,7 @@ class MainClass
 ";
             // NOTE: roslyn suppresses the error for (x + (...)) in the first assignment,
             // but it's still an error (as indicated by the standalone test below).
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0019: Operator '+' cannot be applied to operands of type 'MainClass' and 'lambda expression'
                 //         r = r + ((MainClass x) => (x + ((MainClass y) => (y + null))));
@@ -6683,7 +6683,7 @@ class MainClass
 //  { return new MainClass(); }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0019: Operator '+' cannot be applied to operands of type 'MainClass' and 'lambda expression'
                 //         r = r + ((MainClass x) => x + ((MainClass y) => (y + null)));
@@ -6713,7 +6713,7 @@ public class Test
             var libRef = TestReferences.SymbolsTests.BigVisitor;
 
             var start = DateTime.UtcNow;
-            CreateCompilationWithMscorlibAndSystemCore(source, new[] { libRef }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source, new[] { libRef }).VerifyDiagnostics();
             var elapsed = DateTime.UtcNow - start;
             Assert.InRange(elapsed.TotalSeconds, 0, 10.0); // Was originally over 30 minutes, so we have some wiggle room here.
         }
@@ -6883,7 +6883,7 @@ class D<T>
 ";
             // Dev11 reports error CS0411: The type arguments for method 'C.Bar<T>(D<T>.E*[])' cannot be inferred from the usage. Try
             // specifying the type arguments explicitly.
-            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(598032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598032"), WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
@@ -6962,7 +6962,7 @@ public class Test
     }
 }";
             // Doesn't assert.
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (20,16): error CS0121: The call is ambiguous between the following methods or properties: 'Test.Goo(Test.nongenerics, dynamic)' and 'Test.Goo<T>(Test.generics<T>, dynamic)'
                 //         return Goo(method, "abc");
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Test.Goo(Test.nongenerics, dynamic)", "Test.Goo<T>(Test.generics<T>, dynamic)")
@@ -7000,7 +7000,7 @@ public struct start
         Console.WriteLine(dd02);
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 );
         }
 
@@ -7069,7 +7069,7 @@ static class Extensions
     public static void Add(this IViewable @this, object obj = null) { }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (8,16): warning CS0618: 'Extensions.Add(IViewable2)' is obsolete: 'A'
                 //         v.View(v.Add);
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "v.Add").WithArguments("Extensions.Add(IViewable2)", "A"));
@@ -7108,7 +7108,7 @@ static class Extensions
     public static void Add(this IViewable @this, params object[] obj) { }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (8,16): warning CS0618: 'Extensions.Add(IViewable2)' is obsolete: 'A'
                 //         v.View(v.Add);
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "v.Add").WithArguments("Extensions.Add(IViewable2)", "A"));
@@ -7380,7 +7380,7 @@ class Program
         M(gt1, 1, 2);
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (9,27): error CS0314: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'G<T>'. There is no boxing conversion or type parameter conversion from 'T' to 'I'.
                 //     static void M<T>(G<T> gt1, params int[] i)
@@ -7408,7 +7408,7 @@ class Test
         y += x => 2;
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (9,14): error CS0123: No overload for 'goo' matches delegate 'System.EventHandler'
                 //         y += goo;
@@ -7501,7 +7501,7 @@ class C
 }
 
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
     // (8,44): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<T>(System.Func<bool, T>)' and 'C.M<T>(System.Func<byte, T>)'
     //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
@@ -7715,7 +7715,7 @@ namespace C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
     // (31,19): error CS0121: The call is ambiguous between the following methods or properties: 'X.Test(int)' and 'X.Test(int)'
     //             if (1.Test() != 1)
@@ -9056,7 +9056,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(Del1)' and 'Program.Method(Del2)'
                 //         Method(() => null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(Del1)", "Program.Method(Del2)").WithLocation(12, 9)
@@ -9178,7 +9178,7 @@ public class Test
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (17,9): error CS0411: The type arguments for method 'Test.Assert<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Assert(a, b);
@@ -9217,7 +9217,7 @@ static class E
     internal static void F(this B x, Action<object> y) { }
     internal static void F(this B x, Action<object> y, A z) { }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (9,22): error CS1503: Argument 3: cannot convert from 'A' to 'B'
                 //         a.F(o => {}, a);
@@ -9252,7 +9252,7 @@ static class E
     internal static void F(this A x, Action<object> y) { }
     internal static void F(this A x, Action<object> y, B z) { }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (9,9): error CS1929: 'A' does not contain a definition for 'F' and the best extension method overload 'E.F(B, Action<object>, A)' requires a receiver of type 'B'
                 //         a.F(o => {}, a);
@@ -9293,7 +9293,7 @@ public class Program
     public static void Main() => E.F(new D());
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (28,36): error CS0121: The call is ambiguous between the following methods or properties: 'E.F(A)' and 'E.F(B)'
                 //     public static void Main() => E.F(new D());

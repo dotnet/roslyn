@@ -4650,7 +4650,7 @@ class D
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {
                 Signature("C+<>c__DisplayClass0_0`1", "<>9__0",
@@ -4742,7 +4742,7 @@ class D
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp);
 
             verifier.VerifyIL("Program.Test", @"
@@ -4871,7 +4871,7 @@ class D
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp);
 
             verifier.VerifyIL("Program.Test", @"

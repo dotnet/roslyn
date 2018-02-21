@@ -1991,7 +1991,7 @@ static class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (6,35): error CS8311: Use of default literal is not valid in this context
                 //         var q = from x in default select x;
@@ -2015,7 +2015,7 @@ static class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "5");
         }
@@ -2033,7 +2033,7 @@ static class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular7_1);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 // (5,30): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         System.Console.Write((int?)1 == default);
@@ -2255,7 +2255,7 @@ class Program
     Expression<Func<object>> testExpr = () => default ?? ""hello"";
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,47): error CS8310: Operator '??' cannot be applied to operand 'default'
                 //     Expression<Func<object>> testExpr = () => default ?? "hello";
@@ -2276,7 +2276,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "False");
 

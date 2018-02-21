@@ -3658,7 +3658,7 @@ public interface IWorksheet
     int M1();
 }
 ";
-            var compDll = CreateCompilationWithMscorlibAndSystemCore(source, assemblyName: "NewOnInterface_FromMetadata");
+            var compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_FromMetadata");
 
             var source2 = @"
 using System;
@@ -3775,7 +3775,7 @@ public interface IWorksheet<T>
 {
 }
 ";
-            var compDll = CreateCompilationWithMscorlibAndSystemCore(source, assemblyName: "NewOnInterface_GenericTypeCoClass");
+            var compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_GenericTypeCoClass");
 
             var source2 = @"
 using System;
@@ -3852,7 +3852,7 @@ public class Wrapper
     }
 }
 ";
-            var compDll = CreateCompilationWithMscorlibAndSystemCore(source, assemblyName: "NewOnInterface_InaccessibleInterface");
+            var compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_InaccessibleInterface");
 
             var source2 = @"
 public class MainClass
@@ -3930,7 +3930,7 @@ public class Wrapper
     }
 }
 ";
-            var compDll = CreateCompilationWithMscorlibAndSystemCore(source, assemblyName: "NewOnInterface_InaccessibleCoClass");
+            var compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_InaccessibleCoClass");
 
             var source2 = @"
 public class MainClass
@@ -4008,7 +4008,7 @@ public class Wrapper
     }
 }
 ";
-            var compDll = CreateCompilationWithMscorlibAndSystemCore(source, assemblyName: "NewOnInterface_CoClass_Without_ComImport");
+            var compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_CoClass_Without_ComImport");
 
             var source2 = @"
 public class MainClass
@@ -4094,7 +4094,7 @@ public class Wrapper
     }
 }
 ";
-            var compDll = CreateCompilationWithMscorlibAndSystemCore(source, assemblyName: "NewOnInterface_StructTypeInCoClassAttribute");
+            var compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_StructTypeInCoClassAttribute");
 
             var source2 = @"
 public class MainClass
@@ -7965,7 +7965,7 @@ public class Test
         }
 }
 ";
-            var compilation1 = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(DeprecatedAttributeSourceTH1), Parse(source1) });
+            var compilation1 = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(DeprecatedAttributeSourceTH1), Parse(source1) });
 
             var source2 = @"
 namespace ConsoleApplication74
@@ -7980,7 +7980,7 @@ namespace ConsoleApplication74
     }
 }
 ";
-            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { compilation1.EmitToImageReference() });
+            var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { compilation1.EmitToImageReference() });
 
             compilation2.VerifyDiagnostics(
     // (8,13): warning CS0618: 'Test.Goo()' is obsolete: 'hello'
@@ -7991,7 +7991,7 @@ namespace ConsoleApplication74
     Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Bar()").WithArguments("Test.Bar()", "hi").WithLocation(9, 13)
 );
 
-            var compilation3 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { new CSharpCompilationReference(compilation1) });
+            var compilation3 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { new CSharpCompilationReference(compilation1) });
 
             compilation3.VerifyDiagnostics(
     // (8,13): warning CS0618: 'Test.Goo()' is obsolete: 'hello'
@@ -8048,7 +8048,7 @@ public class Test
         }
 }
 ";
-            var compilation1 = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(DeprecatedAttributeSourceTH2), Parse(source1) });
+            var compilation1 = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(DeprecatedAttributeSourceTH2), Parse(source1) });
 
             var source2 = @"
 namespace ConsoleApplication74
@@ -8063,7 +8063,7 @@ namespace ConsoleApplication74
     }
 }
 ";
-            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { compilation1.EmitToImageReference() });
+            var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { compilation1.EmitToImageReference() });
 
             compilation2.VerifyDiagnostics(
     // (8,13): warning CS0618: 'Test.Goo()' is obsolete: 'hello'
@@ -8074,7 +8074,7 @@ namespace ConsoleApplication74
     Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Bar()").WithArguments("Test.Bar()", "hi").WithLocation(9, 13)
 );
 
-            var compilation3 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { new CSharpCompilationReference(compilation1) });
+            var compilation3 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { new CSharpCompilationReference(compilation1) });
 
             compilation3.VerifyDiagnostics(
     // (8,13): warning CS0618: 'Test.Goo()' is obsolete: 'hello'

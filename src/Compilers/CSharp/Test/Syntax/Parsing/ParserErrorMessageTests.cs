@@ -3295,7 +3295,7 @@ public static class Extensions
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+            CreateCompilationWithMscorlib40AndSystemCore(test).GetDeclarationDiagnostics().Verify(
                 // (7,35): error CS1107: A parameter can only have one 'in' modifier
                 //     public static void M4(in this in int i) {}
                 Diagnostic(ErrorCode.ERR_DupParamMod, "in").WithArguments("in").WithLocation(7, 35),
@@ -3357,7 +3357,7 @@ public static class GenExtensions<X>
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+            CreateCompilationWithMscorlib40AndSystemCore(test).GetDeclarationDiagnostics().Verify(
                 // (10,40): error CS8328:  The parameter modifier 'out' cannot be used with 'this' 
                 //     public static void Foo<T,U,V>(this out U u) {}
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this"),
@@ -3434,7 +3434,7 @@ public static class GenExtensions<X>
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+            CreateCompilationWithMscorlib40AndSystemCore(test).GetDeclarationDiagnostics().Verify(
                 // (22,40): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
                 //     public static void Goo<T,U,V>(this params X[] xArr) {}
                 Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(22, 40),
@@ -3497,7 +3497,7 @@ public static class Extensions
     public static void Goo(int this) {}
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+            CreateCompilationWithMscorlib40AndSystemCore(test).GetDeclarationDiagnostics().Verify(
                 // (10,32): error CS1100: Method 'Goo' has a parameter modifier 'this' which is not on the first parameter
                 //     public static void Goo(int this) {}
                 Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("Goo").WithLocation(10, 32),
@@ -3550,7 +3550,7 @@ public static class GenExtensions<X>
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+            CreateCompilationWithMscorlib40AndSystemCore(test).GetDeclarationDiagnostics().Verify(
                 // (6,32): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
                 //     public static void Foo(ref out int i) {}
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(6, 32),
@@ -3595,7 +3595,7 @@ public static class TestType
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+            CreateCompilationWithMscorlib40AndSystemCore(test).GetDeclarationDiagnostics().Verify(
                 // (8,33): error CS1107: A parameter can only have one 'in' modifier
                 //     public static void Test5(in in int[] i) {}
                 Diagnostic(ErrorCode.ERR_DupParamMod, "in").WithArguments("in").WithLocation(8, 33),
@@ -3634,7 +3634,7 @@ public static void Method6<T, U, V>(ref in int i) { }
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+            CreateCompilationWithMscorlib40AndSystemCore(test).GetDeclarationDiagnostics().Verify(
                 // (6,32): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
                 // public static void Method2(ref in int i) { }
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(6, 32),
@@ -3676,7 +3676,7 @@ public static void Method6<T, U, V>(this in int i) { }
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(test).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(test).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3700,7 +3700,7 @@ public static void Method6<T, U, V>(params in int[] i) { }
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+            CreateCompilationWithMscorlib40AndSystemCore(test).GetDeclarationDiagnostics().Verify(
                 // (6,35): error CS1611: The params parameter cannot be declared as in
                 // public static void Method2(params in int[] i) { }
                 Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "in").WithArguments("in").WithLocation(6, 35),
@@ -3742,7 +3742,7 @@ public static void Method6<T, U, V>(out in int i) { }
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+            CreateCompilationWithMscorlib40AndSystemCore(test).GetDeclarationDiagnostics().Verify(
                 // (6,32): error CS8328:  The parameter modifier 'in' cannot be used with 'out'
                 // public static void Method2(out in int i) { }
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "out").WithLocation(6, 32),
@@ -5049,7 +5049,7 @@ public class Test
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+            CreateCompilationWithMscorlib40AndSystemCore(test).GetDeclarationDiagnostics().Verify(
                 // (4,45): error CS1611: The params parameter cannot be declared as ref
                 //     public static void ParamsWithRef(params ref int[] a) 
                 Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(4, 45),
@@ -5731,7 +5731,7 @@ public static class Program
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
+            CreateCompilationWithMscorlib40AndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
                // (4,30): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
                //     public static void Print(in this int p)
                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(4, 30),
@@ -5763,7 +5763,7 @@ public static class Program
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
+            CreateCompilationWithMscorlib40AndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
                // (4,30): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
                //     public static void Print(ref this int p)
                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("ref extension methods", "7.2").WithLocation(4, 30)

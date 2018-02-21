@@ -26,7 +26,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(source)
+            CreateCompilationWithMscorlib40AndSystemCore(source)
                 .VerifyDiagnostics(
 // (9,32): error CS0428: Cannot convert method group 'Main' to non-delegate type 'System.Linq.Expressions.Expression<System.Action>'. Did you intend to invoke the method?
 //         Expression<Action> e = Main;

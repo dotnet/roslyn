@@ -502,7 +502,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source, new[] { CSharpRef }).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, new[] { CSharpRef }).VerifyEmitDiagnostics(
                 // (7,9): error CS0411: The type arguments for method 'C.Goo<T>(ref T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Goo(ref d);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Goo").WithArguments("C.Goo<T>(ref T[])"));

@@ -1678,7 +1678,7 @@ namespace ExpressionTest
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 (c1, c2) => (Convert(c1) + c2)
 (c1, c2) => (Convert(c1) + c2)
@@ -1888,7 +1888,7 @@ public class C
             // The return type of F isn't considered until the delegate compatibility check,
             // which happens AFTER determining that the method group conversion exists.  As
             // a result, both methods are considered applicable and the "wrong" one is chosen.
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (8,11): error CS0407: 'dynamic C.F()' has the wrong return type
                 //         M(F);
                 Diagnostic(ErrorCode.ERR_BadRetType, "F").WithArguments("C.F()", "dynamic"));
@@ -1992,7 +1992,7 @@ public class Test
             // NOTE: It's pretty wacky that some of these implicit UDCs can only be applied via explicit (cast) conversions,
             // but that's the native behavior.  We need to replicate it for back-compat, but most of the strangeness will
             // not be spec'd.
-            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (46,17): error CS1660: Cannot convert lambda expression to type 'Q' because it is not a delegate type
                 //             q = () => 1; //CS1660
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "Q"),
@@ -2025,7 +2025,7 @@ class C
         (1, (2, 3)).F();
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(
                 source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 options: TestOptions.ReleaseExe);
@@ -2060,7 +2060,7 @@ class C
         t.H();
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (14,9): error CS1929: 'int' does not contain a definition for 'F' and the best extension method overload 'E.F(long)' requires a receiver of type 'long'
                 //         i.F();
@@ -2095,7 +2095,7 @@ class C
         (((int, int)?)t).G();
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (13,9): error CS1929: 'int' does not contain a definition for 'F' and the best extension method overload 'E.F(int?)' requires a receiver of type 'int?'
                 //         i.F();
@@ -2136,7 +2136,7 @@ static class C
         (e, (E?)e).H();
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (15,9): error CS1929: 'int' does not contain a definition for 'F' and the best extension method overload 'C.F(E)' requires a receiver of type 'E'
                 //         0.F();
@@ -2190,7 +2190,7 @@ static class C
         10L.U64();
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (21,9): error CS1929: 'int' does not contain a definition for 'S08' and the best extension method overload 'C.S08(sbyte)' requires a receiver of type 'sbyte'
                 //         1.S08();
@@ -2256,7 +2256,7 @@ static class C
         10L.U64();
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (21,9): error CS1929: 'int' does not contain a definition for 'S08' and the best extension method overload 'C.S08(sbyte?)' requires a receiver of type 'sbyte?'
                 //         1.S08();
@@ -2325,7 +2325,7 @@ class C
         a.G();
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (24,9): error CS1929: 'A' does not contain a definition for 'F' and the best extension method overload 'E.F(B)' requires a receiver of type 'B'
                 //         a.F();
@@ -2375,7 +2375,7 @@ class C
         (s, s).H();
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (26,9): error CS1929: '(A, B)' does not contain a definition for 'F' and the best extension method overload 'E.F((B, B))' requires a receiver of type '(B, B)'
                 //         (a, b).F();

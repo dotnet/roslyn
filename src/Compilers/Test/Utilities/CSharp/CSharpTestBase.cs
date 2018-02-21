@@ -318,47 +318,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string assemblyName = "",
             string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.WinRT, assemblyName, sourceFileName);
 
-        public static CSharpCompilation CreateCompilationWithMscorlib45AndCSruntime(
-            string source,
-            CSharpCompilationOptions options = null,
-            CSharpParseOptions parseOptions = null,
-            MetadataReference[] references = null)
-        {
-            var refs = new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef };
-
-            if (references != null)
-            {
-                refs.AddRange(references);
-            }
-
-            return CreateCompilationWithNone(new[] { Parse(source, options: parseOptions) }, refs, options);
-        }
-
-        public static CSharpCompilation CreateCompilationWithMscorlibAndSystemCore(
-            IEnumerable<SyntaxTree> source,
+        public static CSharpCompilation CreateCompilationWithMscorlib45AndCSharp(
+            CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
             string assemblyName = "",
-            string sourceFileName = "")
-        {
-            return CreateCompilationWithNone(source.ToArray(), (references != null) ? new[] { MscorlibRef, SystemCoreRef }.Concat(references) : new[] { MscorlibRef, SystemCoreRef }, options, assemblyName: assemblyName, sourceFileName: sourceFileName);
-        }
+            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib45AndCSharp, assemblyName, sourceFileName);
 
-        public static CSharpCompilation CreateCompilationWithMscorlibAndSystemCore(
-            string source,
+        public static CSharpCompilation CreateCompilationWithMscorlib40AndSystemCore(
+            CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            string assemblyName = "")
-        {
-            references = (references != null) ? new[] { MscorlibRef, SystemCoreRef }.Concat(references) : new[] { MscorlibRef, SystemCoreRef };
-
-            return CreateCompilationWithNone(
-                new[] { Parse(source, "", parseOptions) },
-                references: references,
-                options: options,
-                assemblyName: assemblyName);
-        }
+            string assemblyName = "",
+            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40AndSystemCore, assemblyName, sourceFileName);
 
         private static readonly ImmutableArray<MetadataReference> s_mscorlibRefArray = ImmutableArray.Create(MscorlibRef);
 

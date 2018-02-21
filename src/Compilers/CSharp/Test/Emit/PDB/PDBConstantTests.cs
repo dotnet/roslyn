@@ -27,7 +27,7 @@ public class T
     }
 }";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
             //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
@@ -92,7 +92,7 @@ public class T
     }
 }";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
             //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
@@ -201,7 +201,7 @@ public class C<S>
     }
 }";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             c.VerifyPdb("C`1.F", @"
 <symbols>

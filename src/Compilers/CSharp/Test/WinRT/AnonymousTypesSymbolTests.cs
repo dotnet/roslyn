@@ -595,7 +595,7 @@ class Query
 ";
             for (int i = 0; i < 100; i++)
             {
-                var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+                var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
 
                 var tasks = new Task[10];
                 for (int j = 0; j < tasks.Length; j++)

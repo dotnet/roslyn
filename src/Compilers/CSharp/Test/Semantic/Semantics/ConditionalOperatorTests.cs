@@ -1123,7 +1123,7 @@ namespace TernaryAndVarianceConversion
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"Testing with ternary test flag == True
 1
 TernaryAndVarianceConversion.Mammal

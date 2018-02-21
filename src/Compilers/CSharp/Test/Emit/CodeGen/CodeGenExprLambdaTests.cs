@@ -409,7 +409,7 @@ namespace System.Linq.Expressions
 {
     class Expression<T> { }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(program).Emit(new System.IO.MemoryStream()).Diagnostics
+            CreateCompilationWithMscorlib40AndSystemCore(program).Emit(new System.IO.MemoryStream()).Diagnostics
                 .Verify(
                 // (9,9): warning CS0436: The type 'System.Linq.Expressions.Expression<T>' in '' conflicts with the imported type 'System.Linq.Expressions.Expression<TDelegate>' in 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //         Expression<Func<int>> e = () => 1;
@@ -709,7 +709,7 @@ class Program
         Expression<Func<int, int[,]>> x = i => new[,] {{ i }};
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                     // (7,48): error CS0838: An expression tree may not contain a multidimensional array initializer
                     //         Expression<Func<int, int[,]>> x = i => new[,] {{ i }};
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer, "new[,] {{ i }}")
@@ -790,7 +790,7 @@ class Program : Program0
         Console.Write('k');
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(source), Parse(ExpressionTestLibrary) }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(source), Parse(ExpressionTestLibrary) }).VerifyDiagnostics(
                     // (265,19): error CS0831: An expression tree may not contain a base access
                     //             () => base.M(), "");
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBaseAccess, "base")
@@ -1497,7 +1497,7 @@ class Program
         Expression<Func<int>> efi2 = () => sizeof(S);
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
 
             c.VerifyDiagnostics(
                 // (9,43): error CS1944: An expression tree may not contain an unsafe pointer operation
@@ -2250,7 +2250,7 @@ public class D : C
         Expression<A> e = x => x.B2 += (B)null;
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source)
+            CreateCompilationWithMscorlib40AndSystemCore(source)
                 .VerifyDiagnostics(
                 // (11,32): error CS0832: An expression tree may not contain an assignment operator
                 //        Expression<A> e = x => x.B2 += (B)null;
@@ -2282,7 +2282,7 @@ class Program
         }
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
 
             c.VerifyDiagnostics(
                 // (10,46): error CS1944: An expression tree may not contain an unsafe pointer operation
@@ -2445,7 +2445,7 @@ public class Test
         Console.WriteLine(testExpr);
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text)
+            CreateCompilationWithMscorlib40AndSystemCore(text)
                 .VerifyDiagnostics(
                 // (10,48): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
                 //         Expression<Func<int>> testExpr = () => ModAdd2();
@@ -3154,7 +3154,7 @@ public class A
         Expression<Func<D>> f = () => delegate() { };
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text)
+            CreateCompilationWithMscorlib40AndSystemCore(text)
                 .VerifyDiagnostics(
                 // (9,39): error CS1945: An expression tree may not contain an anonymous method expression
                 //        Expression<Func<D>> f = () => delegate() { };
@@ -3293,7 +3293,7 @@ class Program
     Expression<Func<object>> testExpr = () => null ?? ""hello"";
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (6,47): error CS0845: An expression tree lambda may not contain a coalescing operator with a null literal left-hand side
                 //     Expression<Func<object>> testExpr = () => null ?? new object();
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null").WithLocation(6, 47));
@@ -3370,7 +3370,7 @@ class Program
 {
     Expression<Func<object>> testExpr = () => null ?? new object();
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (6,47): error CS0845: An expression tree lambda may not contain a coalescing operator with a null literal left-hand side
                 //     Expression<Func<object>> testExpr = () => null ?? new object();
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null"));
@@ -3386,7 +3386,7 @@ class C
 {
     object P { get; }  = ((Expression<Func<object>>)(() => null ?? new object())).Compile();
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (6,47): error CS0845: An expression tree lambda may not contain a coalescing operator with a null literal left-hand side
                 //     Expression<Func<object>> testExpr = () => null ?? new object();
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null"));
@@ -4162,7 +4162,7 @@ public class Program
         Expression<Func<EventHandler>> testExpr = () => new EventHandler(delegate { });
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source)
+            CreateCompilationWithMscorlib40AndSystemCore(source)
             .VerifyDiagnostics(
                 // (9,74): error CS1945: An expression tree may not contain an anonymous method expression
                 //        Expression<Func<EventHandler>> testExpr = () => new EventHandler(delegate { });
@@ -4231,7 +4231,7 @@ public class MemberInitializerTest
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (9,105): error CS1525: Invalid expression term 'int'
                 //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int"),

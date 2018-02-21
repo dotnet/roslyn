@@ -1399,7 +1399,7 @@ class C
 public delegate ref TR RefFunc<T1, TR>(T1 t1);
 public delegate ref TR RefFunc<T1, T2, TR>(T1 t1, T2 t2);
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text)
+            CreateCompilationWithMscorlib40AndSystemCore(text)
                 .GetDiagnostics()
                 // It turns out each of them is diagnosed with ErrorCode.ERR_InvalidExprTerm in the midst
                 // of a flurry of other syntax errors.
@@ -1508,7 +1508,7 @@ class TestClass
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (11,51): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
                 //         Expression<RefReturnIntDelegate> lambda = (y) => ref x;
                 Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "(y) => ref x").WithLocation(11, 51));
@@ -1531,7 +1531,7 @@ class TestClass
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (11,51): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
                 //         Expression<RefReturnIntDelegate> lambda = y => ref x;
                 Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "y => ref x").WithLocation(11, 51));
@@ -1578,7 +1578,7 @@ namespace TestRefReturns
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (32,71): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
                 //             Expression<Func<int>> lambda1 = () => TakeRefFunction(ref RefReturnFunction());
                 Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "RefReturnFunction()").WithLocation(32, 71),
@@ -1611,7 +1611,7 @@ class TestClass
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (8,74): error CS8159: Cannot return the range variable 'c' by reference
                 //         var x = from c in "TestValue" select (RefCharDelegate)(() => ref c);
                 Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "c").WithArguments("c").WithLocation(8, 74),
@@ -2003,7 +2003,7 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (13,41): error CS8930: Cannot use ref local 'rl' inside an anonymous method, lambda expression, or query expression
                 //         var d = new D(delegate { return rl; });
                 Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "rl").WithArguments("rl").WithLocation(13, 41),
@@ -2559,7 +2559,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (13,27): error CS8090: Lambda expressions that return by reference cannot be converted to expression trees
                 //         Expression<D> d = () => ref field;
                 Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "() => ref field").WithLocation(13, 27),
@@ -2593,7 +2593,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (16,32): error CS8091: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
                 //         Expression<D> e = c => c.P;
                 Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "c.P").WithLocation(16, 32),

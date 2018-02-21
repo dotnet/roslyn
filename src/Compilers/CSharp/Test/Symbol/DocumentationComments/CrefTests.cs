@@ -4920,7 +4920,7 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularWithDocumentationComments);
             compilation.VerifyDiagnostics(
                 // (15,16): warning CS1574: XML comment has cref attribute 'Derived.M2' that could not be resolved
                 // /// <see cref="Derived.M2" />
@@ -5075,7 +5075,7 @@ class SomeOtherClass
 }
 ";
             var tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             compilation.VerifyDiagnostics(
                 // (15,34): warning CS1574: XML comment has cref attribute 'GenericClass' that could not be resolved
                 // /// You may also like <see cref="GenericClass"/>. <see cref="GenericClass{T}"/> provides you some interesting methods.
@@ -5181,7 +5181,7 @@ class C<T>
 ";
 
             SyntaxTree tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");

@@ -1870,7 +1870,7 @@ static class E
     }
     internal static void F<T>(this T t) where T : A { }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (8,9): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'E.F<T>(T)'. There is no implicit reference conversion from 'B' to 'A'.
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "b.F").WithArguments("E.F<T>(T)", "A", "T", "B").WithLocation(8, 9));
@@ -1909,7 +1909,7 @@ static class E
 {
     internal static void F<T>(this T t) where T : A { }
 }";
-            compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (8,9): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'E.F<T>(T)'. There is no implicit reference conversion from 'B' to 'A'.
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "b.F").WithArguments("E.F<T>(T)", "A", "T", "B").WithLocation(8, 9));
@@ -3784,7 +3784,7 @@ class P
     double one = 1;
     public Func<int, int> z = (x => x + one);
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedExpressionSyntax>().First();

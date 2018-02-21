@@ -513,7 +513,7 @@ public class X
 ";
             // Dev11 doesn't use identity conversion and reports an error, which is wrong:
             // error CS0457: Ambiguous user defined conversions 'A<dynamic>.explicit operator T(A<dynamic>)' and 'A<object>.explicit operator T(A<object>)' when converting from 'S' to 'T'
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(605326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/605326")]
@@ -533,7 +533,7 @@ public class B : A<dynamic>
 }
 ";
             // TODO (tomat): This should report ERR_ConversionWithBase 
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [Fact]

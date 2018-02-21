@@ -1153,7 +1153,7 @@ class Class
     }
     static long name2 = name1 + name2;
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (11,30): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 // foreach (var name2 in "string")    // 0136 on name2
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2"),
@@ -1225,7 +1225,7 @@ partial class Class
         }
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (10,34): error CS1931: The range variable 'name' conflicts with a previous declaration of 'name'
                 // for (var name = from name in "string" orderby name select name; name != null; ) ;                     // 1931
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "name").WithArguments("name"),
@@ -1251,7 +1251,7 @@ class Class
         //End
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
 
@@ -1648,7 +1648,7 @@ partial class Class
         return null;
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
     // (26,34): error CS1930: The range variable 'name2' has already been declared
     //                              let name2 = 2               // 1930
     Diagnostic(ErrorCode.ERR_QueryDuplicateRangeVariable, "name2").WithArguments("name2").WithLocation(26, 34),
@@ -1674,7 +1674,7 @@ public class Class
         }
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (7,26): error CS1948: The range variable 'T' cannot have the same name as a method type parameter
                 // var q = from T in "" 
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "T").WithArguments("T"),

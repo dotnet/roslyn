@@ -8173,7 +8173,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
             var selectClauseNode = tree.FindNodeOrTokenByKind(SyntaxKind.SelectClause).AsNode() as SelectClauseSyntax;

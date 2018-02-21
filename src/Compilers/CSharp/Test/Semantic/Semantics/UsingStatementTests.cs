@@ -487,7 +487,7 @@ class Program
 }
 " + _managedClass;
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj");
             foreach (var x in symbols)
@@ -516,7 +516,7 @@ class Program
 }
 " + _managedStruct;
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj");
             foreach (var x in symbols)
@@ -544,7 +544,7 @@ class Test<T>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "u");
             foreach (var x in symbols)

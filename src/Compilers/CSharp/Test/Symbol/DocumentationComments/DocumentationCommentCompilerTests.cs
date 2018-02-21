@@ -4574,7 +4574,7 @@ class C<T>
 ";
 
             SyntaxTree tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree }, assemblyName: "Test");
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree }, assemblyName: "Test");
 
             var actualText = GetDocumentationCommentText(comp);
             var expectedText = @"

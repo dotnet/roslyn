@@ -1065,7 +1065,7 @@ public interface IAaa
 
 ";
 
-            var compilation = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            var compilation = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true));
             CompileAndVerify(compilation);
         }
 

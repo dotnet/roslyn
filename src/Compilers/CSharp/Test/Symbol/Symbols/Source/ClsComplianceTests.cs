@@ -2661,7 +2661,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [WorkItem(717146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/717146")]
@@ -2681,7 +2681,7 @@ public unsafe class C
 ";
 
             // NOTE: don't cascade to WRN_CLS_OverloadUnnamed.
-            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,26): warning CS3001: Argument type 'int*[]' is not CLS-compliant
                 //     public void M(int*[] t) {}
                 Diagnostic(ErrorCode.WRN_CLS_BadArgType, "t").WithArguments("int*[]"));
@@ -3492,7 +3492,7 @@ namespace A
 ";
             var libRef = CreateCompilation(libSource, assemblyName: "lib").EmitToImageReference();
 
-            CreateCompilationWithMscorlibAndSystemCore(source, new[] { libRef }).GetDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source, new[] { libRef }).GetDiagnostics();
         }
 
         [Fact]

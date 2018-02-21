@@ -30647,7 +30647,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -32753,7 +32753,7 @@ class C
     static void G(Func<int, bool> f, object o) { }
     static void G(C c, object o) { }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS1501: No overload for method 'G' takes 1 arguments
                 //         G(x => x > 0 && F(out var y) && y > 0);
@@ -32781,7 +32781,7 @@ class C
     static void G(Expression<Func<int, bool>> f, object o) { }
     static void G(C c, object o) { }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (7,9): error CS1501: No overload for method 'G' takes 1 arguments
                 //         G(x => x > 0 && F(out var y) && y > 0);
@@ -32808,7 +32808,7 @@ class C
         return true;
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (7,38): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //             group x > 1 && F(out var y) && y == null

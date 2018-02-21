@@ -219,7 +219,7 @@ public class X
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (12,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case IEnumerable<string> i: // error: subsumed by previous case
@@ -249,7 +249,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
