@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Value = value;
         }
 
-        public SyntaxTree[] GetSynatxTrees(CSharpParseOptions parseOptions, string sourceFileName = "")
+        public SyntaxTree[] GetSyntaxTrees(CSharpParseOptions parseOptions, string sourceFileName = "")
         {
             switch (Value)
             {

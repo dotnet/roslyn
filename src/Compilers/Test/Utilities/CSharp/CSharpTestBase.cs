@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(
                 assemblyName == "" ? GetUniqueName() : assemblyName,
-                source.GetSynatxTrees(parseOptions, sourceFileName),
+                source.GetSyntaxTrees(parseOptions, sourceFileName),
                 references,
                 options);
             CompilationExtensions.ValidateIOperations(createCompilationLambda);
