@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void EnumWithPrivateLiterals()
         {
-            CreateCompilationWithCustomILSource(
+            CreateCompilationWithILAndMscorlib40(
 @"class C
 {
     static void F(E e) { }
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
         private void EnumWithBogusUnderlyingType(string ilSource)
         {
-            CreateCompilationWithCustomILSource(ExampleSource, ilSource).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(ExampleSource, ilSource).VerifyDiagnostics(
                 // (6,15): error CS0570: 'E.A' is not supported by the language
                 //         E e = E.A; // Dev10: 'E.A' is not supported by the language
                 Diagnostic(ErrorCode.ERR_BindToBogus, "E.A").WithArguments("E.A"),

@@ -3408,7 +3408,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource("", il, references: WinRtRefs);
+            var compilation = CreateCompilationWithILAndMscorlib40("", il, references: WinRtRefs);
 
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Events");
             var instanceEvent = type.GetMember<EventSymbol>("Instance");

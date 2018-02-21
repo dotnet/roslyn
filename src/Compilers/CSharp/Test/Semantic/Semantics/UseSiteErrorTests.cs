@@ -2117,7 +2117,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithCustomILSource(source, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(source, il).VerifyDiagnostics(
                 // (9,35): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
                 //         var c2 = new Constructors(null);
                 Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int"),
@@ -2212,7 +2212,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithCustomILSource(source, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(source, il).VerifyDiagnostics(
                 // (8,22): error CS0570: 'Constructors.Constructors(?)' is not supported by the language
                 //         var c2 = new Constructors(null);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Constructors").WithArguments("Constructors.Constructors(?)"),

@@ -1829,7 +1829,7 @@ class Test2
     }
 }";
             // Same errors as in source case
-            var comp = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             comp.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"),
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"));
@@ -2818,7 +2818,7 @@ public class MainClass
     }
 }";
 
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (7,26): error CS1620: Argument 1 must be passed with the 'ref' keyword
@@ -4435,7 +4435,7 @@ class Test
 30
 31
 32";
-            var compilation = CreateCompilationWithCustomILSource(source2, source1, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source2, source1, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -5001,7 +5001,7 @@ class Test
    }
 }
 ";
-            CreateCompilationWithCustomILSource(source2, source1).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(source2, source1).VerifyDiagnostics(
                 // (15,21): error CS1503: Argument 1: cannot convert from 'long' to 'int'
                 //        value = a.P1[10L];         // CS1503
                 Diagnostic(ErrorCode.ERR_BadArgType, "10L").WithArguments("1", "long", "int"),

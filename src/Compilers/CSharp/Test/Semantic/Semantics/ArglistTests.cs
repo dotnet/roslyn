@@ -1025,7 +1025,7 @@ class Unused
 } // end of class A
 ";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
@@ -1496,7 +1496,7 @@ class E
         d(__arglist());
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
             compilation.VerifyDiagnostics(
                 // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'D'
                 //         d(__arglist());

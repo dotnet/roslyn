@@ -64,7 +64,7 @@ class Program
     }
 }";
 
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (6,15): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                 //         B.Goo("");
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int"));
@@ -120,7 +120,7 @@ class Program
     }
 }";
 
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (6,21): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                 //         new B().Goo("");
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int"));
@@ -185,7 +185,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateCompilationWithILAndMscorlib40(csharp, il);
             CompileAndVerify(comp).VerifyIL("Program.Main", @"
 {
   // Code size       23 (0x17)
@@ -255,7 +255,7 @@ class Program
     }
 }";
 
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (6,9): error CS1501: No overload for method 'M' takes 2 arguments
                 //         new B().M(1, 2); // This would work if B.M was not hide-by-name (since A.M is params)
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "2"));
@@ -310,7 +310,7 @@ public class C : B
 }";
 
             // NOTE: unlike overload resolution, override resolution does not respect hide-by-name.
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics();
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
         }
 
         [Fact]
@@ -366,7 +366,7 @@ public class C : B, I
 }";
 
             // NOTE: unlike overload resolution, implicit interface implementation resolution does not respect hide-by-name.
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics();
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
         }
 
         #endregion Methods
@@ -440,7 +440,7 @@ class Program
     }
 }";
 
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (6,25): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         int x = new B()[0];
                 Diagnostic(ErrorCode.ERR_BadArgType, "0").WithArguments("1", "int", "string"));
@@ -517,7 +517,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateCompilationWithILAndMscorlib40(csharp, il);
             CompileAndVerify(comp).VerifyIL("Program.Main", @"
 {
   // Code size       25 (0x19)
@@ -603,7 +603,7 @@ class Program
     }
 }";
 
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (6,17): error CS1501: No overload for method 'this' takes 2 arguments
                 //         int x = new B()[1, 2]; // This would work if B.Item was not hide-by-name (since A.Item is params)
                 Diagnostic(ErrorCode.ERR_BadArgCount, "new B()[1, 2]").WithArguments("this", "2"));
@@ -672,7 +672,7 @@ public class C : B
 }";
 
             // NOTE: unlike overload resolution, override resolution does not respect hide-by-name.
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics();
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -742,7 +742,7 @@ public class C : B, I
 }";
 
             // NOTE: unlike overload resolution, implicit interface implementation resolution does not respect hide-by-name.
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics();
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
         }
 
         #endregion Indexers

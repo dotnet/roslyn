@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     internal static C F = null;
     internal static S G = null;
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, appendDefaultHeader: false);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, appendDefaultHeader: false);
 
             var refType = compilation.Assembly.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
             var type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("F").Type;

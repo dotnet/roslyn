@@ -1196,7 +1196,7 @@ class C
         }
     }
 }";
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (6,16): error CS1674: 'ConvertibleToIDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var d = new ConvertibleToIDisposable()").WithArguments("ConvertibleToIDisposable"));
         }

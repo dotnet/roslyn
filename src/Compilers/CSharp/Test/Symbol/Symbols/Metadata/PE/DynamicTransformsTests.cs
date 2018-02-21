@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(String.Empty, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(String.Empty, il);
             var classA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
             var classB = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
 
@@ -547,7 +547,7 @@ str
 3
 str";
 
-            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
             var classDerived = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");

@@ -592,7 +592,7 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var method = type.GetMember<MethodSymbol>("Incr");
@@ -648,7 +648,7 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
 
             var baseType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var baseMethod = baseType.GetMember<MethodSymbol>("M");
@@ -699,7 +699,7 @@ class Test
         }
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.UnsafeReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, verify: Verification.Fails);
         }
@@ -733,7 +733,7 @@ class Test
         }
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.UnsafeReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, verify: Verification.Fails);
         }

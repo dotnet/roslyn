@@ -2907,7 +2907,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(text, il);
+            var comp = CreateCompilationWithILAndMscorlib40(text, il);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -2999,7 +2999,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(text, il);
+            var comp = CreateCompilationWithILAndMscorlib40(text, il);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 

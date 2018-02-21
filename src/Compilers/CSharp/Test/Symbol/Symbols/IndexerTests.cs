@@ -526,7 +526,7 @@ class C : I1
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (4,12): warning CS0473: Explicit interface implementation 'C.I1.this[int]' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
                 Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "this").WithArguments("C.I1.this[int]"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'I1.this[int]'
@@ -587,7 +587,7 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             compilation.VerifyDiagnostics(
                 // (4,16): warning CS0108: 'Derived.this[int]' hides inherited member 'Base.this[int]'. Use the new keyword if hiding was intended.
@@ -711,7 +711,7 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             // As in dev10, we report only the first hidden member.
             compilation.VerifyDiagnostics(
@@ -785,7 +785,7 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (4,25): error CS0462: The inherited members 'Base.this[int]' and 'Base.this[int]' have the same signature in type 'Derived', so they cannot be overridden
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "this").WithArguments("Base.this[int]", "Base.this[int]", "Derived"));
 
@@ -2478,7 +2478,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
                 // (7,34): error CS0121: The call is ambiguous between the following methods or properties: 'SameSignaturesDifferentNames.this[int, long]' and 'SameSignaturesDifferentNames.this[int, long]'
                 Diagnostic(ErrorCode.ERR_AmbigCall, "s[0, 1]").WithArguments("SameSignaturesDifferentNames.this[int, long]", "SameSignaturesDifferentNames.this[int, long]"));
         }

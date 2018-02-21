@@ -1423,7 +1423,7 @@ class Class2 : Class1
 {
 }";
 
-            CompileAndVerify(CreateCompilationWithCustomILSource(csSource, ilSource), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithILAndMscorlib40(csSource, ilSource), symbolValidator: module =>
             {
                 var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType();
                 Assert.Equal("Class1", class1.ToTestDisplayString());
@@ -1450,7 +1450,7 @@ class Class2 : Class1
 
             // Switch order of API calls
 
-            CompileAndVerify(CreateCompilationWithCustomILSource(csSource, ilSource), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithILAndMscorlib40(csSource, ilSource), symbolValidator: module =>
             {
                 var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType();
                 Assert.Equal("Class1", class1.ToTestDisplayString());
@@ -1504,7 +1504,7 @@ class Class2 : Class1
 } // end of class MyAttribute
 ";
 
-            var c = CreateCompilationWithCustomILSource(@"
+            var c = CreateCompilationWithILAndMscorlib40(@"
 [MyAttribute(typeof(MyAttribute))]
 public class Test
 {

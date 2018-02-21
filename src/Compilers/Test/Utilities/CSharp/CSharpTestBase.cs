@@ -266,15 +266,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         #region Compilation Factories
 
-        public static CSharpCompilation CreateStandardCompilationWithCustomILSource(
-            string source,
+        public static CSharpCompilation CreateCompilationWithIL(
+            CSharpTestSource source,
             string ilSource,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
-            bool appendDefaultHeader = true) => CreateCompilationWithCustomILSource(source, ilSource, TargetFramework.Standard, references, options, appendDefaultHeader);
+            bool appendDefaultHeader = true) => CreateCompilationWithILAndMscorlib40(source, ilSource, TargetFramework.Standard, references, options, appendDefaultHeader);
 
-        public static CSharpCompilation CreateCompilationWithCustomILSource(
-            string source,
+        public static CSharpCompilation CreateCompilationWithILAndMscorlib40(
+            CSharpTestSource source,
             string ilSource,
             TargetFramework targetFramework = TargetFramework.Mscorlib40,
             IEnumerable<MetadataReference> references = null,

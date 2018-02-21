@@ -235,7 +235,7 @@ class CT_0_T : IT<object>.I0.IT { }
 class CT_T_0 : IT<object>.IT.I0 { }
 class CT_TU_T : IT<object>.ITU<int>.IT { }
 ";
-            var compilation1 = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var compilation1 = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             compilation1.VerifyDiagnostics(
                 // (2,7): error CS0648: 'I0.IT<T>.I0' is a type not supported by the language
                 // class C0_T_0 : I0.IT<object>.I0 { }

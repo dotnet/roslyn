@@ -2632,7 +2632,7 @@ public class D : B, I
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.DebugDll);
 
             var verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {
@@ -2727,7 +2727,7 @@ public class D : B<char>, I<char>
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.DebugDll);
 
             var global = comp.GlobalNamespace;
             var derivedType = global.GetMember<NamedTypeSymbol>("D");

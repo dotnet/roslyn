@@ -4214,7 +4214,7 @@ public class MainClass
     }
 }";
 
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
 
             compilation.VerifyDiagnostics();
         }
@@ -4246,7 +4246,7 @@ public class MainClass
     }
 }";
 
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
@@ -4286,7 +4286,7 @@ public class MainClass
     }
 }";
 
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (6,17): error CS1613: The managed coclass wrapper class 'YorksheetClass' for interface 'IWorksheet' cannot be found (are you missing an assembly reference?)
@@ -4326,7 +4326,7 @@ public class MainClass
     }
 }";
 
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (6,17): error CS1639: The managed coclass wrapper class signature 'WorksheetClass<>' for interface 'IWorksheet' is not a valid class name signature

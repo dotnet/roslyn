@@ -64,7 +64,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il);
             var emitResult = comp.Emit(new System.IO.MemoryStream());
             emitResult.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_BadDelegateConstructor, "Goo").WithArguments("F"));
         }
@@ -7971,7 +7971,7 @@ class Derived2 : Base_VirtGet_Set
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(text, s_typeWithMixedProperty);
+            var comp = CreateCompilationWithILAndMscorlib40(text, s_typeWithMixedProperty);
             comp.VerifyDiagnostics(
                 // (4,25): error CS0506: 'Derived2.Prop.set': cannot override inherited member 'Base_VirtGet_Set.Prop.set' because it is not marked virtual, abstract, or override
                 //         get { return base.Prop; }
@@ -8002,7 +8002,7 @@ class Derived2 : Base_VirtGet_Set
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(text, s_typeWithMixedProperty);
+            var comp = CreateCompilationWithILAndMscorlib40(text, s_typeWithMixedProperty);
             comp.VerifyDiagnostics();
         }
 
@@ -19633,7 +19633,7 @@ namespace ForwardingNamespace
 {
 	.assembly extern Destination2
 }";
-            var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
+            var compilation = CreateCompilationWithILAndMscorlib40(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
                 // (8,29): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -19696,7 +19696,7 @@ namespace ForwardingNamespace
 	.assembly extern Destination2
 }";
 
-            var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
+            var compilation = CreateCompilationWithILAndMscorlib40(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
                 // (8,29): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.

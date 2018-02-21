@@ -662,7 +662,7 @@ public class M<T> : L<T>
 
 } // end of class D
 ";
-            var compilation = CreateCompilationWithCustomILSource("", text);
+            var compilation = CreateCompilationWithILAndMscorlib40("", text);
 
             var globalNamespace = compilation.GlobalNamespace;
 

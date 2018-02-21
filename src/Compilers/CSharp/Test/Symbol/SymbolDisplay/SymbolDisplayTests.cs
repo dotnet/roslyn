@@ -4497,7 +4497,7 @@ enum E2 // Identical to E1, but has [Flags]
 ";
 
             var text = @"";
-            var comp = CreateCompilationWithCustomILSource(text, il);
+            var comp = CreateCompilationWithILAndMscorlib40(text, il);
 
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeExplicitInterface);

@@ -1087,7 +1087,7 @@ class E : Interface
 }
 ";
 
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics(
                 // (2,7): error CS0535: 'C' does not implement interface member 'Interface.raise_e(object, object)'
                 // class C : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("C", "Interface.raise_e(object, object)"),
@@ -1527,7 +1527,7 @@ class C
 }
 ";
 
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics(
                 // (7,11): error CS1545: Property, indexer, or event 'Base.Event1' is not supported by the language; try directly calling accessor methods 'Base.Event0.add' or 'Base.Event7.add'
                 //         b.Event1 += null;
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Event1").WithArguments("Base.Event1", "Base.Event0.add", "Base.Event7.add"),
@@ -1614,7 +1614,7 @@ class C
 }
 ";
 
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics(
                 // (7,11): error CS0571: 'Base.Event2.add': cannot explicitly call operator or accessor
                 //         b.add_Event2(null);
                 Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "add_Event2").WithArguments("Base.Event2.add"));
@@ -1709,7 +1709,7 @@ class C
 }
 ";
 
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics(
                 // (6,11): error CS1545: Property, indexer, or event 'Base.Event1' is not supported by the language; try directly calling accessor methods 'Base.add_Event1(System.Action)' or 'Base.remove_Event(System.Action<int>)'
                 //         b.Event1 += null;
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Event1").WithArguments("Base.Event1", "Base.add_Event1(System.Action)", "Base.remove_Event(System.Action<int>)"),
@@ -1795,7 +1795,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (6,9): error CS0122: 'Base.Event1.add' is inaccessible due to its protection level

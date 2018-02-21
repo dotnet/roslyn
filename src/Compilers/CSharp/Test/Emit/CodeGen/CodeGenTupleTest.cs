@@ -639,7 +639,7 @@ val: -2
         [Fact]
         public void BadTupleNameMetadata()
         {
-            var comp = CreateCompilationWithCustomILSource("",
+            var comp = CreateCompilationWithILAndMscorlib40("",
 @"
 .assembly extern mscorlib { }
 .assembly extern System.ValueTuple
@@ -734,7 +734,7 @@ val: -2
         [Fact]
         public void MetadataForPartiallyNamedTuples()
         {
-            var comp = CreateCompilationWithCustomILSource("",
+            var comp = CreateCompilationWithILAndMscorlib40("",
 @"
 .assembly extern mscorlib { }
 .assembly extern System.ValueTuple
@@ -832,7 +832,7 @@ val: -2
         [Fact]
         public void NestedTuplesNoAttribute()
         {
-            var comp = CreateCompilationWithCustomILSource("",
+            var comp = CreateCompilationWithILAndMscorlib40("",
 @"
 .assembly extern mscorlib { }
 .assembly extern System.ValueTuple
@@ -19441,7 +19441,7 @@ public class C : Base2
     public override (int notA, int notB) M() { return (1, 2); }
 }";
 
-            var compMatching = CreateCompilationWithCustomILSource(sourceWithMatchingNames, ilSource,
+            var compMatching = CreateCompilationWithILAndMscorlib40(sourceWithMatchingNames, ilSource,
                 targetFramework: TargetFramework.Mscorlib46Extended,
                 options: TestOptions.DebugDll);
 
@@ -19453,7 +19453,7 @@ public class C : Base2
     public override (int a, int b) M() { return (1, 2); }
 }";
 
-            var compDifferent1 = CreateCompilationWithCustomILSource(sourceWithDifferentNames1, ilSource,
+            var compDifferent1 = CreateCompilationWithILAndMscorlib40(sourceWithDifferentNames1, ilSource,
                 targetFramework: TargetFramework.Mscorlib46Extended,
                 options: TestOptions.DebugDll);
 
@@ -19469,7 +19469,7 @@ public class C : Base2
     public override (int, int) M() { return (1, 2); }
 }";
 
-            var compDifferent2 = CreateCompilationWithCustomILSource(sourceWithDifferentNames2, ilSource,
+            var compDifferent2 = CreateCompilationWithILAndMscorlib40(sourceWithDifferentNames2, ilSource,
                 targetFramework: TargetFramework.Mscorlib46Extended,
                 options: TestOptions.DebugDll);
 

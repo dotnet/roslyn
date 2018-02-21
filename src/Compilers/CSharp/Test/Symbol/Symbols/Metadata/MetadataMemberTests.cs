@@ -430,7 +430,7 @@ class B {
 ";
             var csharp = @"";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             var namespaceA = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("A");
 
@@ -454,7 +454,7 @@ class B {
 ";
             var csharp = @"";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             var namespaceA = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("A");
 
@@ -471,7 +471,7 @@ class B {
         {
             var csharp = @"";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, VTableGapClassIL);
+            var comp = CreateCompilationWithILAndMscorlib40(csharp, VTableGapClassIL);
             comp.VerifyDiagnostics();
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Class");
@@ -522,7 +522,7 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(csharp, VTableGapClassIL);
+            var comp = CreateCompilationWithILAndMscorlib40(csharp, VTableGapClassIL);
             comp.VerifyDiagnostics(
                 // (8,11): error CS1061: 'Class' does not contain a definition for '_VtblGap1_1' and no extension method '_VtblGap1_1' accepting a first argument of type 'Class' could be found (are you missing a using directive or an assembly reference?)
                 //         c._VtblGap1_1();
@@ -567,7 +567,7 @@ class Explicit : Interface
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, VTableGapInterfaceIL);
+            var comp = CreateCompilationWithILAndMscorlib40(csharp, VTableGapInterfaceIL);
             comp.VerifyDiagnostics(
                 // (2,7): error CS0535: 'Empty' does not implement interface member 'Interface.SetterIsGap'
                 // class Empty : Interface

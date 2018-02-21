@@ -484,7 +484,7 @@ class Test : StaticModClass
 } // end of class C
 ";
 
-            var comp = CreateCompilationWithCustomILSource("", ilSource);
+            var comp = CreateCompilationWithILAndMscorlib40("", ilSource);
 
             var stateMachineClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<NamedTypeSymbol>().Single();
             Assert.Equal("<I<System.Int32>.F>d__0", stateMachineClass.Name); // The name has been reconstructed correctly.
@@ -550,7 +550,7 @@ class Test : StaticModClass
     .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
   }
 }";
-            var comp = CreateCompilationWithCustomILSource("", ilSource);
+            var comp = CreateCompilationWithILAndMscorlib40("", ilSource);
             comp.VerifyDiagnostics();
             var builder = ArrayBuilder<string>.GetInstance();
             var module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;

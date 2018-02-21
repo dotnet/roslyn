@@ -464,7 +464,7 @@ public class Derived : Base
     public override void Foo(int x) { }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             // No diagnostics - just choose the overload with fewer custom modifiers
             compilation.VerifyDiagnostics();
@@ -518,7 +518,7 @@ public class Derived : Base
     public override char Foo(int x) { return 'a'; }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             compilation.VerifyDiagnostics(
                 // (4,26): error CS0508: 'Derived.Foo(int)': return type must be 'long' to match overridden member 'Base.Foo(int)'
@@ -584,7 +584,7 @@ public class Derived : Base
     public override int P { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             // No diagnostics - just choose the overload with fewer custom modifiers
             compilation.VerifyDiagnostics();
@@ -651,7 +651,7 @@ public class Derived : Base
     public override int P { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             compilation.VerifyDiagnostics(
                 // (4,25): error CS1715: 'Derived.P': type must be 'char' to match overridden member 'Base.P'
@@ -718,7 +718,7 @@ public class Derived : Base
     public override int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             // No diagnostics - just choose the overload with fewer custom modifiers
             compilation.VerifyDiagnostics();
@@ -791,7 +791,7 @@ public class Derived : Base
     public override int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             compilation.VerifyDiagnostics(
                 // (4,25): error CS1715: 'Derived.this[int]': type must be 'char' to match overridden member 'Base.this[int]'
@@ -876,7 +876,7 @@ public class Derived : Base
     void UseEvent() { E(null); }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             // No diagnostics - just choose the overload with fewer custom modifiers
             compilation.VerifyDiagnostics();
@@ -957,7 +957,7 @@ public class Derived : Base
     void UseEvent() { E(null); }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             compilation.VerifyDiagnostics(
                 // (4,48): error CS1715: 'Derived.E': type must be 'System.Action<char[]>' to match overridden member 'Base.E'
@@ -1129,7 +1129,7 @@ class M
     }
 }
 ";
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // CONSIDER: Dev10 reports CS1957, even though the runtime has no trouble distinguishing the potentially
                 // overridden methods.
 

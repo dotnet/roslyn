@@ -1679,7 +1679,7 @@ class C : PublicClass.ProtectedAndInternalClass
 {
 }
 ";
-            CreateCompilationWithCustomILSource(csharp, il, appendDefaultHeader: false).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il, appendDefaultHeader: false).VerifyDiagnostics(
                 // (2,23): error CS0122: 'PublicClass.ProtectedAndInternalClass' is inaccessible due to its protection level
                 // class C : PublicClass.ProtectedAndInternalClass
                 Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedAndInternalClass").WithArguments("PublicClass.ProtectedAndInternalClass"));
@@ -1723,7 +1723,7 @@ class C : PublicClass.ProtectedAndInternalClass
 
 public class D : I<int> {}
 public interface I2 : I<int> {}";
-            CreateCompilationWithCustomILSource(csharp, il, appendDefaultHeader: false).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il, appendDefaultHeader: false).VerifyDiagnostics(
                 // (10,14): error CS0648: 'I<int>' is a type not supported by the language
                 // public class D : I<int> {}
                 Diagnostic(ErrorCode.ERR_BogusType, "D").WithArguments("I<int>"),
@@ -1777,7 +1777,7 @@ public interface I2 : I<int> {}";
         I<dynamic> t = C.x;
     }
 }";
-            CreateCompilationWithCustomILSource(csharp, il, appendDefaultHeader: false, targetFramework: TargetFramework.Standard).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il, appendDefaultHeader: false, targetFramework: TargetFramework.Standard).VerifyDiagnostics(
                 // (4,30): error CS0648: 'I<dynamic>' is a type not supported by the language
                 //     static void F(I<dynamic> x)
                 Diagnostic(ErrorCode.ERR_BogusType, "x").WithArguments("I<dynamic>"),
