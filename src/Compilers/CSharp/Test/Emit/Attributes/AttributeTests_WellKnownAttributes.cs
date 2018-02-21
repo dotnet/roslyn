@@ -8562,7 +8562,7 @@ public class C
         #region SkipLocalsInitAttribute
 
         [Fact]
-        public void SkipLocalsInitOnMethod()
+        public void SkipLocalsInitAttributeOnMethod()
         {
             var source = @"
 namespace System.Runtime.CompilerServices
@@ -8726,6 +8726,89 @@ public class C
             Assert.NotEqual(methodSkip, default);
 
             Assert.NotEqual(methodInit.RelativeVirtualAddress, methodSkip.RelativeVirtualAddress);
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnClassDoesNotPropagateToMethod()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+public class C
+{
+    public void M()
+    {
+        int x = 2;
+        x = x + x + x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source);
+
+            comp.VerifyIL("C.M", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnAssemblyDoesNotPropagateToMethod()
+        {
+            var source = @"
+[assembly: System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    public void M()
+    {
+        int x = 2;
+        x = x + x + x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source);
+
+            comp.VerifyIL("C.M", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
         }
 
         #endregion

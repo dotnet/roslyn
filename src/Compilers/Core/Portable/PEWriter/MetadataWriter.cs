@@ -4180,7 +4180,6 @@ namespace Microsoft.Cci
 
         private class ByteSequenceBoolTupleComparer : IEqualityComparer<(ImmutableArray<byte>, bool)>
         {
-            private static ByteSequenceComparer _byteSequenceComparer = ByteSequenceComparer.Instance;
             internal static readonly ByteSequenceBoolTupleComparer Instance = new ByteSequenceBoolTupleComparer();
 
             bool IEqualityComparer<(ImmutableArray<byte>, bool)>.Equals((ImmutableArray<byte>, bool) x, (ImmutableArray<byte>, bool) y)
@@ -4190,7 +4189,7 @@ namespace Microsoft.Cci
 
             int IEqualityComparer<(ImmutableArray<byte>, bool)>.GetHashCode((ImmutableArray<byte>, bool) x)
             {
-                return Hash.Combine(x.Item1.GetHashCode(), x.Item2.GetHashCode());
+                return Hash.Combine(ByteSequenceComparer.GetHashCode(x.Item1), x.Item2.GetHashCode());
             }
         }
     }
