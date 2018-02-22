@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             Assert.Equal("", errorOutput);
             Assert.Equal(2, output.Length);
-            Assert.Equal("Microsoft (R) Roslyn C# Compiler version " + FileVersionInfo.GetVersionInfo(_host.GetType().Assembly.Location).FileVersion, output[0]);
+            Assert.Equal(string.Format(CSharpInteractiveEditorResources.Microsoft_R_Roslyn_CSharp_Compiler_version_0, FileVersionInfo.GetVersionInfo(_host.GetType().Assembly.Location).FileVersion), output[0]);
             // "Type "#help" for more information."
             Assert.Equal(FeaturesResources.Type_Sharphelp_for_more_information, output[1]);
 
@@ -853,7 +854,7 @@ typeof(C).Assembly.GetName()");
 
             var output = SplitLines(ReadOutputToEnd());
             Assert.Equal(2, output.Length);
-            Assert.Equal("Loading context from '" + Path.GetFileName(rspFile.Path) + "'.", output[0]);
+            Assert.Equal($"{ string.Format(FeaturesResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }", output[0]);
             Assert.Equal($"[{assemblyName}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", output[1]);
         }
 
@@ -906,7 +907,7 @@ Console.Write(""OK"")
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", ReadErrorOutputToEnd());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"Loading context from '{Path.GetFileName(rspFile.Path)}'.
+$@"{ string.Format(FeaturesResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) } 
 OK
 ", ReadOutputToEnd());
         }
@@ -929,11 +930,11 @@ OK
             Execute("new Process()");
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-{initFile.Path}(1,3): error CS1002: ; expected
+{initFile.Path}(1,3): error CS1002: { CSharpResources.ERR_SemicolonExpected }
 ", ReadErrorOutputToEnd());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Loading context from '{Path.GetFileName(rspFile.Path)}'.
+{ string.Format(FeaturesResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
 [System.Diagnostics.Process]
 ", ReadOutputToEnd());
         }
@@ -955,7 +956,7 @@ c
             Assert.Equal("", ReadErrorOutputToEnd());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"Loading context from '{Path.GetFileName(rspFile.Path)}'.
+$@"{ string.Format(FeaturesResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
 ""a""
 ""b""
 ""c""
@@ -986,8 +987,8 @@ WriteLine(new Complex(2, 6).Real);
         {
             Execute("nameof(Microsoft.CodeAnalysis)");
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
-(1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)",
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "CodeAnalysis", "Microsoft") }",
                 ReadErrorOutputToEnd());
 
             Assert.Equal("", ReadOutputToEnd());

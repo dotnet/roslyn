@@ -35,8 +35,17 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            var verifier = CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            verifyParameter(verifier.Compilation);
+
+            verifier = CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            verifyParameter(verifier.Compilation);
+
+            void verifyParameter(Compilation comp)
+            {
+                var m = (IMethodSymbol)comp.GetMember("TestRef.M");
+                Assert.Empty(m.Parameters[0].GetAttributes());
+            }
         }
 
         [Fact]

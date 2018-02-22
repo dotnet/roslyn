@@ -10,6 +10,7 @@ using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
@@ -256,6 +257,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             foreach (var project in inOrderToPush)
             {
                 project.PushingChangesToWorkspace = true;
+
+                Logger.Log(FunctionId.AbstractProject_PushedToWorkspace,
+                    KeyValueLogMessage.Create(LogType.Trace, m =>
+                    {
+                        m[AbstractProject.ProjectGuidPropertyName] = project.Guid;
+                    }));
             }
 
             using (WorkspaceServices.GetService<IGlobalOperationNotificationService>()?.Start("Add Project to Workspace"))
