@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using static Roslyn.Test.Utilities.RuntimeEnvironmentUtilities;
 
 namespace Roslyn.Test.Utilities.CoreClr
@@ -99,14 +100,14 @@ namespace Roslyn.Test.Utilities.CoreClr
             throw new NotImplementedException();
         }
 
-        public void PeVerify()
+        public void Verify(Verification verification)
         {
             var emitData = GetEmitData();
             emitData.RuntimeData.PeverifyRequested = true;
             // TODO(https://github.com/dotnet/coreclr/issues/295): Implement peverify
         }
 
-        public string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true)
+        public string[] VerifyModules(string[] modulesToVerify)
         {
             // TODO(https://github.com/dotnet/coreclr/issues/295): Implement peverify
             return null;

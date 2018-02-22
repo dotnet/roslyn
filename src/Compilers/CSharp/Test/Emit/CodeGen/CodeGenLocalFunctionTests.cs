@@ -1298,7 +1298,7 @@ class C
 1");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
         public void CaptureVarNestedLambdaSkipScope7()
         {

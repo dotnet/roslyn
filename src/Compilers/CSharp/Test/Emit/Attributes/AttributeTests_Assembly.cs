@@ -1679,7 +1679,7 @@ class Program
             Assert.False(diagnostics.Any());
         }
 
-        [Fact, WorkItem(530585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530585")]
+        [ConditionalFact(typeof(DesktopOnly)), WorkItem(530585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530585")]
         public void Bug16465()
         {
             string mod =
