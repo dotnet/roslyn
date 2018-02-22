@@ -22,9 +22,10 @@ namespace Test.Utilities
         [Flags]
         protected enum ReferenceFlags
         {
-            None = 0b00,
-            RemoveCodeAnalysis = 0b01,
-            RemoveImmutable = 0b10
+            None = 0b000,
+            RemoveCodeAnalysis = 0b001,
+            RemoveImmutable = 0b010,
+            RemoveSystemData = 0b100
         }
 
         private static readonly MetadataReference s_corlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
@@ -419,14 +420,12 @@ namespace Test.Utilities
                 .AddMetadataReference(projectId, s_corlibReference)
                 .AddMetadataReference(projectId, s_systemCoreReference)
                 .AddMetadataReference(projectId, s_systemXmlReference)
-                .AddMetadataReference(projectId, s_systemXmlDataReference)
                 .AddMetadataReference(projectId, s_codeAnalysisReference)
                 .AddMetadataReference(projectId, SystemRuntimeFacadeRef)
                 .AddMetadataReference(projectId, SystemThreadingFacadeRef)
                 .AddMetadataReference(projectId, SystemThreadingTaskFacadeRef)
                 .AddMetadataReference(projectId, s_workspacesReference)
                 .AddMetadataReference(projectId, s_systemDiagnosticsDebugReference)
-                .AddMetadataReference(projectId, s_systemDataReference)
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, parseOptions)
                 .GetProject(projectId);
@@ -440,6 +439,12 @@ namespace Test.Utilities
             if ((referenceFlags & ReferenceFlags.RemoveImmutable) != ReferenceFlags.RemoveImmutable)
             {
                 project = project.AddMetadataReference(s_immutableCollectionsReference);
+            }
+
+            if ((referenceFlags & ReferenceFlags.RemoveSystemData) != ReferenceFlags.RemoveSystemData)
+            {
+                project = project.AddMetadataReference(s_systemDataReference)
+                    .AddMetadataReference(s_systemXmlDataReference);
             }
 
             if (language == LanguageNames.VisualBasic)
