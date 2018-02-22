@@ -259,10 +259,16 @@ namespace RoslynCompletionPrototype
         {
             var missingItems = new List<EditorCompletion.CompletionItem>();
             int filteredListIndex = 0;
+            var filtersPresentInIncludedItems = new HashSet<CompletionFilter>();
             for (int originalListIndex = 0; originalListIndex < originalList.Length; originalListIndex++)
             {
                 if (filteredListIndex < filteredList.Count && originalList[originalListIndex] == filteredList[filteredListIndex].CompletionItem)
                 {
+                    foreach (var filter in filteredList[filteredListIndex].CompletionItem.Filters)
+                    {
+                        filtersPresentInIncludedItems.Add(filter);
+                    }
+
                     filteredListIndex++;
                 }
                 else
@@ -285,25 +291,10 @@ namespace RoslynCompletionPrototype
 
             var resultingFilters = new List<CompletionFilterWithState>();
 
-            if (filters.All(f => f.IsSelected) || filters.All(f => !f.IsSelected))
-            {
-                return filters;
-            }
-
             foreach (var filter in filters)
             {
-                if (filter.IsSelected)
-                {
-                    resultingFilters.Add(new CompletionFilterWithState(filter.Filter, isAvailable: true, isSelected: true));
-                }
-                else if (filtersPresentInMissingItems.Contains(filter.Filter))
-                {
-                    resultingFilters.Add(new CompletionFilterWithState(filter.Filter, isAvailable: true, filter.IsSelected));
-                }
-                else
-                {
-                    resultingFilters.Add(new CompletionFilterWithState(filter.Filter, isAvailable: false, filter.IsSelected));
-                }
+                var isAvailable = filter.IsSelected || filtersPresentInIncludedItems.Contains(filter.Filter) || filtersPresentInMissingItems.Contains(filter.Filter);
+                resultingFilters.Add(filter.WithAvailability(isAvailable));
             }
 
             return resultingFilters.ToImmutableArray();
@@ -476,7 +467,7 @@ namespace RoslynCompletionPrototype
             if (triggerReason == CompletionTriggerReason.Insertion)
             {
                 // TODO: Stop completion when that API is available
-                return new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0);
+                return new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0, filters);
             }
 
             if (activeFilters.Length > 0)
@@ -485,7 +476,7 @@ namespace RoslynCompletionPrototype
                 // nothing, then we do want the UI to show that to them.  That way the user
                 // can turn off filters they don't want and get the right set of items.
 
-                return new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0);
+                return new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0, filters);
             }
             else
             {
@@ -493,7 +484,6 @@ namespace RoslynCompletionPrototype
                 // model (and all the previously filtered items), but switch over to soft 
                 // selection.
 
-                // TODO: Soft selection
                 return new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0, filters, CompletionItemSelection.SoftSelected, uniqueItem: null);
             }
         }
