@@ -4392,7 +4392,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
         <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, or query expression</source>
-        <target state="needs-review-translation">Parametr ref nebo out {0} uvnitř anonymní metody, lambda výrazu nebo výrazu dotazu</target>
+        <target state="translated">Nejde použít parametr ref, out nebo in {0} uvnitř anonymní metody, lambda výrazu nebo výrazu dotazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalInnerUnsafe">
@@ -8597,7 +8597,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
+        <target state="translated">{0} nemůže implementovat člen rozhraní {1} v typu {2}, protože má parametr __arglist.</target>
         <note />
       </trans-unit>
     </body>

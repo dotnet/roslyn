@@ -4392,7 +4392,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
         <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, or query expression</source>
-        <target state="needs-review-translation">Nie można użyć parametru ref ani out „{0}” wewnątrz metody anonimowej, wyrażenia lambda lub wyrażenia zapytania</target>
+        <target state="translated">Nie można użyć parametru ref, out ani in „{0}” wewnątrz metody anonimowej, wyrażenia lambda lub wyrażenia zapytania</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalInnerUnsafe">
@@ -8597,7 +8597,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
+        <target state="translated">Obiekt „{0}” nie może implementować elementu członkowskiego interfejsu „{1}” w ramach typu „{2}”, ponieważ zawiera on parametr __arglist</target>
         <note />
       </trans-unit>
     </body>

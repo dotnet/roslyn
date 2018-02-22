@@ -1500,12 +1500,12 @@ Ich stimme allen vorstehenden Bedingungen zu:</target>
       </trans-unit>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
-        <target state="new">Live code analysis</target>
+        <target state="translated">Livecodeanalyse</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
         <source>Analyzing '{0}'</source>
-        <target state="new">Analyzing '{0}'</target>
+        <target state="translated">"{0}" wird analysiert.</target>
         <note />
       </trans-unit>
     </body>
