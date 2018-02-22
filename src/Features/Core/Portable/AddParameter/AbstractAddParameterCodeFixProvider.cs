@@ -275,10 +275,15 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
         private static string GetCodeFixTitle(string resourceString, IMethodSymbol methodToUpdate, IEnumerable<string> parameters)
         {
-            var methodPrefix = methodToUpdate.IsConstructor()
-                ? ""
-                : $"{methodToUpdate.ContainingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}.";
-            var signature = $"{methodPrefix}{methodToUpdate.Name}({string.Join(", ", parameters)})";
+            var methodDisplay = methodToUpdate.ToDisplayString(new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+                extensionMethodStyle: SymbolDisplayExtensionMethodStyle.Default,
+                parameterOptions: SymbolDisplayParameterOptions.None,
+                memberOptions: methodToUpdate.IsConstructor()
+                    ? SymbolDisplayMemberOptions.None
+                    : SymbolDisplayMemberOptions.IncludeContainingType));
+
+            var signature = $"{methodDisplay}({string.Join(", ", parameters)})";
             var title = string.Format(resourceString, signature);
             return title;
         }
