@@ -2123,7 +2123,7 @@ class C
     void Test()
     {
         [|M|](""text"", 1
-"; 
+";
             var fix0 =
 @"
 class C
@@ -2134,6 +2134,29 @@ class C
         M(""text"", 1
 ";
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_Indexer_NotSupported()
+        {
+            // Could be fixed by allowing ElementAccessExpression next to InvocationExpression
+            // in AbstractAddParameterCodeFixProvider.RegisterCodeFixesAsync.
+            // error CS1501: No overload for method 'this' takes 2 arguments
+            var code =
+@"
+public class C {
+    public int this[int i] 
+    { 
+        get => 1; 
+        set {} 
+    }
+    
+    public void Test() {
+        var i = [|this[0,0]|];
+    }
+}";
+            await TestMissingAsync(code);
         }
     }
 }
