@@ -868,6 +868,92 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
     /// <summary>
+    /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
+    /// </summary>
+    internal abstract partial class BaseTupleBinaryOperatorExpression : Operation, ITupleBinaryOperation
+    {
+        public BaseTupleBinaryOperatorExpression(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.BinaryOperator, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            OperatorKind = operatorKind;
+        }
+        /// <summary>
+        /// Kind of binary operation.
+        /// </summary>
+        public BinaryOperatorKind OperatorKind { get; }
+        /// <summary>
+        /// Left operand.
+        /// </summary>
+        public IOperation LeftOperand => Operation.SetParentOperation(LeftOperandImpl, this);
+        /// <summary>
+        /// Right operand.
+        /// </summary>
+        public IOperation RightOperand => Operation.SetParentOperation(RightOperandImpl, this);
+
+        protected abstract IOperation LeftOperandImpl { get; }
+        protected abstract IOperation RightOperandImpl { get; }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (LeftOperand != null)
+                {
+                    yield return LeftOperand;
+                }
+                if (RightOperand != null)
+                {
+                    yield return RightOperand;
+                }
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitTupleBinaryOperator(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitTupleBinaryOperator(this, argument);
+        }
+    }
+    /// <summary>
+    /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
+    /// </summary>
+    internal sealed partial class TupleBinaryOperatorExpression : BaseTupleBinaryOperatorExpression, ITupleBinaryOperation
+    {
+        public TupleBinaryOperatorExpression(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            LeftOperandImpl = leftOperand;
+            RightOperandImpl = rightOperand;
+        }
+
+        protected override IOperation LeftOperandImpl { get; }
+        protected override IOperation RightOperandImpl { get; }
+    }
+
+    /// <summary>
+    /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
+    /// </summary>
+    internal sealed partial class LazyTupleBinaryOperatorExpression : BaseTupleBinaryOperatorExpression, ITupleBinaryOperation
+    {
+        private readonly Lazy<IOperation> _lazyLeftOperand;
+        private readonly Lazy<IOperation> _lazyRightOperand;
+
+        public LazyTupleBinaryOperatorExpression(BinaryOperatorKind operatorKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyLeftOperand = leftOperand ?? throw new System.ArgumentNullException(nameof(leftOperand));
+            _lazyRightOperand = rightOperand ?? throw new System.ArgumentNullException(nameof(rightOperand));
+        }
+
+        protected override IOperation LeftOperandImpl => _lazyLeftOperand.Value;
+        protected override IOperation RightOperandImpl => _lazyRightOperand.Value;
+    }
+
+    /// <summary>
     /// Represents a block scope.
     /// </summary>
     internal abstract partial class BaseBlockStatement : Operation, IBlockOperation

@@ -255,6 +255,11 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
+        public virtual void VisitTupleBinaryOperator(ITupleBinaryOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitConversion(IConversionOperation operation)
         {
             DefaultVisit(operation);
@@ -751,6 +756,11 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitBinaryOperator(IBinaryOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitTupleBinaryOperator(ITupleBinaryOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

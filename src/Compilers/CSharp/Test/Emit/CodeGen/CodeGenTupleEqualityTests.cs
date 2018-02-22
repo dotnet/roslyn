@@ -4136,6 +4136,76 @@ public class C
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "t != t").WithLocation(9, 57)
                 );
         }
+
+        [Fact]
+        public void TestComparisonOfDynamicAndTuple()
+        {
+            var source = @"
+public class C
+{
+    (long, string) _t;
+    public C(long l, string s) { _t = (l, s); }
+
+    public static void Main()
+    {
+        dynamic d = new C(1, ""hello"");
+        (long, string) tuple1 = (1, ""hello"");
+        (long, string) tuple2 = (2, ""world"");
+        System.Console.Write($""{d == tuple1} {d != tuple1} {d == tuple2} {d != tuple2}"");
+    }
+    public static bool operator==(C c, (long, string) t)
+    {
+        return c._t.Item1 == t.Item1 && c._t.Item2 == t.Item2;
+    }
+    public static bool operator!=(C c, (long, string) t)
+    {
+        return !(c == t);
+    }
+    public override bool Equals(object o) => throw null;
+    public override int GetHashCode() => throw null;
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "True False False True");
+        }
+
+        [Fact]
+        public void TestComparisonOfDynamicTuple()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        dynamic d1 = (1, ""hello"");
+        dynamic d2 = (1, ""hello"");
+        dynamic d3 = ((byte)1, 2);
+        PrintException(() => d1 == d2);
+        PrintException(() => d1 == d3);
+    }
+    public static void PrintException(System.Func<bool> action)
+    {
+        try
+        {
+            action();
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+        {
+            System.Console.WriteLine(e.Message);
+        }
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"Operator '==' cannot be applied to operands of type 'System.ValueTuple<int,string>' and 'System.ValueTuple<int,string>'
+Operator '==' cannot be applied to operands of type 'System.ValueTuple<int,string>' and 'System.ValueTuple<byte,int>'");
+        }
     }
 }
 
