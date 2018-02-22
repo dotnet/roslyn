@@ -115,7 +115,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren, bool isImplicit)
         {
-            return new NoneOperation(semanticModel, node, constantValue, getChildren, isImplicit);
+            return new LazyNoneOperation(getChildren, semanticModel, node, constantValue, isImplicit);
+        }
+
+        public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, ImmutableArray<IOperation> children, bool isImplicit)
+        {
+            return new NoneOperation(children, semanticModel, node, constantValue, isImplicit);
         }
 
         public static T SetParentOperation<T>(T operation, IOperation parent) where T : IOperation
@@ -154,14 +159,11 @@ namespace Microsoft.CodeAnalysis
             return operations;
         }
 
-        private class NoneOperation : Operation
+        private abstract class BaseNoneOperation : Operation
         {
-            private readonly Lazy<ImmutableArray<IOperation>> _lazyChildren;
-
-            public NoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren, bool isImplicit) :
-                base(OperationKind.None, semanticModel, node, type: null, constantValue: constantValue, isImplicit: isImplicit)
+            protected BaseNoneOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+                base(OperationKind.None, semanticModel, syntax, type: null, constantValue, isImplicit)
             {
-                _lazyChildren = new Lazy<ImmutableArray<IOperation>>(getChildren);
             }
 
             public override void Accept(OperationVisitor visitor)
@@ -173,22 +175,30 @@ namespace Microsoft.CodeAnalysis
             {
                 return visitor.VisitNoneOperation(this, argument);
             }
+        }
 
-            public override IEnumerable<IOperation> Children
+        private class NoneOperation : BaseNoneOperation
+        {
+            public NoneOperation(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+                base(semanticModel, syntax, constantValue, isImplicit)
             {
-                get
-                {
-                    foreach (var child in _lazyChildren.Value)
-                    {
-                        if (child == null)
-                        {
-                            continue;
-                        }
-
-                        yield return Operation.SetParentOperation(child, this);
-                    }
-                }
+                Children = SetParentOperation(children, this);
             }
+
+            public override IEnumerable<IOperation> Children { get; }
+        }
+
+        private class LazyNoneOperation : BaseNoneOperation
+        {
+            private readonly Lazy<ImmutableArray<IOperation>> _lazyChildren;
+
+            public LazyNoneOperation(Func<ImmutableArray<IOperation>> getChildren, SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit) :
+                base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit)
+            {
+                _lazyChildren = new Lazy<ImmutableArray<IOperation>>(getChildren);
+            }
+
+            public override IEnumerable<IOperation> Children => SetParentOperation(_lazyChildren.Value, this);
         }
 
         private static readonly ObjectPool<Queue<IOperation>> s_queuePool =
