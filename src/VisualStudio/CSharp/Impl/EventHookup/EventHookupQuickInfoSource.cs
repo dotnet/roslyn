@@ -12,10 +12,9 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
-    internal sealed class EventHookupQuickInfoSource : IQuickInfoSource
+    internal sealed class EventHookupQuickInfoSource : IAsyncQuickInfoSource
     {
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
@@ -28,23 +27,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             _classificationFormatMapService = classificationFormatMapService;
         }
 
-        void IQuickInfoSource.AugmentQuickInfoSession(IQuickInfoSession existingQuickInfoSession, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
+        public async Task<QuickInfoItem> GetQuickInfoItemAsync(IAsyncQuickInfoSession session, CancellationToken cancellationToken)
         {
-            // Augmenting quick info isn't cancellable.
-            var cancellationToken = CancellationToken.None;
-
             // Ensure this is a quick info session created by event hookup
-            if (!existingQuickInfoSession.Properties.TryGetProperty(typeof(EventHookupSessionManager), out EventHookupSessionManager eventHookupSessionManager))
+            if (!session.Properties.TryGetProperty(typeof(EventHookupSessionManager), out EventHookupSessionManager eventHookupSessionManager))
             {
-                applicableToSpan = null;
-                return;
+                return (QuickInfoItem)null;
             }
 
             if (!eventHookupSessionManager.IsTrackingSession())
             {
-                existingQuickInfoSession.Dismiss();
-                applicableToSpan = null;
-                return;
+                await session.DismissAsync().ConfigureAwait(false);
+                return (QuickInfoItem)null;
             }
 
             string eventHandlerName = null;
@@ -58,28 +52,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             if (eventHandlerName == null)
             {
-                existingQuickInfoSession.Dismiss();
-                applicableToSpan = null;
-                return;
+                await session.DismissAsync().ConfigureAwait(false);
+                return (QuickInfoItem)null;
             }
 
             // We should show the quick info session. Calculate the span and create the content.
             var currentSnapshot = _textBuffer.CurrentSnapshot;
-            applicableToSpan = currentSnapshot.CreateTrackingSpan(
+            var applicableToSpan = currentSnapshot.CreateTrackingSpan(
                 start: eventHookupSessionManager.CurrentSession.TrackingPoint.GetPosition(currentSnapshot),
                 length: 0,
                 trackingMode: SpanTrackingMode.EdgeInclusive);
 
-            // Clear any existing quick info content. This ensures that the event hookup text is
-            // the only text in the quick info.
-            quickInfoContent.Clear();
-
             var content = CreateContent(eventHandlerName, _classificationTypeMap);
-
-            quickInfoContent.Add(content);
 
             // For test purposes only!
             eventHookupSessionManager.TEST_MostRecentQuickInfoContent = content;
+
+            return new QuickInfoItem(applicableToSpan, content);
         }
 
         private FrameworkElement CreateContent(string eventName, ClassificationTypeMap classificationTypeMap)
@@ -102,4 +91,3 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         }
     }
 }
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094

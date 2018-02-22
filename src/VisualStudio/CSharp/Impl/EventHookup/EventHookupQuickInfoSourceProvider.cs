@@ -7,18 +7,17 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
     /// <summary>
     /// Order after "squiggle" so that we have the opportunity to remove any quick info content
     /// added due to errors in the code (which happen right after "eventName +=")
     /// </summary>
-    [Export(typeof(IQuickInfoSourceProvider))]
+    [Export(typeof(IAsyncQuickInfoSourceProvider))]
     [Name(PredefinedQuickInfoSourceProviderNames.EventHookup)]
     [Order(After = "squiggle")]
     [ContentType(ContentTypeNames.CSharpContentType)]
-    internal sealed class EventHookupQuickInfoSourceProvider : IQuickInfoSourceProvider
+    internal sealed class EventHookupQuickInfoSourceProvider : IAsyncQuickInfoSourceProvider
     {
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
@@ -30,11 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             _classificationFormatMapService = classificationFormatMapService;
         }
 
-        public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
+        IAsyncQuickInfoSource IAsyncQuickInfoSourceProvider.TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
             return textBuffer.Properties.GetOrCreateSingletonProperty<EventHookupQuickInfoSource>(
                 () => new EventHookupQuickInfoSource(textBuffer, _classificationTypeMap, _classificationFormatMapService));
         }
     }
 }
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
