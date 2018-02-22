@@ -2697,7 +2697,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var bestType = BestTypeInferrer.InferBestType(
                 boundInitializerExpressions,
                 this.Conversions,
-                includeNullability: false,
                 hadMultipleCandidates: out hadMultipleCandidates,
                 useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);

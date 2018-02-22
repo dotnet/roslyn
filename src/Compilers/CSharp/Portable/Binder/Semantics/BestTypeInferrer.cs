@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class BestTypeInferrer
     {
-        public static TypeSymbolWithAnnotations InferBestType(ImmutableArray<TypeSymbolWithAnnotations> types, Conversions conversions, bool includeNullability, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static TypeSymbolWithAnnotations InferBestType(ImmutableArray<TypeSymbolWithAnnotations> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            return GetBestType(types, conversions, includeNullability, ref useSiteDiagnostics);
+            return GetBestType(types, conversions, ref useSiteDiagnostics);
         }
 
         internal static bool? GetIsNullable(ImmutableArray<TypeSymbolWithAnnotations> types)
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method finds the best common type of a set of expressions as per section 7.5.2.14 of the specification.
         /// NOTE: If some or all of the expressions have error types, we return error type as the inference result.
         /// </remarks>
-        public static TypeSymbolWithAnnotations InferBestType(ImmutableArray<BoundExpression> exprs, Conversions conversions, bool includeNullability, out bool hadMultipleCandidates, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static TypeSymbolWithAnnotations InferBestType(ImmutableArray<BoundExpression> exprs, Conversions conversions, out bool hadMultipleCandidates, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC:    7.5.2.14 Finding the best common type of a set of expressions
             // SPEC:    In some cases, a common type needs to be inferred for a set of expressions. In particular, the element types of implicitly typed arrays and
@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    If no such S exists, the expressions have no best common type.
 
             // All non-null types are candidates for best type inference.
+            bool includeNullability = conversions.IncludeNullability;
             var candidateTypes = new HashSet<TypeSymbolWithAnnotations>(TypeSymbolWithAnnotations.EqualsComparer.Instance);
             foreach (BoundExpression expr in exprs)
             {
@@ -80,14 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             hadMultipleCandidates = candidateTypes.Count > 1;
 
             // Perform best type inference on candidate types.
-            return InferBestType(candidateTypes.AsImmutableOrEmpty(), conversions, includeNullability, ref useSiteDiagnostics);
+            return InferBestType(candidateTypes.AsImmutableOrEmpty(), conversions, ref useSiteDiagnostics);
         }
 
         /// <remarks>
         /// This method implements best type inference for the conditional operator ?:.
         /// NOTE: If either expression is an error type, we return error type as the inference result.
         /// </remarks>
-        public static TypeSymbolWithAnnotations InferBestTypeForConditionalOperator(BoundExpression expr1, BoundExpression expr2, Conversions conversions, bool includeNullability, out bool hadMultipleCandidates, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static TypeSymbolWithAnnotations InferBestTypeForConditionalOperator(BoundExpression expr1, BoundExpression expr2, Conversions conversions, out bool hadMultipleCandidates, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC:    The second and third operands, x and y, of the ?: operator control the type of the conditional expression. 
             // SPEC:    •	If x has type X and y has type Y then
@@ -98,6 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    •	Otherwise, no expression type can be determined, and a compile-time error occurs.
 
             // A type is a candidate if all expressions are convertible to that type.
+            bool includeNullability = conversions.IncludeNullability;
             var candidateTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
 
             var type1 = expr1.GetTypeAndNullability(includeNullability);
@@ -136,10 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             hadMultipleCandidates = candidateTypes.Count > 1;
 
-            return InferBestType(candidateTypes.ToImmutableAndFree(), conversions, includeNullability, ref useSiteDiagnostics);
+            return InferBestType(candidateTypes.ToImmutableAndFree(), conversions, ref useSiteDiagnostics);
         }
 
-        private static TypeSymbolWithAnnotations GetBestType(ImmutableArray<TypeSymbolWithAnnotations> types, Conversions conversions, bool includeNullability, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static TypeSymbolWithAnnotations GetBestType(ImmutableArray<TypeSymbolWithAnnotations> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // This code assumes that the types in the list are unique. 
 
@@ -202,14 +204,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If any of the types are nullable, the result should be nullable.
-            if (includeNullability &&
-                best.IsReferenceType &&
-                best.IsNullable == false)
-            {
-                best = TypeSymbolWithAnnotations.Create(best.TypeSymbol, GetIsNullable(types));
-            }
+            return conversions.IncludeNullability ? UpdateNullability(best, types) : best;
+        }
 
-            return best;
+        private static TypeSymbolWithAnnotations UpdateNullability(TypeSymbolWithAnnotations bestType, ImmutableArray<TypeSymbolWithAnnotations> types)
+        {
+            return (bestType.IsReferenceType && bestType.IsNullable == false) ?
+                TypeSymbolWithAnnotations.Create(bestType.TypeSymbol, GetIsNullable(types)) :
+                bestType;
         }
 
         /// <summary>

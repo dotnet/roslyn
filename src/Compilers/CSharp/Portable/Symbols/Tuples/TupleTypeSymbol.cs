@@ -370,6 +370,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static NamedTypeSymbol ConstructTupleUnderlyingType(NamedTypeSymbol firstTupleType, NamedTypeSymbol chainedTupleTypeOpt, ImmutableArray<TypeSymbolWithAnnotations> elementTypes)
         {
+            Debug.Assert(chainedTupleTypeOpt is null == elementTypes.Length < RestPosition);
+
             int numElements = elementTypes.Length;
             int remainder;
             int chainLength = NumberOfValueTuples(numElements, out remainder);

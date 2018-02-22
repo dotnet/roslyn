@@ -3581,7 +3581,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     trueExpr,
                     falseExpr,
                     this.Conversions,
-                    includeNullability: false,
                     hadMultipleCandidates: out hadMultipleCandidates,
                     useSiteDiagnostics: ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);

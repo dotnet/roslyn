@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _includeNonNullableWarnings = includeNonNullableWarnings;
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             Debug.Assert(!_binder.Conversions.IncludeNullability);
-            _conversions = _binder.Conversions.WithNullability();
+            _conversions = _binder.Conversions.WithNullability(true);
         }
 
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
@@ -333,12 +333,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // PROTOTYPE(NullableReferenceTypes): Avoid hardcoded string.
             return typeOpt ?? (object)"<null>";
-        }
-
-        private static BoundExpression CreatePlaceholderExpressionIfNecessary(SyntaxNode syntax, Result value)
-        {
-            var valueType = value.Type;
-            return new BoundValuePlaceholder(syntax, valueType?.IsNullable, valueType?.TypeSymbol);
         }
 
         /// <summary>
@@ -958,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arrayType = (ArrayTypeSymbol)node.Type;
             var elementType = arrayType.ElementType;
 
-            var initialization = node.InitializerOpt;
+            BoundArrayInitialization initialization = node.InitializerOpt;
             var elementBuilder = ArrayBuilder<BoundExpression>.GetInstance(initialization.Initializers.Length);
             GetArrayElements(initialization, elementBuilder);
 
@@ -966,11 +960,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultBuilder = ArrayBuilder<Result>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
-                var element = RemoveImplicitConversions(elementBuilder[i]);
+                BoundExpression element = RemoveImplicitConversions(elementBuilder[i]);
                 elementBuilder[i] = element;
                 resultBuilder.Add(VisitRvalueWithResult(element));
             }
 
+            // PROTOTYPE(NullableReferenceType): Record in the BoundArrayCreation
+            // whether the array was implicitly typed, rather than relying on syntax.
             if (node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -980,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(NullableReferenceType): InferBestType(ImmutableArray<BoundExpression>, ...)
                 // uses a HashSet<TypeSymbol> to reduce the candidates to the unique types before comparing.
                 // Should do the same here.
-                var bestType = BestTypeInferrer.InferBestType(resultTypes, _conversions, _conversions.IncludeNullability, useSiteDiagnostics: ref useSiteDiagnostics);
+                var bestType = BestTypeInferrer.InferBestType(resultTypes, _conversions, useSiteDiagnostics: ref useSiteDiagnostics);
                 if ((object)bestType != null)
                 {
                     elementType = bestType;
@@ -988,11 +984,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arrayType = arrayType.WithElementType(elementType);
             }
 
+            TypeSymbol elementTypeSymbol = elementType?.TypeSymbol;
+            bool elementTypeIsReferenceType = elementType?.IsReferenceType == true;
             for (int i = 0; i < n; i++)
             {
                 var element = elementBuilder[i];
-                var result = GenerateConversionForAssignment(element, elementType?.TypeSymbol, resultBuilder[i]);
-                if (elementType?.IsReferenceType == true)
+                var result = GenerateConversionForAssignment(element, elementTypeSymbol, resultBuilder[i]);
+                if (elementTypeIsReferenceType)
                 {
                     TrackNullableStateForAssignment(element, -1, elementType, element, result.Type, result.Slot);
                 }
@@ -1419,6 +1417,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Record in the node whether type
+        // arguments were implicit, to allow for cases where the syntax is not an
+        // invocation (such as a synthesized call from a query interpretation).
         private static bool HasImplicitTypeArguments(BoundCall node)
         {
             var syntax = node.Syntax;
@@ -1675,26 +1676,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return symbol;
             }
-            return AsMemberOfType(containingType, symbol);
-        }
-
-        private static Symbol AsMemberOfType(NamedTypeSymbol containingType, Symbol symbol)
-        {
-            if (symbol is null)
+            switch (symbol.Kind)
             {
-                return null;
-            }
-            if (containingType.IsTupleType)
-            {
-                return AsMemberOfTupleType((TupleTypeSymbol)containingType, symbol);
-            }
-            if (symbol.Kind == SymbolKind.Method)
-            {
-                if (((MethodSymbol)symbol).MethodKind == MethodKind.LocalFunction)
-                {
-                    // PROTOTYPE(NullableReferenceTypes): Handle type substitution for local functions.
-                    return symbol;
-                }
+                case SymbolKind.Field:
+                    {
+                        var field = (FieldSymbol)symbol;
+                        var index = field.TupleElementIndex;
+                        if (index >= 0)
+                        {
+                            // PROTOTYPE(NullableReferenceTypes): Handle other members of
+                            // tuple type (such as TuplePropertySymbol), perhaps using
+                            // TupleTypeSymbol.GetTupleMemberSymbolForUnderlyingMember
+                            return containingType.TupleElements[index];
+                        }
+                    }
+                    break;
+                case SymbolKind.Property:
+                case SymbolKind.Event:
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
             var symbolDef = symbol.OriginalDefinition;
             var symbolDefContainer = symbolDef.ContainingType;
@@ -1713,33 +1714,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(NullableReferenceTypes): Handle other cases such as interfaces.
             Debug.Assert(symbolDefContainer.IsInterface);
             return symbol;
-        }
-
-        private static Symbol AsMemberOfTupleType(TupleTypeSymbol tupleType, Symbol symbol)
-        {
-            if (symbol.ContainingType.Equals(tupleType, TypeCompareKind.CompareNullableModifiersForReferenceTypes))
-            {
-                return symbol;
-            }
-            var underlyingType = tupleType.UnderlyingNamedType;
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Field:
-                    {
-                        var index = ((FieldSymbol)symbol).TupleElementIndex;
-                        if (index >= 0)
-                        {
-                            return tupleType.TupleElements[index];
-                        }
-                        return new TupleFieldSymbol(tupleType, (FieldSymbol)AsMemberOfType(underlyingType, ((TupleFieldSymbol)symbol).UnderlyingField), index);
-                    }
-                case SymbolKind.Property:
-                    return new TuplePropertySymbol(tupleType, (PropertySymbol)AsMemberOfType(underlyingType, ((TuplePropertySymbol)symbol).UnderlyingProperty));
-                case SymbolKind.Event:
-                    return new TupleEventSymbol(tupleType, (EventSymbol)AsMemberOfType(underlyingType, ((TupleEventSymbol)symbol).UnderlyingEvent));
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
-            }
         }
 
         public override BoundNode VisitConversion(BoundConversion node)
@@ -1818,7 +1792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitTupleExpression(BoundTupleExpression node)
         {
             var arguments = node.Arguments;
-            var elementTypes = arguments.SelectAsArray((a, w) => w.VisitRvalueWithResult(a).Type, this);
+            ImmutableArray<TypeSymbolWithAnnotations> elementTypes = arguments.SelectAsArray((a, w) => w.VisitRvalueWithResult(a).Type, this);
             var tupleOpt = (TupleTypeSymbol)node.Type;
             _result = (tupleOpt is null) ?
                 null :

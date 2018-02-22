@@ -2105,13 +2105,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasImplicitReferenceConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (IncludeNullability)
+            if (IncludeNullability && !HasTopLevelNullabilityImplicitConversion(source, destination))
             {
-                if (!HasTopLevelNullabilityImplicitConversion(source, destination))
-                {
-                    return false;
-                }
-                return HasIdentityOrImplicitReferenceConversion(source.TypeSymbol, destination.TypeSymbol, ref useSiteDiagnostics);
+                return false;
             }
             return HasImplicitReferenceConversion(source.TypeSymbol, destination.TypeSymbol, ref useSiteDiagnostics);
         }
@@ -3023,7 +3019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var iface in this.corLibrary.GetDeclaredSpecialType(SpecialType.System_Array).AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
                 {
-                    if (HasIdentityConversionInternal(iface, source, includeNullability: false))
+                    if (HasIdentityConversionInternal(iface, source))
                     {
                         return true;
                     }

@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private CSharpCompilation Compilation { get { return _binder.Compilation; } }
 
-        internal Conversions WithNullability()
+        internal Conversions WithNullability(bool includeNullability)
         {
-            return IncludeNullability ? this : new Conversions(_binder, _currentRecursionDepth, includeNullability: true);
+            return (IncludeNullability == includeNullability) ? this : new Conversions(_binder, _currentRecursionDepth, includeNullability);
         }
 
         public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
