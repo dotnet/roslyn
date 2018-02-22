@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .WithStrongNameProvider(provider)
                 .WithCryptoKeyFile(keyFile);
 
-            var comp = CreateStandardCompilation(src, options: options);
+            var comp = CreateCompilation(src, options: options);
             comp.VerifyEmitDiagnostics(
                 // error CS7027: Error signing output with public key from file '{0}' -- '{1}'
                 Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(keyFile, ex.Message).WithLocation(1, 1));
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .WithStrongNameProvider(provider)
                 .WithCryptoKeyContainer("RoslynTestContainer");
 
-            var comp = CreateStandardCompilation(src, options: options);
+            var comp = CreateCompilation(src, options: options);
             comp.VerifyEmitDiagnostics(
                 // error CS7028: Error signing output with public key from container 'RoslynTestContainer' -- Crazy exception you could never have predicted!
                 Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("RoslynTestContainer", ex.Message).WithLocation(1, 1));
@@ -153,7 +153,7 @@ class C
                 .WithStrongNameProvider(testProvider)
                 .WithCryptoKeyContainer("RoslynTestContainer");
 
-            var comp = CreateStandardCompilation(src, options: options);
+            var comp = CreateCompilation(src, options: options);
 
             comp.Emit(new MemoryStream()).Diagnostics.Verify(
                 // error CS8104: An error occurred while writing the Portable Executable file.

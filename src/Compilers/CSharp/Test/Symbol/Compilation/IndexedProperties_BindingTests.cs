@@ -129,7 +129,7 @@ class B
         private void IndexedPropertiesBindingChecks(string source, MetadataReference reference, SymbolKind symbolKind, string name)
         {
             var tree = Parse(source);
-            var comp = CreateStandardCompilation(tree, new[] { reference });
+            var comp = CreateCompilation(tree, new[] { reference });
 
             var model = comp.GetSemanticModel(tree);
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));

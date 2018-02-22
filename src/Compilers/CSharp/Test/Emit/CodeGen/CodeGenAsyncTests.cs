@@ -1957,7 +1957,7 @@ class Driver
         t.Run(6);
     }
 }";
-            CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef });
+            CompileAndVerifyWithMscorlib40(source, new[] { CSharpRef, SystemCoreRef });
         }
 
         [Fact]
@@ -3117,7 +3117,7 @@ class C
 }
 ";
 
-            var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
 
             // CONSIDER: It would be nice if we didn't squiggle the whole method body, but this is a corner case.
             comp.VerifyEmitDiagnostics(
@@ -3147,7 +3147,7 @@ class C
 {
     async Task M() {}
 }";
-            var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task M() {}
@@ -3178,7 +3178,7 @@ class C
 {
     async Task<int> F() => 3;
 }";
-            var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task<int> F() => 3;
@@ -4788,7 +4788,7 @@ class C
 {
     async Task GetNumber(Task task) { await task; }
 }";
-            var compilation = CreateCompilation(new[] { Parse(source) });
+            var compilation = CreateEmptyCompilation(new[] { Parse(source) });
 
             compilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.

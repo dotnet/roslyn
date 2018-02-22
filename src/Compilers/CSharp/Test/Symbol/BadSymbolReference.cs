@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cl2 = TestReferences.SymbolsTests.MissingTypes.CL2;
             var cl3 = TestReferences.SymbolsTests.MissingTypes.CL3;
 
-            var compilation1 = CreateStandardCompilation(
+            var compilation1 = CreateCompilation(
 @"
 class Module1
 {
@@ -348,7 +348,7 @@ interface I1<T>
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null").WithLocation(5, 20)
                                              };
 
-            var compilation2 = CreateStandardCompilation(a_cs, new MetadataReference[] { cl3 });
+            var compilation2 = CreateCompilation(a_cs, new MetadataReference[] { cl3 });
 
             compilation2.VerifyDiagnostics(errors);
 
@@ -448,17 +448,17 @@ public interface CL3_I1 : CL2_I1
 {}
 ";
 
-            var cl3Compilation = CreateStandardCompilation(cl3Source, new MetadataReference[] { cl2 });
+            var cl3Compilation = CreateCompilation(cl3Source, new MetadataReference[] { cl2 });
 
             cl3Compilation.VerifyDiagnostics();
 
-            var compilation3 = CreateStandardCompilation(a_cs, new MetadataReference[] { new CSharpCompilationReference(cl3Compilation) });
+            var compilation3 = CreateCompilation(a_cs, new MetadataReference[] { new CSharpCompilationReference(cl3Compilation) });
 
             compilation3.VerifyDiagnostics(errors);
 
-            var cl3BadCompilation1 = CreateStandardCompilation(cl3Source, new MetadataReference[] { cl3 });
+            var cl3BadCompilation1 = CreateCompilation(cl3Source, new MetadataReference[] { cl3 });
 
-            var compilation4 = CreateStandardCompilation(a_cs, new MetadataReference[] { new CSharpCompilationReference(cl3BadCompilation1) });
+            var compilation4 = CreateCompilation(a_cs, new MetadataReference[] { new CSharpCompilationReference(cl3BadCompilation1) });
 
             DiagnosticDescription[] errors2 = {
                 // (140,11): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
@@ -543,7 +543,7 @@ public interface CL3_I1 : CL2_I1
 
             compilation4.VerifyDiagnostics(errors2);
 
-            var cl3BadCompilation2 = CreateStandardCompilation(cl3Source);
+            var cl3BadCompilation2 = CreateCompilation(cl3Source);
 
             DiagnosticDescription[] errors3 = {
                 // (2,23): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
@@ -583,7 +583,7 @@ public interface CL3_I1 : CL2_I1
 
             cl3BadCompilation2.VerifyDiagnostics(errors3);
 
-            var compilation5 = CreateStandardCompilation(a_cs, new MetadataReference[] { new CSharpCompilationReference(cl3BadCompilation2) });
+            var compilation5 = CreateCompilation(a_cs, new MetadataReference[] { new CSharpCompilationReference(cl3BadCompilation2) });
 
             DiagnosticDescription[] errors5 = {
                 // (133,11): error CS0509: 'Module1.C4': cannot derive from sealed type 'CL3_S1'
@@ -631,7 +631,7 @@ public interface CL3_I1 : CL2_I1
 
             string cl4Source = a_cs + cl3Source;
 
-            var compilation6 = CreateStandardCompilation(cl4Source);
+            var compilation6 = CreateCompilation(cl4Source);
 
             DiagnosticDescription[] errors6 = {
                 // (232,23): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
@@ -731,7 +731,7 @@ public interface CL3_I1 : CL2_I1
                 cl3
             };
 
-            var compilation1 = CreateCompilation(
+            var compilation1 = CreateEmptyCompilation(
 @"
     class Program
     {
@@ -778,17 +778,17 @@ public class C
 class D : C, I { }
 ";
 
-            var libRef = CreateCompilation(libSource, new[] { MscorlibRef }, assemblyName: "System.Drawing").EmitToImageReference();
+            var libRef = CreateEmptyCompilation(libSource, new[] { MscorlibRef }, assemblyName: "System.Drawing").EmitToImageReference();
 
-            var comp1 = CreateCompilation(project1Source, new[] { MscorlibRef, libRef }, assemblyName: "Project1");
+            var comp1 = CreateEmptyCompilation(project1Source, new[] { MscorlibRef, libRef }, assemblyName: "Project1");
             comp1.VerifyDiagnostics();
 
-            var comp2 = CreateCompilation(project2Source, new[] { MscorlibRef, libRef }, assemblyName: "Project2");
+            var comp2 = CreateEmptyCompilation(project2Source, new[] { MscorlibRef, libRef }, assemblyName: "Project2");
             comp2.VerifyDiagnostics();
 
             // Scenario 1: Projects 1, 2, and 3 are in source; project 3 does not reference lib.
             {
-                var comp3 = CreateCompilation(project3Source, new[] { MscorlibRef, comp1.ToMetadataReference(), comp2.ToMetadataReference() }, assemblyName: "Project3");
+                var comp3 = CreateEmptyCompilation(project3Source, new[] { MscorlibRef, comp1.ToMetadataReference(), comp2.ToMetadataReference() }, assemblyName: "Project3");
                 comp3.VerifyDiagnostics(
                     // (2,7): error CS0012: The type 'System.Drawing.Point' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Drawing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                     // class D : C, I { }
@@ -797,7 +797,7 @@ class D : C, I { }
 
             // Scenario 2: Projects 1 and 2 are metadata, and project 3 is in source; project 3 does not reference lib.
             {
-                var comp3 = CreateCompilation(project3Source, new[] { MscorlibRef, comp1.EmitToImageReference(), comp2.EmitToImageReference() }, assemblyName: "Project3");
+                var comp3 = CreateEmptyCompilation(project3Source, new[] { MscorlibRef, comp1.EmitToImageReference(), comp2.EmitToImageReference() }, assemblyName: "Project3");
                 comp3.VerifyDiagnostics(
                     // (2,7): error CS0012: The type 'System.Drawing.Point' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Drawing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                     // class D : C, I { }
@@ -808,7 +808,7 @@ class D : C, I { }
         [ClrOnlyFact]
         public void MissingTypeInTypeArgumentsOfImplementedInterface()
         {
-            var lib1 = CreateStandardCompilation(@"
+            var lib1 = CreateCompilation(@"
 namespace ErrorTest
 {
     public interface I1<out T1>
@@ -826,7 +826,7 @@ namespace ErrorTest
 
             var lib1Ref = new CSharpCompilationReference(lib1);
 
-            var lib2 = CreateStandardCompilation(@"
+            var lib2 = CreateCompilation(@"
 namespace ErrorTest
 {
     public interface I3 : I2
@@ -836,7 +836,7 @@ namespace ErrorTest
 
             var lib2Ref = new CSharpCompilationReference(lib2);
 
-            var lib3 = CreateStandardCompilation(@"
+            var lib3 = CreateCompilation(@"
 namespace ErrorTest
 {
     public class C4 : I1<I3>
@@ -917,7 +917,7 @@ namespace ErrorTest
     }
 }";
 
-            var lib4 = CreateStandardCompilation(lib4Def, new[] { lib1Ref, lib3Ref }, TestOptions.ReleaseDll);
+            var lib4 = CreateCompilation(lib4Def, new[] { lib1Ref, lib3Ref }, TestOptions.ReleaseDll);
 
             DiagnosticDescription[] expectedErrors =
             {
@@ -988,11 +988,11 @@ namespace ErrorTest
 
             lib4.VerifyDiagnostics(expectedErrors);
 
-            lib4 = CreateStandardCompilation(lib4Def, new[] { lib1Ref, lib2Ref, lib3Ref }, TestOptions.ReleaseDll);
+            lib4 = CreateCompilation(lib4Def, new[] { lib1Ref, lib2Ref, lib3Ref }, TestOptions.ReleaseDll);
 
             CompileAndVerify(lib4).VerifyDiagnostics();
 
-            lib4 = CreateStandardCompilation(lib4Def, new[] { lib1.EmitToImageReference(), lib3.EmitToImageReference() }, TestOptions.ReleaseDll);
+            lib4 = CreateCompilation(lib4Def, new[] { lib1.EmitToImageReference(), lib3.EmitToImageReference() }, TestOptions.ReleaseDll);
 
             lib4.VerifyDiagnostics(expectedErrors);
         }
@@ -1000,7 +1000,7 @@ namespace ErrorTest
         [Fact()]
         public void MissingImplementedInterface()
         {
-            var lib1 = CreateStandardCompilation(@"
+            var lib1 = CreateCompilation(@"
 namespace ErrorTest
 {
     public interface I1
@@ -1015,7 +1015,7 @@ namespace ErrorTest
 
             var lib1Ref = new CSharpCompilationReference(lib1);
 
-            var lib2 = CreateStandardCompilation(@"
+            var lib2 = CreateCompilation(@"
 namespace ErrorTest
 {
     public interface I2
@@ -1037,7 +1037,7 @@ namespace ErrorTest
 
             var lib2Ref = new CSharpCompilationReference(lib2);
 
-            var lib3 = CreateStandardCompilation(@"
+            var lib3 = CreateCompilation(@"
 namespace ErrorTest
 {
     public class C4
@@ -1137,7 +1137,7 @@ namespace ErrorTest
 }
 ";
 
-            var lib4 = CreateStandardCompilation(lib4Def, new[] { lib1Ref, lib3Ref }, TestOptions.ReleaseDll);
+            var lib4 = CreateCompilation(lib4Def, new[] { lib1Ref, lib3Ref }, TestOptions.ReleaseDll);
 
             lib4.VerifyDiagnostics(
                 // (48,18): error CS0012: The type 'ErrorTest.I2' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -1220,7 +1220,7 @@ namespace ErrorTest
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M1").WithArguments("T", "M1")
                 );
 
-            lib4 = CreateStandardCompilation(lib4Def, new[] { lib1Ref, lib2Ref, lib3Ref }, TestOptions.ReleaseDll);
+            lib4 = CreateCompilation(lib4Def, new[] { lib1Ref, lib2Ref, lib3Ref }, TestOptions.ReleaseDll);
 
             lib4.VerifyDiagnostics(
                 // (35,16): error CS0122: 'ErrorTest.C4.M1()' is inaccessible due to its protection level
@@ -1231,7 +1231,7 @@ namespace ErrorTest
                 Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("ErrorTest.C4.M1()")
                 );
 
-            lib4 = CreateStandardCompilation(lib4Def, new[] { lib1.EmitToImageReference(), lib3.EmitToImageReference() }, TestOptions.ReleaseDll);
+            lib4 = CreateCompilation(lib4Def, new[] { lib1.EmitToImageReference(), lib3.EmitToImageReference() }, TestOptions.ReleaseDll);
 
             lib4.VerifyDiagnostics(
                 // (12,18): error CS0012: The type 'ErrorTest.I2' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -1285,7 +1285,7 @@ namespace ErrorTest
         [ClrOnlyFact]
         public void MissingBaseClass()
         {
-            var lib1 = CreateStandardCompilation(@"
+            var lib1 = CreateCompilation(@"
 namespace ErrorTest
 {
     public class C1
@@ -1300,7 +1300,7 @@ namespace ErrorTest
 
             var lib1Ref = new CSharpCompilationReference(lib1);
 
-            var lib2 = CreateStandardCompilation(@"
+            var lib2 = CreateCompilation(@"
 namespace ErrorTest
 {
     public class C2 : C1
@@ -1309,7 +1309,7 @@ namespace ErrorTest
 
             var lib2Ref = new CSharpCompilationReference(lib2);
 
-            var lib3 = CreateStandardCompilation(@"
+            var lib3 = CreateCompilation(@"
 namespace ErrorTest
 {
     public class C4 : C2
@@ -1359,7 +1359,7 @@ namespace ErrorTest
     }
 }";
 
-            var lib4 = CreateStandardCompilation(lib4Def, new[] { lib1Ref, lib3Ref }, TestOptions.ReleaseDll);
+            var lib4 = CreateCompilation(lib4Def, new[] { lib1Ref, lib3Ref }, TestOptions.ReleaseDll);
 
             DiagnosticDescription[] expectedErrors =
             {
@@ -1406,11 +1406,11 @@ namespace ErrorTest
 
             lib4.VerifyDiagnostics(expectedErrors);
 
-            lib4 = CreateStandardCompilation(lib4Def, new[] { lib1Ref, lib2Ref, lib3Ref }, TestOptions.ReleaseDll);
+            lib4 = CreateCompilation(lib4Def, new[] { lib1Ref, lib2Ref, lib3Ref }, TestOptions.ReleaseDll);
 
             CompileAndVerify(lib4).VerifyDiagnostics();
 
-            lib4 = CreateStandardCompilation(lib4Def, new[] { lib1.EmitToImageReference(), lib3.EmitToImageReference() }, TestOptions.ReleaseDll);
+            lib4 = CreateCompilation(lib4Def, new[] { lib1.EmitToImageReference(), lib3.EmitToImageReference() }, TestOptions.ReleaseDll);
 
             lib4.VerifyDiagnostics(expectedErrors);
         }

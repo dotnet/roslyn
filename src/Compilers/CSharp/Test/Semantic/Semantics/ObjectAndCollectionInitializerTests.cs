@@ -247,7 +247,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
             // TODO: This should produce no diagnostics.
-            CreateStandardCompilation(source, references: new MetadataReference[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
+            CreateCompilation(source, references: new MetadataReference[] { CSharpRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -431,7 +431,7 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
 
             // TODO: This should produce no diagnostics.
             // The 'info' message is ONLY used for IDE (NOT show up in console)
-            CompileAndVerify(source, additionalRefs: new MetadataReference[] { SystemCoreRef, CSharpRef }).
+            CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }).
                 VerifyDiagnostics(
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Collections;
@@ -3114,7 +3114,7 @@ class C
         }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,21): error CS0826: No best type found for implicitly-typed array
                 //         var array = new[] { Main() };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { Main() }"));
@@ -3334,7 +3334,7 @@ class X : List<int>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3382,7 +3382,7 @@ class X : Base
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3427,7 +3427,7 @@ class Y
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (5,14): error CS0535: 'Base' does not implement interface member 'IEnumerable<int>.GetEnumerator()'
@@ -3475,7 +3475,7 @@ class X : List<int>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3512,7 +3512,7 @@ class X : List<int>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3553,7 +3553,7 @@ class Test
     };
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3603,7 +3603,7 @@ class Test2
     public Test P { get; set; }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3647,7 +3647,7 @@ class C : System.Collections.Generic.List<C>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3685,7 +3685,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,11): warning CS0414: The field 'C.a' is assigned but its value is never used
                 //     int[] a;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 11));
@@ -3706,7 +3706,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,12): warning CS0414: The field 'C.a' is assigned but its value is never used
                 //     int[,] a;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 12));
@@ -3727,7 +3727,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3783,7 +3783,7 @@ public class Cc{
     }
 }
 ";
-            CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef }, expectedOutput: "Initialized");
+            CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "Initialized");
         }
 
         [WorkItem(12983, "https://github.com/dotnet/roslyn/issues/12983")]
@@ -3809,7 +3809,7 @@ class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
