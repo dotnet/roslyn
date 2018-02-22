@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames) ||
                     IsUnusedDeconstruction(node));
 
-            if (visited != null & visited != node)
+            if (visited != null && visited != node)
             {
                 if (!CanBePassedByReference(node) && CanBePassedByReference(visited))
                 {
@@ -625,7 +625,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.DeconstructValuePlaceholder:
-                    // is this always a proxy for a temp local?
+                    // we will consider that placeholder always represents a temp local
+                    // the assumption should be confirmed or changed when https://github.com/dotnet/roslyn/issues/24160 is fixed 
                     return true;
 
                 case BoundKind.EventAccess:

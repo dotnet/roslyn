@@ -3566,7 +3566,5 @@ class Derived : Test { }
 }
 ");
         }
-
-
     }
 }

@@ -838,9 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = RefKind.None;
             if (!receiver.Type.IsReferenceType && LocalRewriter.CanBePassedByReference(receiver))
             {
-                result = receiver.Type.IsReadOnly ?
-                                                RefKind.In :
-                                                RefKind.Ref;
+                result = receiver.Type.IsReadOnly ? RefKind.In : RefKind.Ref;
             }
 
             return result;
