@@ -139,7 +139,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreation);
             var methodCandidates = type.InstanceConstructors;
 
-            var insertionData = GetArgumentInsertPositionForMethodCandidates(argumentOpt, semanticModel, syntaxFacts, arguments, methodCandidates);
+            var insertionData = GetArgumentInsertPositionForMethodCandidates(
+                argumentOpt, semanticModel, syntaxFacts, arguments, methodCandidates);
 
             RegisterFixForMethodOverloads(context, arguments, insertionData);
         }
@@ -206,12 +207,15 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, methodToUpdate, parameters);
                 var hasCascadingDeclarations = HasCascadingDeclarations(methodToUpdate);
 
+                var codeFixForDeclarationOnly = new MyCodeAction(title,
+                    c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c));
                 if (hasCascadingDeclarations)
                 {
-                    var titleForCascadingFix = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_including_overrides_implementations, methodToUpdate, parameters);
+                    var titleForCascadingFix = GetCodeFixTitle(
+                        FeaturesResources.Add_parameter_to_0_including_overrides_implementations, methodToUpdate, parameters);
+
                     context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(title, ImmutableArray.Create<CodeAction>(
-                            new MyCodeAction(title,
-                                c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c)),
+                            codeFixForDeclarationOnly,
                             new MyCodeAction(titleForCascadingFix,
                                 c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))),
                             isInlinable: true),
@@ -220,8 +224,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 else
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(title,
-                            c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c)),
+                        codeFixForDeclarationOnly,
                         context.Diagnostics);
                 }
             }
@@ -293,17 +296,24 @@ namespace Microsoft.CodeAnalysis.AddParameter
         {
             var solution = invocationDocument.Project.Solution;
             var argumentType = await GetArgumentTypeAsync(invocationDocument, argument, cancellationToken).ConfigureAwait(false);
-            // the argumentNameSuggestion is the base for the parameter name. For each method declaration the name is made unique to avoid name collisions.
-            var (argumentNameSuggestion, isNamedArgument) = await GetNameSuggestionForArgumentAsync(invocationDocument, argument, cancellationToken).ConfigureAwait(false);
+
+            // The argumentNameSuggestion is the base for the parameter name.
+            // For each method declaration the name is made unique to avoid name collisions.
+            var (argumentNameSuggestion, isNamedArgument) = await GetNameSuggestionForArgumentAsync(
+                invocationDocument, argument, cancellationToken).ConfigureAwait(false);
+
             var referencedSymbols = fixAllReferences
                 ? await FindMethodDeclarationReferences(invocationDocument, method, cancellationToken).ConfigureAwait(false)
                 : method.GetAllMethodSymbolsOfPartialParts();
-            // TODO: Insert hint in the fix with a warning if anySymbolsReferenceNotInSource is true
+
             var anySymbolReferencesNotInSource = referencedSymbols.Any(symbol => !symbol.IsFromSource());
             var locationsInSource = referencedSymbols.Where(symbol => symbol.IsFromSource());
-            // Indexing Locations[0] is valid because IMethodSymbols have one location at most and IsFromSource() tests if there is at least one location.
+
+            // Indexing Locations[0] is valid because IMethodSymbols have one location at most
+            // and IsFromSource() tests if there is at least one location.
             var locationsByDocument = locationsInSource.ToLookup(declarationLocation
                 => solution.GetDocument(declarationLocation.Locations[0].SourceTree));
+
             foreach (var documentLookup in locationsByDocument)
             {
                 var document = documentLookup.Key;
