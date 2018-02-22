@@ -790,6 +790,46 @@ class C1
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationExtensionMethod_StaticInvocationStyle()
+        {
+            // error CS1501: No overload for method 'ExtensionM1' takes 2 arguments
+            var code =
+@"
+namespace N {
+static class Extensions
+{
+    public static void ExtensionM1(this object o)
+    {
+    }
+}
+class C1
+{
+    void M1()
+    {
+        Extensions.[|ExtensionM1|](new object(), 1);
+    }
+}}";
+            var fix =
+@"
+namespace N {
+static class Extensions
+{
+    public static void ExtensionM1(this object o, int v)
+    {
+    }
+}
+class C1
+{
+    void M1()
+    {
+        Extensions.ExtensionM1(new object(), 1);
+    }
+}}";
+            await TestInRegularAndScriptAsync(code, fix);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocationOverride()
         {
             var code = @"

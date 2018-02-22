@@ -336,12 +336,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
                         parameterDeclaration = parameterDeclaration.WithAdditionalAnnotations(
                             ConflictAnnotation.Create(FeaturesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
                     }
+
                     var existingParameters = generator.GetParameters(methodNode);
                     var insertionIndex = isNamedArgument
                         ? existingParameters.Count
                         : argumentList.IndexOf(argument);
 
-                    if (method.IsExtensionMethod)
+                    if (method.MethodKind == MethodKind.ReducedExtension)
                     {
                         insertionIndex++;
                     }
