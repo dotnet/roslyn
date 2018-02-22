@@ -1139,7 +1139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-            if (elementType.IsManagedType)
+            if (elementType.IsManagedType(fieldsBeingBound: null))
             {
                 Error(diagnostics, ErrorCode.ERR_ManagedAddr, initializerSyntax, elementType);
                 hasErrors = true;

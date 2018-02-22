@@ -2351,7 +2351,7 @@ class C
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType()));
         }
 
         [Fact]
@@ -2368,7 +2368,7 @@ unsafe class C
             var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => !field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => !field.Type.IsManagedType()));
         }
 
         [Fact]
@@ -2383,7 +2383,7 @@ class C
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType()));
         }
 
         [Fact]
@@ -2400,7 +2400,7 @@ class C<T>
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType()));
         }
 
         [Fact]
@@ -2416,7 +2416,7 @@ class C<T, U> where U : struct
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType()));
         }
 
         [Fact]
@@ -2437,7 +2437,7 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             Assert.True(tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().
-                Select(syntax => model.GetTypeInfo(syntax).Type).All(type => ((TypeSymbol)type).IsManagedType));
+                Select(syntax => model.GetTypeInfo(syntax).Type).All(type => ((TypeSymbol)type).IsManagedType()));
         }
 
         [Fact]
@@ -2456,7 +2456,7 @@ class Outer
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType()));
         }
 
         [Fact]
@@ -2476,7 +2476,7 @@ class Outer<T>
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType()));
         }
 
         [Fact]
@@ -2494,7 +2494,7 @@ class C
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType()));
         }
 
         [Fact]
@@ -2523,7 +2523,7 @@ class C
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => !field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => !field.Type.IsManagedType()));
         }
 
         [Fact]
@@ -2539,7 +2539,7 @@ class C
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var method = type.GetMember<MethodSymbol>("M");
 
-            Assert.False(method.ReturnType.IsManagedType);
+            Assert.False(method.ReturnType.IsManagedType());
         }
 
         [Fact]
@@ -2570,11 +2570,11 @@ struct R<T>
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("E").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("E").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("E").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").GetMember<NamedTypeSymbol>("E").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("R").GetMember<NamedTypeSymbol>("E").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("E").IsManagedType());
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("E").IsManagedType());
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("E").IsManagedType());
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").GetMember<NamedTypeSymbol>("E").IsManagedType());
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("R").GetMember<NamedTypeSymbol>("E").IsManagedType());
         }
 
         [Fact]
@@ -2607,12 +2607,12 @@ struct R<T>
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("P").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("Q").GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").GetMember<NamedTypeSymbol>("S").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("P").IsManagedType());
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("S").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("S").IsManagedType());
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("Q").GetMember<NamedTypeSymbol>("S").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").GetMember<NamedTypeSymbol>("S").IsManagedType());
         }
 
         [Fact]
@@ -2635,7 +2635,7 @@ struct S<T>
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType()));
         }
 
         [Fact]
@@ -2670,11 +2670,11 @@ struct S5
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType());
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedType());
         }
 
         [Fact]
@@ -2714,11 +2714,11 @@ struct S5
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType());
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedType());
         }
 
         [Fact]
@@ -2753,11 +2753,11 @@ struct S5
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType());
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedType());
         }
 
         [Fact]
@@ -2797,11 +2797,11 @@ struct S5
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType());
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedType());
         }
 
         [Fact]
@@ -2820,8 +2820,8 @@ struct S2
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType());
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType());
         }
 
         [Fact]
@@ -2833,8 +2833,8 @@ struct W<T> { X<W<W<T>>> x; }
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("X").IsManagedType); // because of X.t
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("W").IsManagedType);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("X").IsManagedType()); // because of X.t
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("W").IsManagedType());
         }
 
         [Fact]
@@ -2854,8 +2854,8 @@ struct R
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").IsManagedType());
         }
 
         [Fact]
@@ -2874,9 +2874,9 @@ struct D { A a; }
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("Q").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedType);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("Q").IsManagedType());
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").IsManagedType());
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedType());
         }
 
         [Fact]
@@ -2886,9 +2886,9 @@ struct D { A a; }
 class C { }
 ";
             var compilation = CreateCompilation(text);
-            Assert.False(compilation.GetSpecialType(SpecialType.System_ArgIterator).IsManagedType);
-            Assert.False(compilation.GetSpecialType(SpecialType.System_RuntimeArgumentHandle).IsManagedType);
-            Assert.False(compilation.GetSpecialType(SpecialType.System_TypedReference).IsManagedType);
+            Assert.False(compilation.GetSpecialType(SpecialType.System_ArgIterator).IsManagedType());
+            Assert.False(compilation.GetSpecialType(SpecialType.System_RuntimeArgumentHandle).IsManagedType());
+            Assert.False(compilation.GetSpecialType(SpecialType.System_TypedReference).IsManagedType());
         }
 
         [Fact]

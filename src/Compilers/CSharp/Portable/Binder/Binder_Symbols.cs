@@ -232,9 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Binds the given expression syntax as Type.
         // If the resulting symbol is an Alias to a Type, it unwraps the alias
         // and returns it's target type.
-        internal TypeSymbol BindType(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved = null)
+        internal TypeSymbol BindType(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved = null, ConsList<FieldSymbol> fieldsBeingBound = null)
         {
-            var symbol = BindTypeOrAlias(syntax, diagnostics, basesBeingResolved);
+            var symbol = BindTypeOrAlias(syntax, diagnostics, basesBeingResolved, fieldsBeingBound);
             return (TypeSymbol)UnwrapAlias(symbol, diagnostics, syntax, basesBeingResolved);
         }
 
@@ -250,11 +250,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Binds the given expression syntax as Type or an Alias to Type
         // and returns the resultant symbol.
         // NOTE: This method doesn't unwrap aliases.
-        internal Symbol BindTypeOrAlias(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved = null)
+        internal Symbol BindTypeOrAlias(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved = null, ConsList<FieldSymbol> fieldsBeingBound = null)
         {
             Debug.Assert(diagnostics != null);
 
-            var symbol = BindNamespaceOrTypeOrAliasSymbol(syntax, diagnostics, basesBeingResolved, basesBeingResolved != null);
+            var symbol = BindNamespaceOrTypeOrAliasSymbol(syntax, diagnostics, basesBeingResolved, basesBeingResolved != null, fieldsBeingBound);
 
             // symbol must be a TypeSymbol or an Alias to a TypeSymbol
             var result = UnwrapAliasNoDiagnostics(symbol, basesBeingResolved) as TypeSymbol;
@@ -318,7 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (NamespaceOrTypeSymbol)UnwrapAlias(result, diagnostics, syntax, basesBeingResolved);
         }
 
-        internal Symbol BindNamespaceOrTypeOrAliasSymbol(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
+        internal Symbol BindNamespaceOrTypeOrAliasSymbol(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved,
+            bool suppressUseSiteDiagnostics, ConsList<FieldSymbol> fieldsBeingBound = null)
         {
             switch (syntax.Kind())
             {
@@ -375,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArrayType:
                     {
                         var node = (ArrayTypeSyntax)syntax;
-                        TypeSymbol type = BindType(node.ElementType, diagnostics, basesBeingResolved);
+                        TypeSymbol type = BindType(node.ElementType, diagnostics, basesBeingResolved, fieldsBeingBound);
                         if (type.IsStatic)
                         {
                             // CS0719: '{0}': array elements cannot be of static type
@@ -409,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                             Error(diagnostics, ErrorCode.ERR_BadConstraintType, node);
                         }
-                        else if (elementType.IsManagedType)
+                        else if (elementType.IsManagedType(fieldsBeingBound))
                         {
                             // "Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')"
                             Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, elementType);

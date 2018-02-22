@@ -682,19 +682,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsManagedType
+        internal override bool IsManagedType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
+            var isManagedType = _flags.IsManagedType;
+            if (!isManagedType.HasValue())
             {
-                var isManagedType = _flags.IsManagedType;
-                if (!isManagedType.HasValue())
-                {
-                    bool value = base.IsManagedType;
-                    _flags.SetIsManagedType(value);
-                    return value;
-                }
-                return isManagedType.Value();
+                bool value = base.IsManagedType(fieldsBeingBound);
+                _flags.SetIsManagedType(value);
+                return value;
             }
+            return isManagedType.Value();
         }
 
         public override bool IsStatic

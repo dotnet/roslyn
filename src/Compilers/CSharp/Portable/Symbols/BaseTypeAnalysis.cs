@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// be managed even if it had no fields.  e.g. struct S { S s; } is not managed, but struct S { S s; object o; }
         /// is because we can point to object.
         /// </summary>
-        internal static bool IsManagedType(NamedTypeSymbol type)
+        internal static bool IsManagedType(NamedTypeSymbol type, ConsList<FieldSymbol> fieldsBeingBound = null)
         {
             // If this is a type with an obvious answer, return quickly.
             switch (IsManagedTypeHelper(type))
@@ -119,12 +119,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Otherwise, we have to build and inspect the closure of depended-upon types.
             var hs = PooledHashSet<Symbol>.GetInstance();
-            bool result = DependsOnDefinitelyManagedType(type, hs);
+            bool result = DependsOnDefinitelyManagedType(type, hs, fieldsBeingBound);
             hs.Free();
             return result;
         }
 
-        private static bool DependsOnDefinitelyManagedType(NamedTypeSymbol type, HashSet<Symbol> partialClosure)
+        private static bool DependsOnDefinitelyManagedType(NamedTypeSymbol type, HashSet<Symbol> partialClosure, ConsList<FieldSymbol> fieldsBeingBound = null)
         {
             Debug.Assert((object)type != null);
 
@@ -164,11 +164,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    TypeSymbol fieldType = field.Type;
+                    TypeSymbol fieldType = field.GetFieldType(fieldsBeingBound);
                     NamedTypeSymbol fieldNamedType = fieldType as NamedTypeSymbol;
                     if ((object)fieldNamedType == null)
                     {
-                        if (fieldType.IsManagedType)
+                        if (fieldType.IsManagedType(fieldsBeingBound: null))
                         {
                             return true;
                         }

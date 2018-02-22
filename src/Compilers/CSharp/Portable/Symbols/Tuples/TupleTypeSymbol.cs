@@ -673,12 +673,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
         }
 
-        internal sealed override bool IsManagedType
+        internal sealed override bool IsManagedType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
-            {
-                return _underlyingType.IsManagedType;
-            }
+            return _underlyingType.IsManagedType(fieldsBeingBound);
         }
 
         public override bool IsTupleType

@@ -2780,6 +2780,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The definition of field &apos;{0}&apos; is circular.
+        /// </summary>
+        internal static string ERR_CircularField {
+            get {
+                return ResourceManager.GetString("ERR_CircularField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The class type constraint &apos;{0}&apos; must come before any other constraints.
         /// </summary>
         internal static string ERR_ClassBoundNotFirst {

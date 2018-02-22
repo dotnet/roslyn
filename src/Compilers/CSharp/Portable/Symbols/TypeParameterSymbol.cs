@@ -461,12 +461,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsManagedType
+        internal sealed override bool IsManagedType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
-            {
-                return !this.HasUnmanagedTypeConstraint;
-            }
+            return !this.HasUnmanagedTypeConstraint;
         }
 
         internal sealed override bool IsByRefLikeType

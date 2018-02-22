@@ -2979,6 +2979,20 @@ void f() { if () const int i = 0; }
         }
 
         [Fact]
+        [WorkItem(24978, "https://github.com/dotnet/roslyn/issues/24978")]
+        public void StructTypeWithArrayOfSelfPointers()
+        {
+            string source = @"unsafe public struct X { public X*[] Y; }";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+
+            comp.VerifyDiagnostics(
+                // (1,38): error CS8387: The definition of field 'X.Y' is circular
+                // unsafe public struct X { public X*[] Y; }
+                Diagnostic(ErrorCode.ERR_CircularField, "Y").WithArguments("X.Y").WithLocation(1, 38)
+                );
+        }
+
+        [Fact]
         [WorkItem(24869, "https://github.com/dotnet/roslyn/issues/24869")]
         public void TestSelfReferencingViaLambda()
         {

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(!pinnedTemp.Type.IsManagedType);
+                    Debug.Assert(!pinnedTemp.Type.IsManagedType(fieldsBeingBound: null));
 
                     // temp = ref *default(T*);
                     cleanup[i] = _factory.Assignment(_factory.Local(pinnedTemp), new BoundPointerIndirectionOperator(
