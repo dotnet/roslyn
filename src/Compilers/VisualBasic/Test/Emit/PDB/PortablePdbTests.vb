@@ -3,6 +3,7 @@
 Imports System.IO
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
+Imports System.Security.Cryptography
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Emit
@@ -72,59 +73,18 @@ Class C
 End Class
 "
             Dim c = CreateCompilationWithMscorlib(Parse(source, "goo.vb"), options:=TestOptions.DebugDll)
-            Dim peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithPdbFilePath("a/b/c/d.pdb"))
+            Dim peBlob = c.EmitToArray(EmitOptions.Default.
+                                       WithDebugInformationFormat(DebugInformationFormat.Embedded).
+                                       WithPdbFilePath("a/b/c/d.pdb").
+                                       WithPdbChecksumAlgorithm(HashAlgorithmName.SHA512))
 
             Using peReader = New PEReader(peBlob)
                 Dim entries = peReader.ReadDebugDirectory()
 
-                AssertEx.Equal({DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.EmbeddedPortablePdb}, entries.Select(Function(e) e.Type))
+                AssertEx.Equal({DebugDirectoryEntryType.CodeView, DebugDirectoryExtensions.PdbChecksumEntryType, DebugDirectoryEntryType.EmbeddedPortablePdb}, entries.Select(Function(e) e.Type))
 
                 Dim codeView = entries(0)
-                Dim embedded = entries(1)
-
-                ' EmbeddedPortablePdb entry
-                Assert.Equal(&H100, embedded.MajorVersion)
-                Assert.Equal(&H100, embedded.MinorVersion)
-                Assert.Equal(CUInt(0), embedded.Stamp)
-
-                Dim pdbId As BlobContentId
-                Using embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded)
-                    Dim mdReader = embeddedMetadataProvider.GetMetadataReader()
-                    AssertEx.Equal({"goo.vb"}, mdReader.Documents.Select(Function(doc) mdReader.GetString(mdReader.GetDocument(doc).Name)))
-                    pdbId = New BlobContentId(mdReader.DebugMetadataHeader.Id)
-                End Using
-
-                ' CodeView entry:
-                Dim codeViewData = peReader.ReadCodeViewDebugDirectoryData(codeView)
-                Assert.Equal(&H100, codeView.MajorVersion)
-                Assert.Equal(&H504D, codeView.MinorVersion)
-                Assert.Equal(pdbId.Stamp, codeView.Stamp)
-                Assert.Equal(pdbId.Guid, codeViewData.Guid)
-                Assert.Equal("d.pdb", codeViewData.Path)
-            End Using
-        End Sub
-
-        <Fact>
-        Public Sub EmbeddedPortablePdb_Deterministic()
-            Dim source = "
-Imports System
-
-Class C
-    Public Shared Sub Main()
-        Console.WriteLine()
-    End Sub
-End Class
-"
-            Dim c = CreateCompilationWithMscorlib(Parse(source, "goo.vb"), options:=TestOptions.DebugDll.WithDeterministic(True))
-            Dim peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithPdbFilePath("a/b/c/d.pdb"))
-
-            Using peReader = New PEReader(peBlob)
-                Dim entries = peReader.ReadDebugDirectory()
-
-                AssertEx.Equal({DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.Reproducible, DebugDirectoryEntryType.EmbeddedPortablePdb}, entries.Select(Function(e) e.Type))
-
-                Dim codeView = entries(0)
-                Dim reproducible = entries(1)
+                Dim checksum = entries(1)
                 Dim embedded = entries(2)
 
                 ' EmbeddedPortablePdb entry
@@ -146,6 +106,65 @@ End Class
                 Assert.Equal(pdbId.Stamp, codeView.Stamp)
                 Assert.Equal(pdbId.Guid, codeViewData.Guid)
                 Assert.Equal("d.pdb", codeViewData.Path)
+
+                ' Checksum entry
+                Dim checksumData = peReader.ReadPdbChecksumDebugDirectoryData(checksum)
+                Assert.Equal("SHA512", checksumData.AlgorithmName)
+                Assert.Equal(64, checksumData.Checksum.Length)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub EmbeddedPortablePdb_Deterministic()
+            Dim source = "
+Imports System
+
+Class C
+    Public Shared Sub Main()
+        Console.WriteLine()
+    End Sub
+End Class
+"
+            Dim c = CreateCompilationWithMscorlib(Parse(source, "goo.vb"), options:=TestOptions.DebugDll.WithDeterministic(True))
+            Dim peBlob = c.EmitToArray(EmitOptions.Default.
+                                       WithDebugInformationFormat(DebugInformationFormat.Embedded).
+                                       WithPdbChecksumAlgorithm(HashAlgorithmName.SHA384).
+                                       WithPdbFilePath("a/b/c/d.pdb"))
+
+            Using peReader = New PEReader(peBlob)
+                Dim entries = peReader.ReadDebugDirectory()
+
+                AssertEx.Equal({DebugDirectoryEntryType.CodeView, DebugDirectoryExtensions.PdbChecksumEntryType, DebugDirectoryEntryType.Reproducible, DebugDirectoryEntryType.EmbeddedPortablePdb}, entries.Select(Function(e) e.Type))
+
+                Dim codeView = entries(0)
+                Dim checksum = entries(1)
+                Dim reproducible = entries(2)
+                Dim embedded = entries(3)
+
+                ' EmbeddedPortablePdb entry
+                Assert.Equal(&H100, embedded.MajorVersion)
+                Assert.Equal(&H100, embedded.MinorVersion)
+                Assert.Equal(CUInt(0), embedded.Stamp)
+
+                Dim pdbId As BlobContentId
+                Using embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded)
+                    Dim mdReader = embeddedMetadataProvider.GetMetadataReader()
+                    AssertEx.Equal({"goo.vb"}, mdReader.Documents.Select(Function(doc) mdReader.GetString(mdReader.GetDocument(doc).Name)))
+                    pdbId = New BlobContentId(mdReader.DebugMetadataHeader.Id)
+                End Using
+
+                ' CodeView entry:
+                Dim codeViewData = peReader.ReadCodeViewDebugDirectoryData(codeView)
+                Assert.Equal(&H100, codeView.MajorVersion)
+                Assert.Equal(&H504D, codeView.MinorVersion)
+                Assert.Equal(pdbId.Stamp, codeView.Stamp)
+                Assert.Equal(pdbId.Guid, codeViewData.Guid)
+                Assert.Equal("d.pdb", codeViewData.Path)
+
+                ' Checksum entry
+                Dim checksumData = peReader.ReadPdbChecksumDebugDirectoryData(checksum)
+                Assert.Equal("SHA384", checksumData.AlgorithmName)
+                Assert.Equal(48, checksumData.Checksum.Length)
 
                 ' Reproducible entry
                 Assert.Equal(0, reproducible.MajorVersion)
