@@ -1336,6 +1336,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type1 != null);
             Debug.Assert((object)type2 != null);
 
+            // PROTOTYPE(NullableReferenceTypes): If two types differ only by nullability and
+            // one has IsNullable unset and the other doesn't, which do we choose in inference?
+            // See failing test IdentityConversion_ArrayInitializer_IsNullableNull.
             var compareKind = includeNullability ?
                 TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny :
                 TypeCompareKind.AllIgnoreOptions;
@@ -1347,13 +1350,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return HasIdentityConversionInternal(type1, type2, IncludeNullability);
         }
 
-        internal static bool HasTopLevelNullabilityIdentityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
+        private static bool HasTopLevelNullabilityIdentityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
         {
-            return HasTopLevelNullabilityIdentityConversion(source.IsNullable, destination.IsNullable);
-        }
-
-        internal static bool HasTopLevelNullabilityIdentityConversion(bool? sourceIsNullable, bool? destinationIsNullable)
-        {
+            // PROTOTYPE(NullableReferenceTypes): If two types differ only by nullability and
+            // one has IsNullable unset and the other doesn't, which do we choose in inference?
+            // See failing test IdentityConversion_ArrayInitializer_IsNullableNull.
+            bool? sourceIsNullable = source.IsNullable;
+            bool? destinationIsNullable = destination.IsNullable;
             return sourceIsNullable == null || destinationIsNullable == null || sourceIsNullable == destinationIsNullable;
         }
 

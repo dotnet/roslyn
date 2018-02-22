@@ -212,6 +212,9 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "d[0].F").WithLocation(19, 9));
         }
 
+        // PROTOTYPE(NullableReferenceType): The array element type should be nullable,
+        // even though there is no best type when considering nullability for C<object>? and
+        // C<object?>. In short, should report WRN_NullReferenceReceiver for `c[0].ToString()`
         [Fact]
         public void ImplicitlyTypedArrayCreation_08()
         {
@@ -1368,6 +1371,78 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { w, z })[0]").WithLocation(31, 9));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Update this method to use types from unannotated assemblies
+        // rather than `x!`, particularly because `x!` should result in IsNullable=false rather than IsNullable=null.
+        // PROTOTYPE(NullableReferenceTypes): Should report the same warnings (or no warnings) for { x, x! } and { x!, x }.
+        [Fact(Skip = "TODO")]
+        public void IdentityConversion_ArrayInitializer_IsNullableNull()
+        {
+            var source =
+@"#pragma warning disable 0649
+class A<T>
+{
+    internal T F;
+}
+class B
+{
+    static void F(object? x, object y)
+    {
+        (new[] { x, x! })[0].ToString();
+        (new[] { x!, x })[0].ToString();
+        (new[] { y, y! })[0].ToString();
+        (new[] { y!, y })[0].ToString();
+    }
+    static void F(A<object?> z, A<object> w)
+    {
+        (new[] { z, z! })[0].F.ToString();
+        (new[] { z!, z })[0].F.ToString();
+        (new[] { w, w! })[0].F.ToString();
+        (new[] { w!, w })[0].F.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Update this method to use types from unannotated assemblies
+        // rather than `x!`, particularly because `x!` should result in IsNullable=false rather than IsNullable=null.
+        // PROTOTYPE(NullableReferenceTypes): Should report the same warnings (or no warnings) for (x, x!) and (x!, x).
+        [Fact(Skip = "TODO")]
+        public void IdentityConversion_TypeInference_IsNullableNull()
+        {
+            var source =
+@"class A<T>
+{
+}
+class B
+{
+    static T F1<T>(T x, T y)
+    {
+        return x;
+    }
+    static void G1(object? x, object y)
+    {
+        F1(x, x!).ToString();
+        F1(x!, x).ToString();
+        F1(y, y!).ToString();
+        F1(y!, y).ToString();
+    }
+    static T F2<T>(A<T> x, A<T> y)
+    {
+        throw new System.Exception();
+    }
+    static void G(A<object?> z, A<object> w)
+    {
+        F2(z, z!).ToString();
+        F2(z!, z).ToString();
+        F2(w, w!).ToString();
+        F2(w!, w).ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
         // PROTOTYPE(NullableReferenceTypes): Conversions: Other
         [Fact(Skip = "TODO")]
         public void IdentityConversion_ArrayInitializer_ExplicitType()
@@ -1435,7 +1510,31 @@ class C
         }
 
         [Fact]
-        public void ImplicitConversion_ArrayInitializer_ExplicitType()
+        public void ImplicitConversion_ArrayInitializer_ExplicitType_01()
+        {
+            var source =
+@"class A<T> { }
+class B<T> : A<T> { }
+class C
+{
+    static void F(A<object> x, B<object?> y)
+    {
+        var z = new A<object>[] { x, y };
+        var w = new A<object?>[] { x, y };
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,38): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'A<object>'.
+                //         var z = new A<object>[] { x, y };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("B<object?>", "A<object>").WithLocation(7, 38),
+                // (8,36): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'A<object?>'.
+                //         var w = new A<object?>[] { x, y };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("A<object>", "A<object?>").WithLocation(8, 36));
+        }
+
+        [Fact]
+        public void ImplicitConversion_ArrayInitializer_ExplicitType_02()
         {
             var source =
 @"interface IIn<in T> { }
@@ -1461,6 +1560,35 @@ class C
                 // (13,38): warning CS8619: Nullability of reference types in value of type 'IOut<string?>' doesn't match target type 'IOut<object>'.
                 //         var b = new IOut<object>[] { y };
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("IOut<string?>", "IOut<object>").WithLocation(13, 38));
+        }
+
+        [Fact]
+        public void MultipleConversions_ArrayInitializer()
+        {
+            var source =
+@"class A
+{
+    public static implicit operator C(A a) => new C();
+}
+class B : A
+{
+}
+class C
+{
+    static void F(B x, C? y)
+    {
+        (new[] { x, y })[0].ToString();
+        (new[] { y, x })[0].ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { x, y })[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, y })[0]").WithLocation(12, 9),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { y, x })[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { y, x })[0]").WithLocation(13, 9));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator

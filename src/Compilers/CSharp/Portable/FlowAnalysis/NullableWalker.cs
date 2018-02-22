@@ -76,6 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this._currentMethodOrLambda = member;
             _includeNonNullableWarnings = includeNonNullableWarnings;
+            // PROTOTYPE(NullableReferenceTypes): Do we really need a Binder?
+            // If so, are we interested in an InMethodBinder specifically?
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             Debug.Assert(!_binder.Conversions.IncludeNullability);
             _conversions = _binder.Conversions.WithNullability(true);
@@ -956,6 +958,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elementBuilder = ArrayBuilder<BoundExpression>.GetInstance(initialization.Initializers.Length);
             GetArrayElements(initialization, elementBuilder);
 
+            // PROTOTYPE(NullableReferenceType): Removing and recalculating conversions should not
+            // be necessary for explicitly typed arrays. In those cases, VisitConversion should warn
+            // on nullability mismatch (although we'll need to ensure we handle the case where
+            // initial binding calculated an Identity conversion, even though nullability was distinct.
             int n = elementBuilder.Count;
             var resultBuilder = ArrayBuilder<Result>.GetInstance(n);
             for (int i = 0; i < n; i++)
@@ -1836,14 +1842,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static TypeSymbolWithAnnotations InferResultNullability(BoundExpression operand, Conversion conversion, TypeSymbol targetType, TypeSymbolWithAnnotations operandType, bool fromConversionNode = false)
         {
-            bool? isNullable = null;
+            bool? isNullableIfReferenceType = null;
 
             switch (conversion.Kind)
             {
                 case ConversionKind.MethodGroup:
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.InterpolatedString:
-                    isNullable = false;
+                    isNullableIfReferenceType = false;
                     break;
 
                 case ConversionKind.ExplicitUserDefined:
@@ -1887,7 +1893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // PROTOTYPE(NullableReferenceTypes): Should we worry about a pathological case of boxing nullable value known to be not null?
                         //       For example, new int?(0)
-                        isNullable = operandType.IsNullableType();
+                        isNullableIfReferenceType = operandType.IsNullableType();
                     }
                     else
                     {
@@ -1906,7 +1912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE(NullableReferenceTypes): Should an explicit cast cast away
                     // outermost nullability? For instance, is `s` a `string!` or `string?`?
                     // object? obj = ...; var s = (string)obj;
-                    isNullable = (operandType is null) ? operand.IsLiteralNull() || operand.IsLiteralDefault() : operandType.IsNullable;
+                    isNullableIfReferenceType = (operandType is null) ? operand.IsLiteralNull() || operand.IsLiteralDefault() : operandType.IsNullable;
                     break;
 
                 case ConversionKind.Deconstruction:
@@ -1924,7 +1930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // PROTOTYPE(NullableReferenceTypes): Include nested nullability?
-            return TypeSymbolWithAnnotations.Create(targetType, isNullable);
+            return TypeSymbolWithAnnotations.Create(targetType, isNullableIfReferenceType);
         }
 
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)

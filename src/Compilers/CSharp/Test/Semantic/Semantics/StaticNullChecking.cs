@@ -17560,6 +17560,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
+        // Tests for NullableWalker.HasImplicitTypeArguments.
         [Fact]
         public void ExplicitTypeArguments()
         {

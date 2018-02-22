@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetBestType(types, conversions, ref useSiteDiagnostics);
         }
 
-        internal static bool? GetIsNullable(ImmutableArray<TypeSymbolWithAnnotations> types)
+        private static bool? GetIsNullable(ImmutableArray<TypeSymbolWithAnnotations> types)
         {
             bool isNullable = false;
             foreach (var type in types)
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static TypeSymbolWithAnnotations UpdateNullability(TypeSymbolWithAnnotations bestType, ImmutableArray<TypeSymbolWithAnnotations> types)
         {
-            return (bestType.IsReferenceType && bestType.IsNullable == false) ?
+            return bestType.IsReferenceType && bestType.IsNullable == false ?
                 TypeSymbolWithAnnotations.Create(bestType.TypeSymbol, GetIsNullable(types)) :
                 bestType;
         }
