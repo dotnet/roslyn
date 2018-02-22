@@ -7066,7 +7066,7 @@ class C
                     diff1 = compilation1.EmitDifference(
                         EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
                         ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.Main"))),
-                        testData: new CompilationTestData { SymWriterFactory = () => new MockSymUnmanagedWriter() });
+                        testData: new CompilationTestData { SymWriterFactory = _ => new MockSymUnmanagedWriter() });
                 }
 
                 diff1.EmitResult.Diagnostics.Verify(

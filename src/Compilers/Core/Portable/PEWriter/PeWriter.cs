@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Reflection.PortableExecutable;
 using static Microsoft.CodeAnalysis.SigningUtilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using Microsoft.DiaSymReader;
 
 namespace Microsoft.Cci
 {
@@ -115,7 +116,7 @@ namespace Microsoft.Cci
 
             if (!debugEntryPointHandle.IsNil)
             {
-                nativePdbWriterOpt?.SetEntryPoint((uint)MetadataTokens.GetToken(debugEntryPointHandle));
+                nativePdbWriterOpt?.SetEntryPoint(MetadataTokens.GetToken(debugEntryPointHandle));
             }
 
             if (nativePdbWriterOpt != null)
@@ -229,7 +230,7 @@ namespace Microsoft.Cci
                         }
                         catch (Exception e) when (!(e is OperationCanceledException))
                         {
-                            throw new PdbWritingException(e);
+                            throw new SymUnmanagedWriterException(e.Message, e);
                         }
                     }
                 }

@@ -3789,7 +3789,7 @@ class Program
                     (int bufferLength, out int count, byte[] name) =>
                     {
                         count = 0;
-                        return HResult.E_NOTIMPL;
+                        return Roslyn.Test.Utilities.HResult.E_NOTIMPL;
                     });
                 var debugInfo = new MethodDebugInfoBytes.Builder(constants: new[] { badConst }).Build();
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
