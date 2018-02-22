@@ -1057,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol elementType;
             bool hasErrors = false;
-            MethodSymbol getPinnableMethod = null;
+            MethodSymbol fixedPatternMethod = null;
 
             switch (initializerOpt.Kind)
             {
@@ -1088,21 +1088,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // check for a special ref-returning method
                     var additionalDiagnostics = DiagnosticBag.GetInstance();
-                    getPinnableMethod = GetDangerousGetPinnableReferenceMethodOpt(initializerOpt, additionalDiagnostics);
+                    fixedPatternMethod = GetFixedPatternMethodOpt(initializerOpt, additionalDiagnostics);
 
                     // check for String
-                    // NOTE: We will allow DangerousGetPinnableReferenceMethod to take precendence, but only if it is a member of System.String
+                    // NOTE: We will allow the pattern method to take precendence, but only if it is an instance member of System.String
                     if (initializerType.SpecialType == SpecialType.System_String &&
-                        ((object)getPinnableMethod == null || getPinnableMethod.ContainingType.SpecialType != SpecialType.System_String))
+                        ((object)fixedPatternMethod == null || fixedPatternMethod.ContainingType.SpecialType != SpecialType.System_String))
                     {
                         elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
                         additionalDiagnostics.Free();
                         break;
                     }
 
-                    if ((object)getPinnableMethod != null)
+                    if ((object)fixedPatternMethod != null)
                     {
-                        elementType = getPinnableMethod.ReturnType;
+                        elementType = fixedPatternMethod.ReturnType;
                         CheckFeatureAvailability(initializerOpt.Syntax, MessageID.IDS_FeatureExtensibleFixedStatement, diagnostics);
                         additionalDiagnostics.Free();
                         break;
@@ -1127,18 +1127,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, getPinnableMethod, hasErrors, diagnostics);
+            initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, fixedPatternMethod, hasErrors, diagnostics);
             return true;
         }
 
-        private MethodSymbol GetDangerousGetPinnableReferenceMethodOpt(BoundExpression initializer, DiagnosticBag additionalDiagnostics)
+        private MethodSymbol GetFixedPatternMethodOpt(BoundExpression initializer, DiagnosticBag additionalDiagnostics)
         {
             if (initializer.Type.SpecialType == SpecialType.System_Void)
             {
                 return null;
             }
 
-            const string methodName = "DangerousGetPinnableReference";
+            const string methodName = "GetPinnableReference";
 
             DiagnosticBag bindingDiagnostics = DiagnosticBag.GetInstance();
             try
@@ -1161,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                BoundExpression getPinnableReferenceCall = BindMethodGroupInvocation(
+                BoundExpression patternMethodCall = BindMethodGroupInvocation(
                     initializer.Syntax, 
                     initializer.Syntax, 
                     methodName, 
@@ -1173,22 +1173,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 analyzedArguments.Free();
 
-                if (getPinnableReferenceCall.Kind != BoundKind.Call)
+                if (patternMethodCall.Kind != BoundKind.Call)
                 {
                     // did not find anything callable
                     return null;
                 }
 
-                var call = (BoundCall)getPinnableReferenceCall;
+                var call = (BoundCall)patternMethodCall;
                 if (call.ResultKind == LookupResultKind.Empty)
                 {
                     // did not find any methods that even remotely fit
                     return null;
                 }
 
-                var getPinnableReferenceMethod = call.Method;
-                if (getPinnableReferenceMethod is ErrorMethodSymbol ||
-                    getPinnableReferenceCall.HasAnyErrors)
+                var patterMethodSymbol = call.Method;
+                if (patterMethodSymbol is ErrorMethodSymbol ||
+                    patternMethodCall.HasAnyErrors)
                 {
                     // we almost succeded, this is unusual and may be hard to diagnose.
                     // report additional errors on why we failed to bind the helper
@@ -1196,17 +1196,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                if (HasOptionalOrVariableParameters(getPinnableReferenceMethod) ||
-                    getPinnableReferenceMethod.ReturnsVoid ||
-                    !getPinnableReferenceMethod.RefKind.IsManagedReference() ||
-                    !(getPinnableReferenceMethod.ParameterCount == 0 || getPinnableReferenceMethod.IsStatic && getPinnableReferenceMethod.ParameterCount == 1))
+                if (HasOptionalOrVariableParameters(patterMethodSymbol) ||
+                    patterMethodSymbol.ReturnsVoid ||
+                    !patterMethodSymbol.RefKind.IsManagedReference() ||
+                    !(patterMethodSymbol.ParameterCount == 0 || patterMethodSymbol.IsStatic && patterMethodSymbol.ParameterCount == 1))
                 {
                     // the method does not fit the pattern
-                    additionalDiagnostics.Add(ErrorCode.WRN_PatternBadSignature, initializer.Syntax.Location, initializer.Type, "fixed", getPinnableReferenceMethod);
+                    additionalDiagnostics.Add(ErrorCode.WRN_PatternBadSignature, initializer.Syntax.Location, initializer.Type, "fixed", patterMethodSymbol);
                     return null;
                 }
 
-                return getPinnableReferenceMethod;
+                return patterMethodSymbol;
             }
             finally
             {
@@ -1222,7 +1222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression initializer, 
             TypeSymbol elementType, 
             TypeSymbol declType, 
-            MethodSymbol getPinnableMethodOpt,
+            MethodSymbol patternMethodOpt,
             bool hasErrors, 
             DiagnosticBag diagnostics)
         {
@@ -1246,7 +1246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 pointerType,
                 elementConversion,
                 initializer,
-                getPinnableMethodOpt,
+                patternMethodOpt,
                 declType,
                 hasErrors);
         }
