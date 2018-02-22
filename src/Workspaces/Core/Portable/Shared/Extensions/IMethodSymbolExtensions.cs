@@ -59,24 +59,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static ImmutableArray<IMethodSymbol> GetAllMethodSymbolsOfPartialParts(this IMethodSymbol method)
         {
-            if (method.PartialDefinitionPart == null && method.PartialImplementationPart == null)
+            if (method.PartialDefinitionPart != null)
+            {
+                Debug.Assert(method.PartialImplementationPart == null && method.PartialDefinitionPart != method);
+                return ImmutableArray.Create(method, method.PartialDefinitionPart);
+            }
+            else if (method.PartialImplementationPart != null)
+            {
+                Debug.Assert(method.PartialImplementationPart != method);
+                return ImmutableArray.Create(method.PartialImplementationPart, method);
+            }
+            else
             {
                 return ImmutableArray.Create(method);
             }
-
-            if (method.PartialDefinitionPart != null)
-            {
-                Debug.Assert(method.PartialDefinitionPart != method);
-                return ImmutableArray.Create(method.PartialDefinitionPart, method);
-            }
-
-            if (method.PartialImplementationPart != null)
-            {
-                Debug.Assert(method.PartialImplementationPart != method);
-                return ImmutableArray.Create(method, method.PartialImplementationPart);
-            }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, IList<string> newNames)
