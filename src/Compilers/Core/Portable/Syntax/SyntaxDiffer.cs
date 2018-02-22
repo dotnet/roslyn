@@ -846,14 +846,15 @@ namespace Microsoft.CodeAnalysis
 
             if (queue != null && queue.Count > 0)
             {
-                var writer = new System.IO.StringWriter(builder);
-
-                foreach (var n in queue)
+                using (var writer = new System.IO.StringWriter(builder))
                 {
-                    n.WriteTo(writer);
-                }
+                    foreach (var n in queue)
+                    {
+                        n.WriteTo(writer);
+                    }
 
-                writer.Flush();
+                    writer.Flush();
+                }
             }
         }
     }

@@ -32,14 +32,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (Workspace == null)
             {
                 // This can happen only in tests.
+#pragma warning disable CA2000 // Dispose objects before losing scope - escaped with AddOrUpdateAnalyzer saving the analyzer to a field.
                 var testAnalyzer = new VisualStudioAnalyzer(analyzerAssemblyFullPath, fileChangeService, this.HostDiagnosticUpdateSource, this.Id, this.Workspace, loader: null, language: this.Language);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 this.AddOrUpdateAnalyzer(analyzerAssemblyFullPath, testAnalyzer);
                 return;
             }
 
             var analyzerLoader = Workspace.Services.GetRequiredService<IAnalyzerService>().GetLoader();
             analyzerLoader.AddDependencyLocation(analyzerAssemblyFullPath);
+#pragma warning disable CA2000 // Dispose objects before losing scope - escaped with AddOrUpdateAnalyzer saving the analyzer to a field.
             var analyzer = new VisualStudioAnalyzer(analyzerAssemblyFullPath, fileChangeService, this.HostDiagnosticUpdateSource, this.Id, this.Workspace, analyzerLoader, this.Language);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             this.AddOrUpdateAnalyzer(analyzerAssemblyFullPath, analyzer);
 
             if (PushingChangesToWorkspace)
@@ -111,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ruleSetFileFullPath = string.Empty;
             }
 
-            if (!ruleSetFileFullPath.Equals(string.Empty))
+            if (ruleSetFileFullPath.Length > 0)
             {
                 // This is already a full path, but run it through GetFullPath to clean it (e.g., remove
                 // extra backslashes).

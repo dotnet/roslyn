@@ -1087,7 +1087,10 @@ namespace Microsoft.CodeAnalysis
                 "op_Explicit",                              // System_Nullable_T__op_Explicit_ToT
             };
 
-            s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
+            using (var stream = new System.IO.MemoryStream(initializationBytes, writable: false))
+            {
+                s_descriptors = MemberDescriptor.InitializeFromStream(stream, allNames);
+            }
         }
 
         public static MemberDescriptor GetDescriptor(SpecialMember member)

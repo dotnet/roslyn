@@ -104,7 +104,10 @@ namespace Microsoft.CodeAnalysis.Execution
                     var array = (byte[])reader.ReadValue();
                     var formatter = new BinaryFormatter();
 
-                    return (Encoding)formatter.Deserialize(new MemoryStream(array));
+                    using (var stream = new MemoryStream(array))
+                    {
+                        return (Encoding)formatter.Deserialize(stream);
+                    }
                 }
 
                 return ReadEncodingFrom(serialized, reader, cancellationToken);

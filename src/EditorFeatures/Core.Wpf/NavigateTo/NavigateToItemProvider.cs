@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly INavigateToItemDisplayFactory _displayFactory;
 
+#pragma warning disable CA2213 // Disposable fields should be disposed - field is disposed in a helper method. Remove this suppression once https://github.com/dotnet/roslyn-analyzers/issues/1594 is fixed.
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         public NavigateToItemProvider(
             Workspace workspace,
@@ -34,8 +36,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         public void StopSearch()
         {
+            StopSearchCore(disposing: false);
+        }
+
+        private void StopSearchCore(bool disposing)
+        {
             _cancellationTokenSource.Cancel();
-            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationTokenSource.Dispose();
+            _cancellationTokenSource = !disposing ? new CancellationTokenSource() : null;
         }
 
         public void Dispose()
@@ -46,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         public void StartSearch(INavigateToCallback callback, string searchValue)
         {
-            this.StopSearch();
+            this.StopSearchCore(disposing: true);
 
             if (string.IsNullOrWhiteSpace(searchValue))
             {

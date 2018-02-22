@@ -131,6 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             }
 
             _registration.Dispose();
+            _cancellationTokenSource.Dispose();
         }
 
         private void OnCanceled()

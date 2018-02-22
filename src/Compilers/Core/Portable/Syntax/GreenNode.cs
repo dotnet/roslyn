@@ -619,17 +619,21 @@ namespace Microsoft.CodeAnalysis
         public virtual string ToFullString()
         {
             var sb = PooledStringBuilder.GetInstance();
-            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
-            this.WriteTo(writer, leading: true, trailing: true);
-            return sb.ToStringAndFree();
+            using (var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture))
+            {
+                this.WriteTo(writer, leading: true, trailing: true);
+                return sb.ToStringAndFree();
+            }
         }
 
         public override string ToString()
         {
             var sb = PooledStringBuilder.GetInstance();
-            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
-            this.WriteTo(writer, leading: false, trailing: false);
-            return sb.ToStringAndFree();
+            using (var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture))
+            {
+                this.WriteTo(writer, leading: false, trailing: false);
+                return sb.ToStringAndFree();
+            }
         }
 
         public void WriteTo(System.IO.TextWriter writer)

@@ -73,10 +73,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 {
                     // It's a symbol from metadata, so we want to go produce it from metadata
                     var declarationFile = _peekableItem._metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation: false, cancellationToken).WaitAndGetResult(cancellationToken);
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to IDocumentPeekResult
                     var peekDisplayInfo = new PeekResultDisplayInfo(declarationFile.DocumentTitle, declarationFile.DocumentTitle, declarationFile.DocumentTitle, declarationFile.DocumentTitle);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                     var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                     var entityOfInterestSpan = PeekHelpers.GetEntityOfInterestSpan(symbol, workspace, declarationFile.IdentifierLocation, cancellationToken);
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to caller
                     resultCollection.Add(PeekHelpers.CreateDocumentPeekResult(declarationFile.FilePath, identifierSpan, entityOfInterestSpan, peekDisplayInfo, _peekableItem.PeekResultFactory, isReadOnly: true));
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 }
 
                 int processedSourceLocations = 0;
@@ -86,7 +90,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     var declarationLocation = declaration.GetLineSpan();
 
                     var entityOfInterestSpan = PeekHelpers.GetEntityOfInterestSpan(symbol, workspace, declaration, cancellationToken);
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to caller
                     resultCollection.Add(PeekHelpers.CreateDocumentPeekResult(declarationLocation.Path, declarationLocation.Span, entityOfInterestSpan, _peekableItem.PeekResultFactory));
+#pragma warning restore CA2000 // Dispose objects before losing scope
                     callback.ReportProgress(100 * ++processedSourceLocations / sourceLocations.Count);
                 }
             }

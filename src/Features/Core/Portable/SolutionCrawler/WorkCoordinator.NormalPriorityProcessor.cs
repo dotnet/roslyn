@@ -142,10 +142,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 // successfully processed a high priority document.
                                 return;
                             }
+#pragma warning disable CA2000 // Dispose objects before losing scope - _workItemQueue has the dispose ownership of the cancellation token source.
                             // process one of documents remaining
                             if (!_workItemQueue.TryTakeAnyWork(
                                 _currentProjectProcessing, this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService,
                                 out var workItem, out var documentCancellation))
+#pragma warning restore CA2000 // Dispose objects before losing scope
                             {
                                 return;
                             }
@@ -270,7 +272,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 // for a opened document we already processed, the work item will be treated as a regular one rather than higher priority one
                                 // (opened document)
                                 // see whether we have work item for the document
+#pragma warning disable CA2000 // Dispose objects before losing scope - _workItemQueue has the dispose ownership of the cancellation token source.
                                 if (!_workItemQueue.TryTake(documentId, out var workItem, out var documentCancellation))
+#pragma warning restore CA2000 // Dispose objects before losing scope
                                 {
                                     RemoveHigherPriorityDocument(documentId);
                                     continue;
@@ -294,7 +298,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private void RemoveHigherPriorityDocument(DocumentId documentId)
                     {
                         // remove opened document processed
+#pragma warning disable CA2000 // Dispose objects before losing scope - "projectCache" disposed by the helper method DisposeProjectCache.
                         if (_higherPriorityDocumentsNotProcessed.TryRemove(documentId, out var projectCache))
+#pragma warning restore CA2000 // Dispose objects before losing scope
                         {
                             DisposeProjectCache(projectCache);
                         }
@@ -507,12 +513,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
                     {
-                        CancellationTokenSource source = new CancellationTokenSource();
-
-                        _processingSolution = this.Processor.CurrentSolution;
-                        foreach (var item in items)
+                        using (var source = new CancellationTokenSource())
                         {
-                            ProcessDocumentAsync(analyzers, item, source).Wait();
+                            _processingSolution = this.Processor.CurrentSolution;
+                            foreach (var item in items)
+                            {
+                                ProcessDocumentAsync(analyzers, item, source).Wait();
+                            }
                         }
                     }
 

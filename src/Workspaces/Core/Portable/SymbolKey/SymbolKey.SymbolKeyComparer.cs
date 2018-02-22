@@ -40,9 +40,11 @@ namespace Microsoft.CodeAnalysis
 
             private string RemoveAssemblyKeys(string data)
             {
-                var reader = new RemoveAssemblySymbolKeysReader();
-                reader.Initialize(data);
-                return reader.RemoveAssemblySymbolKeys();
+                using (var reader = new RemoveAssemblySymbolKeysReader())
+                {
+                    reader.Initialize(data);
+                    return reader.RemoveAssemblySymbolKeys();
+                }
             }
 
             public int GetHashCode(SymbolKey obj)

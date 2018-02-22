@@ -48,7 +48,9 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         internal static Script<T> CreateInitialScript<T>(ScriptCompiler compiler, SourceText sourceText, ScriptOptions optionsOpt, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoaderOpt)
         {
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer of InteractiveAssemblyLoader instance to ScriptBuilder.
             return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), sourceText, optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         /// <summary>

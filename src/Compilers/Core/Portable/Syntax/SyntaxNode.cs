@@ -12,12 +12,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-#pragma warning disable RS0010
+#pragma warning disable CA1200
     /// <summary>
     /// Represents a non-terminal node in the syntax tree. This is the language agnostic equivalent of <see
     /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxNode"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxNode"/>.
     /// </summary>
-#pragma warning restore RS0010
+#pragma warning restore CA1200
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public abstract partial class SyntaxNode
     {
@@ -323,8 +323,11 @@ namespace Microsoft.CodeAnalysis
         public SourceText GetText(Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
             var builder = new StringBuilder();
-            this.WriteTo(new StringWriter(builder));
-            return new StringBuilderText(builder, encoding, checksumAlgorithm);
+            using (var writer = new StringWriter(builder))
+            {
+                this.WriteTo(writer);
+                return new StringBuilderText(builder, encoding, checksumAlgorithm);
+            }
         }
 
         /// <summary>

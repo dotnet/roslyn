@@ -144,19 +144,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
             var looksGeneric = syntaxFacts.LooksGeneric(node);
 
-            var symbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
-                project, SearchQuery.Create(name, this.IgnoreCase),
-                SymbolFilter.Type, cancellationToken).ConfigureAwait(false);
-            var symbols = symbolAndProjectIds.SelectAsArray(t => t.Symbol);
+            ImmutableArray<ISymbol> symbols;
+            using (var searchQuery = SearchQuery.Create(name, this.IgnoreCase))
+            {
+                var symbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                    project, searchQuery, SymbolFilter.Type, cancellationToken).ConfigureAwait(false);
+                symbols = symbolAndProjectIds.SelectAsArray(t => t.Symbol);
+            }
 
             // also lookup type symbols with the "Attribute" suffix.
             var inAttributeContext = syntaxFacts.IsAttributeName(node);
             if (inAttributeContext)
             {
-                var attributeSymbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
-                    project, SearchQuery.Create(name + "Attribute", this.IgnoreCase),
-                    SymbolFilter.Type, cancellationToken).ConfigureAwait(false);
-                symbols = symbols.Concat(attributeSymbolAndProjectIds.SelectAsArray(t => t.Symbol));
+                using (var searchQuery = SearchQuery.Create(name + "Attribute", this.IgnoreCase))
+                {
+                    var attributeSymbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                        project, searchQuery, SymbolFilter.Type, cancellationToken).ConfigureAwait(false);
+                    symbols = symbols.Concat(attributeSymbolAndProjectIds.SelectAsArray(t => t.Symbol));
+                }
             }
 
             var validSymbols = symbols
@@ -239,11 +244,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 return ImmutableArray<SymbolResult>.Empty;
             }
 
-            var symbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
-                project, SearchQuery.Create(name, this.IgnoreCase), 
-                SymbolFilter.Namespace, cancellationToken).ConfigureAwait(false);
-
-            var symbols = symbolAndProjectIds.SelectAsArray(t => t.Symbol);
+            ImmutableArray<ISymbol> symbols;
+            using (var searchQuery = SearchQuery.Create(name, this.IgnoreCase))
+            {
+                var symbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                    project, searchQuery, SymbolFilter.Namespace, cancellationToken).ConfigureAwait(false);
+                symbols = symbolAndProjectIds.SelectAsArray(t => t.Symbol);
+            }
 
             // There might be multiple namespaces that this name will resolve successfully in.
             // Some of them may be 'better' results than others.  For example, say you have

@@ -59,17 +59,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             try
             {
-                var xmlReader = XmlReader.Create(await ReadFileAsync(path, cancellationToken).ConfigureAwait(false), s_xmlSettings);
-                var collection = new MSB.Evaluation.ProjectCollection();
-                var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, collection);
+                using (var memoryStream = await ReadFileAsync(path, cancellationToken).ConfigureAwait(false))
+                using (var xmlReader = XmlReader.Create(memoryStream, s_xmlSettings))
+                using (var collection = new MSB.Evaluation.ProjectCollection())
+                {
+                    var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, collection);
 
-                // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
-                // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
-                xml.FullPath = path;
+                    // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
+                    // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
+                    xml.FullPath = path;
 
-                return new LoadedProjectInfo(
-                    new MSB.Evaluation.Project(xml, properties, toolsVersion: null, projectCollection: collection),
-                    errorMessage: null);
+                    return new LoadedProjectInfo(
+                        new MSB.Evaluation.Project(xml, properties, toolsVersion: null, projectCollection: collection),
+                        errorMessage: null);
+                }
             }
             catch (Exception e)
             {

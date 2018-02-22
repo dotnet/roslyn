@@ -111,7 +111,9 @@ namespace Microsoft.CodeAnalysis
                 // this is unfortunate that if we give stream, compiler will just re-copy whole content to 
                 // native memory again. this is a way to get around the issue by we getting native memory ourselves and then
                 // give them pointer to the native memory. also we need to handle lifetime ourselves.
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer of metadata instance to s_lifetime
                 metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length));
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
                 // Tie lifetime of stream to metadata we created. It is important to tie this to the Metadata and not the
                 // metadata reference, as PE symbols hold onto just the Metadata. We can use Add here since we created
@@ -119,14 +121,16 @@ namespace Microsoft.CodeAnalysis
                 s_lifetime.Add(metadata, supportNativeMemory);
             }
             else
-            { 
+            {
                 // Otherwise, we just let it use stream. Unfortunately, if we give stream, compiler will
                 // internally copy it to native memory again. since compiler owns lifetime of stream,
                 // it would be great if compiler can be little bit smarter on how it deals with stream.
 
                 // We don't deterministically release the resulting metadata since we don't know 
                 // when we should. So we leave it up to the GC to collect it and release all the associated resources.
+#pragma warning disable CA2000 // Dispose objects before losing scope - escaped with GetReference call below, which wraps the metadata instance.
                 metadata = AssemblyMetadata.CreateFromStream(stream);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             }
 
             return metadata.GetReference(

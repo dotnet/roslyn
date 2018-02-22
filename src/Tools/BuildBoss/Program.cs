@@ -61,17 +61,19 @@ namespace BuildBoss
         private static bool CheckCore(ICheckerUtil util, string title)
         {
             Console.Write($"Processing {title} ... ");
-            var textWriter = new StringWriter();
-            if (util.Check(textWriter))
+            using (var textWriter = new StringWriter())
             {
-                Console.WriteLine("passed");
-                return true;
-            }
-            else
-            {
-                Console.WriteLine("FAILED");
-                Console.WriteLine(textWriter.ToString());
-                return false;
+                if (util.Check(textWriter))
+                {
+                    Console.WriteLine("passed");
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine("FAILED");
+                    Console.WriteLine(textWriter.ToString());
+                    return false;
+                }
             }
         }
 

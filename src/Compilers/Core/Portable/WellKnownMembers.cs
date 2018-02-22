@@ -3330,7 +3330,10 @@ namespace Microsoft.CodeAnalysis
                 "get_Length",                               // System_ReadOnlySpan__get_Length
             };
 
-            s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
+            using (var stream = new System.IO.MemoryStream(initializationBytes, writable: false))
+            {
+                s_descriptors = MemberDescriptor.InitializeFromStream(stream, allNames);
+            }
         }
 
         public static MemberDescriptor GetDescriptor(WellKnownMember member)

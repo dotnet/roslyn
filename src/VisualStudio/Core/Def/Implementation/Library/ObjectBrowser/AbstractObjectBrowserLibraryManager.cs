@@ -24,7 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 {
     internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLibraryManager, IDisposable
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed - we don't have dispose ownership of Workspace.
         internal readonly VisualStudioWorkspace Workspace;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         internal readonly ILibraryService LibraryService;
 
         private readonly string _languageName;

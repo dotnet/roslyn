@@ -89,7 +89,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
+#pragma warning disable CA2000 // Dispose objects before losing scope - ModuleMetadata has dispose ownership
             return new ModuleMetadata(new PEReader((byte*)peImage, size));
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         /// <summary>
@@ -119,7 +121,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(peImage));
             }
 
+#pragma warning disable CA2000 // Dispose objects before losing scope - ModuleMetadata has dispose ownership
             return new ModuleMetadata(new PEReader(peImage));
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         /// <summary>
@@ -175,7 +179,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             // ownership of the stream is passed on PEReader:
+#pragma warning disable CA2000 // Dispose objects before losing scope - ModuleMetadata has dispose ownership
             return new ModuleMetadata(new PEReader(peStream, options));
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         /// <summary>

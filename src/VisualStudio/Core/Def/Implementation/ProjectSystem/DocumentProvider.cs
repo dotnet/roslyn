@@ -253,7 +253,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
             else
             {
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to AddPendingDocumentInitializationTask
                 var cts = new CancellationTokenSource();
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 var task = InvokeBelowInputPriority(() => NotifyDocumentRegisteredToProjectAndStartToRaiseEvents_Core(document, cts.Token), cts.Token);
                 AddPendingDocumentInitializationTask(document, task, cts);
             }

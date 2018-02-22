@@ -65,9 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // Can't be private as it's called by DirectiveStack in its GetDebuggerDisplay()
         internal string GetDebuggerDisplay()
         {
-            var writer = new System.IO.StringWriter(System.Globalization.CultureInfo.InvariantCulture);
-            _node.WriteTo(writer, false, false);
-            return writer.ToString();
+            using (var writer = new System.IO.StringWriter(System.Globalization.CultureInfo.InvariantCulture))
+            {
+                _node.WriteTo(writer, false, false);
+                return writer.ToString();
+            }
         }
 
         internal string GetIdentifier()

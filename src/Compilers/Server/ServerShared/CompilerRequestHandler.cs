@@ -116,10 +116,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             Log($"****Running {request.Language} compiler...");
-            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            int returnCode = compiler.Run(output, cancellationToken);
-            Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
-            return new CompletedBuildResponse(returnCode, utf8output, output.ToString());
+            using (TextWriter output = new StringWriter(CultureInfo.InvariantCulture))
+            {
+                int returnCode = compiler.Run(output, cancellationToken);
+                Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
+                return new CompletedBuildResponse(returnCode, utf8output, output.ToString());
+            }
         }
     }
 }

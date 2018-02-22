@@ -206,39 +206,40 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
 
                 // Wait for the compilation and a monitor to detect if the server disconnects
-                var serverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-                Log("Begin reading response");
-
-                var responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
-                var monitorTask = CreateMonitorDisconnectTask(pipeStream, "client", serverCts.Token);
-                await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
-
-                Log("End reading response");
-
-                if (responseTask.IsCompleted)
+                using (var serverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
                 {
-                    // await the task to log any exceptions
-                    try
+                    Log("Begin reading response");
+
+                    var responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
+                    var monitorTask = CreateMonitorDisconnectTask(pipeStream, "client", serverCts.Token);
+                    await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
+
+                    Log("End reading response");
+
+                    if (responseTask.IsCompleted)
                     {
-                        response = await responseTask.ConfigureAwait(false);
+                        // await the task to log any exceptions
+                        try
+                        {
+                            response = await responseTask.ConfigureAwait(false);
+                        }
+                        catch (Exception e)
+                        {
+                            LogException(e, "Error reading response");
+                            response = new RejectedBuildResponse();
+                        }
                     }
-                    catch (Exception e)
+                    else
                     {
-                        LogException(e, "Error reading response");
+                        Log("Server disconnect");
                         response = new RejectedBuildResponse();
                     }
-                }
-                else
-                {
-                    Log("Server disconnect");
-                    response = new RejectedBuildResponse();
-                }
 
-                // Cancel whatever task is still around
-                serverCts.Cancel();
-                Debug.Assert(response != null);
-                return response;
+                    // Cancel whatever task is still around
+                    serverCts.Cancel();
+                    Debug.Assert(response != null);
+                    return response;
+                }
             }
         }
 

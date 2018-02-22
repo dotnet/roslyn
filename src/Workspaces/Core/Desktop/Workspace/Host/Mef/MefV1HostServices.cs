@@ -46,8 +46,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 throw new ArgumentNullException(nameof(assemblies));
             }
 
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to MefV1HostServices.
             var catalog = new AggregateCatalog(assemblies.Select(a => new AssemblyCatalog(a)));
             var container = new CompositionContainer(catalog, compositionOptions: CompositionOptions.DisableSilentRejection | CompositionOptions.IsThreadSafe);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             return new MefV1HostServices(container);
         }
 

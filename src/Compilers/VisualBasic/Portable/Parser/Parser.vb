@@ -48,7 +48,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private _isInIteratorMethodDeclarationHeader As Boolean
 
         Friend Sub New(text As SourceText, options As VisualBasicParseOptions, Optional cancellationToken As CancellationToken = Nothing)
+#Disable Warning CA2000 ' Dispose objects before losing scope - dispose ownership transfer to containing type Dispose method.
             MyClass.New(New Scanner(text, options))
+#Enable Warning CA2000 ' Dispose objects before losing scope
             Debug.Assert(text IsNot Nothing)
             Debug.Assert(options IsNot Nothing)
             Me._disposeScanner = True
@@ -357,20 +359,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' grab the part that doesn't contain the preceding and trailing trivia.
 
             Dim builder = PooledStringBuilder.GetInstance()
-            Dim writer As New IO.StringWriter(builder)
+            Using writer As New IO.StringWriter(builder)
+                firstToken.WriteTo(writer)
+                secondToken.WriteTo(writer)
 
-            firstToken.WriteTo(writer)
-            secondToken.WriteTo(writer)
+                Dim leadingWidth = firstToken.GetLeadingTriviaWidth()
+                Dim trailingWidth = secondToken.GetTrailingTriviaWidth()
+                Dim fullWidth = firstToken.FullWidth + secondToken.FullWidth
 
-            Dim leadingWidth = firstToken.GetLeadingTriviaWidth()
-            Dim trailingWidth = secondToken.GetTrailingTriviaWidth()
-            Dim fullWidth = firstToken.FullWidth + secondToken.FullWidth
+                Debug.Assert(builder.Length = fullWidth)
+                Debug.Assert(builder.Length >= leadingWidth + trailingWidth)
 
-            Debug.Assert(builder.Length = fullWidth)
-            Debug.Assert(builder.Length >= leadingWidth + trailingWidth)
-
-            Return builder.ToStringAndFree(leadingWidth, fullWidth - leadingWidth - trailingWidth)
-
+                Return builder.ToStringAndFree(leadingWidth, fullWidth - leadingWidth - trailingWidth)
+            End Using
         End Function
 
         Private Shared Function MergeTokenText(firstToken As SyntaxToken, secondToken As SyntaxToken, thirdToken As SyntaxToken) As String
@@ -378,21 +379,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' grab the part that doesn't contain the preceding and trailing trivia.
 
             Dim builder = PooledStringBuilder.GetInstance()
-            Dim writer As New IO.StringWriter(builder)
+            Using writer As New IO.StringWriter(builder)
+                firstToken.WriteTo(writer)
+                secondToken.WriteTo(writer)
+                thirdToken.WriteTo(writer)
 
-            firstToken.WriteTo(writer)
-            secondToken.WriteTo(writer)
-            thirdToken.WriteTo(writer)
+                Dim leadingWidth = firstToken.GetLeadingTriviaWidth()
+                Dim trailingWidth = thirdToken.GetTrailingTriviaWidth()
+                Dim fullWidth = firstToken.FullWidth + secondToken.FullWidth + thirdToken.FullWidth
 
-            Dim leadingWidth = firstToken.GetLeadingTriviaWidth()
-            Dim trailingWidth = thirdToken.GetTrailingTriviaWidth()
-            Dim fullWidth = firstToken.FullWidth + secondToken.FullWidth + thirdToken.FullWidth
+                Debug.Assert(builder.Length = fullWidth)
+                Debug.Assert(builder.Length >= leadingWidth + trailingWidth)
 
-            Debug.Assert(builder.Length = fullWidth)
-            Debug.Assert(builder.Length >= leadingWidth + trailingWidth)
-
-            Return builder.ToStringAndFree(leadingWidth, fullWidth - leadingWidth - trailingWidth)
-
+                Return builder.ToStringAndFree(leadingWidth, fullWidth - leadingWidth - trailingWidth)
+            End Using
         End Function
 
         Private Function GetCurrentSyntaxNodeIfApplicable(<Out()> ByRef curSyntaxNode As VisualBasicSyntaxNode) As BlockContext

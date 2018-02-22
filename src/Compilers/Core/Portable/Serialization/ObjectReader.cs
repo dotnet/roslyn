@@ -59,15 +59,17 @@ namespace Roslyn.Utilities
         /// </summary>
         /// <param name="stream">The stream to read objects from.</param>
         /// <param name="cancellationToken"></param>
+        /// <param name="leaveStreamOpen">Flag to control whether <paramref name="stream"/> should be left open when this reader is disposed.</param>
         private ObjectReader(
             Stream stream,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            bool leaveStreamOpen = true)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
-            _reader = new BinaryReader(stream, Encoding.UTF8);
+            _reader = new BinaryReader(stream, Encoding.UTF8, leaveStreamOpen);
             _objectReferenceMap = ReaderReferenceMap<object>.Create();
             _stringReferenceMap = ReaderReferenceMap<string>.Create();
 
@@ -106,6 +108,7 @@ namespace Roslyn.Utilities
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
             _recursionDepth = 0;
+            _reader.Dispose();
         }
 
         public bool ReadBoolean() => _reader.ReadBoolean();

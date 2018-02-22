@@ -14,10 +14,12 @@ namespace Microsoft.CodeAnalysis.SQLite
 {
     internal partial class SQLitePersistentStorage
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed - field is disposed in a helper method. Remove this suppression once https://github.com/dotnet/roslyn-analyzers/issues/1594 is fixed.
         /// <summary>
         /// Lock protecting the write queues and <see cref="_flushAllTask"/>.
         /// </summary>
         private readonly SemaphoreSlim _writeQueueGate = new SemaphoreSlim(initialCount: 1);
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         /// <summary>
         /// Task kicked off to actually do the work of flushing all data to the DB.

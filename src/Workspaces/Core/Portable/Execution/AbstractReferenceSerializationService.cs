@@ -562,13 +562,17 @@ namespace Microsoft.CodeAnalysis.Execution
                 memory.TryGetBuffer(out var buffer) &&
                 buffer.Offset == 0)
             {
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to CreateFromMetadata
                 pinnedObject = new PinnedObject(buffer.Array, buffer.Count);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             }
             else
             {
                 var array = new byte[length];
                 stream.Read(array, 0, (int)length);
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to CreateFromMetadata
                 pinnedObject = new PinnedObject(array, length);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             }
 
             metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), (int)length);

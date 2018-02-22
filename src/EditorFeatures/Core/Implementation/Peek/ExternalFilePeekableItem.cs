@@ -48,7 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     return;
                 }
 
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to caller
                 resultCollection.Add(PeekHelpers.CreateDocumentPeekResult(_peekableItem._span.Path, _peekableItem._span.Span, _peekableItem._span.Span, _peekableItem.PeekResultFactory));
+#pragma warning restore CA2000 // Dispose objects before losing scope
             }
         }
     }

@@ -109,7 +109,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             IVisualStudioHostDocument vsDocument = project.GetCurrentDocumentFromPath(filePath);
             if (vsDocument == null)
             {
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to project
                 if (!TryCreateXamlDocument(project, filePath, out vsDocument))
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 {
                     return;
                 }
@@ -186,7 +188,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             Debug.Assert(newDocument == null, "Why does the renamed document already exist in the project?");
             if (newDocument == null)
             {
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to project.
                 if (TryCreateXamlDocument(project, newMoniker, out newDocument))
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 {
                     project.AddDocument(newDocument, isCurrentContext: true, hookupHandlers: true);
                 }

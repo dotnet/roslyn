@@ -297,18 +297,19 @@ namespace Microsoft.CodeAnalysis.Text
                         var encoding = segments[i].Encoding;
                         var algorithm = segments[i].ChecksumAlgorithm;
 
-                        var writer = SourceTextWriter.Create(encoding, algorithm, combinedLength);
-
-                        while (count > 0)
+                        using (var writer = SourceTextWriter.Create(encoding, algorithm, combinedLength))
                         {
-                            segments[i].Write(writer);
-                            segments.RemoveAt(i);
-                            count--;
+                            while (count > 0)
+                            {
+                                segments[i].Write(writer);
+                                segments.RemoveAt(i);
+                                count--;
+                            }
+
+                            var newText = writer.ToSourceText();
+
+                            segments.Insert(i, newText);
                         }
-
-                        var newText = writer.ToSourceText();
-
-                        segments.Insert(i, newText);
                     }
                 }
             }
@@ -356,14 +357,16 @@ namespace Microsoft.CodeAnalysis.Text
                 var encoding = segments[0].Encoding;
                 var algorithm = segments[0].ChecksumAlgorithm;
 
-                var writer = SourceTextWriter.Create(encoding, algorithm, length);
-                foreach (var segment in segments)
+                using (var writer = SourceTextWriter.Create(encoding, algorithm, length))
                 {
-                    segment.Write(writer);
-                }
+                    foreach (var segment in segments)
+                    {
+                        segment.Write(writer);
+                    }
 
-                segments.Clear();
-                segments.Add(writer.ToSourceText());
+                    segments.Clear();
+                    segments.Add(writer.ToSourceText());
+                }
             }
         }
     }

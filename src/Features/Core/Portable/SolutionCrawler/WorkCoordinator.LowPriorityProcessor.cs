@@ -52,7 +52,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // process any available project work, preferring the active project.
                             if (_workItemQueue.TryTakeAnyWork(
                                 this.Processor.GetActiveProject(), this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService,
+#pragma warning disable CA2000 // Dispose objects before losing scope - _workItemQueue has the dispose ownership of the cancellation token source.
                                 out var workItem, out var projectCancellation))
+#pragma warning restore CA2000 // Dispose objects before losing scope
                             {
                                 await ProcessProjectAsync(this.Analyzers, workItem, projectCancellation).ConfigureAwait(false);
                             }
@@ -193,14 +195,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
                     {
-                        CancellationTokenSource source = new CancellationTokenSource();
-
-                        var uniqueIds = new HashSet<ProjectId>();
-                        foreach (var item in items)
+                        using (var source = new CancellationTokenSource())
                         {
-                            if (uniqueIds.Add(item.ProjectId))
+                            var uniqueIds = new HashSet<ProjectId>();
+                            foreach (var item in items)
                             {
-                                ProcessProjectAsync(analyzers, item, source).Wait();
+                                if (uniqueIds.Add(item.ProjectId))
+                                {
+                                    ProcessProjectAsync(analyzers, item, source).Wait();
+                                }
                             }
                         }
                     }

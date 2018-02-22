@@ -73,7 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected ImmutableList<Entry> EntriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
             protected ImmutableList<Entry> EntriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
 
+#pragma warning disable CA2213 // Disposable fields should be disposed - caller of GetCurrentSnapshot has dispose ownership of the snapshot.
             private TableEntriesSnapshot _lastSnapshot;
+#pragma warning restore CA2213 // Disposable fields should be disposed
             public int CurrentVersionNumber { get; protected set; }
 
             #endregion
@@ -397,6 +399,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _findReferencesWindow.Manager.RemoveSource(this);
 
                 CancelSearch();
+
+                _cancellationTokenSource.Dispose();
 
                 // Remove ourselves from the list of contexts that are currently active.
                 Presenter._currentContexts.Remove(this);

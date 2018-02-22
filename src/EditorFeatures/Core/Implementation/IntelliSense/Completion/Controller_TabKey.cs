@@ -71,7 +71,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // essence, the <quesiton><tab> acts as the trigger, and we act as if that
             // text never makes it into the buffer.
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
             if (!Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
+#pragma warning restore CA2000 // Dispose objects before losing scope
             {
                 return false;
             }

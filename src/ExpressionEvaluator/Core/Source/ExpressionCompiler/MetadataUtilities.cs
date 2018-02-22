@@ -287,7 +287,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer
             var assemblyMetadata = AssemblyMetadata.Create(builder.ToImmutableAndFree());
+#pragma warning restore CA2000 // Dispose objects before losing scope
             return assemblyMetadata.GetReference(embedInteropTypes: false, display: metadata.Name);
         }
 
@@ -330,7 +332,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var builder = ArrayBuilder<ModuleMetadata>.GetInstance();
             builder.Add(metadata);
             builder.AddRange(runtimeModules);
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer
             var assemblyMetadata = AssemblyMetadata.Create(builder.ToImmutableAndFree());
+#pragma warning restore CA2000 // Dispose objects before losing scope
             return assemblyMetadata.GetReference(embedInteropTypes: false, display: metadata.Name);
         }
 

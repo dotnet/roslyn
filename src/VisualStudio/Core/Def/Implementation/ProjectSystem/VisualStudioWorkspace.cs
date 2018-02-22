@@ -19,7 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// </summary>
     public abstract class VisualStudioWorkspace : Workspace
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed - field is disposed in a helper method.
         private BackgroundCompiler _backgroundCompiler;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly BackgroundParser _backgroundParser;
 
         internal VisualStudioWorkspace(HostServices hostServices, WorkspaceBackgroundWork backgroundWork)

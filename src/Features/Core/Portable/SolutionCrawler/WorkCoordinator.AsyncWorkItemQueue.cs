@@ -131,6 +131,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Dispose_NoLock();
 
                         cancellations = CancelAll_NoLock();
+
+                        _semaphore.Dispose();
                     }
 
                     RaiseCancellation_NoLock(cancellations);

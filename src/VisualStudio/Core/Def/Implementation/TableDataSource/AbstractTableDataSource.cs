@@ -136,7 +136,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             lock (_gate)
             {
                 snapshot = _subscriptions;
+#pragma warning disable CA2000 // Dispose objects before losing scope - _map has the dispose ownership for the factory.
                 GetOrCreateFactory_NoLock(data, out var factory, out newFactory);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
                 factory.OnDataAddedOrChanged(data);
 

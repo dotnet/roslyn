@@ -423,7 +423,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     }
                     else
                     {
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to the CacheEntry.
                         privateMetadata = CreateModuleMetadata(manifestModuleCopyStream);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                     }
 
                     var publicMetadata = privateMetadata.Copy();

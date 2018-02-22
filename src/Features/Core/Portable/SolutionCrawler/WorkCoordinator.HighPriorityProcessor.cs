@@ -106,7 +106,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             _running = source.Task;
                             // okay, there must be at least one item in the map
                             // see whether we have work item for the document
+#pragma warning disable CA2000 // Dispose objects before losing scope - _workItemQueue has the dispose ownership of the cancellation token source.
                             Contract.ThrowIfFalse(GetNextWorkItem(out var workItem, out var documentCancellation));
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
                             var solution = _processor.CurrentSolution;
 
@@ -130,7 +132,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         var documentId = _processor._documentTracker.GetActiveDocument();
                         if (documentId != null)
                         {
+#pragma warning disable CA2000 // Dispose objects before losing scope - _workItemQueue has the dispose ownership of the cancellation token source.
                             if (_workItemQueue.TryTake(documentId, out workItem, out documentCancellation))
+#pragma warning restore CA2000 // Dispose objects before losing scope
                             {
                                 return true;
                             }

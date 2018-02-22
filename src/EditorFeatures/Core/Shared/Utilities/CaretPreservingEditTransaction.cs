@@ -10,7 +10,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     {
         private readonly IEditorOperations _editorOperations;
         private readonly ITextUndoHistory _undoHistory;
+#pragma warning disable CA2213 // Disposable fields should be disposed - https://github.com/dotnet/roslyn-analyzers/issues/1594
         private ITextUndoTransaction _transaction;
+#pragma warning restore CA2213 // Disposable fields should be disposed
+
         private bool _active;
 
         public CaretPreservingEditTransaction(

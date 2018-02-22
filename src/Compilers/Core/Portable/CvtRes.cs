@@ -49,78 +49,80 @@ namespace Microsoft.CodeAnalysis
 
         static internal List<RESOURCE> ReadResFile(Stream stream)
         {
-            var reader = new BinaryReader(stream, Encoding.Unicode);
-            var resourceNames = new List<RESOURCE>();
-
-            var startPos = stream.Position;
-
-            var initial32Bits = reader.ReadUInt32();
-
-            //RC.EXE output starts with a resource that contains no data.
-            if (initial32Bits != 0)
-                throw new ResourceException("Stream does not begin with a null resource and is not in .RES format.");
-
-            stream.Position = startPos;
-
-            // Build up Type and Name directories
-
-            while (stream.Position < stream.Length)
+            using (var reader = new BinaryReader(stream, Encoding.Unicode, leaveOpen: true))
             {
-                // Get the sizes from the file
+                var resourceNames = new List<RESOURCE>();
 
-                var cbData = reader.ReadUInt32();
-                var cbHdr = reader.ReadUInt32();
+                var startPos = stream.Position;
 
-                if (cbHdr < 2 * sizeof(DWORD))
+                var initial32Bits = reader.ReadUInt32();
+
+                //RC.EXE output starts with a resource that contains no data.
+                if (initial32Bits != 0)
+                    throw new ResourceException("Stream does not begin with a null resource and is not in .RES format.");
+
+                stream.Position = startPos;
+
+                // Build up Type and Name directories
+
+                while (stream.Position < stream.Length)
                 {
-                    throw new ResourceException(String.Format("Resource header beginning at offset 0x{0:x} is malformed.", stream.Position - 8));
-                    //ErrorPrint(ERR_FILECORRUPT, szFilename);
+                    // Get the sizes from the file
+
+                    var cbData = reader.ReadUInt32();
+                    var cbHdr = reader.ReadUInt32();
+
+                    if (cbHdr < 2 * sizeof(DWORD))
+                    {
+                        throw new ResourceException(String.Format("Resource header beginning at offset 0x{0:x} is malformed.", stream.Position - 8));
+                        //ErrorPrint(ERR_FILECORRUPT, szFilename);
+                    }
+
+                    // Discard null resource
+
+                    if (cbData == 0)
+                    {
+                        stream.Position += cbHdr - 2 * sizeof(DWORD);
+                        continue;
+                    }
+
+                    var pAdditional = new RESOURCE()
+                    {
+                        HeaderSize = cbHdr,
+                        DataSize = cbData
+                    };
+
+                    // Read the TYPE and NAME
+
+                    pAdditional.pstringType = ReadStringOrID(reader);
+                    pAdditional.pstringName = ReadStringOrID(reader);
+
+                    //round up to dword boundary.
+                    stream.Position = (stream.Position + 3) & ~3;
+
+                    // Read the rest of the header
+                    pAdditional.DataVersion = reader.ReadUInt32();
+                    pAdditional.MemoryFlags = reader.ReadUInt16();
+                    pAdditional.LanguageId = reader.ReadUInt16();
+                    pAdditional.Version = reader.ReadUInt32();
+                    pAdditional.Characteristics = reader.ReadUInt32();
+
+                    pAdditional.data = new byte[pAdditional.DataSize];
+                    reader.Read(pAdditional.data, 0, pAdditional.data.Length);
+
+                    stream.Position = (stream.Position + 3) & ~3;
+
+                    if (pAdditional.pstringType.theString == null && (pAdditional.pstringType.Ordinal == (WORD)RT_DLGINCLUDE))
+                    {
+                        // Ignore DLGINCLUDE resources
+                        continue;
+                    }
+
+                    resourceNames.Add(pAdditional);
                 }
 
-                // Discard null resource
-
-                if (cbData == 0)
-                {
-                    stream.Position += cbHdr - 2 * sizeof(DWORD);
-                    continue;
-                }
-
-                var pAdditional = new RESOURCE()
-                {
-                    HeaderSize = cbHdr,
-                    DataSize = cbData
-                };
-
-                // Read the TYPE and NAME
-
-                pAdditional.pstringType = ReadStringOrID(reader);
-                pAdditional.pstringName = ReadStringOrID(reader);
-
-                //round up to dword boundary.
-                stream.Position = (stream.Position + 3) & ~3;
-
-                // Read the rest of the header
-                pAdditional.DataVersion = reader.ReadUInt32();
-                pAdditional.MemoryFlags = reader.ReadUInt16();
-                pAdditional.LanguageId = reader.ReadUInt16();
-                pAdditional.Version = reader.ReadUInt32();
-                pAdditional.Characteristics = reader.ReadUInt32();
-
-                pAdditional.data = new byte[pAdditional.DataSize];
-                reader.Read(pAdditional.data, 0, pAdditional.data.Length);
-
-                stream.Position = (stream.Position + 3) & ~3;
-
-                if (pAdditional.pstringType.theString == null && (pAdditional.pstringType.Ordinal == (WORD)RT_DLGINCLUDE))
-                {
-                    // Ignore DLGINCLUDE resources
-                    continue;
-                }
-
-                resourceNames.Add(pAdditional);
+                return resourceNames;
             }
-
-            return resourceNames;
         }
 
         private static RESOURCE_STRING ReadStringOrID(BinaryReader fhIn)
@@ -230,75 +232,84 @@ namespace Microsoft.CodeAnalysis
 
             var relocationSymbolIndices = new uint[rsrc1.NumberOfRelocations];
 
-            var reader = new BinaryReader(stream, Encoding.Unicode);
-            stream.Position = rsrc1.PointerToRelocations;
-
-            for (int i = 0; i < rsrc1.NumberOfRelocations; i++)
+            using (var reader = new BinaryReader(stream, Encoding.Unicode, leaveOpen: true))
             {
-                relocationOffsets[i] = reader.ReadUInt32();
-                //What is being read and stored is the reloc's "Value"
-                //This is the symbol's index.
-                relocationSymbolIndices[i] = reader.ReadUInt32();
-                reader.ReadUInt16(); //we do nothing with the "Type"
-            }
+                stream.Position = rsrc1.PointerToRelocations;
 
-            //now that symbol indices are gathered, begin indexing the symbols
-            stream.Position = peHeaders.CoffHeader.PointerToSymbolTable;
-            const uint ImageSizeOfSymbol = 18;
+                for (int i = 0; i < rsrc1.NumberOfRelocations; i++)
+                {
+                    relocationOffsets[i] = reader.ReadUInt32();
+                    //What is being read and stored is the reloc's "Value"
+                    //This is the symbol's index.
+                    relocationSymbolIndices[i] = reader.ReadUInt32();
+                    reader.ReadUInt16(); //we do nothing with the "Type"
+                }
 
-            try
-            {
-                var lastSymAddress = checked(peHeaders.CoffHeader.PointerToSymbolTable + peHeaders.CoffHeader.NumberOfSymbols * ImageSizeOfSymbol);
+                //now that symbol indices are gathered, begin indexing the symbols
+                stream.Position = peHeaders.CoffHeader.PointerToSymbolTable;
+                const uint ImageSizeOfSymbol = 18;
 
-                if (lastSymAddress > stream.Length)
+                try
+                {
+                    var lastSymAddress = checked(peHeaders.CoffHeader.PointerToSymbolTable + peHeaders.CoffHeader.NumberOfSymbols * ImageSizeOfSymbol);
+
+                    if (lastSymAddress > stream.Length)
+                        throw new ResourceException(CodeAnalysisResources.CoffResourceInvalidSymbol);
+                }
+                catch (OverflowException)
+                {
                     throw new ResourceException(CodeAnalysisResources.CoffResourceInvalidSymbol);
+                }
+
+                var outputStream = new MemoryStream(imageResourceSectionBytes);
+                using (var writer = new BinaryWriter(outputStream))  //encoding shouldn't matter. There are no strings being written.
+                {
+                    for (int i = 0; i < relocationSymbolIndices.Length; i++)
+                    {
+                        if (relocationSymbolIndices[i] > peHeaders.CoffHeader.NumberOfSymbols)
+                            throw new ResourceException(CodeAnalysisResources.CoffResourceInvalidRelocation);
+
+                        var offsetOfSymbol = peHeaders.CoffHeader.PointerToSymbolTable + relocationSymbolIndices[i] * ImageSizeOfSymbol;
+
+                        stream.Position = offsetOfSymbol;
+                        stream.Position += 8; //skip over symbol name
+                        var symValue = reader.ReadUInt32();
+                        var symSection = reader.ReadInt16();
+                        var symType = reader.ReadUInt16();
+                        //ignore the rest of the fields.
+
+                        const ushort IMAGE_SYM_TYPE_NULL = 0x0000;
+
+                        if (symType != IMAGE_SYM_TYPE_NULL ||
+                            symSection != 3)  //3rd section is .rsrc$02
+                            throw new ResourceException(CodeAnalysisResources.CoffResourceInvalidSymbol);
+
+                        //perform relocation. We are concatenating the contents of .rsrc$02 (the raw resource data)
+                        //on to the end of .rsrc$01 (the directory tree) to yield the final resource section for the image.
+                        //The directory tree has references into the raw resource data. These references are expressed
+                        //in the final image as file positions, not positions relative to the beginning of the section.
+                        //First make the resources be relative to the beginning of the section by adding the size
+                        //of .rsrc$01 to them. They will ultimately need the RVA of the final image resource section added 
+                        //to them. We don't know that yet. That is why the array of offsets is preserved. 
+
+                        outputStream.Position = relocationOffsets[i];
+                        writer.Write((uint)(symValue + rsrc1.SizeOfRawData));
+                    }
+                }
+
+                return new Cci.ResourceSection(imageResourceSectionBytes, relocationOffsets);
             }
-            catch (OverflowException)
-            {
-                throw new ResourceException(CodeAnalysisResources.CoffResourceInvalidSymbol);
-            }
-
-            var outputStream = new MemoryStream(imageResourceSectionBytes);
-            var writer = new BinaryWriter(outputStream);  //encoding shouldn't matter. There are no strings being written.
-
-            for (int i = 0; i < relocationSymbolIndices.Length; i++)
-            {
-                if (relocationSymbolIndices[i] > peHeaders.CoffHeader.NumberOfSymbols)
-                    throw new ResourceException(CodeAnalysisResources.CoffResourceInvalidRelocation);
-
-                var offsetOfSymbol = peHeaders.CoffHeader.PointerToSymbolTable + relocationSymbolIndices[i] * ImageSizeOfSymbol;
-
-                stream.Position = offsetOfSymbol;
-                stream.Position += 8; //skip over symbol name
-                var symValue = reader.ReadUInt32();
-                var symSection = reader.ReadInt16();
-                var symType = reader.ReadUInt16();
-                //ignore the rest of the fields.
-
-                const ushort IMAGE_SYM_TYPE_NULL = 0x0000;
-
-                if (symType != IMAGE_SYM_TYPE_NULL ||
-                    symSection != 3)  //3rd section is .rsrc$02
-                    throw new ResourceException(CodeAnalysisResources.CoffResourceInvalidSymbol);
-
-                //perform relocation. We are concatenating the contents of .rsrc$02 (the raw resource data)
-                //on to the end of .rsrc$01 (the directory tree) to yield the final resource section for the image.
-                //The directory tree has references into the raw resource data. These references are expressed
-                //in the final image as file positions, not positions relative to the beginning of the section.
-                //First make the resources be relative to the beginning of the section by adding the size
-                //of .rsrc$01 to them. They will ultimately need the RVA of the final image resource section added 
-                //to them. We don't know that yet. That is why the array of offsets is preserved. 
-
-                outputStream.Position = relocationOffsets[i];
-                writer.Write((uint)(symValue + rsrc1.SizeOfRawData));
-            }
-
-            return new Cci.ResourceSection(imageResourceSectionBytes, relocationOffsets);
         }
     }
 
     internal static class Win32ResourceConversions
     {
+        /// <summary>
+        /// Encoding to use when there is no byte order mark (BOM) on the stream. This encoder may throw a <see cref="DecoderFallbackException"/>
+        /// if the stream contains invalid UTF-8 bytes.
+        /// </summary>
+        private static readonly Encoding s_utf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
         private struct ICONDIRENTRY
         {
             internal BYTE bWidth;
@@ -313,158 +324,160 @@ namespace Microsoft.CodeAnalysis
 
         internal static void AppendIconToResourceStream(Stream resStream, Stream iconStream)
         {
-            var iconReader = new BinaryReader(iconStream);
-
-            //read magic reserved WORD
-            var reserved = iconReader.ReadUInt16();
-            if (reserved != 0)
-                throw new ResourceException(CodeAnalysisResources.IconStreamUnexpectedFormat);
-
-            var type = iconReader.ReadUInt16();
-            if (type != 1)
-                throw new ResourceException(CodeAnalysisResources.IconStreamUnexpectedFormat);
-
-            var count = iconReader.ReadUInt16();
-            if (count == 0)
-                throw new ResourceException(CodeAnalysisResources.IconStreamUnexpectedFormat);
-
-            var iconDirEntries = new ICONDIRENTRY[count];
-            for (ushort i = 0; i < count; i++)
+            using (var iconReader = new BinaryReader(iconStream, s_utf8Encoding, leaveOpen: true))
             {
-                // Read the Icon header
-                iconDirEntries[i].bWidth = iconReader.ReadByte();
-                iconDirEntries[i].bHeight = iconReader.ReadByte();
-                iconDirEntries[i].bColorCount = iconReader.ReadByte();
-                iconDirEntries[i].bReserved = iconReader.ReadByte();
-                iconDirEntries[i].wPlanes = iconReader.ReadUInt16();
-                iconDirEntries[i].wBitCount = iconReader.ReadUInt16();
-                iconDirEntries[i].dwBytesInRes = iconReader.ReadUInt32();
-                iconDirEntries[i].dwImageOffset = iconReader.ReadUInt32();
-            }
+                //read magic reserved WORD
+                var reserved = iconReader.ReadUInt16();
+                if (reserved != 0)
+                    throw new ResourceException(CodeAnalysisResources.IconStreamUnexpectedFormat);
 
-            // Because Icon files don't seem to record the actual w and BitCount in
-            // the ICONDIRENTRY, get the info from the BITMAPINFOHEADER at the beginning
-            // of the data here:
-            //EDMAURER: PNG compressed icons must be treated differently. Do what has always
-            //been done for uncompressed icons. Assume modern, compressed icons set the 
-            //ICONDIRENTRY fields correctly.
-            //if (*(DWORD*)icoBuffer == sizeof(BITMAPINFOHEADER))
-            //{
-            //    grp[i].Planes = ((BITMAPINFOHEADER*)icoBuffer)->biPlanes;
-            //    grp[i].BitCount = ((BITMAPINFOHEADER*)icoBuffer)->biBitCount;
-            //}
+                var type = iconReader.ReadUInt16();
+                if (type != 1)
+                    throw new ResourceException(CodeAnalysisResources.IconStreamUnexpectedFormat);
 
-            for (ushort i = 0; i < count; i++)
-            {
-                iconStream.Position = iconDirEntries[i].dwImageOffset;
-                if (iconReader.ReadUInt32() == 40)
+                var count = iconReader.ReadUInt16();
+                if (count == 0)
+                    throw new ResourceException(CodeAnalysisResources.IconStreamUnexpectedFormat);
+
+                var iconDirEntries = new ICONDIRENTRY[count];
+                for (ushort i = 0; i < count; i++)
                 {
-                    iconStream.Position += 8;
+                    // Read the Icon header
+                    iconDirEntries[i].bWidth = iconReader.ReadByte();
+                    iconDirEntries[i].bHeight = iconReader.ReadByte();
+                    iconDirEntries[i].bColorCount = iconReader.ReadByte();
+                    iconDirEntries[i].bReserved = iconReader.ReadByte();
                     iconDirEntries[i].wPlanes = iconReader.ReadUInt16();
                     iconDirEntries[i].wBitCount = iconReader.ReadUInt16();
+                    iconDirEntries[i].dwBytesInRes = iconReader.ReadUInt32();
+                    iconDirEntries[i].dwImageOffset = iconReader.ReadUInt32();
                 }
-            }
 
-            //read everything and no exceptions. time to write.
-            var resWriter = new BinaryWriter(resStream);
+                // Because Icon files don't seem to record the actual w and BitCount in
+                // the ICONDIRENTRY, get the info from the BITMAPINFOHEADER at the beginning
+                // of the data here:
+                //EDMAURER: PNG compressed icons must be treated differently. Do what has always
+                //been done for uncompressed icons. Assume modern, compressed icons set the 
+                //ICONDIRENTRY fields correctly.
+                //if (*(DWORD*)icoBuffer == sizeof(BITMAPINFOHEADER))
+                //{
+                //    grp[i].Planes = ((BITMAPINFOHEADER*)icoBuffer)->biPlanes;
+                //    grp[i].BitCount = ((BITMAPINFOHEADER*)icoBuffer)->biBitCount;
+                //}
 
-            //write all of the icon images as individual resources, then follow up with
-            //a resource that groups them.
-            const WORD RT_ICON = 3;
-
-            for (ushort i = 0; i < count; i++)
-            {
-                /* write resource header.
-                struct RESOURCEHEADER
+                for (ushort i = 0; i < count; i++)
                 {
-                    DWORD DataSize;
-                    DWORD HeaderSize;
-                    WORD Magic1;
-                    WORD Type;
-                    WORD Magic2;
-                    WORD Name;
-                    DWORD DataVersion;
-                    WORD MemoryFlags;
-                    WORD LanguageId;
-                    DWORD Version;
-                    DWORD Characteristics;
-                };
-                */
+                    iconStream.Position = iconDirEntries[i].dwImageOffset;
+                    if (iconReader.ReadUInt32() == 40)
+                    {
+                        iconStream.Position += 8;
+                        iconDirEntries[i].wPlanes = iconReader.ReadUInt16();
+                        iconDirEntries[i].wBitCount = iconReader.ReadUInt16();
+                    }
+                }
 
-                resStream.Position = (resStream.Position + 3) & ~3; //headers begin on 4-byte boundaries.
-                resWriter.Write((DWORD)iconDirEntries[i].dwBytesInRes);
-                resWriter.Write((DWORD)0x00000020);
-                resWriter.Write((WORD)0xFFFF);
-                resWriter.Write((WORD)RT_ICON);
-                resWriter.Write((WORD)0xFFFF);
-                resWriter.Write((WORD)(i + 1));       //EDMAURER this is not general. Implies you can only append one icon to the resources.
-                                                      //This icon ID would seem to be global among all of the icons not just this group.
-                                                      //Zero appears to not be an acceptable ID. Note that this ID is referred to below.
-                resWriter.Write((DWORD)0x00000000);
-                resWriter.Write((WORD)0x1010);
-                resWriter.Write((WORD)0x0000);
-                resWriter.Write((DWORD)0x00000000);
-                resWriter.Write((DWORD)0x00000000);
+                //read everything and no exceptions. time to write.
+                using (var resWriter = new BinaryWriter(resStream, s_utf8Encoding, leaveOpen: true))
+                {
+                    //write all of the icon images as individual resources, then follow up with
+                    //a resource that groups them.
+                    const WORD RT_ICON = 3;
 
-                //write the data.
-                iconStream.Position = iconDirEntries[i].dwImageOffset;
-                resWriter.Write(iconReader.ReadBytes(checked((int)iconDirEntries[i].dwBytesInRes)));
-            }
+                    for (ushort i = 0; i < count; i++)
+                    {
+                        /* write resource header.
+                        struct RESOURCEHEADER
+                        {
+                            DWORD DataSize;
+                            DWORD HeaderSize;
+                            WORD Magic1;
+                            WORD Type;
+                            WORD Magic2;
+                            WORD Name;
+                            DWORD DataVersion;
+                            WORD MemoryFlags;
+                            WORD LanguageId;
+                            DWORD Version;
+                            DWORD Characteristics;
+                        };
+                        */
 
-            /*
-            
-            struct ICONDIR
-            {
-                WORD           idReserved;   // Reserved (must be 0)
-                WORD           idType;       // Resource Type (1 for icons)
-                WORD           idCount;      // How many images?
-                ICONDIRENTRY   idEntries[1]; // An entry for each image (idCount of 'em)
-            }/
-             
-            struct ICONRESDIR
-            {
-                BYTE Width;        // = ICONDIRENTRY.bWidth;
-                BYTE Height;       // = ICONDIRENTRY.bHeight;
-                BYTE ColorCount;   // = ICONDIRENTRY.bColorCount;
-                BYTE reserved;     // = ICONDIRENTRY.bReserved;
-                WORD Planes;       // = ICONDIRENTRY.wPlanes;
-                WORD BitCount;     // = ICONDIRENTRY.wBitCount;
-                DWORD BytesInRes;   // = ICONDIRENTRY.dwBytesInRes;
-                WORD IconId;       // = RESOURCEHEADER.Name
-            };
-            */
+                        resStream.Position = (resStream.Position + 3) & ~3; //headers begin on 4-byte boundaries.
+                        resWriter.Write((DWORD)iconDirEntries[i].dwBytesInRes);
+                        resWriter.Write((DWORD)0x00000020);
+                        resWriter.Write((WORD)0xFFFF);
+                        resWriter.Write((WORD)RT_ICON);
+                        resWriter.Write((WORD)0xFFFF);
+                        resWriter.Write((WORD)(i + 1));       //EDMAURER this is not general. Implies you can only append one icon to the resources.
+                                                              //This icon ID would seem to be global among all of the icons not just this group.
+                                                              //Zero appears to not be an acceptable ID. Note that this ID is referred to below.
+                        resWriter.Write((DWORD)0x00000000);
+                        resWriter.Write((WORD)0x1010);
+                        resWriter.Write((WORD)0x0000);
+                        resWriter.Write((DWORD)0x00000000);
+                        resWriter.Write((DWORD)0x00000000);
 
-            const WORD RT_GROUP_ICON = RT_ICON + 11;
+                        //write the data.
+                        iconStream.Position = iconDirEntries[i].dwImageOffset;
+                        resWriter.Write(iconReader.ReadBytes(checked((int)iconDirEntries[i].dwBytesInRes)));
+                    }
 
-            resStream.Position = (resStream.Position + 3) & ~3; //align 4-byte boundary
-            //write the icon group. first a RESOURCEHEADER. the data is the ICONDIR
-            resWriter.Write((DWORD)(3 * sizeof(WORD) + count * /*sizeof(ICONRESDIR)*/ 14));
-            resWriter.Write((DWORD)0x00000020);
-            resWriter.Write((WORD)0xFFFF);
-            resWriter.Write((WORD)RT_GROUP_ICON);
-            resWriter.Write((WORD)0xFFFF);
-            resWriter.Write((WORD)0x7F00);  //IDI_APPLICATION
-            resWriter.Write((DWORD)0x00000000);
-            resWriter.Write((WORD)0x1030);
-            resWriter.Write((WORD)0x0000);
-            resWriter.Write((DWORD)0x00000000);
-            resWriter.Write((DWORD)0x00000000);
+                    /*
 
-            //the ICONDIR
-            resWriter.Write((WORD)0x0000);
-            resWriter.Write((WORD)0x0001);
-            resWriter.Write((WORD)count);
+                    struct ICONDIR
+                    {
+                        WORD           idReserved;   // Reserved (must be 0)
+                        WORD           idType;       // Resource Type (1 for icons)
+                        WORD           idCount;      // How many images?
+                        ICONDIRENTRY   idEntries[1]; // An entry for each image (idCount of 'em)
+                    }/
 
-            for (ushort i = 0; i < count; i++)
-            {
-                resWriter.Write((BYTE)iconDirEntries[i].bWidth);
-                resWriter.Write((BYTE)iconDirEntries[i].bHeight);
-                resWriter.Write((BYTE)iconDirEntries[i].bColorCount);
-                resWriter.Write((BYTE)iconDirEntries[i].bReserved);
-                resWriter.Write((WORD)iconDirEntries[i].wPlanes);
-                resWriter.Write((WORD)iconDirEntries[i].wBitCount);
-                resWriter.Write((DWORD)iconDirEntries[i].dwBytesInRes);
-                resWriter.Write((WORD)(i + 1));   //ID
+                    struct ICONRESDIR
+                    {
+                        BYTE Width;        // = ICONDIRENTRY.bWidth;
+                        BYTE Height;       // = ICONDIRENTRY.bHeight;
+                        BYTE ColorCount;   // = ICONDIRENTRY.bColorCount;
+                        BYTE reserved;     // = ICONDIRENTRY.bReserved;
+                        WORD Planes;       // = ICONDIRENTRY.wPlanes;
+                        WORD BitCount;     // = ICONDIRENTRY.wBitCount;
+                        DWORD BytesInRes;   // = ICONDIRENTRY.dwBytesInRes;
+                        WORD IconId;       // = RESOURCEHEADER.Name
+                    };
+                    */
+
+                    const WORD RT_GROUP_ICON = RT_ICON + 11;
+
+                    resStream.Position = (resStream.Position + 3) & ~3; //align 4-byte boundary
+                                                                        //write the icon group. first a RESOURCEHEADER. the data is the ICONDIR
+                    resWriter.Write((DWORD)(3 * sizeof(WORD) + count * /*sizeof(ICONRESDIR)*/ 14));
+                    resWriter.Write((DWORD)0x00000020);
+                    resWriter.Write((WORD)0xFFFF);
+                    resWriter.Write((WORD)RT_GROUP_ICON);
+                    resWriter.Write((WORD)0xFFFF);
+                    resWriter.Write((WORD)0x7F00);  //IDI_APPLICATION
+                    resWriter.Write((DWORD)0x00000000);
+                    resWriter.Write((WORD)0x1030);
+                    resWriter.Write((WORD)0x0000);
+                    resWriter.Write((DWORD)0x00000000);
+                    resWriter.Write((DWORD)0x00000000);
+
+                    //the ICONDIR
+                    resWriter.Write((WORD)0x0000);
+                    resWriter.Write((WORD)0x0001);
+                    resWriter.Write((WORD)count);
+
+                    for (ushort i = 0; i < count; i++)
+                    {
+                        resWriter.Write((BYTE)iconDirEntries[i].bWidth);
+                        resWriter.Write((BYTE)iconDirEntries[i].bHeight);
+                        resWriter.Write((BYTE)iconDirEntries[i].bColorCount);
+                        resWriter.Write((BYTE)iconDirEntries[i].bReserved);
+                        resWriter.Write((WORD)iconDirEntries[i].wPlanes);
+                        resWriter.Write((WORD)iconDirEntries[i].wBitCount);
+                        resWriter.Write((DWORD)iconDirEntries[i].dwBytesInRes);
+                        resWriter.Write((WORD)(i + 1));   //ID
+                    }
+                }
             }
         }
 
@@ -509,43 +522,45 @@ namespace Microsoft.CodeAnalysis
             string comments = null,
             string companyName = null)
         {
-            var resWriter = new BinaryWriter(resStream, Encoding.Unicode);
-            resStream.Position = (resStream.Position + 3) & ~3;
+            using (var resWriter = new BinaryWriter(resStream, Encoding.Unicode, leaveOpen: true))
+            {
+                resStream.Position = (resStream.Position + 3) & ~3;
 
-            const DWORD RT_VERSION = 16;
+                const DWORD RT_VERSION = 16;
 
-            var ver = new VersionResourceSerializer(isDll,
-                comments,
-                companyName,
-                fileDescription,
-                fileVersion,
-                internalName,
-                legalCopyright,
-                legalTrademarks,
-                originalFileName,
-                productName,
-                productVersion,
-                assemblyVersion);
+                var ver = new VersionResourceSerializer(isDll,
+                    comments,
+                    companyName,
+                    fileDescription,
+                    fileVersion,
+                    internalName,
+                    legalCopyright,
+                    legalTrademarks,
+                    originalFileName,
+                    productName,
+                    productVersion,
+                    assemblyVersion);
 
-            var startPos = resStream.Position;
-            var dataSize = ver.GetDataSize();
-            const int headerSize = 0x20;
+                var startPos = resStream.Position;
+                var dataSize = ver.GetDataSize();
+                const int headerSize = 0x20;
 
-            resWriter.Write((DWORD)dataSize);    //data size
-            resWriter.Write((DWORD)headerSize);                 //header size
-            resWriter.Write((WORD)0xFFFF);                      //identifies type as ordinal.
-            resWriter.Write((WORD)RT_VERSION);                 //type
-            resWriter.Write((WORD)0xFFFF);                      //identifies name as ordinal.
-            resWriter.Write((WORD)0x0001);                      //only ever 1 ver resource (what Dev10 does)
-            resWriter.Write((DWORD)0x00000000);                 //data version
-            resWriter.Write((WORD)0x0030);                      //memory flags (this is what the Dev10 compiler uses)
-            resWriter.Write((WORD)0x0000);                      //languageId
-            resWriter.Write((DWORD)0x00000000);                 //version
-            resWriter.Write((DWORD)0x00000000);                 //characteristics
+                resWriter.Write((DWORD)dataSize);    //data size
+                resWriter.Write((DWORD)headerSize);                 //header size
+                resWriter.Write((WORD)0xFFFF);                      //identifies type as ordinal.
+                resWriter.Write((WORD)RT_VERSION);                 //type
+                resWriter.Write((WORD)0xFFFF);                      //identifies name as ordinal.
+                resWriter.Write((WORD)0x0001);                      //only ever 1 ver resource (what Dev10 does)
+                resWriter.Write((DWORD)0x00000000);                 //data version
+                resWriter.Write((WORD)0x0030);                      //memory flags (this is what the Dev10 compiler uses)
+                resWriter.Write((WORD)0x0000);                      //languageId
+                resWriter.Write((DWORD)0x00000000);                 //version
+                resWriter.Write((DWORD)0x00000000);                 //characteristics
 
-            ver.WriteVerResource(resWriter);
+                ver.WriteVerResource(resWriter);
 
-            System.Diagnostics.Debug.Assert(resStream.Position - startPos == dataSize + headerSize);
+                System.Diagnostics.Debug.Assert(resStream.Position - startPos == dataSize + headerSize);
+            }
         }
 
         internal static void AppendManifestToResourceStream(Stream resStream, Stream manifestStream, bool isDll)
@@ -553,20 +568,22 @@ namespace Microsoft.CodeAnalysis
             resStream.Position = (resStream.Position + 3) & ~3;
             const WORD RT_MANIFEST = 24;
 
-            var resWriter = new BinaryWriter(resStream);
-            resWriter.Write((DWORD)(manifestStream.Length));    //data size
-            resWriter.Write((DWORD)0x00000020);                 //header size
-            resWriter.Write((WORD)0xFFFF);                      //identifies type as ordinal.
-            resWriter.Write((WORD)RT_MANIFEST);                 //type
-            resWriter.Write((WORD)0xFFFF);                      //identifies name as ordinal.
-            resWriter.Write((WORD)((isDll) ? 0x0002 : 0x0001));  //EDMAURER executables are named "1", DLLs "2"
-            resWriter.Write((DWORD)0x00000000);                 //data version
-            resWriter.Write((WORD)0x1030);                      //memory flags
-            resWriter.Write((WORD)0x0000);                      //languageId
-            resWriter.Write((DWORD)0x00000000);                 //version
-            resWriter.Write((DWORD)0x00000000);                 //characteristics
+            using (var resWriter = new BinaryWriter(resStream, s_utf8Encoding, leaveOpen: true))
+            {
+                resWriter.Write((DWORD)(manifestStream.Length));    //data size
+                resWriter.Write((DWORD)0x00000020);                 //header size
+                resWriter.Write((WORD)0xFFFF);                      //identifies type as ordinal.
+                resWriter.Write((WORD)RT_MANIFEST);                 //type
+                resWriter.Write((WORD)0xFFFF);                      //identifies name as ordinal.
+                resWriter.Write((WORD)((isDll) ? 0x0002 : 0x0001));  //EDMAURER executables are named "1", DLLs "2"
+                resWriter.Write((DWORD)0x00000000);                 //data version
+                resWriter.Write((WORD)0x1030);                      //memory flags
+                resWriter.Write((WORD)0x0000);                      //languageId
+                resWriter.Write((DWORD)0x00000000);                 //version
+                resWriter.Write((DWORD)0x00000000);                 //characteristics
 
-            manifestStream.CopyTo(resStream);
+                manifestStream.CopyTo(resStream);
+            }
         }
 
         private class VersionResourceSerializer

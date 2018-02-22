@@ -118,7 +118,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             // otherwise, just return new solution
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to the caller.
             var workspace = new TemporaryWorkspace(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
+#pragma warning restore CA2000 // Dispose objects before losing scope
             return workspace.CurrentSolution;
         }
 

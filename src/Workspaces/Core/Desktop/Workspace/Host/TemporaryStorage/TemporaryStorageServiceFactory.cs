@@ -137,8 +137,12 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     // Larger blocks are allocated separately
                     var mapName = CreateUniqueName(size);
+#pragma warning disable CA2000 // Dispose objects before losing scope - wrapped within ReferenceCountedDisposable.
                     var storage = MemoryMappedFile.CreateNew(mapName, size);
-                    return new MemoryMappedInfo(new ReferenceCountedDisposable<MemoryMappedFile>(storage), mapName, offset: 0, size: size);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to MemoryMappedInfo.
+                    return new MemoryMappedInfo(memoryMappedFile: new ReferenceCountedDisposable<MemoryMappedFile>(storage), mapName, offset: 0, size: size);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 }
 
                 lock (_gate)
@@ -150,9 +154,13 @@ namespace Microsoft.CodeAnalysis.Host
                     if (reference == null || _offset + size > _fileSize)
                     {
                         var mapName = CreateUniqueName(MultiFileBlockSize);
+#pragma warning disable CA2000 // Dispose objects before losing scope - wrapped within a ReferenceCountedDisposable below. 
                         var file = MemoryMappedFile.CreateNew(mapName, MultiFileBlockSize);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
+#pragma warning disable CA2000 // Dispose objects before losing scope - wrapped within a ReferenceCountedDisposable below. 
                         reference = new ReferenceCountedDisposable<MemoryMappedFile>(file);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                         _weakFileReference = new ReferenceCountedDisposable<MemoryMappedFile>.WeakReference(reference);
                         _name = mapName;
                         _fileSize = MultiFileBlockSize;

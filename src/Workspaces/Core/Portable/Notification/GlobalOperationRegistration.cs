@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.Notification
                 _source.Cancel();
                 _logging.Dispose();
             }
+
+            _source.Dispose();
         }
     }
 }

@@ -593,36 +593,41 @@ namespace Microsoft.CodeAnalysis
                 out bool reportAnalyzer,
                 out var analyzerDriver);
 
-            // At this point analyzers are already complete in which case this is a no-op.  Or they are 
-            // still running because the compilation failed before all of the compilation events were 
-            // raised.  In the latter case the driver, and all its associated state, will be waiting around 
-            // for events that are never coming.  Cancel now and let the clean up process begin.
-            if (analyzerCts != null)
+            try
             {
-                analyzerCts.Cancel();
-            }
+                // At this point analyzers are already complete in which case this is a no-op.  Or they are 
+                // still running because the compilation failed before all of the compilation events were 
+                // raised.  In the latter case the driver, and all its associated state, will be waiting around 
+                // for events that are never coming.  Cancel now and let the clean up process begin.
+                analyzerCts?.Cancel();
 
-            var exitCode = ReportErrors(diagnostics, consoleOutput, errorLogger)
-                ? Failed
-                : Succeeded;
+                var exitCode = ReportErrors(diagnostics, consoleOutput, errorLogger)
+                    ? Failed
+                    : Succeeded;
 
-            // The act of reporting errors can cause more errors to appear in
-            // additional files due to forcing all additional files to fetch text
-            foreach (var additionalFile in additionalTextFiles)
-            {
-                if (ReportErrors(additionalFile.Diagnostics, consoleOutput, errorLogger))
+                // The act of reporting errors can cause more errors to appear in
+                // additional files due to forcing all additional files to fetch text
+                foreach (var additionalFile in additionalTextFiles)
                 {
-                    exitCode = Failed;
+                    if (ReportErrors(additionalFile.Diagnostics, consoleOutput, errorLogger))
+                    {
+                        exitCode = Failed;
+                    }
                 }
-            }
 
-            diagnostics.Free();
-            if (reportAnalyzer)
+                diagnostics.Free();
+                if (reportAnalyzer)
+                {
+                    ReportAnalyzerExecutionTime(consoleOutput, analyzerDriver, Culture, compilation.Options.ConcurrentBuild);
+                }
+
+                return exitCode;
+            }
+            finally
             {
-                ReportAnalyzerExecutionTime(consoleOutput, analyzerDriver, Culture, compilation.Options.ConcurrentBuild);
+                analyzerCts?.Dispose();
+                analyzerDriver?.Dispose();
             }
-
-            return exitCode;
         }
 
         /// <summary>
@@ -1218,27 +1223,29 @@ namespace Microsoft.CodeAnalysis
             }
 
             builder.AppendLine("Source Files:");
-            var hash = MD5.Create();
-            foreach (var sourceFile in args.SourceFiles)
+            using (var hash = MD5.Create())
             {
-                var sourceFileName = Path.GetFileName(sourceFile.Path);
+                foreach (var sourceFile in args.SourceFiles)
+                {
+                    var sourceFileName = Path.GetFileName(sourceFile.Path);
 
-                string hashValue;
-                try
-                {
-                    var bytes = File.ReadAllBytes(sourceFile.Path);
-                    var hashBytes = hash.ComputeHash(bytes);
-                    var data = BitConverter.ToString(hashBytes);
-                    hashValue = data.Replace("-", "");
+                    string hashValue;
+                    try
+                    {
+                        var bytes = File.ReadAllBytes(sourceFile.Path);
+                        var hashBytes = hash.ComputeHash(bytes);
+                        var data = BitConverter.ToString(hashBytes);
+                        hashValue = data.Replace("-", "");
+                    }
+                    catch (Exception ex)
+                    {
+                        hashValue = $"Could not compute {ex.Message}";
+                    }
+                    builder.AppendLine($"\t{sourceFileName} - {hashValue}");
                 }
-                catch (Exception ex)
-                {
-                    hashValue = $"Could not compute {ex.Message}";
-                }
-                builder.AppendLine($"\t{sourceFileName} - {hashValue}");
+
+                return builder.ToString();
             }
-
-            return builder.ToString();
         }
     }
 }
