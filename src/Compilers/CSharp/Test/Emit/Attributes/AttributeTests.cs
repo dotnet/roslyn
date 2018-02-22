@@ -1721,7 +1721,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithMscorlib40(source);
             comp.VerifyDiagnostics(
                 // (11,13): error CS8138: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     [field: System.Runtime.CompilerServices.TupleElementNamesAttribute(new[] { "hello" })]

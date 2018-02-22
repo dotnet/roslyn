@@ -1000,7 +1000,7 @@ static class S3
 {
     internal static object F3(this N.C x, object y) { return null; }
 }";
-            CreateCompilation(source, references: new[] { SystemCoreRef },
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef },
                     parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (10,16): error CS0407: 'void S2.F1(object, object)' has the wrong return type
                 //             M1(c.F1); // wrong return type
@@ -1023,7 +1023,7 @@ static class S3
             // diagnostic (the caller has to grub through the diagnostic bag to see that there is no error there) and then the caller
             // has to produce a generic error message, which we see below. It does not appear that all callers have that test, though,
             // suggesting there may be a latent bug of missing diagnostics.
-            CreateCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
                 // (10,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Func<object, object>'
                 //             M1(c.F1); // wrong return type
                 Diagnostic(ErrorCode.ERR_BadArgType, "c.F1").WithArguments("1", "method group", "System.Func<object, object>").WithLocation(10, 16),

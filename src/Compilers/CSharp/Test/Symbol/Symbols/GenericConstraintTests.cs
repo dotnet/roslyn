@@ -1078,12 +1078,12 @@ static class C
     static void F(this object o) { }
     static void F<T>(this T t) where T : struct { }
 }";
-            CreateCompilation(text, references: new[] { SystemCoreRef }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (7,9): error CS0310: 'I' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C.E<T>(T)'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "i.E").WithArguments("C.E<T>(T)", "T", "I").WithLocation(7, 9),
                 // (9,9): error CS0453: The type 'I' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.F<T>(T)'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "i.F").WithArguments("C.F<T>(T)", "T", "I").WithLocation(9, 9));
-            CreateCompilation(text, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }).VerifyDiagnostics();
         }
 
         [ClrOnlyFact]
