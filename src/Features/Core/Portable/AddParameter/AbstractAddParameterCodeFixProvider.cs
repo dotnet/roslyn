@@ -697,6 +697,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 return type.IsReferenceType || type.IsNullable();
             }
 
+            // Overload resolution couldn't resolve the actual type of the type parameter. We assume
+            // that the type parameter can be the argument's type (ignoring any type parameter constraints).
             if (type.Kind == SymbolKind.TypeParameter)
             {
                 return true;
