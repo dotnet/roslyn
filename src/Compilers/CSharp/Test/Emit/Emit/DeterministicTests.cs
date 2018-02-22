@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
         private Guid CompiledGuid(string source, string assemblyName, CSharpCompilationOptions options, EmitOptions emitOptions = null)
         {
-            var compilation = CreateCompilation(source,
+            var compilation = CreateEmptyCompilation(source,
                 assemblyName: assemblyName,
                 references: new[] { MscorlibRef },
                 options: options.WithDeterministic(true));
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         {
             var options = (optimize ? TestOptions.ReleaseExe : TestOptions.DebugExe).WithPlatform(platform).WithDeterministic(true);
 
-            var compilation = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef, SystemCoreRef, CSharpRef }, options: options);
+            var compilation = CreateEmptyCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef, SystemCoreRef, CSharpRef }, options: options);
 
             // The resolution of the PE header time date stamp is seconds, and we want to make sure that has an opportunity to change
             // between calls to Emit.
@@ -61,11 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         public void BanVersionWildcards()
         {
             string source = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
-            var compilationDeterministic = CreateCompilation(
+            var compilationDeterministic = CreateEmptyCompilation(
                 source,
                 assemblyName: "DeterminismTest", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
-            var compilationNonDeterministic = CreateCompilation(
+            var compilationNonDeterministic = CreateEmptyCompilation(
                 source,
                 assemblyName: "DeterminismTest",
                 references: new[] { MscorlibRef },
@@ -235,7 +235,7 @@ namespace Namespace3 {
     public class GenericType<T, U> {}
 }
 ";
-            var forwardedToCompilation = CreateCompilation(forwardedToCode);
+            var forwardedToCompilation = CreateEmptyCompilation(forwardedToCode);
             var forwardedToReference = new CSharpCompilationReference(forwardedToCompilation);
 
             var forwardingCode = @"
@@ -253,7 +253,7 @@ using System.Runtime.CompilerServices;
 [assembly: TypeForwardedTo(typeof(Namespace3.GenericType<int, int>))]
 ";
 
-            var forwardingCompilation = CreateStandardCompilation(forwardingCode, new MetadataReference[] { forwardedToReference });
+            var forwardingCompilation = CreateCompilation(forwardingCode, new MetadataReference[] { forwardedToReference });
 
             var sortedFullNames = new string[]
             {
@@ -341,11 +341,11 @@ Partial.c = 3";
             // we run more than once to increase the chance of observing a problem due to nondeterminism
             for (int i = 0; i < 2; i++)
             {
-                var cv = CompileAndVerify(sources: new string[] { x1, x2, x3 }, expectedOutput: expectedOutput1);
+                var cv = CompileAndVerify(source: new string[] { x1, x2, x3 }, expectedOutput: expectedOutput1);
                 var trees = cv.Compilation.SyntaxTrees.ToArray();
                 var comp2 = cv.Compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(trees[1], trees[0], trees[2]);
                 CompileAndVerify(comp2, expectedOutput: expectedOutput2);
-                CompileAndVerify(sources: new string[] { x2, x1, x3 }, expectedOutput: expectedOutput2);
+                CompileAndVerify(source: new string[] { x2, x1, x3 }, expectedOutput: expectedOutput2);
             }
         }
 

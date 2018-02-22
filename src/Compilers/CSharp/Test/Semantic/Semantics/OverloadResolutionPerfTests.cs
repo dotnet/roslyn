@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 builder.AppendLine($"class C{i} {{ }}");
             }
             var source = builder.ToString();
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (3,23): error CS0121: The call is ambiguous between the following methods or properties: 'C.F(C0)' and 'C.F(C1)'
                 //     static void F() { F(null); }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 builder.AppendLine($"class C{i} {{ }}");
             }
             var source = builder.ToString();
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (3,29): error CS0034: Operator '+' is ambiguous on operands of type 'C' and '<null>'
                 //     static object F(C x) => x + null;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             builder.AppendLine("}");
             var source = builder.ToString();
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             builder.AppendLine("}");
             var source = builder.ToString();
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             builder.AppendLine("}");
             var source = builder.ToString();
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             builder.AppendLine("}");
             var source = builder.ToString();
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             builder.AppendLine("}");
             var source = builder.ToString();
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             // error CS1929: 'Ci' does not contain a definition for 'G' and the best extension method overload 'S.G(C1, Action<C1>)' requires a receiver of type 'C1'
             var diagnostics = Enumerable.Range(0, n / 2).
                 Select(i => Diagnostic(ErrorCode.ERR_BadInstanceArgType, "x").WithArguments($"C{i * 2}", "G", "S.G(C1, System.Action<C1>)", "C1")).
