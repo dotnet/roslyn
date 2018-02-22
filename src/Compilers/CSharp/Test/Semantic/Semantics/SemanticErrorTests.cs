@@ -2744,7 +2744,7 @@ class C
                 //         abc p = new abc();
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p")
             );
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (16,24): error CS0120: An object reference is required for the non-static field, method, or property 'I.bar()'
                 //         goo += new boo(I.bar);
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "I.bar").WithArguments("I.bar()").WithLocation(16, 24),
@@ -10210,7 +10210,7 @@ class C
                 //         var ss = new Func<string, string>(oo);
                 Diagnostic(ErrorCode.ERR_BadRetType, "oo").WithArguments("System.Func<object, object>.Invoke(object)", "object").WithLocation(11, 43)
                 );
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (10,43): error CS0407: 'object Func<object, object>.Invoke(object)' has the wrong return type
                 //         var os = new Func<object, string>(oo);
                 Diagnostic(ErrorCode.ERR_BadRetType, "oo").WithArguments("System.Func<object, object>.Invoke(object)", "object").WithLocation(10, 43),

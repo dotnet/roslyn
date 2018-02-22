@@ -5360,7 +5360,7 @@ class A
         this.M(@this);
     }
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();

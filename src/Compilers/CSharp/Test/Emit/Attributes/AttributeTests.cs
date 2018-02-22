@@ -1168,7 +1168,7 @@ public class Test
     public int P2 { get; }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
             comp.VerifyDiagnostics(
                 // (7,6): warning CS8361: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
                 //     [field: System.Obsolete]
@@ -1291,8 +1291,7 @@ public class Test
             };
 
             var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
         }
 
@@ -1430,7 +1429,7 @@ public struct Test
     public static int P { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,13): error CS0637: The FieldOffset attribute is not allowed on static or const fields
                 //     [field: System.Runtime.InteropServices.FieldOffset(0)]
@@ -1448,7 +1447,7 @@ public struct Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,56): error CS0591: Invalid value for argument to 'System.Runtime.InteropServices.FieldOffset' attribute
                 //     [field: System.Runtime.InteropServices.FieldOffset(-1)]
@@ -1472,7 +1471,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //     [field: FieldOffset(4)]
@@ -1492,7 +1491,7 @@ public struct Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //     [field: FieldOffset(4)]
@@ -1512,7 +1511,7 @@ public struct Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,16): error CS0625: 'Test.P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
                 //     public int P { get; set; }
@@ -1530,7 +1529,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,13): error CS8362: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property
                 //     [field: System.Runtime.CompilerServices.FixedBuffer(typeof(int), 0)]
@@ -1548,7 +1547,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { SystemCoreRef });
+            var comp = CreateCompilation(source, references: new[] { SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (4,13): error CS1970: Do not use 'System.Runtime.CompilerServices.DynamicAttribute'. Use the 'dynamic' keyword instead.
                 //     [field: System.Runtime.CompilerServices.DynamicAttribute()]
@@ -1570,7 +1569,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,13): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
                 //     [field: System.Runtime.CompilerServices.IsReadOnlyAttribute()]
@@ -1592,7 +1591,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,13): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     [field: System.Runtime.CompilerServices.IsByRefLikeAttribute()]
@@ -1722,7 +1721,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,13): error CS8138: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     [field: System.Runtime.CompilerServices.TupleElementNamesAttribute(new[] { "hello" })]
@@ -1791,7 +1790,7 @@ public class Test
     public int P2 { get => throw null; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
                 //     [field: A]
@@ -1815,7 +1814,7 @@ public class Test
     public int P3 { [field: A] get => throw null; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,21): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 //     public int P { [field: A] get => throw null; set => throw null; }
@@ -1848,7 +1847,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,13): error CS0579: Duplicate 'Single' attribute
                 //     [field: Single]
@@ -1924,7 +1923,7 @@ public class Test
     public int P2 { get; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,13): error CS0592: Attribute 'A' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
                 //     [field: A]
@@ -1956,7 +1955,7 @@ public class Test
     public int P2 { get; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (14,13): error CS0592: Attribute 'ClassAllowed' is not valid on this declaration type. It is only valid on 'class' declarations.
                 //     [field: ClassAllowed] // error 2
@@ -1986,7 +1985,7 @@ public class Test
     public int P3 { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
                 //     [field: A]

@@ -1083,7 +1083,7 @@ static class C
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "i.E").WithArguments("C.E<T>(T)", "T", "I").WithLocation(7, 9),
                 // (9,9): error CS0453: The type 'I' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.F<T>(T)'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "i.F").WithArguments("C.F<T>(T)", "T", "I").WithLocation(9, 9));
-            CreateStandardCompilation(text, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CreateCompilation(text, references: new[] { SystemCoreRef }).VerifyDiagnostics();
         }
 
         [ClrOnlyFact]

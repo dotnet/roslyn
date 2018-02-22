@@ -281,7 +281,7 @@ class Enumerator
                 Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new Enumerable()").WithArguments("Enumerable", "collection", "Enumerable.GetEnumerator()"),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public definition for 'GetEnumerator'
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new Enumerable()").WithArguments("Enumerable", "GetEnumerator"));
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public instance definition for 'GetEnumerator'
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new Enumerable()").WithArguments("Enumerable", "GetEnumerator"));
         }

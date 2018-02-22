@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private CSharpCompilation CreateCompilationWithoutBetterCandidates(string source, CSharpCompilationOptions options = null)
         {
-            return CreateStandardCompilation(source, options: options, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
+            return CreateCompilation(source, options: options, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
         }
         private CSharpCompilation CreateCompilationWithBetterCandidates(string source, CSharpCompilationOptions options = null)
         {
             Debug.Assert(TestOptions.Regular.LanguageVersion >= MessageID.IDS_FeatureImprovedOverloadCandidates.RequiredVersion());
-            return CreateStandardCompilation(source, options: options, parseOptions: TestOptions.Regular);
+            return CreateCompilation(source, options: options, parseOptions: TestOptions.Regular);
         }
 
         //When a method group contains both instance and static members, we discard the instance members if invoked with a static receiver.

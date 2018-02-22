@@ -2792,7 +2792,7 @@ class Program
                 //         B.F(new D<int>(o.F), 3);
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "o.F").WithArguments("A<int>.F()", "D<int>").WithLocation(26, 24)
                 );
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (24,13): error CS8189: Ref mismatch between 'A<int>.F()' and delegate 'D<int>'
                 //         B.F(o.F, 2);
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "o.F").WithArguments("A<int>.F()", "D<int>").WithLocation(24, 13),
@@ -3325,7 +3325,7 @@ class Program
                 //         f = new RefFunc1<object>(M1);
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "string").WithLocation(13, 34)
             );
-            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib45AndCSharp(source).VerifyEmitDiagnostics(
                 // (10,30): error CS0407: 'string Program.M1()' has the wrong return type
                 //         RefFunc1<object> f = M1;
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "string").WithLocation(10, 30),
@@ -3374,7 +3374,7 @@ class Program
                 //         RefFunc1<Derived2, Base> f = M1;
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1(Derived1)", "Derived1").WithLocation(22, 38)
             );
-            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib45AndCSharp(source).VerifyEmitDiagnostics(
             );
         }
 
@@ -3465,7 +3465,7 @@ class Program
                 //         Test(M3);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Program.Test(Program.RefFunc1<Derived2, Base>)", "Program.Test(Program.RefFunc1<Derived2, Derived1>)").WithLocation(26, 9)
             );
-            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib45AndCSharp(source).VerifyEmitDiagnostics(
             );
         }
 

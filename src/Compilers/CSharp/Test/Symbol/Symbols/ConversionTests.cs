@@ -1893,7 +1893,7 @@ public class C
                 //         M(F);
                 Diagnostic(ErrorCode.ERR_BadRetType, "F").WithArguments("C.F()", "dynamic"));
             // However, we later added a feature that takes the return type into account.
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]

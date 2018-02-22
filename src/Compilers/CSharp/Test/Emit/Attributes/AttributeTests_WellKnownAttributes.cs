@@ -4717,13 +4717,13 @@ public class C
 public class BobAttribute : Attribute
 {
 }";
-            var lib_comp = CreateStandardCompilation(lib_cs);
+            var lib_comp = CreateCompilation(lib_cs);
             verify(lib_comp, isSerializablePresent: true);
 
-            var client1 = CreateStandardCompilation("", references: new[] { lib_comp.ToMetadataReference() });
+            var client1 = CreateCompilation("", references: new[] { lib_comp.ToMetadataReference() });
             verify(client1, isSerializablePresent: true);
 
-            var client2 = CreateStandardCompilation("", references: new[] { lib_comp.EmitToImageReference() });
+            var client2 = CreateCompilation("", references: new[] { lib_comp.EmitToImageReference() });
             verify(client2, isSerializablePresent: false);
 
             void verify(CSharpCompilation comp, bool isSerializablePresent)

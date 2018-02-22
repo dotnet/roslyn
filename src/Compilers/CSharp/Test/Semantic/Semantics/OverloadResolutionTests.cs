@@ -1391,7 +1391,7 @@ class C
                 //         Test6<L<string>>(null);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test6<L<string>>").WithArguments("C.L<S>", "S", "string").WithLocation(58, 9));
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (67,36): error CS0453: The type 'Y' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'
                 //     static void Test5<Y>(Y y, N<Y> ny) { }
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "ny").WithArguments("C.N<T>", "T", "Y").WithLocation(67, 36),
@@ -7901,7 +7901,7 @@ namespace ConsoleApplication2
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>)").WithLocation(25, 38)
                 );
-            CreateStandardCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
         }
 
@@ -7943,7 +7943,7 @@ namespace ConsoleApplication2
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>)", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])").WithLocation(25, 38)
                 );
-            CreateStandardCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
         }
 
@@ -7985,7 +7985,7 @@ namespace ConsoleApplication2
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params System.Func<T, bool>[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>)").WithLocation(25, 38)
                 );
-            CreateStandardCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
         }
 
@@ -8025,7 +8025,7 @@ namespace ConsoleApplication2
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params int[])").WithLocation(23, 38)
                 );
-            CreateStandardCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
         }
 
