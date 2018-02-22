@@ -127,14 +127,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             using (var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }" }, CSharpParseOptions.Default))
             using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
             {
-                var asyncListener = new AsynchronousOperationListener();
-                var listeners = AsynchronousOperationListener.CreateListeners(
-                    ValueTuple.Create(FeatureAttribute.DiagnosticService, asyncListener),
-                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, asyncListener));
+                var listenerProvider = new AsynchronousOperationListenerProvider();
 
                 var diagnosticService = new MockDiagnosticService(workspace);
                 var provider = new DiagnosticsSquiggleTaggerProvider(
-                    diagnosticService, workspace.GetService<IForegroundNotificationService>(), listeners);
+                    diagnosticService, workspace.GetService<IForegroundNotificationService>(), listenerProvider);
 
                 // Create the tagger before the first diagnostic event has been fired.
                 var tagger = provider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -146,7 +143,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 using (var disposable = tagger as IDisposable)
                 {
-                    await asyncListener.CreateWaitTask();
+                    await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask();
+                    await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -168,14 +166,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             using (var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }" }, CSharpParseOptions.Default))
             using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
             {
-                var asyncListener = new AsynchronousOperationListener();
-                var listeners = AsynchronousOperationListener.CreateListeners(
-                    ValueTuple.Create(FeatureAttribute.DiagnosticService, asyncListener),
-                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, asyncListener));
+                var listenerProvider = new AsynchronousOperationListenerProvider();
 
                 var diagnosticService = new MockDiagnosticService(workspace);
                 var provider = new DiagnosticsSquiggleTaggerProvider(
-                    diagnosticService, workspace.GetService<IForegroundNotificationService>(), listeners);
+                    diagnosticService, workspace.GetService<IForegroundNotificationService>(), listenerProvider);
 
                 // Create and fire the diagnostic events before hte tagger is even made.
                 var tree = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetSyntaxTreeAsync();
@@ -185,7 +180,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var tagger = provider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
                 {
-                    await asyncListener.CreateWaitTask();
+                    await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask();
+                    await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();

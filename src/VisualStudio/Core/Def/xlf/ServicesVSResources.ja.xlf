@@ -192,11 +192,6 @@
         <target state="translated">ディスクにフォルダーの場所が見つかりませんでした</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">{0}' の読み取り中にエラーが発生しました: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
         <target state="translated">アセンブリ </target>
@@ -1398,7 +1393,7 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">匿名関数よりローカル関数を優先します</target>
         <note />
       </trans-unit>
@@ -1433,8 +1428,8 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">ファイルの読み取り中にエラーが発生しました</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="needs-review-translation">ファイルの読み取り中にエラーが発生しました</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1498,14 +1493,14 @@ I agree to all of the foregoing:</source>
         <target state="translated">ここで構成される設定は、ご使用のマシンにのみ適用されます。これらの設定をソリューションで使用するように構成するには、.editorconfig ファイルを使用します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Snippet_Command_Handler">
-        <source>Snippet Command Handler</source>
-        <target state="new">Snippet Command Handler</target>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="new">Sync Class View</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sync_Class_View_Command_Handler">
-        <source>Sync Class View Command Handler</source>
-        <target state="new">Sync Class View Command Handler</target>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
         <note />
       </trans-unit>
     </body>

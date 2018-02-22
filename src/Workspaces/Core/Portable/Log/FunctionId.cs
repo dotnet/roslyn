@@ -407,5 +407,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         AbstractProject_SetIntelliSenseBuild,
         AbstractProject_Created,
         AbstractProject_PushedToWorkspace,
+        ExternalErrorDiagnosticUpdateSource_AddError,
+        DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync,
     }
 }

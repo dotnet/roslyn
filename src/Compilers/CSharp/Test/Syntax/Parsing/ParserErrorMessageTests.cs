@@ -271,6 +271,205 @@ class A
     Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";"));
         }
 
+        [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
+        public void CS0178ERR_InvalidArray_ImplicitArray1()
+        {
+            var test = @"
+class C {
+    void Goo() {
+        var x = new[3] { 1, 2, 3 };
+    }
+}
+";
+
+            ParseAndValidate(test,
+                // (4,21): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         var x = new[3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidArray, "3").WithLocation(4, 21));
+        }
+
+        [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
+        public void CS0178ERR_InvalidArray_ImplicitArray2()
+        {
+            var test = @"
+class C {
+    void Goo() {
+        var x = new[3,] { 1, 2, 3 };
+    }
+}
+";
+
+            ParseAndValidate(test,
+                // (4,21): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         var x = new[3,] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidArray, "3").WithLocation(4, 21));
+        }
+
+        [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
+        public void CS0178ERR_InvalidArray_ImplicitArray3()
+        {
+            var test = @"
+class C {
+    void Goo() {
+        var x = new[,3] { 1, 2, 3 };
+    }
+}
+";
+
+            ParseAndValidate(test,
+                // (4,22): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         var x = new[,3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidArray, "3").WithLocation(4, 22));
+        }
+
+        [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
+        public void CS0178ERR_InvalidArray_ImplicitArray4()
+        {
+            var test = @"
+class C {
+    void Goo() {
+        var x = new[,3 { 1, 2, 3 };
+    }
+}
+";
+
+            ParseAndValidate(test,
+                // (4,22): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         var x = new[,3 { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidArray, "3").WithLocation(4, 22),
+                // (4,24): error CS1003: Syntax error, ']' expected
+                //         var x = new[,3 { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 24));
+        }
+
+        [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
+        public void CS0178ERR_InvalidArray_ImplicitArray5()
+        {
+            var test = @"
+class C {
+    void Goo() {
+        var x = new[3 { 1, 2, 3 };
+    }
+}
+";
+
+            ParseAndValidate(test,
+                // (4,21): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         var x = new[3 { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidArray, "3").WithLocation(4, 21),
+                // (4,23): error CS1003: Syntax error, ']' expected
+                //         var x = new[3 { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 23));
+        }
+
+        [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
+        public void CS0178ERR_InvalidArray_ImplicitArray6()
+        {
+            var test = @"
+class C {
+    void Goo() {
+        var x = new[3, { 1, 2, 3 };
+    }
+}
+";
+
+            ParseAndValidate(test,
+                // (4,21): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         var x = new[3, { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidArray, "3").WithLocation(4, 21),
+                // (4,24): error CS1003: Syntax error, ']' expected
+                //         var x = new[3, { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 24));
+        }
+
+        [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
+        public void CS0178ERR_InvalidArray_ImplicitArray7()
+        {
+            var test = @"
+class C {
+    void Goo() {
+        var x = new[3,,] { 1, 2, 3 };
+    }
+}
+";
+
+            ParseAndValidate(test,
+                // (4,21): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         var x = new[3,,] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidArray, "3").WithLocation(4, 21));
+        }
+
+        [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
+        public void CS0178ERR_InvalidArray_ImplicitArray8()
+        {
+            var test = @"
+class C {
+    void Goo() {
+        var x = new[,3,] { 1, 2, 3 };
+    }
+}
+";
+
+            ParseAndValidate(test,
+                // (4,22): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         var x = new[,3,] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidArray, "3").WithLocation(4, 22));
+        }
+
+        [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
+        public void CS0178ERR_InvalidArray_ImplicitArray9()
+        {
+            var test = @"
+class C {
+    void Goo() {
+        var x = new[,,3] { 1, 2, 3 };
+    }
+}
+";
+
+            ParseAndValidate(test,
+                // (4,23): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         var x = new[,,3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidArray, "3").WithLocation(4, 23));
+        }
+
+        [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
+        public void CS0178ERR_InvalidArray_ImplicitArray10()
+        {
+            var test = @"
+class C {
+    void Goo() {
+        var x = new[3,,3] { 1, 2, 3 };
+    }
+}
+";
+
+            ParseAndValidate(test,
+                // (4,21): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         var x = new[3,,3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidArray, "3").WithLocation(4, 21),
+                // (4,24): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         var x = new[3,,3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidArray, "3").WithLocation(4, 24));
+        }
+
+        [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
+        public void CS0178ERR_InvalidArray_ImplicitArray11()
+        {
+            var test = @"
+class C {
+    void Goo() {
+        var x = new[ { 1, 2, 3 };
+    }
+}
+";
+
+            ParseAndValidate(test,
+                // (4,22): error CS1003: Syntax error, ']' expected
+                //         var x = new[ { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 22));
+        }
+
         [Fact]
         public void CS0230ERR_BadForeachDecl()
         {
@@ -2468,7 +2667,7 @@ namespace x
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (7,26): error CS8124: Tuple must contain at least two elements.
                 //             var e = new ();
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
@@ -2534,7 +2733,7 @@ namespace x
     }
 }
 ";
-            CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
                 // (7,25): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7.0 or greater.
                 //             var e = new ();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(7, 25),
@@ -2566,7 +2765,7 @@ namespace x
     }
 }
 ";
-            CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
                 // (7,26): error CS8124: Tuple must contain at least two elements.
                 //             var e = new ();
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")"),

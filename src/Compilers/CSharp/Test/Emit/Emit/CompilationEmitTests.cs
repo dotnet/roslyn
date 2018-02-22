@@ -532,10 +532,10 @@ public class C
                 var reader = assembly.GetMetadataReader();
                 var attributes = reader.GetAssemblyDefinition().GetCustomAttributes();
                 AssertEx.Equal(new[] {
-                        "MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
-                        "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
-                        "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)",
-                        "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()"
+                        "MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor(Int32)",
+                        "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor()",
+                        "MemberReference:Void System.Diagnostics.DebuggableAttribute..ctor(DebuggingModes)",
+                        "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute..ctor()"
                     },
                     attributes.Select(a => MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)));
             };
@@ -554,9 +554,9 @@ public class C
                 var attributes = reader.GetAssemblyDefinition().GetCustomAttributes();
                 AssertEx.SetEqual(attributes.Select(a => MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)),
                     new string[] {
-                        "MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
-                        "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
-                        "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)"
+                        "MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor(Int32)",
+                        "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor()",
+                        "MemberReference:Void System.Diagnostics.DebuggableAttribute..ctor(DebuggingModes)"
                     });
             };
 
@@ -575,10 +575,10 @@ public class C
                 var reader = assembly.GetMetadataReader();
                 var attributes = reader.GetAssemblyDefinition().GetCustomAttributes();
                 AssertEx.Equal(new string[] {
-                        "MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
-                        "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
-                        "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)",
-                        "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()"
+                        "MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor(Int32)",
+                        "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor()",
+                        "MemberReference:Void System.Diagnostics.DebuggableAttribute..ctor(DebuggingModes)",
+                        "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute..ctor()"
                     },
                     attributes.Select(a => MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)));
             };
@@ -2087,7 +2087,7 @@ struct S
                 var result = comp.Emit(output, metadataPEStream: metadataOutput,
                     options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithIncludePrivateMembers(false));
 
-                VerifyEmbeddedDebugInfo(output, new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.EmbeddedPortablePdb });
+                VerifyEmbeddedDebugInfo(output, new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryExtensions.PdbChecksumEntryType, DebugDirectoryEntryType.EmbeddedPortablePdb });
                 VerifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { DebugDirectoryEntryType.Reproducible });
             }
 

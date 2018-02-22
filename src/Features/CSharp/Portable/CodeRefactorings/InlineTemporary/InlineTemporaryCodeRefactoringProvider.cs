@@ -336,10 +336,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var localDeclaration = (LocalDeclarationStatementSyntax)variableDeclaration.Parent;
             var scope = GetScope(variableDeclarator);
 
-            var newLocalDeclaration = localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepNoTrivia)
-                .WithAdditionalAnnotations(Formatter.Annotation);
+            var newLocalDeclaration = variableDeclarator.GetLeadingTrivia().Any(t => t.IsDirective)
+                ? localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepExteriorTrivia)
+                : localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepNoTrivia);
 
-            return scope.ReplaceNode(localDeclaration, newLocalDeclaration);
+            return scope.ReplaceNode(
+                localDeclaration,
+                newLocalDeclaration.WithAdditionalAnnotations(Formatter.Annotation));
         }
 
         private SyntaxNode RemoveDeclaratorFromScope(VariableDeclaratorSyntax variableDeclarator, SyntaxNode scope)

@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 
         Public ReadOnly Property DisplayName As String Implements INamed.DisplayName
             Get
-                Return VBEditorResources.End_Construct_Command_Handler
+                Return VBEditorResources.End_Construct
             End Get
         End Property
 

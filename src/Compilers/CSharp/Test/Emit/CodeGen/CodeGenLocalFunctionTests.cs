@@ -1,8 +1,10 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -71,6 +73,30 @@ public class E
 }", references: new[] { LinqAssemblyRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"1
 0");
+        }
+
+        [Fact]
+        [WorkItem(24647, "https://github.com/dotnet/roslyn/issues/24647")]
+        public void Repro24647()
+        {
+            var comp = CreateStandardCompilation(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        void local() { } => new object();
+    }
+}");
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var creation = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+
+            var operation = model.GetOperation(creation);
+            Assert.Null(operation); // we didn't bind the expression body, but should. See issue https://github.com/dotnet/roslyn/issues/24650
+
+            var info = model.GetTypeInfo(creation);
+            Assert.Equal("System.Object", info.Type.ToTestDisplayString());
+            Assert.Equal("System.Object", info.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
