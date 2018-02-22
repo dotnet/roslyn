@@ -4003,7 +4003,7 @@ unsafe class C
 
     class Fixable
     {
-        public ref int DangerousGetPinnableReference()
+        public ref int GetPinnableReference()
         {
             return ref (new int[]{1,2,3})[0];
         }
@@ -4025,7 +4025,7 @@ unsafe class C
   IL_0009:  ldc.i4.0
   IL_000a:  conv.u
   IL_000b:  br.s       IL_0015
-  IL_000d:  call       ""ref int C.Fixable.DangerousGetPinnableReference()""
+  IL_000d:  call       ""ref int C.Fixable.GetPinnableReference()""
   IL_0012:  stloc.0
   IL_0013:  ldloc.0
   IL_0014:  conv.u
@@ -4057,7 +4057,7 @@ unsafe class C
 
     class Fixable
     {
-        public ref int DangerousGetPinnableReference()
+        public ref int GetPinnableReference()
         {
             return ref (new int[]{1,2,3})[0];
         }
@@ -4091,7 +4091,7 @@ unsafe class C
 
     class Fixable
     {
-        public ref int DangerousGetPinnableReference()
+        public ref int GetPinnableReference()
         {
             return ref (new int[]{1,2,3})[0];
         }
@@ -4112,7 +4112,7 @@ unsafe class C
   IL_0004:  conv.u
   IL_0005:  br.s       IL_0010
   IL_0007:  ldnull
-  IL_0008:  call       ""ref int C.Fixable.DangerousGetPinnableReference()""
+  IL_0008:  call       ""ref int C.Fixable.GetPinnableReference()""
   IL_000d:  stloc.0
   IL_000e:  ldloc.0
   IL_000f:  conv.u
@@ -4142,7 +4142,7 @@ unsafe class C
 
     struct Fixable
     {
-        public ref int DangerousGetPinnableReference()
+        public ref int GetPinnableReference()
         {
             return ref (new int[]{1,2,3})[0];
         }
@@ -4161,7 +4161,7 @@ unsafe class C
   IL_0000:  ldloca.s   V_1
   IL_0002:  dup
   IL_0003:  initobj    ""C.Fixable""
-  IL_0009:  call       ""ref int C.Fixable.DangerousGetPinnableReference()""
+  IL_0009:  call       ""ref int C.Fixable.GetPinnableReference()""
   IL_000e:  stloc.0
   IL_000f:  ldloc.0
   IL_0010:  conv.u
@@ -4196,7 +4196,7 @@ unsafe class C
 
 public struct Fixable
 {
-    public ref int DangerousGetPinnableReference()
+    public ref int GetPinnableReference()
     {
         return ref (new int[]{1,2,3})[0];
     }
@@ -4204,9 +4204,9 @@ public struct Fixable
 
 public static class FixableExt
 {
-    public static ref int DangerousGetPinnableReference(this Fixable? f)
+    public static ref int GetPinnableReference(this Fixable? f)
     {
-        return ref f.Value.DangerousGetPinnableReference();
+        return ref f.Value.GetPinnableReference();
     }
 }
 
@@ -4224,7 +4224,7 @@ public static class FixableExt
   IL_0002:  initobj    ""Fixable""
   IL_0008:  ldloc.0
   IL_0009:  newobj     ""Fixable?..ctor(Fixable)""
-  IL_000e:  call       ""ref int FixableExt.DangerousGetPinnableReference(Fixable?)""
+  IL_000e:  call       ""ref int FixableExt.GetPinnableReference(Fixable?)""
   IL_0013:  stloc.1
   IL_0014:  ldloc.1
   IL_0015:  conv.u
@@ -4259,7 +4259,7 @@ unsafe class C
 
 public struct Fixable
 {
-    public ref int DangerousGetPinnableReference()
+    public ref int GetPinnableReference()
     {
         return ref (new int[]{1,2,3})[0];
     }
@@ -4304,7 +4304,7 @@ public struct Fixable
 
 public static class FixableExt
 {
-    public static ref readonly int DangerousGetPinnableReference(in this Fixable f)
+    public static ref readonly int GetPinnableReference(in this Fixable f)
     {
         return ref (new int[]{1,2,3})[0];
     }
@@ -4312,7 +4312,7 @@ public static class FixableExt
 
 public static class FixableExt1
 {
-    public static ref readonly int DangerousGetPinnableReference(in this Fixable f)
+    public static ref readonly int GetPinnableReference(in this Fixable f)
     {
         return ref (new int[]{1,2,3})[0];
     }
@@ -4322,15 +4322,15 @@ public static class FixableExt1
             var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
 
             compVerifier.VerifyDiagnostics(
-                // (6,25): error CS0121: The call is ambiguous between the following methods or properties: 'FixableExt.DangerousGetPinnableReference(in Fixable)' and 'FixableExt1.DangerousGetPinnableReference(in Fixable)'
+                // (6,25): error CS0121: The call is ambiguous between the following methods or properties: 'FixableExt.GetPinnableReference(in Fixable)' and 'FixableExt1.GetPinnableReference(in Fixable)'
                 //         fixed (int* p = new Fixable(1))
-                Diagnostic(ErrorCode.ERR_AmbigCall, "new Fixable(1)").WithArguments("FixableExt.DangerousGetPinnableReference(in Fixable)", "FixableExt1.DangerousGetPinnableReference(in Fixable)").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new Fixable(1)").WithArguments("FixableExt.GetPinnableReference(in Fixable)", "FixableExt1.GetPinnableReference(in Fixable)").WithLocation(6, 25),
                 // (6,25): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = new Fixable(1))
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25),
-                // (12,25): error CS0121: The call is ambiguous between the following methods or properties: 'FixableExt.DangerousGetPinnableReference(in Fixable)' and 'FixableExt1.DangerousGetPinnableReference(in Fixable)'
+                // (12,25): error CS0121: The call is ambiguous between the following methods or properties: 'FixableExt.GetPinnableReference(in Fixable)' and 'FixableExt1.GetPinnableReference(in Fixable)'
                 //         fixed (int* p = f)
-                Diagnostic(ErrorCode.ERR_AmbigCall, "f").WithArguments("FixableExt.DangerousGetPinnableReference(in Fixable)", "FixableExt1.DangerousGetPinnableReference(in Fixable)").WithLocation(12, 25),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "f").WithArguments("FixableExt.GetPinnableReference(in Fixable)", "FixableExt1.GetPinnableReference(in Fixable)").WithLocation(12, 25),
                 // (12,25): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = f)
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "f").WithLocation(12, 25)
@@ -4359,7 +4359,7 @@ public struct Fixable
 
 public static class FixableExt
 {
-    public static ref readonly int DangerousGetPinnableReference(in this Fixable f)
+    public static ref readonly int GetPinnableReference(in this Fixable f)
     {
         return ref (new int[]{1,2,3})[0];
     }
@@ -4397,7 +4397,7 @@ public struct Fixable
 
 public static class FixableExt
 {
-    public static ref readonly int DangerousGetPinnableReference(in this Fixable f)
+    public static ref readonly int GetPinnableReference(in this Fixable f)
     {
         return ref (new int[]{1,2,3})[0];
     }
@@ -4436,7 +4436,7 @@ unsafe class C
 
 static class FixAllExt
 {
-    public static ref int DangerousGetPinnableReference<T>(this T dummy)
+    public static ref int GetPinnableReference<T>(this T dummy)
     {
         return ref (new int[]{1,2,3})[0];
     }
@@ -4459,7 +4459,7 @@ static class FixAllExt
   IL_000a:  br.s       IL_001b
   IL_000c:  ldarga.s   V_0
   IL_000e:  ldobj      ""T""
-  IL_0013:  call       ""ref int FixAllExt.DangerousGetPinnableReference<T>(T)""
+  IL_0013:  call       ""ref int FixAllExt.GetPinnableReference<T>(T)""
   IL_0018:  stloc.1
   IL_0019:  ldloc.1
   IL_001a:  conv.u
@@ -4509,7 +4509,7 @@ static class FixAllExt
     {
         public int x;
 
-        public ref int DangerousGetPinnableReference()
+        public ref int GetPinnableReference()
         {
             x = 456;
             return ref (new int[] { 4, 5, 6 })[0];
@@ -4525,7 +4525,7 @@ static class FixAllExt
   .maxstack  2
   .locals init (pinned int& V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ref int FixableStruct.DangerousGetPinnableReference()""
+  IL_0001:  call       ""ref int FixableStruct.GetPinnableReference()""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  conv.u
@@ -4567,7 +4567,7 @@ static class FixAllExt
     {
         public int x;
 
-        public ref int DangerousGetPinnableReference()
+        public ref int GetPinnableReference()
         {
             x = 456;
             return ref (new int[] { 4, 5, 6 })[0];
@@ -4591,7 +4591,7 @@ static class FixAllExt
   IL_0006:  ldc.i4.0
   IL_0007:  conv.u
   IL_0008:  br.s       IL_0012
-  IL_000a:  call       ""ref int FixableClass.DangerousGetPinnableReference()""
+  IL_000a:  call       ""ref int FixableClass.GetPinnableReference()""
   IL_000f:  stloc.0
   IL_0010:  ldloc.0
   IL_0011:  conv.u
@@ -4634,7 +4634,7 @@ static class FixAllExt
 
     interface IFixable
     {
-        ref int DangerousGetPinnableReference();
+        ref int GetPinnableReference();
     }
 
     class FixableClass : IFixable
@@ -4642,7 +4642,7 @@ static class FixAllExt
 
         public int x;
 
-        public ref int DangerousGetPinnableReference()
+        public ref int GetPinnableReference()
         {
             x = 123;
             return ref (new int[] { 1, 2, 3 })[0];
@@ -4653,7 +4653,7 @@ static class FixAllExt
     {
         public int x;
 
-        public ref int DangerousGetPinnableReference()
+        public ref int GetPinnableReference()
         {
             x = 456;
             return ref (new int[] { 4, 5, 6 })[0];
@@ -4687,7 +4687,7 @@ static class FixAllExt
   IL_0023:  conv.u
   IL_0024:  br.s       IL_0034
   IL_0026:  constrained. ""T""
-  IL_002c:  callvirt   ""ref int IFixable.DangerousGetPinnableReference()""
+  IL_002c:  callvirt   ""ref int IFixable.GetPinnableReference()""
   IL_0031:  stloc.0
   IL_0032:  ldloc.0
   IL_0033:  conv.u
@@ -4727,14 +4727,14 @@ static class FixAllExt
 
     public interface IFixable
     {
-        ref int DangerousGetPinnableReferenceImpl();
+        ref int GetPinnableReferenceImpl();
     }
 
     public struct FixableStruct : IFixable
     {
         public int x;
 
-        public ref int DangerousGetPinnableReferenceImpl()
+        public ref int GetPinnableReferenceImpl()
         {
             x = 456;
             return ref (new int[] { 4, 5, 6 })[0];
@@ -4743,9 +4743,9 @@ static class FixAllExt
 
     public static class FixableExt
     {
-        public static ref int DangerousGetPinnableReference<T>(ref this T f) where T: struct, IFixable
+        public static ref int GetPinnableReference<T>(ref this T f) where T: struct, IFixable
         {
-            return ref f.DangerousGetPinnableReferenceImpl();
+            return ref f.GetPinnableReferenceImpl();
         }
     }
 ";
@@ -4758,7 +4758,7 @@ static class FixAllExt
   .maxstack  2
   .locals init (pinned int& V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ref int FixableExt.DangerousGetPinnableReference<T>(ref T)""
+  IL_0001:  call       ""ref int FixableExt.GetPinnableReference<T>(ref T)""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  conv.u
@@ -4802,7 +4802,7 @@ public struct Fixable
 
 public static class FixableExt
 {
-    public static ref readonly int DangerousGetPinnableReference(in this Fixable f)
+    public static ref readonly int GetPinnableReference(in this Fixable f)
     {
         return ref (new int[]{1,2,3})[0];
     }
@@ -4823,7 +4823,7 @@ public static class FixableExt
   IL_0001:  newobj     ""Fixable..ctor(int)""
   IL_0006:  stloc.2
   IL_0007:  ldloca.s   V_2
-  IL_0009:  call       ""ref readonly int FixableExt.DangerousGetPinnableReference(in Fixable)""
+  IL_0009:  call       ""ref readonly int FixableExt.GetPinnableReference(in Fixable)""
   IL_000e:  stloc.1
   IL_000f:  ldloc.1
   IL_0010:  conv.u
@@ -4838,7 +4838,7 @@ public static class FixableExt
   IL_001e:  ldc.i4.1
   IL_001f:  call       ""Fixable..ctor(int)""
   IL_0024:  ldloca.s   V_0
-  IL_0026:  call       ""ref readonly int FixableExt.DangerousGetPinnableReference(in Fixable)""
+  IL_0026:  call       ""ref readonly int FixableExt.GetPinnableReference(in Fixable)""
   IL_002b:  stloc.1
   IL_002c:  ldloc.1
   IL_002d:  conv.u
@@ -4880,7 +4880,7 @@ public struct Fixable
 
 public static class FixableExt
 {
-    public static ref int DangerousGetPinnableReference(ref this Fixable f)
+    public static ref int GetPinnableReference(ref this Fixable f)
     {
         return ref (new int[]{1,2,3})[0];
     }
@@ -4900,7 +4900,7 @@ public static class FixableExt
   IL_0002:  ldc.i4.1
   IL_0003:  call       ""Fixable..ctor(int)""
   IL_0008:  ldloca.s   V_0
-  IL_000a:  call       ""ref int FixableExt.DangerousGetPinnableReference(ref Fixable)""
+  IL_000a:  call       ""ref int FixableExt.GetPinnableReference(ref Fixable)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
   IL_0011:  conv.u
@@ -4941,7 +4941,7 @@ public struct Fixable
 
 public static class FixableExt
 {
-    public static ref int DangerousGetPinnableReference(ref this Fixable f)
+    public static ref int GetPinnableReference(ref this Fixable f)
     {
         return ref (new int[]{1,2,3})[0];
     }
@@ -4983,7 +4983,7 @@ public struct Fixable
 
 public static class FixableExt
 {
-    private static ref int DangerousGetPinnableReference(this Fixable f)
+    private static ref int GetPinnableReference(this Fixable f)
     {
         return ref (new int[]{1,2,3})[0];
     }
@@ -4997,9 +4997,9 @@ public static class FixableExt
                 // (6,25): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = new Fixable(1))
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25),
-                // (6,25): error CS0122: 'FixableExt.DangerousGetPinnableReference(Fixable)' is inaccessible due to its protection level
+                // (6,25): error CS0122: 'FixableExt.GetPinnableReference(Fixable)' is inaccessible due to its protection level
                 //         fixed (int* p = new Fixable(1))
-                Diagnostic(ErrorCode.ERR_BadAccess, "new Fixable(1)").WithArguments("FixableExt.DangerousGetPinnableReference(Fixable)").WithLocation(6, 25)
+                Diagnostic(ErrorCode.ERR_BadAccess, "new Fixable(1)").WithArguments("FixableExt.GetPinnableReference(Fixable)").WithLocation(6, 25)
                 );
         }
 
@@ -5025,7 +5025,7 @@ public struct Fixable
 
 public static class FixableExt
 {
-    private static ref int DangerousGetPinnableReference(this Fixable f)
+    private static ref int GetPinnableReference(this Fixable f)
     {
         return ref (new int[]{1,2,3})[0];
     }
@@ -5061,7 +5061,7 @@ public struct Fixable
 {
     public Fixable(int arg){}
 
-    public static ref int DangerousGetPinnableReference()
+    public static ref int GetPinnableReference()
     {
         return ref (new int[]{1,2,3})[0];
     }
@@ -5075,9 +5075,9 @@ public struct Fixable
                 // (6,25): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = new Fixable(1))
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25),
-                // (6,25): error CS0176: Member 'Fixable.DangerousGetPinnableReference()' cannot be accessed with an instance reference; qualify it with a type name instead
+                // (6,25): error CS0176: Member 'Fixable.GetPinnableReference()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         fixed (int* p = new Fixable(1))
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "new Fixable(1)").WithArguments("Fixable.DangerousGetPinnableReference()").WithLocation(6, 25)
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "new Fixable(1)").WithArguments("Fixable.GetPinnableReference()").WithLocation(6, 25)
                 );
         }
 
@@ -5100,7 +5100,7 @@ public struct Fixable
 {
     public Fixable(int arg){}
 
-    public ref int DangerousGetPinnableReference => ref (new int[]{1,2,3})[0];
+    public ref int GetPinnableReference => ref (new int[]{1,2,3})[0];
 }
 
 ";
@@ -5108,9 +5108,9 @@ public struct Fixable
             var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
 
             compVerifier.VerifyDiagnostics(
-                // (6,25): error CS1955: Non-invocable member 'Fixable.DangerousGetPinnableReference' cannot be used like a method.
+                // (6,25): error CS1955: Non-invocable member 'Fixable.GetPinnableReference' cannot be used like a method.
                 //         fixed (int* p = new Fixable(1))
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "new Fixable(1)").WithArguments("Fixable.DangerousGetPinnableReference").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "new Fixable(1)").WithArguments("Fixable.GetPinnableReference").WithLocation(6, 25),
                 // (6,25): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = new Fixable(1))
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
@@ -5138,7 +5138,7 @@ public struct Fixable
 {
     public Fixable(int arg){}
 
-    public ReturnsRef DangerousGetPinnableReference => null;
+    public ReturnsRef GetPinnableReference => null;
 }
 
 ";
