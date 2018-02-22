@@ -5,8 +5,9 @@ using System.IO;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.InteropServices;
+using STATSTG = System.Runtime.InteropServices.ComTypes.STATSTG;
 
-namespace Roslyn.Utilities
+namespace Microsoft.DiaSymReader
 {
     /// <summary>
     /// A COM IStream implementation over memory. Supports just enough for DiaSymReader's PDB writing.
@@ -15,7 +16,7 @@ namespace Roslyn.Utilities
     /// 2. Read and Write are optimized to avoid copying (see <see cref="IUnsafeComStream"/>)
     /// 3. Allocates in chunks instead of a contiguous buffer to avoid re-alloc and copy costs when growing.
     /// </summary>
-    internal class ComMemoryStream : IUnsafeComStream
+    internal unsafe sealed class ComMemoryStream : IUnsafeComStream
     {
         // internal for testing
         internal const int STREAM_SEEK_SET = 0;
@@ -95,17 +96,16 @@ namespace Roslyn.Utilities
                 remainingBytes -= bytesToCopy;
             }
         }
-
-        private unsafe static void ZeroMemory(IntPtr dest, int count)
+        private unsafe static void ZeroMemory(byte* dest, int count)
         {
-            var p = (byte*)dest;
+            var p = dest;
             while (count-- > 0)
             {
                 *p++ = 0;
             }
         }
 
-        unsafe void IUnsafeComStream.Read(IntPtr pv, int cb, IntPtr pcbRead)
+        unsafe void IUnsafeComStream.Read(byte* pv, int cb, int* pcbRead)
         {
             int chunkIndex = _position / _chunkSize;
             int chunkOffset = _position % _chunkSize;
@@ -122,7 +122,7 @@ namespace Roslyn.Utilities
 
                 if (chunkIndex < _chunks.Count)
                 {
-                    Marshal.Copy(_chunks[chunkIndex], chunkOffset, pv + destinationIndex, bytesToCopy);
+                    Marshal.Copy(_chunks[chunkIndex], chunkOffset, (IntPtr)(pv + destinationIndex), bytesToCopy);
                 }
                 else
                 {
@@ -137,9 +137,9 @@ namespace Roslyn.Utilities
                 chunkOffset = 0;
             }
 
-            if (pcbRead != IntPtr.Zero)
+            if (pcbRead != null)
             {
-                *(int*)pcbRead = bytesRead;
+                *pcbRead = bytesRead;
             }
         }
 
@@ -160,7 +160,7 @@ namespace Roslyn.Utilities
             return newPos;
         }
 
-        unsafe void IUnsafeComStream.Seek(long dlibMove, int origin, IntPtr plibNewPosition)
+        unsafe void IUnsafeComStream.Seek(long dlibMove, int origin, long* plibNewPosition)
         {
             int newPosition;
 
@@ -182,9 +182,9 @@ namespace Roslyn.Utilities
                     throw new ArgumentException($"{nameof(origin)} ({origin}) is invalid.", nameof(origin));
             }
 
-            if (plibNewPosition != IntPtr.Zero)
+            if (plibNewPosition != null)
             {
-                *(long*)plibNewPosition = newPosition;
+                *plibNewPosition = newPosition;
             }
         }
 
@@ -201,7 +201,7 @@ namespace Roslyn.Utilities
             };
         }
 
-        unsafe void IUnsafeComStream.Write(IntPtr pv, int cb, IntPtr pcbWritten)
+        unsafe void IUnsafeComStream.Write(byte* pv, int cb, int* pcbWritten)
         {
             int chunkIndex = _position / _chunkSize;
             int chunkOffset = _position % _chunkSize;
@@ -219,7 +219,7 @@ namespace Roslyn.Utilities
                     _chunks.Add(new byte[_chunkSize]);
                 }
 
-                Marshal.Copy(pv + bytesWritten, _chunks[chunkIndex], chunkOffset, bytesToCopy);
+                Marshal.Copy((IntPtr)(pv + bytesWritten), _chunks[chunkIndex], chunkOffset, bytesToCopy);
                 bytesWritten += bytesToCopy;
                 cb -= bytesToCopy;
                 chunkIndex++;
@@ -228,9 +228,9 @@ namespace Roslyn.Utilities
 
             SetPosition(_position + bytesWritten);
 
-            if (pcbWritten != IntPtr.Zero)
+            if (pcbWritten != null)
             {
-                *(int*)pcbWritten = bytesWritten;
+                *pcbWritten = bytesWritten;
             }
         }
 
@@ -243,7 +243,7 @@ namespace Roslyn.Utilities
             throw new NotSupportedException();
         }
 
-        void IUnsafeComStream.CopyTo(IStream pstm, long cb, IntPtr pcbRead, IntPtr pcbWritten)
+        void IUnsafeComStream.CopyTo(IStream pstm, long cb, int* pcbRead, int* pcbWritten)
         {
             throw new NotSupportedException();
         }
