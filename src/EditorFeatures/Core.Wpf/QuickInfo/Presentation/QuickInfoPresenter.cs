@@ -9,19 +9,18 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 {
-    [Export(typeof(IQuickInfoSourceProvider))]
+    [Export(typeof(IAsyncQuickInfoSourceProvider))]
     [Export(typeof(IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession>))]
     [Order]
     [Name(PredefinedQuickInfoPresenterNames.RoslynQuickInfoPresenter)]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal partial class QuickInfoPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession>, IQuickInfoSourceProvider
+    internal partial class QuickInfoPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession>, IAsyncQuickInfoSourceProvider
     {
         private static readonly object s_augmentSessionKey = new object();
 
-        private readonly IQuickInfoBroker _quickInfoBroker;
+        private readonly IAsyncQuickInfoBroker _quickInfoBroker;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 
         [ImportingConstructor]
         public QuickInfoPresenter(
-            IQuickInfoBroker quickInfoBroker,
+            IAsyncQuickInfoBroker quickInfoBroker,
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMapService classificationFormatMapService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
@@ -45,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
             _textEditorFactoryService = textEditorFactoryService;
         }
 
-        IQuickInfoPresenterSession IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, IAsyncQuickInfoSession sessionOpt)
+        IQuickInfoPresenterSession IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession>.CreateSession(
+            ITextView textView, ITextBuffer subjectBuffer, IAsyncQuickInfoSession sessionOpt)
         {
             return new QuickInfoPresenterSession(
                 _quickInfoBroker,
@@ -57,11 +57,10 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                 _textEditorFactoryService);
         }
 
-        IQuickInfoSource IQuickInfoSourceProvider.TryCreateQuickInfoSource(ITextBuffer textBuffer)
+        IAsyncQuickInfoSource IAsyncQuickInfoSourceProvider.TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
             AssertIsForeground();
             return new QuickInfoSource();
         }
     }
 }
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094

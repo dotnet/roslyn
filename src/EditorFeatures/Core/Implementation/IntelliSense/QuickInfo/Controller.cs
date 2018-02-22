@@ -77,18 +77,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var triggerSpan = modelOpt.GetCurrentSpanInSnapshot(quickInfoItem.Span, this.SubjectBuffer.CurrentSnapshot);
                 var trackingSpan = triggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
-                sessionOpt.PresenterSession.PresentItem(trackingSpan, quickInfoItem, modelOpt.TrackMouse);
+                //sessionOpt.PresenterSession.PresentItem(trackingSpan, quickInfoItem, modelOpt.TrackMouse);
             }
         }
 
-        public Task<VisualStudio.Language.Intellisense.QuickInfoItem> GetQuickInfoItemAsync(
-            int position,
-            IAsyncQuickInfoSession augmentSession = null)
+        public async Task<VisualStudio.Language.Intellisense.QuickInfoItem> GetQuickInfoItemAsync(
+            SnapshotPoint triggerPoint,
+            IAsyncQuickInfoSession augmentSession = null,
+            CancellationToken cancellationToken = new CancellationToken())
         {
             var service = GetService();
             if (service == null)
             {
-                return Task.FromResult<VisualStudio.Language.Intellisense.QuickInfoItem>(null);
+                return (VisualStudio.Language.Intellisense.QuickInfoItem)null;
             }
 
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
@@ -96,10 +97,54 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 this.Presenter.CreateSession(this.TextView, this.SubjectBuffer, augmentSession));
 
             var trackMouse = augmentSession != null && augmentSession.Options == QuickInfoSessionOptions.TrackMouse;
-            this.sessionOpt.Computation.ChainTaskAndNotifyControllerWhenFinished(
-                (model, cancellationToken) => ComputeModelInBackgroundAsync(position, snapshot, service, trackMouse, cancellationToken));
+            try
+            {
+                using (Logger.LogBlock(FunctionId.QuickInfo_ModelComputation_ComputeModelInBackground, cancellationToken))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
 
-            return Task.FromResult<VisualStudio.Language.Intellisense.QuickInfoItem>(null);
+                    var document = await DocumentProvider.GetDocumentAsync(snapshot, cancellationToken).ConfigureAwait(false);
+                    if (document == null)
+                    {
+                        return null;
+                    }
+
+                    var codeAnalysisQuickInfo = await service.GetQuickInfoAsync(document, triggerPoint, cancellationToken).ConfigureAwait(false);
+                    var newQuickInfo = WrapQuickInfoItem(triggerPoint, codeAnalysisQuickInfo);
+
+                    updateModel(triggerPoint, augmentSession, newQuickInfo);
+
+                    return newQuickInfo;
+                }
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private void updateModel(SnapshotPoint triggerPoint, IAsyncQuickInfoSession augmentSession, VisualStudio.Language.Intellisense.QuickInfoItem newQuickInfo)
+        {
+            var line = triggerPoint.GetContainingLine();
+            var lineNumber = triggerPoint.GetContainingLine().LineNumber;
+            var lineSpan = this.SubjectBuffer.CurrentSnapshot.CreateTrackingSpan(
+                line.Extent,
+                SpanTrackingMode.EdgeInclusive);
+            sessionOpt.PresenterSession.PresentItem(lineSpan, newQuickInfo, augmentSession.Options == QuickInfoSessionOptions.TrackMouse);
+        }
+
+        private VisualStudio.Language.Intellisense.QuickInfoItem WrapQuickInfoItem(
+            SnapshotPoint triggerPoint,
+            CodeAnalysis.QuickInfo.QuickInfoItem codeAnalysisQuickInfo)
+        {
+
+            var line = triggerPoint.GetContainingLine();
+            var lineNumber = triggerPoint.GetContainingLine().LineNumber;
+            var lineSpan = this.SubjectBuffer.CurrentSnapshot.CreateTrackingSpan(
+                line.Extent,
+                SpanTrackingMode.EdgeInclusive);
+
+            return new VisualStudio.Language.Intellisense.QuickInfoItem(lineSpan, codeAnalysisQuickInfo);
         }
 
         public QuickInfoService GetService()

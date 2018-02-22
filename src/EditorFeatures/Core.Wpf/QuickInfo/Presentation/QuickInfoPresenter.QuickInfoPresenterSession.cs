@@ -19,7 +19,8 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 
-using QuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
+using QuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
+//using QuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
 
 #pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
     {
         private class QuickInfoPresenterSession : ForegroundThreadAffinitizedObject, IQuickInfoPresenterSession
         {
-            private readonly IQuickInfoBroker _quickInfoBroker;
+            private readonly IAsyncQuickInfoBroker _quickInfoBroker;
             private readonly ITextView _textView;
             private readonly ITextBuffer _subjectBuffer;
             private readonly ClassificationTypeMap _classificationTypeMap;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
             public event EventHandler<EventArgs> Dismissed;
 
             public QuickInfoPresenterSession(
-                IQuickInfoBroker quickInfoBroker,
+                IAsyncQuickInfoBroker quickInfoBroker,
                 ITextView textView,
                 ITextBuffer subjectBuffer,
                 IAsyncQuickInfoSession sessionOpt,
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 
             public void PresentItem(ITrackingSpan triggerSpan, QuickInfoItem item, bool trackMouse)
             {
-                AssertIsForeground();
+                //AssertIsForeground();
 
                 _triggerSpan = triggerSpan;
                 _item = item;
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 
             public void Dismiss()
             {
-                AssertIsForeground();
+                //AssertIsForeground();
 
                 if (_editorSessionOpt == null)
                 {
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 
             private void OnEditorSessionDismissed()
             {
-                AssertIsForeground();
+               // AssertIsForeground();
                 this.Dismissed?.Invoke(this, EventArgs.Empty);
             }
 
@@ -137,8 +138,9 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                 }
             }
 
-            private FrameworkElement CreateContent(QuickInfoItem quickInfoItem, ITextSnapshot snapshot)
+            public FrameworkElement CreateContent(QuickInfoItem quickInfoItemWrapped, ITextSnapshot snapshot)
             {
+                var quickInfoItem = (Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem)quickInfoItemWrapped.Item;
                 var glyphs = quickInfoItem.Tags.GetGlyphs();
                 var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
                 var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);

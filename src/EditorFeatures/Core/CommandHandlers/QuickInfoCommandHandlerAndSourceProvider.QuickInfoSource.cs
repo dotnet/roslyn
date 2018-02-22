@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     return Task.FromResult<QuickInfoItem>(null);
                 }
 
-                var position = session.GetTriggerPoint(_subjectBuffer.CurrentSnapshot);
-                if (position != null && position.HasValue)
+                var triggerPoint = session.GetTriggerPoint(_subjectBuffer.CurrentSnapshot);
+                if (triggerPoint != null && triggerPoint.HasValue)
                 {
                     var textView = session.TextView;
                     var args = new InvokeQuickInfoCommandArgs(textView, _subjectBuffer);
                     if (_commandHandler.TryGetController(args, out var controller))
                     {
-                        return controller.GetQuickInfoItemAsync(position.Value, session);
+                        return controller.GetQuickInfoItemAsync(triggerPoint.Value, session);
                     }
                 }
 
