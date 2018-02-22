@@ -5067,6 +5067,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
   </data>
+  <data name="ERR_InvalidHashAlgorithmName" xml:space="preserve">
+    <value>Invalid hash algorithm name: '{0}'</value>
+  </data>
   <data name="ERR_VarInvocationLvalueReserved" xml:space="preserve">
     <value>The syntax 'var (...)' as an lvalue is reserved.</value>
   </data>

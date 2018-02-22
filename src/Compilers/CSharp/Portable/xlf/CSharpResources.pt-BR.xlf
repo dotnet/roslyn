@@ -8615,6 +8615,11 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
