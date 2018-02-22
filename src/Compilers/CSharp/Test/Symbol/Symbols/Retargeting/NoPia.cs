@@ -2611,5 +2611,65 @@ public class Consumer
 
             CompileAndVerify(consumer);
         }
+
+        [Fact]
+        [WorkItem(24964, "https://github.com/dotnet/roslyn/issues/24964")]
+        public void UnificationAcrossDistinctCoreLibs()
+        {
+            string pia = @"
+using System;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+public struct Test
+{
+}
+";
+
+            var piaCompilation = CreateCompilationWithMscorlib45(pia, options: TestOptions.DebugDll, assemblyName: "Pia");
+
+            string consumer1 = @"
+public class UsePia1 
+{
+    public static Test M1()
+    {
+        return default;
+    }
+} 
+";
+
+            string consumer2 = @"
+class UsePia2 
+{
+    public static void Main()
+    {
+        UsePia1.M1();
+    }
+} 
+";
+
+            foreach (MetadataReference piaRef in new[] { piaCompilation.EmitToImageReference(), piaCompilation.ToMetadataReference() })
+            {
+                var compilation1 = CreateCompilationWithMscorlib45(consumer1, references: new[] { piaRef.WithEmbedInteropTypes(true) });
+
+                foreach (MetadataReference consumer1Ref in new[] { compilation1.EmitToImageReference(), compilation1.ToMetadataReference() })
+                {
+                    var compilation2 = CreateCompilationWithMscorlib46(consumer2, references: new[] { piaRef, consumer1Ref });
+
+                    compilation2.VerifyDiagnostics();
+
+                    Assert.NotSame(compilation1.SourceAssembly.CorLibrary, compilation2.SourceAssembly.CorLibrary);
+
+                    var test = compilation2.GetTypeByMetadataName("Test");
+                    Assert.Equal("Pia.dll", test.ContainingModule.Name);
+
+                    var usePia1 = compilation2.GetTypeByMetadataName("UsePia1");
+                    Assert.Same(test, usePia1.GetMember<MethodSymbol>("M1").ReturnType);
+                }
+            }
+        }
     }
 }
