@@ -1800,29 +1800,27 @@ struct S
             compilation.VerifyIL("S.Main",
 @"
 {
-  // Code size       59 (0x3b)
+  // Code size       57 (0x39)
   .maxstack  3
   .locals init (S V_0,
-                S V_1)
+  S V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.0
   IL_000b:  stfld      ""int S.x""
-  IL_0010:  ldloc.0
-  IL_0011:  stloc.0
-  IL_0012:  ldloca.s   V_0
-  IL_0014:  ldloca.s   V_1
-  IL_0016:  initobj    ""S""
-  IL_001c:  ldloca.s   V_1
-  IL_001e:  ldc.i4.1
-  IL_001f:  stfld      ""int S.x""
-  IL_0024:  ldloc.1
-  IL_0025:  box        ""S""
-  IL_002a:  constrained. ""S""
-  IL_0030:  callvirt   ""bool object.Equals(object)""
-  IL_0035:  call       ""void System.Console.WriteLine(bool)""
-  IL_003a:  ret
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  initobj    ""S""
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  ldc.i4.1
+  IL_001d:  stfld      ""int S.x""
+  IL_0022:  ldloc.1
+  IL_0023:  box        ""S""
+  IL_0028:  constrained. ""S""
+  IL_002e:  callvirt   ""bool object.Equals(object)""
+  IL_0033:  call       ""void System.Console.WriteLine(bool)""
+  IL_0038:  ret
 }
 ");
         }
@@ -1858,7 +1856,7 @@ struct S
             compilation.VerifyIL("S.Main",
 @"
 {
-  // Code size       96 (0x60)
+  // Code size       94 (0x5e)
   .maxstack  4
   .locals init (S V_0,
                 S1 V_1,
@@ -1873,27 +1871,26 @@ struct S
   IL_0015:  stfld      ""int S1.x""
   IL_001a:  ldloc.1
   IL_001b:  stfld      ""S1 S.x""
-  IL_0020:  ldloc.0
-  IL_0021:  stloc.0
-  IL_0022:  ldloca.s   V_0
-  IL_0024:  ldflda     ""S1 S.x""
-  IL_0029:  ldloca.s   V_2
-  IL_002b:  initobj    ""S""
-  IL_0031:  ldloca.s   V_2
-  IL_0033:  ldloca.s   V_1
-  IL_0035:  initobj    ""S1""
-  IL_003b:  ldloca.s   V_1
-  IL_003d:  ldc.i4.1
-  IL_003e:  stfld      ""int S1.x""
-  IL_0043:  ldloc.1
-  IL_0044:  stfld      ""S1 S.x""
-  IL_0049:  ldloc.2
-  IL_004a:  box        ""S""
-  IL_004f:  constrained. ""S1""
-  IL_0055:  callvirt   ""bool object.Equals(object)""
-  IL_005a:  call       ""void System.Console.WriteLine(bool)""
-  IL_005f:  ret
-}");
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  ldflda     ""S1 S.x""
+  IL_0027:  ldloca.s   V_2
+  IL_0029:  initobj    ""S""
+  IL_002f:  ldloca.s   V_2
+  IL_0031:  ldloca.s   V_1
+  IL_0033:  initobj    ""S1""
+  IL_0039:  ldloca.s   V_1
+  IL_003b:  ldc.i4.1
+  IL_003c:  stfld      ""int S1.x""
+  IL_0041:  ldloc.1
+  IL_0042:  stfld      ""S1 S.x""
+  IL_0047:  ldloc.2
+  IL_0048:  box        ""S""
+  IL_004d:  constrained. ""S1""
+  IL_0053:  callvirt   ""bool object.Equals(object)""
+  IL_0058:  call       ""void System.Console.WriteLine(bool)""
+  IL_005d:  ret
+}
+");
         }
 
         [Fact]
@@ -1981,50 +1978,47 @@ struct S
             compilation.VerifyIL("S.Main",
 @"
 {
-  // Code size      120 (0x78)
+  // Code size      116 (0x74)
   .maxstack  4
   .locals init (S V_0,
                 S V_1,
-                bool V_2)
+                bool V_2,
+                S V_3)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.0
   IL_000b:  stfld      ""int S.x""
-  IL_0010:  ldloc.0
-  IL_0011:  stloc.0
-  IL_0012:  ldloca.s   V_0
-  IL_0014:  ldloca.s   V_1
-  IL_0016:  initobj    ""S""
-  IL_001c:  ldloca.s   V_1
-  IL_001e:  ldc.i4.1
-  IL_001f:  stfld      ""int S.x""
-  IL_0024:  ldloc.1
-  IL_0025:  box        ""S""
-  IL_002a:  constrained. ""S""
-  IL_0030:  callvirt   ""bool object.Equals(object)""
-  IL_0035:  stloc.2
-  IL_0036:  ldloca.s   V_2
-  IL_0038:  ldloca.s   V_0
-  IL_003a:  initobj    ""S""
-  IL_0040:  ldloca.s   V_0
-  IL_0042:  ldc.i4.1
-  IL_0043:  stfld      ""int S.x""
-  IL_0048:  ldloc.0
-  IL_0049:  stloc.0
-  IL_004a:  ldloca.s   V_0
-  IL_004c:  ldloca.s   V_1
-  IL_004e:  initobj    ""S""
-  IL_0054:  ldloca.s   V_1
-  IL_0056:  ldc.i4.1
-  IL_0057:  stfld      ""int S.x""
-  IL_005c:  ldloc.1
-  IL_005d:  box        ""S""
-  IL_0062:  constrained. ""S""
-  IL_0068:  callvirt   ""bool object.Equals(object)""
-  IL_006d:  call       ""bool bool.Equals(bool)""
-  IL_0072:  call       ""void System.Console.WriteLine(bool)""
-  IL_0077:  ret
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  initobj    ""S""
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  ldc.i4.1
+  IL_001d:  stfld      ""int S.x""
+  IL_0022:  ldloc.1
+  IL_0023:  box        ""S""
+  IL_0028:  constrained. ""S""
+  IL_002e:  callvirt   ""bool object.Equals(object)""
+  IL_0033:  stloc.2
+  IL_0034:  ldloca.s   V_2
+  IL_0036:  ldloca.s   V_1
+  IL_0038:  initobj    ""S""
+  IL_003e:  ldloca.s   V_1
+  IL_0040:  ldc.i4.1
+  IL_0041:  stfld      ""int S.x""
+  IL_0046:  ldloca.s   V_1
+  IL_0048:  ldloca.s   V_3
+  IL_004a:  initobj    ""S""
+  IL_0050:  ldloca.s   V_3
+  IL_0052:  ldc.i4.1
+  IL_0053:  stfld      ""int S.x""
+  IL_0058:  ldloc.3
+  IL_0059:  box        ""S""
+  IL_005e:  constrained. ""S""
+  IL_0064:  callvirt   ""bool object.Equals(object)""
+  IL_0069:  call       ""bool bool.Equals(bool)""
+  IL_006e:  call       ""void System.Console.WriteLine(bool)""
+  IL_0073:  ret
 }
 ");
         }
