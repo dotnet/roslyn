@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
 
             // If interfaces are involved we will fix those too
-            // Explicit interface implementations are easy
+            // Explicit interface implementations are easy to detect
             if (method.ExplicitInterfaceImplementations.Length > 0)
             {
                 return true;
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
             // For implicit interface implementations lets check if the characteristic of the method
             // allows it to implicit implement an interface member.
-            if (method.DeclaredAccessibility == Accessibility.Private || method.DeclaredAccessibility == Accessibility.NotApplicable)
+            if (method.DeclaredAccessibility != Accessibility.Public)
             {
                 return false;
             }
