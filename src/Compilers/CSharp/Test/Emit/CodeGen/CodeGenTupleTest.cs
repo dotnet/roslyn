@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.SigningTestHelpers;
 using static TestResources.NetFX.ValueTuple;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -21317,6 +21316,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "92872377-08d1-4723-8906-a43b03e56ed3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
+#if NET461
         [Fact]
         public void ValueTupleBase_AssemblyUnification()
         {
@@ -21327,7 +21327,7 @@ public class A
 }";
             var signedDllOptions = TestOptions.ReleaseDll.
                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(s_defaultDesktopProvider);
+                WithStrongNameProvider(SigningTestHelpers.s_defaultDesktopProvider);
             var comp0v1 = CreateCompilationWithMscorlib40(source0v1, assemblyName: "A", options: signedDllOptions);
             comp0v1.VerifyDiagnostics();
             var ref0v1 = comp0v1.EmitToImageReference();
@@ -21367,6 +21367,7 @@ public class A
                 // error CS8182: Predefined type 'ValueTuple`2' must be a struct.
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct).WithArguments("ValueTuple`2").WithLocation(1, 1));
         }
+#endif
 
         [Fact]
         [WorkItem(13472, "https://github.com/dotnet/roslyn/issues/13472")]

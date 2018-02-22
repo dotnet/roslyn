@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CSharp.RuntimeBinder;
 using Roslyn.Test.Utilities;
 using Xunit;
 
