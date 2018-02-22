@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified</source>
-        <target state="translated">Non è possibile semplificare il nome</target>
+        <target state="translated">Il nome può essere semplificato</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
@@ -210,16 +210,6 @@
       <trans-unit id="Remove_and_Sort_Usings">
         <source>R&amp;emove and Sort Usings</source>
         <target state="translated">Ri&amp;muovi e ordina using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_potential_implicit_array_creation">
-        <source>Autoselect disabled due to potential implicit array creation.</source>
-        <target state="translated">La selezione automatica è disabilitata a causa della potenziale creazione di matrici implicite.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="implicit_array_creation">
-        <source>&lt;implicit array creation&gt;</source>
-        <target state="translated">&lt;creazione matrici implicite&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_await">

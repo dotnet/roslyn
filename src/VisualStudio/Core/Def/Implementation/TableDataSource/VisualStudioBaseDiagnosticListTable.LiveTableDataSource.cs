@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, GetDiagnosticUpdatedMessage, e, CancellationToken.None))
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(a), e, CancellationToken.None))
                 {
                     if (_workspace != e.Workspace)
                     {
@@ -550,7 +550,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     id = analyzer.Analyzer.ToString();
                 }
 
-                return $"{e.Workspace.Kind} {id} {e.Kind} {(object)e.DocumentId ?? e.ProjectId} {e.Diagnostics.Length}";
+                return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, e.Diagnostics)})";
             }
         }
     }

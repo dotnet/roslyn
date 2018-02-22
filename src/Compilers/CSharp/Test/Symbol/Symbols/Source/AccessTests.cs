@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 namespace A {}
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var global = comp.GlobalNamespace;
             var a = global.GetMembers("A").Single() as NamespaceSymbol;
             Assert.Equal(Accessibility.Public, a.DeclaredAccessibility);
@@ -38,7 +38,7 @@ namespace A {}
 public namespace A {}
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var global = comp.GlobalNamespace;
             var a = global.GetMembers("A").Single() as NamespaceSymbol;
             var errs = tree.GetDiagnostics();
@@ -59,7 +59,7 @@ namespace X {
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var global = comp.GlobalNamespace;
             var a = global.GetMembers("A").Single() as NamespaceSymbol;
             var errs = comp.GetSemanticModel(tree).GetDeclarationDiagnostics();
@@ -82,7 +82,7 @@ namespace X {
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var global = comp.GlobalNamespace;
             var a = global.GetMembers("A").Single() as NamespaceSymbol;
             var errs = comp.GetSemanticModel(tree).GetDeclarationDiagnostics();
@@ -111,7 +111,7 @@ class C1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.False(comp.GetDeclarationDiagnostics().Any());
         }
 
@@ -133,7 +133,7 @@ public class E
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
         }
 
@@ -156,7 +156,7 @@ class D : B
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
         }
     }

@@ -669,7 +669,7 @@
       </trans-unit>
       <trans-unit id="ERR_EnumNotExpression1">
         <source>'{0}' is an Enum type and cannot be used as an expression.</source>
-        <target state="translated">'Typem elementu „{0}” jest typ wyliczeniowy i nie można go używać jako wyrażenia.</target>
+        <target state="translated">Typem elementu „{0}” jest typ wyliczeniowy i nie można go używać jako wyrażenia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeNotExpression1">
@@ -804,12 +804,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidEndEnum">
         <source>'End Enum' must be preceded by a matching 'Enum'.</source>
-        <target state="translated">'Instrukcja „End Enum” musi być poprzedzona odpowiadającą jej instrukcją „Enum”.</target>
+        <target state="translated">Instrukcja „End Enum” musi być poprzedzona odpowiadającą jej instrukcją „Enum”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingEndEnum">
         <source>'Enum' must end with a matching 'End Enum'.</source>
-        <target state="translated">'Instrukcja Enum musi być zakończona odpowiadającą jej instrukcją End Enum.</target>
+        <target state="translated">Instrukcja Enum musi być zakończona odpowiadającą jej instrukcją End Enum.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedDeclaration">
@@ -1237,12 +1237,12 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithOptional2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by optional parameters.</source>
-        <target state="translated">'Elementy „{0}” i „{1}” nie mogą przeciążać siebie nawzajem, ponieważ różnią się jedynie parametrami opcjonalnymi.</target>
+        <target state="translated">Elementy „{0}” i „{1}” nie mogą przeciążać siebie nawzajem, ponieważ różnią się jedynie parametrami opcjonalnymi.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadWithReturnType2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by return types.</source>
-        <target state="translated">'Elementy „{0}” i „{1}” nie mogą przeciążać siebie nawzajem, ponieważ różnią się jedynie zwracanymi typami.</target>
+        <target state="translated">Elementy „{0}” i „{1}” nie mogą przeciążać siebie nawzajem, ponieważ różnią się jedynie zwracanymi typami.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeCharWithType1">
@@ -1257,7 +1257,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithDefault2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by the default values of optional parameters.</source>
-        <target state="translated">'Elementy „{0}” i „{1}” nie mogą przeciążać siebie nawzajem, ponieważ różnią się jedynie wartościami domyślnymi parametrów opcjonalnych.</target>
+        <target state="translated">Elementy „{0}” i „{1}” nie mogą przeciążać siebie nawzajem, ponieważ różnią się jedynie wartościami domyślnymi parametrów opcjonalnych.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingSubscript">
@@ -1307,7 +1307,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithByref2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by parameters declared 'ByRef' or 'ByVal'.</source>
-        <target state="translated">'Elementy „{0}” i „{1}” nie mogą przeciążać siebie nawzajem, ponieważ różnią się jedynie parametrami zadeklarowanymi jako „ByRef” lub „ByVal”.</target>
+        <target state="translated">Elementy „{0}” i „{1}” nie mogą przeciążać siebie nawzajem, ponieważ różnią się jedynie parametrami zadeklarowanymi jako „ByRef” lub „ByVal”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritsFromNonInterface">
@@ -1327,7 +1327,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultMissingFromProperty2">
         <source>'{0}' and '{1}' cannot overload each other because only one is declared 'Default'.</source>
-        <target state="translated">'Elementy „{0}” i „{1}” nie mogą przeciążać siebie nawzajem, ponieważ tylko jeden z nich jest zadeklarowany jako „Default”.</target>
+        <target state="translated">Elementy „{0}” i „{1}” nie mogą przeciążać siebie nawzajem, ponieważ tylko jeden z nich jest zadeklarowany jako „Default”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingPropertyKind2">
@@ -1347,7 +1347,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadingPropertyKind2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by 'ReadOnly' or 'WriteOnly'.</source>
-        <target state="translated">'Elementy „{0}” i „{1}” nie mogą przeciążać siebie nawzajem, ponieważ różnią się jedynie ustawieniem „ReadOnly” lub „WriteOnly”.</target>
+        <target state="translated">Elementy „{0}” i „{1}” nie mogą przeciążać siebie nawzajem, ponieważ różnią się jedynie ustawieniem „ReadOnly” lub „WriteOnly”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoDefaultNotExtend1">
@@ -1357,7 +1357,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithArrayVsParamArray2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by parameters declared 'ParamArray'.</source>
-        <target state="translated">'Elementy „{0}” i „{1}” nie mogą przeciążać siebie nawzajem, ponieważ różnią się jedynie parametrami zadeklarowanymi jako „ParamArray”.</target>
+        <target state="translated">Elementy „{0}” i „{1}” nie mogą przeciążać siebie nawzajem, ponieważ różnią się jedynie parametrami zadeklarowanymi jako „ParamArray”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInstanceMemberAccess">
@@ -1447,7 +1447,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadEnumFlags1">
         <source>'{0}' is not valid on an Enum declaration.</source>
-        <target state="translated">'Element „{0}” nie jest prawidłowy w deklaracji wyliczenia.</target>
+        <target state="translated">Element „{0}” nie jest prawidłowy w deklaracji wyliczenia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceFlags1">
@@ -1612,7 +1612,7 @@
       </trans-unit>
       <trans-unit id="ERR_NonNamespaceOrClassOnImport2">
         <source>'{1}' for the Imports '{0}' does not refer to a Namespace, Class, Structure, Enum or Module.</source>
-        <target state="translated">'Element „{1}” dla operacji importu „{0}” nie odwołuje się do przestrzeni nazw, klasy, struktury, wyliczenia ani modułu.</target>
+        <target state="translated">Element „{1}” dla operacji importu „{0}” nie odwołuje się do przestrzeni nazw, klasy, struktury, wyliczenia ani modułu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypecharNotallowed">
@@ -2014,7 +2014,7 @@
       </trans-unit>
       <trans-unit id="ERR_MyClassAbstractCall1">
         <source>'MustOverride' method '{0}' cannot be called with 'MyClass'.</source>
-        <target state="translated">'Nie można wywołać metody „{0}” typu „MustOverride” przy użyciu elementu „MyClass”.</target>
+        <target state="translated">Nie można wywołać metody „{0}” typu „MustOverride” przy użyciu elementu „MyClass”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndDisallowedInDllProjects">
@@ -2189,7 +2189,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidEnumBase">
         <source>Enums must be declared as an integral type.</source>
-        <target state="translated">Zmienne wyliczeniowe należy deklarować jako typ całkowity.</target>
+        <target state="translated">Wyliczenia należy deklarować jako typ całkowity.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByRefIllegal1">
@@ -2556,7 +2556,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidTypeForAliasesImport2">
         <source>'{1}' for the Imports alias to '{0}' does not refer to a Namespace, Class, Structure, Interface, Enum or Module.</source>
-        <target state="translated">'Element „{1}” dla aliasu Imports elementu „{0}” nie odwołuje się do elementu Namespace, Class, Structure, Interface, Enum lub Module.</target>
+        <target state="translated">Element „{1}” dla aliasu Imports elementu „{0}” nie odwołuje się do elementu Namespace, Class, Structure, Interface, Enum lub Module.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedConstant2">
@@ -3777,7 +3777,7 @@
       </trans-unit>
       <trans-unit id="ERR_ClashWithReservedEnumMember1">
         <source>'{0}' conflicts with the reserved member by this name that is implicitly declared in all enums.</source>
-        <target state="translated">'Element „{0}” powoduje konflikt z zastrzeżoną składową o tej nazwie, która została niejawnie zadeklarowana we wszystkich wyliczeniach.</target>
+        <target state="translated">Element „{0}” powoduje konflikt z zastrzeżoną składową o tej nazwie, która została niejawnie zadeklarowana we wszystkich wyliczeniach.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultiplyDefinedEnumMember2">
@@ -4097,7 +4097,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotCallEvent1">
         <source>'{0}' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.</source>
-        <target state="translated">'Element „{0}” jest zdarzeniem i nie można go wywołać bezpośrednio. Użyj instrukcji „RaiseEvent”, aby wywołać zdarzenie.</target>
+        <target state="translated">Element „{0}” jest zdarzeniem i nie można go wywołać bezpośrednio. Użyj instrukcji „RaiseEvent”, aby wywołać zdarzenie.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachCollectionDesignPattern1">
@@ -4387,7 +4387,7 @@
       </trans-unit>
       <trans-unit id="ERR_ForEachAmbiguousIEnumerable1">
         <source>'For Each' on type '{0}' is ambiguous because the type implements multiple instantiations of 'System.Collections.Generic.IEnumerable(Of T)'.</source>
-        <target state="translated">'Element „For Each” w typie „{0}” jest niejednoznaczny, ponieważ typ implementuje wiele wystąpień elementu „System.Collections.Generic.IEnumerable(Of T)”.</target>
+        <target state="translated">Element „For Each” w typie „{0}” jest niejednoznaczny, ponieważ typ implementuje wiele wystąpień elementu „System.Collections.Generic.IEnumerable(Of T)”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsNotOperatorGenericParam1">
@@ -4864,7 +4864,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantCallIIF">
         <source>'If' operator cannot be used in a 'Call' statement.</source>
-        <target state="translated">'Operatora „If” nie można użyć w instrukcji „Call”.</target>
+        <target state="translated">Operatora „If” nie można użyć w instrukcji „Call”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantSpecifyAsNewAndNullable">
@@ -5840,7 +5840,7 @@
       </trans-unit>
       <trans-unit id="WRN_ArrayOverloadsNonCLS2">
         <source>'{0}' is not CLS-compliant because it overloads '{1}' which differs from it only by array of array parameter types or by the rank of the array parameter types.</source>
-        <target state="translated">'Element „{0}” nie jest zgodny ze specyfikacją CLS, ponieważ przeciąża element „{1}”, który różni się od niego tylko tablicą typów parametrów tablicowych lub rangą typów parametrów tablicowych.</target>
+        <target state="translated">Element „{0}” nie jest zgodny ze specyfikacją CLS, ponieważ przeciąża element „{1}”, który różni się od niego tylko tablicą typów parametrów tablicowych lub rangą typów parametrów tablicowych.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArrayOverloadsNonCLS2_Title">
@@ -5980,7 +5980,7 @@
       </trans-unit>
       <trans-unit id="WRN_ExpectedInitComponentCall2">
         <source>'{0}' in designer-generated type '{1}' should call InitializeComponent method.</source>
-        <target state="translated">'Element „{0}” w typie wygenerowanym przez projektanta „{1}” powinien wywoływać metodę InitializeComponent.</target>
+        <target state="translated">Element „{0}” w typie wygenerowanym przez projektanta „{1}” powinien wywoływać metodę InitializeComponent.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExpectedInitComponentCall2_Title">
@@ -9074,6 +9074,11 @@
       <trans-unit id="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment">
         <source>{0} is not a valid Visual Basic compound assignment operation</source>
         <target state="translated">{0} nie jest prawidłową złożoną operacją przypisania w języku Visual Basic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
     </body>

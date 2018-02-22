@@ -825,12 +825,12 @@
       </trans-unit>
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
-        <target state="new">Warning: Could not enable multicore JIT due to exception: {0}.</target>
+        <target state="translated">Предупреждение! Не удалось включить многоядерную процедуру JIT из-за исключения: {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerDiagnosticIdReported">
         <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="new">Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</target>
+        <target state="translated">Отчет о диагностике содержит идентификатор "{0}", о котором должен сообщать только компилятор.</target>
         <note />
       </trans-unit>
     </body>

@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return CreateCompilationWithMscorlib45(source, options: options, references: references);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
             var compilation = CreateCompilation(source, references: references, options: options);
-            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: verify);
         }
 
         [Fact]
@@ -865,7 +865,7 @@ class Driver
         Console.WriteLine(Result);
     }
 }";
-            CompileAndVerify(source, "0", options: TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
         }
 
         [Fact]
@@ -937,7 +937,7 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.UnsafeDebugExe, verify: Verification.Passes);
         }
 
         [Fact]
@@ -998,7 +998,7 @@ class Driver
         Console.Write(Driver.Result);
     }
 }";
-            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.UnsafeDebugExe, verify: Verification.Passes);
         }
 
         [Fact]
@@ -1039,7 +1039,7 @@ class Driver
 
     public static int Result = -1;
 }";
-            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.UnsafeDebugExe, verify: Verification.Passes);
         }
 
         [Fact]
@@ -1957,7 +1957,7 @@ class Driver
         t.Run(6);
     }
 }";
-            CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef });
+            CompileAndVerifyWithMscorlib40(source, new[] { CSharpRef, SystemCoreRef });
         }
 
         [Fact]
@@ -3117,7 +3117,7 @@ class C
 }
 ";
 
-            var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
 
             // CONSIDER: It would be nice if we didn't squiggle the whole method body, but this is a corner case.
             comp.VerifyEmitDiagnostics(
@@ -3147,7 +3147,7 @@ class C
 {
     async Task M() {}
 }";
-            var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task M() {}
@@ -3178,7 +3178,7 @@ class C
 {
     async Task<int> F() => 3;
 }";
-            var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task<int> F() => 3;
@@ -3851,8 +3851,8 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 );
         }
 
-        // Should check constraints (see https://github.com/dotnet/roslyn/issues/12616).
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12616")]
+        [WorkItem(12616, "https://github.com/dotnet/roslyn/issues/12616")]
+        [Fact]
         public void AsyncTasklikeBuilderConstraints()
         {
             var source1 = @"
@@ -3887,10 +3887,9 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 
             var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
             comp1.VerifyEmitDiagnostics(
-                // (8,22): error CS0656: Missing compiler required member 'MyTaskBuilder.Start'
+                // (8,22): error CS0311: The type 'C.<f>d__1' cannot be used as type parameter 'TSM' in the generic type or method 'MyTaskBuilder.Start<TSM>(ref TSM)'. There is no implicit reference conversion from 'C.<f>d__1' to 'I'.
                 //     async MyTask f() { await (Task)null; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await (Task)null; }").WithArguments("MyTaskBuilder", "Start").WithLocation(8, 22)
-                );
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "{ await (Task)null; }").WithArguments("MyTaskBuilder.Start<TSM>(ref TSM)", "I", "TSM", "C.<f>d__1").WithLocation(8, 22));
 
             var source2 = @"
 using System;
@@ -3921,11 +3920,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 ";
 
             var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe);
-            comp2.VerifyEmitDiagnostics(
-                // (8,22): error CS0656: Missing compiler required member 'MyTaskBuilder.AwaitUnsafeOnCompleted'
-                //     async MyTask f() { await (Task)null; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await (Task)null; }").WithArguments("MyTaskBuilder", "AwaitUnsafeOnCompleted").WithLocation(8, 22)
-                );
+            comp2.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -4793,7 +4788,7 @@ class C
 {
     async Task GetNumber(Task task) { await task; }
 }";
-            var compilation = CreateCompilation(new[] { Parse(source) });
+            var compilation = CreateEmptyCompilation(new[] { Parse(source) });
 
             compilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.

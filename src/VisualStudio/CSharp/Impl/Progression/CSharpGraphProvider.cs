@@ -20,8 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
             IProgressionPrimaryWorkspaceProvider workspaceProvider,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners) :
-            base(glyphService, serviceProvider, workspaceProvider.PrimaryWorkspace, asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider) :
+            base(glyphService, serviceProvider, workspaceProvider.PrimaryWorkspace, listenerProvider)
         {
         }
     }

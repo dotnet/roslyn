@@ -1001,6 +1001,65 @@ partial class Class
 }", fixAllActionEquivalenceKey: FeaturesResources.Use_auto_property);
         }
 
+        [WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task ExplicitInterfaceImplementationGetterOnly()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+namespace RoslynSandbox
+{
+    public interface IFoo
+    {
+        object Bar { get; }
+    }
+
+    class Foo : IFoo
+    {
+        public Foo(object bar)
+        {
+            this.bar = bar;
+        }
+
+        readonly object [|bar|];
+
+        object IFoo.Bar
+        {
+            get { return bar; }
+        }
+    }
+}");
+        }
+
+        [WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task ExplicitInterfaceImplementationGetterAndSetter()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+namespace RoslynSandbox
+{
+    public interface IFoo
+    {
+        object Bar { get; set; }
+    }
+
+    class Foo : IFoo
+    {
+        public Foo(object bar)
+        {
+            this.bar = bar;
+        }
+
+        object [|bar|];
+
+        object IFoo.Bar
+        {
+            get { return bar; }
+            set { bar = value; }
+        }
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task ExpressionBodiedMemberGetOnly()
         {

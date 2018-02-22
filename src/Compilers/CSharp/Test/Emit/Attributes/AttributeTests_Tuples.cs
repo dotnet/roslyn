@@ -101,19 +101,19 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
         [Fact]
         public void TestCompile()
         {
-            CompileAndVerify(s_tuplesTestSource,
+            CompileAndVerifyWithMscorlib40(s_tuplesTestSource,
                 options: TestOptions.ReleaseDll,
-                additionalRefs: s_attributeRefs);
+                references: s_attributeRefs);
         }
 
         [Fact]
         public void TestTupleAttributes()
         {
-            var comp = CreateStandardCompilation(s_tuplesTestSource,
+            var comp = CreateCompilationWithMscorlib40(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
                 references: s_attributeRefs);
 
-            CompileAndVerify(comp, symbolValidator: module =>
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: module =>
             {
                 TupleAttributeValidator.ValidateTupleAttributes(module);
             });
@@ -122,7 +122,7 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
         [Fact]
         public void TupleAttributeWithOnlyOneConstructor()
         {
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilationWithMscorlib40(
                 s_tuplesTestSource + TestResources.NetFX.ValueTuple.tuplelib_cs + @"
 namespace System.Runtime.CompilerServices
 {
@@ -168,10 +168,10 @@ class C
         d((0, 0));
     }
 }";
-            var comp = CreateCompilation(source0);
+            var comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateCompilation(source1,
+            comp = CreateEmptyCompilation(source1,
                 references: s_attributeRefs.Concat(new[] { ref0 }));
             comp.VerifyDiagnostics(
                 // (6,11): error CS0518: Predefined type 'System.String' is not defined or imported
@@ -204,10 +204,10 @@ class C
 {
     static (int x, int y) M() => (0, 0);
 }";
-            var comp = CreateCompilation(source0);
+            var comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateCompilation(source1,
+            comp = CreateEmptyCompilation(source1,
                 references: new[] { ref0, ValueTupleRef });
             comp.VerifyDiagnostics(
                 // (4,12): error CS0518: Predefined type 'System.String' is not defined or imported
@@ -227,9 +227,10 @@ class C
         {
             ModuleSymbol sourceModule = null;
             ModuleSymbol peModule = null;
-            CompileAndVerify(s_tuplesTestSource,
+            CompileAndVerifyWithMscorlib40(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
-                additionalRefs: s_attributeRefs,
+                references: s_attributeRefs, 
+                verify: Verification.Passes,
                 sourceSymbolValidator: m => sourceModule = m,
                 symbolValidator: m => peModule = m);
 
@@ -244,7 +245,7 @@ class C
                 var srcType = srcTypes[i];
                 var peType = peTypes[i];
 
-                Assert.Equal(ToTestString(srcType.BaseType), ToTestString(peType.BaseType));
+                Assert.Equal(ToTestString(srcType.BaseType()), ToTestString(peType.BaseType()));
 
                 var srcMembers = srcType.GetMembers()
                     .Where(m => !m.Name.Contains("k__BackingField"))
@@ -272,7 +273,7 @@ class C
                     break;
                 case SymbolKind.NamedType:
                     var namedType = (NamedTypeSymbol)symbol;
-                    typeSymbols.Add(namedType.BaseType ?? namedType);
+                    typeSymbols.Add(namedType.BaseType() ?? namedType);
                     break;
                 case SymbolKind.Field:
                     typeSymbols.Add(((FieldSymbol)symbol).Type);
@@ -399,7 +400,7 @@ class C
                 ValidateTupleNameAttribute(_base2Class.GetAttributes(), expectedTupleNamesAttribute: false);
 
                 // public class Outer<T> : Base1<(int key, int val)>
-                Assert.True(_outerClass.BaseType.ContainsTuple());
+                Assert.True(_outerClass.BaseType().ContainsTuple());
                 var expectedElementNames = new[] { "key", "val" };
                 ValidateTupleNameAttribute(_outerClass.GetAttributes(),
                     expectedTupleNamesAttribute: true,
@@ -473,7 +474,7 @@ class C
                 var field6Type = Assert.IsType<ConstructedNamedTypeSymbol>(field6.Type);
                 Assert.Equal("Base1", field6Type.Name);
                 Assert.Equal(1, field6Type.TypeParameters.Length);
-                var firstTuple = field6Type.TypeArguments.Single();
+                var firstTuple = field6Type.TypeArguments().Single();
                 Assert.True(firstTuple.IsTupleType);
                 Assert.True(firstTuple.TupleElementNames.IsDefault);
                 Assert.Equal(2, firstTuple.TupleElementTypes.Length);
@@ -639,7 +640,7 @@ class C
         [Fact]
         public void TupleAttributeMissing()
         {
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilationWithMscorlib40(
                 s_tuplesTestSource + TestResources.NetFX.ValueTuple.tuplelib_cs,
                 references: new[] { SystemCoreRef },
                 options: TestOptions.ReleaseDll);
@@ -801,7 +802,7 @@ public class C
 public struct S
 {
 }";
-            var comp = CreateStandardCompilation(text, references: s_attributeRefs);
+            var comp = CreateCompilationWithMscorlib40(text, references: s_attributeRefs);
             comp.VerifyDiagnostics(
                 // (31,2): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 // [TupleElementNames(new[] { "a", "b" })]
@@ -923,15 +924,15 @@ public interface I3<T>
                 void verifyTupleImpls(NamedTypeSymbol t, string[] tupleNames)
                 {
                     var typeParam = t.TypeParameters.Single();
-                    var constraint = (NamedTypeSymbol)typeParam.ConstraintTypes.Single();
-                    var typeArg = constraint.TypeArguments.Single();
+                    var constraint = (NamedTypeSymbol)typeParam.ConstraintTypes().Single();
+                    var typeArg = constraint.TypeArguments().Single();
                     Assert.True(typeArg.IsTupleType);
                     Assert.Equal(tupleNames, typeArg.TupleElementNames);
                 }
             }
 
-            CompileAndVerify(src,
-                additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CompileAndVerifyWithMscorlib40(src,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 assemblyValidator: validator,
                 symbolValidator: symbolValidator);
         }
@@ -1022,15 +1023,15 @@ public interface I3 : I1<(int c, int d)> {}";
 
                 void VerifyTupleImpls(NamedTypeSymbol t, string[] tupleNames)
                 {
-                    var interfaceImpl = t.Interfaces.Single();
-                    var typeArg = interfaceImpl.TypeArguments.Single();
+                    var interfaceImpl = t.Interfaces().Single();
+                    var typeArg = interfaceImpl.TypeArguments().Single();
                     Assert.True(typeArg.IsTupleType);
                     Assert.Equal(tupleNames, typeArg.TupleElementNames);
                 }
             }
 
-            CompileAndVerify(src,
-                additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CompileAndVerifyWithMscorlib40(src,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 assemblyValidator: validator,
                 symbolValidator: symbolValidator);
         }

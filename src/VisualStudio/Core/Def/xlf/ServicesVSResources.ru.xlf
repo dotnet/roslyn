@@ -1398,7 +1398,7 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">Предпочитать локальную функцию анонимной функции</target>
         <note />
       </trans-unit>
@@ -1449,27 +1449,17 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Restore_Visual_Studio_keybindings">
         <source>Restore Visual Studio keybindings</source>
-        <target state="new">Restore Visual Studio keybindings</target>
+        <target state="translated">Восстановление настраиваемых сочетаний клавиш Visual Studio</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Keybindings_for_extensions">
         <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
-        <target state="new">Use keybindings for ReSharper/IntelliJ/Vim/etc.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="new">Your keybindings are no longer mapped to Visual Studio commands.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="new">We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</target>
+        <target state="translated">Используйте настраиваемые сочетания клавиш для ReSharper, IntelliJ, Vim и т. д.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="new">Enable navigation to decompiled sources (experimental)</target>
+        <target state="translated">Включить переход к декомпилированным источникам (экспериментальная функция)</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Message">
@@ -1482,20 +1472,30 @@ You acknowledge that binary code and source code might be protected by copyright
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="new">IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
+        <target state="translated">ВАЖНО! Visual Studio включает в себя функцию декомпиляции ("декомпилятор"), позволяющую воспроизводить исходный код из двоичного. Открывая и используя декомпилятор, вы принимаете условия лицензионного соглашения Visual Studio, а также приведенные ниже условия для декомпилятора. Если вы не согласны с какими-либо из этих условий, не открывайте и не используйте декомпилятор.
  
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
+Вы подтверждаете, что двоичный и исходный код может быть защищен законами об авторских правах и торговых марках. Прежде чем применять декомпилятор на любом двоичном коде, вам следует: 
+(i) убедиться, что условия лицензии, регулирующие использование вами этого двоичного кода, не содержат положение, запрещающее декомпиляцию данного программного обеспечения; или
+(ii) получить разрешение на декомпиляцию этого двоичного кода у владельца соответствующего программного обеспечения.
  
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
+Вы используете этот декомпилятор по собственной инициативе. Корпорация Майкрософт не несет ответственности за такое использование вами компилятора, которое нарушает любые законы или условия лицензионного соглашения на использование программного обеспечения, запрещающие декомпиляцию этого программного обеспечения.
 
-I agree to all of the foregoing:</target>
+Я принимаю все указанные выше условия и положения:</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Title">
         <source>Decompiler Legal Notice</source>
-        <target state="new">Decompiler Legal Notice</target>
+        <target state="translated">Юридическая информация для декомпилятора</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="translated">Отключение расширения "{0}" удалит привязки клавиш.</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="translated">Заданные здесь параметры применяются только на вашем компьютере. Чтобы привязать параметры к решению, используйте EDITORCONFIG-файлы.</target>
         <note />
       </trans-unit>
     </body>

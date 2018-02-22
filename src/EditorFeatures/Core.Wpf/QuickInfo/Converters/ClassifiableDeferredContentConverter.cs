@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Text.Classification;
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
     [Export(typeof(IDeferredQuickInfoContentToFrameworkElementConverter))]
+    [QuickInfoConverterMetadata(typeof(ClassifiableDeferredContent))]
     class ClassifiableDeferredContentConverter : IDeferredQuickInfoContentToFrameworkElementConverter
     {
         private readonly ClassificationTypeMap _typeMap;

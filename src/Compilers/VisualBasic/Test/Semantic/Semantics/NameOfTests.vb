@@ -3590,5 +3590,49 @@ End Module
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.DebugExe, additionalRefs:={LinqAssemblyRef})
             CompileAndVerify(comp, expectedOutput:="xxx").VerifyDiagnostics()
         End Sub
+
+        <Fact, WorkItem(10839, "https://github.com/dotnet/roslyn/issues/10839")>
+        Public Sub ForbidInstanceQualifiedFromTypeInNestedExpression()
+            Dim compilationDef =
+                <compilation>
+                    <file name="a.vb">
+Class C
+    Public MyInstance As String
+    Public Shared MyStatic As String
+
+    Sub M()
+        Dim X As String
+        X = NameOf(C.MyInstance)
+        X = NameOf(C.MyInstance.Length)
+        X = NameOf(C.MyStatic)
+        X = NameOf(C.MyStatic.Length)
+    End Sub
+End Class
+Class C(Of T)
+    Public MyInstance As String
+    Public Shared MyStatic As String
+
+    Sub M()
+        Dim X As String
+        X = NameOf(C(Of Integer).MyInstance)
+        X = NameOf(C(Of Integer).MyInstance.Length)
+        X = NameOf(C(Of Integer).MyStatic)
+        X = NameOf(C(Of Integer).MyStatic.Length)
+    End Sub
+End Class
+                </file>
+                </compilation>
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugDll)
+
+            AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC30469: Reference to a non-shared member requires an object reference.
+        X = NameOf(C.MyInstance.Length)
+                   ~~~~~~~~~~~~
+BC30469: Reference to a non-shared member requires an object reference.
+        X = NameOf(C(Of Integer).MyInstance.Length)
+                   ~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
     End Class
 End Namespace

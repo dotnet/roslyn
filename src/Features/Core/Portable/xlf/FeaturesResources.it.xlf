@@ -164,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Generate_enum_member_1_0">
         <source>Generate enum member '{1}.{0}'</source>
-        <target state="translated">Genera il membro enum '{1}.{0}'</target>
+        <target state="translated">Genera il membro di enumerazione '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constant_1_0">
@@ -229,12 +229,12 @@
       </trans-unit>
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
-        <target state="translated">Implementa interfaccia</target>
+        <target state="translated">Implementa l'interfaccia</target>
         <note />
       </trans-unit>
       <trans-unit id="Loading_context_from_0">
         <source>Loading context from '{0}'.</source>
-        <target state="translated">caricamento del contesto da '{0}'.</target>
+        <target state="translated">Caricamento del contesto da '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Sharphelp_for_more_information">
@@ -554,7 +554,7 @@
       </trans-unit>
       <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Se si aggiornano la classe base e/o le interfacce di base dell'elemento '{0}', la sessione di debug non potrà continuare.</target>
+        <target state="translated">Se si aggiornano la classe di base e/o le interfacce di base dell'elemento '{0}', la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing">

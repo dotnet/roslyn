@@ -112,12 +112,12 @@ End Class
             Dim hidden = warning.WithSeverity(DiagnosticSeverity.Hidden)
             Assert.Equal(DiagnosticSeverity.Hidden, hidden.Severity)
             Assert.Equal(DiagnosticSeverity.Warning, hidden.DefaultSeverity)
-            Assert.Equal(4, hidden.WarningLevel)
+            Assert.Equal(1, hidden.WarningLevel)
 
             Dim info = warning.WithSeverity(DiagnosticSeverity.Info)
             Assert.Equal(DiagnosticSeverity.Info, info.Severity)
             Assert.Equal(DiagnosticSeverity.Warning, info.DefaultSeverity)
-            Assert.Equal(4, info.WarningLevel)
+            Assert.Equal(1, info.WarningLevel)
         End Sub
 
         <Fact, WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")>

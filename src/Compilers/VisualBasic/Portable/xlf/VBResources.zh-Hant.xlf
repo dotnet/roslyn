@@ -1447,7 +1447,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadEnumFlags1">
         <source>'{0}' is not valid on an Enum declaration.</source>
-        <target state="translated">'{0}' 在 Enum 宣告中無效。</target>
+        <target state="translated">'{0}' 在列舉宣告中無效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceFlags1">
@@ -2039,7 +2039,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvInsideEnum">
         <source>Statement cannot appear within an Enum body.</source>
-        <target state="translated">陳述式不可出現在 Enum 主體中。</target>
+        <target state="translated">陳述式不可出現在列舉主體中。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvInsideEndsEnum">
@@ -2932,17 +2932,17 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedTwiceWithDifferentTupleNames3">
         <source>Interface '{0}' can be implemented only once by this type, but already appears with different tuple element names, as '{1}' (via '{2}').</source>
-        <target state="translated">此類型只可在介面 '{0}' 上實作一次，但卻已有不同的 Tuple 項目名稱 ('{1}'，經由 '{2}') 。</target>
+        <target state="translated">此類型只可在介面 '{0}' 上實作一次，但卻已有不同的 Tuple 項目名稱 ('{1}'，經由 '{2}')。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedTwiceWithDifferentTupleNamesReverse3">
         <source>Interface '{0}' (via '{1}') can be implemented only once by this type, but already appears with different tuple element names, as '{2}'.</source>
-        <target state="translated">此類型只可在介面 '{0}' 上實作一次 (經由 '{1}') ，但卻已有不同的 Tuple 項目名稱 ('{2}') 。</target>
+        <target state="translated">此類型只可在介面 '{0}' 上實作一次 (經由 '{1}')，但卻已有不同的 Tuple 項目名稱 ('{2}')。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedTwiceWithDifferentTupleNames4">
         <source>Interface '{0}' (via '{1}') can be implemented only once by this type, but already appears with different tuple element names, as '{2}' (via '{3}').</source>
-        <target state="translated">此類型只可在介面 '{0}' 上實作一次 (經由 '{1}') ，但卻已有不同的 Tuple 項目名稱 ('{2}'，經由 '{3}') 。</target>
+        <target state="translated">此類型只可在介面 '{0}' 上實作一次 (經由 '{1}')，但卻已有不同的 Tuple 項目名稱 ('{2}'，經由 '{3}')。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceInheritedTwiceWithDifferentTupleNames2">
@@ -2957,12 +2957,12 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceInheritedTwiceWithDifferentTupleNamesReverse3">
         <source>Interface '{0}' (via '{1}') can be inherited only once by this interface, but already appears with different tuple element names, as '{2}'.</source>
-        <target state="translated">此介面只可繼承介面 '{0}' 一次 (經由 '{1}') ，但卻已有不同的 Tuple 項目名稱 ('{2}') 。</target>
+        <target state="translated">此介面只可繼承介面 '{0}' 一次 (經由 '{1}')，但卻已有不同的 Tuple 項目名稱 ('{2}')。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceInheritedTwiceWithDifferentTupleNames4">
         <source>Interface '{0}' (via '{1}') can be inherited only once by this interface, but already appears with different tuple element names, as '{2}' (via '{3}').</source>
-        <target state="translated">此介面只可繼承介面 '{0}' 一次 (經由 '{1}') ，但卻已有不同的 Tuple 項目名稱 ('{2}'，經由 '{3}') 。</target>
+        <target state="translated">此介面只可繼承介面 '{0}' 一次 (經由 '{1}')，但卻已有不同的 Tuple 項目名稱 ('{2}'，經由 '{3}')。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceNotImplemented1">
@@ -5810,7 +5810,7 @@
       </trans-unit>
       <trans-unit id="WRN_EnumUnderlyingTypeNotCLS1">
         <source>Underlying type '{0}' of Enum is not CLS-compliant.</source>
-        <target state="translated">Enum 的基礎類型 '{0}' 不符合 CLS 規範。</target>
+        <target state="translated">列舉的基礎類型 '{0}' 不符合 CLS 規範。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EnumUnderlyingTypeNotCLS1_Title">
@@ -6130,7 +6130,7 @@
       </trans-unit>
       <trans-unit id="WRN_MustShadowOnMultipleInheritance2">
         <source>{0} '{1}' conflicts with other members of the same name across the inheritance hierarchy and so should be declared 'Shadows'.</source>
-        <target state="translated">{0} '{1}' 與其他跨繼承階層架構的同名成員互相衝突，所以應宣告為 'Shadows'。</target>
+        <target state="translated">{0} '{1}' 與其他跨繼承階層的同名成員互相衝突，所以應宣告為 'Shadows'。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MustShadowOnMultipleInheritance2_Title">
@@ -8222,7 +8222,7 @@
       </trans-unit>
       <trans-unit id="IDS_LogoLine1">
         <source>{0} version {1}</source>
-        <target state="translated">{0} 版 {1} </target>
+        <target state="translated">{0} 版 {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_LogoLine2">
@@ -9074,6 +9074,11 @@
       <trans-unit id="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment">
         <source>{0} is not a valid Visual Basic compound assignment operation</source>
         <target state="translated">{0} 不是有效的 Visual Basic 複合指派作業</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
     </body>

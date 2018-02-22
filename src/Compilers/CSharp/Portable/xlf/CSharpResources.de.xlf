@@ -4391,8 +4391,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
-        <source>Cannot use ref or out parameter '{0}' inside an anonymous method, lambda expression, or query expression</source>
-        <target state="translated">Der ref- oder out-Parameter "{0}" kann nicht in einer anonymen Methode, einem Lambdaausdruck oder einem Abfrageausdruck verwendet werden.</target>
+        <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, or query expression</source>
+        <target state="needs-review-translation">Der ref- oder out-Parameter "{0}" kann nicht in einer anonymen Methode, einem Lambdaausdruck oder einem Abfrageausdruck verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalInnerUnsafe">
@@ -5545,7 +5545,7 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
       </trans-unit>
       <trans-unit id="WRN_CLS_OverloadUnnamed_Description">
         <source>This error occurs if you have an overloaded method that takes a jagged array and the only difference between the method signatures is the element type of the array. To avoid this error, consider using a rectangular array rather than a jagged array; use an additional parameter to disambiguate the function call; rename one or more of the overloaded methods; or, if CLS Compliance is not needed, remove the CLSCompliantAttribute attribute.</source>
-        <target state="translated">Dieser Fehler tritt auf, wenn Sie eine überladene Methode besitzen, die ein verzweigtes Array aufnimmt, liegt der einzige Unterschied zwischen den Methodensignaturen im Elementtyp des Arrays. Um diesen Fehler zu vermeiden, sollte ein rechteckiges Array in Betracht gezogen werden, statt eines verzweigten Arrays; verwenden Sie einen zusätzlichen Parameter, um den Funktionsaufruf eindeutig zu machen; benennen Sie eine oder mehrere der überladenen Methoden um; oder falls keine CLS-Kompatibilität erforderlich ist, entfernen Sie das CLSCompliantAttribute-Attribut.</target>
+        <target state="translated">Dieser Fehler tritt auf, wenn Sie eine überladene Methode besitzen, die ein Jagged Array aufnimmt, liegt der einzige Unterschied zwischen den Methodensignaturen im Elementtyp des Arrays. Um diesen Fehler zu vermeiden, sollte ein rechteckiges Array in Betracht gezogen werden, statt eines Jagged Arrays; verwenden Sie einen zusätzlichen Parameter, um den Funktionsaufruf eindeutig zu machen; benennen Sie eine oder mehrere der überladenen Methoden um; oder falls keine CLS-Kompatibilität erforderlich ist, entfernen Sie das CLSCompliantAttribute-Attribut.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadIdentifier">
@@ -7522,7 +7522,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">
         <source>An instance of analyzer {0} cannot be created from {1} : {2}.</source>
-        <target state="translated">Eine Instanz des {0}-Analyzers kann nicht aus {1} erstellt werden: {2}.</target>
+        <target state="translated">Eine Instanz des Analysetools "{0}" kann nicht aus {1} erstellt werden: {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated_Title">
@@ -7532,7 +7532,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="WRN_NoAnalyzerInAssembly">
         <source>The assembly {0} does not contain any analyzers.</source>
-        <target state="translated">Die Assembly "{0}" enthält keine Analyzer.</target>
+        <target state="translated">Die Assembly "{0}" enthält keine Analysetools.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoAnalyzerInAssembly_Title">
@@ -7542,7 +7542,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="WRN_UnableToLoadAnalyzer">
         <source>Unable to load Analyzer assembly {0} : {1}</source>
-        <target state="translated">Fehler beim Laden der Analyzer-Assembly {0}: {1}</target>
+        <target state="translated">Fehler beim Laden der Assembly "{0}" des Analysetools: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnableToLoadAnalyzer_Title">
@@ -7552,7 +7552,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="INF_UnableToLoadSomeTypesInAnalyzer">
         <source>Skipping some types in analyzer assembly {0} due to a ReflectionTypeLoadException : {1}.</source>
-        <target state="translated">Einige Typen werden in der Analyzer-Assembly {0} aufgrund von ReflectionTypeLoadException übersprungen: {1}.</target>
+        <target state="translated">Einige Typen werden in der Assembly "{0}" des Analysetools aufgrund von ReflectionTypeLoadException übersprungen: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantReadRulesetFile">
@@ -8500,11 +8500,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <target state="translated">Der erste Parameter einer in-Erweiterungsmethode "{0}" muss ein Werttyp sein.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source>The parameter modifier '{0}' cannot be used after the modifier '{1}'</source>
-        <target state="translated">Der Parametermodifizierer "{0}" kann nicht nach dem Modifizierer "{1}" verwendet werden. </target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
         <source>Instance fields of readonly structs must be readonly.</source>
         <target state="translated">Instanzfelder oder schreibgeschützte Strukturen müssen schreibgeschützt sein.</target>
@@ -8582,12 +8577,32 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_DefaultInSwitch">
         <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <target state="translated">Das Standardliteral "default" ist als case-Konstante ungültig. Verwenden Sie ggf. ein anderes Literal (z. B. 0 oder NULL). Wenn Sie die Standardbezeichnung schreiben möchten, verwenden Sie "default" ohne "case".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
-        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
+        <target state="translated">Das Standardliteral "default" ist als Muster ungültig. Verwenden Sie ggf. ein anderes Literal (z. B. 0 oder NULL). Für einen Abgleich aller Elemente verwenden Sie ein discard-Muster "var _".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InDynamicMethodArg">
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
+        <target state="translated">Argumente mit dem Modifizierer "in" können in dynamisch verteilten Ausdrücken nicht verwendet werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefConditional">
+        <source>ref conditional expression</source>
+        <target state="translated">Bedingter ref-Ausdruck</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
     </body>

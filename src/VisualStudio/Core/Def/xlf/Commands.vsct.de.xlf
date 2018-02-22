@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|ButtonText">
         <source>&amp;Analyzer...</source>
-        <target state="translated">&amp;Analyzer...</target>
+        <target state="translated">&amp;Analysetool...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|LocCanonicalName">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="cmdidProjectAddAnalyzer|ButtonText">
         <source>Add &amp;Analyzer...</source>
-        <target state="translated">&amp;Analyzer hinzufügen...</target>
+        <target state="translated">&amp;Analysetool hinzufügen...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidProjectAddAnalyzer|LocCanonicalName">
@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="cmdidReferencesContextAddAnalyzer|ButtonText">
         <source>Add &amp;Analyzer...</source>
-        <target state="translated">&amp;Analyzer hinzufügen...</target>
+        <target state="translated">&amp;Analysetool hinzufügen...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidReferencesContextAddAnalyzer|LocCanonicalName">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="cmdidAddAnalyzer|ButtonText">
         <source>Add &amp;Analyzer...</source>
-        <target state="translated">&amp;Analyzer hinzufügen...</target>
+        <target state="translated">&amp;Analysetool hinzufügen...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddAnalyzer|LocCanonicalName">
@@ -294,12 +294,12 @@
       </trans-unit>
       <trans-unit id="cmdidAnalyzerContextMenu|ButtonText">
         <source>Analyzer</source>
-        <target state="translated">Analyzer</target>
+        <target state="translated">Analysetool</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalyzerContextMenu|LocCanonicalName">
         <source>Analyzer</source>
-        <target state="translated">Analyzer</target>
+        <target state="translated">Analysetool</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalyzerFolderContextMenu|ButtonText">

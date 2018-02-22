@@ -21,6 +21,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic10
         End Function
 
+        Protected Overrides Function CanExplicitInterfaceImplementationsBeFixed() As Boolean
+            Return True
+        End Function
+
         Protected Overrides Sub AnalyzeCompilationUnit(context As SemanticModelAnalysisContext, root As SyntaxNode, analysisResults As List(Of AnalysisResult))
             AnalyzeMembers(context, DirectCast(root, CompilationUnitSyntax).Members, analysisResults)
         End Sub

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private static readonly IEnumerable<Option<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider);
 
-        protected internal override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
+        protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
 
         private bool? _blueSquiggleForBuildDiagnostic;
 
@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         public DiagnosticsSquiggleTaggerProvider(
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
-            : base(diagnosticService, notificationService, listeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(diagnosticService, notificationService, listenerProvider)
         {
         }
 

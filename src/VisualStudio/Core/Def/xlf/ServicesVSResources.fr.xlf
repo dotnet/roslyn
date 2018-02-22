@@ -1398,7 +1398,7 @@ Informations supplémentaires : {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">Préférer une fonction locale à une fonction anonyme</target>
         <note />
       </trans-unit>
@@ -1449,27 +1449,17 @@ Informations supplémentaires : {1}</target>
       </trans-unit>
       <trans-unit id="Restore_Visual_Studio_keybindings">
         <source>Restore Visual Studio keybindings</source>
-        <target state="new">Restore Visual Studio keybindings</target>
+        <target state="translated">Restaurer les combinaisons de touches Visual Studio</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Keybindings_for_extensions">
         <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
-        <target state="new">Use keybindings for ReSharper/IntelliJ/Vim/etc.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="new">Your keybindings are no longer mapped to Visual Studio commands.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="new">We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</target>
+        <target state="translated">Utiliser des combinaisons de touches pour ReSharper/IntelliJ/Vim/etc.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="new">Enable navigation to decompiled sources (experimental)</target>
+        <target state="translated">Activer la navigation vers des sources décompilées (expérimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Message">
@@ -1482,20 +1472,30 @@ You acknowledge that binary code and source code might be protected by copyright
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="new">IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
- 
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
+        <target state="translated">IMPORTANT : Visual Studio inclut une fonctionnalité de décompilation ("Décompileur") qui permet de reproduire du code source à partir de code binaire. En accédant au Décompileur et en l'utilisant, vous acceptez les termes du contrat de licence Visual Studio et les termes du Décompileur ci-dessous. Si vous n'êtes pas d'accord avec ces termes combinés, n'accédez pas au Décompileur et ne l'utilisez pas.
 
-I agree to all of the foregoing:</target>
+Vous reconnaissez que le code binaire et le code source peuvent être protégés par des lois sur les droits d'auteur et le droit des marques. Avant d'utiliser le Décompileur sur du code binaire, vous devez d'abord :
+(i) confirmer que les termes du contrat de licence régissant votre utilisation du code binaire ne contiennent aucune disposition vous interdisant de décompiler le logiciel ; ou
+(ii) obtenir l'autorisation de décompiler le code binaire auprès du propriétaire du logiciel.
+
+Votre utilisation du Décompileur est facultative. Microsoft n'accepte aucune responsabilité et décline toute obligation relative à votre utilisation du Décompileur si vous transgressez les lois ou les termes du contrat de licence du logiciel interdisant la décompilation du logiciel.
+
+Je suis d'accord avec tout ce qui précède :</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Title">
         <source>Decompiler Legal Notice</source>
-        <target state="new">Decompiler Legal Notice</target>
+        <target state="translated">Décompileur - Mention légale</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="translated">La désactivation de l'extension '{0}' a annulé la liaison de vos combinaisons de touches.</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="translated">Les paramètres configurés ici s'appliquent uniquement à votre machine. Pour configurer ces paramètres afin qu'ils soient liés à votre solution, utilisez les fichiers .editorconfig.</target>
         <note />
       </trans-unit>
     </body>

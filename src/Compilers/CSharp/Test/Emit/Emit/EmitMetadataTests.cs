@@ -287,9 +287,9 @@ abstract public class B : I2, I3
                 Assert.Equal(TypeKind.Class, classA.TypeKind);
                 Assert.Equal(TypeKind.Class, classB.TypeKind);
 
-                Assert.Same(i1, classA.Interfaces.Single());
+                Assert.Same(i1, classA.Interfaces().Single());
 
-                var interfaces = classB.Interfaces;
+                var interfaces = classB.Interfaces();
                 Assert.Same(i2, interfaces[0]);
                 Assert.Same(i3, interfaces[1]);
 
@@ -325,15 +325,15 @@ class C : I1 { }
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
                 // Order is important - should be pre-order depth-first with declaration order at each level
-                Assert.True(i1.Interfaces.SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i2, i3, i4, i5, i6, i7)));
-                Assert.True(i2.Interfaces.SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i3, i4)));
-                Assert.False(i3.Interfaces.Any());
-                Assert.False(i4.Interfaces.Any());
-                Assert.True(i5.Interfaces.SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i6, i7)));
-                Assert.False(i6.Interfaces.Any());
-                Assert.False(i7.Interfaces.Any());
+                Assert.True(i1.Interfaces().SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i2, i3, i4, i5, i6, i7)));
+                Assert.True(i2.Interfaces().SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i3, i4)));
+                Assert.False(i3.Interfaces().Any());
+                Assert.False(i4.Interfaces().Any());
+                Assert.True(i5.Interfaces().SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i6, i7)));
+                Assert.False(i6.Interfaces().Any());
+                Assert.False(i7.Interfaces().Any());
 
-                Assert.True(c.Interfaces.SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i1, i2, i3, i4, i5, i6, i7)));
+                Assert.True(c.Interfaces().SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i1, i2, i3, i4, i5, i6, i7)));
             });
         }
 
@@ -745,13 +745,13 @@ class Derived<T, U> : Base<T, U>
                 var derivedType = module.GlobalNamespace.GetTypeMembers("Derived").Single();
                 Assert.Equal(derivedType.Arity, 2);
 
-                var baseType = derivedType.BaseType;
+                var baseType = derivedType.BaseType();
                 Assert.Equal(baseType.Name, "Base");
                 Assert.Equal(baseType.Arity, 2);
 
-                Assert.Equal(derivedType.BaseType, baseType);
-                Assert.Same(baseType.TypeArguments[0], derivedType.TypeParameters[0]);
-                Assert.Same(baseType.TypeArguments[1], derivedType.TypeParameters[1]);
+                Assert.Equal(derivedType.BaseType(), baseType);
+                Assert.Same(baseType.TypeArguments()[0], derivedType.TypeParameters[0]);
+                Assert.Same(baseType.TypeArguments()[1], derivedType.TypeParameters[1]);
             };
             CompileAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
         }
@@ -888,7 +888,7 @@ class C
         [Fact]
         public void AutoPropInitializersClass()
         {
-            var comp = CreateStandardCompilation(@"using System;
+            var comp = CreateCompilation(@"using System;
 class C
 {
     public int P { get; set; } = 1;
@@ -944,7 +944,7 @@ class C
         [Fact]
         public void AutoPropInitializersStruct()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 struct S
 {
@@ -1242,7 +1242,7 @@ class C : B<string>
                 VerifyAutoProperty(q, isFromSource);
 
                 var classC = module.GlobalNamespace.GetTypeMembers("C").Single();
-                p = classC.BaseType.GetProperty("P");
+                p = classC.BaseType().GetProperty("P");
                 VerifyAutoProperty(p, isFromSource);
                 Assert.Equal(p.Type.SpecialType, SpecialType.System_String);
                 Assert.Equal(p.GetMethod.AssociatedSymbol, p);
@@ -1355,7 +1355,7 @@ class C : B<string>
 
         private void CheckEnumType(NamedTypeSymbol type, Accessibility declaredAccessibility, SpecialType underlyingType)
         {
-            Assert.Equal(type.BaseType.SpecialType, SpecialType.System_Enum);
+            Assert.Equal(type.BaseType().SpecialType, SpecialType.System_Enum);
             Assert.Equal(type.EnumUnderlyingType.SpecialType, underlyingType);
             Assert.Equal(type.DeclaredAccessibility, declaredAccessibility);
             Assert.True(type.IsSealed);
@@ -2173,7 +2173,7 @@ class Program
         [Fact]
         public void EmitWithNoResourcesAllPlatforms()
         {
-            var comp = CreateStandardCompilation("class Test { static void Main() { } }");
+            var comp = CreateCompilation("class Test { static void Main() { } }");
 
             VerifyEmitWithNoResources(comp, Platform.AnyCpu);
             VerifyEmitWithNoResources(comp, Platform.AnyCpu32BitPreferred);
@@ -2195,7 +2195,7 @@ class Program
             var options = EmitOptions.Default.WithFileAlignment(0x2000);
             var syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular);
 
-            var peStream = CreateStandardCompilation(
+            var peStream = CreateCompilation(
                 syntax,
                 options: TestOptions.ReleaseDll.WithDeterministic(true),
                 assemblyName: "46B9C2B2-B7A0-45C5-9EF9-28DDF739FD9E").EmitToStream(options);
@@ -2384,7 +2384,7 @@ class Program
 
             var syntax = SyntaxFactory.ParseSyntaxTree(@"class C { static void Main() { } }", TestOptions.Regular);
 
-            var peStream = CreateStandardCompilation(
+            var peStream = CreateCompilation(
                 syntax,
                 options: TestOptions.DebugExe.WithPlatform(Platform.X64).WithDeterministic(true),
                 assemblyName: "B37A4FCD-ED76-4924-A2AD-298836056E00").EmitToStream(options);
@@ -2643,7 +2643,7 @@ class T
         [Fact]
         public void InParametersShouldHaveMetadataIn_NoPIA()
         {
-            var comAssembly = CreateStandardCompilation(@"
+            var comAssembly = CreateCompilation(@"
 using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""test.dll"")]
@@ -2679,7 +2679,7 @@ class User
             CompileAndVerify(
                 source: code,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                additionalRefs: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) },
+                references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) },
                 symbolValidator: module =>
                 {
                     var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
@@ -2754,7 +2754,7 @@ class User
     }
 }");
 
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Runtime.InteropServices;
 
@@ -2804,7 +2804,7 @@ Child called";
         [Fact]
         public void GeneratingProxyForVirtualMethodInParentCopiesMetadataBitsCorrectly_OutAttribute()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 using System.Runtime.InteropServices;
 
 public class Parent
@@ -2835,7 +2835,7 @@ public class Child : Parent, IParent
 
             CompileAndVerify(
                 source: source,
-                additionalRefs: new[] { reference.EmitToImageReference() },
+                references: new[] { reference.EmitToImageReference() },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
@@ -2856,7 +2856,7 @@ public class Child : Parent, IParent
         [Fact]
         public void GeneratingProxyForVirtualMethodInParentCopiesMetadataBitsCorrectly_InAttribute()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 using System.Runtime.InteropServices;
 
 public class Parent
@@ -2887,7 +2887,7 @@ public class Child : Parent, IParent
 
             CompileAndVerify(
                 source: source,
-                additionalRefs: new[] { reference.EmitToImageReference() },
+                references: new[] { reference.EmitToImageReference() },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {

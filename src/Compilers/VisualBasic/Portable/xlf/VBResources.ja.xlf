@@ -439,7 +439,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAttributeConstructor1">
         <source>Attribute constructor has a parameter of type '{0}', which is not an integral, floating-point or Enum type or one of Object, Char, String, Boolean, System.Type or 1-dimensional array of these types.</source>
-        <target state="translated">Attribute コンストラクターに、型 '{0}' のパラメーターが指定されていますが、整数型、浮動小数点型、Enum 型、あるいは Object, Char、String、Boolean、System.Type のいずれかまたはこれらの型の 1 次元配列のどれにも該当しません。</target>
+        <target state="translated">Attribute コンストラクターに、型 '{0}' のパラメーターが指定されていますが、整数型、浮動小数点型、列挙型、あるいは Object, Char、String、Boolean、System.Type のいずれかまたはこれらの型の 1 次元配列のどれにも該当しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamArrayWithOptArgs">
@@ -669,7 +669,7 @@
       </trans-unit>
       <trans-unit id="ERR_EnumNotExpression1">
         <source>'{0}' is an Enum type and cannot be used as an expression.</source>
-        <target state="translated">'{0}' は Enum 型であり、式として使用することはできません。</target>
+        <target state="translated">'{0}' は列挙型であり、式として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeNotExpression1">
@@ -1844,12 +1844,12 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInNamespace2">
         <source>'{0}' is ambiguous in the namespace '{1}'.</source>
-        <target state="translated">'{0}' は、名前空間 '{1}' ではあいまいです。 </target>
+        <target state="translated">'{0}' は、名前空間 '{1}' ではあいまいです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInImports2">
         <source>'{0}' is ambiguous, imported from the namespaces or types '{1}'.</source>
-        <target state="translated">'名前空間または型 '{1}' からインポートされた '{0}' はあいまいです。 </target>
+        <target state="translated">'名前空間または型 '{1}' からインポートされた '{0}' はあいまいです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInModules2">
@@ -3097,7 +3097,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceDelegateSpecifier1">
         <source>Delegate in an interface cannot be declared '{0}'.</source>
-        <target state="translated">インターフェイス内のデリゲートを '{0}' と宣言することはできません。 </target>
+        <target state="translated">インターフェイス内のデリゲートを '{0}' と宣言することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceEnumSpecifier1">
@@ -3777,7 +3777,7 @@
       </trans-unit>
       <trans-unit id="ERR_ClashWithReservedEnumMember1">
         <source>'{0}' conflicts with the reserved member by this name that is implicitly declared in all enums.</source>
-        <target state="translated">'{0}' は、すべての Enum で暗黙的に宣言されている、同じ名前の予約メンバーと競合しています。</target>
+        <target state="translated">'{0}' は、すべての列挙型で暗黙的に宣言されている、同じ名前の予約メンバーと競合しています。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultiplyDefinedEnumMember2">
@@ -5815,7 +5815,7 @@
       </trans-unit>
       <trans-unit id="WRN_EnumUnderlyingTypeNotCLS1_Title">
         <source>Underlying type of Enum is not CLS-compliant</source>
-        <target state="translated">列挙型の基になる型が CLS に準拠していません</target>
+        <target state="translated">Enum の基になる型が CLS に準拠していません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NonCLSMemberInCLSInterface1">
@@ -9074,6 +9074,11 @@
       <trans-unit id="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment">
         <source>{0} is not a valid Visual Basic compound assignment operation</source>
         <target state="translated">{0} は有効な Visual Basic 複合割り当て操作ではありません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
     </body>

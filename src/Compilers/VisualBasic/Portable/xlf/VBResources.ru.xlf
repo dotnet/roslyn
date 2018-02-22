@@ -8481,8 +8481,8 @@
                                   список_импорта:пространство_имен,...
 /langversion:?                    Отображать допустимые значения версии языка
 /langversion:&lt;string&gt;             Указать версию языка, например
-                                  ""default"" (последняя основная версия) или
-                                  ""latest"" (последняя версия, включая дополнительные),
+                                  "default" (последняя основная версия) или
+                                  "latest" (последняя версия, включая дополнительные),
                                   или конкретные версии, например 14 или 15.3
 /optionexplicit[+|-]              Требовать явного объявления переменных.
 /optioninfer[+|-]                 Разрешить вывод для типов переменных.
@@ -9074,6 +9074,11 @@
       <trans-unit id="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment">
         <source>{0} is not a valid Visual Basic compound assignment operation</source>
         <target state="translated">{0} не является допустимой операцией составного присваивания Visual Basic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
     </body>

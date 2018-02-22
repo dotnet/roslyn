@@ -3,8 +3,13 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
     <RepositoryUrl>https://github.com/dotnet/roslyn</RepositoryUrl>
+    <RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</RepositoryRawUrl>
   </PropertyGroup>
 
   <Import Project="Packages.props" />
@@ -56,9 +61,6 @@
     <BaseIntermediateOutputPath>$(BaseIntermediateOutputPath)$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)</IntermediateOutputPath>
     <ArtifactsSymStoreDirectory Condition="'$(DeveloperBuild)' != 'true' and '$(OS)' == 'Windows_NT'">$(BaseOutputPath)$(Configuration)\SymStore\</ArtifactsSymStoreDirectory>
-
-    <NetStandard20RefPath>$(NuGetPackageRoot)/netstandard.library/$(NETStandardLibraryFixedVersion)/build/netstandard2.0/ref/</NetStandard20RefPath>
-    <MicrosoftCSharpRefPath>$(NuGetPackageRoot)/microsoft.csharp/$(MicrosoftCSharpVersion)/ref/netstandard1.0/</MicrosoftCSharpRefPath>
 
     <ToolsetPackagesSemaphore>$(ToolsetPackagesDir)toolsetpackages.semaphore</ToolsetPackagesSemaphore>
     <ToolsetCompilerPackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</ToolsetCompilerPackageName>
@@ -119,7 +121,7 @@
        - Embed PDBs to be consistent with Jenkins builds.
     -->
     <RoslynDebugType Condition="'$(OfficialBuild)' == 'true'">portable</RoslynDebugType>
-    <RoslynDebugType Condition="'$(OfficialBuild)' != 'true'">embedded</RoslynDebugType>
+    <RoslynDebugType Condition="'$(OfficialBuild)' != 'true'">full</RoslynDebugType>
 
     <!-- 
       The source root path used for deterministic normalization of source paths.
@@ -136,6 +138,9 @@
     <DeterministicSourceRoot Condition="'$(DeveloperBuild)' != 'true'">/_/</DeterministicSourceRoot>
 
     <EnableSourceLink Condition="'$(DeveloperBuild)' != 'true'">true</EnableSourceLink>
+
+    <ChecksumAlgorithm>SHA256</ChecksumAlgorithm>
+
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
 
     <!-- 
@@ -215,12 +220,7 @@
       Condition="Exists('$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props')" />
   </ImportGroup>
 
-  <!-- 
-    Temporarirly disable Toolset builds on Unix 
-
-    https://github.com/dotnet/roslyn/issues/21725
-   -->
-  <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == '' AND '$(OS)' == 'Windows_NT'" />
+  <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == ''"  />
 
   <!--
       When building WPF projects MSBuild will create a temporary project with an extension of

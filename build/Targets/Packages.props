@@ -1,13 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
+
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
 
   <PropertyGroup>
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
     <CommandLineParserVersion>2.0.273-beta</CommandLineParserVersion>
     <EnvDTEVersion>8.0.1</EnvDTEVersion>
     <EnvDTE80Version>8.0.0</EnvDTE80Version>
-    <dotnetxunitVersion>2.3.0-beta4-build3742</dotnetxunitVersion>
+    <dotnetxunitVersion>2.3.1</dotnetxunitVersion>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
     <ICSharpCodeDecompilerVersion>3.0.0.3403-beta4</ICSharpCodeDecompilerVersion>
@@ -28,7 +32,7 @@
     <MicrosoftCodeAnalysisCSharpWorkspacesVersion>1.0.1</MicrosoftCodeAnalysisCSharpWorkspacesVersion>
     <MicrosoftCodeAnalysisEditorFeaturesTextVersion>1.0.1</MicrosoftCodeAnalysisEditorFeaturesTextVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6</MicrosoftCodeAnalysisElfieVersion>
-    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.0-pre-20170517</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
+    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.5</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
     <MicrosoftCodeAnalysisVisualBasicVersion>1.0.1</MicrosoftCodeAnalysisVisualBasicVersion>
     <MicrosoftCodeAnalysisVisualBasicWorkspacesVersion>1.0.1</MicrosoftCodeAnalysisVisualBasicWorkspacesVersion>
     <MicrosoftCodeAnalysisWorkspacesCommonVersion>1.0.1</MicrosoftCodeAnalysisWorkspacesCommonVersion>
@@ -43,7 +47,7 @@
     <MicrosoftDiaSymReaderPortablePdbVersion>1.4.0</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDotNetIBCMerge>4.7.2-alpha-00001</MicrosoftDotNetIBCMerge>
     <MicrosoftDotNetVersionToolsVersion>1.0.27-prerelease-01811-02</MicrosoftDotNetVersionToolsVersion>
-    <MicrosoftDotNetBuildTasksFeedVersion>2.1.0-prerelease-02221-02</MicrosoftDotNetBuildTasksFeedVersion>
+    <MicrosoftDotNetBuildTasksFeedVersion>2.1.0-prerelease-02419-02</MicrosoftDotNetBuildTasksFeedVersion>
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
     <MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>15.0.26730-alpha</MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
@@ -141,15 +145,15 @@
     <NuGetVisualStudioVersion>4.0.0-rc-2048</NuGetVisualStudioVersion>
     <NuSpecReferenceGeneratorVersion>1.4.2</NuSpecReferenceGeneratorVersion>
     <OctokitVersion>0.23.0</OctokitVersion>
-    <Pdb2PdbVersion>1.1.0-beta1-62301-01</Pdb2PdbVersion>
+    <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
-    <RoslynDependenciesOptimizationDataVersion>2.6.0-beta1-62205-01</RoslynDependenciesOptimizationDataVersion>
+    <RoslynDependenciesOptimizationDataVersion>2.7.0-beta3-62526-01-2</RoslynDependenciesOptimizationDataVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsMicrosoftSignToolVersion>0.3.7-beta</RoslynToolsMicrosoftSignToolVersion>
     <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.4.0-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
     <RoslynToolsMSBuildVersion>0.4.0-alpha</RoslynToolsMSBuildVersion>
-    <RoslynToolsReferenceAssembliesVersion>0.1.1</RoslynToolsReferenceAssembliesVersion>
+    <RoslynToolsReferenceAssembliesVersion>0.1.3</RoslynToolsReferenceAssembliesVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <StreamJsonRpcVersion>1.1.92</StreamJsonRpcVersion>
     <SystemAppContextVersion>4.3.0</SystemAppContextVersion>
@@ -232,12 +236,13 @@
     <VsWebsiteInteropVersion>8.0.0.0-alpha</VsWebsiteInteropVersion>
     <vswhereVersion>1.0.71</vswhereVersion>
     <XliffTasksVersion>0.2.0-beta-000081</XliffTasksVersion>
-    <xunitVersion>2.2.0</xunitVersion>
-    <xunitanalyzersVersion>0.5.0</xunitanalyzersVersion>
-    <xunitassertVersion>2.2.0</xunitassertVersion>
-    <xunitextensibilityexecution>2.2.0</xunitextensibilityexecution>
-    <xunitrunnerconsoleVersion>2.2.0</xunitrunnerconsoleVersion>
-    <xunitrunnerwpfVersion>1.0.41</xunitrunnerwpfVersion>
+    <xunitVersion>2.3.1</xunitVersion>
+    <xunitanalyzersVersion>0.8.0</xunitanalyzersVersion>
+    <xunitassertVersion>2.3.1</xunitassertVersion>
+    <xunitextensibilityexecution>2.3.1</xunitextensibilityexecution>
+    <xunitrunnerconsoleVersion>2.3.1</xunitrunnerconsoleVersion>
+    <xunitrunnerwpfVersion>1.0.51</xunitrunnerwpfVersion>
+    <xunitrunnervisualstudioVersion>2.3.1</xunitrunnervisualstudioVersion>
   </PropertyGroup>
 
 </Project>

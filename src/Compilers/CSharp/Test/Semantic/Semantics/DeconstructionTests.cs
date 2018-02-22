@@ -792,7 +792,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "System.ValueTuple`2[System.Int32,System.Int32]");
         }
@@ -850,7 +850,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         (a) => a;
@@ -949,7 +949,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "M M 43", additionalRefs: s_valueTupleRefs);
+            var comp = CompileAndVerify(source, expectedOutput: "M M 43");
             comp.VerifyDiagnostics(
                 );
         }
@@ -1277,7 +1277,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, assemblyName: "comp", options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, assemblyName: "comp", options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2");
@@ -1482,7 +1482,7 @@ class C
 
             var source = template.Replace("VARIABLES", variables).Replace("TUPLE", tuple);
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,113): error CS1501: No overload for method 'Deconstruct' takes 22 arguments
                 //         (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22) = CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)));
@@ -1599,13 +1599,13 @@ class C1
     }
 }
 ";
-            var libMissingComp = CreateStandardCompilation(new string[] { libMissingSource }, assemblyName: "libMissingComp").VerifyDiagnostics();
+            var libMissingComp = CreateCompilation(new string[] { libMissingSource }, assemblyName: "libMissingComp").VerifyDiagnostics();
             var libMissingRef = libMissingComp.EmitToImageReference();
 
-            var libComp = CreateStandardCompilation(new string[] { libSource }, references: new[] { libMissingRef }, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+            var libComp = CreateCompilation(new string[] { libSource }, references: new[] { libMissingRef }, parseOptions: TestOptions.Regular).VerifyDiagnostics();
             var libRef = libComp.EmitToImageReference();
 
-            var comp = CreateStandardCompilation(new string[] { source }, references: new[] { libRef });
+            var comp = CreateCompilation(new string[] { source }, references: new[] { libRef });
             comp.VerifyDiagnostics(
                 // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'libMissingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (x, y) = new C();
@@ -1684,7 +1684,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "(1, hello) (1, hello) (1, hello)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileAndVerify(source, expectedOutput: "(1, hello) (1, hello) (1, hello)");
             comp.VerifyDiagnostics();
         }
 
@@ -1755,7 +1755,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "((1, hello), 3)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileAndVerify(source, expectedOutput: "((1, hello), 3)");
             comp.VerifyDiagnostics();
         }
 
@@ -1830,7 +1830,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "(1, 1, 1, 1, 1, 1, 1, 1, 9)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 1, 1, 1, 1, 1, 1, 1, 9)");
             comp.VerifyDiagnostics();
 
             var tree = comp.Compilation.SyntaxTrees.First();
@@ -1913,7 +1913,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilationWithMscorlib40(source);
             comp.VerifyDiagnostics(
                 // (7,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         var y = (x, x) = new C();
@@ -1940,7 +1940,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "(1, 1) 1 1");
         }
@@ -2219,7 +2219,7 @@ class C
 }
 " + commonSource;
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular6);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
                 // (6,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         var (x1, x2) = Pair.Create(1, 2);
@@ -3157,7 +3157,7 @@ class C
 ";
             // The correct expectation is for the code to compile and execute
             //var comp = CompileAndVerify(source, expectedOutput: "42 43 44");
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,9): error CS8134: Deconstruction must contain at least two variables.
                 //         (var(x, y)) = 43; // parsed as invocation
@@ -3560,7 +3560,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,17): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             int x1 = 1;
@@ -3582,7 +3582,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,40): error CS0103: The name 'x1' does not exist in the current context
                 //         foreach ((int x1, int x2) in M(x1))
@@ -3605,7 +3605,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,30): error CS0103: The name 'x1' does not exist in the current context
                 //         System.Console.Write(x1);
@@ -3712,7 +3712,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,36): error CS0103: The name 'x1' does not exist in the current context
                 //         foreach (var (x1, x2) in M(x1)) { }
@@ -3746,7 +3746,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3779,7 +3779,7 @@ class C
                 Assert.Equal("(int, int)", model.GetTypeInfo(literal2).Type.ToDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -3796,7 +3796,7 @@ class C
     static T M<T>(out T x) { x = default(T); return x; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,31): error CS0841: Cannot use local variable 'x2' before it is declared
                 //         var (x1, x2) = (M(out x2), M(out x1));
@@ -3821,7 +3821,7 @@ class C1
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilationWithMscorlib40(source);
             comp.VerifyDiagnostics(
                 // (4,32): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     static void Test(int arg1, (byte, byte) arg2)
@@ -3849,7 +3849,7 @@ class C1
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // this is no longer considered a declaration statement,
                 // but rather is an assignment expression. So no error.
@@ -3870,7 +3870,7 @@ class C1
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3888,7 +3888,7 @@ class C
     void Deconstruct(out int x1, out int x2) { x1 = 1; x2 = 2; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,27): warning CS0612: 'C.Deconstruct(out int, out int)' is obsolete
                 //        (int y1, int y2) = new C();
@@ -3910,7 +3910,7 @@ class C
     void Deconstruct(out int x1, out int x2) { x1 = 1; x2 = 2; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,27): error CS0619: 'C.Deconstruct(out int, out int)' is obsolete: 'Deprecated'
                 //        (int y1, int y2) = new C();
@@ -3943,7 +3943,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -4038,7 +4038,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0106: The modifier 'const' is not valid for this item
                 //         const var (x, y) = (1, 2);
@@ -4092,7 +4092,7 @@ unsafe class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source,
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 options: TestOptions.UnsafeDebugDll);
 
@@ -4158,7 +4158,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         string s = nameof((int x1, var x2) = (1, 2)).ToString();
@@ -4210,7 +4210,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var (a,b), var c, int d);
@@ -4241,7 +4241,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_01_VerifySemanticModel(comp2, LocalDeclarationKind.DeconstructionVariable);
         }
@@ -4341,7 +4341,7 @@ class C
 (var (a,b), var c, int d);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,7): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // (var (a,b), var c, int d);
@@ -4372,7 +4372,7 @@ class C
 (var (a,b), var c, int d) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_02_VerifySemanticModel(comp2);
         }
@@ -4478,7 +4478,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var (_, _), var _, int _);
@@ -4506,7 +4506,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_03_VerifySemanticModel(comp2);
         }
@@ -4602,7 +4602,7 @@ class C
 (var (_, _), var _, int _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,2): error CS8185: A declaration is not allowed in this context.
                 // (var (_, _), var _, int _);
@@ -4624,7 +4624,7 @@ class C
 (var (_, _), var _, int _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_03_VerifySemanticModel(comp2);
         }
@@ -4644,7 +4644,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
 
             StandAlone_05_VerifySemanticModel(comp1);
 
@@ -4660,7 +4660,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_05_VerifySemanticModel(comp2);
         }
@@ -4707,6 +4707,34 @@ class C
             Assert.Equal("var=System.Int32", model.GetAliasInfo(declarations[1].Type).ToTestDisplayString());
         }
 
+        [Fact]
+        [WorkItem(23651, "https://github.com/dotnet/roslyn/issues/23651")]
+        public void StandAlone_05_WithDuplicateNames()
+        {
+            string source1 = @"
+using var = System.Int32;
+
+class C
+{
+    static void Main()
+    {
+        (var (a, a), var c);
+    }
+}
+";
+
+            var comp1 = CreateCompilation(source1);
+
+            var tree = comp1.SyntaxTrees.Single();
+            var model = comp1.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var aa = nodes.OfType<DeclarationExpressionSyntax>().ElementAt(0);
+            Assert.Equal("var (a, a)", aa.ToString());
+            var aaType = (TypeSymbol)model.GetTypeInfo(aa).Type;
+            Assert.True(aaType.TupleElementNames.IsDefault);
+        }
+
         [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_06()
         {
@@ -4716,7 +4744,7 @@ using var = System.Int32;
 (var (a,b), var c);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_06_VerifySemanticModel(comp1);
 
@@ -4726,7 +4754,7 @@ using var = System.Int32;
 (var (a,b), var c) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_06_VerifySemanticModel(comp2);
         }
@@ -4788,7 +4816,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
 
             StandAlone_07_VerifySemanticModel(comp1);
 
@@ -4804,7 +4832,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_07_VerifySemanticModel(comp2);
         }
@@ -4863,7 +4891,7 @@ using var = System.Int32;
 (var (_, _), var _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_07_VerifySemanticModel(comp1);
 
@@ -4873,7 +4901,7 @@ using var = System.Int32;
 (var (_, _), var _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_07_VerifySemanticModel(comp2);
         }
@@ -4893,7 +4921,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
 
             StandAlone_09_VerifySemanticModel(comp1);
 
@@ -4909,7 +4937,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_09_VerifySemanticModel(comp2);
         }
@@ -4945,7 +4973,7 @@ using al = System.Int32;
 (al (a,b), al c);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_10_VerifySemanticModel(comp1);
 
@@ -4955,7 +4983,7 @@ using al = System.Int32;
 (al (a,b), al c) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_10_VerifySemanticModel(comp2);
         }
@@ -4997,7 +5025,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
 
             StandAlone_11_VerifySemanticModel(comp1);
 
@@ -5013,7 +5041,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_11_VerifySemanticModel(comp2);
         }
@@ -5052,7 +5080,7 @@ using al = System.Int32;
 (al (_, _), al _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_11_VerifySemanticModel(comp1);
 
@@ -5062,7 +5090,7 @@ using al = System.Int32;
 (al (_, _), al _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_11_VerifySemanticModel(comp2);
         }
@@ -5081,7 +5109,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (7,19): error CS1002: ; expected
                 //         var (c, d)
@@ -5123,7 +5151,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,11): error CS8185: A declaration is not allowed in this context.
                 //         ((var (a,b), var c), int d);
@@ -5154,7 +5182,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_14_VerifySemanticModel(comp2, LocalDeclarationKind.DeconstructionVariable);
         }
@@ -5268,7 +5296,7 @@ class C
 ((var (a,b), var c), int d);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,8): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // ((var (a,b), var c), int d);
@@ -5299,7 +5327,7 @@ class C
 ((var (a,b), var c), int d) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_15_VerifySemanticModel(comp2);
         }
@@ -5418,7 +5446,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,11): error CS8185: A declaration is not allowed in this context.
                 //         ((var (_, _), var _), int _);
@@ -5446,7 +5474,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_16_VerifySemanticModel(comp2);
         }
@@ -5555,7 +5583,7 @@ class C
 ((var (_, _), var _), int _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,3): error CS8185: A declaration is not allowed in this context.
                 // ((var (_, _), var _), int _);
@@ -5577,7 +5605,7 @@ class C
 ((var (_, _), var _), int _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_16_VerifySemanticModel(comp2);
         }
@@ -5595,7 +5623,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var ((a,b), c), int d);
@@ -5623,7 +5651,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_18_VerifySemanticModel(comp2, LocalDeclarationKind.DeconstructionVariable);
         }
@@ -5705,7 +5733,7 @@ class C
 (var ((a,b), c), int d);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,8): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // (var ((a,b), c), int d);
@@ -5733,7 +5761,7 @@ class C
 (var ((a,b), c), int d) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_19_VerifySemanticModel(comp2);
         }
@@ -5821,7 +5849,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var ((_, _), _), int _);
@@ -5846,7 +5874,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_20_VerifySemanticModel(comp2);
         }
@@ -5921,7 +5949,7 @@ class C
 (var ((_, _), _), int _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,2): error CS8185: A declaration is not allowed in this context.
                 // (var ((_, _), _), int _);
@@ -5940,7 +5968,7 @@ class C
 (var ((_, _), _), int _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_20_VerifySemanticModel(comp2);
         }
@@ -5955,7 +5983,7 @@ class C
         (_, _) = (1, Main());
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,22): error CS8210: A tuple may not contain a value of type 'void'.
                 //         (_, _) = (1, Main());
@@ -5995,7 +6023,7 @@ class C
         (int x, void y) = (1, Main());
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,17): error CS1547: Keyword 'void' cannot be used in this context
                 //         (int x, void y) = (1, Main());
@@ -6041,7 +6069,7 @@ class C
         var (x, y) = (1, Main());
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,26): error CS8210: A tuple may not contain a value of type 'void'.
                 //         var (x, y) = (1, Main());
@@ -6081,7 +6109,7 @@ class C
         (int x, void y) = (1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,17): error CS1547: Keyword 'void' cannot be used in this context
                 //         (int x, void y) = (1, 2);
@@ -6126,7 +6154,7 @@ class C
         (int x, int y) = (1, Main());
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,30): error CS8210: A tuple may not contain a value of type 'void'.
                 //         (int x, int y) = (1, Main());

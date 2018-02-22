@@ -1398,7 +1398,7 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">首选本地函数而不是匿名函数</target>
         <note />
       </trans-unit>
@@ -1449,27 +1449,17 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Restore_Visual_Studio_keybindings">
         <source>Restore Visual Studio keybindings</source>
-        <target state="new">Restore Visual Studio keybindings</target>
+        <target state="translated">还原 Visual Studio 键绑定</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Keybindings_for_extensions">
         <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
-        <target state="new">Use keybindings for ReSharper/IntelliJ/Vim/etc.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="new">Your keybindings are no longer mapped to Visual Studio commands.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="new">We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</target>
+        <target state="translated">使用 ReSharper/IntelliJ/Vim 等的键绑定。</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="new">Enable navigation to decompiled sources (experimental)</target>
+        <target state="translated">支持导航到反编译源(实验)</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Message">
@@ -1482,20 +1472,30 @@ You acknowledge that binary code and source code might be protected by copyright
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="new">IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
+        <target state="translated">重要说明: Visual Studio 包含反编译功能("Decompiler")，可支持从二进制代码重现源代码。访问和使用 Decompiler 即表示您同意 Visual Studio 许可条款和以下 Decompiler 条款。如果不同意这些组合条款，请勿访问和使用 Decompiler。
  
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
+您同意二进制代码和源代码可能受版权法和商标法保护。在对任何二进制代码使用 Decompiler 前，首先需要:  
+(i) 确认约束您使用二进制代码的许可条款不包含禁止反编译软件的条款；或者
+(ii) 获得软件所有者关于反编译二进制代码的许可。
  
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
+使用 Decompiler 是个人的选择。如果您使用 Decompiler 时违反了任何法律或任何禁止软件反编译的软件许可条款，Microsoft 不承担任何责任和法律责任。
 
-I agree to all of the foregoing:</target>
+我同意上述所有条款:</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Title">
         <source>Decompiler Legal Notice</source>
-        <target state="new">Decompiler Legal Notice</target>
+        <target state="translated">Decompiler 法律声明</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="translated">禁用扩展“{0}”，取消绑定键盘绑定。</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="translated">此处配置的设置仅适用于计算机。要配置这些设置以使用解决方案，请使用 .editorconfig 文件。</target>
         <note />
       </trans-unit>
     </body>

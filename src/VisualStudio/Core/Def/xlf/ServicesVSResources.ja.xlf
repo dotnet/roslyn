@@ -1398,7 +1398,7 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">匿名関数よりローカル関数を優先します</target>
         <note />
       </trans-unit>
@@ -1449,27 +1449,17 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Restore_Visual_Studio_keybindings">
         <source>Restore Visual Studio keybindings</source>
-        <target state="new">Restore Visual Studio keybindings</target>
+        <target state="translated">Visual Studio キー バインドの復元</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Keybindings_for_extensions">
         <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
-        <target state="new">Use keybindings for ReSharper/IntelliJ/Vim/etc.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="new">Your keybindings are no longer mapped to Visual Studio commands.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="new">We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</target>
+        <target state="translated">ReSharper/IntelliJ/Vim などのキー バインドを使用します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="new">Enable navigation to decompiled sources (experimental)</target>
+        <target state="translated">逆コンパイルされたソースへのナビゲーションを有効にする (試験段階)</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Message">
@@ -1482,20 +1472,30 @@ You acknowledge that binary code and source code might be protected by copyright
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="new">IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
- 
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
+        <target state="translated">重要: Visual Studio には、逆コンパイル機能 (“デコンパイラ”) が含まれています。これは、バイナリ コードからのソース コードの再生成を可能にする機能です。デコンパイラにアクセスしてこれを使用することで、デコンパイラに関する以下の Visual Studio のライセンス条項に同意します。ここでまとめられている条項に同意しない場合は、デコンパイラへのアクセスも使用も行わないでください。
 
-I agree to all of the foregoing:</target>
+バイナリ コードとソース コードが著作権と商標に関する法律によって保護されている可能性があることに同意します。バイナリ コードでデコンパイラを使用する前に、次のことを行う必要があります:
+(i) バイナリ コードの使用を管理するライセンス条項にソフトウェアのデコンパイルを禁止するプロビジョンが含まれていないことを確認する。または
+(ii) バイナリ コードをデコンパイルするためのアクセス許可をソフトウェアの所有者から取得する。
+
+デコンパイラの使用は任意です。ソフトウェアの逆コンパイルを禁止する法律またはソフトウェア ライセンス条項に違反するデコンパイラの使用に関して、Microsoft は一切責任を負わず、一切保証いたしません。
+
+上記の内容にすべて同意します:</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Title">
         <source>Decompiler Legal Notice</source>
-        <target state="new">Decompiler Legal Notice</target>
+        <target state="translated">デコンパイラの法的通知</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="translated">拡張 '{0}' を無効にすることにより、キーボードのバインディングがバインド解除されました。</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="translated">ここで構成される設定は、ご使用のマシンにのみ適用されます。これらの設定をソリューションで使用するように構成するには、.editorconfig ファイルを使用します。</target>
         <note />
       </trans-unit>
     </body>

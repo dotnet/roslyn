@@ -32,7 +32,7 @@ class D : B
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var sym = model.GetSymbolInfo(expr);
@@ -62,7 +62,7 @@ class Test
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -91,7 +91,7 @@ public class Test
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -125,7 +125,7 @@ public class Test
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -154,7 +154,7 @@ public class A
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -180,7 +180,7 @@ public class A
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -231,7 +231,7 @@ public class Test
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var testClass = tree.GetCompilationUnitRoot().Members[1] as TypeDeclarationSyntax;
@@ -284,7 +284,7 @@ class C
             var isExplicitConversion = ck == ConversionKind.ExplicitNumeric;
             var source = string.Format(template, from, to, isExplicitConversion ? "(" + to + ")" : "");
             var tree = Parse(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree);
@@ -363,7 +363,7 @@ public class Test
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var testClass = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
@@ -405,7 +405,7 @@ public class Test
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var errs = model.GetDiagnostics();
@@ -432,7 +432,7 @@ public class Test
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var errs = model.GetDiagnostics();
@@ -466,7 +466,7 @@ public class Test
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var testClass = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
@@ -519,7 +519,7 @@ enum E { zero, one }
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var testClass = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
@@ -586,7 +586,7 @@ class MyClass
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprs = GetBindingNodes<ExpressionSyntax>(comp);
             var expr1 = exprs.First();
@@ -617,7 +617,7 @@ class C {
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprs = GetBindingNodes<ExpressionSyntax>(comp);
             var expr1 = exprs.First();
@@ -943,7 +943,7 @@ class C {
         [Fact]
         public void TestGetSemanticInfoInParentInIf()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M(int x)
@@ -967,7 +967,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoInParentInFor()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M(int x)
@@ -1002,7 +1002,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
@@ -1023,7 +1023,7 @@ class Test
     {
         do";
 
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var exprSyntaxList = GetExprSyntaxList(tree);
@@ -1110,7 +1110,7 @@ using System;
 > 1
 ";
             var tree = Parse(text, options: TestOptions.Script);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var root = tree.GetCompilationUnitRoot();
@@ -1141,7 +1141,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
@@ -1170,7 +1170,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
@@ -1194,7 +1194,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1217,7 +1217,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1243,7 +1243,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1271,7 +1271,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1299,7 +1299,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1326,7 +1326,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1353,7 +1353,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1384,7 +1384,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1422,7 +1422,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1460,7 +1460,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1496,7 +1496,7 @@ public class Test
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1527,7 +1527,7 @@ public class Test
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1549,7 +1549,7 @@ public class Test
 this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1579,7 +1579,7 @@ class A<T> : I<T>
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1604,7 +1604,7 @@ using alias = /*<bind>*/N/*</bind>*/;
 namespace N { }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
@@ -1643,7 +1643,7 @@ class Program
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
@@ -1675,7 +1675,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1710,7 +1710,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1745,7 +1745,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1781,7 +1781,7 @@ class Program
 
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1817,7 +1817,7 @@ struct S
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1858,7 +1858,7 @@ class C<T, U, V>
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var nameSyntaxToBind = (SimpleNameSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1887,7 +1887,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1923,7 +1923,7 @@ public class C<T> where T : IA, IB // can find IA.P in two different ways
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1959,7 +1959,7 @@ public class C<T> where T : IA, IB
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -1995,7 +1995,7 @@ public class C<T> where T : IB, IA
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -2030,7 +2030,7 @@ public class C<T> where T : IB, IC
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
@@ -2202,7 +2202,7 @@ public class C<T> where T : {1}
 ";
 
             var tree = Parse(string.Format(template, types, constraints));
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             comp.VerifyDiagnostics();
             var model = comp.GetSemanticModel(tree);
 
@@ -2262,7 +2262,7 @@ class Program
 
             for (int i = 0; i < 20; i++)
             {
-                var comp = CreateStandardCompilation(text);
+                var comp = CreateCompilation(text);
 
                 var task1 = new Task(() => comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMembers());
                 var task2 = new Task(() => comp.GlobalNamespace.GetMember<NamedTypeSymbol>("IA").GetMembers());
@@ -2300,7 +2300,7 @@ class C
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
                 // (8,19): error CS0819: Implicitly-typed variables cannot have multiple declarators
                 //         /*<bind>*/var a = new StreamWriter(""), b = new StreamReader("")/*</bind>*/;
@@ -2336,7 +2336,7 @@ class D
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var lambdaSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single();
@@ -2372,7 +2372,7 @@ class C
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var exprs = GetBindingNodes<ExpressionSyntax>(comp);
@@ -2431,7 +2431,7 @@ public class A
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -2458,7 +2458,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -2488,7 +2488,7 @@ class Test
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -2517,7 +2517,7 @@ class Program
 
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -2544,7 +2544,7 @@ Class Program // this will get a Property declaration ... *sigh*
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -2700,7 +2700,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -2771,7 +2771,7 @@ class C
         private void CheckOperatorSemanticInfo(string text, string operatorName)
         {
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var operatorSymbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(operatorName);
@@ -2817,7 +2817,7 @@ struct S
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var conversions = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").GetMembers(WellKnownMemberNames.ExplicitConversionName);
@@ -2847,7 +2847,7 @@ struct S
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var conversions = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").GetMembers(WellKnownMemberNames.ExplicitConversionName);
@@ -2907,7 +2907,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(text, il);
+            var comp = CreateCompilationWithILAndMscorlib40(text, il);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -2940,7 +2940,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var operators = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.UnaryPlusOperatorName);
@@ -2999,7 +2999,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(text, il);
+            var comp = CreateCompilationWithILAndMscorlib40(text, il);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -3032,7 +3032,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var operators = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.IncrementOperatorName);
@@ -3074,7 +3074,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var operators = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.AdditionOperatorName);
@@ -3106,7 +3106,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var operators = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.AdditionOperatorName);
@@ -3148,7 +3148,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var operators = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.AdditionOperatorName);
@@ -3180,7 +3180,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var operators = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.AdditionOperatorName);
@@ -3223,7 +3223,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var operators = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.AdditionOperatorName).Cast<MethodSymbol>();
@@ -3253,7 +3253,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -3307,7 +3307,7 @@ class Z
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var gType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("G");
@@ -3372,7 +3372,7 @@ class Z
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var gType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("G");
@@ -3439,7 +3439,7 @@ class Test
         /*<bind>*/M(b)/*</bind>*/;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (26,21): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
@@ -3495,7 +3495,7 @@ class C
         /*<bind>*/M(b)/*</bind>*/;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(); // since no conversion is performed, the ambiguity doesn't matter
 
             var tree = compilation.SyntaxTrees.Single();
@@ -3528,7 +3528,7 @@ public class A
     {
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3556,7 +3556,7 @@ class C
          /*<bind>*/MessageBox(IntPtr.Zero, """", """", 1)/*</bind>*/;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3583,7 +3583,7 @@ class C
         object o = 1;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3608,7 +3608,7 @@ class C
         object o = (long)1;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3641,7 +3641,7 @@ class C
         object o = (object)1;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3676,7 +3676,7 @@ class C
         object o = (object)(long)1;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3731,7 +3731,7 @@ namespace System
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -3759,7 +3759,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -3792,7 +3792,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -3820,7 +3820,7 @@ class C
         /*<bind>*/M/*</bind>*/
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -3846,7 +3846,7 @@ class C
         /*<bind>*/M/*</bind>*/[]
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -3886,7 +3886,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source2, new[] { reference1 }, assemblyName: "SpeculativelyBindPropertyGroup");
+            var compilation = CreateCompilation(source2, new[] { reference1 }, assemblyName: "SpeculativelyBindPropertyGroup");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -3926,7 +3926,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source2, new[] { reference1 }, assemblyName: "SpeculativelyBindPropertyGroup");
+            var compilation = CreateCompilation(source2, new[] { reference1 }, assemblyName: "SpeculativelyBindPropertyGroup");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -3972,7 +3972,7 @@ class C
         /*<bind>*/a.P/*</bind>*/[]
 ";
 
-            var compilation = CreateStandardCompilation(source2, new[] { reference1 }, assemblyName: "SpeculativelyBindPropertyGroup");
+            var compilation = CreateCompilation(source2, new[] { reference1 }, assemblyName: "SpeculativelyBindPropertyGroup");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4010,7 +4010,7 @@ static class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -4080,7 +4080,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             var tree = comp.SyntaxTrees.Single();
 
@@ -4135,7 +4135,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             var tree = comp.SyntaxTrees.Single();
 
@@ -4185,7 +4185,7 @@ class C
 		}
 	}
 }";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4215,7 +4215,7 @@ class C
 		}
 	}
 }";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4245,7 +4245,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4266,7 +4266,7 @@ class Test
     C<>
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4296,7 +4296,7 @@ class Test
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4324,7 +4324,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (6,27): error CS0021: Cannot apply indexing with [] to an expression of type 'anonymous method'
                 //         System.Action o = delegate { if (b) { } } [1];
@@ -4350,7 +4350,7 @@ class C
         Func<Color, Color> f2 = x => /*<bind>*/~x/*</bind>*/;
     }
 }";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4374,7 +4374,7 @@ int P
     {
         M(env => env);
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4404,7 +4404,7 @@ public class B : A
     public Nested.Another a;
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             var global = compilation.GlobalNamespace;
             var classA = global.GetMember<NamedTypeSymbol>("A");
@@ -4458,7 +4458,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             var global = compilation.GlobalNamespace;
             var classA = global.GetMember<NamedTypeSymbol>("A");
@@ -4504,7 +4504,7 @@ public class B : A
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             var global = compilation.GlobalNamespace;
             var classA = global.GetMember<NamedTypeSymbol>("A");
@@ -4558,7 +4558,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             var global = compilation.GlobalNamespace;
             var classType = global.GetMember<NamedTypeSymbol>("C");
@@ -4612,7 +4612,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             var classC = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
@@ -4648,7 +4648,7 @@ class C : A
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -4693,7 +4693,7 @@ class C : A
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -4726,7 +4726,7 @@ class A
     protected void Goo(bool b, = true
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -4759,7 +4759,7 @@ class Test
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -4802,7 +4802,7 @@ public class Test
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -4846,7 +4846,7 @@ public class D : C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -4883,7 +4883,7 @@ void M()
 
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -5376,7 +5376,7 @@ public class T
             var text =
 @"class C1 : E1 { }
 class C2<T> : E2<T> { }";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var objectType = compilation.GetSpecialType(SpecialType.System_Object);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -5389,7 +5389,7 @@ class C2<T> : E2<T> { }";
             Assert.Throws<InvalidOperationException>(() => type.Construct(objectType)); // non-generic type
 
             // Non-generic error type.
-            type = type.BaseType;
+            type = type.BaseType();
             Assert.False(type.IsGenericType);
             Assert.True(type.IsErrorType());
             Assert.Throws<InvalidOperationException>(() => type.Construct(objectType)); // non-generic type
@@ -5403,7 +5403,7 @@ class C2<T> : E2<T> { }";
             Assert.Throws<InvalidOperationException>(() => type.Construct(objectType).Construct(objectType)); // constructed type
 
             // Generic error type.
-            type = type.BaseType.ConstructedFrom;
+            type = type.BaseType().ConstructedFrom;
             Assert.True(type.IsGenericType);
             Assert.True(type.IsErrorType());
             Assert.Throws<ArgumentException>(() => type.Construct(new TypeSymbol[] { null })); // null type arg
@@ -5444,7 +5444,7 @@ class Program
 
             for (int i = 0; i < 10; i++) // Ten runs to ensure consistency.
             {
-                var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+                var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
                 comp.VerifyDiagnostics(
                     // (13,51): error CS1503: Argument 1: cannot convert from 'Program.A' to 'int'
                     //             var list = tasks.Result.Select(t => X(t.Result)); // Wrong argument type for X.
@@ -5495,7 +5495,7 @@ class Program
 ";
 
             {
-                var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+                var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
                 var tree = comp.SyntaxTrees.Single();
                 var model = comp.GetSemanticModel(tree);
 
@@ -5509,7 +5509,7 @@ class Program
             }
 
             {
-                var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+                var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
                 var tree = comp.SyntaxTrees.Single();
                 var model = comp.GetSemanticModel(tree);
 
@@ -5550,7 +5550,7 @@ class B { }
 class C { }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(A)' and 'Program.M(B)'
                 //         M(null); // Ambiguous.
@@ -5590,7 +5590,7 @@ class A { }
 class B { }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -5633,7 +5633,7 @@ class B { }
 class C { }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(System.Func<A>)' and 'Program.M(System.Func<B>)'
                 //         M(() => null); // Ambiguous.
@@ -5685,7 +5685,7 @@ class B { }
 class C { }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Derived.M(System.Func<int, A>)' and 'Derived.M(System.Func<int, B>)'
                 //         M(N); // Ambiguous.
@@ -5753,7 +5753,7 @@ namespace ConsoleApplication1
 
             var tree1 = Parse(file1);
             var tree2 = Parse(file2);
-            var comp = CreateStandardCompilation(new[] { tree1, tree2 });
+            var comp = CreateCompilation(new[] { tree1, tree2 });
             var model = comp.GetSemanticModel(tree2);
 
             var errs = model.GetDiagnostics();
@@ -5792,7 +5792,7 @@ partial class C
             var tree1 = Parse(file1);
             var tree2 = Parse(file2);
             var tree3 = Parse(file3);
-            var comp = CreateStandardCompilation(new[] { tree1, tree2, tree3 });
+            var comp = CreateCompilation(new[] { tree1, tree2, tree3 });
             var model1 = comp.GetSemanticModel(tree1);
             var model2 = comp.GetSemanticModel(tree2);
             var model3 = comp.GetSemanticModel(tree3);
@@ -5822,7 +5822,7 @@ class Test
     void Goo(ref X. x) { }
 }";
 
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef });
+            var comp = CreateCompilation(source);
             var diag = comp.GetDiagnostics();
         }
 
@@ -5840,7 +5840,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens();
@@ -5853,7 +5853,7 @@ class C
         public void GetSpecialType_ThrowsOnLessThanZero()
         {
             var source = "class C1 { }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
 
             var specialType = (SpecialType)(-1);
 
@@ -5876,7 +5876,7 @@ class C
         public void GetSpecialType_ThrowsOnGreaterThanCount()
         {
             var source = "class C1 { }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
 
             var specialType = SpecialType.Count + 1;
 

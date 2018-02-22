@@ -81,7 +81,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (10,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         new C(a: 1, 2);
@@ -153,10 +153,10 @@ public class C
         c.M(a: 1, 2);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { SystemCoreRef });
+            var verifier = CompileAndVerifyWithMscorlib40(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { SystemCoreRef });
             verifier.VerifyDiagnostics();
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
+            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (14,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         c.M(a: 1, 2);
@@ -189,7 +189,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: "1 2. 1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (16,26): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         c.e.Invoke(a: 1, 2);
@@ -220,7 +220,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (7,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         local(a: 1, 2);
@@ -256,7 +256,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: "Get 1 2. Set 3 4 5.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (19,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         _ = c[a: 1, 2];
@@ -292,7 +292,7 @@ class C
         void local(int a, int b) { }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
             comp.VerifyDiagnostics(
                 // (16,23): error CS8322: Named argument 'b' is used out-of-position but is followed by an unnamed argument
                 //         var c = new C(b: 1, 2);
@@ -326,12 +326,12 @@ class D
         C.M(a: 1, 2);
     }
 }";
-            var lib = CreateStandardCompilation(lib_cs, parseOptions: TestOptions.Regular7);
+            var lib = CreateCompilation(lib_cs, parseOptions: TestOptions.Regular7);
 
-            var verifier1 = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { lib.ToMetadataReference() });
+            var verifier1 = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { lib.ToMetadataReference() });
             verifier1.VerifyDiagnostics();
 
-            var verifier2 = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { lib.EmitToImageReference() });
+            var verifier2 = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { lib.EmitToImageReference() });
             verifier2.VerifyDiagnostics();
         }
 
@@ -350,7 +350,7 @@ class C
         M(1, first: 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,14): error CS1744: Named argument 'first' specifies a parameter for which a positional argument has already been given
                 //         M(1, first: 2);
@@ -406,7 +406,7 @@ class C
         M(c: 1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,11): error CS8321: Named argument 'c' is used out-of-position but is followed by an unnamed argument
                 //         M(c: 1, 2);
@@ -438,7 +438,7 @@ class C
         M(x: 1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,9): error CS1501: No overload for method 'M' takes 2 arguments
                 //         M(x: 1, 2);
@@ -467,7 +467,7 @@ class C
         M(1, x: 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,14): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
                 //         M(1, x: 2);
@@ -499,7 +499,7 @@ class C
         M(x: 3, new[] { ""4"", ""5"" });
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "1 2. 2 3. 3 4,5.", parseOptions: TestOptions.RegularLatest);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2. 2 3. 3 4,5.");
             comp.VerifyDiagnostics();
         }
 
@@ -517,7 +517,7 @@ class C
         M(x: 1, x: 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,17): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         M(x: 1, x: 2);
@@ -546,7 +546,7 @@ class C
         M(x: 1, x: 2, 3);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (9,17): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         M(x: 1, x: 2, 3);
@@ -581,7 +581,7 @@ class C
         M(y: 1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,11): error CS8321: Named argument 'y' is used out-of-position but is followed by an unnamed argument
                 //         M(y: 1, 2);
@@ -610,7 +610,7 @@ class C
         M(x: 1, y: 2, 3);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,9): error CS1501: No overload for method 'M' takes 3 arguments
                 //         M(x: 1, y: 2, 3);
@@ -632,7 +632,7 @@ class C
         M(x: 1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,19): error CS0231: A params parameter must be the last parameter in a formal parameter list
                 //     static void M(params int[] x, int y)
@@ -665,7 +665,7 @@ class C
         M(y: 1, x: 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "x=2 y[0]=1 y.Length=1");
 
@@ -693,7 +693,7 @@ class C
         M(c: valueC, valueB);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,11): error CS8321: Named argument 'c' is used out-of-position but is followed by an unnamed argument
                 //         M(c: valueC, valueB);
@@ -731,7 +731,7 @@ class C
         M(c: valueC, valueB);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.", parseOptions: TestOptions.RegularLatest);
+            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.");
             verifier.VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.First();
@@ -763,7 +763,7 @@ class C
         M(c: valueC, valueB);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.", parseOptions: TestOptions.RegularLatest);
+            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.");
             verifier.VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.First();
@@ -790,7 +790,7 @@ class C
         M(a: 1, 2);
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "42", parseOptions: TestOptions.RegularLatest);
+            var comp = CompileAndVerify(source, expectedOutput: "42");
             comp.VerifyDiagnostics();
         }
 
@@ -807,14 +807,14 @@ class C
         d.M(1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
             comp.VerifyDiagnostics(
                 // (7,19): error CS8323: Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation.
                 //         d.M(a: 1, 2);
                 Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, "2").WithLocation(7, 19)
                 );
 
-            var comp2 = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
+            var comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp2.VerifyDiagnostics(
                 // (7,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         d.M(a: 1, 2);
@@ -835,7 +835,7 @@ class C
         void local(int x, params object[] y) { }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
             comp.VerifyDiagnostics(
                 // (7,9): error CS8108: Cannot pass argument with dynamic type to params parameter 'y' of local function 'local'.
                 //         local(x: 1, d); 
@@ -866,7 +866,7 @@ class C
         c[a: 1, d] = d;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -884,7 +884,7 @@ class C
         M(b: 2, 3, 4);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,11): error CS8321: Named argument 'b' is used out-of-position but is followed by an unnamed argument
                 //         M(b: 2, 3, 4);
@@ -907,7 +907,7 @@ class C
         M(1, b: 2, 3, 4);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2 3 4 Length:2", parseOptions: TestOptions.RegularLatest);
+            var verifier = CompileAndVerify(source, expectedOutput: "1 2 3 4 Length:2");
             verifier.VerifyDiagnostics();
         }
 
@@ -930,7 +930,7 @@ public class MyAttribute : Attribute
 public class C
 {
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (12,38): error CS1016: Named attribute argument expected
                 // [MyAttribute(condition: true, P = 1, 42)]
@@ -968,7 +968,7 @@ public class MyAttribute : Attribute
 public class C
 {
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (11,31): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 // [MyAttribute(condition: true, 42)]
@@ -1003,7 +1003,7 @@ public class MyAttribute : Attribute
 public class C
 {
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,14): error CS8321: Named argument 'c' is used out-of-position but is followed by an unnamed argument
                 // [MyAttribute(c:3, 2)]
@@ -1031,7 +1031,7 @@ class C
         M(x: 1, x: 2, __arglist());
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,17): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         M(x: 1, x: 2, __arglist());
@@ -1053,7 +1053,7 @@ class C
         M(__arglist(x: 1, x: 2, __arglist()));
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,27): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         M(__arglist(x: 1, x: 2, __arglist()));
@@ -1095,7 +1095,7 @@ class C
         return result;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 34. 1 2 56.", parseOptions: TestOptions.RegularLatest);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 34. 1 2 56.");
             comp.VerifyDiagnostics();
         }
 
@@ -1110,7 +1110,7 @@ class C
         M(y: 1, x: 2, __arglist(3));
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,11): error CS8322: Named argument 'y' is used out-of-position but is followed by an unnamed argument
                 //         M(y: 1, x: 2, __arglist(3));
@@ -1126,7 +1126,7 @@ class C
 {
     C() : this(x: 1, x: 2, 3) { }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,22): error CS1740: Named argument 'x' cannot be specified multiple times
                 //     C() : this(x: 1, x: 2, 3) { }
@@ -1148,7 +1148,7 @@ class C
         new C(x: 1, x: 2, 3);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,21): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         new C(x: 1, x: 2, 3);
@@ -1172,7 +1172,7 @@ class C
         System.Console.Write(c[x: 1, x: 2, 3]);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,38): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         System.Console.Write(c[x: 1, x: 2, 3]);
