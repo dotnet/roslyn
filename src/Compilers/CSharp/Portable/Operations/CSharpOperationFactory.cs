@@ -1378,13 +1378,15 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundWhileStatement.Body));
             Lazy<IOperation> ignoredCondition = OperationFactory.NullOperation;
             ImmutableArray<ILocalSymbol> locals = boundWhileStatement.Locals.As<ILocalSymbol>();
+            ILabelSymbol continueLabel = boundWhileStatement.ContinueLabel;
+            ILabelSymbol exitLabel = boundWhileStatement.BreakLabel;
             bool conditionIsTop = true;
             bool conditionIsUntil = false;
             SyntaxNode syntax = boundWhileStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundWhileStatement.WasCompilerGenerated;
-            return new LazyWhileLoopStatement(condition, body, ignoredCondition, locals, continueLabel: null, exitLabel: null, conditionIsTop, conditionIsUntil, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyWhileLoopStatement(condition, body, ignoredCondition, locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IWhileLoopOperation CreateBoundDoStatementOperation(BoundDoStatement boundDoStatement)
@@ -1392,6 +1394,8 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundDoStatement.Condition));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundDoStatement.Body));
             Lazy<IOperation> ignoredCondition = OperationFactory.NullOperation;
+            ILabelSymbol continueLabel = boundDoStatement.ContinueLabel;
+            ILabelSymbol exitLabel = boundDoStatement.BreakLabel;
             bool conditionIsTop = false;
             bool conditionIsUntil = false;
             ImmutableArray<ILocalSymbol> locals = boundDoStatement.Locals.As<ILocalSymbol>();
@@ -1399,7 +1403,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundDoStatement.WasCompilerGenerated;
-            return new LazyWhileLoopStatement(condition, body, ignoredCondition, locals, continueLabel: null, exitLabel: null, conditionIsTop, conditionIsUntil, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyWhileLoopStatement(condition, body, ignoredCondition, locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IForLoopOperation CreateBoundForStatementOperation(BoundForStatement boundForStatement)
@@ -1409,11 +1413,13 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<ImmutableArray<IOperation>> atLoopBottom = new Lazy<ImmutableArray<IOperation>>(() => ToStatements(boundForStatement.Increment));
             ImmutableArray<ILocalSymbol> locals = boundForStatement.OuterLocals.As<ILocalSymbol>();
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundForStatement.Body));
+            ILabelSymbol continueLabel = boundForStatement.ContinueLabel;
+            ILabelSymbol exitLabel = boundForStatement.BreakLabel;
             SyntaxNode syntax = boundForStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundForStatement.WasCompilerGenerated;
-            return new LazyForLoopStatement(before, condition, atLoopBottom, locals, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyForLoopStatement(before, condition, atLoopBottom, locals, continueLabel, exitLabel, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IForEachLoopOperation CreateBoundForEachStatementOperation(BoundForEachStatement boundForEachStatement)
@@ -1439,22 +1445,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<IOperation> collection = new Lazy<IOperation>(() => Create(boundForEachStatement.Expression));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundForEachStatement.Body));
             Lazy<ImmutableArray<IOperation>> nextVariables = new Lazy<ImmutableArray<IOperation>>(() => ImmutableArray<IOperation>.Empty);
+            ILabelSymbol continueLabel = boundForEachStatement.ContinueLabel;
+            ILabelSymbol exitLabel = boundForEachStatement.BreakLabel;
             SyntaxNode syntax = boundForEachStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundForEachStatement.WasCompilerGenerated;
-            return new LazyForEachLoopStatement(locals, continueLabel: null, exitLabel: null, loopControlVariable, collection, nextVariables, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyForEachLoopStatement(locals, continueLabel, exitLabel, loopControlVariable, collection, nextVariables, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)
         {
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundSwitchStatement.Expression));
             Lazy<ImmutableArray<ISwitchCaseOperation>> cases = new Lazy<ImmutableArray<ISwitchCaseOperation>>(() => GetSwitchStatementCases(boundSwitchStatement));
+            ILabelSymbol exitLabel = boundSwitchStatement.BreakLabel;
             SyntaxNode syntax = boundSwitchStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundSwitchStatement.WasCompilerGenerated;
-            return new LazySwitchStatement(value, cases, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazySwitchStatement(value, cases, exitLabel: exitLabel, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ICaseClauseOperation CreateBoundSwitchLabelOperation(BoundSwitchLabel boundSwitchLabel)
@@ -1794,11 +1803,12 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundPatternSwitchStatement.Expression));
             Lazy<ImmutableArray<ISwitchCaseOperation>> cases = new Lazy<ImmutableArray<ISwitchCaseOperation>>(() => GetPatternSwitchStatementCases(boundPatternSwitchStatement));
+            ILabelSymbol exitLabel = boundPatternSwitchStatement.BreakLabel;
             SyntaxNode syntax = boundPatternSwitchStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundPatternSwitchStatement.WasCompilerGenerated;
-            return new LazySwitchStatement(value, cases, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazySwitchStatement(value, cases, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ICaseClauseOperation CreateBoundPatternSwitchLabelOperation(BoundPatternSwitchLabel boundPatternSwitchLabel)

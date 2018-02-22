@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Cases of the switch.
         /// </summary>
         ImmutableArray<ISwitchCaseOperation> Cases { get; }
+        /// <summary>
+        /// Exit label for the switch statement.
+        /// </summary>
+        ILabelSymbol ExitLabel { get; }
     }
 }
 
