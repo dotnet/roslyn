@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Roslyn.Utilities;
@@ -109,12 +111,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                         return null;
                     }
 
-                    var codeAnalysisQuickInfo = await service.GetQuickInfoAsync(document, triggerPoint, cancellationToken).ConfigureAwait(false);
-                    var newQuickInfo = WrapQuickInfoItem(triggerPoint, codeAnalysisQuickInfo);
+                    var item = await service.GetQuickInfoAsync(document, triggerPoint, cancellationToken).ConfigureAwait(false);
+                    if (item != null)
+                    {
+                        return ConvertQuickInfoItem(triggerPoint, item);
+                    }
 
-                    updateModel(triggerPoint, augmentSession, newQuickInfo);
-
-                    return newQuickInfo;
+                    return null;
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -123,17 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
         }
 
-        private void updateModel(SnapshotPoint triggerPoint, IAsyncQuickInfoSession augmentSession, VisualStudio.Language.Intellisense.QuickInfoItem newQuickInfo)
-        {
-            var line = triggerPoint.GetContainingLine();
-            var lineNumber = triggerPoint.GetContainingLine().LineNumber;
-            var lineSpan = this.SubjectBuffer.CurrentSnapshot.CreateTrackingSpan(
-                line.Extent,
-                SpanTrackingMode.EdgeInclusive);
-            sessionOpt.PresenterSession.PresentItem(lineSpan, newQuickInfo, augmentSession.Options == QuickInfoSessionOptions.TrackMouse);
-        }
-
-        private VisualStudio.Language.Intellisense.QuickInfoItem WrapQuickInfoItem(
+        private VisualStudio.Language.Intellisense.QuickInfoItem ConvertQuickInfoItem(
             SnapshotPoint triggerPoint,
             CodeAnalysis.QuickInfo.QuickInfoItem codeAnalysisQuickInfo)
         {
@@ -144,7 +137,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 line.Extent,
                 SpanTrackingMode.EdgeInclusive);
 
-            return new VisualStudio.Language.Intellisense.QuickInfoItem(lineSpan, codeAnalysisQuickInfo);
+            var textList = new List<ClassifiedTextRun>();
+            foreach(var section in codeAnalysisQuickInfo.Sections)
+            {
+                textList.Add(new ClassifiedTextRun(section.Kind, section.Text));
+            }
+
+            return new VisualStudio.Language.Intellisense.QuickInfoItem(lineSpan, new ClassifiedTextElement(textList));
         }
 
         public QuickInfoService GetService()
@@ -161,42 +160,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             return _service;
         }
-
-        private async Task<Model> ComputeModelInBackgroundAsync(
-               int position,
-               ITextSnapshot snapshot,
-               QuickInfoService service,
-               bool trackMouse,
-               CancellationToken cancellationToken)
-        {
-            try
-            {
-                AssertIsBackground();
-
-                using (Logger.LogBlock(FunctionId.QuickInfo_ModelComputation_ComputeModelInBackground, cancellationToken))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var document = await DocumentProvider.GetDocumentAsync(snapshot, cancellationToken).ConfigureAwait(false);
-                    if (document == null)
-                    {
-                        return null;
-                    }
-
-                    var item = await service.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-                    if (item != null)
-                    {
-                        return new Model(snapshot.Version, item, trackMouse);
-                    }
-
-                    return null;
-                }
-            }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
     }
 }
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
