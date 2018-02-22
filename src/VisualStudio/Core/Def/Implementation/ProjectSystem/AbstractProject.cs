@@ -51,6 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<string, IVisualStudioHostDocument> _documentMonikers = new Dictionary<string, IVisualStudioHostDocument>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, VisualStudioAnalyzer> _analyzers = new Dictionary<string, VisualStudioAnalyzer>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _additionalDocuments = new Dictionary<DocumentId, IVisualStudioHostDocument>();
+        private readonly Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>> _hierarchyEventSinks = new Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>>();
 
         /// <summary>
         /// The list of files which have been added to the project but we aren't tracking since they
@@ -868,6 +869,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 StartPushingToWorkspaceAndNotifyOfOpenDocuments(project);
             }
+
+            var itemId = document.GetItemId();
+
+            if (itemId != (uint)VSConstants.VSITEMID.Nil)
+            {
+                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(project.Hierarchy, itemId);
+
+                if (sharedHierarchy != null)
+                {
+                    project.ProjectTracker.NotifyWorkspace(workspace =>
+                    {
+                        var eventSink = new HierarchyEventsSink((VisualStudioWorkspaceImpl)workspace, sharedHierarchy, document.Id);
+                        if (ErrorHandler.Succeeded(sharedHierarchy.AdviseHierarchyEvents(eventSink, out var cookie)))
+                        {
+                            project._hierarchyEventSinks.MultiAdd(document.Id, (sharedHierarchy, cookie));
+                        }
+                    });
+                }
+            }
         }
 
         private static void OnDocumentClosing(object sender, bool updateActiveContext)
@@ -881,6 +901,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (project.PushingChangesToWorkspace)
             {
                 projectTracker.NotifyWorkspace(workspace => workspace.OnDocumentClosed(document.Id, document.Loader, updateActiveContext));
+            }
+
+            if (project._hierarchyEventSinks.TryGetValue(document.Id, out var subscribedSinks))
+            {
+                foreach (var subscribedSink in subscribedSinks)
+                {
+                    subscribedSink.hierarchy.UnadviseHierarchyEvents(subscribedSink.cookie);
+                }
+
+                project._hierarchyEventSinks.Remove(document.Id);
             }
         }
 
