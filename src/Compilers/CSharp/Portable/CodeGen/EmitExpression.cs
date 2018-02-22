@@ -359,9 +359,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 (receiverType.IsNullableType() && expression.HasValueMethodOpt != null), "conditional receiver cannot be a struct");
 
             var receiverConstant = receiver.ConstantValue;
-            if (receiverConstant != null)
+            if (receiverConstant?.IsNull == false)
             {
-                // const but not default, must be a reference type
+                // const but not null, must be a reference type
                 Debug.Assert(receiverType.IsVerifierReference());
                 // receiver is a reference type, so addresskind does not matter, but we do not intend to write.
                 receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly);

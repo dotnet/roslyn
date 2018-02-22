@@ -1557,6 +1557,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_AttributesOnBackingFieldsNotAvailable = 8371,
         ERR_DoNotUseFixedBufferAttrOnProperty = 8372,
 
-        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
+        ERR_ExprCannotBeFixed = 9365,
+        ERR_FixableHelperDoesNotFitThePattern = 9366,               
     }
+    // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 }

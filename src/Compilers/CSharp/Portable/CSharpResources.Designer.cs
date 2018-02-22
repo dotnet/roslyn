@@ -4283,6 +4283,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The given expression cannot be used in a fixed statement.
+        /// </summary>
+        internal static string ERR_ExprCannotBeFixed {
+            get {
+                return ResourceManager.GetString("ERR_ExprCannotBeFixed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected expression.
         /// </summary>
         internal static string ERR_ExpressionExpected {
@@ -4738,6 +4747,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_FileNotFound {
             get {
                 return ResourceManager.GetString("ERR_FileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The method &apos;{0}&apos; does not meet necessary requirements.
+        /// </summary>
+        internal static string ERR_FixableHelperDoesNotFitThePattern {
+            get {
+                return ResourceManager.GetString("ERR_FixableHelperDoesNotFitThePattern", resourceCulture);
             }
         }
         
@@ -10436,6 +10454,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureExpressionBodiedProperty {
             get {
                 return ResourceManager.GetString("IDS_FeatureExpressionBodiedProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to extensible fixed statement.
+        /// </summary>
+        internal static string IDS_FeatureExtensibleFixedStatement {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExtensibleFixedStatement", resourceCulture);
             }
         }
         

@@ -1458,9 +1458,9 @@ class C
 ";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             comp.VerifyDiagnostics(
-                // (6,26): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                // (6,26): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (byte* p = default)
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "default"),
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "default").WithLocation(6, 26),
                 // (9,27): error CS0211: Cannot take the address of the given expression
                 //         fixed (byte* p = &default)
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "default").WithLocation(9, 27)
@@ -1947,9 +1947,9 @@ class Program
             // Confusing, but matches Dev10.
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_1)
                 .VerifyDiagnostics(
-                // (6,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = default)
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "default").WithLocation(6, 25)
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "default").WithLocation(6, 25)
                 );
         }
 

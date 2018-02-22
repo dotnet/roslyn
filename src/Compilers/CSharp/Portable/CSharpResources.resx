@@ -927,6 +927,12 @@
   <data name="ERR_FixedNotNeeded" xml:space="preserve">
     <value>You cannot use the fixed statement to take the address of an already fixed expression</value>
   </data>
+  <data name="ERR_ExprCannotBeFixed" xml:space="preserve">
+    <value>The given expression cannot be used in a fixed statement</value>
+  </data>
+  <data name="ERR_FixableHelperDoesNotFitThePattern" xml:space="preserve">
+    <value>The method '{0}' does not meet necessary requirements</value>
+  </data>
   <data name="ERR_UnsafeNeeded" xml:space="preserve">
     <value>Pointers and fixed size buffers may only be used in an unsafe context</value>
   </data>
@@ -4266,6 +4272,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureRefConditional" xml:space="preserve">
     <value>ref conditional expression</value>
+  </data>
+  <data name="IDS_FeatureExtensibleFixedStatement" xml:space="preserve">
+    <value>extensible fixed statement</value>
   </data>
   <data name="CompilationC" xml:space="preserve">
     <value>Compilation (C#): </value>

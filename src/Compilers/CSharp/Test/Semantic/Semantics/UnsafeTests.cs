@@ -6145,15 +6145,15 @@ class NotPointer
 }
 ";
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,26): error CS0254: The right hand side of a fixed statement assignment may not be a cast expression
+                // (9,26): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (byte* p = (byte*)&x)
-                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(byte*)&x").WithLocation(9, 26),
-                // (13,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(byte*)&x").WithLocation(9, 26),
+                // (13,25): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = n) //CS0213 (confusing, but matches dev10)
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "n").WithLocation(13, 25),
-                // (17,25): error CS0254: The right hand side of a fixed statement assignment may not be a cast expression
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "n").WithLocation(13, 25),
+                // (17,25): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = (int*)n)
-                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(int*)n").WithLocation(17, 25),
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(int*)n").WithLocation(17, 25),
                 // (5,23): warning CS0649: Field 'C.n' is never assigned to, and will always have its default value null
                 //     public NotPointer n;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "n").WithArguments("C.n", "null").WithLocation(5, 23)
@@ -6243,9 +6243,9 @@ class Program
 }
 ";
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
-                //         fixed (int* p = stackalloc int[2])
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "stackalloc int[2]"));
+                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = stackalloc int[2]) //CS0213 - already fixed
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "stackalloc int[2]").WithLocation(6, 25));
         }
 
         [Fact]
@@ -6315,9 +6315,9 @@ class Program
 ";
             // Confusing, but matches Dev10.
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = null)
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "null").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "null").WithLocation(6, 25),
                 // (10,26): error CS0211: Cannot take the address of the given expression
                 //         fixed (int* p = &null)
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "null").WithLocation(10, 26),
@@ -6327,9 +6327,9 @@ class Program
                 // (18,26): error CS0103: The name '_' does not exist in the current context
                 //         fixed (int* p = &_)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(18, 26),
-                // (22,25): error CS1660: Cannot convert lambda expression to type 'int*' because it is not a delegate type
+                // (22,25): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = ()=>throw null)
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "()=>throw null").WithArguments("lambda expression", "int*").WithLocation(22, 25),
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "()=>throw null").WithLocation(22, 25),
                 // (26,27): error CS0211: Cannot take the address of the given expression
                 //         fixed (int* p = &(()=>throw null))
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "()=>throw null").WithLocation(26, 27)
@@ -6351,9 +6351,9 @@ class Program
 }
 ";
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,26): error CS1660: Cannot convert lambda expression to type 'int*' because it is not a delegate type
+                // (6,26): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = (x => x))
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x => x").WithArguments("lambda expression", "int*"));
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "x => x").WithLocation(6, 26));
         }
 
         [Fact]
@@ -6371,9 +6371,9 @@ class Program
 }
 ";
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS0428: Cannot convert method group 'Main' to non-delegate type 'int*'. Did you intend to invoke the method?
+                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = Main)
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "int*"));
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "Main").WithLocation(6, 25));
         }
 
         [Fact]

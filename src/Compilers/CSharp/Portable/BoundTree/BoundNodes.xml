@@ -598,6 +598,9 @@
     
     <!-- Wrapped expression. -->
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+
+    <!-- optional method that returns a pinnable reference for the instance -->
+    <Field Name="GetPinnableOpt" Type="MethodSymbol" Null="allow"/>
   </Node>
 
   <AbstractNode Name="BoundStatement" Base="BoundNode"/>
