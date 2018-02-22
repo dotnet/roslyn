@@ -4,33 +4,40 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using System.Threading;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.FindReferences
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.FindReferences, ContentTypeNames.RoslynContentType)]
-    internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Name(PredefinedCommandHandlerNames.FindReferences)]
+    internal class FindReferencesCommandHandler : VSCommanding.ICommandHandler<FindReferencesCommandArgs>
     {
         private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _synchronousPresenters;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
 
-        private readonly IWaitIndicator _waitIndicator;
         private readonly IAsynchronousOperationListener _asyncListener;
+
+        public string DisplayName => EditorFeaturesResources.Find_References;
 
         [ImportingConstructor]
         internal FindReferencesCommandHandler(
-            IWaitIndicator waitIndicator,
             [ImportMany] IEnumerable<IDefinitionsAndReferencesPresenter> synchronousPresenters,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             IAsynchronousOperationListenerProvider listenerProvider)
@@ -39,18 +46,17 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             Contract.ThrowIfNull(streamingPresenters);
             Contract.ThrowIfNull(listenerProvider);
 
-            _waitIndicator = waitIndicator;
             _synchronousPresenters = synchronousPresenters;
             _streamingPresenters = streamingPresenters;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
         }
 
-        public CommandState GetCommandState(FindReferencesCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(FindReferencesCommandArgs args)
         {
-            return nextHandler();
+            return VSCommanding.CommandState.Unspecified;
         }
 
-        public void ExecuteCommand(FindReferencesCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(FindReferencesCommandArgs args, CommandExecutionContext context)
         {
             // Get the selection that user has in our buffer (this also works if there
             // is no selection and the caret is just at a single position).  If we 
@@ -68,17 +74,17 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                     // user has selected a symbol that has another symbol touching it
                     // on the right (i.e.  Goo++  ), then we'll do the find-refs on the
                     // symbol selected, not the symbol following.
-                    if (TryExecuteCommand(selectedSpan.Start, document))
+                    if (TryExecuteCommand(selectedSpan.Start, document, context))
                     {
-                        return;
+                        return true;
                     }
                 }
             }
 
-            nextHandler();
+            return false;
         }
 
-        private bool TryExecuteCommand(int caretPosition, Document document)
+        private bool TryExecuteCommand(int caretPosition, Document document, CommandExecutionContext context)
         {
             var streamingService = document.GetLanguageService<IFindUsagesService>();
             var streamingPresenter = GetStreamingPresenter();
@@ -99,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             var synchronousService = document.GetLanguageService<IFindReferencesService>();
             if (synchronousService != null)
             {
-                FindReferences(document, synchronousService, caretPosition);
+                FindReferences(document, synchronousService, caretPosition, context);
                 return true;
             }
 
@@ -157,29 +163,24 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         }
 
         internal void FindReferences(
-            Document document, IFindReferencesService service, int caretPosition)
+            Document document, IFindReferencesService service, int caretPosition, CommandExecutionContext context)
         {
-            _waitIndicator.Wait(
-                title: EditorFeaturesResources.Find_References,
-                message: EditorFeaturesResources.Finding_references,
-                action: context =>
+            using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_references))
+            using (Logger.LogBlock(
+                FunctionId.CommandHandler_FindAllReference,
+                KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "legacy"),
+                context.OperationContext.UserCancellationToken))
+            {
+                if (!service.TryFindReferences(document, caretPosition, new WaitContextAdapter(waitScope)))
                 {
-                    using (Logger.LogBlock(
-                        FunctionId.CommandHandler_FindAllReference,
-                        KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "legacy"),
-                        context.CancellationToken))
+                    // The service failed, so just present an empty list of references
+                    foreach (var presenter in _synchronousPresenters)
                     {
-                        if (!service.TryFindReferences(document, caretPosition, context))
-                        {
-                            // The service failed, so just present an empty list of references
-                            foreach (var presenter in _synchronousPresenters)
-                            {
-                                presenter.DisplayResult(DefinitionsAndReferences.Empty);
-                                return;
-                            }
-                        }
+                        presenter.DisplayResult(DefinitionsAndReferences.Empty);
+                        return;
                     }
-                }, allowCancel: true);
+                }
+            }
         }
     }
 }
