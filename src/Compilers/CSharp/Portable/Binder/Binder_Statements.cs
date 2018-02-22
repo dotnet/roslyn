@@ -1057,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol elementType;
             bool hasErrors = false;
-            MethodSymbol fixedpatternMethod = null;
+            MethodSymbol fixedPatternMethod = null;
 
             switch (initializerOpt.Kind)
             {
@@ -1088,21 +1088,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // check for a special ref-returning method
                     var additionalDiagnostics = DiagnosticBag.GetInstance();
-                    fixedpatternMethod = GetFixedPatternMethodOpt(initializerOpt, additionalDiagnostics);
+                    fixedPatternMethod = GetFixedPatternMethodOpt(initializerOpt, additionalDiagnostics);
 
                     // check for String
                     // NOTE: We will allow the pattern method to take precendence, but only if it is an instance member of System.String
                     if (initializerType.SpecialType == SpecialType.System_String &&
-                        ((object)fixedpatternMethod == null || fixedpatternMethod.ContainingType.SpecialType != SpecialType.System_String))
+                        ((object)fixedPatternMethod == null || fixedPatternMethod.ContainingType.SpecialType != SpecialType.System_String))
                     {
                         elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
                         additionalDiagnostics.Free();
                         break;
                     }
 
-                    if ((object)fixedpatternMethod != null)
+                    if ((object)fixedPatternMethod != null)
                     {
-                        elementType = fixedpatternMethod.ReturnType;
+                        elementType = fixedPatternMethod.ReturnType;
                         CheckFeatureAvailability(initializerOpt.Syntax, MessageID.IDS_FeatureExtensibleFixedStatement, diagnostics);
                         additionalDiagnostics.Free();
                         break;
@@ -1127,7 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, fixedpatternMethod, hasErrors, diagnostics);
+            initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, fixedPatternMethod, hasErrors, diagnostics);
             return true;
         }
 
