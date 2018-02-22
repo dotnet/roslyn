@@ -164,8 +164,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     if (isNamedArgument || NonParamsParameterCount(method) < arguments.Count)
                     {
                         var argumentToAdd = DetermineFirstArgumentToAdd(
-                        semanticModel, syntaxFacts, comparer, method,
-                        arguments, argumentOpt);
+                            semanticModel, syntaxFacts, comparer, method,
+                            arguments, argumentOpt);
 
                         if (argumentToAdd != null)
                         {
@@ -204,29 +204,26 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var methodToUpdate = argumentInsertPositionData.MethodToUpdate;
                 var argumentToInsert = argumentInsertPositionData.ArgumentToInsert;
                 var parameters = methodToUpdate.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
+
                 var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, methodToUpdate, parameters);
                 var hasCascadingDeclarations = HasCascadingDeclarations(methodToUpdate);
-
-                var codeFixForDeclarationOnly = new MyCodeAction(title,
+                CodeAction codeAction = new MyCodeAction(title,
                     c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c));
                 if (hasCascadingDeclarations)
                 {
+                    // Offer another alternative code action. Wrap both options so the IDE can collapse them.
                     var titleForCascadingFix = GetCodeFixTitle(
                         FeaturesResources.Add_parameter_to_0_including_overrides_implementations, methodToUpdate, parameters);
-
-                    context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(title, ImmutableArray.Create<CodeAction>(
-                            codeFixForDeclarationOnly,
+                    codeAction = new CodeAction.CodeActionWithNestedActions(
+                        title: title,
+                        isInlinable: true,
+                        nestedActions: ImmutableArray.Create<CodeAction>(
+                            codeAction,
                             new MyCodeAction(titleForCascadingFix,
-                                c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))),
-                            isInlinable: true),
-                        context.Diagnostics);
+                                c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))));
                 }
-                else
-                {
-                    context.RegisterCodeFix(
-                        codeFixForDeclarationOnly,
-                        context.Diagnostics);
-                }
+
+                context.RegisterCodeFix(codeAction, context.Diagnostics);
             }
         }
 
