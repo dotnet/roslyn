@@ -152,7 +152,7 @@ namespace Roslyn.Test.Utilities
 
             if (!ilStream.IsDefault)
             {
-                visualizer.DumpMethod(sb, builder.MaxStack, ilStream, locals, GetHandlerSpans(builder.RealizedExceptionHandlers), markers);
+                visualizer.DumpMethod(sb, builder.MaxStack, ilStream, locals, GetHandlerSpans(builder.RealizedExceptionHandlers), markers, builder.AreLocalsZeroed);
             }
             else
             {

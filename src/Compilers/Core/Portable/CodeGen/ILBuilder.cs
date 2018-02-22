@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private SyntaxTree _lastSeqPointTree;
 
         private readonly SmallDictionary<object, LabelInfo> _labelInfos;
+        private readonly bool _areLocalsZeroed;
         private int _instructionCountAtLastLabel = -1;
 
         // This data is only relevant when builder has been realized.
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // created, in particular for leader blocks in exception handlers.
         private bool _pendingBlockCreate;
 
-        internal ILBuilder(ITokenDeferral module, LocalSlotManager localSlotManager, OptimizationLevel optimizations)
+        internal ILBuilder(ITokenDeferral module, LocalSlotManager localSlotManager, OptimizationLevel optimizations, bool areLocalsZeroed)
         {
             Debug.Assert(BitConverter.IsLittleEndian);
 
@@ -75,7 +76,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             _labelInfos = new SmallDictionary<object, LabelInfo>(ReferenceEqualityComparer.Instance);
             _optimizations = optimizations;
+            _areLocalsZeroed = areLocalsZeroed;
         }
+
+        public bool AreLocalsZeroed => _areLocalsZeroed;
 
         private BasicBlock GetCurrentBlock()
         {

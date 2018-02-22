@@ -340,6 +340,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override DllImportData GetDllImportData() => null;
 
+        public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
+
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;

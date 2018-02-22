@@ -334,6 +334,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { return true; }
+        }
+
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
             get { return null; }

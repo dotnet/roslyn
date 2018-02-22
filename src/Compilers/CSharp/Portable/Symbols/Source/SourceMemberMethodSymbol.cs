@@ -358,6 +358,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get
+            {
+                var data = this.GetDecodedWellKnownAttributeData();
+                return data != null ? !data.HasSkipLocalsInitAttribute : true;
+            }
+        }
+
         #region Flags
 
         public override bool ReturnsVoid
@@ -1127,6 +1136,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            {
+                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasSkipLocalsInitAttribute = true;
             }
             else
             {

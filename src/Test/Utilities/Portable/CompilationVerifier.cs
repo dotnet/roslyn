@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public ImmutableArray<byte> EmittedAssemblyData;
         public ImmutableArray<byte> EmittedAssemblyPdb;
 
-        private readonly Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, string> _visualizeRealIL;
+        private readonly Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, bool, string> _visualizeRealIL;
 
         internal CompilationVerifier(
             Compilation compilation,
-            Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, string> visualizeRealIL = null,
+            Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, bool, string> visualizeRealIL = null,
             IEnumerable<ModuleData> dependencies = null)
         {
             _compilation = compilation;
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _lazyModuleSymbol = GetSymbolFromMetadata(targetReference, MetadataImportOptions.All);
             }
 
-            return _lazyModuleSymbol != null ? _visualizeRealIL(_lazyModuleSymbol, methodData, markers) : null;
+            return _lazyModuleSymbol != null ? _visualizeRealIL(_lazyModuleSymbol, methodData, markers, _testData.Module.GetMethodBody(methodData.Method).AreLocalsZeroed) : null;
         }
 
         public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)

@@ -30,6 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get
+            {
+                return true;
+            }
+        }
+
         internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
             Debug.Assert(!IsStatic);

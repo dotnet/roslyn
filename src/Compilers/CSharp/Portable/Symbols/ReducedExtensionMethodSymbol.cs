@@ -183,6 +183,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _reducedFrom.GetDllImportData();
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
             get { return _reducedFrom.ReturnValueMarshallingInformation; }

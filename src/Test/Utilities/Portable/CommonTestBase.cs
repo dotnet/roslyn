@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         #region IL Verification
 
-        internal abstract string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers);
+        internal abstract string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed);
 
         #endregion
 
