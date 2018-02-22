@@ -511,8 +511,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void LogLoopStatementHeader(ILoopOperation operation)
         {
-            var kindStr = $"{nameof(LoopKind)}.{operation.LoopKind}";
-            LogString($" ({kindStr})");
+            var propertyStringBuilder = new StringBuilder();
+            propertyStringBuilder.Append(" (");
+            propertyStringBuilder.Append($"{nameof(LoopKind)}.{operation.LoopKind}");
+            if (operation.ContinueLabel != null)
+            {
+                propertyStringBuilder.Append(", ContinueLabel");
+            }
+            if (operation.ExitLabel != null)
+            {
+                propertyStringBuilder.Append(", ExitLabel");
+            }
+            propertyStringBuilder.Append(")");
+            LogString(propertyStringBuilder.ToString());
             LogCommonPropertiesAndNewLine(operation);
 
             LogLocals(operation.Locals);
@@ -581,6 +592,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitTry(ITryOperation operation)
         {
             LogString(nameof(ITryOperation));
+            if (operation.ExitLabel != null)
+            {
+                LogString($" (ExitLabel)");
+            }
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Body, "Body");
@@ -1287,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 Unindent();
             }
-            
+
             base.VisitPropertyInitializer(operation);
         }
 

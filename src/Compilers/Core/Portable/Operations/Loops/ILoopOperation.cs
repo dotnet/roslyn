@@ -30,6 +30,14 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Declared locals.
         /// </summary>
         ImmutableArray<ILocalSymbol> Locals { get; }
+        /// <summary>
+        /// Loop continue label. This will always be null in C#.
+        /// </summary>
+        ILabelSymbol ContinueLabel { get; }
+        /// <summary>
+        /// Loop exit label. This will always be null in C#. This can be null in VB if the loop is nested inside another loop and shares a <code>Next</code> statement.
+        /// </summary>
+        ILabelSymbol ExitLabel { get; }
     }
 }
 
