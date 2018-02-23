@@ -57,6 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         {
             AssertIsForeground();
 
+            Contract.ThrowIfFalse(IsSupported(visualStudioWorkspace));
+
             lock (_gate)
             {
                 if (visualStudioWorkspace.CurrentSolution.Id == _currentSolutionId && _currentWorkingFolderPath != null)
