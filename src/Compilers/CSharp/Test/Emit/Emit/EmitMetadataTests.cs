@@ -750,8 +750,8 @@ class Derived<T, U> : Base<T, U>
                 Assert.Equal(baseType.Arity, 2);
 
                 Assert.Equal(derivedType.BaseType(), baseType);
-                Assert.Same(baseType.TypeArguments()[0].TypeSymbol, derivedType.TypeParameters[0]);
-                Assert.Same(baseType.TypeArguments()[1].TypeSymbol, derivedType.TypeParameters[1]);
+                Assert.Same(baseType.TypeArguments()[0], derivedType.TypeParameters[0]);
+                Assert.Same(baseType.TypeArguments()[1], derivedType.TypeParameters[1]);
             };
             CompileAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
         }

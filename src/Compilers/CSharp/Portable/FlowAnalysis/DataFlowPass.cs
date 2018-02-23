@@ -24,6 +24,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1101,11 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LocalSymbol symbol = local.LocalSymbol;
                         int slot = GetOrCreateSlot(symbol);
                         SetSlotState(slot, assigned: written || !this.State.Reachable);
-                        if (written)
-                        {
-                            NoteWrite(symbol, value, read);
-                        }
-
+                        if (written) NoteWrite(symbol, value, read);
                         break;
                     }
 
@@ -1122,27 +1119,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             int slot = MakeSlot(local);
                             SetSlotState(slot, written);
-                            if (written)
-                            {
-                                NoteWrite(local, value, read);
-                            }
+                            if (written) NoteWrite(local, value, read);
                         }
                         break;
                     }
 
                 case BoundKind.Parameter:
-                case BoundKind.FieldAccess:
                 case BoundKind.ThisReference:
+                case BoundKind.FieldAccess:
                 case BoundKind.EventAccess:
                 case BoundKind.PropertyAccess:
                     {
                         var expression = (BoundExpression)node;
                         int slot = MakeSlot(expression);
                         SetSlotState(slot, written);
-                        if (written)
-                        {
-                            NoteWrite(expression, value, read);
-                        }
+                        if (written) NoteWrite(expression, value, read);
                         break;
                     }
 
@@ -1288,7 +1279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState AllBitsSet()
         {
-            LocalState result = new LocalState(BitVector.AllSet(nextVariableSlot));
+            var result = new LocalState(BitVector.AllSet(nextVariableSlot));
             result.Assigned[0] = false;
             return result;
         }
@@ -1348,7 +1339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState UnreachableState()
         {
-            var result = this.State.Clone();
+            LocalState result = this.State.Clone();
             result.Assigned.EnsureCapacity(1);
             result.Assign(0);
             return result;
@@ -1398,6 +1389,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportUnusedVariables(node.LocalFunctions);
 
             return null;
+        }
+
+        private void VisitStatementsWithLocalFunctions(BoundBlock block)
+        {
+            // Visit the statements in two phases:
+            //   1. Local function declarations
+            //   2. Everything else
+            //
+            // The idea behind visiting local functions first is
+            // that we may be able to gather the captured variables
+            // they read and write ahead of time in a single pass, so
+            // when they are used by other statements in the block we
+            // won't have to recompute the set by doing multiple passes.
+            //
+            // If the local functions contain forward calls to other local
+            // functions then we may have to do another pass regardless,
+            // but hopefully that will be an uncommon case in real-world code.
+
+            // First phase
+            if (!block.LocalFunctions.IsDefaultOrEmpty)
+            {
+                foreach (var stmt in block.Statements)
+                {
+                    if (stmt.Kind == BoundKind.LocalFunctionStatement)
+                    {
+                        VisitAlways(stmt);
+                    }
+                }
+            }
+
+            // Second phase
+            foreach (var stmt in block.Statements)
+            {
+                if (stmt.Kind != BoundKind.LocalFunctionStatement)
+                {
+                    VisitStatement(stmt);
+                }
+            }
         }
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
@@ -1625,20 +1654,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (method.MethodKind == MethodKind.LocalFunction)
                 {
                     _usedLocalFunctions.Add((LocalFunctionSymbol)method);
-                    CheckAssigned(method, node.Syntax);
                 }
             }
-
-            Debug.Assert(!IsConditionalState);
-
-            BoundExpression receiverOpt = node.ReceiverOpt;
-            if (receiverOpt != null)
-            {
-                // An explicit or implicit receiver, for example in an expression such as (x.Foo is Action, or Foo is Action), is considered to be read.
-                VisitRvalue(receiverOpt);
-            }
-
-            return null;
+            return base.VisitMethodGroup(node);
         }
 
         public override BoundNode VisitLambda(BoundLambda node)
@@ -1647,8 +1665,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.currentMethodOrLambda = node.Symbol;
 
             var oldPending = SavePending(); // we do not support branches into a lambda
-            LocalState finalState = this.State;
+
+            // State after the lambda declaration
+            LocalState stateAfterLambda = this.State;
+
             this.State = this.State.Reachable ? this.State.Clone() : AllBitsSet();
+
             if (!node.WasCompilerGenerated) EnterParameters(node.Symbol.Parameters);
             var oldPending2 = SavePending();
             VisitAlways(node.Body);
@@ -1656,7 +1678,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
             RestorePending(oldPending);
             LeaveParameters(node.Symbol.Parameters, node.Syntax, null);
-            IntersectWith(ref finalState, ref this.State); // a no-op except in region analysis
+
+            IntersectWith(ref stateAfterLambda, ref this.State); // a no-op except in region analysis
             foreach (PendingBranch pending in pendingReturns)
             {
                 this.State = pending.State;
@@ -1670,10 +1693,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // other ways of branching out of a lambda are errors, previously reported in control-flow analysis
                 }
 
-                IntersectWith(ref finalState, ref this.State); // a no-op except in region analysis
+                IntersectWith(ref stateAfterLambda, ref this.State); // a no-op except in region analysis
             }
 
-            this.State = finalState;
+            this.State = stateAfterLambda;
 
             this.currentMethodOrLambda = oldMethodOrLambda;
             return null;
@@ -1769,6 +1792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitAddressOfOperand(node.Operand, shouldReadOperand);
+
             return null;
         }
 
@@ -1878,7 +1902,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #region TryStatements
-
         private OptionalState _tryState;
 
         protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref LocalState tryState)
@@ -2000,7 +2023,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
             var result = base.VisitPropertyAccess(node);
-
             if (Binder.AccessingAutoPropertyFromConstructor(node, this.currentMethodOrLambda))
             {
                 var property = node.PropertySymbol;
@@ -2018,7 +2040,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-
             return result;
         }
 

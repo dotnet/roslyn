@@ -489,7 +489,7 @@ class C
                 // public static ValueTuple Field7;
                 var field7 = _derivedClass.GetMember<FieldSymbol>("Field7");
                 ValidateTupleNameAttribute(field7.GetAttributes(), expectedTupleNamesAttribute: false);
-                Assert.False(field7.Type.IsTupleType);
+                Assert.False(field7.Type.TypeSymbol.IsTupleType);
 
                 // public static (int e1, int e2, int e3, int e4, int e5, int e6, int e7, int e8, int e9) Field8;
                 var field8 = _derivedClass.GetMember<FieldSymbol>("Field8");
@@ -927,8 +927,8 @@ public interface I3<T>
                 void verifyTupleImpls(NamedTypeSymbol t, string[] tupleNames)
                 {
                     var typeParam = t.TypeParameters.Single();
-                    var constraint = (NamedTypeSymbol)typeParam.ConstraintTypes.Single().TypeSymbol;
-                    var typeArg = constraint.TypeArguments.Single().TypeSymbol;
+                    var constraint = (NamedTypeSymbol)typeParam.ConstraintTypes().Single();
+                    var typeArg = constraint.TypeArguments().Single();
                     Assert.True(typeArg.IsTupleType);
                     Assert.Equal(tupleNames, typeArg.TupleElementNames);
                 }
@@ -1026,8 +1026,8 @@ public interface I3 : I1<(int c, int d)> {}";
 
                 void VerifyTupleImpls(NamedTypeSymbol t, string[] tupleNames)
                 {
-                    var interfaceImpl = t.Interfaces.Single();
-                    var typeArg = interfaceImpl.TypeArguments.Single().TypeSymbol;
+                    var interfaceImpl = t.Interfaces().Single();
+                    var typeArg = interfaceImpl.TypeArguments().Single();
                     Assert.True(typeArg.IsTupleType);
                     Assert.Equal(tupleNames, typeArg.TupleElementNames);
                 }

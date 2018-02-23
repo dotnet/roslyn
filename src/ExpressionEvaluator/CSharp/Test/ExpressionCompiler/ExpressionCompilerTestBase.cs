@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         internal static void VerifyTypeParameters(NamedTypeSymbol type)
         {
             AssertEx.All(type.TypeParameters, typeParameter => type.IsContainingSymbolOfAllTypeParameters(typeParameter));
-            AssertEx.All(type.TypeArguments(), typeArgument => type.IsContainingSymbolOfAllTypeParameters(typeArgument.TypeSymbol));
+            AssertEx.All(type.TypeArguments(), typeArgument => type.IsContainingSymbolOfAllTypeParameters(typeArgument));
             var container = type.ContainingType;
             if ((object)container != null)
             {
@@ -420,18 +420,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     Assert.Empty(attributes);
                 }
             }
-        }
-
-        internal static SynthesizedAttributeData GetNullableAttributeIfAny(IMethodSymbol method)
-        {
-            return GetAttributeIfAny(method, "System.Runtime.CompilerServices.NullableAttribute");
-        }
-
-        internal static SynthesizedAttributeData GetAttributeIfAny(IMethodSymbol method, string typeName)
-        {
-            return ((MethodSymbol)method).GetSynthesizedAttributes(forReturnType: true).
-                Where(a => a.AttributeClass.ToTestDisplayString() == typeName).
-                SingleOrDefault();
         }
     }
 }

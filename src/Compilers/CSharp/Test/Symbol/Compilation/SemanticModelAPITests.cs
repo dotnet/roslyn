@@ -365,7 +365,7 @@ class A<T> {}
             var bt = b.TypeParameters.First();
 
             Assert.Equal(a.OriginalDefinition, at2.OriginalDefinition);
-            Assert.Equal(b.TypeParameters.First(), at2.TypeArguments().First().TypeSymbol);
+            Assert.Equal(b.TypeParameters.First(), at2.TypeArguments().First());
         }
 
         [Fact]
@@ -3359,7 +3359,7 @@ class Program
             Assert.Equal(SymbolKind.NamedType, newSymbol.Kind);
             Assert.Equal("System.Collections.Generic.List<T>", newSymbol.ToTestDisplayString());
 
-            Assert.False(((NamedTypeSymbol)newSymbol).TypeArguments().Single().TypeSymbol.IsErrorType());
+            Assert.False(((NamedTypeSymbol)newSymbol).TypeArguments().Single().IsErrorType());
             Assert.True(newSymbol.Equals(oldSymbol));
         }
 

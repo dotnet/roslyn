@@ -283,10 +283,10 @@ class B2 : A<object?>
                 var type = module.ContainingAssembly.GetTypeByMetadataName("A`1");
                 AssertNoNullableAttribute(type.GetAttributes());
                 type = module.ContainingAssembly.GetTypeByMetadataName("B1");
-                AssertNoNullableAttribute(type.BaseType.GetAttributes());
+                AssertNoNullableAttribute(type.BaseType().GetAttributes());
                 AssertNoNullableAttribute(type.GetAttributes());
                 type = module.ContainingAssembly.GetTypeByMetadataName("B2");
-                AssertNoNullableAttribute(type.BaseType.GetAttributes());
+                AssertNoNullableAttribute(type.BaseType().GetAttributes());
                 AssertNullableAttribute(type.GetAttributes());
             });
         }
@@ -312,10 +312,10 @@ public class B : I<(object X, object? Y)>
                 var type = module.ContainingAssembly.GetTypeByMetadataName("I`1");
                 AssertNoNullableAttribute(type.GetAttributes());
                 type = module.ContainingAssembly.GetTypeByMetadataName("A");
-                AssertNoNullableAttribute(type.Interfaces.Single().GetAttributes());
+                AssertNoNullableAttribute(type.Interfaces().Single().GetAttributes());
                 AssertNoNullableAttribute(type.GetAttributes());
                 type = module.ContainingAssembly.GetTypeByMetadataName("B");
-                AssertNoNullableAttribute(type.Interfaces.Single().GetAttributes());
+                AssertNoNullableAttribute(type.Interfaces().Single().GetAttributes());
                 // No [Nullable] or [TupleElementNames] attributes on 'B' but
                 // there should be attributes on the interfaceimpl.
                 AssertNoNullableAttribute(type.GetAttributes());

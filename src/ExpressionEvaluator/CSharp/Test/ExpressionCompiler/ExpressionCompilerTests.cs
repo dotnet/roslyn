@@ -2009,7 +2009,7 @@ class C<T>
                 var methodData = testData.GetMethodData("<>x<T>.<>c.<<>m0>b__0_0");
                 var method = (MethodSymbol)methodData.Method;
                 var containingType = method.ContainingType;
-                var returnType = (NamedTypeSymbol)method.ReturnType;
+                var returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
                 // Return type E<T> with type argument T from <>c<T>.
                 Assert.Equal(returnType.TypeArguments()[0].ContainingSymbol, containingType.ContainingType);
                 var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
@@ -2022,23 +2022,7 @@ class C<T>
                     Assert.Equal(typeArg.ContainingSymbol, containingType.ContainingType);
                 }
 
-            var methodData = testData.GetMethodData("<>x<T>.<>c.<<>m0>b__0_0");
-            var method = (MethodSymbol)methodData.Method;
-            var containingType = method.ContainingType;
-            var returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
-            // Return type E<T> with type argument T from <>c<T>.
-            Assert.Equal(returnType.TypeArguments[0].TypeSymbol.ContainingSymbol, containingType.ContainingType);
-            var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
-            Assert.Equal(1, locals.Length);
-            // All locals of type E<T> with type argument T from <>c<T>.
-            foreach (var local in locals)
-            {
-                var localType = (NamedTypeSymbol)local.Type;
-                var typeArg = localType.TypeArguments[0].TypeSymbol;
-                Assert.Equal(typeArg.ContainingSymbol, containingType.ContainingType);
-            }
-
-            methodData.VerifyIL(
+                methodData.VerifyIL(
 @"{
   // Code size       23 (0x17)
   .maxstack  1
@@ -6425,7 +6409,7 @@ public class Test
                 var context = CreateMethodContext(runtime, "C.Main");
                 string error;
                 var testData = new CompilationTestData();
-                context.CompileExpression("new object?[0]", out error, testData);
+                var result = context.CompileExpression("new object?[0]", out error, testData);
                 Assert.Null(error);
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 methodData.VerifyIL(
@@ -6436,7 +6420,18 @@ public class Test
   IL_0001:  newarr     ""object""
   IL_0006:  ret
 }");
-                Assert.NotNull(GetNullableAttributeIfAny(methodData.Method));
+                // Verify NullableAttribute is emitted.
+                using (var metadata = ModuleMetadata.CreateFromImage(ImmutableArray.CreateRange(result.Assembly)))
+                {
+                    var reader = metadata.MetadataReader;
+                    var typeDef = reader.GetTypeDef(result.TypeName);
+                    var methodHandle = reader.GetMethodDefHandle(typeDef, result.MethodName);
+                    var attributeHandle = reader.GetCustomAttributes(methodHandle).Single();
+                    var attribute = reader.GetCustomAttribute(attributeHandle);
+                    var attributeConstructor = reader.GetMethodDefinition((System.Reflection.Metadata.MethodDefinitionHandle)attribute.Constructor);
+                    var attributeTypeName = reader.GetString(reader.GetName(attributeConstructor.GetDeclaringType()));
+                    Assert.Equal("NullableAttribute", attributeTypeName);
+                }
             });
         }
 

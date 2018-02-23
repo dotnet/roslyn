@@ -2270,7 +2270,7 @@ public class C5 :
 
             Assert.Same(retval1.OriginalDefinition, type2);
 
-            var args1 = retval1.ContainingType.TypeArguments().Concat(retval1.TypeArguments().SelectAsArray(TypeMap.AsTypeSymbol));
+            var args1 = retval1.ContainingType.TypeArguments().Concat(retval1.TypeArguments());
             var params1 = retval1.ContainingType.TypeParameters.Concat(retval1.TypeParameters);
 
             Assert.Same(params1[0], type1.TypeParameters[0]);
@@ -2300,7 +2300,7 @@ public class C5 :
 
             Assert.Same(params3[0], type6.TypeParameters[0]);
             Assert.Same(params3[0].ContainingAssembly, asm5[1]);
-            Assert.Same(args3[0].TypeSymbol, type4);
+            Assert.Same(args3[0], type4);
 
             var foo1 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single();
             var retval4 = foo1.ReturnType.TypeSymbol;
@@ -2436,7 +2436,7 @@ public class C5 :
             var localC6Params = typeC6.TypeParameters;
             Assert.Equal(1, localC6Params.Length);
             Assert.Equal(1, typeC6.TypeArguments().Length);
-            Assert.Same(localC6Params[0], typeC6.TypeArguments()[0].TypeSymbol);
+            Assert.Same(localC6Params[0], typeC6.TypeArguments()[0]);
 
             Assert.Same(((RetargetingNamedTypeSymbol)type3).UnderlyingNamedType,
                 asm3.GlobalNamespace.GetTypeMembers("C3").Single());
@@ -2451,7 +2451,7 @@ public class C5 :
             Assert.Equal(0, localC6_T.ConstraintTypes().Length);
 
             Assert.Equal(1, foo3TypeParam.ConstraintTypes().Length);
-            Assert.Same(type4, foo3TypeParam.ConstraintTypes().Single().TypeSymbol);
+            Assert.Same(type4, foo3TypeParam.ConstraintTypes().Single());
 
             Assert.Same(typeC6, localC6_T.ContainingSymbol);
             Assert.False(foo3TypeParam.HasConstructorConstraint);

@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             // _lazyEmbeddedAttribute should have been created before calling this method.
             return new SynthesizedAttributeData(
-                _lazyEmbeddedAttribute.Constructor,
+                _lazyEmbeddedAttribute.Constructors[0],
                 ImmutableArray<TypedConstant>.Empty,
                 ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
         }

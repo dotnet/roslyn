@@ -728,8 +728,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert(StringOrdinalComparer.Equals(type.Name, other.Name));
                 // TODO: Test with overloads (from PE base class?) that have modifiers.
-                Debug.Assert(type.TypeArguments.All(t => t.CustomModifiers.IsEmpty));
-                Debug.Assert(other.TypeArguments.All(t => t.CustomModifiers.IsEmpty));
+                Debug.Assert(type.TypeArgumentsNoUseSiteDiagnostics.All(t => t.CustomModifiers.IsEmpty));
+                Debug.Assert(other.TypeArgumentsNoUseSiteDiagnostics.All(t => t.CustomModifiers.IsEmpty));
 
                 // Tuple types should be unwrapped to their underlying type before getting here (see MatchSymbols.VisitNamedType)
                 Debug.Assert(!type.IsTupleType);

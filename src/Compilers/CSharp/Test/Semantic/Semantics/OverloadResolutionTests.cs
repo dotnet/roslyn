@@ -714,7 +714,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 {
                     return underlyingType;
                 }
-                type = typeArgs[7].TypeSymbol;
+                type = typeArgs[7];
             }
             return null;
         }

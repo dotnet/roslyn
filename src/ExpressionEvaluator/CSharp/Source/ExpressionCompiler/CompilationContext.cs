@@ -1305,7 +1305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var name = local.Name;
                 if ((name != null) && (GeneratedNames.GetKind(name) == GeneratedNameKind.DisplayClassLocalOrField))
                 {
-                    if (displayClassTypes.Add(local.Type))
+                    if (displayClassTypes.Add(local.Type?.TypeSymbol))
                     {
                         var instance = new DisplayClassInstanceFromLocal((EELocalSymbol)local);
                         displayClassInstances.Add(new DisplayClassInstanceAndFields(instance));
@@ -1720,7 +1720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             internal DisplayClassInstanceAndFields FromField(FieldSymbol field)
             {
-                Debug.Assert(IsDisplayClassType(field.Type) ||
+                Debug.Assert(IsDisplayClassType(field.Type.TypeSymbol) ||
                     GeneratedNames.GetKind(field.Type.TypeSymbol.Name) == GeneratedNameKind.AnonymousType);
                 return new DisplayClassInstanceAndFields(this.Instance, this.Fields.Prepend(field));
             }

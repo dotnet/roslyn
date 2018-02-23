@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 for (var i = 0; i <= expArgs.Count() - 1; i++)
                 {
-                    if (!IsEqual(actArgs[i].TypeSymbol, expArgs[i]))
+                    if (!IsEqual(actArgs[i], expArgs[i]))
                     {
                         return false;
                     }
@@ -572,11 +572,11 @@ internal static class Extensions
 
     public static ImmutableArray<TypeSymbol> TypeArguments(this NamedTypeSymbol symbol)
     {
-        return symbol.TypeArgumentsNoUseSiteDiagnostics;
+        return TypeMap.AsTypeSymbols(symbol.TypeArgumentsNoUseSiteDiagnostics);
     }
 
     public static ImmutableArray<TypeSymbol> ConstraintTypes(this TypeParameterSymbol symbol)
     {
-        return symbol.ConstraintTypesNoUseSiteDiagnostics;
+        return TypeMap.AsTypeSymbols(symbol.ConstraintTypesNoUseSiteDiagnostics);
     }
 }

@@ -216,44 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return -1;
         }
 
-        protected void VisitStatementsWithLocalFunctions(BoundBlock block)
-        {
-            // Visit the statements in two phases:
-            //   1. Local function declarations
-            //   2. Everything else
-            //
-            // The idea behind visiting local functions first is
-            // that we may be able to gather the captured variables
-            // they read and write ahead of time in a single pass, so
-            // when they are used by other statements in the block we
-            // won't have to recompute the set by doing multiple passes.
-            //
-            // If the local functions contain forward calls to other local
-            // functions then we may have to do another pass regardless,
-            // but hopefully that will be an uncommon case in real-world code.
-
-            // First phase
-            if (!block.LocalFunctions.IsDefaultOrEmpty)
-            {
-                foreach (var stmt in block.Statements)
-                {
-                    if (stmt.Kind == BoundKind.LocalFunctionStatement)
-                    {
-                        VisitAlways(stmt);
-                    }
-                }
-            }
-
-            // Second phase
-            foreach (var stmt in block.Statements)
-            {
-                if (stmt.Kind != BoundKind.LocalFunctionStatement)
-                {
-                    VisitStatement(stmt);
-                }
-            }
-        }
-
         protected static TypeSymbolWithAnnotations VariableType(Symbol s)
         {
             switch (s.Kind)

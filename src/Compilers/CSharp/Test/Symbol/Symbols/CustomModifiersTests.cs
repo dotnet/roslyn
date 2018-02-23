@@ -288,9 +288,9 @@ class CL3
             Assert.Equal("void CL3.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) x)", test.ToTestDisplayString());
 
             var withModifiers = cl3.BaseType().BaseType();
-            var withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments().SelectAsArray(TypeMap.AsTypeSymbol));
-            Assert.True(withModifiers.HasTypeArgumentsCustomModifiers);
-            Assert.False(withoutModifiers.HasTypeArgumentsCustomModifiers);
+            var withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments());
+            Assert.True(HasTypeArgumentsCustomModifiers(withModifiers));
+            Assert.False(HasTypeArgumentsCustomModifiers(withoutModifiers));
             Assert.True(withoutModifiers.Equals(withModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Assert.NotEqual(withoutModifiers, withModifiers);
 
@@ -1516,7 +1516,7 @@ class Module1
             Assert.Equal("void Module1.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsLong)? x)", test.ToTestDisplayString());
 
             Assert.Same(compilation1.SourceModule.CorLibrary(), test.Parameters.First().Type.TypeSymbol.OriginalDefinition.ContainingAssembly);
-            Assert.Same(compilation1.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type.TypeSymbol).TypeArguments[0].CustomModifiers.First().Modifier.ContainingAssembly);
+            Assert.Same(compilation1.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].CustomModifiers.First().Modifier.ContainingAssembly);
 
             var compilation2 = CreateCompilationWithMscorlib45(new SyntaxTree[] { }, references: new[] { new CSharpCompilationReference(compilation1) });
 
@@ -1525,7 +1525,7 @@ class Module1
 
             Assert.IsType<CSharp.Symbols.Retargeting.RetargetingAssemblySymbol>(test.ContainingAssembly);
             Assert.Same(compilation2.SourceModule.CorLibrary(), test.Parameters.First().Type.TypeSymbol.OriginalDefinition.ContainingAssembly);
-            Assert.Same(compilation2.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type.TypeSymbol).TypeArguments[0].CustomModifiers.First().Modifier.ContainingAssembly);
+            Assert.Same(compilation2.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].CustomModifiers.First().Modifier.ContainingAssembly);
 
             Assert.NotSame(compilation1.SourceModule.CorLibrary(), compilation2.SourceModule.CorLibrary());
         }

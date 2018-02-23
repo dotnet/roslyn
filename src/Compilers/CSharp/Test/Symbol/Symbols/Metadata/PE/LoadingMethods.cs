@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var basicC1_M11 = (MethodSymbol)basicC1.GetMembers("M11").Single();
             Assert.Equal("T3 C1.M11<T2, T3>(T2 x)", basicC1_M11.ToTestDisplayString());
             Assert.Equal(0, basicC1_M11.TypeParameters[0].ConstraintTypes().Length);
-            Assert.Same(basicC1, basicC1_M11.TypeParameters[1].ConstraintTypes().Single().TypeSymbol);
+            Assert.Same(basicC1, basicC1_M11.TypeParameters[1].ConstraintTypes().Single());
 
             var basicC1_M12 = (MethodSymbol)basicC1.GetMembers("M12").Single();
             Assert.Equal(0, basicC1_M12.TypeArguments.Length);

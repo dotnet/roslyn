@@ -48,25 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
 
         /// <summary>
-        /// Returns custom modifiers for the type argument that has been substituted for the type parameter. 
-        /// The modifiers correspond to the type argument at the same ordinal within the <see cref="TypeArgumentsNoUseSiteDiagnostics"/>
-        /// array.
-        /// </summary>
-        public abstract ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal);
-
-        internal ImmutableArray<CustomModifier> GetEmptyTypeArgumentCustomModifiers(int ordinal)
-        {
-            if (ordinal < 0 || ordinal >= Arity)
-            {
-                throw new System.IndexOutOfRangeException();
-            }
-
-            return ImmutableArray<CustomModifier>.Empty;
-        }
-
-        internal abstract bool HasTypeArgumentsCustomModifiers { get; }
-
-        /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters. 
         /// If nothing has been substituted for a give type parameters,
         /// then the type parameter itself is consider the type argument.
@@ -776,15 +757,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if ((object)ConstructedFrom != this)
+            if ((object)ConstructedFrom != this &&
+                this.TypeArgumentsNoUseSiteDiagnostics.Any(arg => arg.ContainsNullableReferenceTypes()))
             {
-                foreach (TypeSymbolWithAnnotations arg in this.TypeArguments)
-                {
-                    if (arg.ContainsNullableReferenceTypes())
-                    {
-                        return true;
-                    }
-                }
+                return true;
             }
 
             return false;
@@ -794,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             ContainingType?.AddNullableTransforms(transforms);
 
-            foreach (TypeSymbolWithAnnotations arg in this.TypeArguments)
+            foreach (TypeSymbolWithAnnotations arg in this.TypeArgumentsNoUseSiteDiagnostics)
             {
                 arg.AddNullableTransforms(transforms);
             }

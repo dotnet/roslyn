@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            internal override RefKind RefKind
+            public override RefKind RefKind
             {
                 get
                 {
@@ -160,6 +160,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 throw ExceptionUtilities.Unreachable;
             }
+
+            internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
+
+            internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
         }
     }
 }

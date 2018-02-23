@@ -1249,7 +1249,7 @@ class C
         {
             CompileAndVerify(CreateCompilationWithMscorlib45(
                 source: GetNoCS1980String(typeName: @"Gen<dynamic>"),
-                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest)));
+                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)));
         }
 
         [Theory]
@@ -1259,7 +1259,7 @@ class C
         {
             var comp = CreateCompilationWithMscorlib45(
                 source: GetNoCS1980String(typeName: @"dynamic"),
-                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest));
+                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2));
 
             comp.VerifyDiagnostics(
                 // (2,7): error CS1962: The typeof operator cannot be used on the dynamic type
@@ -1300,7 +1300,7 @@ class C
 
             CompileAndVerify(CreateCompilationWithMscorlib45(
                 source: source,
-                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest)));
+                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)));
         }
 
         [Theory]
@@ -1329,7 +1329,7 @@ public class Gen2<T> : X    // CS1980
   }
 }";
 
-            CreateCompilationWithMscorlib45(source: source, parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source: source, parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)).VerifyDiagnostics(
                 // (21,24): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // public class Gen2<T> : X    // CS1980
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(21, 24),

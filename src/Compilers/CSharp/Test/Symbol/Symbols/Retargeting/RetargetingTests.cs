@@ -833,7 +833,7 @@ class C1<T>
             Assert.Equal(a.HasConstructorConstraint, b.HasConstructorConstraint);
             Assert.Equal(a.HasReferenceTypeConstraint, b.HasReferenceTypeConstraint);
             Assert.Equal(a.HasValueTypeConstraint, b.HasValueTypeConstraint);
-            CheckSymbols(a.ConstraintTypes().SelectAsArray(c => c.TypeSymbol), b.ConstraintTypes().SelectAsArray(c => c.TypeSymbol), false);
+            CheckSymbols(a.ConstraintTypes(), b.ConstraintTypes(), false);
         }
     }
 

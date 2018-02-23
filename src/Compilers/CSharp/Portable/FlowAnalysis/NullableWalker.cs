@@ -1305,7 +1305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
-            var isByRef = node.IsByRef;
+            var isByRef = node.IsRef;
 
             VisitCondition(node.Condition);
             var consequenceState = this.StateWhenTrue;
@@ -1571,6 +1571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Arguments.Length,
                 node.ArgsToParamsOpt,
                 refKinds,
+                isMethodGroupConversion: false,
                 // PROTOTYPE(NullableReferenceTypes): `allowRefOmittedArguments` should be
                 // false for constructors and several other cases (see Binder use). Should we
                 // capture the original value in the BoundCall?
@@ -2010,9 +2011,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Result right = _result;
 
             // byref assignment is also a potential write
-            if (node.RefKind != RefKind.None)
+            if (node.IsRef)
             {
-                WriteArgument(node.Right, node.RefKind, method: null);
+                WriteArgument(node.Right, node.Left.GetRefKind(), method: null);
             }
 
             if (node.Left.Kind == BoundKind.EventAccess && ((BoundEventAccess)node.Left).EventSymbol.IsWindowsRuntimeEvent)

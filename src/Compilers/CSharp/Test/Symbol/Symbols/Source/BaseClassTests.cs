@@ -461,7 +461,7 @@ class C : A, I<C.B> {}
             var cBase = c.BaseType();
             Assert.False(cBase.IsErrorType());
             Assert.Equal("A", cBase.Name);
-            Assert.True(c.Interfaces().Single().TypeArguments().Single().TypeSymbol.IsErrorType()); //can't see base of C while evaluating C.B
+            Assert.True(c.Interfaces().Single().TypeArguments().Single().IsErrorType()); //can't see base of C while evaluating C.B
         }
 
         [Fact]
@@ -1305,7 +1305,7 @@ namespace N2 {
             var b = n2.GetTypeMembers("B", 0).Single();
             var bt = b.BaseType();
             Assert.Equal(a, b.BaseType().OriginalDefinition);
-            Assert.Equal(b, (b.BaseType() as NamedTypeSymbol).TypeArguments()[0].TypeSymbol);
+            Assert.Equal(b, (b.BaseType() as NamedTypeSymbol).TypeArguments()[0]);
         }
 
         [Fact]
@@ -1337,7 +1337,7 @@ class C : G<C[,][]>
             var g = global.GetTypeMembers("G", 1).Single();
             var c = global.GetTypeMembers("C", 0).Single();
             Assert.Equal(g, c.BaseType().OriginalDefinition);
-            var garg = c.BaseType().TypeArguments()[0].TypeSymbol;
+            var garg = c.BaseType().TypeArguments()[0];
             Assert.Equal(SymbolKind.ArrayType, garg.Kind);
             var carr1 = garg as ArrayTypeSymbol;
             var carr2 = carr1.ElementType.TypeSymbol as ArrayTypeSymbol;

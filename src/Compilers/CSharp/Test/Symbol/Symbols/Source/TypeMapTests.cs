@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var nts = t as NamedTypeSymbol;
             Assert.NotEqual(null, nts);
             Assert.Equal(1, nts.Arity);
-            return nts.TypeArguments()[0].TypeSymbol;
+            return nts.TypeArguments()[0];
         }
 
         [Fact]

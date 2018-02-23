@@ -363,7 +363,7 @@ public class C4 : C3
                 NamedTypeSymbol iface = c.Interfaces()[0];
                 Assert.True(iface.IsGenericType);
                 Assert.Equal(1, iface.TypeArguments().Length);
-                TypeSymbol typeArg = iface.TypeArguments()[0].TypeSymbol;
+                TypeSymbol typeArg = iface.TypeArguments()[0];
                 Assert.True(typeArg.IsTupleType);
                 Assert.Equal(2, typeArg.TupleElementTypes.Length);
                 Assert.All(typeArg.TupleElementTypes,
@@ -377,7 +377,7 @@ public class C4 : C3
                 iface = @base.Interfaces()[0];
                 Assert.True(iface.IsGenericType);
                 Assert.Equal(1, iface.TypeArguments().Length);
-                typeArg = iface.TypeArguments()[0].TypeSymbol;
+                typeArg = iface.TypeArguments()[0];
                 Assert.True(typeArg.IsTupleType);
                 Assert.Equal(2, typeArg.TupleElementTypes.Length);
                 Assert.All(typeArg.TupleElementTypes,
@@ -389,7 +389,7 @@ public class C4 : C3
                 iface = c3.Interfaces()[0];
                 Assert.True(iface.IsGenericType);
                 Assert.Equal(1, iface.TypeArguments().Length);
-                typeArg = iface.TypeArguments()[0].TypeSymbol;
+                typeArg = iface.TypeArguments()[0];
                 Assert.True(typeArg.IsTupleType);
                 Assert.Equal(2, typeArg.TupleElementTypes.Length);
                 Assert.All(typeArg.TupleElementTypes,
@@ -401,7 +401,7 @@ public class C4 : C3
                 iface = d.Interfaces()[0];
                 Assert.True(iface.IsGenericType);
                 Assert.Equal(1, iface.TypeArguments().Length);
-                typeArg = iface.TypeArguments()[0].TypeSymbol;
+                typeArg = iface.TypeArguments()[0];
                 Assert.True(typeArg.IsTupleType);
                 Assert.Equal(2, typeArg.TupleElementTypes.Length);
                 Assert.All(typeArg.TupleElementTypes,
@@ -562,10 +562,10 @@ public struct TestEnumerable : IEnumerable<(int key, int val)>
                 Assert.Equal(1, c.TypeParameters.Length);
                 var param = c.TypeParameters[0];
                 Assert.Equal(1, param.ConstraintTypes().Length);
-                var constraint = Assert.IsAssignableFrom<NamedTypeSymbol>(param.ConstraintTypes()[0].TypeSymbol);
+                var constraint = Assert.IsAssignableFrom<NamedTypeSymbol>(param.ConstraintTypes()[0]);
                 Assert.True(constraint.IsGenericType);
                 Assert.Equal(1, constraint.TypeArguments().Length);
-                TypeSymbol typeArg = constraint.TypeArguments()[0].TypeSymbol;
+                TypeSymbol typeArg = constraint.TypeArguments()[0];
                 Assert.True(typeArg.IsTupleType);
                 Assert.Equal(2, typeArg.TupleElementTypes.Length);
                 Assert.All(typeArg.TupleElementTypes,
@@ -578,10 +578,10 @@ public struct TestEnumerable : IEnumerable<(int key, int val)>
                 Assert.Equal(1, c2.TypeParameters.Length);
                 param = c2.TypeParameters[0];
                 Assert.Equal(1, param.ConstraintTypes().Length);
-                constraint = Assert.IsAssignableFrom<NamedTypeSymbol>(param.ConstraintTypes()[0].TypeSymbol);
+                constraint = Assert.IsAssignableFrom<NamedTypeSymbol>(param.ConstraintTypes()[0]);
                 Assert.True(constraint.IsGenericType);
                 Assert.Equal(1, constraint.TypeArguments().Length);
-                typeArg = constraint.TypeArguments()[0].TypeSymbol;
+                typeArg = constraint.TypeArguments()[0];
                 Assert.True(typeArg.IsTupleType);
                 Assert.Equal(2, typeArg.TupleElementTypes.Length);
                 Assert.All(typeArg.TupleElementTypes,
@@ -877,7 +877,7 @@ references: s_valueTupleRefs);
             Assert.Equal(base1, field2Type.OriginalDefinition);
             Assert.True(field2Type.IsGenericType);
 
-            var first = field2Type.TypeArguments()[0].TypeSymbol;
+            var first = field2Type.TypeArguments()[0];
             Assert.True(first.IsTupleType);
             Assert.Equal(1, first.TupleElementTypes.Length);
             Assert.True(first.TupleElementNames.IsDefault);
@@ -16153,7 +16153,7 @@ class C
             Assert.Equal("x1 = (Bob, Bob)", x1.ToString());
             var x1Symbol = (LocalSymbol)model.GetDeclaredSymbol(x1);
             Assert.Equal("(System.String, System.String) x1", x1Symbol.ToTestDisplayString());
-            Assert.True(x1Symbol.Type.TupleElementNames.IsDefault);
+            Assert.True(x1Symbol.Type.TypeSymbol.TupleElementNames.IsDefault);
         }
 
         [Fact]

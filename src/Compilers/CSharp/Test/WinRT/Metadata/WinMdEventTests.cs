@@ -3257,7 +3257,7 @@ class C
             var fieldType = (NamedTypeSymbol)field.Type.TypeSymbol;
             Assert.Equal(TypeKind.Error, fieldType.TypeKind);
             Assert.Equal("EventRegistrationTokenTable", fieldType.Name);
-            Assert.Equal(@event.Type.TypeSymbol, fieldType.TypeArguments().Single().TypeSymbol);
+            Assert.Equal(@event.Type.TypeSymbol, fieldType.TypeArguments().Single());
         }
 
         [Fact]

@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var outer = ((NamedTypeSymbol)importedField.Type.TypeSymbol).TypeArguments().Single();
             Assert.Equal(SymbolKind.NamedType, outer.Kind);
 
-            var inner = ((NamedTypeSymbol)outer).TypeArguments().Single().TypeSymbol;
+            var inner = ((NamedTypeSymbol)outer).TypeArguments().Single();
             Assert.Equal(SymbolKind.ErrorType, inner.Kind);
         }
 

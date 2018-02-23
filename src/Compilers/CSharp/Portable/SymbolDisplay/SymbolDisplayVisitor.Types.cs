@@ -4,15 +4,21 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.SymbolDisplay;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class SymbolDisplayVisitor
     {
-        private void VisitTypeSymbolWithAnnotations(TypeSymbolWithAnnotations type)
+        private void VisitTypeSymbolWithAnnotations(TypeSymbolWithAnnotations type, AbstractSymbolDisplayVisitor visitor = null)
         {
-            Debug.Assert(this.NotFirstVisitor is SymbolDisplayVisitor);
+            if (visitor == null)
+            {
+                visitor = this.NotFirstVisitor;
+            }
+
+            Debug.Assert(visitor is SymbolDisplayVisitor);
 
             if (type.IsNullable == true)
             {
@@ -20,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (typeSymbol.TypeKind == TypeKind.Array)
                 {
-                    ((SymbolDisplayVisitor)this.NotFirstVisitor).VisitArrayType((IArrayTypeSymbol)typeSymbol, isNullable: true);
+                    ((SymbolDisplayVisitor)visitor).VisitArrayType((IArrayTypeSymbol)typeSymbol, isNullable: true);
                 }
-                else 
+                else
                 {
-                    typeSymbol.Accept(this.NotFirstVisitor);
+                    typeSymbol.Accept(visitor);
                     if (!typeSymbol.IsNullableType())
                     {
                         AddPunctuation(SyntaxKind.QuestionToken);
@@ -33,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                type.TypeSymbol.Accept(this.NotFirstVisitor);
+                type.TypeSymbol.Accept(visitor);
             }
         }
 
@@ -694,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 typeArguments = ((INamedTypeSymbol)owner).TypeArguments;
-                typeArgumentsWithAnnotations = (owner as NamedTypeSymbol)?.TypeArguments;
+                typeArgumentsWithAnnotations = (owner as NamedTypeSymbol)?.TypeArgumentsNoUseSiteDiagnostics;
             }
 
             if (typeArguments.Length > 0 && format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
@@ -713,21 +719,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     first = false;
 
+                    AbstractSymbolDisplayVisitor visitor;
+
                     if (typeArg.Kind == SymbolKind.TypeParameter)
                     {
                         var typeParam = (ITypeParameterSymbol)typeArg;
 
                         AddTypeParameterVarianceIfRequired(typeParam);
-                    }
 
-                    if (typeArgumentsWithAnnotations == null)
-                    {
-                        typeArg.Accept(this.NotFirstVisitor);
+                        visitor = this.NotFirstVisitor;
                     }
                     else
                     {
-                        VisitTypeSymbolWithAnnotations(typeArgumentsWithAnnotations.GetValueOrDefault()[i]);
-                        typeArg.Accept(this.NotFirstVisitorNamespaceOrType);
+                        visitor = this.NotFirstVisitorNamespaceOrType;
+                    }
+
+                    if ((object)typeArgumentsWithAnnotations == null)
+                    {
+                        typeArg.Accept(visitor);
+                    }
+                    else
+                    {
+                        VisitTypeSymbolWithAnnotations(typeArgumentsWithAnnotations.GetValueOrDefault()[i], visitor);
                     }
 
                     if (!modifiers.IsDefault)

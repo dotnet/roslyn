@@ -1356,8 +1356,8 @@ public class C : B<int, long>
 
             var classBMethodMParameters = classBMethodM.Parameters;
             Assert.Equal(3, classBMethodMParameters.Length);
-            Assert.Equal(classBTypeArguments[0].TypeSymbol, classBMethodMParameters[0].Type.TypeSymbol);
-            Assert.Equal(classBTypeArguments[1].TypeSymbol, classBMethodMParameters[1].Type.TypeSymbol);
+            Assert.Equal(classBTypeArguments[0], classBMethodMParameters[0].Type.TypeSymbol);
+            Assert.Equal(classBTypeArguments[1], classBMethodMParameters[1].Type.TypeSymbol);
             Assert.Equal(classBMethodMTypeParameters[0], classBMethodMParameters[2].Type.TypeSymbol);
 
             var classC = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").Single();
@@ -1379,8 +1379,8 @@ public class C : B<int, long>
 
             var classCBaseMethodMParameters = classCBaseMethodM.Parameters;
             Assert.Equal(3, classCBaseMethodMParameters.Length);
-            Assert.Equal(classCBaseTypeArguments[0].TypeSymbol, classCBaseMethodMParameters[0].Type.TypeSymbol);
-            Assert.Equal(classCBaseTypeArguments[1].TypeSymbol, classCBaseMethodMParameters[1].Type.TypeSymbol);
+            Assert.Equal(classCBaseTypeArguments[0], classCBaseMethodMParameters[0].Type.TypeSymbol);
+            Assert.Equal(classCBaseTypeArguments[1], classCBaseMethodMParameters[1].Type.TypeSymbol);
             Assert.Equal(classCBaseMethodMTypeParameters[0], classCBaseMethodMParameters[2].Type.TypeSymbol);
         }
 
