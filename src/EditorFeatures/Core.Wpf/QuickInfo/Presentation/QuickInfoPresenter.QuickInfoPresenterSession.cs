@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
     {
         private class QuickInfoPresenterSession : ForegroundThreadAffinitizedObject, IQuickInfoPresenterSession
         {
-            private readonly IAsyncQuickInfoBroker _quickInfoBroker;
             private readonly ITextView _textView;
             private readonly ITextBuffer _subjectBuffer;
             private readonly ClassificationTypeMap _classificationTypeMap;
@@ -39,27 +38,19 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
             private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
             private readonly ITextEditorFactoryService _textEditorFactoryService;
 
-            private IAsyncQuickInfoSession _editorSessionOpt;
-
-            private QuickInfoItem _item;
-
             public event EventHandler<EventArgs> Dismissed;
 
             public QuickInfoPresenterSession(
-                IAsyncQuickInfoBroker quickInfoBroker,
                 ITextView textView,
                 ITextBuffer subjectBuffer,
-                IAsyncQuickInfoSession sessionOpt,
                 ClassificationTypeMap classificationTypeMap,
                 IClassificationFormatMapService classificationFormatMapService,
                 IProjectionBufferFactoryService projectionBufferFactoryService,
                 IEditorOptionsFactoryService editorOptionsFactoryService,
                 ITextEditorFactoryService textEditorFactoryService)
             {
-                _quickInfoBroker = quickInfoBroker;
                 _textView = textView;
                 _subjectBuffer = subjectBuffer;
-                _editorSessionOpt = sessionOpt;
                 _classificationTypeMap = classificationTypeMap;
                 _classificationFormatMapService = classificationFormatMapService;
                 _projectionBufferFactoryService = projectionBufferFactoryService;
@@ -69,41 +60,22 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 
             public void Dismiss()
             {
-                if (_editorSessionOpt == null)
-                {
-                    // No editor session, nothing to do here.
-                    return;
-                }
-
-                if (_item == null)
-                {
-                    // We don't have an item, so we're being asked to augment a session.
-                    // Since we didn't put anything in the session, don't dismiss it either.
-                    return;
-                }
-
-                _editorSessionOpt.DismissAsync().Wait();
-                _editorSessionOpt = null;
+                // do nothing
             }
 
-            private void OnEditorSessionDismissed()
+            public async Task<QuickInfoItem> ConvertQuickInfoItem(SnapshotPoint triggerPoint, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem quickInfoItem)
             {
-               // AssertIsForeground();
-                this.Dismissed?.Invoke(this, EventArgs.Empty);
-            }
-
-            public async Task<QuickInfoItem> ConvertQuickInfoItem(ITextBuffer subjectBuffer, SnapshotPoint triggerPoint, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem quickInfoItem)
-            {
+                QuickInfoItem item = null;
                 await InvokeBelowInputPriority(() =>
-                    { _item = convertQuickInfoItemRunOnUIThread(subjectBuffer, triggerPoint, quickInfoItem); })
+                    { item = convertQuickInfoItemRunOnUIThread(triggerPoint, quickInfoItem); })
                     .ConfigureAwait(false);
-                return _item;
+                return item;
             }
-            private QuickInfoItem convertQuickInfoItemRunOnUIThread(ITextBuffer subjectBuffer, SnapshotPoint triggerPoint, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem quickInfoItem)
+            private QuickInfoItem convertQuickInfoItemRunOnUIThread(SnapshotPoint triggerPoint, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem quickInfoItem)
             {
                 var line = triggerPoint.GetContainingLine();
                 var lineNumber = triggerPoint.GetContainingLine().LineNumber;
-                var lineSpan = subjectBuffer.CurrentSnapshot.CreateTrackingSpan(
+                var lineSpan = this._subjectBuffer.CurrentSnapshot.CreateTrackingSpan(
                     line.Extent,
                     SpanTrackingMode.EdgeInclusive);
 
@@ -111,12 +83,14 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                 var glyphs = quickInfoItem.Tags.GetGlyphs();
                 var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
                 var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);
-                var documentSpan = quickInfoItem.RelatedSpans.Length > 0 ? CreateDocumentSpanPresentation(quickInfoItem, subjectBuffer.CurrentSnapshot) : null;
+                var documentSpan = quickInfoItem.RelatedSpans.Length > 0 ?
+                    CreateDocumentSpanPresentation(quickInfoItem, this._subjectBuffer.CurrentSnapshot) : null;
 
                 var content = new QuickInfoDisplayPanel(
                     symbolGlyph: symbolGlyph != default ? CreateSymbolPresentation(symbolGlyph) : null,
                     warningGlyph: warningGlyph != default ? CreateSymbolPresentation(warningGlyph) : null,
-                    textBlocks: quickInfoItem.Sections.Select(section => new TextBlockElement(section.Kind, CreateTextPresentation(section))).ToImmutableArray(),
+                    textBlocks: quickInfoItem.Sections.Select(section =>
+                        new TextBlockElement(section.Kind, CreateTextPresentation(section))).ToImmutableArray(),
                     documentSpan: documentSpan);
 
                 return new QuickInfoItem(lineSpan, content);

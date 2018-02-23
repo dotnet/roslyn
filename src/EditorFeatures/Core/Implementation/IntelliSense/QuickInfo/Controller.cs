@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     var item = await service.GetQuickInfoAsync(document, triggerPoint, cancellationToken).ConfigureAwait(false);
                     if (item != null)
                     {
-                        return await sessionOpt.PresenterSession.ConvertQuickInfoItem(this.SubjectBuffer, triggerPoint, item).ConfigureAwait(false);
+                        return await sessionOpt.PresenterSession.ConvertQuickInfoItem(triggerPoint, item).ConfigureAwait(false);
                     }
 
                     return null;

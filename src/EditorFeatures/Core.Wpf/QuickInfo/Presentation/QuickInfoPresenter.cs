@@ -45,11 +45,10 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
         }
 
         IQuickInfoPresenterSession IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession>.CreateSession(
-            ITextView textView, ITextBuffer subjectBuffer, IAsyncQuickInfoSession sessionOpt)
+            ITextView textView, ITextBuffer subjectBuffer, IAsyncQuickInfoSession _)
         {
             return new QuickInfoPresenterSession(
-                _quickInfoBroker,
-                textView, subjectBuffer, sessionOpt,
+                textView, subjectBuffer,
                 _classificationTypeMap,
                 _classificationFormatMapService,
                 _projectionBufferFactoryService,

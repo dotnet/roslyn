@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface IQuickInfoPresenterSession : IIntelliSensePresenterSession
     {
-        Task<QuickInfoItem> ConvertQuickInfoItem(ITextBuffer subjectBuffer, SnapshotPoint triggerPoint, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem quickInfoItem);
+        Task<QuickInfoItem> ConvertQuickInfoItem(SnapshotPoint triggerPoint, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem quickInfoItem);
     }
 }
