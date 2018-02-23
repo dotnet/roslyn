@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End With
 
             Dim presenterSession = presenter.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), quickInfoSession.Object)
-            presenterSession.PresentItem(Nothing, Nothing, False)
+            'presenterSession.PresentItem(Nothing, Nothing, False)
             quickInfoSession.Verify(Sub(m) m.Recalculate())
         End Sub
 
@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End With
 
             Dim presenterSession = presenter.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), mockEditorSession.Object)
-            presenterSession.PresentItem(mockTrackingSpan.Object, Nothing, False)
+            'presenterSession.PresentItem(mockTrackingSpan.Object, Nothing, False)
             mockEditorSession.Verify(Sub(m) m.Recalculate(), Times.Never)
         End Sub
 
@@ -310,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim mocks = New QuickInfoMocks(controller, service, view, presenter)
 
             If triggerQuickInfo Then
-                controller.InvokeQuickInfo(position:=0, augmentSession)
+                'controller.InvokeQuickInfo(position:=0, augmentSession)
             End If
 
             Return mocks

@@ -23,14 +23,12 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 
 using QuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
-//using QuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
 
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 {
     internal partial class QuickInfoPresenter
     {
-        private class QuickInfoPresenterSession : ForegroundThreadAffinitizedObject, IQuickInfoPresenterSession, IDisposable
+        private class QuickInfoPresenterSession : ForegroundThreadAffinitizedObject, IQuickInfoPresenterSession
         {
             private readonly IAsyncQuickInfoBroker _quickInfoBroker;
             private readonly ITextView _textView;
@@ -44,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
             private IAsyncQuickInfoSession _editorSessionOpt;
 
             private QuickInfoItem _item;
-            private ITrackingSpan _triggerSpan;
 
             public event EventHandler<EventArgs> Dismissed;
 
@@ -70,43 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                 _textEditorFactoryService = textEditorFactoryService;
             }
 
-            public void PresentItem(ITrackingSpan triggerSpan, QuickInfoItem item, bool trackMouse)
-            {
-                //AssertIsForeground();
-
-                _triggerSpan = triggerSpan;
-                _item = item;
-
-                // It's a new list of items.  Either create the editor session if this is the first time, or ask the
-                // editor session that we already have to recalculate.
-                //if (_editorSessionOpt == null || _editorSessionOpt.IsDismissed)
-                //{
-                //    // We're tracking the caret.  Don't have the editor do it.
-                //    var triggerPoint = triggerSpan.GetStartTrackingPoint(PointTrackingMode.Negative);
-
-                //    _editorSessionOpt = _quickInfoBroker.CreateQuickInfoSession(_textView, triggerPoint, trackMouse: trackMouse);
-                //    _editorSessionOpt.Dismissed += (s, e) => OnEditorSessionDismissed();
-                //}
-
-                // So here's the deal.  We cannot create the editor session and give it the right
-                // signatures (even though we know what they are).  Instead, the session with
-                // call back into the ISignatureHelpSourceProvider (which is us) to get those
-                // values. It will pass itself along with the calls back into
-                // ISignatureHelpSourceProvider. So, in order to make that connection work, we
-                // add properties to the session so that we can call back into ourselves, get
-                // the signatures and add it to the session.
-                if (!_editorSessionOpt.Properties.ContainsProperty(s_augmentSessionKey))
-                {
-                    _editorSessionOpt.Properties.AddProperty(s_augmentSessionKey, this);
-                }
-
-                //_editorSessionOpt.Recalculate();
-            }
-
             public void Dismiss()
             {
-                //AssertIsForeground();
-
                 if (_editorSessionOpt == null)
                 {
                     // No editor session, nothing to do here.
@@ -120,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                     return;
                 }
 
-                //_editorSessionOpt.Dismiss();
+                _editorSessionOpt.DismissAsync().Wait();
                 _editorSessionOpt = null;
             }
 
@@ -130,40 +92,14 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                 this.Dismissed?.Invoke(this, EventArgs.Empty);
             }
 
-            //internal void AugmentQuickInfoSession(IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
-            //{
-            //    applicableToSpan = _triggerSpan;
-
-            //    var content = CreateContent(_item, _subjectBuffer.CurrentSnapshot);
-            //    if (content != null)
-            //    {
-            //        quickInfoContent.Add(content);
-            //    }
-            //}
-
             public async Task<QuickInfoItem> ConvertQuickInfoItem(ITextBuffer subjectBuffer, SnapshotPoint triggerPoint, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem quickInfoItem)
             {
-                await InvokeBelowInputPriority(() => { _item = convertQuickInfoItem(subjectBuffer, triggerPoint, quickInfoItem); }).ConfigureAwait(false);
+                await InvokeBelowInputPriority(() =>
+                    { _item = convertQuickInfoItemRunOnUIThread(subjectBuffer, triggerPoint, quickInfoItem); })
+                    .ConfigureAwait(false);
                 return _item;
-                //using (var resetEvent = new ManualResetEventSlim(false))
-                //{
-                //    var uiThread = new Thread(() =>
-                //    {
-                //        _item = convertQuickInfoItem(subjectBuffer, triggerPoint, quickInfoItem);
-                //        resetEvent.Set();
-                //        //System.Windows.Forms.Application.Run();
-                //        //Application.Current.Run();
-                //    });
-                //    uiThread.SetApartmentState(ApartmentState.STA);
-                //    uiThread.IsBackground = true;
-                //    uiThread.Start();
-                //    resetEvent.Wait();
-                //}
-
-                //return _item;
-                //return convertQuickInfoItem(subjectBuffer, triggerPoint, quickInfoItem);
             }
-            private QuickInfoItem convertQuickInfoItem(ITextBuffer subjectBuffer, SnapshotPoint triggerPoint, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem quickInfoItem)
+            private QuickInfoItem convertQuickInfoItemRunOnUIThread(ITextBuffer subjectBuffer, SnapshotPoint triggerPoint, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem quickInfoItem)
             {
                 var line = triggerPoint.GetContainingLine();
                 var lineNumber = triggerPoint.GetContainingLine().LineNumber;
@@ -183,12 +119,6 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                     textBlocks: quickInfoItem.Sections.Select(section => new TextBlockElement(section.Kind, CreateTextPresentation(section))).ToImmutableArray(),
                     documentSpan: documentSpan);
 
-                //var textList = new List<ClassifiedTextRun>();
-                //foreach (var section in quickInfoItem.Sections)
-                //{
-                //    textList.Add(new ClassifiedTextRun(section.Kind, section.Text));
-                //}
-                //var content = new ClassifiedTextElement(textList);
                 return new QuickInfoItem(lineSpan, content);
             }
 
@@ -259,12 +189,6 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                     _editorOptionsFactoryService,
                     _textEditorFactoryService);
             }
-
-            public void Dispose()
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 }
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094

@@ -17,7 +17,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Roslyn.Utilities;
 
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal partial class Controller :
@@ -65,22 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         internal override void OnModelUpdated(Model modelOpt)
         {
-            AssertIsForeground();
-            if (modelOpt == null || modelOpt.TextVersion != this.SubjectBuffer.CurrentSnapshot.Version)
-            {
-                this.StopModelComputation();
-            }
-            else
-            {
-                var quickInfoItem = modelOpt.Item;
-
-                // We want the span to actually only go up to the caret.  So get the expected span
-                // and then update its end point accordingly.
-                var triggerSpan = modelOpt.GetCurrentSpanInSnapshot(quickInfoItem.Span, this.SubjectBuffer.CurrentSnapshot);
-                var trackingSpan = triggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
-
-                //sessionOpt.PresenterSession.PresentItem(trackingSpan, quickInfoItem, modelOpt.TrackMouse);
-            }
+            // do nothing
         }
 
         public async Task<VisualStudio.Language.Intellisense.QuickInfoItem> GetQuickInfoItemAsync(
@@ -124,26 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        private VisualStudio.Language.Intellisense.QuickInfoItem ConvertQuickInfoItem(
-            SnapshotPoint triggerPoint,
-            CodeAnalysis.QuickInfo.QuickInfoItem codeAnalysisQuickInfo)
-        {
-
-            var line = triggerPoint.GetContainingLine();
-            var lineNumber = triggerPoint.GetContainingLine().LineNumber;
-            var lineSpan = this.SubjectBuffer.CurrentSnapshot.CreateTrackingSpan(
-                line.Extent,
-                SpanTrackingMode.EdgeInclusive);
-
-            var textList = new List<ClassifiedTextRun>();
-            foreach(var section in codeAnalysisQuickInfo.Sections)
-            {
-                textList.Add(new ClassifiedTextRun(section.Kind, section.Text));
-            }
-
-            return new VisualStudio.Language.Intellisense.QuickInfoItem(lineSpan, new ClassifiedTextElement(textList));
         }
 
         public QuickInfoService GetService()
