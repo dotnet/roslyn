@@ -13,6 +13,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class RefLocalsAndReturnsTests : CompilingTestBase
     {
         [Fact]
+        public void RefForeachErrorRecovery()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        foreach (ref var x in )
+        {
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,31): error CS1525: Invalid expression term ')'
+                //         foreach (ref var x in )
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 31));
+        }
+
+        [Fact]
         public void RefForToReadonly()
         {
             var comp = CreateStandardCompilation(@"

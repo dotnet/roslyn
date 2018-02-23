@@ -239,29 +239,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         local.SetType(iterationVariableType);
                         local.SetValEscape(collectionEscape);
 
-                        BindValueKind requiredCurrentKind;
-                        switch (local.RefKind)
+                        if (!hasErrors)
                         {
-                            case RefKind.None:
-                                requiredCurrentKind = BindValueKind.RValue;
-                                break;
-                            case RefKind.Ref:
-                                requiredCurrentKind = BindValueKind.Assignable | BindValueKind.RefersToLocation;
-                                break;
-                            case RefKind.RefReadOnly:
-                                requiredCurrentKind = BindValueKind.RefersToLocation;
-                                break;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(local.RefKind);
-                        }
+                            BindValueKind requiredCurrentKind;
+                            switch (local.RefKind)
+                            {
+                                case RefKind.None:
+                                    requiredCurrentKind = BindValueKind.RValue;
+                                    break;
+                                case RefKind.Ref:
+                                    requiredCurrentKind = BindValueKind.Assignable | BindValueKind.RefersToLocation;
+                                    break;
+                                case RefKind.RefReadOnly:
+                                    requiredCurrentKind = BindValueKind.RefersToLocation;
+                                    break;
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(local.RefKind);
+                            }
 
-                        hasErrors |= !CheckMethodReturnValueKind(
-                            builder.CurrentPropertyGetter,
-                            callSyntaxOpt: null,
-                            collectionExpr.Syntax,
-                            requiredCurrentKind,
-                            checkingReceiver: false,
-                            diagnostics);
+                            hasErrors |= !CheckMethodReturnValueKind(
+                                builder.CurrentPropertyGetter,
+                                callSyntaxOpt: null,
+                                collectionExpr.Syntax,
+                                requiredCurrentKind,
+                                checkingReceiver: false,
+                                diagnostics);
+                        }
 
                         break;
                     }
