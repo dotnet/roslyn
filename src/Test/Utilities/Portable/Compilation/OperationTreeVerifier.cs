@@ -579,7 +579,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IBranchOperation));
             var kindStr = $"{nameof(BranchKind)}.{operation.BranchKind}";
-            var labelStr = !operation.Target.IsImplicitlyDeclared ? $", Label: {operation.Target.Name}" : $", Label Id: {GetLabelId(operation.Target)}";
+            // If the label is implicit, or if it has been assigned an id (such as VB Exit Do/While/Switch labels) then print the id, instead of the name.
+            var labelStr = !(operation.Target.IsImplicitlyDeclared || _labelIdMap.ContainsKey(operation.Target)) ? $", Label: {operation.Target.Name}" : $", Label Id: {GetLabelId(operation.Target)}";
             LogString($" ({kindStr}{labelStr})");
             LogCommonPropertiesAndNewLine(operation);
 
