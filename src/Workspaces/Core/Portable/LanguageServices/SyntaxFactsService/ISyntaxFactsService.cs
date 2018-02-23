@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsAnonymousFunction(SyntaxNode n);
 
-        bool IsAnonymousOrLocalFunction(SyntaxNode n);
+        bool IsLocalFunction(SyntaxNode n);
 
         bool IsInConstantContext(SyntaxNode node);
         bool IsInConstructor(SyntaxNode node);

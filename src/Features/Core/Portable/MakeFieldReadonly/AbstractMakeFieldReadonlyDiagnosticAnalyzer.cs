@@ -13,20 +13,23 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         where TIdentifierNameSyntax : SyntaxNode
         where TConstructorDeclarationSyntax : SyntaxNode
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_readonly_modifier), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Make_field_readonly), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
-
-        public AbstractMakeFieldReadonlyDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId,
-                   s_localizableTitle, s_localizableMessage)
+        protected AbstractMakeFieldReadonlyDiagnosticAnalyzer()
+            : base(
+                IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId,
+                new LocalizableResourceString(nameof(FeaturesResources.Add_readonly_modifier), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                new LocalizableResourceString(nameof(FeaturesResources.Make_field_readonly), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {
         }
+
+        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract bool IsWrittenTo(TIdentifierNameSyntax node, SemanticModel model, CancellationToken cancellationToken);
+        protected abstract bool IsMemberOfThisInstance(SyntaxNode node);
 
         public override bool OpenFileOnly(Workspace workspace) => false;
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        internal void AnalyzeType(SyntaxNodeAnalysisContext context)
+        protected void AnalyzeType(SyntaxNodeAnalysisContext context)
         {
             var optionSet = context.Options.GetDocumentOptionSetAsync(context.Node.SyntaxTree, context.CancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
@@ -126,7 +129,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     var isInAnonymousOrLocalFunction = false;
                     for (var current = descendant.Parent; current != ctorNode; current = current.Parent)
                     {
-                        if (syntaxFactsService.IsAnonymousOrLocalFunction(current))
+                        if (syntaxFactsService.IsAnonymousFunction(current) || syntaxFactsService.IsLocalFunction(current))
                         {
                             isInAnonymousOrLocalFunction = true;
                             break;
@@ -186,9 +189,5 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
             return false;
         }
-
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
-        protected abstract bool IsWrittenTo(TIdentifierNameSyntax node, SemanticModel model, CancellationToken cancellationToken);
-        protected abstract bool IsMemberOfThisInstance(SyntaxNode node);
     }
 }

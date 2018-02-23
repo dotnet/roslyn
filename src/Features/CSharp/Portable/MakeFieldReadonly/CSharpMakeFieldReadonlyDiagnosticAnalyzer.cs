@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeType, SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration);
 
-        protected override ISyntaxFactsService GetSyntaxFactsService() =>
-            CSharpSyntaxFactsService.Instance;
+        protected override ISyntaxFactsService GetSyntaxFactsService()
+            => CSharpSyntaxFactsService.Instance;
 
         protected override bool IsWrittenTo(IdentifierNameSyntax name, SemanticModel model, CancellationToken cancellationToken)
             => name.IsWrittenTo();

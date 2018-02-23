@@ -144,6 +144,142 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_VBSpecialForms01() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim [|x|] As Integer, y As String
+End Class",
+"Class C
+    Private ReadOnly x As Integer
+    Private y As String
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_VBSpecialForms02() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim x As Integer, [|y|] As String
+End Class",
+"Class C
+    Private x As Integer
+    Private ReadOnly y As String
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_VBSpecialForms03() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim [|x|], y As Integer, z, w As String
+End Class",
+"Class C
+    Private ReadOnly x As Integer
+    Private y As Integer
+    Private z As String
+    Private w As String
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_VBSpecialForms04() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim x, [|y|] As Integer, z, w As String
+End Class",
+"Class C
+    Private x As Integer
+    Private ReadOnly y As Integer
+    Private z As String
+    Private w As String
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_VBSpecialForms05() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim x, y As Integer, [|z|], w As String
+End Class",
+"Class C
+    Private x As Integer
+    Private y As Integer
+    Private ReadOnly z As String
+    Private w As String
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_VBSpecialForms06() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim x, y As Integer, z, [|w|] As String
+End Class",
+"Class C
+    Private x As Integer
+    Private y As Integer
+    Private z As String
+    Private ReadOnly w As String
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_VBSpecialForms07() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim [|x|], y() As Integer, z(), w As String
+End Class",
+"Class C
+    Private ReadOnly x As Integer
+    Private y As Integer()
+    Private z As String()
+    Private w As String
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_VBSpecialForms08() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim x, [|y|]() As Integer, z(), w As String
+End Class",
+"Class C
+    Private x As Integer
+    Private ReadOnly y As Integer()
+    Private z As String()
+    Private w As String
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_VBSpecialForms09() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim x, y() As Integer, [|z|](), w As String
+End Class",
+"Class C
+    Private x As Integer
+    Private y As Integer()
+    Private ReadOnly z As String()
+    Private w As String
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_VBSpecialForms10() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim x, y() As Integer, z(), [|w|] As String
+End Class",
+"Class C
+    Private x As Integer
+    Private y As Integer()
+    Private z As String()
+    Private ReadOnly w As String
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function MultipleFieldsAssignedInline_OneAssignedInMethod() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -502,10 +638,12 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Private {|FixAllInDocument:_goo|} As Integer = 0, _bar As Integer = 0
+    Dim a, b(), c As Integer, x, y As String
     Private _fizz As Integer = 0
 End Class",
 "Class C
     Private ReadOnly _goo As Integer = 0, _bar As Integer = 0
+    ReadOnly a, b(), c As Integer, x, y As String
     Private ReadOnly _fizz As Integer = 0
 End Class")
         End Function

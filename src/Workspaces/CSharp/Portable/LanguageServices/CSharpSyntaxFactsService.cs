@@ -201,10 +201,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node is AnonymousMethodExpressionSyntax;
         }
 
-        public bool IsAnonymousOrLocalFunction(SyntaxNode node)
+        public bool IsLocalFunction(SyntaxNode node)
         {
-            return IsAnonymousFunction(node) ||
-                node is LocalFunctionStatementSyntax;
+            return node is LocalFunctionStatementSyntax;
         }
 
         public bool IsGenericName(SyntaxNode node)

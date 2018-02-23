@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         [InlineData("internal")]
         [InlineData("protected")]
         [InlineData("protected internal")]
+        [InlineData("private protected")]
         public async Task NonPrivateField(string accessibility)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -696,12 +697,20 @@ class MyClass
 @"class MyClass
 {
     private int {|FixAllInDocument:_goo|} = 0, _bar = 0;
+    private int _x = 0, _y = 0, _z = 0;
     private int _fizz = 0;
+
+    void Method() { _z = 1; }
 }",
 @"class MyClass
 {
     private readonly int _goo = 0, _bar = 0;
+    private readonly int _x = 0;
+    private readonly int _y = 0;
+    private int _z = 0;
     private readonly int _fizz = 0;
+
+    void Method() { _z = 1; }
 }");
         }
 

@@ -201,8 +201,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
 
-        Public Function IsAnonymousOrLocalFunction(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAnonymousOrLocalFunction
-            Return IsAnonymousFunction(node)
+        Public Function IsLocalFunction(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLocalFunction
+            Return False
         End Function
 
         Public Function IsGenericName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsGenericName

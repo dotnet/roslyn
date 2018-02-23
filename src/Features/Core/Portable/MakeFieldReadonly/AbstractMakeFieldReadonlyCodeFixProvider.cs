@@ -15,14 +15,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 {
-    internal abstract class AbstractMakeFieldReadonlyCodeFixProvider
-        <TSymbolSyntax, TFieldDeclarationSyntax>
+    internal abstract class AbstractMakeFieldReadonlyCodeFixProvider<TSymbolSyntax, TFieldDeclarationSyntax>
         : SyntaxEditorBasedCodeFixProvider
         where TSymbolSyntax : SyntaxNode
         where TFieldDeclarationSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId);
+
+        protected abstract SyntaxNode GetInitializerNode(TSymbolSyntax declaration);
+        protected abstract ImmutableList<TSymbolSyntax> GetVariableDeclarators(TFieldDeclarationSyntax declaration);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -87,9 +89,6 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 }
             }
         }
-        
-        protected abstract SyntaxNode GetInitializerNode(TSymbolSyntax declaration);
-        protected abstract ImmutableList<TSymbolSyntax> GetVariableDeclarators(TFieldDeclarationSyntax declaration);
 
         protected override Task FixAllAsync(
             Document document,
