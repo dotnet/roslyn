@@ -662,7 +662,7 @@ public class M<T> : L<T>
 
 } // end of class D
 ";
-            var compilation = CreateCompilationWithCustomILSource("", text);
+            var compilation = CreateCompilationWithILAndMscorlib40("", text);
 
             var globalNamespace = compilation.GlobalNamespace;
 
@@ -685,7 +685,7 @@ public class B : A
     ~B() { }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll);
 
             // NOTE: has warnings, but not errors.
             compilation.VerifyDiagnostics(

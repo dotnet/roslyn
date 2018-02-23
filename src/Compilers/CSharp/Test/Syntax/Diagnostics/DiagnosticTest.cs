@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 End namespace
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var actualErrors = comp.GetDiagnostics();
             Assert.InRange(actualErrors.Count(), 1, int.MaxValue);
         }
@@ -168,7 +168,7 @@ class X
     }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (6,17): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, @"null.Length").WithArguments(".", "<null>"));
         }
@@ -285,7 +285,7 @@ public class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (10,19): warning CS0420: 'C.i': a reference to a volatile field will not be treated as volatile
                 //         Test (ref i);
                 Diagnostic(ErrorCode.WRN_VolatileByRef, "i").WithArguments("C.i"));
@@ -293,17 +293,17 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(420), ReportDiagnostic.Suppress);
             CSharpCompilationOptions option = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (10,19): error CS0420: Warning as Error: 'C.i': a reference to a volatile field will not be treated as volatile
                 //         Test (ref i);
                 Diagnostic(ErrorCode.WRN_VolatileByRef, "i").WithArguments("C.i").WithWarningAsError(true));
 
             warnings[MessageProvider.Instance.GetIdForErrorCode(420)] = ReportDiagnostic.Error;
             option = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Default).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (10,19): error CS0420: Warning as Error: 'C.i': a reference to a volatile field will not be treated as volatile
                 //         Test (ref i);
                 Diagnostic(ErrorCode.WRN_VolatileByRef, "i").WithArguments("C.i").WithWarningAsError(true));
@@ -326,7 +326,7 @@ public class C
 ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (8,6): warning CS0168: The variable 'x' is declared but never used
                 // 	int x;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x"),
@@ -337,14 +337,14 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Suppress);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (9,6): warning CS0219: The variable 'j' is assigned but its value is never used
                 // 	int j = 0;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "j").WithArguments("j"));
 
             warnings[MessageProvider.Instance.GetIdForErrorCode(168)] = ReportDiagnostic.Error;
             option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (8,6): error CS0168: Warning as Error: The variable 'x' is declared but never used
                 // 	int x;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithWarningAsError(true),
@@ -353,7 +353,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "j").WithArguments("j"));
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (8,6): warning CS0168: The variable 'x' is declared but never used
                 // 	int x;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x"),
@@ -362,13 +362,13 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "j").WithArguments("j"));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -389,7 +389,7 @@ public class C
 ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (10,13): warning CS0168: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z"));
@@ -397,25 +397,25 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (10,13): error CS0168: Warning as Error: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithWarningAsError(true));
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (10,13): warning CS0168: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z"));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -437,7 +437,7 @@ public class C
 ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (8,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x"),
@@ -448,7 +448,7 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (8,13): error CS0168: Warning as Error: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithWarningAsError(true),
@@ -457,7 +457,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"));
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (8,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x"),
@@ -466,13 +466,13 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -493,7 +493,7 @@ public class C
 ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (8,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 0;  // CS0219
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"),
@@ -504,7 +504,7 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (8,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 0;  // CS0219
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"),
@@ -513,7 +513,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithWarningAsError(true));
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (8,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 0;  // CS0219
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"),
@@ -522,13 +522,13 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z"));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -549,7 +549,7 @@ public class C
 ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (8,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 0;  // CS0219
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"),
@@ -560,7 +560,7 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (8,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 0;  // CS0219
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"),
@@ -569,7 +569,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithWarningAsError(true));
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (8,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 0;  // CS0219
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"),
@@ -578,13 +578,13 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z"));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -607,7 +607,7 @@ public class C
 ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (9,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x"),
@@ -618,7 +618,7 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (9,13): error CS0168: Warning as Error: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithWarningAsError(true),
@@ -627,7 +627,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"));
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (9,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x"),
@@ -636,13 +636,13 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -665,7 +665,7 @@ public class C
 ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (9,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x"),
@@ -676,7 +676,7 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (9,13): error CS0168: Warning as Error: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithWarningAsError(true),
@@ -685,7 +685,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"));
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (9,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x"),
@@ -694,13 +694,13 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -721,7 +721,7 @@ public class C
 ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (7,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 13),
@@ -735,7 +735,7 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (7,13): error CS0168: Warning as Error: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 13).WithWarningAsError(true),
@@ -747,7 +747,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithLocation(10, 13).WithWarningAsError(true));
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (7,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 13),
@@ -759,13 +759,13 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithLocation(10, 13));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -788,7 +788,7 @@ public class C
 ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (7,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 13),
@@ -805,7 +805,7 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (7,13): error CS0168: Warning as Error: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 13).WithWarningAsError(true),
@@ -820,7 +820,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "w").WithArguments("w").WithLocation(12, 13).WithWarningAsError(true));
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (7,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 13),
@@ -835,13 +835,13 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "w").WithArguments("w").WithLocation(12, 13));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -862,7 +862,7 @@ public class C
 ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (7,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 13),
@@ -876,7 +876,7 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (7,13): error CS0168: Warning as Error: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 13).WithWarningAsError(true),
@@ -888,7 +888,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithLocation(10, 13).WithWarningAsError(true));
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (7,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 13),
@@ -900,13 +900,13 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithLocation(10, 13));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -933,7 +933,7 @@ public class C
 ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (12,13): warning CS0168: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z"));
@@ -941,25 +941,25 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (17,13): error CS0168: Warning as Error: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithWarningAsError(true));
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (12,13): warning CS0168: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z"));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -986,7 +986,7 @@ public class C
 ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (11,13): warning CS0168: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z"));
@@ -994,25 +994,25 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (16,13): error CS0168: Warning as Error: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithWarningAsError(true));
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (11,13): warning CS0168: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z"));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1040,7 +1040,7 @@ public class C
 ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (12,13): warning CS0168: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z"));
@@ -1048,25 +1048,25 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (17,13): error CS0168: Warning as Error: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithWarningAsError(true));
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (12,13): warning CS0168: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z"));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1093,24 +1093,24 @@ public class C
 ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics();
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics();
 
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1141,7 +1141,7 @@ public class C
 ";
             // Verify that warnings can be disabled using a mixed list of numeric literals and identifier
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (20,13): warning CS0168: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z"));
@@ -1149,25 +1149,25 @@ public class C
             var warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (20,13): error CS0168: Warning as Error: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithWarningAsError(true));
 
             option = commonoption.WithWarningLevel(3);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (20,13): warning CS0168: The variable 'z' is declared but never used
                 //         int z;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z"));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2).WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1188,7 +1188,7 @@ public class C
 }";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (7,8): warning CS1633: Unrecognized #pragma directive
                 // #pragma
                 Diagnostic(ErrorCode.WRN_IllegalPragma, ""),
@@ -1205,7 +1205,7 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (7,8): warning CS1633: Unrecognized #pragma directive
                 // #pragma
                 Diagnostic(ErrorCode.WRN_IllegalPragma, ""),
@@ -1222,7 +1222,7 @@ public class C
             warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(1633), ReportDiagnostic.Suppress);
             option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (8,17): warning CS0168: The variable 'x' is declared but never used
                 //             int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x"),
@@ -1234,7 +1234,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z"));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (7,8): warning CS1633: Unrecognized #pragma directive
                 // #pragma
                 Diagnostic(ErrorCode.WRN_IllegalPragma, ""));
@@ -1258,7 +1258,7 @@ public class C
 }";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (8,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x"),
@@ -1272,7 +1272,7 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (8,13): error CS0168: Warning as Error: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithWarningAsError(true),
@@ -1284,7 +1284,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithWarningAsError(true));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1305,7 +1305,7 @@ public class C
 }";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (7,16): warning CS1634: Expected disable or restore
                 // #pragma warning
                 Diagnostic(ErrorCode.WRN_IllegalPPWarning, ""),
@@ -1322,7 +1322,7 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (7,16): warning CS1634: Expected disable or restore
                 // #pragma warning
                 Diagnostic(ErrorCode.WRN_IllegalPPWarning, ""),
@@ -1337,7 +1337,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithWarningAsError(true));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (7,16): warning CS1634: Expected disable or restore
                 // #pragma warning
                 Diagnostic(ErrorCode.WRN_IllegalPPWarning, ""));
@@ -1364,7 +1364,7 @@ public class C
 }";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (7,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x"),
@@ -1378,7 +1378,7 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (7,13): error CS0168: Warning as Error: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithWarningAsError(true),
@@ -1390,7 +1390,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithWarningAsError(true));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1414,7 +1414,7 @@ public class C
 }";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (9,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 0;  // CS0219
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"),
@@ -1425,7 +1425,7 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (9,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 0;  // CS0219
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"),
@@ -1434,7 +1434,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z").WithArguments("z").WithWarningAsError(true));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1457,15 +1457,15 @@ public class C
 }";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics();
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics();
 
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1484,7 +1484,7 @@ public class C
 }";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (8,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x"),
@@ -1495,7 +1495,7 @@ public class C
             IDictionary<string, ReportDiagnostic> warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (8,13): error CS0168: Warning as Error: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithWarningAsError(true),
@@ -1505,13 +1505,13 @@ public class C
 
             warnings[MessageProvider.Instance.GetIdForErrorCode(168)] = ReportDiagnostic.Suppress;
             option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (9,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 0;  // CS0219
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics();
+            CreateCompilation(text, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1530,7 +1530,7 @@ public class C
     }
 }";
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (7,25): warning CS1072: Expected identifier or numeric literal.
                 // #pragma warning disable "CS0168
                 Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, @"""CS0168").WithLocation(7, 25),
@@ -1544,7 +1544,7 @@ public class C
             var warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (7,25): warning CS1072: Expected identifier or numeric literal.
                 // #pragma warning disable "CS0168
                 Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, @"""CS0168").WithLocation(7, 25),
@@ -1557,7 +1557,7 @@ public class C
 
             warnings[MessageProvider.Instance.GetIdForErrorCode(168)] = ReportDiagnostic.Suppress;
             option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (7,25): warning CS1072: Expected identifier or numeric literal.
                 // #pragma warning disable "CS0168
                 Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, @"""CS0168").WithLocation(7, 25),
@@ -1566,7 +1566,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (7,25): warning CS1072: Expected identifier or numeric literal.
                 // #pragma warning disable "CS0168
                 Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, @"""CS0168").WithLocation(7, 25));
@@ -1597,7 +1597,7 @@ public class C
     }
 }";
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (12,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;      // CS0168
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(14, 13),
@@ -1639,7 +1639,7 @@ public class C
     }
 }";
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (2,9): error CS1001: Identifier expected
                 // #define true
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "true").WithLocation(2, 9),
@@ -1700,7 +1700,7 @@ public class C
     }
 }";
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics();
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics();
 
             var nodes = ParseWithRoundTripCheck(text).GetRoot().DescendantNodes(descendIntoTrivia: true);
             var defineName = nodes.OfType<Syntax.DefineDirectiveTriviaSyntax>().Single().Name;
@@ -1736,7 +1736,7 @@ public class C
     }
 }";
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (2,9): error CS1001: Identifier expected
                 // #define @true
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "@").WithLocation(2, 9),
@@ -1772,7 +1772,7 @@ public class C
     }
 }";
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (6,32): warning CS1696: Single-line comment or end-of-line expected
                 // #pragma warning disable CS0168 + CS0219
                 Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, "+").WithLocation(6, 32),
@@ -1819,7 +1819,7 @@ public class C
     }
 }";
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (12,25): warning CS1072: Expected identifier or numeric literal.
                 // #pragma warning disable @class
                 Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, "@").WithLocation(12, 25),
@@ -1849,7 +1849,7 @@ public class C
     }
 }";
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (7,17): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         int x = string.Empty;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "string.Empty").WithArguments("string", "int").WithLocation(7, 17),
@@ -1874,7 +1874,7 @@ public class C
 }";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics(
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics(
                 // (6,25): warning CS1072: Expected identifier or numeric literal.
                 // #pragma warning disable ,
                 Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, ","),
@@ -1894,7 +1894,7 @@ public class C
             var warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (6,25): warning CS1072: Expected identifier or numeric literal.
                 // #pragma warning disable ,
                 Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, ","),
@@ -1913,7 +1913,7 @@ public class C
 
             warnings[MessageProvider.Instance.GetIdForErrorCode(168)] = ReportDiagnostic.Suppress;
             option = commonoption.WithSpecificDiagnosticOptions(warnings);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (6,25): warning CS1072: Expected identifier or numeric literal.
                 // #pragma warning disable ,
                 Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, ","),
@@ -1925,7 +1925,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, ","));
 
             option = commonoption.WithWarningLevel(2);
-            CreateStandardCompilation(text, options: option).VerifyDiagnostics(
+            CreateCompilation(text, options: option).VerifyDiagnostics(
                 // (6,25): warning CS1072: Expected identifier or numeric literal.
                 // #pragma warning disable ,
                 Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, ","),
@@ -1957,7 +1957,7 @@ class Program
 } ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics();
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics();
         }
 
         [WorkItem(546814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546814")]
@@ -1979,7 +1979,7 @@ class Program
 } ";
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: commonoption).VerifyDiagnostics();
+            CreateCompilation(text, options: commonoption).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2078,7 +2078,7 @@ public class Test
         return 1;
     }
 }";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             Assert.Equal(1, compilation.GetDiagnostics().Length);
             Assert.Equal(1, compilation.GetDiagnostics().Length);
@@ -2100,7 +2100,7 @@ public class Test
             var tree = Parse(text);
 
             // (8,10): error CS0119: 'Console' is a type, which is not valid in the given context
-            AssertEx.Equal(CreateStandardCompilation(tree).GetDiagnostics(), CreateStandardCompilation(tree).GetDiagnostics());
+            AssertEx.Equal(CreateCompilation(tree).GetDiagnostics(), CreateCompilation(tree).GetDiagnostics());
         }
 
         /// <summary>
@@ -2144,7 +2144,7 @@ public class A
 }";
 
             CSharpCompilationOptions options = TestOptions.ReleaseExe;
-            CreateStandardCompilation(text, options: options).VerifyDiagnostics(
+            CreateCompilation(text, options: options).VerifyDiagnostics(
                 // (7,35): error CS1031: Type expected
                 //         object a1 = typeof(Action<0>);
                 Diagnostic(ErrorCode.ERR_TypeExpected, "0").WithLocation(7, 35),
@@ -2190,7 +2190,7 @@ class Program
     }
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(new[]
             {
                 // (6,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
@@ -2230,7 +2230,7 @@ class Program
     }
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(new[]
             {
                 // (6,13): warning CS0219: The variable 'y' is assigned but its value is never used
@@ -2261,7 +2261,7 @@ class Program
     }
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(new[]
             {
                 // (7,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
@@ -2306,7 +2306,7 @@ class Program
     }
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(new[]
             {
                 // (5,18): error CS0103: The name 'dynamic' does not exist in the current context
@@ -2340,7 +2340,7 @@ class Program
     }
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -2361,7 +2361,7 @@ class Program
     static void dynamic() {}
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(new[]
             {
                 // (5,17): error CS0019: Operator '-' cannot be applied to operands of type 'method group' and 'int'
@@ -2486,7 +2486,7 @@ class Program
             const string source = "";
             var options = TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyFile(snkPath);
 
-            var ca = CreateStandardCompilation(source, options: options);
+            var ca = CreateCompilation(source, options: options);
 
             ca.VerifyEmitDiagnostics(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 // error CS7027: Error signing output with public key from file '{temp path}' -- Assembly signing not supported.
@@ -2499,7 +2499,7 @@ class Program
         {
             const string source = "";
 
-            var ca = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyContainer("bogus"));
+            var ca = CreateCompilation(source, options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyContainer("bogus"));
 
             ca.VerifyEmitDiagnostics(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 // error CS7028: Error signing output with public key from container 'bogus' -- Assembly signing not supported.

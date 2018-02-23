@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGetDeclaredSymbolFromNamespace()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace A.B
 {
 }
@@ -35,7 +35,7 @@ namespace A.B
         [Fact]
         public void NamespaceAndClassWithNoNames()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class
 {
 }
@@ -60,7 +60,7 @@ class
         [Fact]
         public void TestGetDeclaredSymbolFromNestedNamespace()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace A.B
 {
    namespace C.D
@@ -81,7 +81,7 @@ namespace A.B
         [Fact]
         public void IncompleteNamespaceDeclaration()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace
 
 class C
@@ -104,7 +104,7 @@ class C
         [Fact]
         public void AmbiguousSymbolInNamespaceName()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C { }
 
 namespace C.B 
@@ -129,7 +129,7 @@ namespace C.B
         [Fact]
         public void GetEnumDeclaration()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 enum E { }
 ");
 
@@ -147,7 +147,7 @@ enum E { }
         [Fact]
         public void GenericNameInNamespaceName()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace C<int>.B 
 { 
     class Y { }
@@ -170,7 +170,7 @@ namespace C<int>.B
         [Fact]
         public void AliasedNameInNamespaceName()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace alias::C<int>.B 
 { 
     class Y { }
@@ -193,7 +193,7 @@ namespace alias::C<int>.B
         [Fact]
         public void TestGetDeclaredSymbolFromType()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -213,7 +213,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromMethod()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -234,7 +234,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromProperty()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"class C
 {
     object P
@@ -265,7 +265,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromIndexer()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"class C
 {
     object this[int x, int y]
@@ -314,7 +314,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromCustomEvent()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"class C
 {
     event System.Action E
@@ -344,7 +344,7 @@ class C
         [Fact()]
         public void TestGetDeclaredSymbolFromFieldLikeEvent()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"class C
 {
     event System.Action E;
@@ -366,7 +366,7 @@ class C
         [Fact()]
         public void GetDeclaredSymbolOfEventDeclarationSyntaxAsBasePropertyDeclarationSyntax()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -387,7 +387,7 @@ public class Test
         [Fact()]
         public void GetDeclaredSymbolOfPropertyDeclarationSyntaxAsBasePropertyDeclarationSyntax()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -409,7 +409,7 @@ public class Test
         [Fact()]
         public void GetDeclaredSymbolOfIndexerDeclarationSyntaxAsBasePropertyDeclarationSyntax()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -434,7 +434,7 @@ public class Test
         [Fact()]
         public void GetDeclaredSymbolOfEventDeclarationSyntax()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -456,7 +456,7 @@ public class Test
         [Fact()]
         public void GetDeclaredSymbolOfPropertyDeclarationSyntax()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -478,7 +478,7 @@ public class Test
         [Fact()]
         public void GetDeclaredSymbolOfIndexerDeclarationSyntax()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -502,7 +502,7 @@ public class Test
         [Fact]
         public void TestGetDeclaredSymbolFromLocalDeclarator()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -524,7 +524,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromMultipleLocalDeclarators()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -550,7 +550,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromMultipleLabelDeclarators()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -579,7 +579,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromAnonymousTypePropertyInitializer()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -604,7 +604,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromAnonymousTypePropertyInitializer_WithErrors()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -645,7 +645,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromSwitchCaseLabel()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -679,7 +679,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromSwitchDefaultLabel()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -711,7 +711,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromFieldDeclarator()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   int x;
@@ -733,7 +733,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromMultipleFieldDeclarators()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   int x, y;
@@ -759,7 +759,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromParameter()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M(int x)
@@ -780,7 +780,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromDelegateParameter()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 delegate D(int x);
 ");
             var tree = compilation.SyntaxTrees[0];
@@ -795,7 +795,7 @@ delegate D(int x);
         [Fact]
         public void TestGetDeclaredSymbolFromMultipleParameter()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M(int x, int y)
@@ -819,7 +819,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromClassTypeParameter()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C<T>
 {
   void M()
@@ -839,7 +839,7 @@ class C<T>
         [Fact]
         public void TestGetDeclaredSymbolFromMethodTypeParameter()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C
 {
   void M<T>()
@@ -859,7 +859,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromGenericPartialType()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace N1.N2
 {
     public struct St<T>
@@ -943,7 +943,7 @@ namespace N1.N2
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         public void TestGetDeclaredSymbolWithIncompleteDeclaration()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C0 { }
 
 class 
@@ -966,7 +966,7 @@ class C1 { }
         [Fact]
         public void TestLookupUnresolvableNamespaceUsing()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 namespace A
                 {
                     using B.C;
@@ -987,7 +987,7 @@ class C1 { }
         [Fact]
         public void TestLookupSourceSymbolHidesMetadataSymbol()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace System
 {
     public class DateTime
@@ -1010,7 +1010,7 @@ namespace System
         [Fact]
         public void TestLookupAllArities()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class B {}
 
                 class A
@@ -1045,7 +1045,7 @@ namespace System
         [Fact]
         public void TestLookupWithinClassAllArities()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 using AliasZ = B.Z;
 
                 class A
@@ -1100,7 +1100,7 @@ namespace System
         [Fact]
         public void TestLookupTypesAllArities()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class B {}
 
                 class A
@@ -1131,7 +1131,7 @@ namespace System
         [Fact]
         public void TestLookupSymbolNames()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class A
                 {
                    public int X;
@@ -1150,7 +1150,7 @@ namespace System
                    {
                    }
                 }
-            ");
+            ", targetFramework: TargetFramework.StandardCompat);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1176,7 +1176,7 @@ namespace System
         [Fact]
         public void TestLookupSymbolNamesInCyclicClass()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class A : B
                 {
                    public int X;
@@ -1186,7 +1186,7 @@ namespace System
                 {
                    public int Y;
                 }
-            ");
+            ", targetFramework: TargetFramework.StandardCompat);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1205,7 +1205,7 @@ namespace System
         [Fact]
         public void TestLookupSymbolNamesInInterface()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 interface A
                 {
                    void AM();
@@ -1220,7 +1220,7 @@ namespace System
                 {
                    void CM();
                 }
-            ");
+            ", targetFramework: TargetFramework.StandardCompat);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1244,7 +1244,7 @@ namespace System
         [Fact]
         public void TestLookupSymbolNamesInTypeParameter()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 interface IA
 {
     void MA();
@@ -1304,7 +1304,7 @@ class D<T>
         [Fact]
         public void TestLookupSymbolsInInterface()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 interface A
                 {
                    void M<T>(T t);
@@ -1320,7 +1320,7 @@ class D<T>
                    void F();
                    void M<T, U, V>(T t, U u, V v);
                 }
-            ");
+            ", targetFramework: TargetFramework.StandardCompat);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1331,6 +1331,7 @@ class D<T>
             int positionInC = someMemberInC.SpanStart;
 
             var symbolsInC = model.LookupSymbols(positionInC);
+            var test = symbolsInC.Where(s => s.ContainingAssembly == null).ToList();
             Assert.Equal(9, symbolsInC.Where(s => s.ContainingType == null || s.ContainingType.SpecialType != SpecialType.System_Object).Count());
             Assert.True(symbolsInC.Any(s => s.Name == "A" && s.Kind == SymbolKind.NamedType));
             Assert.True(symbolsInC.Any(s => s.Name == "B" && s.Kind == SymbolKind.NamedType));
@@ -1346,7 +1347,7 @@ class D<T>
         [Fact]
         public void TestLookupSymbolsInTypeParameter()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 interface IA
 {
     void MA();
@@ -1412,7 +1413,7 @@ class D<T>
         [Fact]
         public void TestLookupSymbolsTypeParameterConstraints()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"interface I<T> where T : new() { }
 class A
 {
@@ -1453,7 +1454,7 @@ struct B<T> where T : A
         [Fact]
         public void TestLookupSymbolsTypeParameterConstraintCycles()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"interface IA<T1, T2>
     where T1 : T2
     where T2 : T1
@@ -1513,7 +1514,7 @@ interface IB<T3, T4>
         [Fact]
         public void TestLookupSymbolsAllNames()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class A
                 {
                    public int X;
@@ -1532,7 +1533,7 @@ interface IB<T3, T4>
                    {
                    }
                 }
-            ");
+            ", targetFramework: TargetFramework.StandardCompat);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1549,7 +1550,7 @@ interface IB<T3, T4>
         [Fact]
         public void TestLookupSymbolsAllNamesMustBeInstance()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class A
                 {
                    public int X;
@@ -1587,7 +1588,7 @@ interface IB<T3, T4>
         [Fact]
         public void TestLookupSymbolsAllNamesMustNotBeInstance()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class A
                 {
                    public int X;
@@ -1621,7 +1622,7 @@ interface IB<T3, T4>
         [Fact]
         public void TestLookupSymbolsExtensionMethods()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"namespace N
 {
     class C
@@ -1742,7 +1743,7 @@ static class S2
         [Fact]
         public void TestLookupSymbolsGenericExtensionMethods()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"class C
 {
     static void M() { }
@@ -1789,7 +1790,7 @@ static class S
         [Fact]
         public void TestLookupSymbolsMoreGenericExtensionMethods()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"using System;
 class A<T> { }
 class B<T> : A<T> { }
@@ -1869,7 +1870,7 @@ static class E
     }
     internal static void F<T>(this T t) where T : A { }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (8,11): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'E.F<T>(T)'. There is no implicit reference conversion from 'B' to 'A'.
                 //         b.F();
@@ -1910,7 +1911,7 @@ static class E
 {
     internal static void F<T>(this T t) where T : A { }
 }";
-            compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (8,11): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'E.F<T>(T)'. There is no implicit reference conversion from 'B' to 'A'.
                 //         b.F();
@@ -1937,10 +1938,8 @@ static class E
         [Fact]
         public void TestLookupSymbolsArrayExtensionMethods()
         {
-            var reference = SystemCoreRef;
-            var compilation = CreateStandardCompilation(
-                references: new MetadataReference[] { reference },
-                text:
+            var compilation = CreateCompilation(
+                source:
 @"using System.Linq;
 class C
 {
@@ -1983,7 +1982,7 @@ class C
         [Fact]
         public void TestLookupSymbolsWithEmptyStringForNameDoesNotAssert()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class A
                 {
                    public void M() 
@@ -2022,7 +2021,7 @@ class C
         catch (System.Exception b) { }
     };
 }";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var position = text.IndexOf('{', text.IndexOf("a)", StringComparison.Ordinal));
@@ -2109,7 +2108,7 @@ namespace TestNamespace_01
 [Goo()]
 class Bar { }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -2179,7 +2178,7 @@ class Bar { }
         [Fact]
         public void TestGetSemanticInfoOfInvocation()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2210,7 +2209,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfInvocationWithNoMatchingOverloads()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2247,7 +2246,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfInvocationWithNoMatchingOverloadsAndNonMatchingReturnTypes()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2283,7 +2282,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfIncompleteInvocation()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2319,7 +2318,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfMethodGroupAccess()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2354,7 +2353,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfTypeName()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2384,7 +2383,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfTypeNameWithConflictingLocalName()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2423,7 +2422,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfNamespaceName()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2454,7 +2453,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfRightSideOfQualifiedName()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2491,7 +2490,7 @@ namespace N
         [Fact]
         public void TestGetSemanticInfoOfTypeInDeclaration()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2520,7 +2519,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfNamespaceInDeclaration()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2550,7 +2549,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoInParentInLocalInitializer()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2575,7 +2574,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoInParentInMultipleLocalInitializers()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2601,7 +2600,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoInParentInArgument()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2629,7 +2628,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoInParentInMultipleArguments()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2715,7 +2714,7 @@ namespace A
         [Fact]
         public void GetDeclaredSymbolDupAliasNameErr()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace NS {  class A {}  }
 
 namespace NS {
@@ -2745,7 +2744,7 @@ namespace NS {
         [Fact]
         public void GetDeclaredSymbolForUsingDirective()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace N1 {
 };
 
@@ -2770,7 +2769,7 @@ namespace N2 {
         [Fact]
         public void GetDeclaredSymbolForExplicitImplementations()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 interface I
 {
     void M();
@@ -2838,7 +2837,7 @@ class C : I
         [Fact]
         public void GetDeclaredSymbolDottedNSAPI()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace N1 {
   namespace N2.N3
   {
@@ -2871,7 +2870,7 @@ namespace N1 {
         [Fact]
         public void GetDeclaredSymbolGlobalSystemNSErr()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace global::System {}
 
 class Test { }
@@ -2893,7 +2892,7 @@ class Test { }
         [Fact]
         public void GetDeclaredSymbolInvalidOverloadsErr()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class CGoo
 {
     void M() {}
@@ -2951,7 +2950,7 @@ class CGoo
         [Fact]
         public void GetDeclaredSymbolNoTypeSymbolWithErr()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace NS
 {
   protected class A { }
@@ -2975,7 +2974,7 @@ namespace NS
         [Fact]
         public void GetDeclaredSymbolExtraForDupTypesErr()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace NS
 {
     static class Test { }
@@ -3004,7 +3003,7 @@ namespace NS
         [Fact]
         public void GetDeclaredSymbolSameNameMethodsDiffNSs()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace Goo {
     class A { }
 }
@@ -3031,7 +3030,7 @@ namespace NS {
         [Fact]
         public void GetDeclaredSymbolNSCrossComps()
         {
-            var comp1 = CreateStandardCompilation(@"
+            var comp1 = CreateCompilation(@"
 namespace NS1 {
     namespace NS2 {    class A { }    }
     namespace NS2 {    class B { }    }
@@ -3079,7 +3078,7 @@ namespace NS1 {
 }
 ";
 
-            var compilation = CreateStandardCompilation(text1);
+            var compilation = CreateCompilation(text1);
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
             var model = compilation.GetSemanticModel(tree);
@@ -3116,7 +3115,7 @@ public sealed class ErrorProp
     public string Prop1 { goo { return null; } } // invalid accessor name
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -3129,7 +3128,7 @@ public sealed class ErrorProp
         [Fact]
         public void TestOverloadsInImplementedInterfaceMethods()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class WorksheetClass : IWorksheet
 {
     public int M1()
@@ -3167,7 +3166,7 @@ public class MainClass
         [Fact]
         public void TestGetSemanticInfoBrokenDecl()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void F()
@@ -3191,7 +3190,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoMethodGroupConversion()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -3243,7 +3242,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolForParamInLambdaExprPrecededByExplicitKeyword()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 class Program
 {
@@ -3272,7 +3271,7 @@ class Program
         [Fact]
         public void TestGetDeclaredSymbolForLambdaInDefaultValue1()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 class Program
 {
@@ -3298,7 +3297,7 @@ class Program
         [Fact]
         public void TestGetDeclaredSymbolForLambdaInDefaultValue2()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 class Program
 {
@@ -3323,7 +3322,7 @@ class Program
         [Fact]
         public void TestGetDeclaredSymbolForIncompleteMemberNode()
         {
-            var compilation = CreateStandardCompilation(@"u");
+            var compilation = CreateCompilation(@"u");
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
 
@@ -3341,7 +3340,7 @@ class Program
         [Fact]
         public void TestGetDeclaredSymbolForeachStmtWithPointerType()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class Test
 {
     static void Main(string[] args)
@@ -3364,7 +3363,7 @@ class Test
         [Fact]
         public void TestGetDeclaredSymbolConstDelegateDecl()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 public class Test
 {
     const delegate
@@ -3385,7 +3384,7 @@ public class Test
         [Fact]
         public void TestIncompleteUsingDirectiveSyntax()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using myType1 =
 ");
             var tree = compilation.SyntaxTrees[0];
@@ -3405,7 +3404,7 @@ using myType1 =
         [Fact]
         public void TestGetDeclaredSymbolForeachStmt()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C
 {
     static void Main(string[] args)
@@ -3433,7 +3432,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolForeachStmtError1()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C
 {
     static void Main(string[] args)
@@ -3456,7 +3455,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolForeachStmtError2()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C
 {
     static void Main(string[] args)
@@ -3489,7 +3488,7 @@ namespace N
         [Fact]
         public void TestGetDeclaredSymbolCatchClause()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C
 {
     static void Main(string[] args)
@@ -3520,7 +3519,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolTopLevelMethod()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 class void Goo()
 {
@@ -3542,7 +3541,7 @@ class void Goo()
         [Fact]
         public void TestGetDeclaredSymbolNamespaceLevelMethod()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 namespace N
 {
@@ -3567,7 +3566,7 @@ namespace N
         [Fact]
         public void TestGetDeclaredSymbolEnumMemberDeclarationSyntax()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 enum EnumX
 {
@@ -3599,7 +3598,7 @@ enum EnumX
         [Fact]
         public void TestLambdaParameterInLambda()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 delegate int D(int x);
 class Program
@@ -3626,7 +3625,7 @@ class Program
         public void GetDeclaredSymbolOnGlobalStmtParseOptionScript()
         {
             var parseOptions = TestOptions.Script;
-            var compilation = CreateStandardCompilation(@"/", parseOptions: parseOptions);
+            var compilation = CreateCompilation(@"/", parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
 
@@ -3641,7 +3640,7 @@ class Program
         [Fact]
         public void GetSymbolInGoto()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class Program
 {
     static void Main()
@@ -3664,7 +3663,7 @@ class Program
         [Fact]
         public void SourceNamespaceSymbolMergeWithMetadata()
         {
-            var compilation = CreateCompilation(new string[] {
+            var compilation = CreateEmptyCompilation(new string[] {
 @"namespace System {
     public partial class PartialClass 
     {
@@ -3708,7 +3707,7 @@ new[] { MscorlibRef });
         [Fact]
         public void StructKeywordInsideSwitchWithScriptParseOption()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 
 class Test
@@ -3747,7 +3746,7 @@ using System;
 struct break;
 ";
 
-            var compilation = CreateStandardCompilation(code, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilation(code, parseOptions: TestOptions.Script);
 
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3760,7 +3759,7 @@ struct break;
         [Fact]
         public void IncompleteStructDeclWithSpace()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 
 namespace N1
@@ -3788,7 +3787,7 @@ class P
     double one = 1;
     public Func<int, int> z = (x => x + one);
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedExpressionSyntax>().First();
@@ -3808,7 +3807,7 @@ class C
     private Alias.String s;
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees[0];
             var node = (IdentifierNameSyntax)tree.GetCompilationUnitRoot().DescendantTokens().Where(t => t.ToString() == "Alias").Last().Parent;
             var modelWeakReference = ObjectReference.CreateFromFactory(() => compilation.GetSemanticModel(tree));
@@ -3843,7 +3842,7 @@ partial class program
     static partial void goo(string name, int age, bool gender, int index1 = 1);
 }";
             var tree = Parse(sourceCode);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var param = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().Where(p => p.Identifier.ValueText == "name").First();
             var symbol = model.GetDeclaredSymbol(param);
@@ -3864,7 +3863,7 @@ class C
 }
 ";
             var tree = Parse(sourceCode);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var usingDirectives = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().ToArray();
 
@@ -3894,7 +3893,7 @@ class C
         [Fact]
         public void InaccessibleDefaultAttributeConstructor()
         {
-            var c1 = CreateStandardCompilation(@"
+            var c1 = CreateCompilation(@"
 using System;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
@@ -3908,7 +3907,7 @@ internal class MyAttribute : Attribute {
 public class X { }
 ");
 
-            var c2 = CreateStandardCompilation(tree2, references: new[] { new CSharpCompilationReference(c1) });
+            var c2 = CreateCompilation(tree2, references: new[] { new CSharpCompilationReference(c1) });
 
             var attr = (AttributeSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)tree2.GetCompilationUnitRoot()).Members[0]).AttributeLists[0].Attributes[0];
             var model = c2.GetSemanticModel(tree2);
@@ -3934,7 +3933,7 @@ public class A<T>
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var typeA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
@@ -4026,7 +4025,7 @@ class M {
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var classM = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("M");
             var fieldB = classM.GetMember<FieldSymbol>("B");
@@ -4068,7 +4067,7 @@ static class S
         writer.Write(value);
     }
 }";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -4087,7 +4086,7 @@ static class S
         writer.Write(value);
     }
 }";
-            comp = CreateStandardCompilation(src);
+            comp = CreateCompilation(src);
             tree = comp.SyntaxTrees.Single();
             model = comp.GetSemanticModel(tree);
 
@@ -4110,7 +4109,7 @@ class C {
     [Serializable] int i;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -4189,7 +4188,7 @@ class C {
     [Serializable] int i;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees.Single();
             var parentModel = compilation.GetSemanticModel(tree);
 
@@ -4341,7 +4340,7 @@ class C {
         [Fact]
         public void GetSymbolInfoSimpleLambda()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System.Collections.Generic;
 using System.Linq;
 class Goo
@@ -4378,7 +4377,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var conversion = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.ImplicitConversionName);
             Assert.Equal(MethodKind.Conversion, conversion.MethodKind);
@@ -4409,7 +4408,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var conversion = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.ExplicitConversionName);
             Assert.Equal(MethodKind.Conversion, conversion.MethodKind);
@@ -4440,7 +4439,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var @operator = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.AdditionOperatorName);
             Assert.Equal(MethodKind.UserDefinedOperator, @operator.MethodKind);
@@ -4471,7 +4470,7 @@ namespace Goo { }
 class C { }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using Alias = Goo;
@@ -4508,7 +4507,7 @@ namespace Goo { }
 class C { }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using Alias = Goo;
@@ -4547,7 +4546,7 @@ class C
 
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var node = (DefaultExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Where(i => i is DefaultExpressionSyntax).First();
@@ -4596,7 +4595,7 @@ class Other
 
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4635,7 +4634,7 @@ class Other
             var source =
 @"class A<T> { }
 class C : A<object>.B<> { }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ClassDeclarationSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.ClassDeclaration));
             var model = compilation.GetSemanticModel(tree);
@@ -4650,7 +4649,7 @@ class C : A<object>.B<> { }";
             var source =
 @"class A<T, U> { }
 class C : A<,,>.B<object> { }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ClassDeclarationSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.ClassDeclaration));
             var model = compilation.GetSemanticModel(tree);
@@ -4665,7 +4664,7 @@ class C : A<,,>.B<object> { }";
             var source =
 @"class A { }
 class C : A<>.B<> { }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ClassDeclarationSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.ClassDeclaration));
             var model = compilation.GetSemanticModel(tree);
@@ -4684,7 +4683,7 @@ public class C
     public event enum
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var enumDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<EnumDeclarationSyntax>().Single();
@@ -4712,7 +4711,7 @@ public class S
     struct interface
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var structDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<StructDeclarationSyntax>().First();
@@ -4748,7 +4747,7 @@ class C
 
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
@@ -4777,7 +4776,7 @@ class C
 
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
@@ -4805,7 +4804,7 @@ class C
 
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
@@ -4833,7 +4832,7 @@ class C
 
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
@@ -4861,7 +4860,7 @@ class C
 
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
@@ -4889,7 +4888,7 @@ class C
 
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
@@ -4917,7 +4916,7 @@ class C
 
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
@@ -4945,7 +4944,7 @@ class C
 
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
@@ -5018,7 +5017,7 @@ namespace System
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,32): warning CS8123: The tuple element name 'Alice' is ignored because a different name or no name is specified by the target type '(short, string)'.
                 //         (short X, string Y) = (Alice: 1, Bob: null);
@@ -5075,7 +5074,7 @@ namespace System
 
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
@@ -5103,7 +5102,7 @@ class C
 
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
@@ -5116,7 +5115,7 @@ class C
         [Fact]
         public void TestIncompleteMemberNode_Visitor()
         {
-            var compilation = CreateStandardCompilation(@"u");
+            var compilation = CreateCompilation(@"u");
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
 

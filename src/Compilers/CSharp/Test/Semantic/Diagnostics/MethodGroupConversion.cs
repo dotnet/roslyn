@@ -42,7 +42,7 @@ class C : I1, I2 {}
 
 delegate void D(C c);
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (7,13): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(I1)' and 'Program.M(I2)'
                 //         d = M;
