@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -126,10 +127,20 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Checks if the given method implements IDisposable.Dispose()
+        /// Checks if the given method implements <see cref="IDisposable.Dispose"/> or overrides an implementation of <see cref="IDisposable.Dispose"/>.
         /// </summary>
         public static bool IsDisposeImplementation(this IMethodSymbol method, INamedTypeSymbol iDisposable)
         {
+            if (method == null)
+            {
+                return false;
+            }
+
+            if (method.IsOverride)
+            {
+                return method.OverriddenMethod.IsDisposeImplementation(iDisposable);
+            }
+
             // Identify the implementor of IDisposable.Dispose in the given method's containing type and check
             // if it is the given method.
             return method.ReturnsVoid &&
@@ -274,9 +285,9 @@ namespace Analyzer.Utilities.Extensions
         /// The current heuristic is that we consider a method to be an add method if its name begins with "Add" and its
         /// enclosing type derives from ICollection or any instantiation of ICollection&lt;T&gt;.
         /// </remarks>
-        public static bool IsCollectionAddMethod(this IMethodSymbol method, INamedTypeSymbol iCollectionType)
-            => iCollectionType != null &&
+        public static bool IsCollectionAddMethod(this IMethodSymbol method, ImmutableHashSet<INamedTypeSymbol> iCollectionTypes)
+            => !iCollectionTypes.IsEmpty &&
                method.Name.StartsWith("Add", StringComparison.Ordinal) &&
-               method.ContainingType.OriginalDefinition.DerivesFrom(iCollectionType.OriginalDefinition);
+               method.ContainingType.AllInterfaces.Any(i => iCollectionTypes.Contains(i.OriginalDefinition));
     }
 }

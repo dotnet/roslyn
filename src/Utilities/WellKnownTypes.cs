@@ -16,6 +16,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1");
         }
 
+        public static INamedTypeSymbol GenericIReadOnlyCollection(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyCollection`1");
+        }
+
         public static INamedTypeSymbol IEnumerable(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
@@ -119,6 +124,11 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol Thread(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Threading.Thread");
+        }
+
+        public static INamedTypeSymbol Task(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
         }
 
         public static INamedTypeSymbol WebMethodAttribute(Compilation compilation)
