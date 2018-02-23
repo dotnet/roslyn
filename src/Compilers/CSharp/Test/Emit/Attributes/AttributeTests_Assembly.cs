@@ -1508,7 +1508,7 @@ class Program
 {
     static void Main(string[] args) { }
 }";
-            var compilation = CreateCompilation(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
 
             TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 20,

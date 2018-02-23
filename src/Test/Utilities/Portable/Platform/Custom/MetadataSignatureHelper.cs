@@ -97,8 +97,7 @@ namespace Roslyn.Test.Utilities
 
         static private void AppendParameterInfo(ParameterInfo parameter, StringBuilder sb)
         {
-#if NET46 || NET461
-            foreach (var attribute in parameter.GetCustomAttributesData())
+            foreach (var attribute in parameter.CustomAttributes)
             {
                 // these are pseudo-custom attributes that are added by Reflection but don't appear in metadata as custom attributes:
                 if (attribute.AttributeType != typeof(OptionalAttribute) &&
@@ -110,7 +109,6 @@ namespace Roslyn.Test.Utilities
                     sb.Append(" ");
                 }
             }
-#endif 
 
             foreach (var modreq in parameter.GetRequiredCustomModifiers())
             {
@@ -365,13 +363,11 @@ namespace Roslyn.Test.Utilities
         {
             sb.Append(".method");
 
-#if NET46 || NET461
-            foreach (var attribute in method.GetCustomAttributesData())
+            foreach (var attribute in method.CustomAttributes)
             {
                 sb.Append(" ");
                 AppendCustomAttributeData(attribute, sb);
             }
-#endif
 
             sb.Append(" ");
             AppendMethodAttributes(sb, method.Attributes);
@@ -407,13 +403,11 @@ namespace Roslyn.Test.Utilities
         {
             sb.Append(".method");
 
-#if NET46 || NET461
-            foreach (var attribute in constructor.GetCustomAttributesData())
+            foreach (var attribute in constructor.CustomAttributes)
             {
                 sb.Append(" ");
                 AppendCustomAttributeData(attribute, sb);
             }
-#endif
 
             sb.Append(" ");
             AppendMethodAttributes(sb, constructor.Attributes);
@@ -461,13 +455,11 @@ namespace Roslyn.Test.Utilities
         {
             sb.Append(".property ");
 
-#if NET46 || NET461
-            foreach (var attribute in property.GetCustomAttributesData())
+            foreach (var attribute in property.CustomAttributes)
             {
                 AppendCustomAttributeData(attribute, sb);
                 sb.Append(" ");
             }
-#endif
             foreach (var modreq in property.GetRequiredCustomModifiers())
             {
                 sb.Append("modreq(");
@@ -524,13 +516,11 @@ namespace Roslyn.Test.Utilities
         {
             sb.Append(".field ");
 
-#if NET46 || NET461
-            foreach (var attribute in field.GetCustomAttributesData())
+            foreach (var attribute in field.CustomAttributes)
             {
                 AppendCustomAttributeData(attribute, sb);
                 sb.Append(" ");
             }
-#endif
 
             foreach (var modreq in field.GetRequiredCustomModifiers())
             {
@@ -578,13 +568,11 @@ namespace Roslyn.Test.Utilities
         {
             sb.Append(".event ");
 
-#if NET46 || NET461
-            foreach (var attribute in @event.GetCustomAttributesData())
+            foreach (var attribute in @event.CustomAttributes)
             {
                 AppendCustomAttributeData(attribute, sb);
                 sb.Append(" ");
             }
-#endif
 
             if (@event.Attributes.HasFlag(EventAttributes.SpecialName)) sb.Append("specialname ");
             if (@event.Attributes.HasFlag(EventAttributes.RTSpecialName)) sb.Append("rtspecialname ");

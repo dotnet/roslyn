@@ -413,7 +413,7 @@ class C
             #endregion
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(text, references: new[] { SystemRef }, sourceSymbolValidator: attributeValidator);
+            CompileAndVerify(text, sourceSymbolValidator: attributeValidator);
         }
 
         [Fact]
@@ -738,7 +738,6 @@ public class CCC
 
             CompileAndVerify(
                 text,
-                references: new[] { SystemRef },
                 expectedOutput: @"
 (Byte)0, (Byte)128, (UInt32)4294967295, (UInt32)4294967295, (UInt32)4294967295, True
 (Byte)0, (Byte)0, (UInt32)4294967295, (UInt32)4294967295, (UInt32)4294967295, True
@@ -764,7 +763,7 @@ public class C
     }
 }
 ";
-            CreateCompilation(source, new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,59): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(decimal)"));
         }
@@ -803,7 +802,7 @@ public class C
                 Assert.Equal(0, ps[0].GetAttributes().Length);
             };
 
-            CompileAndVerify(source, references: new[] { SystemRef }, symbolValidator: verifier);
+            CompileAndVerify(source, symbolValidator: verifier);
         }
 
         [Fact]
@@ -818,7 +817,7 @@ public class C
     {
     }
 }
-", new[] { SystemRef });
+");
 
             Action<ModuleSymbol> verifier = module =>
             {
@@ -848,7 +847,7 @@ public class C
     {
     }
 }
-", new[] { SystemRef });
+");
 
             Action<ModuleSymbol> verifier = module =>
             {
@@ -888,7 +887,7 @@ public class C
         return i;
     }
 }
-", new[] { SystemRef });
+");
 
             var c2 = CreateCompilation(@"
 public class D 
@@ -1013,7 +1012,7 @@ public class C
         set {  }
 }
 }";
-            CompileAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -1068,7 +1067,7 @@ public delegate void D([Optional, DefaultParameterValue(1)]ref int a, int b = 2,
 ";
             // Dev11: doesn't allow DPV(null) on int[], we do.
 
-            CompileAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -1179,7 +1178,7 @@ public interface ISomeInterface
 }
 ";
             // Dev10 reports CS1909, we don't
-            CompileAndVerify(text, references: new[] { SystemRef });
+            CompileAndVerify(text);
         }
 
         [Fact, WorkItem(544934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544934")]
@@ -1199,7 +1198,7 @@ class C
         Goo();
     }
 }";
-            CompileAndVerify(source, references: new[] { SystemRef }, expectedOutput: @"5");
+            CompileAndVerify(source, expectedOutput: @"5");
         }
 
         [Fact]
@@ -1214,7 +1213,7 @@ public class X
     public int InTheMiddle(int a, [Optional, DefaultParameterValue((short)1)]int b, int c){
         return 2;
     } 
-}", new[] { SystemRef });
+}");
 
             CompileAndVerify(compilation);
         }
@@ -1321,7 +1320,7 @@ partial class C
                 partialValidator(sourceMethod);
             };
 
-            CompileAndVerify(source, references: new[] { SystemRef }, sourceSymbolValidator: sourceValidator);
+            CompileAndVerify(source, sourceSymbolValidator: sourceValidator);
         }
 
         [WorkItem(544303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544303")]
@@ -1539,7 +1538,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, references: new[] { MscorlibRef, SystemRef }, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
         }
 
         [Fact, WorkItem(546624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546624")]
@@ -1720,7 +1719,7 @@ class C
 }
 ";
 
-            CreateCompilation(source, references: new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (63,65): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 //     public MyPermission5Attribute(SecurityAction action, object x = SecurityAction.Demand) : base(SecurityAction.Demand)
                 Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object"),
@@ -1778,7 +1777,7 @@ class Program
         Goo();
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { SystemRef });
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'Enum'
                 //         Goo();
@@ -1841,7 +1840,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(source, references: new[] { SystemRef }, expectedOutput: @"100200300400");
+            CompileAndVerify(source, expectedOutput: @"100200300400");
         }
 
         [WorkItem(544516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544516")]
@@ -5153,7 +5152,7 @@ public class Test
 ";
             #endregion
 
-            CompileAndVerify(source, references: new[] { SystemRef }, expectedOutput: @"System.Reflection.Missing")
+            CompileAndVerify(source, expectedOutput: @"System.Reflection.Missing")
                 .VerifyIL("Test.Main", @"{
   // Code size       16 (0x10)
   .maxstack  2
@@ -7918,7 +7917,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemRef });
+            var comp = CreateCompilation(source);
 
             Action<ModuleSymbol> validator = module =>
             {
