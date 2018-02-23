@@ -18,7 +18,8 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 
-using QuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
+using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
+using CodeAnalysisQuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 {
@@ -59,37 +60,35 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                 // do nothing
             }
 
-            public async Task<QuickInfoItem> ConvertQuickInfoItem(SnapshotPoint triggerPoint, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem quickInfoItem)
+            public async Task<IntellisenseQuickInfoItem> BuildIntellisenseQuickInfoItemAsync(SnapshotPoint triggerPoint, CodeAnalysisQuickInfoItem quickInfoItem)
             {
-                QuickInfoItem item = null;
+                IntellisenseQuickInfoItem item = null;
                 await InvokeBelowInputPriority(() =>
-                    { item = convertQuickInfoItemRunOnUIThread(triggerPoint, quickInfoItem); })
-                    .ConfigureAwait(false);
+                {
+                    var line = triggerPoint.GetContainingLine();
+                    var lineNumber = triggerPoint.GetContainingLine().LineNumber;
+                    var lineSpan = this._subjectBuffer.CurrentSnapshot.CreateTrackingSpan(
+                        line.Extent,
+                        SpanTrackingMode.EdgeInclusive);
+
+
+                    var glyphs = quickInfoItem.Tags.GetGlyphs();
+                    var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
+                    var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);
+                    var documentSpan = quickInfoItem.RelatedSpans.Length > 0 ?
+                        CreateDocumentSpanPresentation(quickInfoItem, this._subjectBuffer.CurrentSnapshot) : null;
+
+                    var content = new QuickInfoDisplayPanel(
+                        symbolGlyph: symbolGlyph != default ? CreateSymbolPresentation(symbolGlyph) : null,
+                        warningGlyph: warningGlyph != default ? CreateSymbolPresentation(warningGlyph) : null,
+                        textBlocks: quickInfoItem.Sections.Select(section =>
+                            new TextBlockElement(section.Kind, CreateTextPresentation(section))).ToImmutableArray(),
+                        documentSpan: documentSpan);
+
+                    item = new IntellisenseQuickInfoItem(lineSpan, content);
+                }).ConfigureAwait(false);
+
                 return item;
-            }
-            private QuickInfoItem convertQuickInfoItemRunOnUIThread(SnapshotPoint triggerPoint, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem quickInfoItem)
-            {
-                var line = triggerPoint.GetContainingLine();
-                var lineNumber = triggerPoint.GetContainingLine().LineNumber;
-                var lineSpan = this._subjectBuffer.CurrentSnapshot.CreateTrackingSpan(
-                    line.Extent,
-                    SpanTrackingMode.EdgeInclusive);
-
-
-                var glyphs = quickInfoItem.Tags.GetGlyphs();
-                var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
-                var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);
-                var documentSpan = quickInfoItem.RelatedSpans.Length > 0 ?
-                    CreateDocumentSpanPresentation(quickInfoItem, this._subjectBuffer.CurrentSnapshot) : null;
-
-                var content = new QuickInfoDisplayPanel(
-                    symbolGlyph: symbolGlyph != default ? CreateSymbolPresentation(symbolGlyph) : null,
-                    warningGlyph: warningGlyph != default ? CreateSymbolPresentation(warningGlyph) : null,
-                    textBlocks: quickInfoItem.Sections.Select(section =>
-                        new TextBlockElement(section.Kind, CreateTextPresentation(section))).ToImmutableArray(),
-                    documentSpan: documentSpan);
-
-                return new QuickInfoItem(lineSpan, content);
             }
 
             private FrameworkElement CreateSymbolPresentation(Glyph glyph)

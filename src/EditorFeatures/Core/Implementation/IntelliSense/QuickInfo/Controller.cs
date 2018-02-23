@@ -15,6 +15,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Roslyn.Utilities;
 
+using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
+
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal partial class Controller :
@@ -65,22 +67,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             // do nothing
         }
 
-        public async Task<VisualStudio.Language.Intellisense.QuickInfoItem> GetQuickInfoItemAsync(
+        public async Task<IntellisenseQuickInfoItem> GetQuickInfoItemAsync(
             SnapshotPoint triggerPoint,
-            IAsyncQuickInfoSession augmentSession = null,
-            CancellationToken cancellationToken = new CancellationToken())
+            IAsyncQuickInfoSession augmentSession,
+            CancellationToken cancellationToken)
         {
             var service = GetService();
             if (service == null)
             {
-                return (VisualStudio.Language.Intellisense.QuickInfoItem)null;
+                return null;
             }
 
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
             this.sessionOpt = new Session<Controller, Model, IQuickInfoPresenterSession>(this, new ModelComputation<Model>(this, TaskScheduler.Default),
                 this.Presenter.CreateSession(this.TextView, this.SubjectBuffer, augmentSession));
 
-            var trackMouse = augmentSession != null && augmentSession.Options == QuickInfoSessionOptions.TrackMouse;
             try
             {
                 using (Logger.LogBlock(FunctionId.QuickInfo_ModelComputation_ComputeModelInBackground, cancellationToken))
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     var item = await service.GetQuickInfoAsync(document, triggerPoint, cancellationToken).ConfigureAwait(false);
                     if (item != null)
                     {
-                        return await sessionOpt.PresenterSession.ConvertQuickInfoItem(triggerPoint, item).ConfigureAwait(false);
+                        return await sessionOpt.PresenterSession.BuildIntellisenseQuickInfoItemAsync(triggerPoint, item).ConfigureAwait(false);
                     }
 
                     return null;

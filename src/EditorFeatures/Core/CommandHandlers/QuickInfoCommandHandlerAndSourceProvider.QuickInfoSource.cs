@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     var args = new InvokeQuickInfoCommandArgs(textView, _subjectBuffer);
                     if (_commandHandler.TryGetController(args, out var controller))
                     {
-                        return controller.GetQuickInfoItemAsync(triggerPoint.Value, session);
+                        return controller.GetQuickInfoItemAsync(triggerPoint.Value, session, cancellationToken);
                     }
                 }
 
