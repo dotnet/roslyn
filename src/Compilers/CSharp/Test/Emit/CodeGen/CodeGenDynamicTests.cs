@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             bool allowUnsafe = false,
             [CallerFilePath]string callerPath = null,
             [CallerLineNumber]int callerLine = 0,
-            CSharpParseOptions parseOptions = null)
+            CSharpParseOptions parseOptions = null,
+            Verification verify = Verification.Passes)
         {
             references = references ?? new[] { SystemCoreRef, CSharpRef };
 
@@ -36,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var unoptimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
             var optimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
 
-            var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation);
-            var optimizedVerifier = CompileAndVerify(optimizedCompilation);
+            var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation, verify: verify);
+            var optimizedVerifier = CompileAndVerify(optimizedCompilation, verify: verify);
 
             // check what IL we emit exactly:
             if (expectedUnoptimizedIL != null)
@@ -330,7 +331,7 @@ class C
 ";
             // Desired: the delegate is generated, no error is reported.
             // Actual: use the malformed Func`13 time and failed to PEVerify.  Not presently worthwhile to fix.
-            CompileAndVerify(source, new[] { systemCoreRef, csrtRef }, verify: false).VerifyIL("C.F", @"
+            CompileAndVerify(source, new[] { systemCoreRef, csrtRef }, verify: Verification.Fails).VerifyIL("C.F", @"
 {
   // Code size      189 (0xbd)
   .maxstack  13
@@ -587,7 +588,7 @@ public class C
                 {
                     Assert.Equal(Accessibility.Private, container.DeclaredAccessibility);
                     Assert.True(container.IsStatic);
-                    Assert.Equal(SpecialType.System_Object, container.BaseType.SpecialType);
+                    Assert.Equal(SpecialType.System_Object, container.BaseType().SpecialType);
                     AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(container.GetAttributes()));
 
                     var members = container.GetMembers();
@@ -823,8 +824,8 @@ public class C
                 Assert.Equal(4, d.TypeParameters.Length);
                 Assert.True(d.IsSealed);
                 Assert.Equal(CharSet.Ansi, d.MarshallingCharSet);
-                Assert.Equal(SpecialType.System_MulticastDelegate, d.BaseType.SpecialType);
-                Assert.Equal(0, d.Interfaces.Length);
+                Assert.Equal(SpecialType.System_MulticastDelegate, d.BaseType().SpecialType);
+                Assert.Equal(0, d.Interfaces().Length);
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(d.GetAttributes()));
 
                 // members:
@@ -9358,7 +9359,7 @@ public struct S
   IL_0063:  callvirt   ""void <>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, object)""
   IL_0068:  ret
 }
-", allowUnsafe: true);
+", allowUnsafe: true, verify: Verification.Fails);
         }
 
         [Fact]
@@ -9427,7 +9428,7 @@ public struct S
   IL_0063:  callvirt   ""void <>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, object)""
   IL_0068:  ret
 }
-", allowUnsafe: true);
+", allowUnsafe: true, verify: Verification.Fails);
         }
 
         [Fact]
@@ -9497,7 +9498,7 @@ public struct S
   IL_006a:  callvirt   ""void <>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, object)""
   IL_006f:  ret
 }
-", allowUnsafe: true);
+", allowUnsafe: true, verify: Verification.Fails);
         }
 
         [Fact]

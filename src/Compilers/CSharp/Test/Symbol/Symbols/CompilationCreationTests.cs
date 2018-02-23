@@ -2270,7 +2270,7 @@ public class C5 :
 
             Assert.Same(retval1.OriginalDefinition, type2);
 
-            var args1 = retval1.ContainingType.TypeArguments.Concat(retval1.TypeArguments).SelectAsArray(TypeMap.AsTypeSymbol);
+            var args1 = retval1.ContainingType.TypeArguments().Concat(retval1.TypeArguments().SelectAsArray(TypeMap.AsTypeSymbol));
             var params1 = retval1.ContainingType.TypeParameters.Concat(retval1.TypeParameters);
 
             Assert.Same(params1[0], type1.TypeParameters[0]);
@@ -2295,7 +2295,7 @@ public class C5 :
             Assert.Same(retval3.OriginalDefinition, type6);
             Assert.Same(retval3.ContainingAssembly, asm5[1]);
 
-            var args3 = retval3.TypeArguments;
+            var args3 = retval3.TypeArguments();
             var params3 = retval3.TypeParameters;
 
             Assert.Same(params3[0], type6.TypeParameters[0]);
@@ -2414,15 +2414,15 @@ public class C5 :
             Assert.Equal(0, type3.Arity);
             Assert.Equal(1, typeC6.Arity);
 
-            Assert.NotNull(type3.BaseType);
-            Assert.Equal("System.Object", type3.BaseType.ToTestDisplayString());
+            Assert.NotNull(type3.BaseType());
+            Assert.Equal("System.Object", type3.BaseType().ToTestDisplayString());
 
             Assert.Equal(Accessibility.Public, type3.DeclaredAccessibility);
             Assert.Equal(Accessibility.Internal, typeC302.DeclaredAccessibility);
 
-            Assert.Equal(0, type3.Interfaces.Length);
-            Assert.Equal(1, typeC301.Interfaces.Length);
-            Assert.Equal("I1", typeC301.Interfaces.Single().Name);
+            Assert.Equal(0, type3.Interfaces().Length);
+            Assert.Equal(1, typeC301.Interfaces().Length);
+            Assert.Equal("I1", typeC301.Interfaces().Single().Name);
 
             Assert.False(type3.IsAbstract);
             Assert.True(typeC301.IsAbstract);
@@ -2430,13 +2430,13 @@ public class C5 :
             Assert.False(type3.IsSealed);
             Assert.False(type3.IsStatic);
 
-            Assert.Equal(0, type3.TypeArguments.Length);
+            Assert.Equal(0, type3.TypeArguments().Length);
             Assert.Equal(0, type3.TypeParameters.Length);
 
             var localC6Params = typeC6.TypeParameters;
             Assert.Equal(1, localC6Params.Length);
-            Assert.Equal(1, typeC6.TypeArguments.Length);
-            Assert.Same(localC6Params[0], typeC6.TypeArguments[0].TypeSymbol);
+            Assert.Equal(1, typeC6.TypeArguments().Length);
+            Assert.Same(localC6Params[0], typeC6.TypeArguments()[0].TypeSymbol);
 
             Assert.Same(((RetargetingNamedTypeSymbol)type3).UnderlyingNamedType,
                 asm3.GlobalNamespace.GetTypeMembers("C3").Single());
@@ -2448,10 +2448,10 @@ public class C5 :
             var localC6_T = localC6Params[0];
             var foo3TypeParam = foo3TypeParams[0];
 
-            Assert.Equal(0, localC6_T.ConstraintTypes.Length);
+            Assert.Equal(0, localC6_T.ConstraintTypes().Length);
 
-            Assert.Equal(1, foo3TypeParam.ConstraintTypes.Length);
-            Assert.Same(type4, foo3TypeParam.ConstraintTypes.Single().TypeSymbol);
+            Assert.Equal(1, foo3TypeParam.ConstraintTypes().Length);
+            Assert.Same(type4, foo3TypeParam.ConstraintTypes().Single().TypeSymbol);
 
             Assert.Same(typeC6, localC6_T.ContainingSymbol);
             Assert.False(foo3TypeParam.HasConstructorConstraint);
@@ -2508,8 +2508,8 @@ public class C5 :
 
             var typeC5 = c5.Assembly.GlobalNamespace.GetTypeMembers("C5").Single();
 
-            Assert.Same(asm5[1], typeC5.BaseType.ContainingAssembly);
-            Assert.Equal("ns1.C304.C305", typeC5.BaseType.ToTestDisplayString());
+            Assert.Same(asm5[1], typeC5.BaseType().ContainingAssembly);
+            Assert.Equal("ns1.C304.C305", typeC5.BaseType().ToTestDisplayString());
             Assert.NotEqual(SymbolKind.ErrorType, typeC5.Kind);
         }
 

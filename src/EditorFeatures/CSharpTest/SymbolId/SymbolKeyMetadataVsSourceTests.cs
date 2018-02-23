@@ -70,7 +70,7 @@ public class App : C
             var member02 = (typesym.GetMembers("Prop").Single() as PropertySymbol).Type.TypeSymbol;
 
             // 'C'
-            var member03 = typesym.BaseType;
+            var member03 = typesym.BaseType();
 
             // 'S'
             var member04 = (typesym.GetMembers("M").Single() as MethodSymbol).Parameters[0].Type.TypeSymbol;

@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentNullException(nameof(fullyQualifiedMetadataName));
             }
 
-            return this.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: false, isWellKnownType: false);
+            return this.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: false, isWellKnownType: false, conflicts: out var _);
         }
 
         /// <summary>
@@ -543,11 +543,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// In case duplicate types are found, ignore the one from corlib. This is useful for any kind of compilation at runtime
         /// (EE/scripting/Powershell) using a type that is being migrated to corlib.
         /// </param>
+        /// <param name="conflicts">
+        /// In cases a type could not be found because of ambiguity, we return two of the candidates that caused the ambiguity.
+        /// </param>
         /// <returns>Null if the type can't be found.</returns>
         internal NamedTypeSymbol GetTypeByMetadataName(
             string metadataName,
             bool includeReferences,
             bool isWellKnownType,
+            out (AssemblySymbol, AssemblySymbol) conflicts,
             bool useCLSCompliantNameArityEncoding = false,
             DiagnosticBag warnings = null,
             bool ignoreCorLibraryDuplicatedTypes = false)
@@ -561,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(parts.Length > 0);
                 mdName = MetadataTypeName.FromFullName(parts[0], useCLSCompliantNameArityEncoding);
                 type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType,
-                    warnings: warnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
+                    conflicts: out conflicts, warnings: warnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
 
                 for (int i = 1; (object)type != null && !type.IsErrorType() && i < parts.Length; i++)
                 {
@@ -574,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 mdName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding);
                 type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType,
-                    warnings: warnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
+                    conflicts: out conflicts, warnings: warnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
             }
 
             return ((object)type == null || type.IsErrorType()) ? null : type;
@@ -681,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     typeInfo.Name,
                     forcedArity: typeInfo.GenericTypeArguments.Length);
 
-                NamedTypeSymbol symbol = GetTopLevelTypeByMetadataName(ref mdName, assemblyId, includeReferences, isWellKnownType: false);
+                NamedTypeSymbol symbol = GetTopLevelTypeByMetadataName(ref mdName, assemblyId, includeReferences, isWellKnownType: false, conflicts: out var _);
 
                 if ((object)symbol == null || symbol.IsErrorType())
                 {
@@ -728,9 +732,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AssemblyIdentity assemblyOpt,
             bool includeReferences,
             bool isWellKnownType,
+            out (AssemblySymbol, AssemblySymbol) conflicts,
             DiagnosticBag warnings = null,
             bool ignoreCorLibraryDuplicatedTypes = false)
         {
+            conflicts = default;
             NamedTypeSymbol result;
 
             // First try this assembly
@@ -806,6 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (warnings == null)
                     {
+                        conflicts = (result.ContainingAssembly, candidate.ContainingAssembly);
                         result = null;
                     }
                     else

@@ -709,7 +709,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             while (type.IsTupleType)
             {
                 var underlyingType = type.TupleUnderlyingType;
-                var typeArgs = underlyingType.TypeArguments;
+                var typeArgs = underlyingType.TypeArguments();
                 if (typeArgs.Length < 8)
                 {
                     return underlyingType;
@@ -883,7 +883,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             Assert.Equal("A<System.Int32, System.Threading.Tasks.Task>", normalized.ToTestDisplayString());
 
             type = compilation.GetMember<FieldSymbol>("C.F1").Type.TypeSymbol;
-            Assert.Equal(TypeKind.Error, ((NamedTypeSymbol)type).TypeArguments[0].TypeKind);
+            Assert.Equal(TypeKind.Error, ((NamedTypeSymbol)type).TypeArguments()[0].TypeKind);
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<B>", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<B>", normalized.ToTestDisplayString());
@@ -2622,7 +2622,7 @@ unsafe class Test
     }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"2
 True
 3
 3
@@ -9358,6 +9358,49 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(11, 20));
         }
 
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Out()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x;
+        Method(out x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         Method(out x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(11, 20));
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_In()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x = 5;
+        Method(in x);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: "5");
+        }
+
         [WorkItem(20799, "https://github.com/dotnet/roslyn/issues/20799")]
         [Fact]
         public void PassingArgumentsToInParameters_RefKind_None_WrongType()
@@ -9409,105 +9452,766 @@ public static class Program
         }
 
         [Fact]
-        public void PassingArgumentsToInParameters_RefKind_RefReadOnly()
+        public void PassingInArgumentsOverloadedOnIn()
         {
             var code = @"
 public static class Program
 {
-    public static void Method(in int p)
+    public static void Method(in int x)
     {
-        System.Console.WriteLine(p);
+        System.Console.WriteLine(""in: "" + x);
     }
-    public static void Main()
-    {
-        int x = 5;
-        Method(ref readonly x);
-    }
-}";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
-                // (11,20): error CS1525: Invalid expression term 'readonly'
-                //         Method(ref readonly x);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(11, 20),
-                // (11,20): error CS1026: ) expected
-                //         Method(ref readonly x);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(11, 20),
-                // (11,20): error CS1002: ; expected
-                //         Method(ref readonly x);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(11, 20),
-                // (11,20): error CS0106: The modifier 'readonly' is not valid for this item
-                //         Method(ref readonly x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(11, 20),
-                // (11,30): error CS1001: Identifier expected
-                //         Method(ref readonly x);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(11, 30),
-                // (11,30): error CS1002: ; expected
-                //         Method(ref readonly x);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(11, 30),
-                // (11,30): error CS1513: } expected
-                //         Method(ref readonly x);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(11, 30),
-                // (11,29): error CS0118: 'x' is a variable but is used like a type
-                //         Method(ref readonly x);
-                Diagnostic(ErrorCode.ERR_BadSKknown, "x").WithArguments("x", "variable", "type").WithLocation(11, 29),
-                // (10,13): warning CS0219: The variable 'x' is assigned but its value is never used
-                //         int x = 5;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(10, 13)
-                );
-        }
-
-        [Fact]
-        public void PassingArgumentsToInParameters_RefKind_In()
-        {
-            var code = @"
-public static class Program
-{
-    public static void Method(in int p)
+    public static void Method(int x)
     {
-        System.Console.WriteLine(p);
+        System.Console.WriteLine(""val: "" + x);
     }
+
     public static void Main()
     {
         int x = 5;
         Method(in x);
-
-        byte y = 5;
-        Method(in y);
+        Method(x);
+        Method(5);
     }
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
-                // (14,19): error CS1503: Argument 1: cannot convert from 'in byte' to 'in int'
-                //         Method(in y);
-                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "in byte", "in int").WithLocation(14, 19)
-                );
+            CompileAndVerify(code, expectedOutput: @"
+in: 5
+val: 5
+val: 5
+");
         }
 
         [Fact]
-        public void PassingArgumentsToInParameters_RefKind_Out()
+        public void PassingInArgumentsOverloadedOnIn_Inverse()
         {
             var code = @"
 public static class Program
 {
-    public static void Method(in int p)
+    public static void Method(int x)
     {
-        System.Console.WriteLine(p);
+        System.Console.WriteLine(""val: "" + x);
     }
+
+    public static void Method(in int x)
+    {
+        System.Console.WriteLine(""in: "" + x);
+    }
+
     public static void Main()
     {
         int x = 5;
-        Method(out x);
+        Method(in x);
+        Method(x);
+        Method(5);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+in: 5
+val: 5
+val: 5
+");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_BinaryOperators()
+        {
+            CompileAndVerify(@"
+using System;
+class Test
+{
+    public int Value { get; set; }
+    public static string operator +(Test a, Test b) => ""val"";
+    public static string operator +(in Test a, in Test b) => ""in"";
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new Test { Value = 1 };
+        var b = new Test { Value = 2 };
+        Console.WriteLine(a + b);
+    }
+}",
+                expectedOutput: "val");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_BinaryOperators_Inverse()
+        {
+            CompileAndVerify(@"
+using System;
+class Test
+{
+    public int Value { get; set; }
+    public static string operator +(in Test a, in Test b) => ""in"";
+    public static string operator +(Test a, Test b) => ""val"";
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new Test { Value = 1 };
+        var b = new Test { Value = 2 };
+        Console.WriteLine(a + b);
+    }
+}",
+                expectedOutput: "val");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_UnaryOperators()
+        {
+            CompileAndVerify(@"
+using System;
+class Test
+{
+    public int Value { get; set; }
+    public static string operator !(Test a) => ""val"";
+    public static string operator !(in Test a) => ""in"";
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new Test { Value = 1 };
+        Console.WriteLine(!a);
+    }
+}",
+                expectedOutput: "val");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_UnaryOperators_Inverse()
+        {
+            CompileAndVerify(@"
+using System;
+class Test
+{
+    public int Value { get; set; }
+    public static string operator !(in Test a) => ""in"";
+    public static string operator !(Test a) => ""val"";
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new Test { Value = 1 };
+        Console.WriteLine(!a);
+    }
+}",
+                expectedOutput: "val");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_FirstArgument()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int x, int ignore)
+    {
+        System.Console.WriteLine(""in: "" + x);
+    }
+
+    public static void Method(int x, int ignore)
+    {
+        System.Console.WriteLine(""val: "" + x);
+    }
+
+    public static void Main()
+    {
+        int x = 5;
+        Method(in x, 0);
+        Method(x, 0);
+        Method(5, 0);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+in: 5
+val: 5
+val: 5
+");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_FirstArgument_Inverse()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(int x, int ignore)
+    {
+        System.Console.WriteLine(""val: "" + x);
+    }
+
+    public static void Method(in int x, int ignore)
+    {
+        System.Console.WriteLine(""in: "" + x);
+    }
+
+    public static void Main()
+    {
+        int x = 5;
+        Method(in x, 0);
+        Method(x, 0);
+        Method(5, 0);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+in: 5
+val: 5
+val: 5
+");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_FirstArgument_BinaryOperators()
+        {
+            CompileAndVerify(@"
+using System;
+class Test
+{
+    public int Value { get; set; }
+    public static string operator +(Test a, Test b) => ""val"";
+    public static string operator +(in Test a, Test b) => ""in"";
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new Test { Value = 1 };
+        var b = new Test { Value = 2 };
+        Console.WriteLine(a + b);
+    }
+}",
+                expectedOutput: "val");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_FirstArgument_BinaryOperators_Inverse()
+        {
+            CompileAndVerify(@"
+using System;
+class Test
+{
+    public int Value { get; set; }
+    public static string operator +(in Test a, Test b) => ""in"";
+    public static string operator +(Test a, Test b) => ""val"";
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new Test { Value = 1 };
+        var b = new Test { Value = 2 };
+        Console.WriteLine(a + b);
+    }
+}",
+                expectedOutput: "val");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_SecondArgument()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(int ignore, in int x)
+    {
+        System.Console.WriteLine(""in: "" + x);
+    }
+
+    public static void Method(int ignore, int x)
+    {
+        System.Console.WriteLine(""val: "" + x);
+    }
+
+    public static void Main()
+    {
+        int x = 5;
+        Method(0, in x);
+        Method(0, x);
+        Method(0, 5);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+in: 5
+val: 5
+val: 5
+");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_SecondArgument_Inverse()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(int ignore, int x)
+    {
+        System.Console.WriteLine(""val: "" + x);
+    }
+
+    public static void Method(int ignore, in int x)
+    {
+        System.Console.WriteLine(""in: "" + x);
+    }
+
+    public static void Main()
+    {
+        int x = 5;
+        Method(0, in x);
+        Method(0, x);
+        Method(0, 5);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+in: 5
+val: 5
+val: 5
+");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_SecondArgument_BinaryOperators()
+        {
+            CompileAndVerify(@"
+using System;
+class Test
+{
+    public int Value { get; set; }
+    public static string operator +(Test a, Test b) => ""val"";
+    public static string operator +(Test a, in Test b) => ""in"";
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new Test { Value = 1 };
+        var b = new Test { Value = 2 };
+        Console.WriteLine(a + b);
+    }
+}",
+                expectedOutput: "val");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_SecondArgument_BinaryOperators_Inverse()
+        {
+            CompileAndVerify(@"
+using System;
+class Test
+{
+    public int Value { get; set; }
+    public static string operator +(Test a, in Test b) => ""in"";
+    public static string operator +(Test a, Test b) => ""val"";
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new Test { Value = 1 };
+        var b = new Test { Value = 2 };
+        Console.WriteLine(a + b);
+    }
+}",
+                expectedOutput: "val");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_ConflictingParameters()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int x, int y)
+    {
+        System.Console.WriteLine($""in {x} | val {y}"");
+    }
+
+    public static void Method(int x, in int y)
+    {
+        System.Console.WriteLine($""val {x} | in {y}"");
+    }
+
+    public static void Main()
+    {
+        int x = 1, y = 2;
+
+        Method(x, in y);
+        Method(in x, y);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+val 1 | in 2
+in 1 | val 2
+");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_ConflictingParameters_Inverse()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(int x, in int y)
+    {
+        System.Console.WriteLine($""val {x} | in {y}"");
+    }
+
+    public static void Method(in int x, int y)
+    {
+        System.Console.WriteLine($""in {x} | val {y}"");
+    }
+
+    public static void Main()
+    {
+        int x = 1, y = 2;
+
+        Method(x, in y);
+        Method(in x, y);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+val 1 | in 2
+in 1 | val 2
+");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_ConflictingParameters_Error()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int x, int y)
+    {
+        System.Console.WriteLine($""in {x} val {y}"");
+    }
+
+    public static void Method(int x, in int y)
+    {
+        System.Console.WriteLine($""val {x} in {y}"");
+    }
+
+    public static void Main()
+    {
+        int x = 1, y = 2;
+
+        Method(x, y);
+        Method(3, 4);
     }
 }";
 
             CreateStandardCompilation(code).VerifyDiagnostics(
-                // (11,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
-                //         Method(out x);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(11, 20));
+                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(in int, int)' and 'Program.Method(int, in int)'
+                //         Method(x, y);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(in int, int)", "Program.Method(int, in int)").WithLocation(18, 9),
+                // (19,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(in int, int)' and 'Program.Method(int, in int)'
+                //         Method(3, 4);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(in int, int)", "Program.Method(int, in int)").WithLocation(19, 9));
         }
 
         [Fact]
-        public void PassingInArgumentsOverloadedOnIn()
+        public void PassingInArgumentsOverloadedOnIn_ConflictingParameters_Error_Inverse()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(int x, in int y)
+    {
+        System.Console.WriteLine($""val {x} in {y}"");
+    }
+
+    public static void Method(in int x, int y)
+    {
+        System.Console.WriteLine($""in {x} val {y}"");
+    }
+
+    public static void Main()
+    {
+        int x = 1, y = 2;
+
+        Method(x, y);
+        Method(3, 4);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(int, in int)' and 'Program.Method(in int, int)'
+                //         Method(x, y);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(int, in int)", "Program.Method(in int, int)").WithLocation(18, 9),
+                // (19,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(int, in int)' and 'Program.Method(in int, int)'
+                //         Method(3, 4);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(int, in int)", "Program.Method(in int, int)").WithLocation(19, 9));
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_ThreeConflictingParameters_Error()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int x, int y, in int z)
+    {
+        System.Console.WriteLine($""in {x} val {y} in {z}"");
+    }
+
+    public static void Method(int x, in int y, int z)
+    {
+        System.Console.WriteLine($""val {x} in {y} val {z}"");
+    }
+
+    public static void Main()
+    {
+        int x = 1, y = 2, z = 3;
+
+        Method(x, y, z);
+        Method(4, 5, 6);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(in int, int, in int)' and 'Program.Method(int, in int, int)'
+                //         Method(x, y, z);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(in int, int, in int)", "Program.Method(int, in int, int)").WithLocation(18, 9),
+                // (19,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(in int, int, in int)' and 'Program.Method(int, in int, int)'
+                //         Method(4, 5, 6);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(in int, int, in int)", "Program.Method(int, in int, int)").WithLocation(19, 9));
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_ThreeConflictingParameters_Error_Inverse()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(int x, in int y, int z)
+    {
+        System.Console.WriteLine($""val {x} in {y} val {z}"");
+    }
+
+    public static void Method(in int x, int y, in int z)
+    {
+        System.Console.WriteLine($""in {x} val {y} in {z}"");
+    }
+
+    public static void Main()
+    {
+        int x = 1, y = 2, z = 3;
+
+        Method(x, y, z);
+        Method(4, 5, 6);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(int, in int, int)' and 'Program.Method(in int, int, in int)'
+                //         Method(x, y, z);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(int, in int, int)", "Program.Method(in int, int, in int)").WithLocation(18, 9),
+                // (19,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(int, in int, int)' and 'Program.Method(in int, int, in int)'
+                //         Method(4, 5, 6);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(int, in int, int)", "Program.Method(in int, int, in int)").WithLocation(19, 9));
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_ConflictingParameters_Error_BinaryOperators()
+        {
+            CreateStandardCompilation(@"
+using System;
+class Test
+{
+    public int Value { get; set; }
+    public static string operator +(in Test a, Test b) => ""left"";
+    public static string operator +(Test a, in Test b) => ""right"";
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new Test { Value = 1 };
+        var b = new Test { Value = 2 };
+        Console.WriteLine(a + b);
+    }
+}").VerifyDiagnostics(
+                // (15,27): error CS0034: Operator '+' is ambiguous on operands of type 'Test' and 'Test'
+                //         Console.WriteLine(a + b);
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a + b").WithArguments("+", "Test", "Test").WithLocation(15, 27));
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_ConflictingParameters_Error_BinaryOperators_Inverse()
+        {
+            CreateStandardCompilation(@"
+using System;
+class Test
+{
+    public int Value { get; set; }
+    public static string operator +(Test a, in Test b) => ""right"";
+    public static string operator +(in Test a, Test b) => ""left"";
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new Test { Value = 1 };
+        var b = new Test { Value = 2 };
+        Console.WriteLine(a + b);
+    }
+}").VerifyDiagnostics(
+                // (15,27): error CS0034: Operator '+' is ambiguous on operands of type 'Test' and 'Test'
+                //         Console.WriteLine(a + b);
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a + b").WithArguments("+", "Test", "Test").WithLocation(15, 27));
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_UnusedConflictingParameters()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int x, int y = 0)
+    {
+        System.Console.WriteLine($""in: {x}"");
+    }
+
+    public static void Method(int x, in int y = 0)
+    {
+        System.Console.WriteLine($""val: {x}"");
+    }
+
+    public static void Main()
+    {
+        int x = 1;
+
+        Method(x);
+        Method(in x);
+        Method(2);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+val: 1
+in: 1
+val: 2");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_UnorderedNamedParameters()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(int a, int b)
+    {
+        System.Console.WriteLine($""val a: {a} | val b: {b}"");
+    }
+
+    public static void Method(in int b, int a)
+    {
+        System.Console.WriteLine($""in b: {b} | val a: {a}"");
+    }
+
+    public static void Main()
+    {
+        int a = 1, b = 2;
+        Method(b: b, a: a);
+        Method(a: a, b: in b);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+val a: 1 | val b: 2
+in b: 2 | val a: 1");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_OptionalParameters()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int x, int op1 = 0, int op2 = 0)
+    {
+        System.Console.WriteLine(""in: "" + x);
+    }
+
+    public static void Method(int x, int op1 = 0, int op2 = 0, int op3 = 0)
+    {
+        System.Console.WriteLine(""val: "" + x);
+    }
+
+    public static void Main()
+    {
+        int x = 1;
+
+        Method(x);
+        Method(in x);
+        Method(1);
+
+        x = 2;
+
+        Method(x, 0);
+        Method(in x, 0);
+        Method(2, 0);
+
+        x = 3;
+
+        Method(x, op3: 0);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+val: 1
+in: 1
+val: 1
+val: 2
+in: 2
+val: 2
+val: 3
+");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_OptionalParameters_Error()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int x, int op1 = 0, int op2 = 0)
+    {
+        System.Console.WriteLine(""in: "" + x);
+    }
+
+    public static void Method(int x, int op1 = 0, int op2 = 0, int op3 = 0)
+    {
+        System.Console.WriteLine(""val: "" + x);
+    }
+
+    public static void Main()
+    {
+        int x = 1;
+        Method(in x, op3: 0);       // ERROR
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (17,19): error CS1615: Argument 1 may not be passed with the 'in' keyword
+                //         Method(in x, op3: 0);       // ERROR
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "in").WithLocation(17, 19));
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn_Named()
         {
             var code = @"
 public static class Program
@@ -9530,49 +10234,6 @@ public static class Program
         Method(inP: 2);
     }
 }";
-
-            CompileAndVerify(code, expectedOutput: @"
-in: 5
-val: 3
-in: 2
-");
-        }
-
-        [Fact]
-        public void PassingInArgumentsOverloadedOnInIndexer()
-        {
-            var code = @"
-public class Program
-{
-    public int this[in int inP]
-    {
-        get
-        {
-            System.Console.WriteLine(""in: "" + inP);
-            return 1;
-        }
-    }
-
-    public int this[int valP]
-    {
-        get
-        {
-            System.Console.WriteLine(""val: "" + valP);
-            return 1;
-        }
-    }
-
-    public static void Main()
-    {
-        var p = new Program();
-        int x = 5;
-
-        _ = p[in x];
-        _ = p[valP: 3];
-        _ = p[inP: 2];
-    }
-}
-";
 
             CompileAndVerify(code, expectedOutput: @"
 in: 5
@@ -9608,23 +10269,416 @@ public static class Program
     }
 }";
 
-        CreateStandardCompilation(code).VerifyDiagnostics(
-                // (17,19): error CS1503: Argument 1: cannot convert from 'in byte' to 'in int'
-                //         Method(in x);
-                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in byte", "in int").WithLocation(17, 19),
-                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(in int)' and 'Program.Method(int)'
-                //         Method('Q');
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(in int)", "Program.Method(int)").WithLocation(18, 9),
-                // (19,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(in int)' and 'Program.Method(int)'
-                //         Method(3);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(in int)", "Program.Method(int)").WithLocation(19, 9),
-                // (20,26): error CS1510: A ref or out value must be an assignable variable
-                //         Method(valP: out 2);
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "2").WithLocation(20, 26),
-                // (21,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                //         Method(valP: in 2);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(21, 25)
-            );
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                    // (17,19): error CS1503: Argument 1: cannot convert from 'in byte' to 'in int'
+                    //         Method(in x);
+                    Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in byte", "in int").WithLocation(17, 19),
+                    // (20,26): error CS1510: A ref or out value must be an assignable variable
+                    //         Method(valP: out 2);
+                    Diagnostic(ErrorCode.ERR_RefLvalueExpected, "2").WithLocation(20, 26),
+                    // (21,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         Method(valP: in 2);
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(21, 25)
+                );
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnInIndexer()
+        {
+            var code = @"
+public class Program
+{
+    public int this[in int inP]
+    {
+        get
+        {
+            System.Console.WriteLine(""in: "" + inP);
+            return 1;
+        }
+    }
+
+    public int this[int valP]
+    {
+        get
+        {
+            System.Console.WriteLine(""val: "" + valP);
+            return 1;
+        }
+    }
+
+    public static void Main()
+    {
+        var p = new Program();
+        int x = 5;
+
+        _ = p[0];
+        _ = p[x];
+        _ = p[in x];
+        _ = p[valP: 3];
+        _ = p[inP: 2];
+    }
+}
+";
+
+            CompileAndVerify(code, expectedOutput: @"
+val: 0
+val: 5
+in: 5
+val: 3
+in: 2
+");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnInIndexerErr()
+        {
+            var code = @"
+public class Program
+{
+    public int this[in int inP]
+    {
+        get
+        {
+            System.Console.WriteLine(""in: "" + inP);
+            return 1;
+        }
+    }
+
+    public int this[int valP]
+    {
+        get
+        {
+            System.Console.WriteLine(""val: "" + valP);
+            return 1;
+        }
+    }
+
+    public static void Main()
+    {
+        var p = new Program();
+        byte x = 5;
+
+        _ = p[in x];
+        _ = p['Q'];
+        _ = p[3];
+        _ = p[valP: out 2];
+        _ = p[inP: in 2];
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (27,18): error CS1503: Argument 1: cannot convert from 'in byte' to 'in int'
+                //         _ = p[in x];
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in byte", "in int").WithLocation(27, 18),
+                // (30,25): error CS1510: A ref or out value must be an assignable variable
+                //         _ = p[valP: out 2];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "2").WithLocation(30, 25),
+                // (31,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         _ = p[inP: in 2];
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(31, 23));
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnInOptionalParameters()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int inP = 0)
+    {
+        System.Console.WriteLine(""in: "" + inP);
+    }
+
+    public static void Method(int valP = 0)
+    {
+        System.Console.WriteLine(""val: "" + valP);
+    }
+
+    public static void Main()
+    {
+        Method(valP: 1);
+        Method(inP: 2);
+
+        int x = 3;
+        Method(in x);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+val: 1
+in: 2
+in: 3
+");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnInParams()
+        {
+            var code = @"
+using System;
+class Program
+{
+    void M(in int x) { Console.WriteLine(""in: "" + x); }
+    void M(params int[] p) { Console.WriteLine(""params: "" + p.Length); }
+
+    static void Main()
+    {
+        var p = new Program();
+
+        p.M();
+        p.M(1);
+        p.M(1, 2);
+
+        int x = 3;
+        p.M(in x);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: 
+@"params: 0
+in: 1
+params: 2
+in: 3");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnInParams_Array()
+        {
+            var code = @"
+using System;
+class Program
+{
+    void M(in int[] p) { Console.WriteLine(""in: "" + p.Length); }
+    void M(params int[] p) { Console.WriteLine(""params: "" + p.Length); }
+
+    static void Main()
+    {
+        var p = new Program();
+
+        p.M();
+        p.M(1);
+        p.M(1, 2);
+
+        var x = new int[] { };
+        p.M(x);
+        p.M(in x);
+        p.M(new int[] { });
+
+        x = new int[] { 1 };
+        p.M(x);
+        p.M(in x);
+        p.M(new int[] { 1 });
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput:
+@"params: 0
+params: 1
+params: 2
+params: 0
+in: 0
+params: 0
+params: 1
+in: 1
+params: 1");
+        }
+
+        [Fact]
+        public void PassingArgumentsToOverloadsOfByValAndInParameters_ExtensionMethods()
+        {
+            CompileAndVerify(@"
+using System;
+static class Extensions
+{
+    public static void M(this Program instance, in int x) { Console.WriteLine(""in: "" + x); }
+}
+class Program
+{
+    void M(int x) { Console.WriteLine(""val: "" + x); }
+
+    static void Main()
+    {
+        var instance = new Program();
+
+        int x = 1;
+        instance.M(x);
+
+        x = 2;
+        instance.M(in x);
+
+        instance.M(3);
+    }
+}",
+                additionalRefs: new[] { SystemCoreRef },
+                expectedOutput:
+@"val: 1
+in: 2
+val: 3");
+        }
+
+        [Fact]
+        public void PassingArgumentsToOverloadsOfByValAndInParameters_Indexers()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    public string this[int x] => ""val: "" + x;
+    public string this[in int x] => ""in: "" + x;
+    static void Main()
+    {
+        var instance = new Program();
+
+        int x = 1;
+        Console.WriteLine(instance[x]);
+
+        x = 2;
+        Console.WriteLine(instance[in x]);
+
+        Console.WriteLine(instance[3]);
+    }
+}",
+                additionalRefs: new[] { SystemCoreRef },
+                expectedOutput:
+@"val: 1
+in: 2
+val: 3");
+        }
+
+        [Fact]
+        public void PassingArgumentsToOverloadsOfByValAndInParameters_TypeConversions_In()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    static void M(in byte x) { Console.WriteLine(""in: "" + x); }
+    static void M(int x) { Console.WriteLine(""val: "" + x); }
+
+    static void Main()
+    {
+        M(0);
+
+        int intX = 1;
+        byte byteX = 1;
+
+        M(intX);
+        M(byteX);
+
+        M((int)2);
+        M((byte)2);
+    }
+}",
+                expectedOutput:@"
+val: 0
+val: 1
+in: 1
+val: 2
+in: 2");
+        }
+
+        [Fact]
+        public void PassingArgumentsToOverloadsOfByValAndInParameters_TypeConversions_Val()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    static void M(byte x) { Console.WriteLine(""val: "" + x); }
+    static void M(in int x) { Console.WriteLine(""in: "" + x); }
+
+    static void Main()
+    {
+        M(0);
+
+        int intX = 1;
+        byte byteX = 1;
+
+        M(intX);
+        M(byteX);
+
+        M((int)2);
+        M((byte)2);
+    }
+}",
+                expectedOutput: @"
+in: 0
+in: 1
+val: 1
+in: 2
+val: 2");
+        }
+
+        [Fact]
+        public void PassingArgumentsToOverloadsOfByValAndInParameters_TypeConversions_BinaryOperators()
+        {
+            CompileAndVerify(@"
+using System;
+class Test
+{
+    public int Value { get; set; }
+    public static string operator +(int a, Test b) =>  ""val"";
+    public static string operator +(in byte a, Test b) =>  ""in"";
+}
+class Program
+{
+    static void Main()
+    {
+        int intX = 1;
+        byte byteX = 1;
+        var b = new Test { Value = 2 };
+
+        Console.WriteLine(intX + b);
+        Console.WriteLine(byteX + b);
+        Console.WriteLine(1 + b);
+        Console.WriteLine(((byte)1) + b);
+    }
+}",
+                expectedOutput: @"
+val
+in
+val
+in");
+        }
+
+        [Fact]
+        public void PassingArgumentsToOverloadsOfByValAndInParameters_TypeConversions_NonConvertible()
+        {
+            CompileAndVerify(@"
+using System;
+using System.Text;
+class Program
+{
+    static void M(string x) { Console.WriteLine(""val""); }
+    static void M(in StringBuilder x) { Console.WriteLine(""in""); }
+
+    static void Main()
+    {
+        M(null);
+    }
+}",
+                expectedOutput: "val");
+        }
+
+        [Fact]
+        public void PassingArgumentsToOverloadsOfByValAndInParameters_TypeConversions_NonConvertible_Error()
+        {
+            CreateStandardCompilation(@"
+using System;
+using System.Text;
+class Program
+{
+    static void M(string x) { Console.WriteLine(""val""); }
+    static void M(StringBuilder x) { Console.WriteLine(""in""); }
+
+    static void Main()
+    {
+        M(null);
+    }
+}").VerifyDiagnostics(
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(string)' and 'Program.M(StringBuilder)'
+                //         M(null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(string)", "Program.M(System.Text.StringBuilder)").WithLocation(11, 9));
         }
 
         [Fact]
@@ -9724,6 +10778,112 @@ class Program
         }
 
         [Fact]
+        public void GenericInferenceOnInTuples()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    public static void Method<T>(in (T arg1, T arg2) p)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        int x = 1;
+        byte y = 2;
+
+        Method((null, (string)null));
+        Method((default, x));
+        Method((new Object(), new Exception()));
+        Method((new Object(), x));
+
+        Method((x, x));     // valid, same type
+        Method((y, x));     // valid, byval x sets lower bound, byte converts to int
+    }
+}
+";
+
+            CompileAndVerify(code, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: @"
+System.String
+System.Int32
+System.Object
+System.Object
+System.Int32
+System.Int32
+");
+        }
+
+        [Fact]
+        public void GenericInferenceOnInErrTuples()
+        {
+            var code = @"
+class Program
+{
+    public static void Method<T>(in (T arg1, T arg2) p)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        int x = 1;
+        byte y = 2;
+        var rl = default(RefLike);
+
+        Method((null, null));
+        Method((null, 1));
+        Method((new object(), default(RefLike)));
+           
+        Method((rl, rl));
+        Method(in (rl, rl));
+           
+        Method(in (y, x));  
+    }
+
+    ref struct RefLike{}
+}
+";
+
+            CreateStandardCompilation(code, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }).VerifyDiagnostics(
+                // (15,9): error CS0411: The type arguments for method 'Program.Method<T>(in (T arg1, T arg2))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method((null, null));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in (T arg1, T arg2))").WithLocation(15, 9),
+                // (16,16): error CS1503: Argument 1: cannot convert from '(<null>, int)' to 'in (int arg1, int arg2)'
+                //         Method((null, 1));
+                Diagnostic(ErrorCode.ERR_BadArgType, "(null, 1)").WithArguments("1", "(<null>, int)", "in (int arg1, int arg2)").WithLocation(16, 16),
+                // (17,31): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method((new object(), default(RefLike)));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "default(RefLike)").WithArguments("Program.RefLike").WithLocation(17, 31),
+                // (17,9): error CS0411: The type arguments for method 'Program.Method<T>(in (T arg1, T arg2))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method((new object(), default(RefLike)));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in (T arg1, T arg2))").WithLocation(17, 9),
+                // (19,17): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method((rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(19, 17),
+                // (19,21): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method((rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(19, 21),
+                // (19,9): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method((rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "Method").WithArguments("Program.RefLike").WithLocation(19, 9),
+                // (20,20): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method(in (rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(20, 20),
+                // (20,24): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method(in (rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(20, 24),
+                // (20,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         Method(in (rl, rl));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(rl, rl)").WithLocation(20, 19),
+                // (22,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         Method(in (y, x));  
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(y, x)").WithLocation(22, 19));
+        }
+
+        [Fact]
         public void GenericInferenceLambdaVariance()
         {
             var code = @"
@@ -9811,6 +10971,159 @@ public static class Extensions
                 //          1.R_extension(); // error 2
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)
                 );
+        }
+
+        [Fact]
+        public void MethodGroupConversionVal2In()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    static void F(in DateTime x)
+    {
+        Console.WriteLine(x);
+    }
+
+    static void Main()
+    {
+        Action<DateTime> a = F;
+        a(DateTime.MaxValue);
+    }
+}
+";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (13,30): error CS0123: No overload for 'F' matches delegate 'Action<DateTime>'
+                //         Action<DateTime> a = F;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "F").WithArguments("F", "System.Action<System.DateTime>").WithLocation(13, 30)
+            );
+        }
+
+        [Fact]
+        public void MethodGroupConversionVal2Overloaded()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    static void F(in DateTime x)
+    {
+        Console.WriteLine('1');
+    }
+
+    static void F(DateTime x)
+    {
+        Console.WriteLine('2');
+    }
+
+    static void Main()
+    {
+        Action<DateTime> a = F;
+        a(DateTime.MaxValue);
+    }
+}
+";
+
+            CompileAndVerify(code, expectedOutput: @"2");
+        }
+
+        [Fact]
+        public void MethodGroupConversionIn2Overloaded()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    delegate void D(in DateTime d);
+
+    static void F(in DateTime x)
+    {
+        Console.WriteLine('1');
+    }
+
+    static void F(DateTime x)
+    {
+        Console.WriteLine('2');
+    }
+
+    static void Main()
+    {
+        D a = F;
+        a(DateTime.MaxValue);
+    }
+}
+";
+
+            CompileAndVerify(code, expectedOutput: @"1", verify: Verification.Fails);
+
+        }
+
+        [Fact]
+        public void MethodGroupConversionRoReadonlyReturn()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    delegate int D(in DateTime d);
+
+    static ref readonly int F(in DateTime x)
+    {
+        Console.WriteLine('1');
+        return ref (new int[1])[0];
+    }
+
+    static void Main()
+    {
+        D a = F;
+        a(DateTime.MaxValue);
+    }
+}
+";
+
+            CreateStandardCompilation(code).VerifyDiagnostics
+            (
+                // (16,15): error CS8189: Ref mismatch between 'Program.F(in DateTime)' and delegate 'Program.D'
+                //         D a = F;
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "F").WithArguments("Program.F(in System.DateTime)", "Program.D").WithLocation(16, 15)
+            );
+        }
+
+        [Fact]
+        public void MethodGroupConversionRoReadonlyReturnType()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    delegate ref readonly object D(in DateTime d);
+
+    static ref readonly string F(in DateTime x)
+    {
+        Console.WriteLine('1');
+        return ref (new string[1])[0];
+    }
+
+    static void Main()
+    {
+        D a = F;
+        a(DateTime.MaxValue);
+    }
+}
+";
+
+            CreateStandardCompilation(code).VerifyDiagnostics
+            (
+                // (16,15): error CS0407: 'string Program.F(in DateTime)' has the wrong return type
+                //         D a = F;
+                Diagnostic(ErrorCode.ERR_BadRetType, "F").WithArguments("Program.F(in System.DateTime)", "string").WithLocation(16, 15)
+            );
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// This type has the following properties:
     /// 1) It is non-generic, sealed, internal, non-static class.
     /// 2) It derives from System.Attribute
-    /// 3) It has Microsoft.CodeAnalysis.EmbdeddedAttribute
+    /// 3) It has Microsoft.CodeAnalysis.EmbeddedAttribute
     /// 4) It has System.Runtime.CompilerServices.CompilerGeneratedAttribute
     /// 5) It has a parameter-less constructor
     /// </summary>
@@ -200,8 +200,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
             if (baseConstructorCall == null)
             {
-                // This may happen if Attribute..ctor is not found or is inaccessible
-                return;
+                if (ContainingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol)
+                {
+                    // System_Attribute is missing. Don't generate anything
+                    return;
+                }
+
+                var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+                factory.CurrentMethod = this;
+
+                var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
+                if (baseConstructorCall == null)
+                {
+                    // This may happen if Attribute..ctor is not found or is inaccessible
+                    return;
+                }
+
+                var block = factory.Block(
+                    factory.ExpressionStatement(baseConstructorCall),
+                    factory.Return());
+
+                factory.CloseMethod(block);
             }
 
             var block = factory.Block(

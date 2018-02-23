@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var regularElements = Math.Min(currentType.Arity, TupleTypeSymbol.RestPosition - 1);
-                tupleElementTypes.AddRange(currentType.TypeArguments, regularElements);
+                tupleElementTypes.AddRange(currentType.TypeArgumentsNoUseSiteDiagnostics, regularElements);
 
                 if (currentType.Arity == TupleTypeSymbol.RestPosition)
                 {

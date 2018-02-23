@@ -228,7 +228,7 @@ class C
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
-        public void CS1508_DuplicateMainfestResourceIdentifier()
+        public void CS1508_DuplicateManifestResourceIdentifier()
         {
             var c1 = CreateStandardCompilation("");
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
@@ -248,7 +248,7 @@ class C
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
-        public void CS1508_DuplicateMainfestResourceIdentifier_EmbeddedResource()
+        public void CS1508_DuplicateManifestResourceIdentifier_EmbeddedResource()
         {
             var c1 = CreateStandardCompilation("");
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
@@ -281,7 +281,7 @@ class C
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
-        public void CS7041_DuplicateMainfestResourceFileName()
+        public void CS7041_DuplicateManifestResourceFileName()
         {
             var c1 = CSharpCompilation.Create("goo", references: new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
@@ -301,7 +301,7 @@ class C
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
-        public void NoDuplicateMainfestResourceFileNameDiagnosticForEmbeddedResources()
+        public void NoDuplicateManifestResourceFileNameDiagnosticForEmbeddedResources()
         {
             var c1 = CreateStandardCompilation("");
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
@@ -328,7 +328,7 @@ class C
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501"), WorkItem(546297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546297")]
         [Fact]
-        public void CS1508_CS7041_DuplicateMainfestResourceDiagnostics()
+        public void CS1508_CS7041_DuplicateManifestResourceDiagnostics()
         {
             var c1 = CreateStandardCompilation("");
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });

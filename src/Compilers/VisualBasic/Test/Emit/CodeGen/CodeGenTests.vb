@@ -11272,7 +11272,7 @@ Class C
 End Class
     ]]></file>
 </compilation>)
-            CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator, verify:=False)
+            CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator, verify:=Verification.Passes)
         End Sub
 
         <Fact()>
@@ -12487,7 +12487,7 @@ End Class
 
         <WorkItem(745103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/745103")>
         <Fact()>
-        Public Sub TestCompoundOnAfieldOfGeneric()
+        Public Sub TestCompoundOnAFieldOfGeneric()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -13173,7 +13173,8 @@ End Module
 }]]>)
         End Sub
 
-        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <NoIOperationValidationFact>
+        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_01()
             Dim source =
 $"
@@ -13224,7 +13225,8 @@ End Class
             Return builder.ToString()
         End Function
 
-        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <NoIOperationValidationFact>
+        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_02()
             Dim source =
 $"
@@ -13248,7 +13250,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="11461640193")
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_03()
@@ -13305,7 +13307,8 @@ End Class
             Return builder.ToString()
         End Function
 
-        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <NoIOperationValidationFact>
+        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_04()
             Dim source =
 $"
@@ -13331,7 +13334,8 @@ End Class
                 )
         End Sub
 
-        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <NoIOperationValidationFact>
+        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_05()
             Dim count As Integer = 50
             Dim source =
@@ -13376,7 +13380,8 @@ End Class
 5180801")
         End Sub
 
-        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <NoIOperationValidationFact>
+        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
             Dim source =
 $"
@@ -13832,5 +13837,602 @@ End Module
 ]]>)
 
         End Sub
+
+        <Fact>
+        Public Sub ArrayElementByReference_Invariant()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New String() {"b"})
+    End Sub
+    Sub F(a() As String)
+        G(a)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As String)
+        H(a(0))
+    End Sub
+    Sub H(ByRef s As String)
+        s = s.ToUpper()
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="B").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "String"
+  IL_0007:  call       "Sub M.H(ByRef String)"
+  IL_000c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementByReference_Covariant()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Object() {"a"})
+        F(New String() {"b"})
+    End Sub
+    Sub F(a() As Object)
+        G(a)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As Object)
+        H(a(0))
+    End Sub
+    Sub H(ByRef s As String)
+        s = s.ToUpper()
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="AB").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       21 (0x15)
+  .maxstack  3
+  .locals init (String V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelem.ref
+  IL_0004:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Object) As String"
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       "Sub M.H(ByRef String)"
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldloc.0
+  IL_0013:  stelem.ref
+  IL_0014:  ret
+}
+]]>)
+        End Sub
+
+        ' Generated code results in ArrayTypeMismatchException,
+        ' matching native compiler.
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementByReferenceBase_Covariant()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Object() {"a"})
+        F(New String() {"b"})
+    End Sub
+    Sub F(a() As Object)
+        Try
+            G(a)
+            System.Console.Write(a(0))
+        Catch e As System.Exception
+            System.Console.Write(e.GetType().Name)
+        End Try
+    End Sub
+    Sub G(a() As Object)
+        H(a(0))
+    End Sub
+    Sub H(ByRef s As Object)
+        s = s.ToString().ToUpper()
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="AArrayTypeMismatchException").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "Object"
+  IL_0007:  call       "Sub M.H(ByRef Object)"
+  IL_000c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementByReference_TypeParameter()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        Dim a = New String() { "b" }
+        Dim b = New B()
+        b.F(a)
+        System.Console.Write(a(0))
+    End Sub
+End Module
+MustInherit Class A(Of T)
+    Friend MustOverride Sub F(Of U As T)(a() As U)
+End Class
+Class B
+    Inherits A(Of String)
+    Friend Overrides Sub F(Of U As String)(a() As U)
+        G(a(0))
+    End Sub
+    Sub G(ByRef s As String)
+        s = s.ToUpper()
+    End Sub
+End Class
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="B").
+            VerifyIL("B.F",
+            <![CDATA[
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (U() V_0,
+                String V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldelem     "U"
+  IL_000a:  box        "U"
+  IL_000f:  castclass  "String"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "Sub B.G(ByRef String)"
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldloc.1
+  IL_001f:  unbox.any  "U"
+  IL_0024:  stelem     "U"
+  IL_0029:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementByReference_StructConstraint()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        Dim a = New Integer() { 1 }
+        Dim b = New B()
+        b.F(a)
+        System.Console.Write(a(0))
+    End Sub
+End Module
+MustInherit Class A(Of T)
+    Friend MustOverride Sub F(Of U As {T, Structure})(a() As U)
+End Class
+Class B
+    Inherits A(Of Integer)
+    Friend Overrides Sub F(Of U As {Integer, Structure})(a() As U)
+        G(a(0))
+    End Sub
+    Sub G(ByRef i As Integer)
+        i += 1
+    End Sub
+End Class
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="2").
+            VerifyIL("B.F",
+            <![CDATA[
+{
+  // Code size       47 (0x2f)
+  .maxstack  3
+  .locals init (U() V_0,
+                Integer V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldelem     "U"
+  IL_000a:  box        "U"
+  IL_000f:  unbox.any  "Integer"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "Sub B.G(ByRef Integer)"
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldloc.1
+  IL_001f:  box        "Integer"
+  IL_0024:  unbox.any  "U"
+  IL_0029:  stelem     "U"
+  IL_002e:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayElementByReference_ValueType()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Integer() {1})
+    End Sub
+    Sub F(a() As Integer)
+        G(a)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As Integer)
+        H(a(0))
+    End Sub
+    Sub H(ByRef i As Integer)
+        i = 2
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="2").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "Integer"
+  IL_0007:  call       "Sub M.H(ByRef Integer)"
+  IL_000c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayElementCompoundAssignment_Invariant()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New String() {""}, "B")
+    End Sub
+    Sub F(a() As String, s As String)
+        G(a, s)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As String, s As String)
+        a(0) += s
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="B").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       19 (0x13)
+  .maxstack  3
+  .locals init (String& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "String"
+  IL_0007:  dup
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ldind.ref
+  IL_000b:  ldarg.1
+  IL_000c:  call       "Function String.Concat(String, String) As String"
+  IL_0011:  stind.ref
+  IL_0012:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementCompoundAssignment_Covariant()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Object() {""}, "A")
+        F(New String() {""}, "B")
+    End Sub
+    Sub F(a() As Object, s As String)
+        G(a, s)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As Object, s As String)
+        a(0) += s
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="AB").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       15 (0xf)
+  .maxstack  4
+  .locals init (Object() V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldloc.0
+  IL_0005:  ldc.i4.0
+  IL_0006:  ldelem.ref
+  IL_0007:  ldarg.1
+  IL_0008:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AddObject(Object, Object) As Object"
+  IL_000d:  stelem.ref
+  IL_000e:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayElementCompoundAssignment_ValueType()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Integer() {1}, 2)
+    End Sub
+    Sub F(a() As Integer, i As Integer)
+        G(a, i)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As Integer, i As Integer)
+        a(0) += i
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="3").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       15 (0xf)
+  .maxstack  3
+  .locals init (Integer& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "Integer"
+  IL_0007:  dup
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ldind.i4
+  IL_000b:  ldarg.1
+  IL_000c:  add.ovf
+  IL_000d:  stind.i4
+  IL_000e:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementCompoundAssignment_Covariant_NonConstantIndex()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Object() {""}, "A")
+        F(New String() {""}, "B")
+    End Sub
+    Sub F(a() As Object, s As String)
+        G(a, s)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As Object, s As String)
+        a(Index(a)) += s
+    End Sub
+    Function Index(arg As Object) As Integer
+        System.Console.Write(arg.GetType().Name)
+        Return 0
+    End Function
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="Object[]AString[]B").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       22 (0x16)
+  .maxstack  4
+  .locals init (Object() V_0,
+                Integer V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  call       "Function M.Index(Object) As Integer"
+  IL_0009:  dup
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  ldelem.ref
+  IL_000e:  ldarg.1
+  IL_000f:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AddObject(Object, Object) As Object"
+  IL_0014:  stelem.ref
+  IL_0015:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayElementWithBlock_Invariant()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New String() {"B"})
+    End Sub
+    Sub F(a() As String)
+        System.Console.Write(G(a))
+    End Sub
+    Function G(a() As String) As String
+        With a(0)
+            Return .ToString() + .ToLower()
+        End With
+    End Function
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="Bb").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (String V_0) //$W0
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.ref
+  IL_0003:  stloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  callvirt   "Function String.ToString() As String"
+  IL_000a:  ldloc.0
+  IL_000b:  callvirt   "Function String.ToLower() As String"
+  IL_0010:  call       "Function String.Concat(String, String) As String"
+  IL_0015:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayElementWithBlock_Covariant()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Object() {"A"})
+        F(New String() {"B"})
+    End Sub
+    Sub F(a() As Object)
+        System.Console.Write(G(a))
+    End Sub
+    Function G(a() As Object) As String
+        With a(0)
+            Return .ToString() + .ToLower()
+        End With
+    End Function
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="AaBb").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       42 (0x2a)
+  .maxstack  8
+  .locals init (Object V_0) //$W0
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.ref
+  IL_0003:  stloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  callvirt   "Function Object.ToString() As String"
+  IL_000a:  ldloc.0
+  IL_000b:  ldnull
+  IL_000c:  ldstr      "ToLower"
+  IL_0011:  ldc.i4.0
+  IL_0012:  newarr     "Object"
+  IL_0017:  ldnull
+  IL_0018:  ldnull
+  IL_0019:  ldnull
+  IL_001a:  call       "Function Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateGet(Object, System.Type, String, Object(), String(), System.Type(), Boolean()) As Object"
+  IL_001f:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AddObject(Object, Object) As Object"
+  IL_0024:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Object) As String"
+  IL_0029:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayElementWithBlock_ValueType()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Integer() {1})
+    End Sub
+    Sub F(a() As Integer)
+        System.Console.Write(G(a))
+    End Sub
+    Function G(a() As Integer) As String
+        With a(0)
+            Return .ToString() + .ToString()
+        End With
+    End Function
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="11").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (Integer& V_0) //$W0
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "Integer"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  call       "Function Integer.ToString() As String"
+  IL_000e:  ldloc.0
+  IL_000f:  call       "Function Integer.ToString() As String"
+  IL_0014:  call       "Function String.Concat(String, String) As String"
+  IL_0019:  ret
+}
+]]>)
+        End Sub
+
     End Class
 End Namespace

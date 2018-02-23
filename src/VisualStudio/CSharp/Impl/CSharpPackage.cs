@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 
 // NOTE(DustinCa): The EditorFactory registration is in VisualStudioComponents\CSharpPackageRegistration.pkgdef.
 // The reason for this is because the ProvideEditorLogicalView does not allow a name value to specified in addition to
@@ -28,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     // (See vsproject\cool\coolpkg\pkg\VCSharp_Proj_System_Reg.pkgdef for an example).
     [Guid(Guids.CSharpPackageIdString)]
     [PackageRegistration(UseManagedResourcesOnly = true)]
+    [ProvideRoslynVersionRegistration(Guids.CSharpPackageIdString, "Microsoft Visual C#", productNameResourceID: 116, detailsResourceID: 117)]
     [ProvideLanguageExtension(typeof(CSharpLanguageService), ".cs")]
     [ProvideLanguageService(Guids.CSharpLanguageServiceIdString, "CSharp", languageResourceID: 101, RequestStockColors = true, ShowDropDownOptions = true)]
 

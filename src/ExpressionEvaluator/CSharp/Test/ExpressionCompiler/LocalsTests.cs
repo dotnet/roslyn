@@ -591,12 +591,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<M>d__1.<>4__this""
   IL_0006:  ret
@@ -609,12 +608,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.o""
   IL_0006:  ret
@@ -627,12 +625,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<a>5__4""
   IL_0006:  ret
@@ -645,12 +642,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<s>5__5""
   IL_0006:  ret
@@ -674,12 +670,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<M>d__1.<>4__this""
   IL_0006:  ret
@@ -692,12 +687,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.o""
   IL_0006:  ret
@@ -710,12 +704,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<a>5__4""
   IL_0006:  ret
@@ -728,12 +721,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__1.<s>5__6""
   IL_0006:  ret
@@ -1410,17 +1402,7 @@ class P
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
-            VerifyLocal(testData, typeName, locals[2], "<>m2", "y", expectedILOpt:
-@"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  .locals init (C.<>c__DisplayClass1_1 V_0, //CS$<>8__locals0
-  object V_1)
-  IL_0000:  ldloc.0
-  IL_0001:  ldfld      ""object C.<>c__DisplayClass1_1.y""
-  IL_0006:  ret
-}");
-            VerifyLocal(testData, typeName, locals[3], "<>m3", "x", expectedILOpt:
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "x", expectedILOpt:
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1428,6 +1410,16 @@ class P
   object V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<>c__DisplayClass1_0.x""
+  IL_0006:  ret
+}");
+                VerifyLocal(testData, typeName, locals[3], "<>m3", "y", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass1_1 V_0, //CS$<>8__locals0
+  object V_1)
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""object C.<>c__DisplayClass1_1.y""
   IL_0006:  ret
 }");
             Assert.Equal(locals.Count, 4);
@@ -1779,16 +1771,15 @@ class C
   IL_0001:  ldobj      ""A<T>.B<U, V>""
   IL_0006:  ret
 }",
-                expectedGeneric: true);
-            var method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m0<W>").Method;
-            var containingType = method.ContainingType;
-            var returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
-            Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments[0].TypeSymbol);
-            Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments[1].TypeSymbol);
-            returnType = returnType.ContainingType;
-            Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments[0].TypeSymbol);
-
-            VerifyLocal(testData, "<>x<T, U, V>", locals[1], "<>m1<W>", "o", expectedILOpt:
+                    expectedGeneric: true);
+                var method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m0<W>").Method;
+                var containingType = method.ContainingType;
+                var returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
+                Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments()[0].TypeSymbol);
+                Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments()[1].TypeSymbol);
+                returnType = returnType.ContainingType;
+                Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments()[0].TypeSymbol);
+                VerifyLocal(testData, "<>x<T, U, V>", locals[1], "<>m1<W>", "o", expectedILOpt:
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -1798,15 +1789,14 @@ class C
   IL_0000:  ldarg.1
   IL_0001:  ret
 }",
-                expectedGeneric: true);
-            method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m1<W>").Method;
-            // method.ReturnType: A<U>.B<V, object>[]
-            returnType = (NamedTypeSymbol)((ArrayTypeSymbol)method.ReturnType.TypeSymbol).ElementType.TypeSymbol;
-            Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments[0].TypeSymbol);
-            returnType = returnType.ContainingType;
-            Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments[0].TypeSymbol);
-
-            VerifyLocal(testData, "<>x<T, U, V>", locals[2], "<>m2<W>", "t", expectedILOpt:
+                    expectedGeneric: true);
+                method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m1<W>").Method;
+                // method.ReturnType: A<U>.B<V, object>[]
+                returnType = (NamedTypeSymbol)((ArrayTypeSymbol)method.ReturnType.TypeSymbol).ElementType.TypeSymbol;
+                Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments()[0].TypeSymbol);
+                returnType = returnType.ContainingType;
+                Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments()[0].TypeSymbol);
+                VerifyLocal(testData, "<>x<T, U, V>", locals[2], "<>m2<W>", "t", expectedILOpt:
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -1860,23 +1850,22 @@ class C
   IL_0000:  newobj     ""<>c__TypeVariables<T, U, V, W>..ctor()""
   IL_0005:  ret
 }",
-                expectedGeneric: true);
-            method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m5<W>").Method;
-            returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
-            Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments[0].TypeSymbol);
-            Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments[1].TypeSymbol);
-            Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments[2].TypeSymbol);
-            Assert.Equal(method.TypeParameters[0], returnType.TypeArguments[3].TypeSymbol);
+                    expectedGeneric: true);
+                method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m5<W>").Method;
+                returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
+                Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments()[0].TypeSymbol);
+                Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments()[1].TypeSymbol);
+                Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments()[2].TypeSymbol);
+                Assert.Equal(method.TypeParameters[0], returnType.TypeArguments()[3]);
 
-            // Verify <>c__TypeVariables type was emitted (#976772).
-            using (var metadata = ModuleMetadata.CreateFromImage(ImmutableArray.CreateRange(assembly)))
-            {
-                var reader = metadata.MetadataReader;
-                var typeDef = reader.GetTypeDef("<>c__TypeVariables");
-                reader.CheckTypeParameters(typeDef.GetGenericParameters(), "T", "U", "V", "W");
-            }
-
-            locals.Free();
+                // Verify <>c__TypeVariables type was emitted (#976772).
+                using (var metadata = ModuleMetadata.CreateFromImage(ImmutableArray.CreateRange(assembly)))
+                {
+                    var reader = metadata.MetadataReader;
+                    var typeDef = reader.GetTypeDef("<>c__TypeVariables");
+                    reader.CheckTypeParameters(typeDef.GetGenericParameters(), "T", "U", "V", "W");
+                }
+                locals.Free();
             });
         }
 
@@ -3852,6 +3841,46 @@ class C
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The problem is not fixed in versions before 4.5: the order of arguments can be wrong.
                 Assert.Equal(names, new[] { "x", "y" });
+                locals.Free();
+            });
+        }
+
+        /// <summary>
+        /// CompileGetLocals should skip locals with errors.
+        /// </summary>
+        [WorkItem(535899, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=535899")]
+        [Fact]
+        public void SkipPseudoVariablesWithUseSiteErrors()
+        {
+            var source =
+@"class C
+{
+    static void M(object x)
+    {
+        object y;
+    }
+}";
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var aliases = ImmutableArray.Create(ReturnValueAlias(1, "UnknownType, UnknownAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"));
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var diagnostics = DiagnosticBag.GetInstance();
+                var testData = new CompilationTestData();
+                context.CompileGetLocals(
+                    locals,
+                    argumentsOnly: false,
+                    aliases: aliases,
+                    diagnostics: diagnostics,
+                    typeName: out typeName,
+                    testData: testData);
+                diagnostics.Verify();
+                diagnostics.Free();
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "y");
                 locals.Free();
             });
         }

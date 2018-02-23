@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     NamedTypeSymbol eventRegistrationTokenTable_T = ((PEModuleSymbol)(this.ContainingModule)).EventRegistrationTokenTable_T;
                     if (eventRegistrationTokenTable_T == candidateAssociatedFieldType.OriginalDefinition &&
-                        _eventType.TypeSymbol == ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArguments[0].TypeSymbol)
+                        _eventType.TypeSymbol == ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol)
                     {
                         return candidateAssociatedField;
                     }

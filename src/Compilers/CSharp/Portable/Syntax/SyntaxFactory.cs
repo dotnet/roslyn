@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a threadsafty element within an xml documentation comment.
+        /// Creates a threadsafety element within an xml documentation comment.
         /// </summary>
         public static XmlEmptyElementSyntax XmlThreadSafetyElement()
         {

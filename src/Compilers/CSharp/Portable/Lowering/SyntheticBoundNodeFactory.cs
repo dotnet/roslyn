@@ -363,9 +363,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (PropertySymbol)SpecialMember(sm);
         }
 
-        public BoundExpressionStatement Assignment(BoundExpression left, BoundExpression right, RefKind refKind = RefKind.None)
+        public BoundExpressionStatement Assignment(BoundExpression left, BoundExpression right, bool isRef = false)
         {
-            return ExpressionStatement(AssignmentExpression(left, right, refKind));
+            return ExpressionStatement(AssignmentExpression(left, right, isRef));
         }
 
         public BoundExpressionStatement ExpressionStatement(BoundExpression expr)
@@ -373,12 +373,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundExpressionStatement(Syntax, expr) { WasCompilerGenerated = true };
         }
 
-        public BoundAssignmentOperator AssignmentExpression(BoundExpression left, BoundExpression right, RefKind refKind = RefKind.None)
+        public BoundAssignmentOperator AssignmentExpression(BoundExpression left, BoundExpression right, bool isRef = false)
         {
             Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.AllIgnoreOptions) ||
                     right.Type.IsErrorType() || left.Type.IsErrorType());
 
-            return new BoundAssignmentOperator(Syntax, left, right, left.Type, refKind: refKind) { WasCompilerGenerated = true };
+            return new BoundAssignmentOperator(Syntax, left, right, left.Type, isRef: isRef) { WasCompilerGenerated = true };
         }
 
         public BoundBlock Block()
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundStatementList(Syntax, ImmutableArray.Create(first, second)) { WasCompilerGenerated = true };
         }
-        
+
         public BoundReturnStatement Return(BoundExpression expression = null)
         {
             if (expression != null)
@@ -628,11 +628,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundCall Call(BoundExpression receiver, MethodSymbol method, ImmutableArray<BoundExpression> args)
         {
             Debug.Assert(method.ParameterCount == args.Length);
+
             return new BoundCall(
                 Syntax, receiver, method, args,
-                default(ImmutableArray<String>), default(ImmutableArray<RefKind>), false, false, false,
+                default(ImmutableArray<String>), method.ParameterRefKinds, false, false, false,
                 default(ImmutableArray<int>), LookupResultKind.Viable, null, method.ReturnType.TypeSymbol,
-                hasErrors:method.OriginalDefinition is ErrorMethodSymbol)
+                hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
         }
 
@@ -1184,14 +1185,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundArrayInitialization(Syntax, elements) { WasCompilerGenerated = true },
                 Compilation.CreateArrayTypeSymbol(elementType));
         }
-        
+
         public BoundExpression Array(TypeSymbol elementType, BoundExpression length)
         {
             return new BoundArrayCreation(
                Syntax,
                ImmutableArray.Create<BoundExpression>(length),
                null,
-               Compilation.CreateArrayTypeSymbol(elementType)) { WasCompilerGenerated = true };
+               Compilation.CreateArrayTypeSymbol(elementType))
+            { WasCompilerGenerated = true };
         }
 
         internal BoundExpression Default(TypeSymbol type)
@@ -1270,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            if (refKind == RefKind.Out || refKind == RefKind.In)
+            if (refKind == RefKind.Out)
             {
                 refKind = RefKind.Ref;
             }
@@ -1299,7 +1301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 local,
                 argument,
-                refKind,
+                refKind != RefKind.None,
                 type);
 
             return local;
@@ -1332,7 +1334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (discardsCount != 0)
             {
                 arguments = arguments.SelectAsArray(
-                    (arg, t) => arg.Kind == BoundKind.DiscardExpression ?  t.factory.MakeTempForDiscard((BoundDiscardExpression)arg, t.builder) : arg,
+                    (arg, t) => arg.Kind == BoundKind.DiscardExpression ? t.factory.MakeTempForDiscard((BoundDiscardExpression)arg, t.builder) : arg,
                     (factory: this, builder: builder));
             }
 

@@ -748,10 +748,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numParams; i++)
             {
-                var delegateParameterType = delegateParameters[i].Type.TypeSymbol;
-                var methodParameterType = methodParameters[isExtensionMethod ? i + 1 : i].Type.TypeSymbol;
+                var delegateParameter = delegateParameters[i];
+                var methodParameter = methodParameters[isExtensionMethod ? i + 1 : i];
 
-                if (!Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameterType, methodParameterType, ref useSiteDiagnostics))
+                if (delegateParameter.RefKind != methodParameter.RefKind ||
+                    !Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameter.Type.TypeSymbol, methodParameter.Type.TypeSymbol, ref useSiteDiagnostics))
                 {
                     // No overload for '{0}' matches delegate '{1}'
                     Error(diagnostics, ErrorCode.ERR_MethDelegateMismatch, errorLocation, method, delegateType);
@@ -760,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (delegateMethod.ReturnsByRef != method.ReturnsByRef)
+            if (delegateMethod.RefKind != method.RefKind)
             {
                 Error(diagnostics, ErrorCode.ERR_DelegateRefMismatch, errorLocation, method, delegateType);
                 diagnostics.Add(errorLocation, useSiteDiagnostics);
@@ -769,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodReturnType = method.ReturnType.TypeSymbol;
             var delegateReturnType = delegateMethod.ReturnType.TypeSymbol;
-            bool returnsMatch = delegateMethod.ReturnsByRef ?
+            bool returnsMatch = delegateMethod.RefKind != RefKind.None ?
                                     // - Return types identity-convertible
                                     Conversions.HasIdentityConversion(methodReturnType, delegateReturnType) :
                                     // - Return types "match"

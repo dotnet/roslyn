@@ -4682,25 +4682,25 @@ abstract class E : D, IB
 
                 var method = type.GetMember<MethodSymbol>("M1");
                 var typeParameter = method.TypeParameters[0];
-                Assert.Equal("IA<A<T1>.B<object>>", typeParameter.ConstraintTypes[0].ToDisplayString());
+                Assert.Equal("IA<A<T1>.B<object>>", typeParameter.ConstraintTypes()[0].ToDisplayString());
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, 0);
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveInterfacesNoUseSiteDiagnostics[0], 1);
-                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes[0].TypeSymbol, 1);
+                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes()[0].TypeSymbol, 1);
                 typeParameter = method.TypeParameters[1];
-                Assert.Equal("A<T2[]>.B<T1>", typeParameter.ConstraintTypes[0].ToDisplayString());
+                Assert.Equal("A<T2[]>.B<T1>", typeParameter.ConstraintTypes()[0].ToDisplayString());
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, 2);
-                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes[0].TypeSymbol, 2);
+                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes()[0].TypeSymbol, 2);
 
                 method = type.GetMethod("IB.M2");
                 typeParameter = method.TypeParameters[0];
-                Assert.Equal("IA<A<X>.B<object>>", typeParameter.ConstraintTypes[0].ToDisplayString());
+                Assert.Equal("IA<A<X>.B<object>>", typeParameter.ConstraintTypes()[0].ToDisplayString());
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, 0);
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveInterfacesNoUseSiteDiagnostics[0], 1);
-                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes[0].TypeSymbol, 1);
+                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes()[0].TypeSymbol, 1);
                 typeParameter = method.TypeParameters[1];
-                Assert.Equal("A<Y[]>.B<X>", typeParameter.ConstraintTypes[0].ToDisplayString());
+                Assert.Equal("A<Y[]>.B<X>", typeParameter.ConstraintTypes()[0].ToDisplayString());
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, 2);
-                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes[0].TypeSymbol, 2);
+                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes()[0].TypeSymbol, 2);
             };
             CompileAndVerify(
                 source: source,
@@ -4980,13 +4980,13 @@ interface I6<U> : I3<I<U>, I<U>> { }";
                 method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I3").GetMember<MethodSymbol>("M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "I<T>", "I<U>");
 
-                method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I4").Interfaces[0].GetMember<MethodSymbol>("M");
+                method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I4").Interfaces()[0].GetMember<MethodSymbol>("M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "T");
 
-                method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I5").Interfaces[0].GetMember<MethodSymbol>("M");
+                method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I5").Interfaces()[0].GetMember<MethodSymbol>("M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "I<object>", "I<T>");
 
-                method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I6").Interfaces[0].GetMember<MethodSymbol>("M");
+                method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I6").Interfaces()[0].GetMember<MethodSymbol>("M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "I<I<U>>");
             };
             CompileAndVerify(
@@ -5305,13 +5305,13 @@ class D0 : D<object>
             var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics();
             var @namespace = compilation.GlobalNamespace;
             var type = @namespace.GetMember<NamedTypeSymbol>("I0");
-            CheckConstraints(type.Interfaces[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("A1");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("A2");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("I1");
-            CheckConstraints(type.Interfaces[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("B0");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("B1");
@@ -5325,7 +5325,7 @@ class D0 : D<object>
             type = @namespace.GetMember<NamedTypeSymbol>("C2");
             CheckConstraints(type.GetMethod("I<System.Object>.M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("D0");
-            CheckConstraints(type.BaseType.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(type.BaseType().GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
         }
 
         /// <summary>
@@ -5549,11 +5549,11 @@ End Module",
             Assert.Equal(constraints, Utils.GetTypeParameterConstraints(typeParameter));
             Assert.Equal(typeParameter.IsValueType, isValueType);
             Assert.Equal(typeParameter.IsReferenceType, isReferenceType);
-            Assert.Null(typeParameter.BaseType);
-            Assert.Equal(typeParameter.Interfaces.Length, 0);
+            Assert.Null(typeParameter.BaseType());
+            Assert.Equal(typeParameter.Interfaces().Length, 0);
             Utils.CheckSymbol(typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, effectiveBaseClassDescription);
             Utils.CheckSymbol(typeParameter.DeducedBaseTypeNoUseSiteDiagnostics, deducedBaseTypeDescription);
-            Utils.CheckSymbols(typeParameter.ConstraintTypes.SelectAsArray(c => c.TypeSymbol), constraintTypeDescriptions);
+            Utils.CheckSymbols(typeParameter.ConstraintTypes().SelectAsArray(c => c.TypeSymbol), constraintTypeDescriptions);
         }
 
         [WorkItem(545327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545327")]

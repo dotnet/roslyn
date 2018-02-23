@@ -376,12 +376,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 RemoveNonPortableElements(expectedXml);
             }
 
-            if (actualIsPortable || actualIsConverted)
+            if (actualIsPortable)
             {
                 RemoveElementsWithSpecifiedFormat(expectedXml, "windows");
             }
-
-            if (!actualIsPortable || actualIsConverted)
+            else 
             {
                 RemoveElementsWithSpecifiedFormat(expectedXml, "portable");
             }
@@ -437,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void RemoveNonPortableElements(XElement expectedNativePdb)
         {
-            // The following elements are never presents in Portable PDB.
+            // The following elements are never present in Portable PDB.
             RemoveElements(from e in expectedNativePdb.DescendantsAndSelf()
                            where e.Name == "forwardIterator" ||
                                  e.Name == "forwardToModule" ||

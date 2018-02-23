@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var nts = t as NamedTypeSymbol;
             Assert.NotEqual(null, nts);
             Assert.Equal(1, nts.Arity);
-            return nts.TypeArguments[0].TypeSymbol;
+            return nts.TypeArguments()[0].TypeSymbol;
         }
 
         [Fact]
@@ -50,7 +50,7 @@ public class Top : A<E> { // base is A<E>
             var global = comp.GlobalNamespace;
             var at = global.GetTypeMembers("A", 1).Single(); // A<T>
             var t = at.TypeParameters[0];
-            Assert.Equal(t, TypeArg(at.GetTypeMembers("TBox", 0).Single().BaseType));
+            Assert.Equal(t, TypeArg(at.GetTypeMembers("TBox", 0).Single().BaseType()));
             var atbu = at.GetTypeMembers("B", 1).Single(); // A<T>.B<U>
             var u = atbu.TypeParameters[0];
             var c = atbu.GetTypeMembers("C", 0).Single(); // A<T>.B<U>.C
@@ -61,13 +61,13 @@ public class Top : A<E> { // base is A<E>
             var e = global.GetTypeMembers("E", 0).Single(); // E
             var f = global.GetTypeMembers("F", 0).Single(); // F
             var top = global.GetTypeMembers("Top", 0).Single(); // Top
-            var ae = top.BaseType; // A<E>
+            var ae = top.BaseType(); // A<E>
             Assert.Equal(at, ae.OriginalDefinition);
             Assert.Equal(at, at.ConstructedFrom);
             Assert.Equal(e, TypeArg(ae));
             var bf = top.GetTypeMembers("BF", 0).Single(); // Top.BF
             Assert.Equal(top, bf.ContainingType);
-            var aebf = bf.BaseType;
+            var aebf = bf.BaseType();
             Assert.Equal(f, TypeArg(aebf));
             Assert.Equal(ae, aebf.ContainingType);
             var aebfc = aebf.GetTypeMembers("C", 0).Single(); // A<E>.B<F>.C
@@ -75,8 +75,8 @@ public class Top : A<E> { // base is A<E>
             Assert.NotEqual(c, aebfc.ConstructedFrom);
             Assert.Equal(f, TypeArg(aebfc.ContainingType));
             Assert.Equal(e, TypeArg(aebfc.ContainingType.ContainingType));
-            Assert.Equal(e, TypeArg(aebfc.GetTypeMembers("TBox", 0).Single().BaseType));
-            Assert.Equal(f, TypeArg(aebfc.GetTypeMembers("UBox", 0).Single().BaseType)); // exercises alpha-renaming.
+            Assert.Equal(e, TypeArg(aebfc.GetTypeMembers("TBox", 0).Single().BaseType()));
+            Assert.Equal(f, TypeArg(aebfc.GetTypeMembers("UBox", 0).Single().BaseType())); // exercises alpha-renaming.
             Assert.Equal(aebfc, DeepConstruct(c, ImmutableArray.Create<TypeSymbol>(e, f))); // exercise DeepConstruct
         }
 
@@ -110,7 +110,7 @@ class C
             var c = global.GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
             var field = c.GetMembers("field").Single() as FieldSymbol;
             var neti = field.Type.TypeSymbol as NamedTypeSymbol;
-            Assert.Equal(SpecialType.System_Int32, neti.TypeArguments[0].SpecialType);
+            Assert.Equal(SpecialType.System_Int32, neti.TypeArguments()[0].SpecialType);
         }
 
         [Fact]

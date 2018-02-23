@@ -150,14 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// (for example, interfaces), null is returned. Also the special class System.Object
         /// always has a BaseType of null.
         /// </summary>
-        public NamedTypeSymbol BaseType
-        {
-            get
-            {
-                return BaseTypeNoUseSiteDiagnostics;
-            }
-        }
-
         internal abstract NamedTypeSymbol BaseTypeNoUseSiteDiagnostics { get; }
 
         internal NamedTypeSymbol BaseTypeWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -189,14 +181,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets the set of interfaces that this type directly implements. This set does not include
         /// interfaces that are base interfaces of directly implemented interfaces.
         /// </summary>
-        public ImmutableArray<NamedTypeSymbol> Interfaces
-        {
-            get
-            {
-                return InterfacesNoUseSiteDiagnostics();
-            }
-        }
-
         internal abstract ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null);
 
         /// <summary>
@@ -212,14 +196,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Note: When interfaces specified on the same inheritance level differ by tuple names only,
         /// only the last one will be listed here.
         /// </summary>
-        public ImmutableArray<NamedTypeSymbol> AllInterfaces
-        {
-            get
-            {
-                return AllInterfacesNoUseSiteDiagnostics;
-            }
-        }
-
         internal ImmutableArray<NamedTypeSymbol> AllInterfacesNoUseSiteDiagnostics
         {
             get

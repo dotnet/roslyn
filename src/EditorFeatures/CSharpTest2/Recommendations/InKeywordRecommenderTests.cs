@@ -489,6 +489,30 @@ class C {
         }
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
+        public async Task TestInAsParameterModifierInConversionOperators()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static explicit operator double($$) { }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
+        public async Task TestInAsParameterModifierInBinaryOperators()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static Program operator +($$) { }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInConstructorCallFirstArgumentModifier()
         {

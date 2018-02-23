@@ -3710,17 +3710,17 @@ public class Required : ValidatorBase<object>
             var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
 
             var validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1");
-            var doVaidateT = validatorBaseT.GetMember<MethodSymbol>("DoValidate");
+            var doValidateT = validatorBaseT.GetMember<MethodSymbol>("DoValidate");
 
-            Assert.Equal(1, doVaidateT.OverriddenOrHiddenMembers.OverriddenMembers.Length);
-            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doVaidateT.OverriddenMethod.ToTestDisplayString());
+            Assert.Equal(1, doValidateT.OverriddenOrHiddenMembers.OverriddenMembers.Length);
+            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doValidateT.OverriddenMethod.ToTestDisplayString());
             Assert.False(validatorBaseT.AbstractMembers.Any());
 
             var validatorBaseObject = validatorBaseT.Construct(compilation.ObjectType);
-            var doVaidateObject = validatorBaseObject.GetMember<MethodSymbol>("DoValidate");
+            var doValidateObject = validatorBaseObject.GetMember<MethodSymbol>("DoValidate");
 
-            Assert.Equal(2, doVaidateObject.OverriddenOrHiddenMembers.OverriddenMembers.Length);
-            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doVaidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString());
+            Assert.Equal(2, doValidateObject.OverriddenOrHiddenMembers.OverriddenMembers.Length);
+            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doValidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString());
             Assert.False(validatorBaseObject.AbstractMembers.Any());
 
             CompileAndVerify(compilation, expectedOutput: @"void Validator<T>.DoValidate(object objectToValidate)
@@ -3966,17 +3966,17 @@ public class Required : ValidatorBase<object>
             var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
 
             var validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1");
-            var doVaidateT = validatorBaseT.GetMember<MethodSymbol>("DoValidate");
+            var doValidateT = validatorBaseT.GetMember<MethodSymbol>("DoValidate");
 
-            Assert.Equal(1, doVaidateT.OverriddenOrHiddenMembers.OverriddenMembers.Length);
-            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doVaidateT.OverriddenMethod.ToTestDisplayString());
+            Assert.Equal(1, doValidateT.OverriddenOrHiddenMembers.OverriddenMembers.Length);
+            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doValidateT.OverriddenMethod.ToTestDisplayString());
             Assert.False(validatorBaseT.AbstractMembers.Any());
 
             var validatorBaseObject = validatorBaseT.Construct(compilation.ObjectType);
-            var doVaidateObject = validatorBaseObject.GetMember<MethodSymbol>("DoValidate");
+            var doValidateObject = validatorBaseObject.GetMember<MethodSymbol>("DoValidate");
 
-            Assert.Equal(2, doVaidateObject.OverriddenOrHiddenMembers.OverriddenMembers.Length);
-            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doVaidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString());
+            Assert.Equal(2, doValidateObject.OverriddenOrHiddenMembers.OverriddenMembers.Length);
+            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doValidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString());
             Assert.False(validatorBaseObject.AbstractMembers.Any());
 
             CompileAndVerify(compilation, expectedOutput: @"void Validator<T>.DoValidate(object objectToValidate)

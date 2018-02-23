@@ -62,7 +62,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub DiagnosticsFilteredForInsersectingIntervals()
+        Public Sub DiagnosticsFilteredForIntersectingIntervals()
             Dim source = <project><file>
 Class C
     Inherits Abracadabra
@@ -112,12 +112,12 @@ End Class
             Dim hidden = warning.WithSeverity(DiagnosticSeverity.Hidden)
             Assert.Equal(DiagnosticSeverity.Hidden, hidden.Severity)
             Assert.Equal(DiagnosticSeverity.Warning, hidden.DefaultSeverity)
-            Assert.Equal(4, hidden.WarningLevel)
+            Assert.Equal(1, hidden.WarningLevel)
 
             Dim info = warning.WithSeverity(DiagnosticSeverity.Info)
             Assert.Equal(DiagnosticSeverity.Info, info.Severity)
             Assert.Equal(DiagnosticSeverity.Warning, info.DefaultSeverity)
-            Assert.Equal(4, info.WarningLevel)
+            Assert.Equal(1, info.WarningLevel)
         End Sub
 
         <Fact, WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")>
@@ -433,9 +433,9 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
                             Assert.True(isPartialMethod, "Unexpected multiple symbol declared events for same symbol " + symbol.Name)
                         End If
                     Else
-                        Dim compilationCompeletedEvent = TryCast(compEvent, CompilationUnitCompletedEvent)
-                        If compilationCompeletedEvent IsNot Nothing Then
-                            Assert.True(completedCompilationUnits.Add(compilationCompeletedEvent.CompilationUnit.FilePath))
+                        Dim compilationCompletedEvent = TryCast(compEvent, CompilationUnitCompletedEvent)
+                        If compilationCompletedEvent IsNot Nothing Then
+                            Assert.True(completedCompilationUnits.Add(compilationCompletedEvent.CompilationUnit.FilePath))
                         End If
                     End If
                 End If

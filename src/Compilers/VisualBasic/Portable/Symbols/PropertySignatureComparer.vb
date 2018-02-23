@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Consider custom modifiers on/in parameters and return types (if return is considered).
         Private ReadOnly _considerCustomModifiers As Boolean
 
-        ' Consider tulpe names in parameters and return types (if return is considered).
+        ' Consider tuple names in parameters and return types (if return is considered).
         Private ReadOnly _considerTupleNames As Boolean
 
         Private Sub New(considerName As Boolean,

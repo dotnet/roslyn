@@ -20,6 +20,8 @@
 
   <Rules AnalyzerId="Microsoft.CodeAnalysis.Analyzers" RuleNamespace="Microsoft.CodeAnalysis.Analyzers">
     <Rule Id="RS1001" Action="None" />
+    <!-- CodeFix providers should override GetFixAllProvider - suppress for non-shipping/test projects (RS1016) -->
+    <Rule Id="RS1016" Action="None" /> 
   </Rules>
 
   <Rules AnalyzerId="System.Runtime.Analyzers" RuleNamespace="System.Runtime.Analyzers">
