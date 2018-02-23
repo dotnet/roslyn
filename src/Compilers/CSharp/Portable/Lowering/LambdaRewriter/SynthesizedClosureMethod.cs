@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly MethodSymbol _topLevelMethod;
         private readonly ImmutableArray<NamedTypeSymbol> _structEnvironments;
+        private readonly bool _areLocalsZeroed;
 
         internal readonly DebugId LambdaId;
 
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _topLevelMethod = topLevelMethod;
             ClosureKind = closureKind;
             LambdaId = lambdaId;
+            _areLocalsZeroed = topLevelMethod.AreLocalsZeroed;
 
             TypeMap typeMap;
             ImmutableArray<TypeParameterSymbol> typeParameters;
@@ -169,6 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The offset is thus relative to the top-level method body start.
             return _topLevelMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
         }
+
+        public override bool AreLocalsZeroed => _areLocalsZeroed;
 
         IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
 
