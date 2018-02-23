@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -15,6 +17,7 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 {
     internal partial class QuickInfoPresenter
     {
-        private class QuickInfoPresenterSession : ForegroundThreadAffinitizedObject, IQuickInfoPresenterSession
+        private class QuickInfoPresenterSession : ForegroundThreadAffinitizedObject, IQuickInfoPresenterSession, IDisposable
         {
             private readonly IAsyncQuickInfoBroker _quickInfoBroker;
             private readonly ITextView _textView;
@@ -138,7 +141,29 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
             //    }
             //}
 
-            public QuickInfoItem ConvertQuickInfoItem(ITextBuffer subjectBuffer, SnapshotPoint triggerPoint, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem quickInfoItem)
+            public async Task<QuickInfoItem> ConvertQuickInfoItem(ITextBuffer subjectBuffer, SnapshotPoint triggerPoint, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem quickInfoItem)
+            {
+                await InvokeBelowInputPriority(() => { _item = convertQuickInfoItem(subjectBuffer, triggerPoint, quickInfoItem); }).ConfigureAwait(false);
+                return _item;
+                //using (var resetEvent = new ManualResetEventSlim(false))
+                //{
+                //    var uiThread = new Thread(() =>
+                //    {
+                //        _item = convertQuickInfoItem(subjectBuffer, triggerPoint, quickInfoItem);
+                //        resetEvent.Set();
+                //        //System.Windows.Forms.Application.Run();
+                //        //Application.Current.Run();
+                //    });
+                //    uiThread.SetApartmentState(ApartmentState.STA);
+                //    uiThread.IsBackground = true;
+                //    uiThread.Start();
+                //    resetEvent.Wait();
+                //}
+
+                //return _item;
+                //return convertQuickInfoItem(subjectBuffer, triggerPoint, quickInfoItem);
+            }
+            private QuickInfoItem convertQuickInfoItem(ITextBuffer subjectBuffer, SnapshotPoint triggerPoint, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem quickInfoItem)
             {
                 var line = triggerPoint.GetContainingLine();
                 var lineNumber = triggerPoint.GetContainingLine().LineNumber;
@@ -158,6 +183,12 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                     textBlocks: quickInfoItem.Sections.Select(section => new TextBlockElement(section.Kind, CreateTextPresentation(section))).ToImmutableArray(),
                     documentSpan: documentSpan);
 
+                //var textList = new List<ClassifiedTextRun>();
+                //foreach (var section in quickInfoItem.Sections)
+                //{
+                //    textList.Add(new ClassifiedTextRun(section.Kind, section.Text));
+                //}
+                //var content = new ClassifiedTextElement(textList);
                 return new QuickInfoItem(lineSpan, content);
             }
 
@@ -227,6 +258,11 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                     _projectionBufferFactoryService,
                     _editorOptionsFactoryService,
                     _textEditorFactoryService);
+            }
+
+            public void Dispose()
+            {
+                throw new NotImplementedException();
             }
         }
     }
