@@ -44,7 +44,7 @@ namespace Roslyn.Test.Utilities
 
     public static class TargetFrameworkUtil
     {
-        public static MetadataReference StandardCSharpReference => CoreClrShim.IsRunningOnCoreClr ? TestBase.CSharpNetStandard10Ref : TestBase.CSharpDesktopRef;
+        public static MetadataReference StandardCSharpReference => CoreClrShim.IsRunningOnCoreClr ? NetStandard20.MicrosoftCSharpRef : TestBase.CSharpDesktopRef;
 
         public static readonly ImmutableArray<MetadataReference> Mscorlib40References = ImmutableArray.Create(TestBase.MscorlibRef);
         public static readonly ImmutableArray<MetadataReference> Mscorlib40ExtendedReferences = ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
@@ -54,7 +54,7 @@ namespace Roslyn.Test.Utilities
         public static readonly ImmutableArray<MetadataReference> Mscorlib45AndCSharpReferences = ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemCoreRef, TestBase.CSharpRef);
         public static readonly ImmutableArray<MetadataReference> Mscorlib46References = ImmutableArray.Create(TestBase.MscorlibRef_v46);
         public static readonly ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences = ImmutableArray.Create(TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
-        public static readonly ImmutableArray<MetadataReference> NetStandard20References = ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemDynamicRuntimeRef);
+        public static readonly ImmutableArray<MetadataReference> NetStandard20References = ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemCoreRef, NetStandard20.SystemDynamicRuntimeRef);
         public static readonly ImmutableArray<MetadataReference> WinRTReferences = ImmutableArray.Create(TestBase.WinRtRefs);
         public static readonly ImmutableArray<MetadataReference> StandardReferences = CoreClrShim.IsRunningOnCoreClr ? NetStandard20References : Mscorlib46ExtendedReferences;
         public static readonly ImmutableArray<MetadataReference> StandardAndCSharpReferences = StandardReferences.Add(StandardCSharpReference);

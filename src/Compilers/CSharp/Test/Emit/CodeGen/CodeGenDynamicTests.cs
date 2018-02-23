@@ -240,7 +240,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics(
                 // (8,9): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.Binder.InvokeConstructor'
                 //         new C(d.M(d.M = d[-d], d[(int)d()] = d * d.M));
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C(d.M(d.M = d[-d], d[(int)d()] = d * d.M))").WithArguments("Microsoft.CSharp.RuntimeBinder.Binder", "InvokeConstructor")
@@ -265,7 +265,7 @@ class C
 }
 ";
             // the compiler ignores the enum values, uses hardcoded values:
-            CreateCompilation(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics();
+            CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -578,7 +578,7 @@ public class C
         d.m(1,2,3);
     }
 }";
-            var verifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var containers = c.GetMembers().OfType<NamedTypeSymbol>().ToArray();
@@ -634,7 +634,7 @@ public class C
         var x = new System.Action(() => d.m());
     }
 }";
-            var verifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 Assert.Equal(2, c.GetMembers().OfType<NamedTypeSymbol>().Count());
@@ -669,7 +669,7 @@ public class C
         yield return d;        
     }
 }";
-            var verifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var iteratorClass = c.GetMember<NamedTypeSymbol>("<M1>d__0");
@@ -795,7 +795,7 @@ public class C
         return d(a, b);
     }
 }";
-            var verifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var container = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("<>o__0");
                 Assert.Equal(0, container.GetMembers().Single().GetAttributes().Length);
@@ -815,7 +815,7 @@ public class C
         return d(ref d);
     }
 }";
-            var verifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var d = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F{00000004}");
 
@@ -1008,7 +1008,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef });
+            CompileAndVerifyWithCSharp(source);
         }
 
         [Fact]
@@ -1087,7 +1087,7 @@ public class C
     }
 }
 ";
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef });
         }
 
         [Fact, WorkItem(16, "http://roslyn.codeplex.com/workitem/16")]
@@ -1531,10 +1531,9 @@ public class C
         l3(d);
     }
 }";
-            CompileAndVerify(src,
+            CompileAndVerifyWithCSharp(src,
                 expectedOutput: "2024",
-                parseOptions: _localFunctionParseOptions,
-                references: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
+                parseOptions: _localFunctionParseOptions).VerifyDiagnostics();
             CompileAndVerifyIL(src, "C.Main",
                 parseOptions: _localFunctionParseOptions,
                 expectedOptimizedIL: @"
@@ -2268,7 +2267,7 @@ public class C
     }
 }";
             // TODO: Why does RefEmit use fat header with maxstack = 2?
-            var verifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, symbolValidator: module =>
+            var verifier = CompileAndVerifyWithCSharp(source, symbolValidator: module =>
             {
                 var pe = (PEModuleSymbol)module;
 
@@ -5011,7 +5010,7 @@ class C
 1:t
 1:t";
 
-            CompileAndVerify(source: source, expectedOutput: output, references: new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerifyWithCSharp(source: source, expectedOutput: output);
         }
 
 
@@ -5114,7 +5113,7 @@ class C
 00011111-
 01111111";
 
-            CompileAndVerify(source: source, expectedOutput: output, references: new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerifyWithCSharp(source: source, expectedOutput: output);
         }
 
         [Fact]
@@ -5144,7 +5143,7 @@ public class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "", references: new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerifyWithCSharp(source, expectedOutput: "");
         }
 
         [Fact]
@@ -6570,8 +6569,7 @@ public class A
   IL_0067:  ret
 }");
 
-            CompileAndVerify(source,
-                new[] { SystemCoreRef, CSharpRef },
+            CompileAndVerifyWithCSharp(source,
                 expectedOutput: "The call is ambiguous between the following methods or properties: 'A.M(A)' and 'A.M(string)'");
         }
 
@@ -8044,7 +8042,7 @@ partial class C
     }
 }
 ";
-            CompileAndVerify(source, references: new[] { CSharpRef, SystemCoreRef }, expectedOutput: "2");
+            CompileAndVerifyWithCSharp(source, expectedOutput: "2");
         }
 
         [Fact]
@@ -8708,7 +8706,7 @@ public class C
     public void m(ref object a, out object b) { b = null; }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "", references: new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerifyWithCSharp(source, expectedOutput: "");
         }
 
         /// <summary>
@@ -13622,7 +13620,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,3): error CS0019: Operator '&=' cannot be applied to operands of type 'int*' and 'dynamic'
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "ret &= (1 == d)").WithArguments("&=", "int*", "dynamic"));
         }
@@ -14903,11 +14901,11 @@ class Program
             return Task.FromResult(1);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
 
-            comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugExe);
+            comp = CreateCompilationWithCSharp(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
         }
@@ -14948,11 +14946,11 @@ class Program
             return Task.FromResult(1);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
 
-            comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugExe);
+            comp = CreateCompilationWithCSharp(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
         }

@@ -1553,7 +1553,7 @@ public class A : CodeAccessSecurityAttribute
     {
     }
 }";
-            CreateCompilation(source).GetDiagnostics();
+            CreateCompilationWithMscorlib46(source).GetDiagnostics();
         }
 
         [Fact]
@@ -1571,7 +1571,7 @@ class A : CodeAccessSecurityAttribute
     {
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
                 // (4,2): error CS7049: Security attribute 'A' has an invalid SecurityAction value '0'
                 // [A]
                 Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "A").WithArguments("A", "0").WithLocation(4, 2),

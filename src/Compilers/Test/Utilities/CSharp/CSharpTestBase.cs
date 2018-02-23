@@ -129,6 +129,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 TargetFramework.WinRT,
                 verify);
 
+        internal CompilationVerifier CompileAndVerifyWithCSharp(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference> references = null,
+            IEnumerable<ResourceDescription> manifestResources = null,
+            IEnumerable<ModuleData> dependencies = null,
+            Action<ModuleSymbol> sourceSymbolValidator = null,
+            Action<PEAssembly> assemblyValidator = null,
+            Action<ModuleSymbol> symbolValidator = null,
+            SignatureDescription[] expectedSignatures = null,
+            string expectedOutput = null,
+            int? expectedReturnCode = null,
+            string[] args = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            EmitOptions emitOptions = null,
+            Verification verify = Verification.Passes) => 
+            CompileAndVerify(
+                source,
+                references,
+                manifestResources,
+                dependencies,
+                sourceSymbolValidator,
+                assemblyValidator,
+                symbolValidator,
+                expectedSignatures,
+                expectedOutput,
+                expectedReturnCode,
+                args,
+                options,
+                parseOptions,
+                emitOptions,
+                TargetFramework.StandardAndCSharp,
+                verify);
+
         internal CompilationVerifier CompileAndVerify(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
@@ -333,6 +367,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
             string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40AndSystemCore, assemblyName, sourceFileName);
+
+        public static CSharpCompilation CreateCompilationWithCSharp(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string assemblyName = "",
+            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.StandardAndCSharp, assemblyName, sourceFileName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib40AndDocumentationComments(
             CSharpTestSource source,
