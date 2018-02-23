@@ -48,7 +48,7 @@ class {|target:C|}
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
         Public Async Function TestCharpLiteral() As Task
-            Dim markup = "var x = {|literal:1$$23|};"
+            Dim markup = "int x = 1$$23;"
             Dim text As String = Nothing
             Dim position As Integer? = Nothing
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
@@ -61,7 +61,7 @@ class {|target:C|}
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
         Public Async Function TestCharpStringLiteral() As Task
-            Dim markup = "var x = ""{|literal:w$$ow|}"";"
+            Dim markup = "string x = ""w$$ow"";"
             Dim text As String = Nothing
             Dim position As Integer? = Nothing
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
