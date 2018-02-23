@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var cancellationToken = context.CancellationToken;
             var service = document.GetLanguageService<IGoToDefinitionSymbolService>();
 
-            // includeType: if the token has no aliased, referenced or declared symbols (mostly literals) we want to disable Ctrl+Click on them
+            // [includeType: false]
+            // Enable Ctrl+Click on tokens with aliased, referenced or declared symbol.
+            // If the token has none of those but does have a type (mostly literals), we're not interested
             var (symbol, span) = await service.GetSymbolAndBoundSpanAsync(document, position, includeType: false, cancellationToken).ConfigureAwait(false);
 
             if (symbol == null)

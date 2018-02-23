@@ -36,13 +36,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // This can happen when a token is at a location that is both a reference and a definition.
             // For example, on an anonymous type member declaration.
 
-            var symbol = semanticInfo.AliasSymbol
+            return semanticInfo.AliasSymbol
                 ?? semanticInfo.ReferencedSymbols.FirstOrDefault()
-                ?? semanticInfo.DeclaredSymbol;
-
-            return includeType
-                ? (symbol ?? semanticInfo.Type)
-                : symbol;
+                ?? semanticInfo.DeclaredSymbol
+                ?? (includeType ? semanticInfo.Type : null);
         }
     }
 }
