@@ -89,8 +89,9 @@ End Class"
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
+        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestVBLiteral() As Task
-            Dim markup = "Dim x as Integer = {|literal:1$$23|}"
+            Dim markup = "Dim x as Integer = 1$$23"
             Dim text As String = Nothing
             Dim position As Integer? = Nothing
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
@@ -102,8 +103,9 @@ End Class"
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
+        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestVBStringLiteral() As Task
-            Dim markup = "Dim x as String = ""{|literal:w$$ow|}"""
+            Dim markup = "Dim x as String = ""w$$ow"";"
             Dim text As String = Nothing
             Dim position As Integer? = Nothing
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing

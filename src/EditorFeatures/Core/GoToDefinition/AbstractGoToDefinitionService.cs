@@ -13,6 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
+    // GoToDefinition
     internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
     {
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             Document document, int position, CancellationToken cancellationToken)
         {
             var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
-            var (symbol, span) = await symbolService.GetSymbolAndBoundSpanAsync(document, position, includeLiterals: true, cancellationToken).ConfigureAwait(false);
+            var (symbol, span) = await symbolService.GetSymbolAndBoundSpanAsync(document, position, includeType: true, cancellationToken).ConfigureAwait(false);
 
             // Try to compute source definitions from symbol.
             var items = symbol != null
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         {
             // Try to compute the referenced symbol and attempt to go to definition for the symbol.
             var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
-            var (symbol, _) = symbolService.GetSymbolAndBoundSpanAsync(document, position, includeLiterals: true, cancellationToken).WaitAndGetResult(cancellationToken);
+            var (symbol, _) = symbolService.GetSymbolAndBoundSpanAsync(document, position, includeType: true, cancellationToken).WaitAndGetResult(cancellationToken);
             if (symbol is null)
             {
                 return false;

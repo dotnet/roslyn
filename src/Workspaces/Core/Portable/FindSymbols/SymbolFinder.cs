@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return TokenSemanticInfo.Empty;
         }
 
-        internal static async Task<SyntaxToken> GetTokenAtPositionAsync(
+        private static Task<SyntaxToken> GetTokenAtPositionAsync(
             SemanticModel semanticModel,
             int position,
             Workspace workspace,
@@ -70,9 +70,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var syntaxTree = semanticModel.SyntaxTree;
             var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
-            var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
-            return token;
+            return syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true);
         }
 
         public static async Task<ISymbol> FindSymbolAtPositionAsync(

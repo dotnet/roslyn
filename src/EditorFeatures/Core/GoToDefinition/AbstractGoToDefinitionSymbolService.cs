@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     {
         protected abstract ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation);
 
-        public async Task<(ISymbol, TextSpan)> GetSymbolAndBoundSpanAsync(Document document, int position, bool includeLiterals, CancellationToken cancellationToken)
+        public async Task<(ISymbol, TextSpan)> GetSymbolAndBoundSpanAsync(Document document, int position, bool includeType, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(semanticModel, position, workspace, cancellationToken).ConfigureAwait(false);
-            var symbol = GetSymbol(semanticInfo, includeLiterals);
+            var symbol = GetSymbol(semanticInfo, includeType);
 
             if (symbol is null)
             {
@@ -29,22 +29,20 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return (FindRelatedExplicitlyDeclaredSymbol(symbol, semanticModel.Compilation), semanticInfo.Span);
         }
 
-        private ISymbol GetSymbol(TokenSemanticInfo semanticInfo, bool includeLiterals)
+        private ISymbol GetSymbol(TokenSemanticInfo semanticInfo, bool includeType)
         {
-            if (!includeLiterals && semanticInfo.IsLiteral)
-            {
-                return null;
-            }
-
             // Prefer references to declarations. It's more likely that the user is attempting to 
             // go to a definition at some other location, rather than the definition they're on. 
             // This can happen when a token is at a location that is both a reference and a definition.
             // For example, on an anonymous type member declaration.
 
-            return semanticInfo.AliasSymbol
+            var symbol = semanticInfo.AliasSymbol
                 ?? semanticInfo.ReferencedSymbols.FirstOrDefault()
-                ?? semanticInfo.DeclaredSymbol
-                ?? semanticInfo.Type;
+                ?? semanticInfo.DeclaredSymbol;
+
+            return includeType
+                ? (symbol ?? semanticInfo.Type)
+                : symbol;
         }
     }
 }

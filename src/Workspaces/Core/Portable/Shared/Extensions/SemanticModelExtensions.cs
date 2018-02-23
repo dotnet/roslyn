@@ -15,29 +15,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal struct TokenSemanticInfo
     {
         public static readonly TokenSemanticInfo Empty = new TokenSemanticInfo(
-            null, null, ImmutableArray<ISymbol>.Empty, null, default, default);
+            null, null, ImmutableArray<ISymbol>.Empty, null, default(TextSpan));
 
         public readonly ISymbol DeclaredSymbol;
         public readonly IAliasSymbol AliasSymbol;
         public readonly ImmutableArray<ISymbol> ReferencedSymbols;
         public readonly ITypeSymbol Type;
         public readonly TextSpan Span;
-        public readonly bool IsLiteral;
 
         public TokenSemanticInfo(
             ISymbol declaredSymbol,
             IAliasSymbol aliasSymbol,
             ImmutableArray<ISymbol> referencedSymbols,
             ITypeSymbol type,
-            TextSpan span,
-            bool isLiteral)
+            TextSpan span)
         {
             DeclaredSymbol = declaredSymbol;
             AliasSymbol = aliasSymbol;
             ReferencedSymbols = referencedSymbols;
             Type = type;
             Span = span;
-            IsLiteral = isLiteral;
         }
 
         public ImmutableArray<ISymbol> GetSymbols(bool includeType)
@@ -234,9 +231,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            var isLiteral = syntaxFacts.IsLiteral(token);
-
-            return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, token.Span, isLiteral);
+            return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, token.Span);
         }
 
         public static SemanticModel GetOriginalSemanticModel(this SemanticModel semanticModel)
