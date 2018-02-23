@@ -127,9 +127,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WorkItem(1106729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106729")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub PresenterUpdatesExistingSessionIfNotDismissed()
-            Dim broker = New Mock(Of IQuickInfoBroker)()
-            Dim presenter As IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession) =
-                New QuickInfoPresenter(broker.Object, Nothing, Nothing, Nothing, Nothing, Nothing)
+            Dim presenter As IIntelliSensePresenter(Of IQuickInfoPresenterSession, IAsyncQuickInfoSession) =
+                New QuickInfoPresenter(Nothing, Nothing, Nothing, Nothing, Nothing)
 
             Dim quickInfoSession = New Mock(Of IQuickInfoSession)
             With quickInfoSession
@@ -145,18 +144,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub PresenterDoesNotRecalculateDismissedSession()
-            Dim quickInfoSession = New Mock(Of IQuickInfoSession)()
-            quickInfoSession _
-                .Setup(Function(m) m.Properties) _
-                .Returns(New PropertyCollection())
-
-            Dim broker = New Mock(Of IQuickInfoBroker)()
-            broker _
-                .Setup(Function(m) m.CreateQuickInfoSession(It.IsAny(Of ITextView), It.IsAny(Of ITrackingPoint), It.IsAny(Of Boolean))) _
-                .Returns(quickInfoSession.Object)
-
-            Dim presenter As IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession) =
-                New QuickInfoPresenter(broker.Object, Nothing, Nothing, Nothing, Nothing, Nothing)
+            Dim presenter As IIntelliSensePresenter(Of IQuickInfoPresenterSession, IAsyncQuickInfoSession) =
+                New QuickInfoPresenter(Nothing, Nothing, Nothing, Nothing, Nothing)
 
             Dim mockEditorSession = New Mock(Of IQuickInfoSession)
             With mockEditorSession

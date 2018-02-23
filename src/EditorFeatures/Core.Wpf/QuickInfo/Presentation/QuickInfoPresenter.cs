@@ -18,9 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal partial class QuickInfoPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession>, IAsyncQuickInfoSourceProvider
     {
-        private static readonly object s_augmentSessionKey = new object();
-
-        private readonly IAsyncQuickInfoBroker _quickInfoBroker;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
@@ -29,14 +26,12 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 
         [ImportingConstructor]
         public QuickInfoPresenter(
-            IAsyncQuickInfoBroker quickInfoBroker,
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMapService classificationFormatMapService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             ITextEditorFactoryService textEditorFactoryService)
         {
-            _quickInfoBroker = quickInfoBroker;
             _classificationTypeMap = classificationTypeMap;
             _classificationFormatMapService = classificationFormatMapService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
@@ -58,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 
         IAsyncQuickInfoSource IAsyncQuickInfoSourceProvider.TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
-            AssertIsForeground();
             return new QuickInfoSource();
         }
     }
