@@ -223,7 +223,7 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateStandardCompilation(source0);
+            var compilation = CreateCompilation(source0);
 
             // Verify full metadata contains expected rows.
             var result = compilation.Emit(
