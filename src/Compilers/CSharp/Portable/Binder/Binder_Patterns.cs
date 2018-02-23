@@ -286,14 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                 {
-                    if (InConstructorInitializer)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, node);
-                    }
-                    else
-                    {
-                        CheckFeatureAvailability(node, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
-                    }
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
                 }
 
                 localSymbol.SetType(declType);

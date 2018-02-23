@@ -35,4 +35,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Operand);
     }
+
+    partial class BoundConstructorMethodBody
+    {
+        // PROTOTYPE(ExpressionVariables): Remove this override once we have support for this node in IOperation
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Initializer, this.BlockBody, this.ExpressionBody);
+    }
+
+    partial class BoundNonConstructorMethodBody
+    {
+        // PROTOTYPE(ExpressionVariables): Remove this override once we have support for this node in IOperation
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.BlockBody, this.ExpressionBody);
+    }
 }

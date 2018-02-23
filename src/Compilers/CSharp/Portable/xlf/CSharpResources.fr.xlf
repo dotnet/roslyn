@@ -8285,11 +8285,6 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <target state="translated">La syntaxe 'var (...)' en tant que lvalue est réservée.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
-        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
-        <target state="translated">Les déclarations de variable de sortie et de variable de modèle ne sont pas autorisées dans les initialiseurs de constructeur, les initialiseurs de champ ou les initialiseurs de propriété.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">{ ou ; ou =&gt; attendu</target>

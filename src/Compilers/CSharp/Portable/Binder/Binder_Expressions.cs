@@ -2307,14 +2307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(localSymbol.DeclarationKind == LocalDeclarationKind.OutVariable);
                 if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                 {
-                    if (InConstructorInitializer)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, declarationExpression);
-                    }
-                    else
-                    {
-                        CheckFeatureAvailability(declarationExpression, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
-                    }
+                    CheckFeatureAvailability(declarationExpression, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
                 }
 
                 bool isConst = false;
@@ -3217,14 +3210,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor,
             DiagnosticBag diagnostics)
         {
-            Binder initializerBinder = initializerArgumentListOpt == null ? this : this.GetBinder(initializerArgumentListOpt);
-            Debug.Assert(initializerBinder != null);
-
-            var result = initializerBinder.BindConstructorInitializerCore(initializerArgumentListOpt, constructor, diagnostics);
+            Binder argumentListBinder = null;
 
             if (initializerArgumentListOpt != null)
             {
-                result = initializerBinder.WrapWithVariablesIfAny(initializerArgumentListOpt, result);
+                argumentListBinder = this.GetBinder(initializerArgumentListOpt);
+            }
+
+            var result = (argumentListBinder ?? this).BindConstructorInitializerCore(initializerArgumentListOpt, constructor, diagnostics);
+
+            if (argumentListBinder != null)
+            {
+                // This code is reachable only for speculative SemanticModel.
+                Debug.Assert(argumentListBinder.IsSemanticModelBinder);
+                result = argumentListBinder.WrapWithVariablesIfAny(initializerArgumentListOpt, result);
             }
 
             return result;
@@ -3235,7 +3234,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(initializerArgumentListOpt == null || this.SkipSemanticModelBinder() == this.GetBinder(initializerArgumentListOpt).SkipSemanticModelBinder());
+            // Either our base type is not object, or we have an initializer syntax, or both. We're going to
+            // need to do overload resolution on the set of constructors of the base type, either on
+            // the provided initializer syntax, or on an implicit ": base()" syntax.
+
+            // SPEC ERROR: The specification states that if you have the situation 
+            // SPEC ERROR: class B { ... } class D1 : B {} then the default constructor
+            // SPEC ERROR: generated for D1 must call an accessible *parameterless* constructor
+            // SPEC ERROR: in B. However, it also states that if you have 
+            // SPEC ERROR: class B { ... } class D2 : B { D2() {} }  or
+            // SPEC ERROR: class B { ... } class D3 : B { D3() : base() {} }  then
+            // SPEC ERROR: the compiler performs *overload resolution* to determine
+            // SPEC ERROR: which accessible constructor of B is called. Since B might have
+            // SPEC ERROR: a ctor with all optional parameters, overload resolution might
+            // SPEC ERROR: succeed even if there is no parameterless constructor. This
+            // SPEC ERROR: is unintentionally inconsistent, and the native compiler does not
+            // SPEC ERROR: implement this behavior. Rather, we should say in the spec that
+            // SPEC ERROR: if there is no ctor in D1, then a ctor is created for you exactly
+            // SPEC ERROR: as though you'd said "D1() : base() {}". 
+            // SPEC ERROR: This is what we now do in Roslyn.
+
             Debug.Assert((object)constructor != null);
             Debug.Assert(constructor.MethodKind == MethodKind.Constructor ||
                 constructor.MethodKind == MethodKind.StaticConstructor); // error scenario: constructor initializer on static constructor

@@ -5070,9 +5070,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_VarInvocationLvalueReserved" xml:space="preserve">
     <value>The syntax 'var (...)' as an lvalue is reserved.</value>
   </data>
-  <data name="ERR_ExpressionVariableInConstructorOrFieldInitializer" xml:space="preserve">
-    <value>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</value>
-  </data>
   <data name="ERR_SemiOrLBraceOrArrowExpected" xml:space="preserve">
     <value>{ or ; or =&gt; expected</value>
   </data>

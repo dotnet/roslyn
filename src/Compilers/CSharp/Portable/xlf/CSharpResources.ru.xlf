@@ -8285,11 +8285,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">Синтаксис "var (...)" как lvalue зарезервирован.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
-        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
-        <target state="translated">Объявления исходящих переменных или переменных шаблонов запрещены в инициализаторах конструкторов, полей и свойств.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">Ожидается "{" или ";" или "=&gt;"</target>

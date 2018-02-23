@@ -170,6 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         OutVariablePendingInference,
         DeconstructionVariablePendingInference,
         OutDeconstructVarPendingInference,
+        NonConstructorMethodBody,
+        ConstructorMethodBody,
     }
 
 
@@ -6148,6 +6150,80 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal abstract partial class BoundMethodBodyBase : BoundNode
+    {
+        protected BoundMethodBodyBase(BoundKind kind, SyntaxNode syntax, BoundBlock blockBody, BoundBlock expressionBody, bool hasErrors = false)
+            : base(kind, syntax, hasErrors)
+        {
+            this.BlockBody = blockBody;
+            this.ExpressionBody = expressionBody;
+        }
+
+
+        public BoundBlock BlockBody { get; }
+
+        public BoundBlock ExpressionBody { get; }
+    }
+
+    internal sealed partial class BoundNonConstructorMethodBody : BoundMethodBodyBase
+    {
+        public BoundNonConstructorMethodBody(SyntaxNode syntax, BoundBlock blockBody, BoundBlock expressionBody, bool hasErrors = false)
+            : base(BoundKind.NonConstructorMethodBody, syntax, blockBody, expressionBody, hasErrors || blockBody.HasErrors() || expressionBody.HasErrors())
+        {
+        }
+
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitNonConstructorMethodBody(this);
+        }
+
+        public BoundNonConstructorMethodBody Update(BoundBlock blockBody, BoundBlock expressionBody)
+        {
+            if (blockBody != this.BlockBody || expressionBody != this.ExpressionBody)
+            {
+                var result = new BoundNonConstructorMethodBody(this.Syntax, blockBody, expressionBody, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundConstructorMethodBody : BoundMethodBodyBase
+    {
+        public BoundConstructorMethodBody(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundExpressionStatement initializer, BoundBlock blockBody, BoundBlock expressionBody, bool hasErrors = false)
+            : base(BoundKind.ConstructorMethodBody, syntax, blockBody, expressionBody, hasErrors || initializer.HasErrors() || blockBody.HasErrors() || expressionBody.HasErrors())
+        {
+
+            Debug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Locals = locals;
+            this.Initializer = initializer;
+        }
+
+
+        public ImmutableArray<LocalSymbol> Locals { get; }
+
+        public BoundExpressionStatement Initializer { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitConstructorMethodBody(this);
+        }
+
+        public BoundConstructorMethodBody Update(ImmutableArray<LocalSymbol> locals, BoundExpressionStatement initializer, BoundBlock blockBody, BoundBlock expressionBody)
+        {
+            if (locals != this.Locals || initializer != this.Initializer || blockBody != this.BlockBody || expressionBody != this.ExpressionBody)
+            {
+                var result = new BoundConstructorMethodBody(this.Syntax, locals, initializer, blockBody, expressionBody, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal abstract partial class BoundTreeVisitor<A,R>
     {
 
@@ -6456,6 +6532,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDeconstructionVariablePendingInference(node as DeconstructionVariablePendingInference, arg);
                 case BoundKind.OutDeconstructVarPendingInference: 
                     return VisitOutDeconstructVarPendingInference(node as OutDeconstructVarPendingInference, arg);
+                case BoundKind.NonConstructorMethodBody: 
+                    return VisitNonConstructorMethodBody(node as BoundNonConstructorMethodBody, arg);
+                case BoundKind.ConstructorMethodBody: 
+                    return VisitConstructorMethodBody(node as BoundConstructorMethodBody, arg);
             }
 
             return default(R);
@@ -7064,6 +7144,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
+        public virtual R VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitConstructorMethodBody(BoundConstructorMethodBody node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
     }
 
     internal abstract partial class BoundTreeVisitor
@@ -7665,6 +7753,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitConstructorMethodBody(BoundConstructorMethodBody node)
         {
             return this.DefaultVisit(node);
         }
@@ -8443,6 +8539,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
+            return null;
+        }
+        public override BoundNode VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node)
+        {
+            this.Visit(node.BlockBody);
+            this.Visit(node.ExpressionBody);
+            return null;
+        }
+        public override BoundNode VisitConstructorMethodBody(BoundConstructorMethodBody node)
+        {
+            this.Visit(node.Initializer);
+            this.Visit(node.BlockBody);
+            this.Visit(node.ExpressionBody);
             return null;
         }
     }
@@ -9329,6 +9438,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update();
+        }
+        public override BoundNode VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node)
+        {
+            BoundBlock blockBody = (BoundBlock)this.Visit(node.BlockBody);
+            BoundBlock expressionBody = (BoundBlock)this.Visit(node.ExpressionBody);
+            return node.Update(blockBody, expressionBody);
+        }
+        public override BoundNode VisitConstructorMethodBody(BoundConstructorMethodBody node)
+        {
+            BoundExpressionStatement initializer = (BoundExpressionStatement)this.Visit(node.Initializer);
+            BoundBlock blockBody = (BoundBlock)this.Visit(node.BlockBody);
+            BoundBlock expressionBody = (BoundBlock)this.Visit(node.ExpressionBody);
+            return node.Update(node.Locals, initializer, blockBody, expressionBody);
         }
     }
 
@@ -10893,6 +11015,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("outDeconstructVarPendingInference", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node, object arg)
+        {
+            return new TreeDumperNode("nonConstructorMethodBody", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("blockBody", null, new TreeDumperNode[] { Visit(node.BlockBody, null) }),
+                new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) })
+            }
+            );
+        }
+        public override TreeDumperNode VisitConstructorMethodBody(BoundConstructorMethodBody node, object arg)
+        {
+            return new TreeDumperNode("constructorMethodBody", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("locals", node.Locals, null),
+                new TreeDumperNode("initializer", null, new TreeDumperNode[] { Visit(node.Initializer, null) }),
+                new TreeDumperNode("blockBody", null, new TreeDumperNode[] { Visit(node.BlockBody, null) }),
+                new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) })
             }
             );
         }

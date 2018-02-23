@@ -8285,11 +8285,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">已保留作為左值的語法 'var (...)'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
-        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
-        <target state="translated">建構函式、欄位或屬性初始設定式中不允許 out 變數或 pattern 變數宣告。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">需要 { 或 ; 或 =&gt;</target>

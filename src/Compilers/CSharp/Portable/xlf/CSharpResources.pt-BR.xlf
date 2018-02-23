@@ -8285,11 +8285,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="translated">A sintaxe 'var (...)' como um lvalue está reservada.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
-        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
-        <target state="translated">As declarações de variável out ou padrão não são permitidas em inicializadores de construtor, inicializadores de campo ou inicializadores de propriedade.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">{ ou ; ou =&gt; esperado</target>

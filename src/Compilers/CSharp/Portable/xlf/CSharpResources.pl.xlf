@@ -8285,11 +8285,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Składnia „var (...)“ jako wartość lvalue jest zastrzeżona.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
-        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
-        <target state="translated">W inicjatorach konstruktora, pola i właściwości nie można używać deklaracji zmiennej „out” ani zmiennej wzorca.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">Oczekiwano symbolu { lub ; lub =&gt;</target>
