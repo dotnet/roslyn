@@ -2921,7 +2921,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
 
             verifier.VerifyIL("Test.Main(string[])", @"
@@ -2972,7 +2972,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
 
             verifier.VerifyIL("Test.Main(string[])", @"
@@ -3030,7 +3030,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
 
             verifier.VerifyIL("Test.Main(string[])", @"
@@ -3094,7 +3094,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: "555555");
 
             verifier.VerifyIL("Test.Main(string[])", @"
@@ -3156,7 +3156,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
             var verifier = CompileAndVerify(compilation, expectedOutput: "0011", verify: Verification.Fails);
 
@@ -3234,7 +3234,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
             var verifier = CompileAndVerify(compilation, expectedOutput: "");
 
@@ -3290,7 +3290,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
             var verifier = CompileAndVerify(compilation, expectedOutput: "hihi");
 
@@ -3348,7 +3348,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
             var verifier = CompileAndVerify(compilation, expectedOutput: "hihi");
 
@@ -3411,7 +3411,7 @@ public struct Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
             var verifier = CompileAndVerify(compilation, expectedOutput: "11");
 
@@ -3484,7 +3484,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
             var verifier = CompileAndVerify(compilation, expectedOutput: "TestTest");
 
@@ -3541,7 +3541,7 @@ public class Test
 class Derived : Test { }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
             var verifier = CompileAndVerify(compilation, expectedOutput: "TestTestDerivedDerived");
 
