@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
@@ -24,6 +25,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         private string _currentWorkingFolderPath = null;
         private bool _solutionEventsAdvised = false;
 
+        /// <remarks>
+        /// In Visual Studio, this event will be raised on the UI thread.
+        /// </remarks>
         public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging;
 
         [ImportingConstructor]
@@ -103,6 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 
         private void ProcessChangeToIVsSolutionChange(Workspace visualStudioWorkspace)
         {
+            AssertIsForeground();
+
             lock (_gate)
             {
                 if (_currentSolutionId == visualStudioWorkspace.CurrentSolution.Id)
