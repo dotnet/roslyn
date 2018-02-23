@@ -1091,7 +1091,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 options: options,
                 parseOptions: parseOptions);
 
-
             return comp;
         }
 

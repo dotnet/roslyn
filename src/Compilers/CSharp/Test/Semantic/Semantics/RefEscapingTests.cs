@@ -2580,33 +2580,34 @@ using System;
 
 public class C
 {
-    public void M(ref Span<int> global)
+    public static void Main()
     {
-        (global, global) = global;
+        Span<int> x = new Span<int>(new int[4]);
+        x[0] = 42;
+        x[1] = 43;
+        x[2] = 44;
+        x[3] = 45;
+
+        (Span<int> first, Span<int> second) = x;
+        System.Console.Write($""{first.Length} {first[1]} {second.Length}"");
     }
-    public static void Main() => throw null;
 }
 public static class Extensions
 {
-    public static void Deconstruct(ref this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
+    public static void Deconstruct(ref this Span<int> self, out Span<int> x, out Span<int> y)
+    {
+        System.Console.Write(""Deconstruct "");
+        x = self;
+        y = default;
+    }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (8,9): error CS1510: A ref or out value must be an assignable variable
-                //         (global, global) = global;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(global, global) = global").WithLocation(8, 9),
-                // (8,9): error CS8352: Cannot use local '(global, global) = global' in this context because it may expose referenced variables outside of their declaration scope
-                //         (global, global) = global;
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "(global, global) = global").WithArguments("(global, global) = global").WithLocation(8, 9),
-                // (8,28): error CS8350: This combination of arguments to 'Extensions.Deconstruct(ref Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         (global, global) = global;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "global").WithArguments("Extensions.Deconstruct(ref System.Span<int>, out System.Span<int>, out System.Span<int>)", "x").WithLocation(8, 28),
-                // (8,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Span<int>', with 2 out parameters and a void return type.
-                //         (global, global) = global;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "global").WithArguments("System.Span<int>", "2").WithLocation(8, 28),
+            var comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
                 // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
-            );
+                );
+            CompileAndVerify(comp, expectedOutput: "Deconstruct 4 43 0");
         }
 
         [Fact]

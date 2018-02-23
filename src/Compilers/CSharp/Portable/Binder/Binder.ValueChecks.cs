@@ -171,6 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(expr.Syntax.Kind() != SyntaxKind.Argument || valueKind == BindValueKind.RefOrOut);
                     break;
 
+                case BoundKind.DeconstructValuePlaceholder:
+                    // deconstruction placeholders are replaced with temps for any expression with side-effects
+                    Debug.Assert(valueKind == BindValueKind.RefOrOut);
+                    return expr;
+
                 case BoundKind.OutVariablePendingInference:
                 case BoundKind.OutDeconstructVarPendingInference:
                     Debug.Assert(valueKind == BindValueKind.RefOrOut);

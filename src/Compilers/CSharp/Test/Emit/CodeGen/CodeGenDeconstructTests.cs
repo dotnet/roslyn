@@ -7752,6 +7752,295 @@ class D
                 );
         }
 
+        [Fact, WorkItem(24160, "https://github.com/dotnet/roslyn/issues/24160")]
+        public void TestInThisDeconstruct()
+        {
+            var source = @"
+public class C
+{
+    S field = default;
+    static void Main()
+    {
+        new C().M(out var x, out var y);
+        System.Console.Write($""{x} {y}"");
+    }
+    void M(out int x, out int y)
+    {
+        (x, y) = field;
+    }
+}
+public struct S { }
+public static class Extension
+{
+    public static void Deconstruct(in this S d, out int x1, out int x2)
+    {
+        x1 = 1;
+        x2 = 2;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 2");
+            verifier.VerifyIL("C.M", @"{
+  // Code size       27 (0x1b)
+  .maxstack  3
+  .locals init (S V_0,
+                int V_1,
+                int V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""S C.field""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  ldloca.s   V_2
+  IL_000e:  call       ""void Extension.Deconstruct(in S, out int, out int)""
+  IL_0013:  nop
+  IL_0014:  ldarg.1
+  IL_0015:  ldloc.1
+  IL_0016:  stind.i4
+  IL_0017:  ldarg.2
+  IL_0018:  ldloc.2
+  IL_0019:  stind.i4
+  IL_001a:  ret
+}");
+        }
+
+        [Fact, WorkItem(24160, "https://github.com/dotnet/roslyn/issues/24160")]
+        public void TestInThisDeconstruct_Nested()
+        {
+            var source = @"
+public class C
+{
+    static S field = default;
+    static void Main()
+    {
+        var (x, (y, z)) = (1, field);
+        System.Console.Write($""{y} {z}"");
+    }
+}
+public struct S { }
+public static class Extension
+{
+    public static void Deconstruct(in this S d, out int x1, out int x2)
+    {
+        x1 = 1;
+        x2 = 2;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 2");
+        }
+
+        [Fact, WorkItem(24160, "https://github.com/dotnet/roslyn/issues/24160")]
+        public void TestInThisDeconstruct_Foreach()
+        {
+            var source = @"
+public class C
+{
+    static S field = default;
+    static void Main()
+    {
+        foreach (var (y, z) in new[] { field })
+        {
+            System.Console.Write($""{y} {z}"");
+        }
+    }
+}
+public struct S { }
+public static class Extension
+{
+    public static void Deconstruct(in this S d, out int x1, out int x2)
+    {
+        x1 = 1;
+        x2 = 2;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 2");
+        }
+
+        [Fact, WorkItem(24160, "https://github.com/dotnet/roslyn/issues/24160")]
+        public void TestRefThisDeconstruct()
+        {
+            var source = @"
+public class C
+{
+    S field = default;
+    static void Main()
+    {
+        new C().M();
+    }
+    void M()
+    {
+        var (x, y) = field;
+        System.Console.Write($""{field.touched} {x + y}"");
+    }
+}
+public struct S
+{
+    public bool touched;
+}
+public static class Extension
+{
+    public static void Deconstruct(ref this S d, out int x1, out int x2)
+    {
+        // d is a reference to a temp used for deconstruction
+        d.touched = true;
+        System.Console.Write(""Deconstruct "");
+        x1 = 1;
+        x2 = 2;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Deconstruct False 3");
+        }
+
+        [Fact, WorkItem(24160, "https://github.com/dotnet/roslyn/issues/24160")]
+        public void TestRefThisDeconstruct_Nested()
+        {
+            var source = @"
+public class C
+{
+    S field = default;
+    static void Main()
+    {
+        new C().M();
+    }
+    void M()
+    {
+        var (x, (y, z)) = (1, field);
+        System.Console.Write($""{field.touched} {y + z}"");
+    }
+}
+public struct S
+{
+    public bool touched;
+}
+public static class Extension
+{
+    public static void Deconstruct(ref this S d, out int x1, out int x2)
+    {
+        // d is a reference to a temp used for deconstruction
+        d.touched = true;
+        System.Console.Write(""Deconstruct "");
+        x1 = 1;
+        x2 = 2;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Deconstruct False 3");
+        }
+
+        [Fact, WorkItem(24160, "https://github.com/dotnet/roslyn/issues/24160")]
+        public void TestRefThisDeconstruct_Foreach()
+        {
+            var source = @"
+public class C
+{
+    static S field = default;
+    static void Main()
+    {
+        foreach (var (y, z) in new[] { field })
+        {
+            System.Console.Write($""{y} {z}"");
+        }
+    }
+}
+public struct S { }
+public static class Extension
+{
+    public static void Deconstruct(ref this S d, out int x1, out int x2)
+    {
+        x1 = 1;
+        x2 = 2;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 2");
+        }
+
+        [Fact, WorkItem(24160, "https://github.com/dotnet/roslyn/issues/24160")]
+        public void TestRefThisDeconstruct_OptimizedConstant()
+        {
+            var source = @"
+public class C
+{
+    int field = 1;
+    static void Main()
+    {
+        new C().M();
+    }
+    void M()
+    {
+        var (x, y) = (field + 0);
+        System.Console.Write($""{x + y}"");
+    }
+}
+public static class Extension
+{
+    public static void Deconstruct(ref this int d, out int x1, out int x2)
+    {
+        System.Console.Write($""Deconstruct({d}) "");
+        x1 = 1;
+        x2 = 2;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "Deconstruct(1) 3");
+            verifier.VerifyIL("C.M()", @"{
+  // Code size       50 (0x32)
+  .maxstack  3
+  .locals init (int V_0, //x
+                int V_1, //y
+                int V_2,
+                int V_3,
+                int V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int C.field""
+  IL_0007:  stloc.2
+  IL_0008:  ldloca.s   V_2
+  IL_000a:  ldloca.s   V_3
+  IL_000c:  ldloca.s   V_4
+  IL_000e:  call       ""void Extension.Deconstruct(ref int, out int, out int)""
+  IL_0013:  nop
+  IL_0014:  ldloc.3
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.s    V_4
+  IL_0018:  stloc.1
+  IL_0019:  ldstr      ""{0}""
+  IL_001e:  ldloc.0
+  IL_001f:  ldloc.1
+  IL_0020:  add
+  IL_0021:  box        ""int""
+  IL_0026:  call       ""string string.Format(string, object)""
+  IL_002b:  call       ""void System.Console.Write(string)""
+  IL_0030:  nop
+  IL_0031:  ret
+}");
+        }
+
         [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
         public void TestDiscardedAssignmentNotLvalue()
         {
