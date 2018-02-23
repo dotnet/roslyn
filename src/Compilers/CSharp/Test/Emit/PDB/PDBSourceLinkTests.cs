@@ -138,7 +138,7 @@ class C
     }
 }
 ";
-            var c = CreateStandardCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
+            var c = CreateCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
 
             var result = c.Emit(
                 peStream: new MemoryStream(),
