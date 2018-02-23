@@ -152,4 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return string.Format(MessageID.IDS_StackAllocExpression.Localize().ToString(), ElementType, Count.Syntax); }
         }
     }
+
+    internal partial class BoundPassByCopy
+    {
+        public override object Display => Expression.Display;
+    }
 }
