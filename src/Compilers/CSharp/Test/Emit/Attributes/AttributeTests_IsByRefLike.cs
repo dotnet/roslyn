@@ -559,7 +559,7 @@ class Test
         [Fact]
         public void IsByRefLikeAttributesInNoPia()
         {
-            var comAssembly = CreateCompilation(@"
+            var comAssembly = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""test.dll"")]

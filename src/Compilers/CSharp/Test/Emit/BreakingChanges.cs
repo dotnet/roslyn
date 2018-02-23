@@ -1027,7 +1027,7 @@ Console.WriteLine(testExpr2);
 ";
 
             // Native Compiler: x => Convert(Convert(op_Explicit(x)))
-            CompileAndVerify(text, references: new[] { LinqAssemblyRef }, expectedOutput:
+            CompileAndVerify(text, expectedOutput:
 @"x => Convert(Convert(Convert(x)))
 x => Convert(Convert(Convert(x)))
 ");
@@ -1053,7 +1053,7 @@ static void Main()
 ";
 
             // Native compiler: x => (Convert(x) != Convert(null))
-            CompileAndVerify(source, references: new[] { LinqAssemblyRef }, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"x => (Convert(x) != null)
 True
 ");

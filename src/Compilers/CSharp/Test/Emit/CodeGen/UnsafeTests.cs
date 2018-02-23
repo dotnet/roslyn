@@ -4770,7 +4770,7 @@ unsafe class C
             CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayConversion()
         {
             var template = @"
@@ -4812,7 +4812,7 @@ unsafe class C
             CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyIL("C.M", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayConversionRuntimeError()
         {
             var text = @"
@@ -4839,7 +4839,7 @@ unsafe class C
             CompileAndVerifyException<NotSupportedException>(text, "Type is not supported.", allowUnsafe: true, verify: Verification.Fails);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayEnumerableConversion()
         {
             var template = @"
@@ -4881,7 +4881,7 @@ unsafe class C
             CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyIL("C.M", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayEnumerableConversionRuntimeError()
         {
             var text = @"
@@ -5075,7 +5075,7 @@ unsafe class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayForeachEnumerable()
         {
             var text = @"
