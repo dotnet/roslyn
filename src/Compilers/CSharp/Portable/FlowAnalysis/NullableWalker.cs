@@ -1620,6 +1620,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundExpression RemoveImplicitConversions(BoundExpression expr)
         {
+            // PROTOTYPE(NullableReferenceTypes): The loop is necessary to handle
+            // implicit conversions that have multiple parts (for instance, user-defined
+            // conversions). Should check for those cases explicitly.
             while (true)
             {
                 if (expr.Kind != BoundKind.Conversion)
