@@ -25,16 +25,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         #region Metadata
         private readonly string _name;
         private readonly ushort _ordinal; // 0 for first, 1 for second, ...
-        private readonly GenericParameterAttributes _flags;
         #endregion
-
-        private TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
 
         /// <summary>
         /// First error calculating bounds.
         /// </summary>
-        private DiagnosticInfo _lazyBoundsErrorInfo = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
+        private DiagnosticInfo _lazyConstraintsUseSiteErrorInfo = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
 
+        private GenericParameterAttributes _lazyFlags;
+        private ThreeState _lazyHasIsUnmanagedAttribute;
+        private TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
+        private ImmutableArray<TypeSymbol> _lazyDeclaredConstraintTypes;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
         internal PETypeParameterSymbol(
@@ -81,12 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _name = string.Empty;
                 }
 
-                _lazyBoundsErrorInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                _lazyConstraintsUseSiteErrorInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
             }
 
             // Clear the '.ctor' flag if both '.ctor' and 'valuetype' are
             // set since '.ctor' is redundant in that case.
-            _flags = ((flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0) ? flags : (flags & ~GenericParameterAttributes.DefaultConstructorConstraint);
+            _lazyFlags = ((flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0) ? flags : (flags & ~GenericParameterAttributes.DefaultConstructorConstraint);
 
             _ordinal = ordinal;
             _handle = handle;
@@ -138,80 +139,99 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ImmutableArray<TypeSymbol> GetDeclaredConstraintTypes()
         {
-            PEMethodSymbol containingMethod = null;
-            PENamedTypeSymbol containingType;
-
-            if (_containingSymbol.Kind == SymbolKind.Method)
+            if (_lazyDeclaredConstraintTypes.IsDefault)
             {
-                containingMethod = (PEMethodSymbol)_containingSymbol;
-                containingType = (PENamedTypeSymbol)containingMethod.ContainingSymbol;
-            }
-            else
-            {
-                containingType = (PENamedTypeSymbol)_containingSymbol;
-            }
+                ImmutableArray<TypeSymbol> declaredConstraintTypes;
 
-            var moduleSymbol = containingType.ContainingPEModule;
-            var metadataReader = moduleSymbol.Module.MetadataReader;
-            GenericParameterConstraintHandleCollection constraints;
+                PEMethodSymbol containingMethod = null;
+                PENamedTypeSymbol containingType;
 
-            try
-            {
-                constraints = metadataReader.GetGenericParameter(_handle).GetConstraints();
-            }
-            catch (BadImageFormatException)
-            {
-                constraints = default(GenericParameterConstraintHandleCollection);
-                Interlocked.CompareExchange(ref _lazyBoundsErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
-            }
-
-            if (constraints.Count > 0)
-            {
-                var symbolsBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
-                MetadataDecoder tokenDecoder;
-
-                if ((object)containingMethod != null)
+                if (_containingSymbol.Kind == SymbolKind.Method)
                 {
-                    tokenDecoder = new MetadataDecoder(moduleSymbol, containingMethod);
+                    containingMethod = (PEMethodSymbol)_containingSymbol;
+                    containingType = (PENamedTypeSymbol)containingMethod.ContainingSymbol;
                 }
                 else
                 {
-                    tokenDecoder = new MetadataDecoder(moduleSymbol, containingType);
+                    containingType = (PENamedTypeSymbol)_containingSymbol;
                 }
 
-                foreach (var constraintHandle in constraints)
+                var moduleSymbol = containingType.ContainingPEModule;
+                var metadataReader = moduleSymbol.Module.MetadataReader;
+                GenericParameterConstraintHandleCollection constraints;
+
+                try
                 {
-                    var constraint = metadataReader.GetGenericParameterConstraint(constraintHandle);
-                    var constraintTypeHandle = constraint.Type;
-
-                    TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(constraintTypeHandle);
-
-                    // Drop 'System.Object' constraint type.
-                    if (typeSymbol.SpecialType == SpecialType.System_Object)
-                    {
-                        continue;
-                    }
-
-                    // Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
-                    if (((_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0) &&
-                        (typeSymbol.SpecialType == SpecialType.System_ValueType))
-                    {
-                        continue;
-                    }
-
-                    typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol,
-                                                                               constraintHandle,
-                                                                               moduleSymbol);
-
-                    symbolsBuilder.Add(typeSymbol);
+                    constraints = metadataReader.GetGenericParameter(_handle).GetConstraints();
+                }
+                catch (BadImageFormatException)
+                {
+                    constraints = default(GenericParameterConstraintHandleCollection);
+                    Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
                 }
 
-                return symbolsBuilder.ToImmutableAndFree();
+                this.GetAttributes();
+                if (_lazyHasIsUnmanagedAttribute.Value() && (_lazyFlags & (GenericParameterAttributes.ReferenceTypeConstraint | GenericParameterAttributes.DefaultConstructorConstraint)) != 0)
+                {
+                    _lazyFlags = _lazyFlags & ~(GenericParameterAttributes.ReferenceTypeConstraint | GenericParameterAttributes.DefaultConstructorConstraint);
+                    _lazyConstraintsUseSiteErrorInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                }
+
+                if (constraints.Count > 0)
+                {
+                    var symbolsBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
+                    MetadataDecoder tokenDecoder;
+
+                    if ((object)containingMethod != null)
+                    {
+                        tokenDecoder = new MetadataDecoder(moduleSymbol, containingMethod);
+                    }
+                    else
+                    {
+                        tokenDecoder = new MetadataDecoder(moduleSymbol, containingType);
+                    }
+
+                    foreach (var constraintHandle in constraints)
+                    {
+                        var constraint = metadataReader.GetGenericParameterConstraint(constraintHandle);
+                        var typeSymbol = tokenDecoder.DecodeGenericParameterConstraint(constraint.Type, out bool hasUnmanagedModreq);
+
+                        if (hasUnmanagedModreq != this._lazyHasIsUnmanagedAttribute.Value())
+                        {
+                            // The presence of UnmanagedType modreq has to match the presence of the IsUnmanagedAttribute
+                            Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
+                            continue;
+                        }
+
+                        // Drop 'System.Object' constraint type.
+                        if (typeSymbol.SpecialType == SpecialType.System_Object)
+                        {
+                            continue;
+                        }
+
+                        // Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
+                        if (((_lazyFlags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0) &&
+                            (typeSymbol.SpecialType == SpecialType.System_ValueType))
+                        {
+                            continue;
+                        }
+
+                        typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, constraintHandle, moduleSymbol);
+
+                        symbolsBuilder.Add(typeSymbol);
+                    }
+
+                    declaredConstraintTypes = symbolsBuilder.ToImmutableAndFree();
+                }
+                else
+                {
+                    declaredConstraintTypes = ImmutableArray<TypeSymbol>.Empty;
+                }
+
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyDeclaredConstraintTypes, declaredConstraintTypes);
             }
-            else
-            {
-                return ImmutableArray<TypeSymbol>.Empty;
-            }
+
+            return _lazyDeclaredConstraintTypes;
         }
 
         public override ImmutableArray<Location> Locations
@@ -234,7 +254,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (_flags & GenericParameterAttributes.DefaultConstructorConstraint) != 0;
+                GetDeclaredConstraintTypes();
+                return (_lazyFlags & GenericParameterAttributes.DefaultConstructorConstraint) != 0;
             }
         }
 
@@ -242,7 +263,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (_flags & GenericParameterAttributes.ReferenceTypeConstraint) != 0;
+                GetDeclaredConstraintTypes();
+                return (_lazyFlags & GenericParameterAttributes.ReferenceTypeConstraint) != 0;
             }
         }
 
@@ -250,7 +272,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0;
+                GetDeclaredConstraintTypes();
+                return (_lazyFlags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0 || HasUnmanagedTypeConstraint;
+            }
+        }
+
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get
+            {
+                GetDeclaredConstraintTypes();
+                return this._lazyHasIsUnmanagedAttribute.Value();
             }
         }
 
@@ -258,7 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (VarianceKind)(_flags & GenericParameterAttributes.VarianceMask);
+                GetDeclaredConstraintTypes();
+                return (VarianceKind)(_lazyFlags & GenericParameterAttributes.VarianceMask);
             }
         }
 
@@ -301,9 +334,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyCustomAttributes.IsDefault)
             {
-                var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
-                containingPEModuleSymbol.LoadCustomAttributes(this.Handle, ref _lazyCustomAttributes);
+                var loadedCustomAttributes = ((PEModuleSymbol)this.ContainingModule).GetCustomAttributesForToken(
+                    this.Handle,
+                    out CustomAttributeHandle isUnmanagedAttribute,
+                    AttributeDescription.IsUnmanagedAttribute,
+                    out _,
+                    default);
+
+                this._lazyHasIsUnmanagedAttribute = (!isUnmanagedAttribute.IsNil).ToThreeState();
+
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, loadedCustomAttributes);
             }
+
             return _lazyCustomAttributes;
         }
 
@@ -346,19 +388,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 diagnostics.Free();
 
-                Interlocked.CompareExchange(ref _lazyBoundsErrorInfo, errorInfo, CSDiagnosticInfo.EmptyErrorInfo);
+                Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, errorInfo, CSDiagnosticInfo.EmptyErrorInfo);
                 Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset);
             }
 
-            Debug.Assert(!ReferenceEquals(_lazyBoundsErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
+            Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
             return _lazyBounds;
         }
 
         internal override DiagnosticInfo GetConstraintsUseSiteErrorInfo()
         {
             EnsureAllConstraintsAreResolved();
-            Debug.Assert(!ReferenceEquals(_lazyBoundsErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
-            return _lazyBoundsErrorInfo;
+            Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
+            return _lazyConstraintsUseSiteErrorInfo;
         }
 
         private NamedTypeSymbol GetDefaultBaseType()

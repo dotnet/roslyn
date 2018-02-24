@@ -8678,7 +8678,7 @@ public class C
         #region Type Parameter Constraints
 
         [Fact]
-        public void TypeConstraintInsert()
+        public void TypeConstraintInsert_Class()
         {
             var src1 = "class C<T> { }";
             var src2 = "class C<T> where T : class { }";
@@ -8693,7 +8693,22 @@ public class C
         }
 
         [Fact]
-        public void TypeConstraintInsert2()
+        public void TypeConstraintInsert_Unmanaged()
+        {
+            var src1 = "class C<T> { }";
+            var src2 = "class C<T> where T : unmanaged { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [where T : unmanaged]@11");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "where T : unmanaged", FeaturesResources.type_constraint));
+        }
+
+        [Fact]
+        public void TypeConstraintInsert_DoubleStatement_New()
         {
             var src1 = "class C<S,T> where T : class { }";
             var src2 = "class C<S,T> where S : new() where T : class { }";
@@ -8708,7 +8723,22 @@ public class C
         }
 
         [Fact]
-        public void TypeConstraintDelete1()
+        public void TypeConstraintInsert_DoubleStatement_Unmanaged()
+        {
+            var src1 = "class C<S,T> where T : class { }";
+            var src2 = "class C<S,T> where S : unmanaged where T : class { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [where S : unmanaged]@13");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "where S : unmanaged", FeaturesResources.type_constraint));
+        }
+
+        [Fact]
+        public void TypeConstraintDelete_Class()
         {
             var src1 = "class C<S,T> where T : class { }";
             var src2 = "class C<S,T> { }";
@@ -8723,7 +8753,22 @@ public class C
         }
 
         [Fact]
-        public void TypeConstraintDelete2()
+        public void TypeConstraintDelete_Unmanaged()
+        {
+            var src1 = "class C<S,T> where T : unmanaged { }";
+            var src2 = "class C<S,T> { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Delete [where T : unmanaged]@13");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "class C<S,T>", FeaturesResources.type_constraint));
+        }
+
+        [Fact]
+        public void TypeConstraintDelete_DoubleStatement_New()
         {
             var src1 = "class C<S,T> where S : new() where T : class  { }";
             var src2 = "class C<S,T> where T : class { }";
@@ -8738,7 +8783,22 @@ public class C
         }
 
         [Fact]
-        public void TypeConstraintReorder()
+        public void TypeConstraintDelete_DoubleStatement_Unmanaged()
+        {
+            var src1 = "class C<S,T> where S : unmanaged where T : class  { }";
+            var src2 = "class C<S,T> where T : class { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Delete [where S : unmanaged]@13");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "class C<S,T>", FeaturesResources.type_constraint));
+        }
+
+        [Fact]
+        public void TypeConstraintReorder_Class()
         {
             var src1 = "class C<S,T> where S : struct where T : class  { }";
             var src2 = "class C<S,T> where T : class where S : struct { }";
@@ -8747,6 +8807,20 @@ public class C
 
             edits.VerifyEdits(
                 "Reorder [where T : class]@30 -> @13");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void TypeConstraintReorder_Unmanaged()
+        {
+            var src1 = "class C<S,T> where S : struct where T : unmanaged  { }";
+            var src2 = "class C<S,T> where T : unmanaged where S : struct { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [where T : unmanaged]@30 -> @13");
 
             edits.VerifyRudeDiagnostics();
         }

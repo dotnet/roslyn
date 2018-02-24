@@ -223,33 +223,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         IEnumerable<Cci.TypeReferenceWithAttributes> Cci.IGenericParameter.GetConstraints(EmitContext context)
         {
             var moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            var seenValueType = false;
-            foreach (var type in this.ConstraintTypesNoUseSiteDiagnostics)
-            {
-                switch (type.SpecialType)
-                {
-                    case SpecialType.System_Object:
-                        // Avoid emitting unnecessary object constraint.
-                        continue;
-                    case SpecialType.System_ValueType:
-                        seenValueType = true;
-                        break;
-                }
-                var typeRef = moduleBeingBuilt.Translate(type,
-                                                         syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                         diagnostics: context.Diagnostics);
 
-                yield return type.GetTypeRefWithAttributes(this.DeclaringCompilation,
-                                                           typeRef);
+            if (this.HasUnmanagedTypeConstraint)
+            {
+                var typeRef = moduleBeingBuilt.Translate(
+                    typeSymbol: moduleBeingBuilt.Compilation.GetSpecialType(SpecialType.System_ValueType),
+                    syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                    diagnostics: context.Diagnostics);
+
+                var modifier = CSharpCustomModifier.CreateRequired(
+                    moduleBeingBuilt.Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_UnmanagedType));
+
+                yield return new Cci.TypeReferenceWithAttributes(new Cci.ModifiedTypeReference(typeRef, ImmutableArray.Create<Cci.ICustomModifier>(modifier)));
             }
-            if (this.HasValueTypeConstraint && !seenValueType)
+            else
             {
-                // Add System.ValueType constraint to comply with Dev11 output
-                var typeRef = moduleBeingBuilt.GetSpecialType(SpecialType.System_ValueType,
-                                                              syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                              diagnostics: context.Diagnostics);
+                var seenValueType = false;
+                foreach (var type in this.ConstraintTypesNoUseSiteDiagnostics)
+                {
+                    switch (type.SpecialType)
+                    {
+                        case SpecialType.System_Object:
+                            // Avoid emitting unnecessary object constraint.
+                            continue;
+                        case SpecialType.System_ValueType:
+                            seenValueType = true;
+                            break;
+                    }
+                    var typeRef = moduleBeingBuilt.Translate(type,
+                                                             syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                             diagnostics: context.Diagnostics);
 
-                yield return new Cci.TypeReferenceWithAttributes(typeRef);
+                    yield return type.GetTypeRefWithAttributes(this.DeclaringCompilation,
+                                                               typeRef);
+                }
+
+                if (this.HasValueTypeConstraint && !seenValueType)
+                {
+                    // Add System.ValueType constraint to comply with Dev11 output
+                    var typeRef = moduleBeingBuilt.GetSpecialType(SpecialType.System_ValueType,
+                                                                  syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                                  diagnostics: context.Diagnostics);
+
+                    yield return new Cci.TypeReferenceWithAttributes(typeRef);
+                }
             }
         }
 
@@ -265,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.HasValueTypeConstraint;
+                return this.HasValueTypeConstraint || this.HasUnmanagedTypeConstraint;
             }
         }
 

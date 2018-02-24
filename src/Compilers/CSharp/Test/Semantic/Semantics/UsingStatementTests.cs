@@ -642,6 +642,11 @@ public class Test
         public void MissingIDisposable()
         {
             var source = @"
+namespace System
+{
+    public class Object { }
+    public class Void { }
+}
 class C
 {
     void M()
@@ -651,30 +656,12 @@ class C
 }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // Related to the using statement:
-
-                // (6,30): warning CS0642: Possible mistaken empty statement
+                // (11,20): error CS0815: Cannot assign <null> to an implicitly-typed variable
                 //         using (var v = null) ;
-                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"),
-
-                // Cascading from the lack of mscorlib:
-
-                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // class C
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Object"),
-                // (4,5): error CS0518: Predefined type 'System.Void' is not defined or imported
-                //     void M()
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void"),
-                // (6,16): error CS0518: Predefined type 'System.Object' is not defined or imported
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = null").WithArguments("<null>").WithLocation(11, 20),
+                // (11,30): warning CS0642: Possible mistaken empty statement
                 //         using (var v = null) ;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "var").WithArguments("System.Object"),
-                // (6,20): error CS0815: Cannot assign <null> to an implicitly-typed variable
-                //         using (var v = null) ;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = null").WithArguments("<null>"),
-                // (2,7): error CS1729: 'object' does not contain a constructor that takes 0 arguments
-                // class C
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("object", "0")
-                );
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(11, 30));
         }
 
 

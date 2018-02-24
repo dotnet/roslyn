@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we want to treat the declaration as an explicitly typed declaration.
 
             RefKind refKind;
-            TypeSymbol declType = BindType(typeSyntax.SkipRef(out refKind), diagnostics, out isVar, out alias);
+            TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax.SkipRef(out refKind), diagnostics, out isVar, out alias);
             Debug.Assert((object)declType != null || isVar);
 
             if (isVar)
@@ -2153,7 +2153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AliasSymbol alias;
             bool isVar;
-            TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out alias);
+            TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out alias);
 
             Debug.Assert((object)declType != null || isVar);
 
