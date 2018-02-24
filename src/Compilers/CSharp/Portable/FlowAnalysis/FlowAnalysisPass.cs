@@ -109,7 +109,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SyntaxNode syntax = body.Syntax;
 
-            Debug.Assert(body.WasCompilerGenerated || syntax.IsKind(SyntaxKind.Block) || syntax.IsKind(SyntaxKind.ArrowExpressionClause));
+            Debug.Assert(body.WasCompilerGenerated || 
+                         syntax.IsKind(SyntaxKind.Block) || 
+                         syntax.IsKind(SyntaxKind.ArrowExpressionClause) ||
+                         syntax.IsKind(SyntaxKind.ConstructorDeclaration));
 
             BoundStatement ret = method.IsIterator
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)

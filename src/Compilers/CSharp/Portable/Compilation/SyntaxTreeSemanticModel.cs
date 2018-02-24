@@ -163,7 +163,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override IOperation GetOperationWorker(CSharpSyntaxNode node, CancellationToken cancellationToken)
         {
-            var model = this.GetMemberModel(node);
+            MemberSemanticModel model;
+
+            switch (node)
+            {
+                case ConstructorDeclarationSyntax constructor:
+                    model = (constructor.HasAnyBody() || constructor.Initializer != null) ? GetOrAddModel(node) : null;
+                    break;
+                case BaseMethodDeclarationSyntax method:
+                    model = method.HasAnyBody() ? GetOrAddModel(node) :  null;
+                    break;
+                case AccessorDeclarationSyntax accessor:
+                    model = (accessor.Body != null || accessor.ExpressionBody != null) ? GetOrAddModel(node) : null;
+                    break;
+                default:
+                    model = this.GetMemberModel(node);
+                    break;
+            }
+
             if (model != null)
             {
                 return model.GetOperationWorker(node, cancellationToken);

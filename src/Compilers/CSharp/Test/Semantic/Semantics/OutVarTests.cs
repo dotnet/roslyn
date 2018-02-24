@@ -32952,7 +32952,8 @@ IInvocationOperation ( C..ctor(out System.Int32 x)) (OperationKind.Invocation, T
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
-            Assert.Equal(OperationKind.ExpressionStatement, model.GetOperation(node1).Parent.Kind);
+            IOperation operation1 = model.GetOperation(node1);
+            Assert.Equal(OperationKind.ExpressionStatement, operation1.Parent.Kind);
 
             var node2 = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
 
@@ -32974,9 +32975,10 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
-
-            Assert.Equal(OperationKind.None, model.GetOperation(node2).Parent.Kind); // PROTOTYPE(ExpressionVariables)
-            Assert.Same(model.GetOperation(node1).Parent.Parent, model.GetOperation(node2).Parent);
+            IOperation operation2 = model.GetOperation(node2);
+            Assert.Equal(OperationKind.ConstructorBodyOperation, operation2.Parent.Kind);
+            Assert.Same(operation1.Parent.Parent, operation2.Parent);
+            Assert.Null(operation2.Parent.Parent);
 
             var node3 = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().First();
 
@@ -32999,7 +33001,57 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
 
-            Assert.Same(model.GetOperation(node2).Parent, model.GetOperation(node3).Parent);
+            Assert.Same(operation2.Parent, model.GetOperation(node3).Parent);
+
+            var node4 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+
+            Assert.Same(operation2.Parent, model.GetOperation(node4));
+
+            compilation.VerifyOperationTree(node4, expectedOperationTree:
+@"
+IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null, IsInvalid) (Syntax: 'C() : this( ... out var z);')
+  Locals: Local_1: System.Int32 x
+  Initializer: 
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: ': this(out var x)')
+      Expression: 
+        IInvocationOperation ( C..ctor(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: ': this(out var x)')
+          Instance Receiver: 
+            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: ': this(out var x)')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var x')
+                IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var x')
+                  ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  BlockBody: 
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ M(out var y); }')
+      Locals: Local_1: System.Int32 y
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'M(out var y);')
+        Expression: 
+          IInvocationOperation ( void C.M(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M(out var y)')
+            Instance Receiver: 
+              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var y')
+                  IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var y')
+                    ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  ExpressionBody: 
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> M(out var z)')
+      Locals: Local_1: System.Int32 z
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'M(out var z)')
+        Expression: 
+          IInvocationOperation ( void C.M(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M(out var z)')
+            Instance Receiver: 
+              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var z')
+                  IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var z')
+                    ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'z')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -33044,7 +33096,9 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
-            Assert.Equal(OperationKind.None, model.GetOperation(node1).Parent.Kind); // PROTOTYPE(ExpressionVariables)
+            IOperation operation1 = model.GetOperation(node1);
+            Assert.Equal(OperationKind.MethodBodyOperation, operation1.Parent.Kind);
+            Assert.Null(operation1.Parent.Parent);
 
             var node2 = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
 
@@ -33067,12 +33121,48 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
 
-            Assert.Same(model.GetOperation(node1).Parent, model.GetOperation(node2).Parent);
+            IOperation operation2 = model.GetOperation(node2);
+            Assert.Same(operation1.Parent, operation2.Parent);
 
             var node3 = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().ElementAt(1);
 
             Assert.Equal("=> M(out var z)", node3.ToString());
             Assert.Null(model.GetOperation(node3)); // https://github.com/dotnet/roslyn/issues/24900
+
+            var node4 = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+            Assert.Same(operation1.Parent, model.GetOperation(node4));
+            compilation.VerifyOperationTree(node4, expectedOperationTree:
+@"
+IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) (Syntax: 'get {return ... out var y);')
+  BlockBody: 
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{return M(out var x);}')
+      Locals: Local_1: System.Int32 x
+      IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return M(out var x);')
+        ReturnedValue: 
+          IInvocationOperation ( System.Int32 C.M(out System.Int32 x)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M(out var x)')
+            Instance Receiver: 
+              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var x')
+                  IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var x')
+                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  ExpressionBody: 
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> M(out var y)')
+      Locals: Local_1: System.Int32 y
+      IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'M(out var y)')
+        ReturnedValue: 
+          IInvocationOperation ( System.Int32 C.M(out System.Int32 x)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M(out var y)')
+            Instance Receiver: 
+              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var y')
+                  IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var y')
+                    ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
