@@ -474,7 +474,7 @@ class C
                 // public static Base1<(int, ValueTuple<int, ValueTuple>)> Field6;
                 var field6 = _derivedClass.GetMember<FieldSymbol>("Field6");
                 ValidateTupleNameAttribute(field6.GetAttributes(), expectedTupleNamesAttribute: false);
-                var field6Type = Assert.IsType<ConstructedNamedTypeSymbol>(field6.Type);
+                var field6Type = Assert.IsType<ConstructedNamedTypeSymbol>(field6.Type.TypeSymbol);
                 Assert.Equal("Base1", field6Type.Name);
                 Assert.Equal(1, field6Type.TypeParameters.Length);
                 var firstTuple = field6Type.TypeArguments().Single();
