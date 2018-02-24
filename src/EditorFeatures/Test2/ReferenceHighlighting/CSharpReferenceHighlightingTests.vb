@@ -39,6 +39,30 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestVerifyHighlightsForParameterUsedAsTupleElement() As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class Program
+{
+    static void Main(int {|Definition:Al$$ice|})
+    {
+        var x = ({|Reference:Alice|}, Bob: 2);
+        var y = (Alice:1, Bob: 2);
+        var z = (Alice:1, Carol: 2);
+
+        var z1 = x.Alice;
+        var z2 = x.Item1;
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>)
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Async Function TestVerifyHighlightsForTupleElement() As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -49,9 +73,58 @@ class Program
     static void Main(int {|Definition:Alice|})
     {
         var x = ({|Definition:{|Reference:Al$$ice|}|}, Bob: 2);
-        var y = ({|Reference:Alice|}:1, Bob: 2);
+        var y = ({|Reference:Alice|}:1, Bob: 2); // PROTOTYPE I'm not entirely sure why this gets highlighted
+        var z = ({|Reference:Alice|}:1, Carol: 2); // PROTOTYPE I'm not entirely sure why this gets highlighted
 
         var z = x.{|Reference:Alice|};
+        var z2 = x.{|Reference:Item1|};
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>)
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestVerifyHighlightsForNamedTupleElement() As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class Program
+{
+    static void Main(int Alice)
+    {
+        var x = (Alice, Bob: 2);
+        var y = ({|Definition:Ali$$ce|}:1, Bob: 2);
+        var z = ({|Reference:Alice|}:1, Carol: 2); // PROTOTYPE seems strange this is highlighted, but not Alice on x
+
+        var z1 = x.{|Reference:Alice|};
+        var z2 = x.{|Reference:Item1|};
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>)
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestVerifyHighlightsForNamedTupleElement2() As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class Program
+{
+    static void Main(int Alice)
+    {
+        var x = (Alice, Bob: 2);
+        var y = ({|Reference:Alice|}:1, Bob: 2);
+        var z = ({|Definition:Al$$ice|}:1, Carol: 2); // PROTOTYPE There is a bug in test infrastructure, which falsely fails this test
+
+        var z1 = x.{|Reference:Alice|};
         var z2 = x.{|Reference:Item1|};
     }
 }
@@ -71,10 +144,11 @@ class Program
 {
     static void Main(int Alice)
     {
-        var x = ({|Definition:Alice|}, Bob: 2);
+        var x = ({|Definition:Alice|}, Bob: 2); // PROTOTYPE I'm not entirely sure why this gets highlighted
         var y = ({|Reference:Alice|}:1, Bob: 2);
+        var z = ({|Reference:Alice|}:1, Carol: 2);
 
-        var z = x.{|Reference:Al$$ice|};
+        var z1 = x.{|Reference:Al$$ice|};
         var z2 = x.{|Reference:Item1|};
     }
 }
@@ -95,10 +169,34 @@ class Program
     static void Main(int Alice)
     {
         var x = ({|Definition:Alice|}, Bob: 2);
-        var y = ({|Reference:Alice|}:1, Bob: 2);
+        var y = ({|Reference:Alice|}:1, Bob: 2); // PROTOTYPE I'm not entirely sure why this gets highlighted
+        var z = ({|Reference:Alice|}:1, Carol: 2); // PROTOTYPE I'm not entirely sure why this gets highlighted
 
-        var z = x.{|Reference:Alice|};
+        var z1 = x.{|Reference:Alice|};
         var z2 = x.{|Reference:Ite$$m1|};
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>)
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestVerifyHighlightsForOtherNamedTupleElement() As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class Program
+{
+    static void Main(int {|Definition:Alice|})
+    {
+        var x = (Other: 1, Bob: 2);
+        var z = ({|Definition:{|Reference:Al$$ice|}|}, Carol: 2);
+
+        var z1 = x.Other;
+        var z2 = x.{|Reference:Item1|} // PROTOTYPE I'm not entirely sure why this gets highlighted;
     }
 }
                         </Document>
