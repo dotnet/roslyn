@@ -25,24 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                     }
                     break;
 
-                case SimpleLambdaExpressionSyntax simpleLambda:
-                    if (simpleLambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
+                case AnonymousFunctionExpressionSyntax anonymousFunction:
+                    if (anonymousFunction.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
                     {
-                        spans.Add(simpleLambda.AsyncKeyword.Span);
-                    }
-                    break;
-
-                case ParenthesizedLambdaExpressionSyntax parenthesizedLambda:
-                    if (parenthesizedLambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
-                    {
-                        spans.Add(parenthesizedLambda.AsyncKeyword.Span);
-                    }
-                    break;
-
-                case AnonymousMethodExpressionSyntax anonymousMethod:
-                    if (anonymousMethod.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
-                    {
-                        spans.Add(anonymousMethod.AsyncKeyword.Span);
+                        spans.Add(anonymousFunction.AsyncKeyword.Span);
                     }
                     break;
 
