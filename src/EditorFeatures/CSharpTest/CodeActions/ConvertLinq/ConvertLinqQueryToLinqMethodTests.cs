@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
 where num % 2 == 0
 orderby num
 select num",
-@"new int[] { 0, 1, 2 }.Where(num => num % 2 == 0).OrderBy(num => num)");
+@"new int[] { 0, 1, 2 }.Where(num => num % 2 == 0
+).OrderBy(num => num)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
@@ -38,13 +39,13 @@ select num",
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Conversion_GroupBy()
         {
-            await Test("from a in new[] { 1 } group a/2 by a*2", "new[] { 1 }.GroupBy(a => a * 2, a => a / 2)");
+            await Test("from a in new[] { 1 } group a/2 by a*2", "new[] { 1 }.GroupBy(a => a / 2, a => a * 2)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Conversion_SelectWithType()
         {
-            await Test("from int a in new[] { 1 } select a", "new[] { 1 }.Select(a => a is int)");
+            await Test("from int a in new[] { 1 } select a", "new[] { 1 }.Cast<int>()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
@@ -55,60 +56,73 @@ select num",
     group w by w[0] into fruitGroup
     where fruitGroup.Count() >= 2
     select new { FirstLetter = fruitGroup.Key, Words = fruitGroup.Count() }",
-@"new[]{ ""apples"", ""blueberries"", ""oranges"", ""bananas"", ""apricots"" }.GroupBy(w => w[0], w => w).Where(fruitGroup => fruitGroup.Count() >= 2).Select(fruitGroup => new { FirstLetter = fruitGroup.Key, Words = fruitGroup.Count() })");
+@"new[]{ ""apples"", ""blueberries"", ""oranges"", ""bananas"", ""apricots"" }.GroupBy(w => w[0]).Where(fruitGroup => fruitGroup.Count() >= 2
+).Select(fruitGroup => new { FirstLetter = fruitGroup.Key, Words = fruitGroup.Count() })");
         }
         #endregion
 
         #region No Diagnostics
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
-        public async Task NoDiagnostics_DoubleFrom()
+        public async Task Conversion_DoubleFrom()
         {
-            await TestNoDiagnostics(
+            await Test(
 @"from w in ""aaa bbb ccc"".Split(' ')
     from c in w
-    select c");
+    select c",
+@"""aaa bbb ccc"".Split(' ').SelectMany(w => w, (w, c) => c)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
-        public async Task NoDiagnostics_Join()
+        public async Task Conversion_Join()
         {
-            await TestNoDiagnostics("from a in new[] { 1, 2, 3 } join b in new[] { 4 } on a equals b select a");
+            await Test("from a in new[] { 1, 2, 3 } join b in new[] { 4 } on a equals b select a", 
+                "new[] { 1, 2, 3 }.Join(new[] { 4 }, a => a, b => b, a => a)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
-        public async Task NoDiagnostics_IntoDoubleFrom()
+        public async Task Conversion_IntoDoubleFrom()
         {
-            await TestNoDiagnostics("from a in new[] { 1, 2, 3 } select a.ToString() into b from c in b select c;");
+            await Test("from a in new[] { 1, 2, 3 } select a.ToString() into b from c in b select c",
+                "new[] { 1, 2, 3 }.Select(a => a.ToString()).SelectMany(b => b, (b, c) => c)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
-        public async Task NoDiagnostics_Let1()
+        public async Task Convert_Let1()
         {
-            await TestNoDiagnostics(
+            await Test(
 @"from sentence in new[] { ""aa bb"", ""ee ff"", ""ii"" }
     let words = sentence.Split(' ')
     from word in words
     let w = word.ToLower()
     where w[0] == 'a'
-    select word");
+    select word",
+@"new[] { ""aa bb"", ""ee ff"", ""ii"" }
+.Select(sentence => sentence.Split(' ')
+).SelectMany(<> h__TransparentIdentifier0=>words
+,<> h__TransparentIdentifier0=>    from word in words
+).Select(<> h__TransparentIdentifier1=>word.ToLower()
+).Where(<> h__TransparentIdentifier2=>w[0] == 'a'
+).Select(<> h__TransparentIdentifier2=>word)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
-        public async Task NoDiagnostics_Let2()
+        public async Task Conversion_Let2()
         {
-            await TestNoDiagnostics(
+            await Test(
 @"from x in ""123"" 
     let z = x.ToString()
     select z into w
-    select int.Parse(w)");
+    select int.Parse(w)",
+@"""123""
+.Select(x => x.ToString()
+).Select(<>h__TransparentIdentifier0 => z).Select(w => int.Parse(w))");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
-        public async Task NoDiagnostics_Validation_TypeChange()
+        public async Task Conversion_TrivialSelect()
         {
-            // The proposed change is "new int[] { 1, 2, 3 }" but it changes semantic from QueryExpression to ArrayCreationExpression.
-            await TestNoDiagnostics("from a in new int[] { 1, 2, 3 } select a");
+            await Test("from a in new int[] { 1, 2, 3 } select a", "new int[] { 1, 2, 3 }");
         }
 
         #endregion

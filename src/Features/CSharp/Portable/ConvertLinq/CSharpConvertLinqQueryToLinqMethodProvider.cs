@@ -1,135 +1,143 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertLinq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
 using System.Threading;
+using System.Linq;
+using Microsoft.CodeAnalysis.Operations;
+using System;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 {
-    internal sealed class CSharpConvertLinqQueryToLinqMethodProvider : AbstractConvertLinqProvider
+    internal sealed class CSharpConvertLinqQueryToLinqMethodProvider : AbstractConvertLinqQueryToLinqMethodProvider
     {
-        protected override IAnalyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel)
-            => new CSharpAnalyzer(syntaxFacts, semanticModel);
+        protected override IAnalyzer CreateAnalyzer(SemanticModel semanticModel, CancellationToken cancellationToken) => new CSharpAnalyzer(semanticModel, cancellationToken);
 
         private sealed class CSharpAnalyzer : Analyzer<QueryExpressionSyntax, ExpressionSyntax>
         {
-            public CSharpAnalyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel)
-                : base(syntaxFacts, semanticModel)
+            public CSharpAnalyzer(SemanticModel semanticModel, CancellationToken cancellationToken)
+                : base(semanticModel, cancellationToken)
             {
             }
 
             protected override string Title => CSharpFeaturesResources.Convert_linq_query_to_linq_method;
 
-            protected override ExpressionSyntax Convert(QueryExpressionSyntax source)
+            protected override ExpressionSyntax TryConvert(QueryExpressionSyntax source)
             {
                 var fromClause = source.FromClause;
-                var identifier = fromClause.Identifier;
                 var expression = fromClause.Expression.WithoutTrailingTrivia();
                 if (fromClause.Type != null)
-                {
-                    var lambda = SyntaxFactory.BinaryExpression(SyntaxKind.IsExpression, SyntaxFactory.IdentifierName(identifier), SyntaxFactory.Token(SyntaxKind.IsKeyword), fromClause.Type);
-                    expression = CreateInvocationExpression(expression, identifier, lambda, "Select");
+                { 
+                    var identifier = SyntaxFactory.IdentifierName(nameof(Enumerable.Cast));
+                    var generic = SyntaxFactory.GenericName(identifier.Identifier, SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(fromClause.Type)));
+                    var memberAccessExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, generic);
+                    return SyntaxFactory.InvocationExpression(memberAccessExpression, SyntaxFactory.ArgumentList());
                 }
 
-                var context = new ConversionContext(identifier, expression);
-                return ProcessQueryBody(context, source.Body);
+                return ProcessQueryBody(expression, source.Body);
             }
 
-            protected override bool Validate(QueryExpressionSyntax originalMethod, ExpressionSyntax convertedMethod, CancellationToken cancellationToken)
+            private ExpressionSyntax ProcessQueryBody(ExpressionSyntax expression, QueryBodySyntax queryBody)
             {
-                var speculationAnalyzer = new SpeculationAnalyzer(originalMethod, convertedMethod, _semanticModel, cancellationToken);
-                if (speculationAnalyzer.ReplacementChangesSemantics())
-                {
-                    return false;
-                }
-
-                // TODO add more checks
-                return true;
-            }
-
-            private static ExpressionSyntax ProcessQueryBody(ConversionContext context, QueryBodySyntax queryBody)
-            {
-                var expression = context.Expression;
                 foreach (var queryClause in queryBody.Clauses)
                 {
                     switch (queryClause.Kind())
                     {
-                        case SyntaxKind.WhereClause: expression = CreateInvocationExpression(expression, context.Identifier, ((WhereClauseSyntax)queryClause).Condition, "Where"); break;
-                        case SyntaxKind.OrderByClause: expression = ProcessOrderByClause(expression, context.Identifier, (OrderByClauseSyntax)queryClause); break;
+                        case SyntaxKind.WhereClause:
+                            expression = CreateInvocationExpression(expression, ((WhereClauseSyntax)queryClause).Condition, nameof(Enumerable.Where));
+                            break;
+                        case SyntaxKind.OrderByClause:
+                            expression = ProcessOrderByClause(expression, (OrderByClauseSyntax)queryClause);
+                            break;
+                        case SyntaxKind.FromClause:
+                            expression = CreateInvocationExpression(expression, ((FromClauseSyntax)queryClause).Expression, nameof(Enumerable.SelectMany));
+                            break;
                         case SyntaxKind.JoinClause: // Not supported because linq queries seem to provide essentially simpler syntax for the same than query methods.
-                        case SyntaxKind.FromClause: // More than one fromClause is not supported. The linq method seems to be more complicated for this.
-                        default: return null;
+                        default:
+                            return null;
                     }
                 }
 
                 var selectOrGroupClause = queryBody.SelectOrGroup;
                 switch (selectOrGroupClause.Kind())
                 {
-                    case SyntaxKind.SelectClause: expression = ProcesSelectClause(expression, context.Identifier, (SelectClauseSyntax)selectOrGroupClause); break;
-                    case SyntaxKind.GroupClause: expression = ProcessGroupClause(expression, context.Identifier, (GroupClauseSyntax)selectOrGroupClause); break;
-                    case SyntaxKind.LetClause: return null; // Skip this because the linq method for the let will be more complicated than the query.
-                    default: return null;
+                    case SyntaxKind.SelectClause:
+                        expression = ProcesSelectClause(expression, (SelectClauseSyntax)selectOrGroupClause);
+                        break;
+                    case SyntaxKind.GroupClause:
+                        expression = CreateInvocationExpression(expression, ((GroupClauseSyntax)selectOrGroupClause).ByExpression, nameof(Enumerable.GroupBy));
+                        break;
+                    case SyntaxKind.LetClause: // Skip this because the linq method for the let will be more complicated than the query.
+                    default:
+                        return null;
                 }
 
                 if (queryBody.Continuation != null)
                 {
-                    context = new ConversionContext(queryBody.Continuation.Identifier, expression);
-                    return ProcessQueryBody(context, queryBody.Continuation.Body);
+                    return ProcessQueryBody(expression, queryBody.Continuation.Body);
                 }
 
                 return expression;
             }
 
-            private static ExpressionSyntax ProcessGroupClause(ExpressionSyntax expression, SyntaxToken identifier, GroupClauseSyntax groupClause)
-            {
-                var parameter = SyntaxFactory.Parameter(identifier);
-                var groupExpressionLambda = SyntaxFactory.SimpleLambdaExpression(parameter, groupClause.GroupExpression.WithoutTrailingTrivia());
-                var byExpressionLambda = SyntaxFactory.SimpleLambdaExpression(parameter, groupClause.ByExpression.WithoutTrailingTrivia());
-                var groupExpressionArgument = SyntaxFactory.Argument(groupExpressionLambda);
-                var byExpressionArgument = SyntaxFactory.Argument(byExpressionLambda);
-                var arguments = new SeparatedSyntaxList<ArgumentSyntax>().Add(byExpressionArgument).Add(groupExpressionArgument);
-
-                return CreateInvocationExpression(expression, arguments, "GroupBy");
-            }
-
-            private static ExpressionSyntax ProcesSelectClause(ExpressionSyntax expression, SyntaxToken identifier, SelectClauseSyntax selectClause)
+            private ExpressionSyntax ProcesSelectClause(ExpressionSyntax expression, SelectClauseSyntax selectClause)
             {
                 var selectExpression = selectClause.Expression;
                 // Avoid trivial Select(x => x)
                 if (selectExpression is IdentifierNameSyntax identifierName)
                 {
-                    // TODO consider a better condition to compare
-                    if (identifierName.Identifier.Text == identifier.Text)
+                    var identifierNames = GetIdentifierNames(_semanticModel, identifierName, _cancellationToken);
+                    if (identifierNames == default || identifierNames.Length == 1)
                     {
                         return expression;
                     }
                 }
 
-                return CreateInvocationExpression(expression, identifier, selectClause.Expression, "Select");
+                return CreateInvocationExpression(expression, selectClause.Expression, nameof(Enumerable.Select));
             }
 
-            private static ExpressionSyntax CreateInvocationExpression(ExpressionSyntax expression, SyntaxToken identifier, ExpressionSyntax bodyExpression, string keyword)
+            private ExpressionSyntax CreateInvocationExpression(ExpressionSyntax expression, ExpressionSyntax bodyExpression, string keyword)
             {
-                var parameter = SyntaxFactory.Parameter(identifier);
-                var lambda = SyntaxFactory.SimpleLambdaExpression(parameter, bodyExpression.WithoutTrailingTrivia());
-                var argument = SyntaxFactory.Argument(lambda);
-                var arguments = new SeparatedSyntaxList<ArgumentSyntax>().Add(argument);
+                var expressionOperation = _semanticModel.GetOperation(bodyExpression, _cancellationToken);
+                IEnumerable<ArgumentSyntax> arguments;
+                if (expressionOperation != null)
+                {
+                    var invocationOperation = FindParentInvocationOperation(expressionOperation);
+                    arguments = invocationOperation.Arguments.Where(a => a.Value.Kind == OperationKind.DelegateCreation).Select(argument => CreateArgument(argument));
+                }
+                else
+                {
+                    arguments = Enumerable.Empty<ArgumentSyntax>();
+                }
 
-                return CreateInvocationExpression(expression, arguments, keyword);
-            }
-
-            private static InvocationExpressionSyntax CreateInvocationExpression(ExpressionSyntax expression, SeparatedSyntaxList<ArgumentSyntax> arguments, string keyword)
-            {
-                var argumentList = SyntaxFactory.ArgumentList(arguments);
+                var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments));
                 var identifierName = SyntaxFactory.IdentifierName(keyword);
                 var memberAccessExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, identifierName);
                 return SyntaxFactory.InvocationExpression(memberAccessExpression, argumentList);
             }
 
-            private static ExpressionSyntax ProcessOrderByClause(ExpressionSyntax expression, SyntaxToken identifier, OrderByClauseSyntax orderByClause)
+            private ArgumentSyntax CreateArgument(IArgumentOperation argumentOperation)
+            {
+                // TODO do we need to check for cast?
+                var anonymousFunction = (argumentOperation.Value as IDelegateCreationOperation).Target as IAnonymousFunctionOperation;
+                var parameters = SyntaxFactory.SeparatedList(anonymousFunction.Symbol.Parameters.Select(p => SyntaxFactory.Parameter(SyntaxFactory.Identifier(BeautifyName(p.Name)))));
+                var body = MakeIdentifierNameReplacements(anonymousFunction.Body.Operations.First().Syntax);
+
+                LambdaExpressionSyntax lambdaExpression;
+                if (parameters.Count == 1)
+                {
+                    lambdaExpression = SyntaxFactory.SimpleLambdaExpression(parameters.First(), body);
+                }
+                else
+                {
+                    lambdaExpression = SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.ParameterList(parameters), body);
+                }
+
+                return SyntaxFactory.Argument(lambdaExpression);
+            }
+
+            private ExpressionSyntax ProcessOrderByClause(ExpressionSyntax expression, OrderByClauseSyntax orderByClause)
             {
                 bool isFirst = true;
                 foreach (var ordering in orderByClause.Orderings)
@@ -137,31 +145,59 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     string orderingKeyword;
                     switch (ordering.Kind())
                     {
-                        case SyntaxKind.AscendingOrdering: orderingKeyword = isFirst ? "OrderBy" : "ThenBy"; break;
-                        case SyntaxKind.DescendingOrdering: orderingKeyword = isFirst ? "OrderByDescending" : "ThenByDescending"; break;
-                        default: return null;
+                        case SyntaxKind.AscendingOrdering:
+                            orderingKeyword = isFirst ? nameof(Enumerable.OrderBy) : nameof(Enumerable.ThenBy);
+                            break;
+                        case SyntaxKind.DescendingOrdering:
+                            orderingKeyword = isFirst ? nameof(Enumerable.OrderByDescending) : nameof(Enumerable.ThenByDescending);
+                            break;
+                        default:
+                            return null;
                     }
-                    expression = CreateInvocationExpression(expression, identifier, ordering.Expression, orderingKeyword);
+
+                    expression = CreateInvocationExpression(expression, ordering.Expression, orderingKeyword);
                     isFirst = false;
                 }
 
                 return expression;
             }
 
-            protected override QueryExpressionSyntax FindNodeToRefactor(SyntaxNode root, CodeRefactoringContext context)
+            private static string BeautifyName(string name)
             {
-                return root.FindNode(context.Span).FirstAncestorOrSelf<QueryExpressionSyntax>();
+                return name.Replace("$", "");
             }
 
-            private class ConversionContext
+            private string GetIdentifierName(IdentifierNameSyntax node)
             {
-                public SyntaxToken Identifier { get; }
-                public ExpressionSyntax Expression { get; }
-
-                public ConversionContext(SyntaxToken identifier, ExpressionSyntax expression)
+                var names = GetIdentifierNames(_semanticModel, node, _cancellationToken);
+                if (names.IsDefault)
                 {
-                    Identifier = identifier;
-                    Expression = expression;
+                    return string.Empty;
+                }
+                else
+                {
+                    return BeautifyName(string.Join(".", names));
+                }
+            }
+
+            private CSharpSyntaxNode MakeIdentifierNameReplacements(SyntaxNode node)
+            {
+                return new LambdaRewriter(GetIdentifierName).Visit(node) as CSharpSyntaxNode;
+            }
+
+            private class LambdaRewriter : CSharpSyntaxRewriter
+            {
+                private readonly Func<IdentifierNameSyntax, string> _getNameMethod;
+
+                public LambdaRewriter(Func<IdentifierNameSyntax, string> getNameMethod)
+                {
+                    _getNameMethod = getNameMethod;
+                }
+
+                public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
+                {
+                    var name = _getNameMethod(node);
+                    return string.IsNullOrEmpty(name) ? base.VisitIdentifierName(node) : SyntaxFactory.IdentifierName(name);
                 }
             }
         }

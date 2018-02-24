@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq
 {
@@ -24,23 +23,28 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
 
-            await CreateAnalyzer(syntaxFacts, semanticModel)
+            await CreateAnalyzer(semanticModel, context.CancellationToken)
                 .ComputeRefactoringsAsync(context).ConfigureAwait(false);
         }
 
-        protected abstract IAnalyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel);
+        protected abstract IAnalyzer CreateAnalyzer(SemanticModel semanticModel, CancellationToken cancellationToken);
 
-        protected abstract class Analyzer<TSource, TDestination> : IAnalyzer
+        protected interface IAnalyzer
+        {
+            Task ComputeRefactoringsAsync(CodeRefactoringContext context);
+        }
+
+        protected abstract class AnalyzerBase<TSource, TDestination> : IAnalyzer
             where TSource : SyntaxNode
             where TDestination : SyntaxNode
         {
-            protected readonly ISyntaxFactsService _syntaxFacts;
             protected readonly SemanticModel _semanticModel;
+            protected readonly CancellationToken _cancellationToken;
 
-            public Analyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel)
+            public AnalyzerBase(SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                _syntaxFacts = syntaxFacts;
                 _semanticModel = semanticModel;
+                _cancellationToken = cancellationToken;
             }
 
             public async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -60,13 +64,13 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                     return;
                 }
 
-                var destinationNode = Convert(sourceNode);
+                var destinationNode = TryConvert(sourceNode);
                 if (destinationNode == null)
                 {
                     return;
                 }
 
-                if (!Validate(sourceNode, destinationNode, context.CancellationToken))
+                if (!Validate(sourceNode, destinationNode))
                 {
                     return;
                 }
@@ -75,15 +79,16 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                     UpdateDocumentAsync(root, document, sourceNode, destinationNode)));
             }
 
-            protected abstract TSource FindNodeToRefactor(SyntaxNode root, CodeRefactoringContext context);
+            protected abstract TDestination TryConvert(TSource source);
 
-            protected abstract TDestination Convert(TSource source);
+            protected virtual TSource FindNodeToRefactor(SyntaxNode root, CodeRefactoringContext context) =>
+                root.FindNode(context.Span).FirstAncestorOrSelf<TSource>();
 
-            protected abstract bool Validate(TSource source, TDestination destination, CancellationToken cancellationToken);
+            protected virtual bool Validate(TSource source, TDestination destination)
+                => true;
 
-            protected abstract string Title { get;  }
+            protected abstract string Title { get; }
 
-            // TODO probably protected virtual
             private Task<Document> UpdateDocumentAsync(
                 SyntaxNode root,
                 Document document,
@@ -93,11 +98,6 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                 root = root.ReplaceNode(root.FindNode(sourceNode.Span), destinationNode);
                 return Task.FromResult(document.WithSyntaxRoot(root));
             }
-        }
-
-        protected interface IAnalyzer
-        {
-            Task ComputeRefactoringsAsync(CodeRefactoringContext context);
         }
 
         protected sealed class MyCodeAction : CodeAction.DocumentChangeAction
