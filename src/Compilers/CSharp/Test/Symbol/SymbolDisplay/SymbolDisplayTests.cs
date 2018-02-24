@@ -5299,6 +5299,8 @@ class C
 
             public bool IsComImport => throw new NotImplementedException();
 
+            public ImmutableArray<string> TupleElementNames => throw new NotImplementedException();
+
             #endregion
         }
 

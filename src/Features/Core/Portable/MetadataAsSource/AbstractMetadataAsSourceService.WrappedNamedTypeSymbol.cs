@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public ImmutableArray<INamedTypeSymbol> Interfaces => _symbol.Interfaces;
             public ImmutableArray<INamedTypeSymbol> AllInterfaces => _symbol.AllInterfaces;
             public ImmutableArray<IFieldSymbol> TupleElements => _symbol.TupleElements;
+            public ImmutableArray<string> TupleElementNames => _symbol.TupleElementNames;
 
             public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
             {

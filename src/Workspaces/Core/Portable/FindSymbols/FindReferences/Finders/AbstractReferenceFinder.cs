@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var symbolToMatch = symbolInfoToMatch.Symbol;
                 var symbolToMatchCompilation = model.Compilation;
 
-                if (SymbolFinder.OriginalSymbolsMatch(searchSymbol, symbolInfoToMatch.Symbol, solution, null, symbolToMatchCompilation, cancellationToken))
+                if (SymbolFinder.OriginalSymbolsMatch(searchSymbol, symbolToMatch, solution, null, symbolToMatchCompilation, cancellationToken))
                 {
                     return (matched: true, CandidateReason.None);
                 }

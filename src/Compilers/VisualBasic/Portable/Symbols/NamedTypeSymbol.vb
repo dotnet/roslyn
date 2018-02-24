@@ -1227,6 +1227,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property INamedTypeSymbol_TupleElementNames As ImmutableArray(Of String) Implements INamedTypeSymbol.TupleElementNames
+            Get
+                Return TupleElementNames
+            End Get
+        End Property
+
         Private ReadOnly Property INamedTypeSymbol_TupleUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.TupleUnderlyingType
             Get
                 Return TupleUnderlyingType

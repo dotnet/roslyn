@@ -362,6 +362,21 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                         }
                     }
 
+                    var xElementNames = x.TupleElementNames;
+                    var yElementNames = y.TupleElementNames;
+                    if (xElementNames.Length != yElementNames.Length)
+                    {
+                        return false;
+                    }
+
+                    for (int i = 0; i < xElementNames.Length; i++)
+                    {
+                        if (xElementNames[i] != yElementNames[i])
+                        {
+                            return false;
+                        }
+                    }
+
                     return true;
                 }
 

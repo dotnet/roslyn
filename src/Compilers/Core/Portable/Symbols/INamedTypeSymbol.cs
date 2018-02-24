@@ -165,5 +165,7 @@ namespace Microsoft.CodeAnalysis
         /// If this type is not a tuple, then returns default.
         /// </summary>
         ImmutableArray<IFieldSymbol> TupleElements { get; }
+
+        ImmutableArray<string> TupleElementNames { get; }
     }
 }

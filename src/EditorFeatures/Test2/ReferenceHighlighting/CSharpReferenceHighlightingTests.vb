@@ -63,7 +63,7 @@ class Program
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        Public Async Function TestVerifyHighlightsForTupleElement() As Task
+        Public Async Function TestVerifyHighlightsForInferredTupleElement() As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -73,8 +73,8 @@ class Program
     static void Main(int {|Definition:Alice|})
     {
         var x = ({|Definition:{|Reference:Al$$ice|}|}, Bob: 2);
-        var y = ({|Reference:Alice|}:1, Bob: 2); // PROTOTYPE I'm not entirely sure why this gets highlighted
-        var z = ({|Reference:Alice|}:1, Carol: 2); // PROTOTYPE I'm not entirely sure why this gets highlighted
+        var y = ({|Reference:Alice|}:1, Bob: 2);
+        var z = (Alice:1, Carol: 2);
 
         var z = x.{|Reference:Alice|};
         var z2 = x.{|Reference:Item1|};
@@ -96,9 +96,9 @@ class Program
 {
     static void Main(int Alice)
     {
-        var x = (Alice, Bob: 2);
+        var x = (Alice, Bob: 2); // PROTOTYPE This probably should be highlighted, although the field name is inferred
         var y = ({|Definition:Ali$$ce|}:1, Bob: 2);
-        var z = ({|Reference:Alice|}:1, Carol: 2); // PROTOTYPE seems strange this is highlighted, but not Alice on x
+        var z = (Alice:1, Carol: 2);
 
         var z1 = x.{|Reference:Alice|};
         var z2 = x.{|Reference:Item1|};
@@ -121,11 +121,11 @@ class Program
     static void Main(int Alice)
     {
         var x = (Alice, Bob: 2);
-        var y = ({|Reference:Alice|}:1, Bob: 2);
-        var z = ({|Definition:Al$$ice|}:1, Carol: 2); // PROTOTYPE There is a bug in test infrastructure, which falsely fails this test
+        var y = (Alice:1, Bob: 2);
+        var z = ({|Definition:Al$$ice|}:1, Carol: 2);
 
-        var z1 = x.{|Reference:Alice|};
-        var z2 = x.{|Reference:Item1|};
+        var z1 = x.Alice;
+        var z2 = x.Item1;
     }
 }
                         </Document>
@@ -144,9 +144,9 @@ class Program
 {
     static void Main(int Alice)
     {
-        var x = ({|Definition:Alice|}, Bob: 2); // PROTOTYPE I'm not entirely sure why this gets highlighted
+        var x = ({|Definition:Alice|}, Bob: 2);
         var y = ({|Reference:Alice|}:1, Bob: 2);
-        var z = ({|Reference:Alice|}:1, Carol: 2);
+        var z = (Alice:1, Carol: 2);
 
         var z1 = x.{|Reference:Al$$ice|};
         var z2 = x.{|Reference:Item1|};
@@ -169,8 +169,8 @@ class Program
     static void Main(int Alice)
     {
         var x = ({|Definition:Alice|}, Bob: 2);
-        var y = ({|Reference:Alice|}:1, Bob: 2); // PROTOTYPE I'm not entirely sure why this gets highlighted
-        var z = ({|Reference:Alice|}:1, Carol: 2); // PROTOTYPE I'm not entirely sure why this gets highlighted
+        var y = ({|Reference:Alice|}:1, Bob: 2);
+        var z = (Alice:1, Carol: 2);
 
         var z1 = x.{|Reference:Alice|};
         var z2 = x.{|Reference:Ite$$m1|};
@@ -196,7 +196,7 @@ class Program
         var z = ({|Definition:{|Reference:Al$$ice|}|}, Carol: 2);
 
         var z1 = x.Other;
-        var z2 = x.{|Reference:Item1|} // PROTOTYPE I'm not entirely sure why this gets highlighted;
+        var z2 = x.Item1;
     }
 }
                         </Document>
