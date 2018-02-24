@@ -312,7 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_BadUILang:
                 case ErrorCode.WRN_RefCultureMismatch:
                 case ErrorCode.WRN_ConflictingMachineAssembly:
-                case ErrorCode.WRN_FilterIsConstant:
+                case ErrorCode.WRN_FilterIsConstantTrue:
+                case ErrorCode.WRN_FilterIsConstantFalse:
+                case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
                 case ErrorCode.WRN_IdentifierOrNumericLiteralExpected:
                 case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                 case ErrorCode.WRN_AlignmentMagnitude:
@@ -339,7 +341,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
                 case ErrorCode.WRN_Experimental:
-                case ErrorCode.WRN_DefaultInSwitch:
                     return 1;
                 default:
                     return 0;

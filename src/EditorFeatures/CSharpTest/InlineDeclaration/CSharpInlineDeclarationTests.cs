@@ -1827,9 +1827,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task TestInLocalFunction()
         {
-            // Note: this currently works, but it should be missing.  
-            // This test validates that we don't crash in this case though.
-            await TestInRegularAndScript1Async(
+            await TestMissingInRegularAndScriptAsync(
 @"
 using System;
 using System.Collections.Generic;
@@ -1846,26 +1844,6 @@ class Demo
                 Dictionary<int, int> dict = null;
                 int [|x|] = 0;
                 dict?.TryGetValue(0, out x);
-                Console.WriteLine(x);
-            };
-        }
-    }
-}",
-@"
-using System;
-using System.Collections.Generic;
-
-class Demo
-{
-    static void Main()
-    {
-        F();
-        void F()
-        {
-            Action f = () =>
-            {
-                Dictionary<int, int> dict = null;
-                dict?.TryGetValue(0, out int x);
                 Console.WriteLine(x);
             };
         }
@@ -2005,6 +1983,135 @@ class C
         var result = condition && int.TryParse(""2"", out x);
         Console.WriteLine(x);
     }
+}");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingOnCrossFunction1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+  static void Main(string[] args)
+  {
+    Method<string>();
+  }
+
+  public static void Method<T>()
+  { 
+    [|T t|];
+    void Local<T>()
+    {
+      Out(out t);
+      Console.WriteLine(t);
+    }
+    Local<int>();
+  }
+
+  public static void Out<T>(out T t) => t = default;
+}");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingOnCrossFunction2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+  static void Main(string[] args)
+  {
+    Method<string>();
+  }
+
+  public static void Method<T>()
+  { 
+    void Local<T>()
+    {
+        [|T t|];
+        void InnerLocal<T>()
+        {
+          Out(out t);
+          Console.WriteLine(t);
+        }
+    }
+    Local<int>();
+  }
+
+  public static void Out<T>(out T t) => t = default;
+}");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingOnCrossFunction3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Method<string>();
+    }
+
+    public static void Method<T>()
+    { 
+        [|T t|];
+        void Local<T>()
+        {
+            { // <-- note this set of added braces
+                Out(out t);
+                Console.WriteLine(t);
+            }
+        }
+        Local<int>();
+    }
+
+    public static void Out<T>(out T t) => t = default;
+}");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingOnCrossFunction4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Method<string>();
+    }
+
+    public static void Method<T>()
+    {
+        { // <-- note this set of added braces
+            [|T t|];
+            void Local<T>()
+            {
+                { // <-- and my axe
+                    Out(out t);
+                    Console.WriteLine(t);
+                }
+            }
+            Local<int>();
+        }
+    }
+
+    public static void Out<T>(out T t) => t = default;
 }");
         }
     }

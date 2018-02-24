@@ -521,15 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.InAttribute))
             {
-                if (this.RefKind == RefKind.Out)
-                {
-                    // error CS0036: An out parameter cannot have the In attribute
-                    arguments.Diagnostics.Add(ErrorCode.ERR_InAttrOnOutParam, arguments.AttributeSyntaxOpt.Name.Location);
-                }
-                else
-                {
-                    arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasInAttribute = true;
-                }
+                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasInAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.OutAttribute))
             {
@@ -864,10 +856,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var data = (CommonParameterWellKnownAttributeData)decodedData;
             if (data != null)
             {
-                if (this.RefKind == RefKind.Ref && data.HasOutAttribute && !data.HasInAttribute)
+                switch (RefKind)
                 {
-                    // error CS0662: '...' cannot specify only Out attribute on a ref parameter. Use both In and Out attributes, or neither.
-                    diagnostics.Add(ErrorCode.ERR_OutAttrOnRefParam, this.Locations[0]);
+                    case RefKind.Ref:
+                        if (data.HasOutAttribute && !data.HasInAttribute)
+                        {
+                            // error CS0662: Cannot specify the Out attribute on a ref parameter without also specifying the In attribute.
+                            diagnostics.Add(ErrorCode.ERR_OutAttrOnRefParam, this.Locations[0]);
+                        }
+                        break;
+                    case RefKind.Out:
+                        if (data.HasInAttribute)
+                        {
+                            // error CS0036: An out parameter cannot have the In attribute.
+                            diagnostics.Add(ErrorCode.ERR_InAttrOnOutParam, this.Locations[0]);
+                        }
+                        break;
+                    case RefKind.In:
+                        if (data.HasOutAttribute)
+                        {
+                            // error CS8355: An in parameter cannot have the Out attribute.
+                            diagnostics.Add(ErrorCode.ERR_OutAttrOnInParam, this.Locations[0]);
+                        }
+                        break;
                 }
             }
 
@@ -936,20 +947,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsMetadataIn => GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
+        internal sealed override bool IsMetadataIn
+            => base.IsMetadataIn || GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
 
         internal sealed override bool IsMetadataOut
-        {
-            get
-            {
-                if (this.RefKind == RefKind.Out)
-                {
-                    return true;
-                }
-
-                return GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
-            }
-        }
+            => base.IsMetadataOut || GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
 
         internal sealed override MarshalPseudoCustomAttributeData MarshallingInformation
             => GetDecodedWellKnownAttributeData()?.MarshallingInformation;

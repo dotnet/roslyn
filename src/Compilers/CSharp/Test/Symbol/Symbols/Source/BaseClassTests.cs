@@ -31,12 +31,12 @@ class Y : X {}
             var global = comp.GlobalNamespace;
             var x = global.GetTypeMembers("X", 0).Single();
             var y = global.GetTypeMembers("Y", 0).Single();
-            Assert.NotEqual(y, x.BaseType);
-            Assert.NotEqual(x, y.BaseType);
-            Assert.Equal(SymbolKind.ErrorType, x.BaseType.Kind);
-            Assert.Equal(SymbolKind.ErrorType, y.BaseType.Kind);
-            Assert.Equal("Y", x.BaseType.Name);
-            Assert.Equal("X", y.BaseType.Name);
+            Assert.NotEqual(y, x.BaseType());
+            Assert.NotEqual(x, y.BaseType());
+            Assert.Equal(SymbolKind.ErrorType, x.BaseType().Kind);
+            Assert.Equal(SymbolKind.ErrorType, y.BaseType().Kind);
+            Assert.Equal("Y", x.BaseType().Name);
+            Assert.Equal("X", y.BaseType().Name);
         }
 
         [Fact]
@@ -51,12 +51,12 @@ class Y : X.n {}
             var global = comp.GlobalNamespace;
             var x = global.GetTypeMembers("X", 0).Single();
             var y = global.GetTypeMembers("Y", 0).Single();
-            Assert.NotEqual(y, x.BaseType);
-            Assert.NotEqual(x, y.BaseType);
-            Assert.Equal(SymbolKind.ErrorType, x.BaseType.Kind);
-            Assert.Equal(SymbolKind.ErrorType, y.BaseType.Kind);
-            Assert.Equal("n", x.BaseType.Name);
-            Assert.Equal("n", y.BaseType.Name);
+            Assert.NotEqual(y, x.BaseType());
+            Assert.NotEqual(x, y.BaseType());
+            Assert.Equal(SymbolKind.ErrorType, x.BaseType().Kind);
+            Assert.Equal(SymbolKind.ErrorType, y.BaseType().Kind);
+            Assert.Equal("n", x.BaseType().Name);
+            Assert.Equal("n", y.BaseType().Name);
         }
 
         [Fact]
@@ -74,7 +74,7 @@ class C4 : C1 {}
             var global = comp.GlobalNamespace;
             var x = global.GetTypeMembers("C4", 0).Single();
 
-            var x_base_base = x.BaseType.BaseType as ErrorTypeSymbol;
+            var x_base_base = x.BaseType().BaseType() as ErrorTypeSymbol;
             var er = x_base_base.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'C2' is invalid. It contains a circular base class dependency.",
@@ -99,9 +99,9 @@ class A<T>
             var a = global.GetTypeMembers("A", 1).Single();
             var b = a.GetTypeMembers("B", 0).Single();
             var e = a.GetTypeMembers("E", 0).Single();
-            Assert.NotEqual(e, e.BaseType);
+            Assert.NotEqual(e, e.BaseType());
 
-            var x_base = e.BaseType as ErrorTypeSymbol;
+            var x_base = e.BaseType() as ErrorTypeSymbol;
             var er = x_base.ErrorInfo;
 
             Assert.Equal("error CS0146: Circular base class dependency involving 'A<A<T>.E>.E' and 'A<T>.E'",
@@ -128,9 +128,9 @@ class B {
             var a = global.GetTypeMembers("A", 1).Single();
             var b = global.GetTypeMembers("B", 0).Single();
             var d = b.GetTypeMembers("D", 0).Single();
-            Assert.NotEqual(d, d.BaseType);
+            Assert.NotEqual(d, d.BaseType());
 
-            var x_base = d.BaseType as ErrorTypeSymbol;
+            var x_base = d.BaseType() as ErrorTypeSymbol;
             var er = x_base.ErrorInfo;
 
             Assert.Equal("error CS0146: Circular base class dependency involving 'A<int>.C' and 'B.D'",
@@ -153,7 +153,7 @@ class A : object, A.IC
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var ic = a.GetTypeMembers("IC", 0).Single();
-            Assert.Equal(a.Interfaces[0], ic);
+            Assert.Equal(a.Interfaces()[0], ic);
 
             var diagnostics = comp.GetDeclarationDiagnostics();
             Assert.Equal(0, diagnostics.Count());
@@ -177,10 +177,10 @@ class A : object, A.B.B.IC
             var a = global.GetTypeMembers("A", 0).Single();
             var b = a.GetTypeMembers("B", 0).Single();
             var ic = b.GetTypeMembers("IC", 0).Single();
-            Assert.NotEqual(b, b.BaseType);
-            Assert.NotEqual(a, b.BaseType);
-            Assert.Equal(SymbolKind.ErrorType, a.Interfaces[0].Kind);
-            Assert.NotEqual(ic, a.Interfaces[0]);
+            Assert.NotEqual(b, b.BaseType());
+            Assert.NotEqual(a, b.BaseType());
+            Assert.Equal(SymbolKind.ErrorType, a.Interfaces()[0].Kind);
+            Assert.NotEqual(ic, a.Interfaces()[0]);
 
             var diagnostics = comp.GetDeclarationDiagnostics();
             Assert.Equal(2, diagnostics.Count());
@@ -229,9 +229,9 @@ class W : B.X { }
             var global = comp.GlobalNamespace;
             var z = global.GetTypeMembers("Z", 0).Single();
             var w = global.GetTypeMembers("W", 0).Single();
-            var zBase = z.BaseType;
+            var zBase = z.BaseType();
             Assert.Equal("Y", zBase.Name);
-            var wBase = w.BaseType;
+            var wBase = w.BaseType();
             Assert.Equal("X", wBase.Name);
         }
 
@@ -258,7 +258,7 @@ class C : A {
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
 
-            //var aBase = a.BaseType;
+            //var aBase = a.BaseType();
             //Assert.True(aBase.IsErrorType());
             //Assert.Equal("B", aBase.Name);
 
@@ -295,7 +295,7 @@ class B<T> : A {
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
 
-            //var aBase = a.BaseType;
+            //var aBase = a.BaseType();
             //Assert.True(aBase.IsErrorType());
             //Assert.Equal("B", aBase.Name);
 
@@ -458,10 +458,10 @@ class C : A, I<C.B> {}
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMembers("C", 0).Single();
-            var cBase = c.BaseType;
+            var cBase = c.BaseType();
             Assert.False(cBase.IsErrorType());
             Assert.Equal("A", cBase.Name);
-            Assert.True(c.Interfaces.Single().TypeArguments.Single().TypeSymbol.IsErrorType()); //can't see base of C while evaluating C.B
+            Assert.True(c.Interfaces().Single().TypeArguments().Single().IsErrorType()); //can't see base of C while evaluating C.B
         }
 
         [Fact]
@@ -476,8 +476,8 @@ class E : I<E> {}
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var e = global.GetTypeMembers("E", 0).Single();
-            Assert.Equal(1, e.Interfaces.Length);
-            Assert.Equal("I<E>", e.Interfaces[0].ToTestDisplayString());
+            Assert.Equal(1, e.Interfaces().Length);
+            Assert.Equal("I<E>", e.Interfaces()[0].ToTestDisplayString());
         }
 
         [Fact]
@@ -494,8 +494,8 @@ class G : I<G.H> {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var g = global.GetTypeMembers("G", 0).Single();
-            Assert.Equal(1, g.Interfaces.Length);
-            Assert.Equal("I<G.H>", g.Interfaces[0].ToTestDisplayString());
+            Assert.Equal(1, g.Interfaces().Length);
+            Assert.Equal("I<G.H>", g.Interfaces()[0].ToTestDisplayString());
         }
 
         [Fact]
@@ -514,8 +514,8 @@ class J : I<J.K.L> {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var j = global.GetTypeMembers("J", 0).Single();
-            Assert.Equal(1, j.Interfaces.Length);
-            Assert.Equal("I<J.K.L>", j.Interfaces[0].ToTestDisplayString());
+            Assert.Equal(1, j.Interfaces().Length);
+            Assert.Equal("I<J.K.L>", j.Interfaces()[0].ToTestDisplayString());
         }
 
         [Fact]
@@ -528,7 +528,7 @@ class J : I<J.K.L> {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var m = global.GetTypeMembers("M", 0).Single();
-            Assert.True(m.BaseType.IsErrorType());
+            Assert.True(m.BaseType().IsErrorType());
         }
 
         [Fact]
@@ -543,8 +543,8 @@ class O : N<O> {}
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var o = global.GetTypeMembers("O", 0).Single();
-            Assert.False(o.BaseType.IsErrorType());
-            Assert.Equal("N<O>", o.BaseType.ToTestDisplayString());
+            Assert.False(o.BaseType().IsErrorType());
+            Assert.Equal("N<O>", o.BaseType().ToTestDisplayString());
         }
 
         [Fact]
@@ -561,8 +561,8 @@ class P : N<P.Q> {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var p = global.GetTypeMembers("P", 0).Single();
-            Assert.False(p.BaseType.IsErrorType());
-            Assert.Equal("N<P.Q>", p.BaseType.ToTestDisplayString());
+            Assert.False(p.BaseType().IsErrorType());
+            Assert.Equal("N<P.Q>", p.BaseType().ToTestDisplayString());
         }
 
         [Fact]
@@ -581,7 +581,7 @@ class R : N<R.S.T>{
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var r = global.GetTypeMembers("R", 0).Single();
-            var rBase = r.BaseType;
+            var rBase = r.BaseType();
             Assert.False(rBase.IsErrorType());
             Assert.Equal("N<R.S.T>", rBase.ToTestDisplayString());
         }
@@ -600,7 +600,7 @@ class U : U.I
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var u = global.GetTypeMembers("U", 0).Single();
-            var ifaces = u.Interfaces;
+            var ifaces = u.Interfaces();
             Assert.Equal(1, ifaces.Length);
             Assert.False(ifaces[0].IsErrorType());
             Assert.Equal("U.I", ifaces[0].ToTestDisplayString());
@@ -621,12 +621,12 @@ class C : IX {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMembers("C", 0).Single();
-            var ifaces = c.Interfaces;
+            var ifaces = c.Interfaces();
             Assert.Equal(1, ifaces.Length);
             Assert.False(ifaces[0].IsErrorType());
             Assert.Equal("IX", ifaces[0].ToTestDisplayString());
             var ix = ifaces[0];
-            var ixFaces = ix.Interfaces;
+            var ixFaces = ix.Interfaces();
             Assert.Equal(1, ixFaces.Length);
             Assert.False(ixFaces[0].IsErrorType());
             Assert.Equal("C.IY", ixFaces[0].ToTestDisplayString());
@@ -646,7 +646,7 @@ class Y : X {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var x = global.GetTypeMembers("X", 0).Single();
-            var ifaces = x.Interfaces;
+            var ifaces = x.Interfaces();
             Assert.Equal(1, ifaces.Length);
             Assert.False(ifaces[0].IsErrorType());
             Assert.Equal("Y.I", ifaces[0].ToTestDisplayString());
@@ -665,7 +665,7 @@ class B : G {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var b = global.GetTypeMembers("B", 0).Single();
-            Assert.True(b.BaseType.IsErrorType());
+            Assert.True(b.BaseType().IsErrorType());
         }
 
         [Fact]
@@ -682,7 +682,7 @@ class B : G {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var z = global.GetTypeMembers("Z", 1).Single();
-            Assert.True(z.BaseType.IsErrorType());
+            Assert.True(z.BaseType().IsErrorType());
         }
 
         [Fact]
@@ -992,7 +992,7 @@ interface I4 : I1 {}
             var global = comp.GlobalNamespace;
             var x = global.GetTypeMembers("I4", 0).Single();
 
-            var x_base_base = x.Interfaces.First().Interfaces.First() as ErrorTypeSymbol;
+            var x_base_base = x.Interfaces().First().Interfaces().First() as ErrorTypeSymbol;
             var er = x_base_base.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'I2' is invalid. It contains a circular base class dependency.",
@@ -1015,8 +1015,8 @@ public class ClassB : ClassA {}
             var B1 = global1.GetTypeMembers("ClassB", 0).Single();
             var A1 = global1.GetTypeMembers("ClassA", 0).Single();
 
-            var B_base = B1.BaseType;
-            var A_base = A1.BaseType;
+            var B_base = B1.BaseType();
+            var A_base = A1.BaseType();
             Assert.True(B1.IsFromCompilation(comp));
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B_base);
             Assert.IsAssignableFrom<PENamedTypeSymbol>(A_base);
@@ -1035,9 +1035,9 @@ public class ClassC : ClassB {}
 
             Assert.IsType<Retargeting.RetargetingNamedTypeSymbol>(B2);
             Assert.Same(B1, ((Retargeting.RetargetingNamedTypeSymbol)B2).UnderlyingNamedType);
-            Assert.Same(C.BaseType, B2);
+            Assert.Same(C.BaseType(), B2);
 
-            var errorBase = B2.BaseType as ErrorTypeSymbol;
+            var errorBase = B2.BaseType() as ErrorTypeSymbol;
             var er = errorBase.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'ClassA' is invalid. It contains a circular base class dependency.",
@@ -1045,7 +1045,7 @@ public class ClassC : ClassB {}
 
             var A2 = global.GetTypeMembers("ClassA", 0).Single();
 
-            var errorBase1 = A2.BaseType as ErrorTypeSymbol;
+            var errorBase1 = A2.BaseType() as ErrorTypeSymbol;
             er = errorBase1.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base class dependency.",
@@ -1071,8 +1071,8 @@ public class ClassC : ClassB {}
             var B1 = global1.GetTypeMembers("ClassB", 0).Distinct().Single();
             var A1 = global1.GetTypeMembers("ClassA", 0).Single();
 
-            var B_base = B1.BaseType;
-            var A_base = A1.BaseType;
+            var B_base = B1.BaseType();
+            var A_base = A1.BaseType();
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B1);
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B_base);
             Assert.IsAssignableFrom<PENamedTypeSymbol>(A_base);
@@ -1097,9 +1097,9 @@ public class ClassC : ClassB {}
             Assert.NotEqual(B1, B2);
             Assert.Same(((PEModuleSymbol)B1.ContainingModule).Module, ((PEModuleSymbol)B2.ContainingModule).Module);
             Assert.Equal(((PENamedTypeSymbol)B1).Handle, ((PENamedTypeSymbol)B2).Handle);
-            Assert.Same(C.BaseType, B2);
+            Assert.Same(C.BaseType(), B2);
 
-            var errorBase = B2.BaseType as ErrorTypeSymbol;
+            var errorBase = B2.BaseType() as ErrorTypeSymbol;
             var er = errorBase.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'ClassA' is invalid. It contains a circular base class dependency.",
@@ -1107,7 +1107,7 @@ public class ClassC : ClassB {}
 
             var A2 = global.GetTypeMembers("ClassA", 0).Single();
 
-            var errorBase1 = A2.BaseType as ErrorTypeSymbol;
+            var errorBase1 = A2.BaseType() as ErrorTypeSymbol;
             er = errorBase1.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base class dependency.",
@@ -1130,8 +1130,8 @@ public class ClassB : ClassA {}
             var B1 = global1.GetTypeMembers("ClassB", 0).Single();
             var A1 = global1.GetTypeMembers("ClassA", 0).Single();
 
-            var B_base = B1.BaseType;
-            var A_base = A1.BaseType;
+            var B_base = B1.BaseType();
+            var A_base = A1.BaseType();
 
             Assert.True(B1.IsFromCompilation(comp));
 
@@ -1166,8 +1166,8 @@ public class ClassC : ClassB {}
 
             Assert.IsType<Retargeting.RetargetingNamedTypeSymbol>(B2);
             Assert.Same(B1, ((Retargeting.RetargetingNamedTypeSymbol)B2).UnderlyingNamedType);
-            Assert.Same(C.BaseType, B2);
-            Assert.Same(B2.BaseType, A2);
+            Assert.Same(C.BaseType(), B2);
+            Assert.Same(B2.BaseType(), A2);
         }
 
 
@@ -1189,8 +1189,8 @@ public class ClassC : ClassB {}
             var B1 = global1.GetTypeMembers("ClassB", 0).Distinct().Single();
             var A1 = global1.GetTypeMembers("ClassA", 0).Single();
 
-            var B_base = B1.BaseType;
-            var A_base = A1.BaseType;
+            var B_base = B1.BaseType();
+            var A_base = A1.BaseType();
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B1);
 
             var errorBase = B_base as ErrorTypeSymbol;
@@ -1225,12 +1225,12 @@ public class ClassC : ClassB {}
             Assert.NotEqual(B1, B2);
             Assert.Same(((PEModuleSymbol)B1.ContainingModule).Module, ((PEModuleSymbol)B2.ContainingModule).Module);
             Assert.Equal(((PENamedTypeSymbol)B1).Handle, ((PENamedTypeSymbol)B2).Handle);
-            Assert.Same(C.BaseType, B2);
+            Assert.Same(C.BaseType(), B2);
 
             var A2 = global.GetTypeMembers("ClassA", 0).Single();
 
-            Assert.IsAssignableFrom<PENamedTypeSymbol>(A2.BaseType);
-            Assert.IsAssignableFrom<PENamedTypeSymbol>(B2.BaseType);
+            Assert.IsAssignableFrom<PENamedTypeSymbol>(A2.BaseType());
+            Assert.IsAssignableFrom<PENamedTypeSymbol>(B2.BaseType());
         }
 
         [Fact]
@@ -1258,8 +1258,8 @@ namespace N
             var b = a.GetTypeMembers("B", 1).Single();
             var d = a.GetTypeMembers("D", 0).Single();
             Assert.Equal(Accessibility.Private, d.DeclaredAccessibility);
-            Assert.Equal(d.OriginalDefinition, b.BaseType.OriginalDefinition);
-            Assert.NotEqual(d, b.BaseType);
+            Assert.Equal(d.OriginalDefinition, b.BaseType().OriginalDefinition);
+            Assert.NotEqual(d, b.BaseType());
         }
 
         [Fact]
@@ -1281,7 +1281,7 @@ namespace N2 {
             var n2 = global.GetMembers("N2").Single() as NamespaceSymbol;
             var a = n1.GetTypeMembers("A", 0).Single();
             var b = n2.GetTypeMembers("B", 0).Single();
-            Assert.Equal(a, b.BaseType);
+            Assert.Equal(a, b.BaseType());
         }
 
         [Fact]
@@ -1303,9 +1303,9 @@ namespace N2 {
             var n2 = global.GetMembers("N2").Single() as NamespaceSymbol;
             var a = n1.GetTypeMembers("A", 1).Single();
             var b = n2.GetTypeMembers("B", 0).Single();
-            var bt = b.BaseType;
-            Assert.Equal(a, b.BaseType.OriginalDefinition);
-            Assert.Equal(b, (b.BaseType as NamedTypeSymbol).TypeArguments[0].TypeSymbol);
+            var bt = b.BaseType();
+            Assert.Equal(a, b.BaseType().OriginalDefinition);
+            Assert.Equal(b, (b.BaseType() as NamedTypeSymbol).TypeArguments()[0]);
         }
 
         [Fact]
@@ -1319,7 +1319,7 @@ class D : global::N.C {}";
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var d = global.GetMembers("D").Single() as NamedTypeSymbol;
-            Assert.NotEqual(SymbolKind.ErrorType, d.BaseType.Kind);
+            Assert.NotEqual(SymbolKind.ErrorType, d.BaseType().Kind);
         }
 
         [Fact]
@@ -1336,8 +1336,8 @@ class C : G<C[,][]>
             var global = comp.GlobalNamespace;
             var g = global.GetTypeMembers("G", 1).Single();
             var c = global.GetTypeMembers("C", 0).Single();
-            Assert.Equal(g, c.BaseType.OriginalDefinition);
-            var garg = c.BaseType.TypeArguments[0].TypeSymbol;
+            Assert.Equal(g, c.BaseType().OriginalDefinition);
+            var garg = c.BaseType().TypeArguments()[0];
             Assert.Equal(SymbolKind.ArrayType, garg.Kind);
             var carr1 = garg as ArrayTypeSymbol;
             var carr2 = carr1.ElementType.TypeSymbol as ArrayTypeSymbol;
@@ -1384,16 +1384,16 @@ partial class Broken {
             var b = n2.GetTypeMembers("B", 0).Single();
             var x = global.GetTypeMembers("X", 0).Single();
             var a1 = x.GetTypeMembers("A1", 0).Single();
-            Assert.Equal(a, a1.BaseType);
+            Assert.Equal(a, a1.BaseType());
             var b1 = x.GetTypeMembers("B1", 0).Single();
-            Assert.Equal(b, b1.BaseType);
+            Assert.Equal(b, b1.BaseType());
             var broken = global.GetTypeMembers("Broken", 0).Single();
             var a2 = broken.GetTypeMembers("A2", 0).Single();
-            Assert.NotEqual(a, a2.BaseType);
-            Assert.Equal(SymbolKind.ErrorType, a2.BaseType.Kind);
+            Assert.NotEqual(a, a2.BaseType());
+            Assert.Equal(SymbolKind.ErrorType, a2.BaseType().Kind);
             var b2 = broken.GetTypeMembers("B2", 0).Single();
-            Assert.NotEqual(b, b2.BaseType);
-            Assert.Equal(SymbolKind.ErrorType, b2.BaseType.Kind);
+            Assert.NotEqual(b, b2.BaseType());
+            Assert.Equal(SymbolKind.ErrorType, b2.BaseType().Kind);
         }
 
         [Fact]
@@ -1412,9 +1412,9 @@ public class B : N { }
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var b = global.GetTypeMembers("B", 0).Single();
-            var abase = a.BaseType;
+            var abase = a.BaseType();
             Assert.Equal(SymbolKind.ErrorType, abase.Kind);
-            var bbase = b.BaseType;
+            var bbase = b.BaseType();
             Assert.Equal(SymbolKind.ErrorType, bbase.Kind);
         }
 
@@ -1445,10 +1445,10 @@ namespace @if
             NamedTypeSymbol cfloat = (NamedTypeSymbol)nif.GetMembers("float").Single();
             Assert.Equal("float", cfloat.Name);
             Assert.Equal("@if.@float", cfloat.ToString());
-            NamedTypeSymbol cint = cfloat.BaseType;
+            NamedTypeSymbol cint = cfloat.BaseType();
             Assert.Equal("int", cint.Name);
             Assert.Equal("@if.@int<@if.@break>", cint.ToString());
-            NamedTypeSymbol ibreak = cfloat.Interfaces.Single();
+            NamedTypeSymbol ibreak = cfloat.Interfaces().Single();
             Assert.Equal("break", ibreak.Name);
             Assert.Equal("@if.@break", ibreak.ToString());
         }
@@ -1493,34 +1493,34 @@ class B : A<B.Y.Error>
     public class Y : X { }
 }
 ";
-            //B.BaseType, B.Y.BaseType
+            //B.BaseType(), B.Y.BaseType
             {
                 var comp = CreateStandardCompilation(text);
 
                 var classB = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("B")[0];
                 var classY = (NamedTypeSymbol)classB.GetMembers("Y")[0];
 
-                var baseB = classB.BaseType;
+                var baseB = classB.BaseType();
                 Assert.Equal("A<B.Y.Error>", baseB.ToTestDisplayString());
                 Assert.False(baseB.IsErrorType());
 
-                var baseY = classY.BaseType;
+                var baseY = classY.BaseType();
                 Assert.Equal("X", baseY.ToTestDisplayString());
                 Assert.True(baseY.IsErrorType());
             }
 
-            //B.Y.BaseType, B.BaseType
+            //B.Y.BaseType(), B.BaseType
             {
                 var comp = CreateStandardCompilation(text);
 
                 var classB = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("B")[0];
                 var classY = (NamedTypeSymbol)classB.GetMembers("Y")[0];
 
-                var baseY = classY.BaseType;
+                var baseY = classY.BaseType();
                 Assert.Equal("X", baseY.ToTestDisplayString());
                 Assert.True(baseY.IsErrorType());
 
-                var baseB = classB.BaseType;
+                var baseB = classB.BaseType();
                 Assert.Equal("A<B.Y.Error>", baseB.ToTestDisplayString());
                 Assert.False(baseB.IsErrorType());
             }
@@ -1543,9 +1543,9 @@ class C : I2 { }
 
             var bothInterfaces = ImmutableArray.Create(baseInterface, derivedInterface);
 
-            Assert.Equal(baseInterface, derivedInterface.AllInterfaces.Single());
-            Assert.Equal(derivedInterface, @class.Interfaces.Single());
-            Assert.True(@class.AllInterfaces.SetEquals(bothInterfaces, EqualityComparer<NamedTypeSymbol>.Default));
+            Assert.Equal(baseInterface, derivedInterface.AllInterfaces().Single());
+            Assert.Equal(derivedInterface, @class.Interfaces().Single());
+            Assert.True(@class.AllInterfaces().SetEquals(bothInterfaces, EqualityComparer<NamedTypeSymbol>.Default));
 
             var typeDef = (Cci.ITypeDefinition)@class;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,

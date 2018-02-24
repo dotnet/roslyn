@@ -56,12 +56,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Duplicates and cycles are removed, although the collection may include redundant
         ''' constraints where one constraint is a base type of another.
         ''' </summary>
-        Public ReadOnly Property ConstraintTypes As ImmutableArray(Of TypeSymbol)
-            Get
-                Return ConstraintTypesNoUseSiteDiagnostics
-            End Get
-        End Property
-
         Friend MustOverride ReadOnly Property ConstraintTypesNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
 
         Friend Function ConstraintTypesWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of TypeSymbol)

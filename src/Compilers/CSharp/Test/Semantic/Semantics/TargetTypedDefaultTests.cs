@@ -1232,9 +1232,9 @@ class C
                 // (12,37): error CS8310: Operator '|' cannot be applied to operand 'default'
                 //             System.Console.Write($"{true | default} {i} {b}");
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "true | default").WithArguments("|", "default").WithLocation(12, 37),
-                // (15,40): warning CS7095: Filter expression is a constant, consider removing the filter
+                // (15,40): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
                 //         catch (System.Exception) when (default)
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "default").WithLocation(15, 40),
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "default").WithLocation(15, 40),
                 // (17,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("catch");
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(17, 13)
@@ -1262,9 +1262,9 @@ class C
 ";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (10,40): warning CS7095: Filter expression is a constant, consider removing the filter
+                // (10,40): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
                 //         catch (System.Exception) when (false)
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "default").WithLocation(10, 40),
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "default").WithLocation(10, 40),
                 // (12,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("catch");
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(12, 13)
@@ -1308,9 +1308,9 @@ class C
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (26,40): warning CS7095: Filter expression is a constant, consider removing the filter
-                //         catch (System.Exception) when (false)
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "default").WithLocation(26, 40),
+                // (26,40): warning CS8360: Filter expression is a constant, consider removing the filter
+                //         catch (System.Exception) when (default)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "default").WithLocation(26, 40),
                 // (28,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("catch");
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(28, 13)
@@ -2161,6 +2161,9 @@ class C
                 // (8,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
                 //         System.Console.Write(default is default);
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is default").WithArguments("is", "default").WithLocation(8, 30),
+                // (8,41): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write(default is default);
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(8, 41),
                 // (8,41): error CS0150: A constant value is expected
                 //         System.Console.Write(default is default);
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "default").WithLocation(8, 41),
@@ -2187,8 +2190,20 @@ class C
 }";
 
             var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "False True False True");
+            comp.VerifyDiagnostics(
+                // (10,42): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(10, 42),
+                // (10,66): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(10, 66),
+                // (10,83): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(10, 83),
+                // (10,101): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(10, 101)
+                );
         }
 
         [Fact]
@@ -2342,11 +2357,10 @@ class C
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (12,18): warning CS8312: Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.
+                // (12,18): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
                 //             case default:
-                Diagnostic(ErrorCode.WRN_DefaultInSwitch, "default").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 18)
                 );
-            CompileAndVerify(comp, expectedOutput: "default");
         }
 
         [Fact]
@@ -2375,11 +2389,10 @@ class C
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (12,18): warning CS8312: Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.
+                // (12,18): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
                 //             case default:
-                Diagnostic(ErrorCode.WRN_DefaultInSwitch, "default").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 18)
                 );
-            CompileAndVerify(comp, expectedOutput: "default");
         }
 
         [Fact]
@@ -2407,8 +2420,11 @@ class C
 ";
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "default");
+            comp.VerifyDiagnostics(
+                // (12,19): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                //             case (default):
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 19)
+                );
         }
 
         [Fact]
@@ -2436,8 +2452,11 @@ class C
 ";
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "default");
+            comp.VerifyDiagnostics(
+                // (12,19): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                //             case (default):
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 19)
+                );
         }
 
         [Fact]

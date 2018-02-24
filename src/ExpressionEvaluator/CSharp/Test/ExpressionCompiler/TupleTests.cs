@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 var method = methodData.Method;
                 Assert.True(method.ReturnType.IsTupleType);
-                Assert.NotNull(GetTupleElementNamesAttributeIfAny(method));
+                CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 methodData.VerifyIL(
 @"{
   // Code size        8 (0x8)
@@ -179,7 +179,7 @@ class C
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 var method = methodData.Method;
                 Assert.True(method.ReturnType.IsTupleType);
-                Assert.Null(GetTupleElementNamesAttributeIfAny(method));
+                CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: false);
                 methodData.VerifyIL(
 @"{
   // Code size        8 (0x8)
@@ -220,7 +220,7 @@ class C
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(new[] { "A\u1234", "\u1234B" }, tupleElementNames);
                 var method = testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetTupleElementNamesAttributeIfAny(method));
+                CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 Assert.True(method.ReturnType.IsTupleType);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "o", expectedILOpt:
 string.Format(@"{{
@@ -268,7 +268,7 @@ class C
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(new[] { null, "A", "B", null }, tupleElementNames);
                 var method = (MethodSymbol)testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetTupleElementNamesAttributeIfAny(method));
+                CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 var returnType = method.ReturnType.TypeSymbol;
                 Assert.False(returnType.IsTupleType);
                 Assert.True(returnType.ContainsTuple());
@@ -392,7 +392,7 @@ class C
                 Assert.Null(tupleElementNames);
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 var method = methodData.Method;
-                Assert.Null(GetTupleElementNamesAttributeIfAny(method));
+                CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: false);
                 methodData.VerifyIL(
 @"{
   // Code size       64 (0x40)
@@ -449,7 +449,7 @@ class C
                 string typeName;
                 var diagnostics = DiagnosticBag.GetInstance();
                 var testData = new CompilationTestData();
-                context.CompileGetLocals(
+                var assembly = context.CompileGetLocals(
                     locals,
                     argumentsOnly: false,
                     aliases: ImmutableArray.Create(alias),
@@ -466,7 +466,7 @@ class C
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(aliasElementNames, tupleElementNames);
                 var method = testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetTupleElementNamesAttributeIfAny(method));
+                CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 var returnType = (TypeSymbol)method.ReturnType;
                 Assert.False(returnType.IsTupleType);
                 Assert.True(((ArrayTypeSymbol)returnType).ElementType.TypeSymbol.IsTupleType);

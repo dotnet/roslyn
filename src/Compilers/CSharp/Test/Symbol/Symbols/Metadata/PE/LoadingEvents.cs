@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("Class").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.True(@class.Interfaces.Contains(@interface));
+            Assert.True(@class.Interfaces().Contains(@interface));
 
             var classEvent = (EventSymbol)@class.GetMembers("Interface.Event").Single();
 
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("Generic").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
 
-            var substitutedInterface = @class.Interfaces.Single();
+            var substitutedInterface = @class.Interfaces().Single();
             Assert.Equal(@interface, substitutedInterface.ConstructedFrom);
 
             var substitutedInterfaceEvent = (EventSymbol)substitutedInterface.GetMembers("Event").Single();
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("Constructed").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
 
-            var substitutedInterface = @class.Interfaces.Single();
+            var substitutedInterface = @class.Interfaces().Single();
             Assert.Equal(@interface, substitutedInterface.ConstructedFrom);
 
             var substitutedInterfaceEvent = (EventSymbol)substitutedInterface.GetMembers("Event").Single();
@@ -290,12 +290,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var refInterface = (NamedTypeSymbol)globalNamespace.GetTypeMembers("IGenericInterface").Single();
             Assert.Equal(TypeKind.Interface, defInterface.TypeKind);
-            Assert.True(refInterface.Interfaces.Contains(defInterface));
+            Assert.True(refInterface.Interfaces().Contains(defInterface));
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("IndirectImplementation").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
 
-            var classInterfacesConstructedFrom = @class.Interfaces.Select(i => i.ConstructedFrom);
+            var classInterfacesConstructedFrom = @class.Interfaces().Select(i => i.ConstructedFrom);
             Assert.Equal(2, classInterfacesConstructedFrom.Count());
             Assert.Contains(defInterface, classInterfacesConstructedFrom);
             Assert.Contains(refInterface, classInterfacesConstructedFrom);
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(1, innerClass.Arity);
             Assert.Equal(TypeKind.Class, innerClass.TypeKind);
-            Assert.Equal(@interface, innerClass.Interfaces.Single().ConstructedFrom);
+            Assert.Equal(@interface, innerClass.Interfaces().Single().ConstructedFrom);
 
             var innerClassEvent = (EventSymbol)innerClass.GetMembers(methodName).Single();
             var innerClassImplementingEvent = innerClassEvent.ExplicitInterfaceImplementations.Single();

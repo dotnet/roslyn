@@ -515,14 +515,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a threadsafty element within an xml documentation comment.
+        ''' Creates a threadsafety element within an xml documentation comment.
         ''' </summary>
         Public Shared Function XmlThreadSafetyElement() As XmlEmptyElementSyntax
             Return XmlThreadSafetyElement(True, False)
         End Function
 
         ''' <summary>
-        ''' Creates a threadsafty element within an xml documentation comment.
+        ''' Creates a threadsafety element within an xml documentation comment.
         ''' </summary>
         ''' <param name="isStatic" static="sfd">Indicates whether static member of this type are safe for multi-threaded operations.</param>
         ''' <param name="isInstance">Indicates whether instance members of this type are safe for multi-threaded operations.</param>

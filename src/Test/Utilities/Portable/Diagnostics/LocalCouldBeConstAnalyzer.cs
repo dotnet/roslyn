@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         operationBlockContext.RegisterOperationAction(
                            (operationContext) =>
                            {
-                               if (operationContext.Operation is IAssignmentExpression assignment)
+                               if (operationContext.Operation is IAssignmentOperation assignment)
                                {
                                    AssignTo(assignment.Target, assignedToLocals, mightBecomeConstLocals);
                                }
-                               else if (operationContext.Operation is IIncrementOrDecrementExpression increment)
+                               else if (operationContext.Operation is IIncrementOrDecrementOperation increment)
                                {
                                    AssignTo(increment.Target, assignedToLocals, mightBecomeConstLocals);
                                }
@@ -54,15 +54,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                    throw TestExceptionUtilities.UnexpectedValue(operationContext.Operation);
                                }
                            },
-                           OperationKind.SimpleAssignmentExpression,
-                           OperationKind.CompoundAssignmentExpression,
-                           OperationKind.IncrementExpression);
+                           OperationKind.SimpleAssignment,
+                           OperationKind.CompoundAssignment,
+                           OperationKind.Increment);
 
                         operationBlockContext.RegisterOperationAction(
                             (operationContext) =>
                             {
-                                IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
-                                foreach (IArgument argument in invocation.Arguments)
+                                IInvocationOperation invocation = (IInvocationOperation)operationContext.Operation;
+                                foreach (IArgumentOperation argument in invocation.Arguments)
                                 {
                                     if (argument.Parameter.RefKind == RefKind.Out || argument.Parameter.RefKind == RefKind.Ref)
                                     {
@@ -70,31 +70,30 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                     }
                                 }
                             },
-                            OperationKind.InvocationExpression);
+                            OperationKind.Invocation);
 
                         operationBlockContext.RegisterOperationAction(
                             (operationContext) =>
                             {
-                                IVariableDeclarationStatement declaration = (IVariableDeclarationStatement)operationContext.Operation;
-                                foreach (IVariableDeclaration variable in declaration.Declarations)
+                                IVariableDeclarationGroupOperation declaration = (IVariableDeclarationGroupOperation)operationContext.Operation;
+                                foreach (IVariableDeclaratorOperation variable in declaration.Declarations.SelectMany(decl => decl.Declarators))
                                 {
-                                    foreach (ILocalSymbol local in variable.Variables)
+                                    ILocalSymbol local = variable.Symbol;
+                                    if (!local.IsConst && !assignedToLocals.Contains(local))
                                     {
-                                        if (!local.IsConst && !assignedToLocals.Contains(local))
+                                        var localType = local.Type;
+                                        if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
                                         {
-                                            var localType = local.Type;
-                                            if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
+                                            IVariableInitializerOperation initializer = variable.GetVariableInitializer();
+                                            if (initializer != null && initializer.Value.ConstantValue.HasValue)
                                             {
-                                                if (variable.Initializer != null && variable.Initializer.Value.ConstantValue.HasValue)
-                                                {
-                                                    mightBecomeConstLocals.Add(local);
-                                                }
+                                                mightBecomeConstLocals.Add(local);
                                             }
                                         }
                                     }
                                 }
                             },
-                            OperationKind.VariableDeclarationStatement);
+                            OperationKind.VariableDeclarationGroup);
 
                         operationBlockContext.RegisterOperationBlockEndAction(
                             (operationBlockEndContext) =>
@@ -110,16 +109,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void AssignTo(IOperation target, HashSet<ILocalSymbol> assignedToLocals, HashSet<ILocalSymbol> mightBecomeConstLocals)
         {
-            if (target.Kind == OperationKind.LocalReferenceExpression)
+            if (target.Kind == OperationKind.LocalReference)
             {
-                ILocalSymbol targetLocal = ((ILocalReferenceExpression)target).Local;
+                ILocalSymbol targetLocal = ((ILocalReferenceOperation)target).Local;
 
                 assignedToLocals.Add(targetLocal);
                 mightBecomeConstLocals.Remove(targetLocal);
             }
-            else if (target.Kind == OperationKind.FieldReferenceExpression)
+            else if (target.Kind == OperationKind.FieldReference)
             {
-                IFieldReferenceExpression fieldReference = (IFieldReferenceExpression)target;
+                IFieldReferenceOperation fieldReference = (IFieldReferenceOperation)target;
                 if (fieldReference.Instance != null && fieldReference.Instance.Type.IsValueType)
                 {
                     AssignTo(fieldReference.Instance, assignedToLocals, mightBecomeConstLocals);

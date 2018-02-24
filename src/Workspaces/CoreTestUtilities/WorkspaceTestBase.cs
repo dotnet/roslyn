@@ -90,6 +90,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             return new FileSet(new Dictionary<string, object>
             {
+                { @"Directory.Build.props", GetResourceText("Directory.Build.props") },
+                { @"Directory.Build.targets", GetResourceText("Directory.Build.targets") },
                 { @"TestSolution.sln", GetResourceText("TestSolution_CSharp.sln") },
                 { @"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject.csproj") },
                 { @"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
@@ -101,6 +103,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             return new FileSet(new Dictionary<string, object>
             {
+                { @"Directory.Build.props", GetResourceText("Directory.Build.props") },
+                { @"Directory.Build.targets", GetResourceText("Directory.Build.targets") },
                 { @"TestSolution.sln", GetResourceText("TestSolution_VB_and_CSharp.sln") },
                 { @"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject.csproj") },
                 { @"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
@@ -121,6 +125,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             return new FileSet(new Dictionary<string, object>
             {
+                { @"Directory.Build.props", GetResourceText("Directory.Build.props") },
+                { @"Directory.Build.targets", GetResourceText("Directory.Build.targets") },
                 { @"CSharpProjectReference.sln", GetResourceText("TestSolution_CSharpProjectReference.sln") },
                 { @"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject.csproj") },
                 { @"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
@@ -134,6 +140,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             return new FileSet(new Dictionary<string, object>
             {
+                { @"Directory.Build.props", GetResourceText("Directory.Build.props") },
+                { @"Directory.Build.targets", GetResourceText("Directory.Build.targets") },
                 { @"AnalyzerReference.sln", GetResourceText("TestSolution_AnalyzerReference.sln") },
                 { @"AnalyzerSolution\CSharpProject.dll", GetResourceText("CSharpProject.dll") },
                 { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", GetResourceText("CSharpProject_CSharpProject_AnalyzerReference.csproj") },
@@ -155,6 +163,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             return new FileSet(new Dictionary<string, object>
             {
+                { @"Directory.Build.props", GetResourceText("Directory.Build.props") },
+                { @"Directory.Build.targets", GetResourceText("Directory.Build.targets") },
                 { @"DuplicatedGuids.sln", GetResourceText("TestSolution_DuplicatedGuids.sln") },
                 { @"ReferenceTest\ReferenceTest.csproj", GetResourceText("CSharpProject_DuplicatedGuidReferenceTest.csproj") },
                 { @"Library1\Library1.csproj", GetResourceText("CSharpProject_DuplicatedGuidLibrary1.csproj") },
@@ -166,6 +176,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             return new FileSet(new Dictionary<string, object>
             {
+                { @"Directory.Build.props", GetResourceText("Directory.Build.props") },
+                { @"Directory.Build.targets", GetResourceText("Directory.Build.targets") },
                 { @"CircularSolution.sln", GetResourceText("CircularProjectReferences.CircularSolution.sln") },
                 { @"CircularCSharpProject1.csproj", GetResourceText("CircularProjectReferences.CircularCSharpProject1.csproj") },
                 { @"CircularCSharpProject2.csproj", GetResourceText("CircularProjectReferences.CircularCSharpProject2.csproj") },

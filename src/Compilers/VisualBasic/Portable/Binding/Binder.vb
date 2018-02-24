@@ -327,6 +327,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        ''' <summary>
+        ''' Additional members associated with the binding context
+        ''' Currently, this field is only used for multiple field/property symbols initialized by an AsNew initializer, e.g. "Dim x, y As New Integer" or "WithEvents x, y as New Object"
+        ''' </summary>
+        Public Overridable ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return m_containingBinder.AdditionalContainingMembers
+            End Get
+        End Property
+
         Friend ReadOnly Property ContainingModule As ModuleSymbol
             Get
                 ' If there's a containing member, it either is or has a containing module.

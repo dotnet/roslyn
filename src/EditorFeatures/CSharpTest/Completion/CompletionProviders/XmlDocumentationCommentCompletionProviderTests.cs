@@ -653,6 +653,70 @@ class C
 }", "cref", "langword");
         }
 
+        [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task LangwordCompletionInPlainText()
+        {
+            await VerifyItemsExistAsync(@"
+class C
+{
+    /// <summary>
+    /// Some text $$
+    /// </summary>
+    static void Goo()
+    {
+    }
+}", "null", "sealed", "true", "false", "await");
+        }
+
+        [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task LangwordCompletionAfterAngleBracket1()
+        {
+            await VerifyItemsAbsentAsync(@"
+class C
+{
+    /// <summary>
+    /// Some text <$$
+    /// </summary>
+    static void Goo()
+    {
+    }
+}", "null", "sealed", "true", "false", "await");
+        }
+
+        [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task LangwordCompletionAfterAngleBracket2()
+        {
+            await VerifyItemsAbsentAsync(@"
+class C
+{
+    /// <summary>
+    /// Some text <s$$
+    /// </summary>
+    static void Goo()
+    {
+    }
+}", "null", "sealed", "true", "false", "await");
+        }
+
+        [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task LangwordCompletionAfterAngleBracket3()
+        {
+            await VerifyItemsExistAsync(@"
+class C
+{
+    /// <summary>
+    /// Some text < $$
+    /// </summary>
+    static void Goo()
+    {
+    }
+}", "null", "sealed", "true", "false", "await");
+        }
+
         [WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SeeLangwordAttributeValue()
@@ -821,6 +885,28 @@ class C
     }
 }";
             await VerifyItemExistsAsync(text, "await", usePreviousCharAsTrigger: true);
+        }
+
+        [WorkItem(757, "https://github.com/dotnet/roslyn/issues/757")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TermAndDescriptionInsideItem()
+        {
+            var text = @"
+class C
+{
+    /// <summary>
+    ///     <list type=""table"">
+    ///         <item>
+    ///             $$
+    ///         </item>
+    ///     </list>
+    /// </summary>
+    static void Goo()
+    {
+    }
+}";
+            await VerifyItemExistsAsync(text, "term");
+            await VerifyItemExistsAsync(text, "description");
         }
     }
 }

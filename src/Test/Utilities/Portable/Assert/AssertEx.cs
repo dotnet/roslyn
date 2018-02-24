@@ -142,8 +142,8 @@ namespace Roslyn.Test.Utilities
                     AssertEqualityComparer<T>.Equals(expected, actual)))
                 {
                     Fail("Expected and actual were different.\r\n" +
-                         "Expected: " + expected + "\r\n" +
-                         "Actual:   " + actual + "\r\n" +
+                         "Expected:\r\n" + expected + "\r\n" +
+                         "Actual:\r\n" + actual + "\r\n" +
                          message);
                 }
             }
@@ -267,7 +267,7 @@ namespace Roslyn.Test.Utilities
             return true;
         }
 
-        public static void SetEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = "\r\n")
+        public static void SetEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = "\r\n", Func<T, string> itemInspector = null)
         {
             var expectedSet = new HashSet<T>(expected, comparer);
             var result = expected.Count() == actual.Count() && expectedSet.SetEquals(actual);
@@ -276,8 +276,8 @@ namespace Roslyn.Test.Utilities
                 if (string.IsNullOrEmpty(message))
                 {
                     message = GetAssertMessage(
-                        ToString(expected, itemSeparator),
-                        ToString(actual, itemSeparator));
+                        ToString(expected, itemSeparator, itemInspector),
+                        ToString(actual, itemSeparator, itemInspector));
                 }
 
                 Assert.True(result, message);
@@ -287,7 +287,11 @@ namespace Roslyn.Test.Utilities
         public static void SetEqual<T>(IEnumerable<T> actual, params T[] expected)
         {
             var expectedSet = new HashSet<T>(expected);
-            Assert.True(expectedSet.SetEquals(actual), string.Format("Expected: {0}\nActual: {1}", ToString(expected), ToString(actual)));
+            if (!expectedSet.SetEquals(actual))
+            {
+                // If they're not set equals, then they're not "regular" equals either.
+                Assert.Equal(expected, actual);
+            }
         }
 
         public static void None<T>(IEnumerable<T> actual, Func<T, bool> predicate)

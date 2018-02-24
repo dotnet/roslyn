@@ -1,1 +1,0 @@
-static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock.get -> Microsoft.CodeAnalysis.Options.Option<bool>

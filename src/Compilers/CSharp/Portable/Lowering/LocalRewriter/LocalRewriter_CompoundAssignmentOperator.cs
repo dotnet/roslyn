@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step three: Now fill in the optional arguments. (Dev11 uses the getter for optional arguments in
             // compound assignments, but for deconstructions we use the setter if the getter is missing.)
             var accessor = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
-            InsertMissingOptionalArguments(syntax, accessor.Parameters, actualArguments);
+            InsertMissingOptionalArguments(syntax, accessor.Parameters, actualArguments, refKinds);
 
             // For a call, step four would be to optimize away some of the temps.  However, we need them all to prevent
             // duplicate side-effects, so we'll skip that step.
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var memberContainingType = fieldOrEvent.ContainingType;
 
-                // From the verifier prospective type parameters do not contain fields or methods.
+                // From the verifier perspective type parameters do not contain fields or methods.
                 // the instance must be "boxed" to access the field
                 // It makes sense to box receiver before storing into a temp - no need to box twice.
                 rewrittenReceiver = BoxReceiver(rewrittenReceiver, memberContainingType);
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     {
                         // Ref returning properties count as variables and do not undergo the transformation
-                        // that value returning propertues require.
+                        // that value returning properties require.
                         var propertyAccess = (BoundPropertyAccess)originalLHS;
                         if (propertyAccess.PropertySymbol.RefKind == RefKind.None)
                         {
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexerAccess:
                     {
                         // Ref returning indexers count as variables and do not undergo the transformation
-                        // that value returning propertues require.
+                        // that value returning properties require.
                         var indexerAccess = (BoundIndexerAccess)originalLHS;
                         if (indexerAccess.Indexer.RefKind == RefKind.None)
                         {
@@ -507,29 +507,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ArrayAccess:
-                    if (isDynamicAssignment)
                     {
-                        // In non-dynamic array[index] op= R we emit:
-                        //   T& tmp = &array[index];
-                        //   *tmp = *L op R;
-                        // where T is the type of L.
-                        // 
-                        // If L is an array access, the assignment is dynamic, the compile-time of the array is dynamic[] 
-                        // and the runtime type of the array is not object[] (but e.g. string[]) the pointer approach is broken.
-                        // T is Object in such case and we can't take a read-write pointer of type Object& to an array element of non-object type.
-                        //
-                        // In this case we rewrite the assignment as follows:
-                        //
-                        //   E t_array = array;
-                        //   I t_index = index; (possibly more indices)
-                        //   T value = t_array[t_index];
-                        //   t_array[t_index] = value op R;
-
                         var arrayAccess = (BoundArrayAccess)originalLHS;
-                        var loweredArray = VisitExpression(arrayAccess.Expression);
-                        var loweredIndices = VisitList(arrayAccess.Indices);
+                        if (isDynamicAssignment || !IsInvariantArray(arrayAccess.Expression.Type))
+                        {
+                            // In non-dynamic, invariant array[index] op= R we emit:
+                            //   T& tmp = &array[index];
+                            //   *tmp = *L op R;
+                            // where T is the type of L.
+                            // 
+                            // If L is an array access, the assignment is dynamic, the compile-time of the array is dynamic[] 
+                            // and the runtime type of the array is not object[] (but e.g. string[]) the pointer approach is broken.
+                            // T is Object in such case and we can't take a read-write pointer of type Object& to an array element of non-object type.
+                            //
+                            // In the dynamic case, or when the array may be co-variant, we rewrite the assignment as follows:
+                            //
+                            //   E t_array = array;
+                            //   I t_index = index; (possibly more indices)
+                            //   T value = t_array[t_index];
+                            //   t_array[t_index] = value op R;
+                            var loweredArray = VisitExpression(arrayAccess.Expression);
+                            var loweredIndices = VisitList(arrayAccess.Indices);
 
-                        return SpillArrayElementAccess(loweredArray, loweredIndices, stores, temps);
+                            return SpillArrayElementAccess(loweredArray, loweredIndices, stores, temps);
+                        }
                     }
                     break;
 
@@ -551,11 +552,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ConditionalOperator:
-                    Debug.Assert(((BoundConditionalOperator)originalLHS).IsByRef);
+                    Debug.Assert(((BoundConditionalOperator)originalLHS).IsRef);
                     break;
 
                 case BoundKind.AssignmentOperator:
-                    Debug.Assert(((BoundAssignmentOperator)originalLHS).RefKind != RefKind.None);
+                    Debug.Assert(((BoundAssignmentOperator)originalLHS).IsRef);
                     break;
 
                 case BoundKind.PointerElementAccess:
@@ -601,6 +602,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             stores.Add(assignmentToTemp2);
             temps.Add(variableTemp.LocalSymbol);
             return variableTemp;
+        }
+
+        private static bool IsInvariantArray(TypeSymbol type)
+        {
+            return (type as ArrayTypeSymbol)?.ElementType.TypeSymbol.IsSealed == true;
         }
 
         private BoundExpression BoxReceiver(BoundExpression rewrittenReceiver, NamedTypeSymbol memberContainingType)

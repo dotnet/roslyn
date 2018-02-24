@@ -2952,5 +2952,28 @@ structure TextSpan
     end sub
 end structure")
         End Function
+
+        <WorkItem(21373, "https://github.com/dotnet/roslyn/issues/21373")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestInAttribute() As Task
+            Dim code = "
+Class C
+    Public Property Foo()
+
+    <Example([|3 + 3|])>
+    Public Property Bar()
+End Class
+"
+            Dim expected = "
+Class C
+    Private Const {|Rename:V|} As Integer = 3 + 3
+    Public Property Foo()
+
+    <Example(V)>
+    Public Property Bar()
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected)
+        End Function
     End Class
 End Namespace

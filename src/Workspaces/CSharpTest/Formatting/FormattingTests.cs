@@ -7977,6 +7977,64 @@ class C {
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
+        public async Task FormatMultipleAttributeOnSameLineAsField1()
+        {
+            await AssertFormatAsync(
+@"
+class C
+{
+    [Attr1]
+    [Attr2]
+    [Attr3] [Attr4] int i;
+}",
+@"
+class C {
+    [Attr1]
+    [Attr2]
+    [Attr3][Attr4]   int   i;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
+        public async Task FormatMultipleAttributesOnSameLineAsField2()
+        {
+            await AssertFormatAsync(
+@"
+class C
+{
+    [Attr1]
+    [Attr2]
+    [Attr3] [Attr4] int i;
+}",
+@"
+class C {
+    [Attr1][Attr2]
+    [Attr3][Attr4]   int   i;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
+        public async Task FormatMultipleAttributeOnSameLineAndFieldOnNewLine()
+        {
+            await AssertFormatAsync(
+@"
+class C
+{
+    [Attr1]
+    [Attr2]
+    int i;
+}",
+@"
+class C {
+    [Attr1][Attr2]
+    int   i;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
         public async Task FormatOnElseBlockBracesOnSameLineRemainsInSameLine_2()
         {

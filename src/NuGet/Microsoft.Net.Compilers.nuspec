@@ -73,6 +73,7 @@
     <file src="Exes\Toolset\System.IO.FileSystem.DriveInfo.dll" target="tools" />
     <file src="Exes\Toolset\System.IO.FileSystem.Primitives.dll" target="tools" />
     <file src="Exes\Toolset\System.IO.Pipes.dll" target="tools" />
+    <file src="Exes\Toolset\System.IO.Pipes.AccessControl.dll" target="tools" />
     <file src="Exes\Toolset\System.Reflection.Metadata.dll" target="tools" />
     <file src="Exes\Toolset\System.Security.AccessControl.dll" target="tools" />
     <file src="Exes\Toolset\System.Security.Claims.dll" target="tools" />

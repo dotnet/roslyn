@@ -11696,9 +11696,9 @@ class F : C<F?>, I1<C<B?>>, I2<C<B>?>
             Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1").ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature)));
 
             var f = compilation.GetTypeByMetadataName("F");
-            Assert.Equal("C<F?>", f.BaseType.ToTestDisplayString());
-            Assert.Equal("I1<C<B?>>", f.Interfaces[0].ToTestDisplayString());
-            Assert.Equal("I2<C<B>?>", f.Interfaces[1].ToTestDisplayString());
+            Assert.Equal("C<F?>", f.BaseType().ToTestDisplayString());
+            Assert.Equal("I1<C<B?>>", f.Interfaces()[0].ToTestDisplayString());
+            Assert.Equal("I2<C<B>?>", f.Interfaces()[1].ToTestDisplayString());
         }
 
         [Fact]
@@ -11781,12 +11781,12 @@ public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
                                     Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1").ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature)));
 
                                     var f = ((PEModuleSymbol)m).GlobalNamespace.GetTypeMember("F");
-                                    Assert.Equal("C<F?>", f.BaseType.ToTestDisplayString());
+                                    Assert.Equal("C<F?>", f.BaseType().ToTestDisplayString());
 
                                     // PROTOTYPE(NullableReferenceTypes): Should we round-trip
                                     // nullable modifiers for implemented interfaces too?
-                                    Assert.Equal("I1<C<B>>", f.Interfaces[0].ToTestDisplayString());
-                                    Assert.Equal("I2<C<B>>", f.Interfaces[1].ToTestDisplayString());
+                                    Assert.Equal("I1<C<B>>", f.Interfaces()[0].ToTestDisplayString());
+                                    Assert.Equal("I2<C<B>>", f.Interfaces()[1].ToTestDisplayString());
                                 });
         }
 

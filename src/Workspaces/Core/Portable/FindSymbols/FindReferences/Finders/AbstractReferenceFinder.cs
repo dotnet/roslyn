@@ -394,6 +394,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }, cancellationToken);
         }
 
+        protected Task<ImmutableArray<Document>> FindDocumentsWithDeconstructionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        {
+            return FindDocumentsAsync(project, documents, async (d, c) =>
+            {
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
+                return info.ContainsDeconstruction;
+            }, cancellationToken);
+        }
+
         protected async Task<ImmutableArray<ReferenceLocation>> FindReferencesInForEachStatementsAsync(
             ISymbol symbol,
             Document document,
@@ -432,6 +441,47 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 return ImmutableArray<ReferenceLocation>.Empty;
             }
+        }
+
+        protected async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDeconstructionAsync(
+            ISymbol symbol,
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            var syntaxTreeInfo = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            if (!syntaxTreeInfo.ContainsDeconstruction)
+            {
+                return ImmutableArray<ReferenceLocation>.Empty;
+            }
+
+            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            var locations = ArrayBuilder<ReferenceLocation>.GetInstance();
+
+            var originalUnreducedSymbolDefinition = symbol.GetOriginalUnreducedDefinition();
+
+            foreach (var node in syntaxRoot.DescendantNodesAndSelf())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var deconstructMethods = semanticFacts.GetDeconstructionAssignmentMethods(semanticModel, node);
+                if (deconstructMethods.IsEmpty)
+                {
+                    // This was not a deconstruction assignment, it may still be a deconstruction foreach
+                    deconstructMethods = semanticFacts.GetDeconstructionForEachMethods(semanticModel, node);
+                }
+
+                if (deconstructMethods.Any(m => Matches(m, originalUnreducedSymbolDefinition)))
+                {
+                    var location = syntaxFacts.GetDeconstructionReferenceLocation(node);
+                    locations.Add(new ReferenceLocation(
+                        document, alias: null, location, isImplicit: true, isWrittenTo: false, CandidateReason.None));
+                }
+            }
+
+            return locations.ToImmutableAndFree();
         }
 
         private static bool Matches(ISymbol symbol1, ISymbol notNulloriginalUnreducedSymbol2)

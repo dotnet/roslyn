@@ -52,14 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If nothing has been substituted for a give type parameters,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
-        public ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
-        {
-            get
-            {
-                return TypeArgumentsNoUseSiteDiagnostics;
-            }
-        }
-
         internal abstract ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics { get; }
 
         internal ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -765,15 +757,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if ((object)ConstructedFrom != this)
+            if ((object)ConstructedFrom != this &&
+                this.TypeArgumentsNoUseSiteDiagnostics.Any(arg => arg.ContainsNullableReferenceTypes()))
             {
-                foreach (TypeSymbolWithAnnotations arg in this.TypeArguments)
-                {
-                    if (arg.ContainsNullableReferenceTypes())
-                    {
-                        return true;
-                    }
-                }
+                return true;
             }
 
             return false;
@@ -783,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             ContainingType?.AddNullableTransforms(transforms);
 
-            foreach (TypeSymbolWithAnnotations arg in this.TypeArguments)
+            foreach (TypeSymbolWithAnnotations arg in this.TypeArgumentsNoUseSiteDiagnostics)
             {
                 arg.AddNullableTransforms(transforms);
             }
@@ -1229,7 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
         /// <summary>
-        /// True if the type itself is excluded from code covarage instrumentation.
+        /// True if the type itself is excluded from code coverage instrumentation.
         /// True for source types marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         /// </summary>
         internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }

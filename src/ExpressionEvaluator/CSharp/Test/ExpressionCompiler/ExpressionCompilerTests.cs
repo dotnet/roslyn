@@ -18,6 +18,7 @@ using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.PdbUtilities;
+using static Roslyn.Test.Utilities.SigningTestHelpers;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
@@ -2005,23 +2006,23 @@ class C<T>
                 error: out error,
                 testData: testData);
 
-            var methodData = testData.GetMethodData("<>x<T>.<>c.<<>m0>b__0_0");
-            var method = (MethodSymbol)methodData.Method;
-            var containingType = method.ContainingType;
-            var returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
-            // Return type E<T> with type argument T from <>c<T>.
-            Assert.Equal(returnType.TypeArguments[0].TypeSymbol.ContainingSymbol, containingType.ContainingType);
-            var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
-            Assert.Equal(1, locals.Length);
-            // All locals of type E<T> with type argument T from <>c<T>.
-            foreach (var local in locals)
-            {
-                var localType = (NamedTypeSymbol)local.Type;
-                var typeArg = localType.TypeArguments[0].TypeSymbol;
-                Assert.Equal(typeArg.ContainingSymbol, containingType.ContainingType);
-            }
+                var methodData = testData.GetMethodData("<>x<T>.<>c.<<>m0>b__0_0");
+                var method = (MethodSymbol)methodData.Method;
+                var containingType = method.ContainingType;
+                var returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
+                // Return type E<T> with type argument T from <>c<T>.
+                Assert.Equal(returnType.TypeArguments()[0].ContainingSymbol, containingType.ContainingType);
+                var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
+                Assert.Equal(1, locals.Length);
+                // All locals of type E<T> with type argument T from <>c<T>.
+                foreach (var local in locals)
+                {
+                    var localType = (NamedTypeSymbol)local.Type;
+                    var typeArg = localType.TypeArguments()[0];
+                    Assert.Equal(typeArg.ContainingSymbol, containingType.ContainingType);
+                }
 
-            methodData.VerifyIL(
+                methodData.VerifyIL(
 @"{
   // Code size       23 (0x17)
   .maxstack  1
@@ -5445,7 +5446,7 @@ public class C
         {
             var signedDllOptions = TestOptions.ReleaseDll.
                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>()));
+                WithStrongNameProvider(s_defaultDesktopProvider);
 
             var libBTemplate = @"
 [assembly: System.Reflection.AssemblyVersion(""{0}.0.0.0"")]
@@ -6408,7 +6409,7 @@ public class Test
                 var context = CreateMethodContext(runtime, "C.Main");
                 string error;
                 var testData = new CompilationTestData();
-                context.CompileExpression("new object?[0]", out error, testData);
+                var result = context.CompileExpression("new object?[0]", out error, testData);
                 Assert.Null(error);
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 methodData.VerifyIL(
@@ -6419,7 +6420,18 @@ public class Test
   IL_0001:  newarr     ""object""
   IL_0006:  ret
 }");
-                Assert.NotNull(GetNullableAttributeIfAny(methodData.Method));
+                // Verify NullableAttribute is emitted.
+                using (var metadata = ModuleMetadata.CreateFromImage(ImmutableArray.CreateRange(result.Assembly)))
+                {
+                    var reader = metadata.MetadataReader;
+                    var typeDef = reader.GetTypeDef(result.TypeName);
+                    var methodHandle = reader.GetMethodDefHandle(typeDef, result.MethodName);
+                    var attributeHandle = reader.GetCustomAttributes(methodHandle).Single();
+                    var attribute = reader.GetCustomAttribute(attributeHandle);
+                    var attributeConstructor = reader.GetMethodDefinition((System.Reflection.Metadata.MethodDefinitionHandle)attribute.Constructor);
+                    var attributeTypeName = reader.GetString(reader.GetName(attributeConstructor.GetDeclaringType()));
+                    Assert.Equal("NullableAttribute", attributeTypeName);
+                }
             });
         }
 
@@ -6463,6 +6475,32 @@ class C
                 var methodsGenerated = testData.GetMethodsByName().Keys;
                 Assert.Contains(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "..ctor()", methodsGenerated);
                 Assert.Contains(AttributeDescription.NullableAttribute.FullName + "..ctor()", methodsGenerated);
+            });
+        }
+
+        [Fact]
+        [WorkItem(22206, "https://github.com/dotnet/roslyn/issues/22206")]
+        public void RefReturnNonRefLocal()
+        {
+            var source = @"
+delegate ref int D();
+class C
+{
+    static void Main()
+    {
+        int local = 0;
+    }
+    static ref int M(D d)
+    {
+        return ref d();
+    }
+}";
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main");
+                context.CompileExpression("M(() => ref local)", out var error);
+                Assert.Equal("error CS8168: Cannot return local 'local' by reference because it is not a ref local", error);
             });
         }
     }

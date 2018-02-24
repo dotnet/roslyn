@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void RangeVariableSymbolsAreDifferentArossSemanticModelsFromDifferentCompilations()
+        public void RangeVariableSymbolsAreDifferentAcrossSemanticModelsFromDifferentCompilations()
         {
             var text = @"using System.Linq; public class C { public void M() { var q = from c in string.Empty select c; } }";
             var tree = Parse(text);
@@ -205,7 +205,7 @@ class A : L
             var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var abase = a.BaseType;
+            var abase = a.BaseType();
             Assert.Equal("B.R", abase.ToTestDisplayString());
 
             var b = global.GetTypeMembers("B", 0).Single();
@@ -214,7 +214,7 @@ class A : L
             var v = a.GetMembers("v").Single() as FieldSymbol;
             var s = v.Type.TypeSymbol;
             Assert.Equal("B.R.Q.S", s.ToTestDisplayString());
-            var sbase = s.BaseType;
+            var sbase = s.BaseType();
             Assert.Equal("B.R.Q", sbase.ToTestDisplayString());
         }
 
@@ -336,7 +336,7 @@ public class B {
             var cbasetype = info.Symbol as NamedTypeSymbol;
 
             var c = comp.GlobalNamespace.GetTypeMembers("C", 1).Single();
-            Assert.Equal(c.BaseType, cbasetype);
+            Assert.Equal(c.BaseType(), cbasetype);
         }
 
         [Fact]
@@ -365,7 +365,7 @@ class A<T> {}
             var bt = b.TypeParameters.First();
 
             Assert.Equal(a.OriginalDefinition, at2.OriginalDefinition);
-            Assert.Equal(b.TypeParameters.First(), at2.TypeArguments.First().TypeSymbol);
+            Assert.Equal(b.TypeParameters.First(), at2.TypeArguments().First());
         }
 
         [Fact]
@@ -3359,7 +3359,7 @@ class Program
             Assert.Equal(SymbolKind.NamedType, newSymbol.Kind);
             Assert.Equal("System.Collections.Generic.List<T>", newSymbol.ToTestDisplayString());
 
-            Assert.False(((NamedTypeSymbol)newSymbol).TypeArguments.Single().TypeSymbol.IsErrorType());
+            Assert.False(((NamedTypeSymbol)newSymbol).TypeArguments().Single().IsErrorType());
             Assert.True(newSymbol.Equals(oldSymbol));
         }
 

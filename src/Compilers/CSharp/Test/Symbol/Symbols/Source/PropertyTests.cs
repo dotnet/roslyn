@@ -573,7 +573,7 @@ class C : B<string>
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("Q"));
 
                 // Generic type with parameter substitution.
-                type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").BaseType;
+                type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").BaseType();
                 Assert.Equal(type.TypeParameters.Length, 1);
                 Assert.NotSame(type, type.ConstructedFrom);
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("P"));
@@ -1736,7 +1736,7 @@ class C : I
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("C").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.True(@class.Interfaces.Contains(@interface));
+            Assert.True(@class.Interfaces().Contains(@interface));
 
             var classProperty = (PropertySymbol)@class.GetMembers("I.P").Single();
 
@@ -1770,7 +1770,7 @@ class C : I
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("C").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.True(@class.Interfaces.Contains(@interface));
+            Assert.True(@class.Interfaces().Contains(@interface));
 
             var classProperty = (PropertySymbol)@class.GetMembers("I.P").Single();
             Assert.Equal(RefKind.Ref, classProperty.RefKind);
@@ -1811,7 +1811,7 @@ class C : N.I<int>
 
             var classProperty = (PropertySymbol)@class.GetMembers("N.I<System.Int32>.P").Single();
 
-            var substitutedInterface = @class.Interfaces.Single();
+            var substitutedInterface = @class.Interfaces().Single();
             Assert.Equal(@interface, substitutedInterface.ConstructedFrom);
 
             var substitutedInterfaceProperty = (PropertySymbol)substitutedInterface.GetMembers("P").Single();
@@ -2913,7 +2913,7 @@ unsafe class Test
         }
 
         [Fact, WorkItem(4696, "https://github.com/dotnet/roslyn/issues/4696")]
-        public void LangVersioAndReadonlyAutoProperty()
+        public void LangVersionAndReadonlyAutoProperty()
         {
             var source = @"
 public class Class1

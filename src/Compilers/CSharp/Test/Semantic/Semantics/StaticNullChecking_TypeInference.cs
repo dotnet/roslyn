@@ -1547,7 +1547,7 @@ static class E
             var source =
 @"class C
 {
-    static (string?, string) F() => (string.Empty, string.Empty);
+    static (string?, string) F() => (null, string.Empty);
     static void G()
     {
         string x;

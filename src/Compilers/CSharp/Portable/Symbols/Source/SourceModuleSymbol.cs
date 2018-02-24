@@ -149,10 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyContainsExplicitDefinitionOfNoPiaLocalTypes == ThreeState.Unknown)
                 {
-                    // TODO: This will recursively visit all top level types and bind attributes on them.
-                    //       This might be very expensive to do, but explicitly declared local types are 
-                    //       very uncommon. We should consider optimizing this by analyzing syntax first, 
-                    //       for example, the way VB handles ExtensionAttribute, etc.
                     _lazyContainsExplicitDefinitionOfNoPiaLocalTypes = NamespaceContainsExplicitDefinitionOfNoPiaLocalTypes(GlobalNamespace).ToThreeState();
                 }
 

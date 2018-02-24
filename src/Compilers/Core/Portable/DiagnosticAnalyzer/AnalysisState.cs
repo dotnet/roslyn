@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             await EnsureAnalyzerActionCountsInitializedAsync(driver, cancellationToken).ConfigureAwait(false);
 
             // Compilation started event.
-            GenerateSimulatedCompilatioNonSourceEvent(compilation, driver, started: true, cancellationToken: cancellationToken);
+            GenerateSimulatedCompilationNonSourceEvent(compilation, driver, started: true, cancellationToken: cancellationToken);
 
             // Symbol declared and compilation unit completed events.
             foreach (var tree in analysisScope.SyntaxTrees)
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Compilation ended event.
             if (analysisScope.FilterTreeOpt == null)
             {
-                GenerateSimulatedCompilatioNonSourceEvent(compilation, driver, started: false, cancellationToken: cancellationToken);
+                GenerateSimulatedCompilationNonSourceEvent(compilation, driver, started: false, cancellationToken: cancellationToken);
             }
         }
 
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutable();
         }
 
-        private void GenerateSimulatedCompilatioNonSourceEvent(Compilation compilation, AnalyzerDriver driver, bool started, CancellationToken cancellationToken)
+        private void GenerateSimulatedCompilationNonSourceEvent(Compilation compilation, AnalyzerDriver driver, bool started, CancellationToken cancellationToken)
         {
             lock (_gate)
             {

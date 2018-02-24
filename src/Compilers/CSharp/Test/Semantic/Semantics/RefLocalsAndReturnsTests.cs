@@ -1737,15 +1737,24 @@ class TestClass
     {
         Console.WriteLine(y);
     }
+    void Write(ref int y, int z)
+    {
+        Console.WriteLine(z);
+    }
     async Task TestMethod()
     {
+        // this is OK. `ref` is not spilled.
         Write(ref Save(await Task.FromResult(0)));
+
+        // ERROR. `ref` is spilled because it must survive until after the second `await.
+        Write(ref Save(await Task.FromResult(0)), await Task.FromResult(1));
     }
 }";
             CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics(
-                // (18,24): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
-                //         Write(ref Save(await Task.FromResult(0)));
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(0)").WithArguments("TestClass.Save(int)").WithLocation(18, 24));
+                // (26,51): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
+                //         Write(ref Save(await Task.FromResult(0)), await Task.FromResult(1));
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(1)").WithArguments("TestClass.Save(int)").WithLocation(26, 51)
+            );
         }
 
         [Fact]
@@ -2647,7 +2656,7 @@ class C
         }
 
         [Fact]
-        public void CannotUseAwaitExpressionToAssignRefReturing()
+        public void CannotUseAwaitExpressionToAssignRefReturning()
         {
             var code = @"
 using System;

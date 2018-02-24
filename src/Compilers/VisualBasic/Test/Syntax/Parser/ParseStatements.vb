@@ -8443,7 +8443,7 @@ End Module
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_01()
+    Public Sub ParseLineIfFollowedByAnotherStatement_01()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8489,7 +8489,7 @@ BC30081: 'If' must end with a matching 'End If'.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_02()
+    Public Sub ParseLineIfFollowedByAnotherStatement_02()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8543,7 +8543,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_03()
+    Public Sub ParseLineIfFollowedByAnotherStatement_03()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8582,7 +8582,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_04()
+    Public Sub ParseLineIfFollowedByAnotherStatement_04()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8630,7 +8630,7 @@ BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_05()
+    Public Sub ParseLineIfFollowedByAnotherStatement_05()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8671,7 +8671,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_06()
+    Public Sub ParseLineIfFollowedByAnotherStatement_06()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8712,7 +8712,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_07()
+    Public Sub ParseLineIfFollowedByAnotherStatement_07()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8812,7 +8812,7 @@ BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_08()
+    Public Sub ParseLineIfFollowedByAnotherStatement_08()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8840,7 +8840,7 @@ End Module
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_09()
+    Public Sub ParseLineIfFollowedByAnotherStatement_09()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8904,7 +8904,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_10()
+    Public Sub ParseLineIfFollowedByAnotherStatement_10()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8968,7 +8968,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_11()
+    Public Sub ParseLineIfFollowedByAnotherStatement_11()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8999,7 +8999,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_12()
+    Public Sub ParseLineIfFollowedByAnotherStatement_12()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -9064,7 +9064,7 @@ Else 3")
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_13()
+    Public Sub ParseLineIfFollowedByAnotherStatement_13()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -9094,7 +9094,7 @@ BC33104: 'If' operator requires either two or three operands.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_14()
+    Public Sub ParseLineIfFollowedByAnotherStatement_14()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -9124,7 +9124,7 @@ BC33104: 'If' operator requires either two or three operands.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_15()
+    Public Sub ParseLineIfFollowedByAnotherStatement_15()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">

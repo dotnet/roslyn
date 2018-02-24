@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular7_1 = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp7_1);
         public static readonly CSharpParseOptions Regular7_2 = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp7_2);
         public static readonly CSharpParseOptions Regular8 = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp8);
-        public static readonly CSharpParseOptions RegularLatest = Regular.WithLanguageVersion(LanguageVersion.Latest);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
+
 
         private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { };
         public static readonly CSharpParseOptions ExperimentalParseOptions =
@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // to help ensure compatibility of the semantics of the new switch binder with the old switch
         // binder, so that we may eliminate the old one in the future.
         public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV7SwitchBinder", "true" } });
-
-        public static readonly CSharpParseOptions RegularWithIOperationFeature = Regular.WithIOperationsFeature();
         
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release);
@@ -86,21 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         internal static CSharpParseOptions WithNullCheckingFeature(this CSharpParseOptions options, NullableReferenceFlags flags)
         {
             return options.WithFeature("staticNullChecking", ((int)flags).ToString());
-        }
-
-        internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, MessageID feature)
-        {
-            var name = feature.RequiredFeature();
-            if (name == null)
-            {
-                throw new InvalidOperationException($"{feature} is not a valid experimental feature");
-            }
-            return options.WithFeature(name);
-        }
-        
-        public static CSharpParseOptions WithIOperationsFeature(this CSharpParseOptions options)
-        {
-            return options.WithFeature("IOperation");
         }
 
         public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value = "true")

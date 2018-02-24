@@ -1105,7 +1105,7 @@
         <summary>NameColonSyntax node representing the optional name arguments.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="RefOrOutKeyword" Type="SyntaxToken" Optional="true">
+    <Field Name="RefKindKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="RefKeyword"/>
       <Kind Name="OutKeyword"/>
       <Kind Name="InKeyword"/>
@@ -1705,7 +1705,7 @@
       </PropertyComment>
     </Field>
     <TypeComment>
-      <summary>Class which represents a simple pattern-maching expresion using the "is" keyword.</summary>
+      <summary>Class which represents a simple pattern-matching expression using the "is" keyword.</summary>
     </TypeComment>
     <FactoryComment>
       <summary>Creates an IsPatternExpressionSyntax node.</summary>
@@ -3853,9 +3853,10 @@
       </summary>
     </TypeComment>
     <Kind Name="CrefParameter"/>
-    <Field Name="RefOrOutKeyword" Type="SyntaxToken" Optional="true">
+    <Field Name="RefKindKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="RefKeyword"/>
       <Kind Name="OutKeyword"/>
+      <Kind Name="InKeyword"/>
     </Field>
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>

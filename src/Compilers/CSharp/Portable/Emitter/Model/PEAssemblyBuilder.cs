@@ -168,6 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
         {
+            // _lazyEmbeddedAttribute should have been created before calling this method.
             return new SynthesizedAttributeData(
                 _lazyEmbeddedAttribute.Constructors[0],
                 ImmutableArray<TypedConstant>.Empty,

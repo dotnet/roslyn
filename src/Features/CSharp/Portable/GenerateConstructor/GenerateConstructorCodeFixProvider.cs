@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.GenerateMember;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         public const string CS7036 = nameof(CS7036); // CS7036: There is no argument given that corresponds to the required formal parameter 'v' of 'C.C(int)'
 
         public static readonly ImmutableArray<string> AllDiagnosticIds = 
-            ImmutableArray.Create(CS0122, CS1729, CS1739, CS1503, CS7036);
+            ImmutableArray.Create(CS0122, CS1729, CS1739, CS1503, CS7036, IDEDiagnosticIds.UnboundConstructorId);
 
         public static readonly ImmutableArray<string> TooManyArgumentsDiagnosticIds =
             ImmutableArray.Create(CS1729);

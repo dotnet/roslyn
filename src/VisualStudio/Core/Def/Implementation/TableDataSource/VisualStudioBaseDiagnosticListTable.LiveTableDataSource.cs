@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -144,25 +145,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                if (_workspace != e.Workspace)
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, GetDiagnosticUpdatedMessage, e, CancellationToken.None))
                 {
-                    return;
-                }
+                    if (_workspace != e.Workspace)
+                    {
+                        return;
+                    }
 
-                if (e.Diagnostics.Length == 0)
-                {
-                    OnDataRemoved(e);
-                    return;
-                }
+                    if (e.Diagnostics.Length == 0)
+                    {
+                        OnDataRemoved(e);
+                        return;
+                    }
 
-                var count = e.Diagnostics.Where(ShouldInclude).Count();
-                if (count <= 0)
-                {
-                    OnDataRemoved(e);
-                    return;
-                }
+                    var count = e.Diagnostics.Where(ShouldInclude).Count();
+                    if (count <= 0)
+                    {
+                        OnDataRemoved(e);
+                        return;
+                    }
 
-                OnDataAddedOrChanged(e);
+                    OnDataAddedOrChanged(e);
+                }
             }
 
             public override AbstractTableEntriesSource<DiagnosticData> CreateTableEntriesSource(object data)
@@ -536,6 +540,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 #endregion
+            }
+
+            private static string GetDiagnosticUpdatedMessage(DiagnosticsUpdatedArgs e)
+            {
+                var id = e.Id.ToString();
+                if (e.Id is AnalyzerUpdateArgsId analyzer)
+                {
+                    id = analyzer.Analyzer.ToString();
+                }
+
+                return $"{e.Workspace.Kind} {id} {e.Kind} {(object)e.DocumentId ?? e.ProjectId} {e.Diagnostics.Length}";
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -24,7 +25,6 @@ using System.Text;
 using System.Threading;
 using Xunit;
 using static TestReferences;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             return base.CompileAndVerify(
                 source: source,
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             return base.CompileAndVerify(
                 sources,
@@ -125,41 +125,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 verify);
         }
 
-        internal CompilationVerifier CompileAndVerifyExperimental(
-            string source,
-            MessageID feature,
-            string expectedOutput = null,
-            MetadataReference[] additionalRefs = null,
-            IEnumerable<ModuleData> dependencies = null,
-            Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> assemblyValidator = null,
-            Action<ModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            CSharpCompilationOptions options = null,
-            bool verify = true)
-        {
-            options = options ??
-                ((expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll);
-
-            var compilation = CreateExperimentalCompilationWithMscorlib45(source, feature, additionalRefs, options);
-
-            return CompileAndVerify(
-                compilation: compilation,
-                dependencies: dependencies,
-                sourceSymbolValidator: Translate2(sourceSymbolValidator),
-                assemblyValidator: assemblyValidator,
-                symbolValidator: Translate2(symbolValidator),
-                expectedSignatures: expectedSignatures,
-                expectedOutput: expectedOutput,
-                verify: verify);
-        }
-
         internal CompilationVerifier CompileAndVerifyWinRt(
             string source,
             string expectedOutput = null,
             MetadataReference[] additionalRefs = null,
             CSharpCompilationOptions options = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             if (options == null)
             {
@@ -188,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             int? expectedReturnCode = null,
             string[] args = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             return base.CompileAndVerify(
                 compilation,
@@ -214,17 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                                                     WinRtRefs.Concat(additionalRefs ?? Enumerable.Empty<MetadataReference>()),
                                                     TestOptions.ReleaseExe);
         }
-
-        internal static PEAssemblyBuilder GetDefaultPEBuilder(CSharpCompilation compilation)
-        {
-            return new PEAssemblyBuilder(
-                (SourceAssemblySymbol)compilation.Assembly,
-                EmitOptions.Default,
-                compilation.Options.OutputKind,
-                GetDefaultModulePropertiesForSerialization(),
-                SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-        }
-
+        
         protected override CompilationOptions CompilationOptionsReleaseDll
         {
             get { return TestOptions.ReleaseDll; }
@@ -409,40 +370,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 assemblyName: assemblyName);
         }
 
-        internal static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
-            string text,
-            MessageID feature,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            string assemblyName = "",
-            string sourceFileName = "")
-        {
-            var refs = new List<MetadataReference>();
-            if (references != null)
-            {
-                refs.AddRange(references);
-            }
-            refs.Add(MscorlibRef_v4_0_30316_17626);
-            return CreateCompilation(new[] { Parse(text, sourceFileName, TestOptions.Regular.WithExperimental(feature)) }, refs, options, assemblyName);
-        }
-
-        internal static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
-            string[] texts,
-            MessageID feature,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            string assemblyName = "",
-            string sourceFileName = "")
-        {
-            var refs = new List<MetadataReference>();
-            if (references != null)
-            {
-                refs.AddRange(references);
-            }
-            refs.Add(MscorlibRef_v4_0_30316_17626);
-            return CreateCompilation((from text in texts select Parse(text, sourceFileName, TestOptions.Regular.WithExperimental(feature))).ToArray(), refs, options, assemblyName);
-        }
-
         public static CSharpCompilation CreateCompilationWithMscorlib45AndCSruntime(
             string text,
             CSharpCompilationOptions options = null,
@@ -577,11 +504,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 options = options.WithConcurrentBuild(false);
             }
 
-            return CSharpCompilation.Create(
+            Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(
                 assemblyName == "" ? GetUniqueName() : assemblyName,
                 trees,
                 references,
                 options);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            return createCompilationLambda();
         }
 
         public static CSharpCompilation CreateCompilation(
@@ -592,7 +521,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpParseOptions parseOptions = null)
         {
             var trees = (sources == null) ? null : sources.Select(s => Parse(s, options: parseOptions)).ToArray();
-            var c = CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
+            Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
+
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            var c = createCompilationLambda();
             Assert.NotNull(c.Assembly); // force creation of SourceAssemblySymbol
 
             ((SourceAssemblySymbol)c.Assembly).lazyAssemblyIdentity = identity;
@@ -608,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
            Type returnType = null,
            Type hostObjectType = null)
         {
-            return CSharpCompilation.CreateScriptCompilation(
+            Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.CreateScriptCompilation(
                 GetUniqueName(),
                 references: references,
                 options: options,
@@ -616,6 +548,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 previousScriptCompilation: previous,
                 returnType: returnType,
                 globalsType: hostObjectType);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            return createCompilationLambda();
         }
 
         private static ImmutableArray<MetadataReference> s_scriptRefs = ImmutableArray.Create(MscorlibRef_v4_0_30316_17626);
@@ -629,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
            Type returnType = null,
            Type hostObjectType = null)
         {
-            return CSharpCompilation.CreateScriptCompilation(
+            Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.CreateScriptCompilation(
                 GetUniqueName(),
                 references: (references != null) ? s_scriptRefs.Concat(references) : s_scriptRefs,
                 options: options,
@@ -637,6 +571,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 previousScriptCompilation: previous,
                 returnType: returnType,
                 globalsType: hostObjectType);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            return createCompilationLambda();
         }
 
         public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation> compilationVerifier = null, bool importInternals = true, string expectedOutput = null)
@@ -690,17 +626,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// <typeparam name="T">Expected type of the exception.</typeparam>
         /// <param name="source">Program to compile and execute.</param>
         /// <param name="expectedMessage">Ignored if null.</param>
-        internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false) where T : Exception
+        internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false, Verification verify = Verification.Passes) where T : Exception
         {
             var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe));
-            return CompileAndVerifyException<T>(comp, expectedMessage);
+            return CompileAndVerifyException<T>(comp, expectedMessage, verify);
         }
 
-        internal CompilationVerifier CompileAndVerifyException<T>(CSharpCompilation comp, string expectedMessage = null) where T : Exception
+        internal CompilationVerifier CompileAndVerifyException<T>(CSharpCompilation comp, string expectedMessage = null, Verification verify = Verification.Passes) where T : Exception
         {
             try
             {
-                CompileAndVerify(comp, expectedOutput: ""); //need expected output to force execution
+                CompileAndVerify(comp, expectedOutput: "", verify: verify); //need expected output to force execution
                 Assert.False(true, string.Format("Expected exception {0}({1})", typeof(T).Name, expectedMessage));
             }
             catch (ExecutionException x)
@@ -713,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 }
             }
 
-            return CompileAndVerify(comp);
+            return CompileAndVerify(comp, verify: verify);
         }
 
         protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxTree syntaxTree)
@@ -1148,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 return (null, null);
             }
 
-            return (model.GetOperationInternal(syntaxNode), syntaxNode);
+            return (model.GetOperation(syntaxNode), syntaxNode);
         }
 
         protected static string GetOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation)
@@ -1281,38 +1217,130 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         private static string spanSource = @"
 namespace System
-{
-    public readonly ref struct Span<T> 
     {
-        public ref T this[int i] => throw null;
-        public override int GetHashCode() => 1;
-        public int Length { get; }
-
-        unsafe public Span(void* pointer, int length)
+        public readonly ref struct Span<T>
         {
-            this.Length = length;
+            private readonly T[] arr;
+
+            public ref T this[int i] => ref arr[i];
+            public override int GetHashCode() => 1;
+            public int Length { get; }
+
+            unsafe public Span(void* pointer, int length)
+            {
+                this.arr = null;
+                this.Length = length;
+            }
+
+            public Span(T[] arr)
+            {
+                this.arr = arr;
+                this.Length = arr.Length;
+            }
+
+            public void CopyTo(Span<T> other) { }
+
+            /// <summary>Gets an enumerator for this span.</summary>
+            public Enumerator GetEnumerator() => new Enumerator(this);
+
+            /// <summary>Enumerates the elements of a <see cref=""Span{T}""/>.</summary>
+            public ref struct Enumerator
+            {
+                /// <summary>The span being enumerated.</summary>
+                private readonly Span<T> _span;
+                /// <summary>The next index to yield.</summary>
+                private int _index;
+
+                /// <summary>Initialize the enumerator.</summary>
+                /// <param name=""span"">The span to enumerate.</param>
+                internal Enumerator(Span<T> span)
+                {
+                    _span = span;
+                    _index = -1;
+                }
+
+                /// <summary>Advances the enumerator to the next element of the span.</summary>
+                public bool MoveNext()
+                {
+                    int index = _index + 1;
+                    if (index < _span.Length)
+                    {
+                        _index = index;
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                /// <summary>Gets the element at the current position of the enumerator.</summary>
+                public ref T Current
+                {
+                    get => ref _span[_index];
+                }
+            }
         }
-        public Span(T[] arr)
+
+        public readonly ref struct ReadOnlySpan<T>
         {
-            this.Length = arr.Length;
+            private readonly T[] arr;
+
+            public ref readonly T this[int i] => ref arr[i];
+            public override int GetHashCode() => 2;
+            public int Length { get; }
+
+            public ReadOnlySpan(T[] arr)
+            {
+                this.arr = arr;
+                this.Length = arr.Length;
+            }
+
+            public void CopyTo(Span<T> other) { }
+
+            /// <summary>Gets an enumerator for this span.</summary>
+            public Enumerator GetEnumerator() => new Enumerator(this);
+
+            /// <summary>Enumerates the elements of a <see cref=""Span{T}""/>.</summary>
+            public ref struct Enumerator
+            {
+                /// <summary>The span being enumerated.</summary>
+                private readonly ReadOnlySpan<T> _span;
+                /// <summary>The next index to yield.</summary>
+                private int _index;
+
+                /// <summary>Initialize the enumerator.</summary>
+                /// <param name=""span"">The span to enumerate.</param>
+                internal Enumerator(ReadOnlySpan<T> span)
+                {
+                    _span = span;
+                    _index = -1;
+                }
+
+                /// <summary>Advances the enumerator to the next element of the span.</summary>
+                public bool MoveNext()
+                {
+                    int index = _index + 1;
+                    if (index < _span.Length)
+                    {
+                        _index = index;
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                /// <summary>Gets the element at the current position of the enumerator.</summary>
+                public ref readonly T Current
+                {
+                    get => ref _span[_index];
+                }
+            }
         }
 
-        public void CopyTo(Span<T> other){}
-    }
-
-    public readonly ref struct ReadOnlySpan<T>
-    {
-        public ref readonly T this[int i] => throw null;
-        public override int GetHashCode() => 2;
-
-        public void CopyTo(Span<T> other){}
-    }
-
-    public readonly ref struct SpanLike<T>
-    {
-        public readonly Span<T> field;
-    }
-}";
+        public readonly ref struct SpanLike<T>
+        {
+            public readonly Span<T> field;
+        }
+    }";
         #endregion
     }
 }

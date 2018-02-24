@@ -287,8 +287,8 @@ class CL3
             var test = cl3.GetMember<MethodSymbol>("Test");
             Assert.Equal("void CL3.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) x)", test.ToTestDisplayString());
 
-            var withModifiers = cl3.BaseType.BaseType;
-            var withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments.SelectAsArray(TypeMap.AsTypeSymbol));
+            var withModifiers = cl3.BaseType().BaseType();
+            var withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments());
             Assert.True(HasTypeArgumentsCustomModifiers(withModifiers));
             Assert.False(HasTypeArgumentsCustomModifiers(withoutModifiers));
             Assert.True(withoutModifiers.Equals(withModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
@@ -1367,7 +1367,7 @@ class Module1
             var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
-            Assert.Equal("System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) CL1<System.Int32 modopt(System.Runtime.CompilerServices.IsLong)>.Test", cl2.BaseType.GetMember("Test").ToTestDisplayString());
+            Assert.Equal("System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) CL1<System.Int32 modopt(System.Runtime.CompilerServices.IsLong)>.Test", cl2.BaseType().GetMember("Test").ToTestDisplayString());
 
             CompileAndVerify(compilation, expectedOutput: "123");
         }
@@ -1452,9 +1452,9 @@ class Module1
 ";
             var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
 
-            var base1 = compilation.GetTypeByMetadataName("CL2").BaseType;
-            var base2 = compilation.GetTypeByMetadataName("CL3").BaseType;
-            var base3 = compilation.GetTypeByMetadataName("CL4").BaseType;
+            var base1 = compilation.GetTypeByMetadataName("CL2").BaseType();
+            var base2 = compilation.GetTypeByMetadataName("CL3").BaseType();
+            var base3 = compilation.GetTypeByMetadataName("CL4").BaseType();
 
             Assert.True(HasTypeArgumentsCustomModifiers(base1));
             Assert.True(HasTypeArgumentsCustomModifiers(base2));
@@ -1516,7 +1516,7 @@ class Module1
             Assert.Equal("void Module1.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsLong)? x)", test.ToTestDisplayString());
 
             Assert.Same(compilation1.SourceModule.CorLibrary(), test.Parameters.First().Type.TypeSymbol.OriginalDefinition.ContainingAssembly);
-            Assert.Same(compilation1.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type.TypeSymbol).TypeArguments[0].CustomModifiers.First().Modifier.ContainingAssembly);
+            Assert.Same(compilation1.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].CustomModifiers.First().Modifier.ContainingAssembly);
 
             var compilation2 = CreateCompilationWithMscorlib45(new SyntaxTree[] { }, references: new[] { new CSharpCompilationReference(compilation1) });
 
@@ -1525,7 +1525,7 @@ class Module1
 
             Assert.IsType<CSharp.Symbols.Retargeting.RetargetingAssemblySymbol>(test.ContainingAssembly);
             Assert.Same(compilation2.SourceModule.CorLibrary(), test.Parameters.First().Type.TypeSymbol.OriginalDefinition.ContainingAssembly);
-            Assert.Same(compilation2.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type.TypeSymbol).TypeArguments[0].CustomModifiers.First().Modifier.ContainingAssembly);
+            Assert.Same(compilation2.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].CustomModifiers.First().Modifier.ContainingAssembly);
 
             Assert.NotSame(compilation1.SourceModule.CorLibrary(), compilation2.SourceModule.CorLibrary());
         }
@@ -1708,8 +1708,8 @@ interface ITest4<T, U>
 ";
             var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseDll);
 
-            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)>", compilation.GetTypeByMetadataName("ITest1`1").Interfaces.First().ToTestDisplayString());
-            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsConst)>", compilation.GetTypeByMetadataName("ITest2`1").Interfaces.First().ToTestDisplayString());
+            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)>", compilation.GetTypeByMetadataName("ITest1`1").Interfaces().First().ToTestDisplayString());
+            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsConst)>", compilation.GetTypeByMetadataName("ITest2`1").Interfaces().First().ToTestDisplayString());
 
             compilation.VerifyDiagnostics(
     // (2,11): error CS0695: 'ITest3<T, U>' cannot implement both 'ITest0<T>' and 'ITest0<U>' because they may unify for some type parameter substitutions
@@ -1750,8 +1750,8 @@ interface ITest4<T, U>
 ";
             var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseDll);
 
-            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsLong) modopt(System.Runtime.CompilerServices.IsConst)>", compilation.GetTypeByMetadataName("ITest1`1").Interfaces.First().ToTestDisplayString());
-            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsConst)>", compilation.GetTypeByMetadataName("ITest2`1").Interfaces.First().ToTestDisplayString());
+            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsLong) modopt(System.Runtime.CompilerServices.IsConst)>", compilation.GetTypeByMetadataName("ITest1`1").Interfaces().First().ToTestDisplayString());
+            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsConst)>", compilation.GetTypeByMetadataName("ITest2`1").Interfaces().First().ToTestDisplayString());
 
             compilation.VerifyDiagnostics();
         }
