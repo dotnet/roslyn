@@ -333,6 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stackAllocType = new PointerTypeSymbol(elementType);
                     break;
                 case ConversionKind.StackAllocToSpanType:
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructs, diagnostics);
                     stackAllocType = Compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);
                     break;
                 default:

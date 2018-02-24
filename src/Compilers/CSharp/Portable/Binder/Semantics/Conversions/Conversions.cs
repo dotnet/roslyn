@@ -312,8 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (spanConversion.Exists)
                         {
-                            // Report errors if Span ctor is missing, or using an older C# version
-                            Binder.CheckFeatureAvailability(sourceExpression.Syntax, MessageID.IDS_FeatureRefStructs, ref useSiteDiagnostics);
+                            // Report errors if Span ctor is missing
                             Binder.GetWellKnownTypeMember(_binder.Compilation, WellKnownMember.System_Span_T__ctor, out DiagnosticInfo memberDiagnosticInfo);
                             HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, memberDiagnosticInfo);
 
