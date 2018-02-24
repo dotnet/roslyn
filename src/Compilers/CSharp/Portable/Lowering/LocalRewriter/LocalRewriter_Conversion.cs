@@ -1014,8 +1014,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // do not rewrite user defined conversion 
+            // - in expression trees or 
+            // - special situations when converting to ReadOnlySpan, which has special support in codegen
+            var doNotLowerToCall = _inExpressionLambda ||
+                                   (rewrittenOperand.Type.IsArray()) &&
+                                   _compilation.IsReadOnlySpanType(rewrittenType);
+
             BoundExpression result =
-                _inExpressionLambda
+                doNotLowerToCall
                 ? BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, true, default(ConstantValue), rewrittenType)
                 : (BoundExpression)BoundCall.Synthesized(syntax, null, conversion.Method, rewrittenOperand);
             Debug.Assert(result.Type == rewrittenType);

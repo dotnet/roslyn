@@ -26,16 +26,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return;
             }
 
-            if (!used && !conversion.ConversionHasSideEffects())
+            var operand = conversion.Operand;
+
+            if (conversion.ConversionKind.IsUserDefinedConversion())
             {
-                EmitExpression(conversion.Operand, false); // just do expr side effects
+                EmitSpecialUserDefinedConversion(conversion, used, operand);
                 return;
             }
 
-            EmitExpression(conversion.Operand, true);
+            if (!used && !conversion.ConversionHasSideEffects())
+            {
+                EmitExpression(operand, false); // just do expr side effects
+                return;
+            }
+
+            EmitExpression(operand, true);
             EmitConversion(conversion);
 
             EmitPopIfUnused(used);
+        }
+
+        private void EmitSpecialUserDefinedConversion(BoundConversion conversion, bool used, BoundExpression operand)
+        {
+            var typeTo = conversion.Type;
+
+            Debug.Assert((operand.Type.IsArray()) &&
+                         this._module.Compilation.IsReadOnlySpanType(typeTo),
+                         "only special kinds of conversions involvling ReadOnlySpan may be handled in emit");
+
+            if (!TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)typeTo, operand, used, inPlace: false))
+            {
+                EmitExpression(operand, used);
+                if (used)
+                {
+                    _builder.EmitOpCode(ILOpCode.Call, 0);
+                    EmitSymbolToken(conversion.SymbolOpt, conversion.Syntax, optArgList: null);
+                }
+            }
         }
 
         private void EmitConversion(BoundConversion conversion)

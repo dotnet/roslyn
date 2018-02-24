@@ -347,5 +347,148 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             return inits.Length != 0 && inits[0].Kind == BoundKind.ArrayInitialization;
         }
+
+        private bool TryEmitReadonlySpanAsBlobWrapper(NamedTypeSymbol spanType, BoundExpression wrappedExprerssion, bool used, bool inPlace)
+        {
+            ImmutableArray<byte> data = default;
+            int elementCount = -1;
+            TypeSymbol elementType = null;
+
+            if (!_module.SupportsPrivateImplClass)
+            {
+                return false;
+            }
+
+            var ctor = ((MethodSymbol)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor));
+            if (ctor == null)
+            {
+                return false;
+            }
+
+            if (wrappedExprerssion is BoundArrayCreation ac)
+            {
+                var arrayType = (ArrayTypeSymbol)ac.Type;
+                elementType = arrayType.ElementType.EnumUnderlyingType();
+
+                if (elementType.SpecialType.SizeInBytes() != 1)
+                {
+                    return false;
+                }
+
+                data = TryGetRawDataForArrayInit(ac.InitializerOpt, out elementCount);
+            }
+
+            if (elementCount < 0)
+            { 
+                return false;
+            }
+
+            if (!inPlace && !used)
+            {
+                // emitting a value that noone will see
+                return true;
+            }
+            
+            if(elementCount == 0)
+            {
+                if (inPlace)
+                {
+                    _builder.EmitOpCode(ILOpCode.Initobj);
+                    EmitSymbolToken(spanType, wrappedExprerssion.Syntax);
+                }
+                else
+                {
+                    EmitDefaultValue(spanType, used, wrappedExprerssion.Syntax);
+                }
+            }
+            else
+            {
+                if(EnablePEVerifyCompat())
+                {
+                    return false;
+                }
+
+                _builder.EmitArrayBlockFieldRef(data, elementType, wrappedExprerssion.Syntax, _diagnostics);
+                _builder.EmitIntConstant(elementCount);
+
+                if (inPlace)
+                {
+                    // consumes target ref, data ptr and size, pushes nothing
+                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -3);
+                }
+                else
+                {
+                    // consumes data ptr and size, pushes the instance
+                    _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment: -1);
+                }
+
+                EmitSymbolToken(ctor.AsMember(spanType), wrappedExprerssion.Syntax, optArgList: null);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        ///  Returns a byte blob that matches serialized content of the string.        
+        ///  elementCount is set to the char count and is -1 if the string is 'null' or empty.
+        /// </summary>
+        private ImmutableArray<byte> TryGetRawDataForStringLiteral(string stringValue, out int elementCount)
+        {
+            if (string.IsNullOrEmpty(stringValue))
+            {
+                elementCount = -1;
+                return default;
+            }
+
+            elementCount = stringValue.Length;
+            if (elementCount == 0)
+            {
+                return ImmutableArray<byte>.Empty;
+            }
+
+            var writer = new BlobBuilder(stringValue.Length * 2);
+
+            foreach (var ch in stringValue)
+            {
+                writer.WriteInt16((short)ch);
+            }
+
+            return writer.ToImmutableArray();
+        }
+
+        /// <summary>
+        ///  Returns a byte blob that matches serialized content of single array initializer.    
+        ///  elementCount is set to -1 if the initializer is null or not an array of literals
+        /// </summary>
+        private ImmutableArray<byte> TryGetRawDataForArrayInit(BoundArrayInitialization initializer, out int elementCount)
+        {
+            elementCount = -1;
+
+            if (initializer == null)
+            {
+                return default;
+            }
+
+            var initializers = initializer.Initializers;
+            if (initializers.Any(init => init.ConstantValue == null))
+            {
+                return default;
+            }
+
+            elementCount = initializers.Length;
+            if (elementCount == 0)
+            {
+                return ImmutableArray<byte>.Empty;
+            }
+
+            var writer = new BlobBuilder(initializers.Length * 4);
+
+            foreach (var init in initializer.Initializers)
+            {
+                init.ConstantValue.Serialize(writer);
+            }
+
+            return writer.ToImmutableArray();
+        }
     }
 }
