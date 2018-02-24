@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample3_1()
+        public async Task TestParenthesizedLambda()
         {
             await TestAsync(
 @"using System;

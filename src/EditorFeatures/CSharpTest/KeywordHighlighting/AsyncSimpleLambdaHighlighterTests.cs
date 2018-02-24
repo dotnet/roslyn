@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample3_1()
+        public async Task TestSimpleLambda()
         {
             await TestAsync(
 @"using System;
@@ -31,14 +31,14 @@ class AsyncExample
 
     async Task UseAsync()
     {
-        Func<Task<int, int>> lambda = {|Cursor:[|async|]|} _ =>
+        Func<int, Task<int>> lambda = {|Cursor:[|async|]|} _ =>
         {
             return [|await|] AsyncMethod();
         };
         int result = await AsyncMethod();
         Task<int> resultTask = AsyncMethod();
         result = await resultTask;
-        result = await lambda();
+        result = await lambda(0);
     }
 }");
         }
