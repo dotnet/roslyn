@@ -558,5 +558,67 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
     }
 }");
         }
+
+        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestWithNestedStatements_OnSwitchKeyword()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        {|Cursor:[|switch|]|} (i)
+        {
+            [|case|] 0:
+            {
+                CaseZero();
+                [|goto case|] 1;
+            }
+            [|case|] 1:
+            {
+                CaseOne();
+                [|goto default|];
+            }
+            [|default|]:
+            {
+                CaseOthers();
+                [|break|];
+            }
+        }
+    }
+}");
+        }
+
+        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestWithNestedStatements_OnBreakKeyword()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|switch|] (i)
+        {
+            [|case|] 0:
+            {
+                CaseZero();
+                [|goto case|] 1;
+            }
+            [|case|] 1:
+            {
+                CaseOne();
+                [|goto default|];
+            }
+            [|default|]:
+            {
+                CaseOthers();
+                {|Cursor:[|break|]|};
+            }
+        }
+    }
+}");
+        }
     }
 }

@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                     spans.Add(EmptySpan(label.ColonToken.Span.End));
                 }
 
-                foreach (var statement in switchSection.Statements)
-                {
-                    HighlightRelatedKeywords(statement, spans);
-                }
+                HighlightRelatedKeywords(switchSection, spans);
             }
 
             return spans;
@@ -67,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                     foreach (var child in node.ChildNodes())
                     {
                         // Only recurse if we have anything to do
-                        if (child.IsBreakableConstruct())
+                        if (!child.IsBreakableConstruct())
                         {
                             HighlightRelatedKeywords(child, spans);
                         }
