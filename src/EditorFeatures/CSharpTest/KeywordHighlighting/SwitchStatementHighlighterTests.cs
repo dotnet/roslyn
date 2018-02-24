@@ -480,5 +480,83 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
     }
 }");
         }
+
+        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestWithUnrelatedGotoStatement_OnGotoCaseGotoKeyword()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        label:
+        [|switch|] (i)
+        {
+            [|case|] 0:
+                CaseZero();
+                [|{|Cursor:goto|} case|] 1;
+            [|case|] 1:
+                CaseOne();
+                [|goto default|];
+            [|default|]:
+                CaseOthers();
+                goto label;
+        }
+    }
+}");
+        }
+
+        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestWithUnrelatedGotoStatement_OnGotoDefaultGotoKeyword()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        label:
+        [|switch|] (i)
+        {
+            [|case|] 0:
+                CaseZero();
+                [|goto case|] 1;
+            [|case|] 1:
+                CaseOne();
+                [|{|Cursor:goto|} default|];
+            [|default|]:
+                CaseOthers();
+                goto label;
+        }
+    }
+}");
+        }
+
+        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestWithUnrelatedGotoStatement_NotOnGotoLabelGotoKeyword()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        label:
+        switch (i)
+        {
+            case 0:
+                CaseZero();
+                goto case 1;
+            case 1:
+                CaseOne();
+                goto default;
+            default:
+                CaseOthers();
+                {|Cursor:goto|} label;
+        }
+    }
+}");
+        }
     }
 }

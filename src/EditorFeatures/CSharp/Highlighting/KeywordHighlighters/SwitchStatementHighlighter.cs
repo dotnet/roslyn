@@ -51,13 +51,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                     break;
 
                 case GotoStatementSyntax gotoStatement:
-                    var start = gotoStatement.GotoKeyword.SpanStart;
-                    var end = !gotoStatement.CaseOrDefaultKeyword.IsKind(SyntaxKind.None)
-                        ? gotoStatement.CaseOrDefaultKeyword.Span.End
-                        : gotoStatement.GotoKeyword.Span.End;
+                    if (!gotoStatement.IsKind(SyntaxKind.GotoStatement) || gotoStatement.Expression.IsMissing)
+                    {
+                        var start = gotoStatement.GotoKeyword.SpanStart;
+                        var end = !gotoStatement.CaseOrDefaultKeyword.IsKind(SyntaxKind.None)
+                            ? gotoStatement.CaseOrDefaultKeyword.Span.End
+                            : gotoStatement.GotoKeyword.Span.End;
 
-                    spans.Add(TextSpan.FromBounds(start, end));
-                    spans.Add(EmptySpan(gotoStatement.SemicolonToken.Span.End));
+                        spans.Add(TextSpan.FromBounds(start, end));
+                        spans.Add(EmptySpan(gotoStatement.SemicolonToken.Span.End));
+                    }
                     break;
 
                 default:
