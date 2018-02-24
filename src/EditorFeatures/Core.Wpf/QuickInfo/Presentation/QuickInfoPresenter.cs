@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 
         IAsyncQuickInfoSource IAsyncQuickInfoSourceProvider.TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
-            return new QuickInfoSource();
+            return null;
         }
     }
 }
