@@ -2258,7 +2258,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var se in sideEffects)
                 {
-                    VisitRvalue(se);
+                    if (se is BoundExpression e)
+                    {
+                        VisitRvalue(e);
+                    }
+                    else
+                    {
+                        VisitStatement((BoundStatement)se);
+                    }
                 }
             }
 
@@ -2727,21 +2734,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
         {
-            VisitRvalue(node.GoverningExpression);
+            VisitRvalue(node.Expression);
             var dispatchState = this.State;
             var endState = UnreachableState();
-            foreach (var section in node.SwitchSections)
+            foreach (var arm in node.SwitchArms)
             {
                 SetState(dispatchState.Clone());
-                VisitPattern(node.GoverningExpression, section.Pattern);
+                VisitPattern(node.Expression, arm.Pattern);
                 SetState(StateWhenTrue);
-                if (section.Guard != null)
+                if (arm.Guard != null)
                 {
-                    VisitCondition(section.Guard);
+                    VisitCondition(arm.Guard);
                     SetState(StateWhenTrue);
                 }
 
-                VisitRvalue(section.Value);
+                VisitRvalue(arm.Value);
                 IntersectWith(ref endState, ref this.State);
             }
 

@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override BoundNode VisitSequence(BoundSequence node)
         {
             var newLocals = RewriteLocals(node.Locals);
-            var newSideEffects = VisitList<BoundExpression>(node.SideEffects);
+            var newSideEffects = VisitList<BoundNode>(node.SideEffects);
             var newValue = (BoundExpression)this.Visit(node.Value);
             var newType = this.VisitType(node.Type);
             return node.Update(newLocals, newSideEffects, newValue, newType);

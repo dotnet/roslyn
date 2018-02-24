@@ -567,7 +567,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public BoundNode VisitStatement(BoundNode node)
         {
             Debug.Assert(node == null || EvalStackIsEmpty());
+            return VisitSideEffect(node);
+        }
 
+        public BoundNode VisitSideEffect(BoundNode node)
+        {
             var origStack = StackDepth();
             var prevContext = _context;
 
@@ -689,17 +693,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var origContext = _context;
 
             var sideeffects = node.SideEffects;
-            ArrayBuilder<BoundExpression> rewrittenSideeffects = null;
+            ArrayBuilder<BoundNode> rewrittenSideeffects = null;
             if (!sideeffects.IsDefault)
             {
                 for (int i = 0; i < sideeffects.Length; i++)
                 {
                     var sideeffect = sideeffects[i];
-                    var rewrittenSideeffect = this.VisitExpression(sideeffect, ExprContext.Sideeffects);
+                    var rewrittenSideeffect =
+                        sideeffect is BoundExpression expr ? this.VisitExpression(expr, ExprContext.Sideeffects) : this.VisitSideEffect(sideeffect);
 
                     if (rewrittenSideeffects == null && rewrittenSideeffect != sideeffect)
                     {
-                        rewrittenSideeffects = ArrayBuilder<BoundExpression>.GetInstance();
+                        rewrittenSideeffects = ArrayBuilder<BoundNode>.GetInstance();
                         rewrittenSideeffects.AddRange(sideeffects, i);
                     }
 
@@ -784,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _local = local;
             }
 
-            public bool IsLocalUsedIn(BoundExpression node)
+            public bool IsLocalUsedIn(BoundNode node)
             {
                 _found = false;
                 this.Visit(node);

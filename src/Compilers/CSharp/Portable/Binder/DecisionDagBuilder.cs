@@ -43,24 +43,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Used to create a decision dag for a switch statement.
         /// </summary>
         /// <param name="syntax"></param>
-        /// <param name="switchExpression"></param>
+        /// <param name="switchGoverningExpression"></param>
         /// <param name="switchSections"></param>
         /// <param name="defaultLabel"></param>
         /// <returns></returns>
         public BoundDecisionDag CreateDecisionDag(
             SyntaxNode syntax,
-            BoundExpression switchExpression,
+            BoundExpression switchGoverningExpression,
             ImmutableArray<BoundPatternSwitchSection> switchSections,
             LabelSymbol defaultLabel)
         {
-            ImmutableArray<PartialCaseDecision> cases = MakeCases(switchExpression, switchSections);
+            ImmutableArray<PartialCaseDecision> cases = MakeCases(switchGoverningExpression, switchSections);
             BoundDecisionDag dag = MakeDecisionDag(syntax, cases, defaultLabel);
             return dag;
         }
 
-        private ImmutableArray<PartialCaseDecision> MakeCases(BoundExpression switchExpression, ImmutableArray<BoundPatternSwitchSection> switchSections)
+        private ImmutableArray<PartialCaseDecision> MakeCases(BoundExpression switchGoverningExpression, ImmutableArray<BoundPatternSwitchSection> switchSections)
         {
-            var rootIdentifier = new BoundDagTemp(switchExpression.Syntax, switchExpression.Type, null, 0);
+            var rootIdentifier = new BoundDagTemp(switchGoverningExpression.Syntax, switchGoverningExpression.Type, null, 0);
             int i = 0;
             var builder = ArrayBuilder<PartialCaseDecision>.GetInstance(switchSections.Length);
             foreach (BoundPatternSwitchSection section in switchSections)
@@ -78,6 +78,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MakeAndSimplifyDecisionsAndBindings(input, label.Pattern, out ImmutableArray<BoundDagDecision> decisions, out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings);
             return new PartialCaseDecision(index, label.Syntax, decisions, bindings, label.Guard, label.Label);
+        }
+
+        /// <summary>
+        /// Used to create a decision dag for a switch expression.
+        /// </summary>
+        /// <param name="syntax"></param>
+        /// <param name="switchExpressionInput"></param>
+        /// <param name="switchArms"></param>
+        /// <param name="defaultLabel"></param>
+        /// <returns></returns>
+        public BoundDecisionDag CreateDecisionDag(
+            SyntaxNode syntax,
+            BoundExpression switchExpressionInput,
+            ImmutableArray<BoundSwitchExpressionArm> switchArms,
+            LabelSymbol defaultLabel)
+        {
+            ImmutableArray<PartialCaseDecision> arms = MakeArms(switchExpressionInput, switchArms);
+            BoundDecisionDag dag = MakeDecisionDag(syntax, arms, defaultLabel);
+            return dag;
+        }
+
+        private ImmutableArray<PartialCaseDecision> MakeArms(BoundExpression switchExpressionInput, ImmutableArray<BoundSwitchExpressionArm> switchArms)
+        {
+            var rootIdentifier = new BoundDagTemp(switchExpressionInput.Syntax, switchExpressionInput.Type, null, 0);
+            int i = 0;
+            var builder = ArrayBuilder<PartialCaseDecision>.GetInstance(switchArms.Length);
+            foreach (BoundSwitchExpressionArm arm in switchArms)
+            {
+                builder.Add(MakePartialCaseDecision(++i, rootIdentifier, arm));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        private PartialCaseDecision MakePartialCaseDecision(int index, BoundDagTemp input, BoundSwitchExpressionArm arm)
+        {
+            MakeAndSimplifyDecisionsAndBindings(input, arm.Pattern, out ImmutableArray<BoundDagDecision> decisions, out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings);
+            return new PartialCaseDecision(index, arm.Syntax, decisions, bindings, arm.Guard, arm.Label);
         }
 
         private void MakeAndSimplifyDecisionsAndBindings(
@@ -263,7 +301,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref HashSet<DiagnosticInfo> discardedUseSiteDiagnostics)
         {
             input = ConvertToType(input, constant.Syntax, constant.Value.Type, decisions, ref discardedUseSiteDiagnostics);
-            decisions.Add(new BoundValueDecision(constant.Syntax, constant.ConstantValue, input));
+            if (constant.ConstantValue == ConstantValue.Null)
+            {
+                decisions.Add(new BoundNullValueDecision(constant.Syntax, input));
+            }
+            else
+            {
+                decisions.Add(new BoundNonNullValueDecision(constant.Syntax, constant.ConstantValue, input));
+            }
         }
 
         private void MakeDecisionsAndBindings(
@@ -526,17 +571,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundNonNullDecision n1:
                     switch (other)
                     {
-                        case BoundValueDecision v2:
-                            if (v2.Value == ConstantValue.Null)
-                            {
-                                trueDecisionPermitsTrueOther = false; // if v!=null is true, then v==null cannot succeed
-                                falseDecisionImpliesTrueOther = true; // if v!=null is false, then v==null has been proven true
-                            }
-                            else
-                            {
-                                // Given that v!=null fails, v is null and v==K cannot succeed
-                                falseDecisionPermitsTrueOther = false;
-                            }
+                        case BoundNonNullValueDecision v2:
+                            // Given that v!=null fails, v is null and v==K cannot succeed
+                            falseDecisionPermitsTrueOther = false;
+                            break;
+                        case BoundNullValueDecision v2:
+                            trueDecisionPermitsTrueOther = false; // if v!=null is true, then v==null cannot succeed
+                            falseDecisionImpliesTrueOther = true; // if v!=null is false, then v==null has been proven true
                             break;
                         default:
                             // Once v!=null fails, it must fail a type test
@@ -567,42 +608,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 falseDecisionPermitsTrueOther = false;
                             }
                             break;
-                        case BoundValueDecision v2:
-                            if (v2.Value == ConstantValue.Null)
-                            {
-                                trueDecisionPermitsTrueOther = false; // if v is T1 is true, then v==null cannot succeed
-                            }
-                            else
-                            {
-                                // PROTOTYPE(patterns2): what can knowing that the type is/isn't T1 imply about knowing the value is v2?
-                            }
+                        case BoundNonNullValueDecision v2:
+                            // PROTOTYPE(patterns2): what can knowing that the type is/isn't T1 imply about knowing the value is v2?
+                            break;
+                        case BoundNullValueDecision v2:
+                            trueDecisionPermitsTrueOther = false; // if v is T1 is true, then v==null cannot succeed
                             break;
                     }
                     break;
-                case BoundValueDecision v1:
+                case BoundNonNullValueDecision v1:
                     switch (other)
                     {
                         case BoundNonNullDecision n2:
-                            if (v1.Value == ConstantValue.Null)
-                            {
-                                trueDecisionPermitsTrueOther = false; // v==null being true does not permit v!=null to be true
-                                falseDecisionImpliesTrueOther = true; // v==null being false implies v!=null to be true
-                            }
-                            else
-                            {
-                                // v==K implies v!=null
-                                trueDecisionImpliesTrueOther = true;
-                            }
+                            // v==K implies v!=null
+                            trueDecisionImpliesTrueOther = true;
                             break;
                         case BoundTypeDecision t2:
-                            if (v1.Value == ConstantValue.Null)
-                            {
-                                // v==null does not permit v is T
-                                trueDecisionPermitsTrueOther = false;
-                            }
-
                             break;
-                        case BoundValueDecision v2:
+                        case BoundNullValueDecision v2:
+                            trueDecisionPermitsTrueOther = false;
+                            break;
+                        case BoundNonNullValueDecision v2:
                             if (v1.Value == v2.Value)
                             {
                                 trueDecisionImpliesTrueOther = true;
@@ -618,6 +644,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
 
+                            break;
+                    }
+                    break;
+                case BoundNullValueDecision v1:
+                    switch (other)
+                    {
+                        case BoundNonNullDecision n2:
+                            trueDecisionPermitsTrueOther = false; // v==null being true does not permit v!=null to be true
+                            falseDecisionImpliesTrueOther = true; // v==null being false implies v!=null to be true
+                            break;
+                        case BoundTypeDecision t2:
+                            // v==null does not permit v is T
+                            trueDecisionPermitsTrueOther = false;
+                            break;
+                        case BoundNullValueDecision v2:
+                            trueDecisionImpliesTrueOther = true;
+                            falseDecisionPermitsTrueOther = false;
+                            break;
+                        case BoundNonNullValueDecision v2:
+                            trueDecisionPermitsTrueOther = false;
                             break;
                     }
                     break;

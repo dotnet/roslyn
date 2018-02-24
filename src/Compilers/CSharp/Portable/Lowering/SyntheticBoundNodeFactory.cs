@@ -795,6 +795,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }
 
+        public BoundSequence Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression result)
+        {
+            return new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
+        }
+
         /// <summary>
         /// Produce an int switch.
         /// </summary>

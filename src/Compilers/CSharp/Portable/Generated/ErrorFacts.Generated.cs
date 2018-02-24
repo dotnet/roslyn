@@ -179,6 +179,7 @@
                 case ErrorCode.WRN_FilterIsConstantFalse:
                 case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustive:
                     return true;
                 default:
                     return false;

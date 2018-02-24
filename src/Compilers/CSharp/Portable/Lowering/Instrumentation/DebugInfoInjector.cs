@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: false);
         }
 
-        public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentPatternSwitchStatement2(BoundPatternSwitchStatement2 original, BoundStatement rewritten)
         {
             SwitchStatementSyntax switchSyntax = (SwitchStatementSyntax)original.Syntax;
             TextSpan switchSequencePointSpan = TextSpan.FromBounds(
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequencePointWithSpan(
                 syntax: switchSyntax,
-                statementOpt: base.InstrumentPatternSwitchStatement(original, rewritten),
+                statementOpt: base.InstrumentPatternSwitchStatement2(original, rewritten),
                 span: switchSequencePointSpan,
                 hasErrors: false);
         }

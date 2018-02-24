@@ -14309,6 +14309,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The switch expression does not handle all possible inputs (it is not exhaustive)..
+        /// </summary>
+        internal static string WRN_SwitchExpressionNotExhaustive {
+            get {
+                return ResourceManager.GetString("WRN_SwitchExpressionNotExhaustive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Source file has exceeded the limit of 16,707,565 lines representable in the PDB; debug information will be incorrect.
         /// </summary>
         internal static string WRN_TooManyLinesForDebugger {

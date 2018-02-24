@@ -721,7 +721,7 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="SideEffects" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="SideEffects" Type="ImmutableArray&lt;BoundNode&gt;"/>
     <Field Name="Value" Type="BoundExpression"/>
   </Node>
 
@@ -787,25 +787,6 @@
     <Field Name="Label" Type="GeneratedLabelSymbol" />
   </Node>
 
-  <Node Name="BoundPatternSwitchStatement" Base="BoundStatement">
-    <Field Name="Expression" Type="BoundExpression"/>
-    
-    <!-- SomeValueMatched is true if some case label would always match. -->
-    <Field Name="SomeLabelAlwaysMatches" Type="bool"/>
-
-    <!-- Locals declared immediately within the switch block. -->
-    <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
-    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundPatternSwitchSection&gt;"/>
-    <Field Name="DefaultLabel" Type="BoundPatternSwitchLabel" Null="allow"/>
-    <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
-
-    <!-- A switch is considered complete if every value of the switch expression's
-         type is handled by some switch label that is either not guarded by a when
-         clause, or for which the when clause expression has the constant value true. -->
-    <Field Name="IsComplete" Type="bool"/>
-  </Node>
-
   <Node Name="BoundPatternSwitchStatement2" Base="BoundStatement">
     <Field Name="Expression" Type="BoundExpression"/>
 
@@ -821,16 +802,43 @@
     <Field Name="DecisionDag" Type="BoundDecisionDag" Null="allow"/>
   </Node>
 
+  <!-- Part of a lowered integral switch statement. This evaluates Value, and then branches
+       to the corresponding Target. If no Value is equal to the input, it is a no-op.
+       The input Value and the constants must be of the same integral type.
+
+       BoundSwitchDispatch is also used to mark labels in the code that will be the target of backward
+       branches, but should be treated as having the same stack depth as the location where
+       the BoundForwardLabels appears. Although we will necessarily produce some IL instructions
+       for this in order to comply with the verifier constraints, the effect of the code shall be
+       a no-op. The form of the code produced will likely be something of the form
+         ldc.i4.m1 // load constant -1
+         switch    (
+             IL_nnnn, // all of the labels of interest
+             IL_nnnn,
+             IL_nnnn)
+       This is needed for the lowering of the pattern switch expression, which produces
+       a state machine that may contain backward branches. Due to the fact that it is an expression,
+       it may appear where the stack is not empty. A BoundSwitchDispatch statement (used inside of a
+       BoundSequence containing the state machine) permits us to (cause the verifier to) classify
+       all of the labels as forward labels by producing a dummy inoperable forward jump to them.
+  -->
+  <Node Name="BoundSwitchDispatch" Base="BoundStatement">
+    <Field Name="Value" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Cases" Type="ImmutableArray&lt;(ConstantValue value, LabelSymbol target)&gt;" Null="disallow"/>
+  </Node>
+
   <Node Name="BoundSwitchExpression" Base="BoundExpression">
-    <Field Name="GoverningExpression" Type="BoundExpression"/>
-    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchExpressionArm&gt;"/>
-    <!--<Field Name="DecisionDag" Type="BoundDecisionDag" Null="allow"/>-->
+    <Field Name="Expression" Type="BoundExpression"/>
+    <Field Name="SwitchArms" Type="ImmutableArray&lt;BoundSwitchExpressionArm&gt;"/>
+    <Field Name="DecisionDag" Type="BoundDecisionDag" Null="allow"/>
+    <Field Name="DefaultLabel" Type="LabelSymbol" Null="allow"/>
   </Node>
   <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
     <Field Name="Guard" Type="BoundExpression" Null="allow"/>
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
   </Node>
 
   <AbstractNode Name="BoundDecisionDag" Base="BoundNode">
@@ -866,15 +874,18 @@
     <Field Name="Source" Type="BoundDagEvaluation" Null="allow"/>
     <Field Name="Index" Type="int"/>
   </Node>
+  <Node Name="BoundTypeDecision" Base="BoundDagDecision">
+    <!--Check that the input is of the given type. Null check is separate.-->
+    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
+  </Node>
   <Node Name="BoundNonNullDecision" Base="BoundDagDecision">
      <!--Check that the input is not null.--> 
   </Node>
-  <Node Name="BoundTypeDecision" Base="BoundDagDecision">
-     <!--Check that the input is of the given type. Null check is separate.--> 
-    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
+  <Node Name="BoundNullValueDecision" Base="BoundDagDecision">
+    <!--Check that the input is null.-->
   </Node>
-  <Node Name="BoundValueDecision" Base="BoundDagDecision">
-     <!--Check that the input is the same as the given constant value.--> 
+  <Node Name="BoundNonNullValueDecision" Base="BoundDagDecision">
+     <!--Check that the input is the same as the given constant value (other than null).--> 
     <Field Name="Value" Type="ConstantValue" Null="disallow"/>
   </Node>
   <!-- As a decision, an evaluation is considered to always succeed. -->

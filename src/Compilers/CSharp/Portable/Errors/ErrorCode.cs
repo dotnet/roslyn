@@ -1568,6 +1568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SwitchExpressionNoBestType = 8406,
         ERR_SingleElementPositionalPatternRequiresType = 8407,
         ERR_VarMayNotBindToType = 8408,
+        WRN_SwitchExpressionNotExhaustive = 8409,
         #endregion diagnostics introduced for recursive patterns
 
     }

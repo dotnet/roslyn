@@ -229,8 +229,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundRecursivePatternOperation((BoundRecursivePattern)boundNode);
                 case BoundKind.DiscardPattern:
                     return CreateBoundDiscardPatternOperation((BoundDiscardPattern)boundNode);
-                case BoundKind.PatternSwitchStatement:
-                    return CreateBoundPatternSwitchStatementOperation((BoundPatternSwitchStatement)boundNode);
+                case BoundKind.PatternSwitchStatement2:
+                    return CreateBoundPatternSwitchStatementOperation((BoundPatternSwitchStatement2)boundNode);
                 case BoundKind.PatternSwitchLabel:
                     return CreateBoundPatternSwitchLabelOperation((BoundPatternSwitchLabel)boundNode);
                 case BoundKind.IsPatternExpression:
@@ -1803,7 +1803,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new RecursivePattern(variable, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private ISwitchOperation CreateBoundPatternSwitchStatementOperation(BoundPatternSwitchStatement boundPatternSwitchStatement)
+        private ISwitchOperation CreateBoundPatternSwitchStatementOperation(BoundPatternSwitchStatement2 boundPatternSwitchStatement)
         {
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundPatternSwitchStatement.Expression));
             Lazy<ImmutableArray<ISwitchCaseOperation>> cases = new Lazy<ImmutableArray<ISwitchCaseOperation>>(() => GetPatternSwitchStatementCases(boundPatternSwitchStatement));

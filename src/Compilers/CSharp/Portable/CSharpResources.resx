@@ -5277,4 +5277,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_VarMayNotBindToType" xml:space="preserve">
     <value>The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to '{0}' here.</value>
   </data>
+  <data name="WRN_SwitchExpressionNotExhaustive" xml:space="preserve">
+    <value>The switch expression does not handle all possible inputs (it is not exhaustive).</value>
+  </data>
 </root>

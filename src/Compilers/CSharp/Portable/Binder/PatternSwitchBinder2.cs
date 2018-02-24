@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parseOptions = SwitchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
                 return
                     parseOptions?.Features.ContainsKey("testV8SwitchBinder") == true ||
+                    parseOptions?.Features.ContainsKey("testV7SwitchBinder") == true ||
                     HasPatternSwitchSyntax(SwitchSyntax) ||
                     !SwitchGoverningType.IsValidV6SwitchGoverningType();
             }
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<LocalFunctionSymbol> functions = GetDeclaredLocalFunctionsForScope(node);
             BoundDecisionDag decisionDag = new DecisionDagBuilder(this.Compilation).CreateDecisionDag(
                 syntax: node,
-                switchExpression: boundSwitchGoverningExpression,
+                switchGoverningExpression: boundSwitchGoverningExpression,
                 switchSections: switchSections,
                 // If there is no explicit default label, the default action is to break out of the switch
                 defaultLabel: defaultLabel?.Label ?? BreakLabel);

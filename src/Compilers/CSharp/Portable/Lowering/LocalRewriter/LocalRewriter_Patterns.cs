@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
+        /// <summary>
+        /// A common base class for lowering constructs that use pattern-matching.
+        /// </summary>
         private class PatternLocalRewriter
         {
             protected readonly LocalRewriter _localRewriter;
@@ -105,7 +108,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                             test = _factory.Is(input, d.Type);
                         }
                         return;
-                    case BoundValueDecision d:
+                    case BoundNullValueDecision d:
+                        if (d.Input == _inputTemp && _loweredInput.ConstantValue != null)
+                        {
+                            bool decisionResult = _loweredInput.ConstantValue == ConstantValue.Null;
+                            if (!decisionResult)
+                            {
+                                test = _factory.Literal(decisionResult);
+                            }
+                        }
+                        else
+                        {
+                            test = _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullEqual : BinaryOperatorKind.Equal);
+                        }
+                        return;
+                    case BoundNonNullValueDecision d:
                         // If the actual input is a constant, short-circuit this test
                         if (d.Input == _inputTemp && _loweredInput.ConstantValue != null)
                         {
@@ -114,10 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 test = _factory.Literal(decisionResult);
                             }
-                        }
-                        else if (d.Value == ConstantValue.Null)
-                        {
-                            test = _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullEqual : BinaryOperatorKind.Equal);
                         }
                         else
                         {
