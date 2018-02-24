@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample1_1()
+        public async Task TestExample1_OnSwitchKeyword()
         {
             await TestAsync(
 @"class C
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample1_2()
+        public async Task TestExample1_OnCaseKeyword()
         {
             await TestAsync(
 @"class C
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample1_3()
+        public async Task TestExample1_OnCaseColon()
         {
             await TestAsync(
 @"class C
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample1_4()
+        public async Task TestExample1_NotOnCaseValue()
         {
             await TestAsync(
 @"class C
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample1_5()
+        public async Task TestExample1_OnBreakStatement()
         {
             await TestAsync(
 @"class C
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample1_6()
+        public async Task TestExample1_OnDefaultLabel()
         {
             await TestAsync(
 @"class C
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample2_1()
+        public async Task TestExample2_OnGotoCaseKeywords()
         {
             await TestAsync(
 @"class C
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample2_2()
+        public async Task TestExample2_OnGotoCaseSemicolon()
         {
             await TestAsync(
 @"class C
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample2_3()
+        public async Task TestExample2_NotOnGotoCaseValue()
         {
             await TestAsync(
 @"class C
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample2_4()
+        public async Task TestExample2_OnGotoDefaultStatement()
         {
             await TestAsync(
 @"class C
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestNestedExample1_9()
+        public async Task TestNestedExample1_OnSwitchKeyword()
         {
             await TestAsync(
 @"class C
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestNestedExample1_10()
+        public async Task TestNestedExample1_OnCaseKeyword()
         {
             await TestAsync(
 @"class C
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestNestedExample1_11()
+        public async Task TestNestedExample1_NotOnCaseValue()
         {
             await TestAsync(
 @"class C
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestNestedExample1_12()
+        public async Task TestNestedExample1_OnCaseColon()
         {
             await TestAsync(
 @"class C
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestNestedExample1_13()
+        public async Task TestNestedExample1_OnBreakStatement()
         {
             await TestAsync(
 @"class C
