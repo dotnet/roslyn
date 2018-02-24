@@ -18,13 +18,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
             switch (node)
             {
                 case MethodDeclarationSyntax methodDeclaration:
+                {
                     var asyncModifier = methodDeclaration.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
                     if (asyncModifier.Kind() != SyntaxKind.None)
                     {
                         spans.Add(asyncModifier.Span);
                     }
                     break;
-
+                }
+                case LocalFunctionStatementSyntax localFunction:
+                {
+                    var asyncModifier = localFunction.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
+                    if (asyncModifier.Kind() != SyntaxKind.None)
+                    {
+                        spans.Add(asyncModifier.Span);
+                    }
+                    break;
+                }
                 case AnonymousFunctionExpressionSyntax anonymousFunction:
                     if (anonymousFunction.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
                     {
