@@ -6,9 +6,7 @@ using System.Threading;
 using System.Windows;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -16,16 +14,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
     internal sealed partial class EventHookupSessionManager : ForegroundThreadAffinitizedObject
     {
-        private readonly IHACK_EventHookupDismissalOnBufferChangePreventerService _prematureDismissalPreventer;
-
         internal EventHookupSession CurrentSession { get; set; }
 
         // For test purposes only!
         internal FrameworkElement TEST_MostRecentQuickInfoContent { get; set; }
 
-        internal EventHookupSessionManager(IHACK_EventHookupDismissalOnBufferChangePreventerService prematureDismissalPreventer)
+        internal EventHookupSessionManager()
         {
-            _prematureDismissalPreventer = prematureDismissalPreventer;
         }
 
         internal void EventHookupFoundInSession(EventHookupSession analyzedSession)
@@ -47,13 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
                 analyzedSession.TextView.Caret.PositionChanged += Caret_PositionChanged;
                 CurrentSession.Dismissed += () => { analyzedSession.TextView.Caret.PositionChanged -= Caret_PositionChanged; };
-
-                // HACK! Workaround for VS dismissing quick info sessions on buffer changed events.
-                // This must happen after the QuickInfoSession is started.
-                if (_prematureDismissalPreventer != null)
-                {
-                    _prematureDismissalPreventer.HACK_EnsureQuickInfoSessionNotDismissedPrematurely(analyzedSession.TextView);
-                }
             }
         }
 

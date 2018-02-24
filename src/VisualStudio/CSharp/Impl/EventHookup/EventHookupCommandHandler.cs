@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
@@ -42,23 +39,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         internal readonly EventHookupSessionManager EventHookupSessionManager;
 
-        // This can be null! It is only needed for VS and is thus only exported for VS scenarios.
-        private readonly IHACK_EventHookupDismissalOnBufferChangePreventerService _prematureDismissalPreventer;
-
         // For testing purposes only! Will always be null except in certain tests.
         internal Mutex TESTSessionHookupMutex;
 
         [ImportingConstructor]
         public EventHookupCommandHandler(
             IInlineRenameService inlineRenameService,
-            [Import(AllowDefault = true)] IHACK_EventHookupDismissalOnBufferChangePreventerService prematureDismissalPreventer,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _inlineRenameService = inlineRenameService;
-            _prematureDismissalPreventer = prematureDismissalPreventer;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.EventHookup);
 
-            this.EventHookupSessionManager = new EventHookupSessionManager(prematureDismissalPreventer);
+            this.EventHookupSessionManager = new EventHookupSessionManager();
         }
     }
 }
