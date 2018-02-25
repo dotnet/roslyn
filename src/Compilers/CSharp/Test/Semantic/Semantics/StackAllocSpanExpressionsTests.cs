@@ -220,7 +220,7 @@ namespace System
             Span<int> a = stackalloc int [10];
         }
     }
-}").VerifyDiagnostics(
+}").VerifyEmitDiagnostics(
                 // (11,27): error CS0656: Missing compiler required member 'System.Span`1..ctor'
                 //             Span<int> a = stackalloc int [10];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "stackalloc int [10]").WithArguments("System.Span`1", ".ctor").WithLocation(11, 27));

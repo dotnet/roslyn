@@ -312,10 +312,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (spanConversion.Exists)
                         {
-                            // Report errors if Span ctor is missing
-                            Binder.GetWellKnownTypeMember(_binder.Compilation, WellKnownMember.System_Span_T__ctor, out DiagnosticInfo memberDiagnosticInfo);
-                            HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, memberDiagnosticInfo);
-
                             return Conversion.MakeStackAllocToSpanType(spanConversion);
                         }
                     }
