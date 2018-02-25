@@ -88,17 +88,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         {
             Debug.Assert(highlightBreaks || highlightContinues);
 
-            if (highlightBreaks && node is BreakStatementSyntax)
+            if (highlightBreaks && node is BreakStatementSyntax breakStatement)
             {
-                var statement = (BreakStatementSyntax)node;
-                spans.Add(statement.BreakKeyword.Span);
-                spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
+                spans.Add(breakStatement.BreakKeyword.Span);
+                spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
             }
-            else if (highlightContinues && node is ContinueStatementSyntax)
+            else if (highlightContinues && node is ContinueStatementSyntax continueStatement)
             {
-                var statement = (ContinueStatementSyntax)node;
-                spans.Add(statement.ContinueKeyword.Span);
-                spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
+                spans.Add(continueStatement.ContinueKeyword.Span);
+                spans.Add(EmptySpan(continueStatement.SemicolonToken.Span.End));
             }
             else
             {
