@@ -17,12 +17,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         protected override string GetIsNotNullTitle()
             => GetIsNullTitle();
 
-        protected override SyntaxNode CreateIsNullCheck(SyntaxNode argument)
+        private static SyntaxNode CreateEqualsNullCheck(SyntaxNode argument, SyntaxKind comparisonOperator)
+            => SyntaxFactory.BinaryExpression(
+                comparisonOperator,
+                (ExpressionSyntax)argument,
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)).Parenthesize();
+
+        private static SyntaxNode CreateIsNullCheck(SyntaxNode argument)
             => SyntaxFactory.IsPatternExpression(
                 (ExpressionSyntax)argument,
                 SyntaxFactory.ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))).Parenthesize();
 
-        protected override SyntaxNode CreateIsNotNullCheck(SyntaxNode notExpression, SyntaxNode argument)
+        private static SyntaxNode CreateIsNotNullCheck(SyntaxNode notExpression, SyntaxNode argument)
             => ((PrefixUnaryExpressionSyntax)notExpression).WithOperand((ExpressionSyntax)CreateIsNullCheck(argument));
+
+        protected override SyntaxNode CreateNullCheck(SyntaxNode argument, bool isUnconstrainedGeneric)
+            => isUnconstrainedGeneric
+                ? CreateEqualsNullCheck(argument, SyntaxKind.EqualsExpression)
+                : CreateIsNullCheck(argument);
+
+        protected override SyntaxNode CreateNotNullCheck(SyntaxNode notExpression, SyntaxNode argument, bool isUnconstrainedGeneric)
+            => isUnconstrainedGeneric
+                ? CreateEqualsNullCheck(argument, SyntaxKind.NotEqualsExpression)
+                : CreateIsNotNullCheck(notExpression, argument);
     }
 }

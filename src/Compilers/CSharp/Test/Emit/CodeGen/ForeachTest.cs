@@ -116,7 +116,7 @@ public class Test
             string expectedOutput = @"97
 98
 99";
-            CompileAndVerify(text, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         // Empty foreach statement
@@ -526,7 +526,7 @@ class Test
         [Fact]
         public void TestSpanValIndexer()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateEmptyCompilation(@"
 using System;
 
 class Test
@@ -1169,7 +1169,7 @@ Z";
 ";
             string expectedOutput = @"abc
 xyz";
-            CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(text, new[] { CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1294,7 +1294,7 @@ public class Test
 b
 c
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }

@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void CompileAndCheckSymbolCount(string source, string symbolName, int expectedSymbolCount)
         {
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);

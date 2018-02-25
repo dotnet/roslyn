@@ -212,16 +212,6 @@
         <target state="translated">Ri&amp;muovi e ordina using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_potential_implicit_array_creation">
-        <source>Autoselect disabled due to potential implicit array creation.</source>
-        <target state="translated">La selezione automatica è disabilitata a causa della potenziale creazione di matrici implicite.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="implicit_array_creation">
-        <source>&lt;implicit array creation&gt;</source>
-        <target state="translated">&lt;creazione matrici implicite&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_await">
         <source>Insert 'await'.</source>
         <target state="translated">Inserire 'await'.</target>

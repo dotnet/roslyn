@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Specifies what symbols to import from metadata.
     /// </summary>
-    internal enum MetadataImportOptions : byte
+    public enum MetadataImportOptions : byte
     {
         /// <summary>
         /// Only import public and protected symbols.

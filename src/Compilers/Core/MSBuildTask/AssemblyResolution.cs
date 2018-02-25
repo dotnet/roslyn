@@ -92,7 +92,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             switch (name.Name)
             {
                 case "System.IO.Pipes.AccessControl":
-                    return TryRedirectToRuntimesDir(name);
+                    var assembly = TryRedirectToRuntimesDir(name);
+                    if (assembly != null)
+                    {
+                        return assembly;
+                    }
+                    break;
             }
 
             return Assembly.Load(name);
@@ -128,14 +133,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             if (File.Exists(assemblyPath))
             {
                 CompilerServerLogger.Log($"Loading from: {assemblyPath}");
-                return (Assembly)typeof(Assembly).GetTypeInfo()
-                    .GetDeclaredMethod("LoadFile")
-                    ?.Invoke(null, parameters: new object[] { assemblyPath });
+                return LoadAssemblyFromPath(assemblyPath);
             }
 
             CompilerServerLogger.Log($"File not found: {assemblyPath}");
 
             return null;
+
+            Assembly LoadAssemblyFromPath(string path)
+                => (Assembly)typeof(Assembly).GetTypeInfo()
+                    .GetDeclaredMethod("LoadFile")
+                    ?.Invoke(null, parameters: new object[] { assemblyPath });
         }
 
         private static bool KeysEqual(byte[] left, byte[] right)

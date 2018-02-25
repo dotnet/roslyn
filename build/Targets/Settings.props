@@ -3,6 +3,10 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
     <RepositoryUrl>https://github.com/dotnet/roslyn</RepositoryUrl>
     <RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</RepositoryRawUrl>
@@ -117,7 +121,7 @@
        - Embed PDBs to be consistent with Jenkins builds.
     -->
     <RoslynDebugType Condition="'$(OfficialBuild)' == 'true'">portable</RoslynDebugType>
-    <RoslynDebugType Condition="'$(OfficialBuild)' != 'true'">embedded</RoslynDebugType>
+    <RoslynDebugType Condition="'$(OfficialBuild)' != 'true'">full</RoslynDebugType>
 
     <!-- 
       The source root path used for deterministic normalization of source paths.
@@ -134,6 +138,9 @@
     <DeterministicSourceRoot Condition="'$(DeveloperBuild)' != 'true'">/_/</DeterministicSourceRoot>
 
     <EnableSourceLink Condition="'$(DeveloperBuild)' != 'true'">true</EnableSourceLink>
+
+    <ChecksumAlgorithm>SHA256</ChecksumAlgorithm>
+
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
 
     <!-- 

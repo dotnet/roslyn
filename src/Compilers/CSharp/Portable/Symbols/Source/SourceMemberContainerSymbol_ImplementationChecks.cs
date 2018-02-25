@@ -141,7 +141,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)synthesizedImplementation != null)
                     {
-                        synthesizedImplementations.Add(synthesizedImplementation);
+                        if (synthesizedImplementation.IsVararg)
+                        {
+                            diagnostics.Add(
+                                ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, 
+                                GetImplicitImplementationDiagnosticLocation(interfaceMember, this, implementingMember), implementingMember, interfaceMember, this);
+                        }
+                        else
+                        {
+                            synthesizedImplementations.Add(synthesizedImplementation);
+                        }
                     }
 
                     if (wasImplementingMemberFound && interfaceMemberKind == SymbolKind.Event)

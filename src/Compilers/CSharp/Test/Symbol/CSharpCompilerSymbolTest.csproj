@@ -36,5 +36,6 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkVersion)" />
     <!-- PROTOTYPE(DefaultInterfaceImplementation): The Version used to use value of $(MicrosoftNETCoreAppVersion), but that doesn't give us the right version in runtimeconfig.json file -->
     <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppFixedVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
 </Project>
