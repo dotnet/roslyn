@@ -51,7 +51,7 @@ class Test1 : I1
 
         private void ValidateMethodImplementation_011(string source1)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -79,7 +79,7 @@ class Test2 : I1
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -95,7 +95,7 @@ class Test2 : I1
                              expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
                              verify: VerifyOnCoreClr, symbolValidator: Validate2);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate2(compilation3.SourceModule);
@@ -173,7 +173,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -205,7 +205,7 @@ class Test2 : I1
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe);
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate2(ModuleSymbol m)
@@ -220,7 +220,7 @@ class Test2 : I1
                              expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test2 M1" : null,
                              verify: VerifyOnCoreClr, symbolValidator: Validate2);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe);
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate2(compilation3.SourceModule);
@@ -256,7 +256,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -288,7 +288,7 @@ class Test2 : I1
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe);
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate2(ModuleSymbol m)
@@ -303,7 +303,7 @@ class Test2 : I1
                              expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test2 M1" : null,
                              verify: VerifyOnCoreClr, symbolValidator: Validate2);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe);
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate2(compilation3.SourceModule);
@@ -349,7 +349,7 @@ class Derived : Base, I1
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -416,7 +416,7 @@ class Derived : Base, I1
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -487,7 +487,7 @@ class Test : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -558,7 +558,7 @@ class Test : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -615,7 +615,7 @@ class Test1 : I1
 
 class Test2 : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -660,7 +660,7 @@ class Test1 : Test2, I1
 
 class Test2 : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -708,7 +708,7 @@ class Test2 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -756,7 +756,7 @@ class Test2 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -804,7 +804,7 @@ class Test1 : I1
 
 class Test2 : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -857,7 +857,7 @@ class Test1 : Test2, I1
 
 class Test2 : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -914,7 +914,7 @@ class Test2 : I1
     int I1.M2() => 2; 
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -971,7 +971,7 @@ class Test2 : I1
     public int M2() => 2; 
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -1035,7 +1035,7 @@ class Test1 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -1062,7 +1062,8 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }),
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1091,7 +1092,7 @@ public interface I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -1105,7 +1106,8 @@ class Test2 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), 
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
             var m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1134,7 +1136,7 @@ public interface I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -1156,6 +1158,7 @@ class Test2 : I2
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
             var m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1183,7 +1186,7 @@ class Test1 : I1
 {}
 ";
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -1213,7 +1216,8 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }),
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1247,7 +1251,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -1274,7 +1278,7 @@ class Test2 : I1
 {}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation2.GetMember<MethodSymbol>("I1.M1");
@@ -1291,7 +1295,7 @@ class Test2 : I1
                     Assert.Equal("I1", test2Result.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
                 });
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1319,7 +1323,7 @@ public interface I1
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -1355,7 +1359,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -1404,7 +1408,7 @@ class Test1 : I2
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -1457,7 +1461,7 @@ class Test2 : I2
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation2.GetMember<MethodSymbol>("I1.M1");
@@ -1478,7 +1482,7 @@ class Test2 : I2
                     Assert.Equal("I1", interfaces[1].ToTestDisplayString());
                 });
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1540,7 +1544,7 @@ class Test1 : I1
 
         private void ValidatePropertyImplementation_101(string source1, string propertyName, bool haveGet, bool haveSet, string accessCode, string expectedOutput)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -1568,7 +1572,7 @@ class Test2 : I1
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -1584,7 +1588,7 @@ class Test2 : I1
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate2);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -1816,7 +1820,7 @@ public interface I1
     int P1 {add; remove;} => 0;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -1858,7 +1862,7 @@ public interface I1
     int P1 {get; set;} => 0;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -1885,7 +1889,7 @@ public interface I1
     int P1 {add; remove;} = 0;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
@@ -1927,7 +1931,7 @@ public interface I1
     int P1 {get; set;} = 0;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
@@ -1965,7 +1969,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -2017,7 +2021,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -2102,7 +2106,7 @@ class Derived : Base, I1
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -2216,7 +2220,7 @@ class Derived : Base, I1
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -2306,7 +2310,7 @@ class Test : I1
     int I1.P8 { get { return 800;} set {System.Console.WriteLine(801);} }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -2430,7 +2434,7 @@ class Test : I1
     public int P8 { get { return 800;} set {System.Console.WriteLine(801);} }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -2520,7 +2524,7 @@ class Test1 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
             compilation1.VerifyDiagnostics(
@@ -2549,7 +2553,8 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }),
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -2639,7 +2644,7 @@ public interface I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -2653,7 +2658,8 @@ class Test2 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }),
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -2692,7 +2698,7 @@ public interface I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -2713,7 +2719,8 @@ class Test2 : I2
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), 
+                                                 targetFramework: TargetFramework.Empty, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -2757,7 +2764,7 @@ class Test1 : I1
 {}
 ";
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -2802,7 +2809,8 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }),
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -2858,7 +2866,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -2888,7 +2896,7 @@ class Test2 : I1
 {}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -2903,7 +2911,7 @@ class Test2 : I1
                     ValidatePropertyImplementation_501(m, "Test2");
                 });
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
@@ -2943,7 +2951,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -3181,7 +3189,7 @@ public interface I1
     int this[int i] {add; remove;} => 0;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -3223,7 +3231,7 @@ public interface I1
     int this[int i] {get; set;} => 0;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -3250,7 +3258,7 @@ public interface I1
     int this[int i] {add; remove;} = 0;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -3292,7 +3300,7 @@ public interface I1
     int this[int i] {get; set;} = 0;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -3330,7 +3338,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -3382,7 +3390,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -3467,7 +3475,7 @@ class Derived : Base, I1
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -3583,7 +3591,7 @@ class Derived : Base, I1
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -3673,7 +3681,7 @@ class Test : I1
     int I1.this[ulong i] { get { return 800;} set {System.Console.WriteLine(801);} }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -3817,7 +3825,7 @@ class Test : I1
     public int this[ulong i] { get { return 800;} set {System.Console.WriteLine(801);} }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -3909,7 +3917,7 @@ class Test1 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
             compilation1.VerifyDiagnostics(
@@ -3938,7 +3946,8 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }),
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4035,7 +4044,7 @@ public interface I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -4049,7 +4058,8 @@ class Test2 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }),
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -4094,7 +4104,7 @@ public interface I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -4116,6 +4126,7 @@ class Test2 : I2
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -4166,7 +4177,7 @@ class Test1 : I1
 {}
 ";
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -4211,7 +4222,8 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }),
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4273,7 +4285,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4303,7 +4315,7 @@ class Test2 : I1
 {}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -4318,7 +4330,7 @@ class Test2 : I1
                     ValidateIndexerImplementation_501(m, "Test2");
                 });
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
@@ -4364,7 +4376,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4431,7 +4443,7 @@ class Test1 : I1
 
         private void ValidateEventImplementation_101(string source1, DiagnosticDescription[] expected, bool haveAdd, bool haveRemove)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(expected);
@@ -4444,7 +4456,7 @@ class Test2 : I1
 {}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4590,7 +4602,7 @@ class Test1 : I1
 
         private void ValidateEventImplementation_102(string source1)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -4623,7 +4635,7 @@ class Test2 : I1
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4643,7 +4655,7 @@ remove E1
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate2);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4918,7 +4930,7 @@ class Derived : Base, I1
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -4993,7 +5005,7 @@ class Derived : Base, I1
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -5056,7 +5068,7 @@ class Test : I1
     event System.Action I1.E8 { add {System.Console.WriteLine(""add E8"");} remove {System.Console.WriteLine(""remove E8"");} }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -5135,7 +5147,7 @@ class Test : I1
     public event System.Action E8 { add {System.Console.WriteLine(""add E8"");} remove {System.Console.WriteLine(""remove E8"");} }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -5199,7 +5211,7 @@ class Test1 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
             compilation1.VerifyDiagnostics(
@@ -5219,7 +5231,8 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }),
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -5276,7 +5289,7 @@ public interface I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -5290,7 +5303,8 @@ class Test2 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }),
+                                                 targetFramework: TargetFramework.Empty, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -5321,7 +5335,7 @@ public interface I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -5343,6 +5357,7 @@ class Test2 : I2
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -5378,7 +5393,7 @@ class Test1 : I1
 {}
 ";
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -5405,7 +5420,8 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }),
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -5444,7 +5460,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -5465,7 +5481,7 @@ class Test2 : I1
 {}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -5480,7 +5496,7 @@ class Test2 : I1
                     ValidateEventImplementation_501(m, "Test2");
                 });
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
@@ -5512,7 +5528,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -5566,7 +5582,7 @@ public interface I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -5722,7 +5738,7 @@ class Test1 : I2
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -5837,7 +5853,7 @@ public interface I2 : I1
     public int F2;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -5996,7 +6012,7 @@ class Test1 : I2
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -6113,7 +6129,7 @@ public interface I2 : I1
     public int F2;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -6147,7 +6163,7 @@ public interface I1
     async void M12();
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -6352,7 +6368,7 @@ public interface I1
     async void M12();
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -6471,7 +6487,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -6514,7 +6530,7 @@ public interface I1
     public abstract void M1();
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -6573,7 +6589,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput:
@@ -6639,7 +6655,7 @@ class Test1 : I1
 class Test2 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -6736,7 +6752,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
@@ -6786,7 +6802,7 @@ class Test1 : I1
 {
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -6875,7 +6891,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -6886,14 +6902,14 @@ class Test1 : I1
 
             ValidateMethodModifiersImplicit_10(compilation1.SourceModule);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
@@ -6904,7 +6920,7 @@ class Test1 : I1
 
             ValidateMethodModifiersImplicit_10(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -6922,7 +6938,7 @@ class Test2 : I1
 }
 ";
 
-            var compilation5 = CreateStandardCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation5 = CreateCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation5.VerifyDiagnostics(
@@ -6933,7 +6949,7 @@ class Test2 : I1
 
             ValidateI1M1NotImplemented(compilation5, "Test2");
 
-            var compilation6 = CreateStandardCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation6 = CreateCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation6.VerifyDiagnostics(
@@ -7046,28 +7062,28 @@ class Test1 : I1
         private void ValidateMethodModifiers_10_02(string source1, string source2,
                                                   params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
             ValidateMethodModifiersImplicit_10(compilation1.SourceModule);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
 
             ValidateMethodModifiersImplicit_10(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
@@ -7106,21 +7122,21 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput: "M1", verify: VerifyOnCoreClr, symbolValidator: ValidateMethodModifiersExplicit_10);
 
             ValidateMethodModifiersExplicit_10(compilation1.SourceModule);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
@@ -7131,7 +7147,7 @@ class Test1 : I1
 
             ValidateMethodModifiersExplicit_10(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -7377,28 +7393,28 @@ class Test1 : Test2, I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput: "Test2.M1", verify: VerifyOnCoreClr, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
 
             ValidateMethodModifiersExplicitInTest2_10(compilation1.SourceModule);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3, expectedOutput: "Test2.M1", verify: VerifyOnCoreClr, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
 
             ValidateMethodModifiersExplicitInTest2_10(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4, expectedOutput: "Test2.M1", verify: VerifyOnCoreClr, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
@@ -7436,7 +7452,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -7447,14 +7463,14 @@ class Test1 : I1
 
             ValidateI1M1NotImplemented(compilation1, "Test1");
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
@@ -7465,7 +7481,7 @@ class Test1 : I1
 
             ValidateI1M1NotImplemented(compilation3, "Test1");
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -7502,7 +7518,7 @@ class Test1 : Test2, I1
 {
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -7513,14 +7529,14 @@ class Test1 : Test2, I1
 
             ValidateMethodModifiersImplicitInTest2_10(compilation1.SourceModule);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
@@ -7531,7 +7547,7 @@ class Test1 : Test2, I1
 
             ValidateMethodModifiersImplicitInTest2_10(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -7568,7 +7584,7 @@ class Test1 : Test2, I1
 {
 }
 ";
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
                                                          assemblyName: "MethodModifiers_10_11");
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -7578,7 +7594,7 @@ class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.M1()", "Test2.M1()").WithLocation(7, 22)
                 );
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -7586,7 +7602,7 @@ class Test1 : Test2, I1
             ValidateMethodModifiersImplicitInTest2_10(compilation3.SourceModule);
 
             var compilation3Ref = compilation3.EmitToImageReference();
-            var compilation4 = CreateStandardCompilation("", new[] { compilation2.ToMetadataReference(), compilation3Ref }, options: TestOptions.DebugDll,
+            var compilation4 = CreateCompilation("", new[] { compilation2.ToMetadataReference(), compilation3Ref }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             
             ValidateMethodModifiersImplicitInTest2_10(compilation4.GetReferencedAssemblySymbol(compilation3Ref).Modules[0]);
@@ -7606,7 +7622,7 @@ class Test1 : I1
 {
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -7658,7 +7674,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -7716,7 +7732,7 @@ class Test1 : I1
 class Test2 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -7823,7 +7839,7 @@ class Test1 : I1
 class Test2 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -7890,7 +7906,7 @@ class Test2 : I1
     void I1.M2() {}
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate);
@@ -7974,7 +7990,7 @@ class Test2 : I1
                 Assert.Null(test2.FindImplementationForInterfaceMember(m5));
             }
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
@@ -8027,7 +8043,7 @@ class Test2 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -8091,7 +8107,7 @@ class Test2 : I1
     void I1.M5() {}
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -8192,7 +8208,7 @@ class Test2 : I1
     void I1.M5() {}
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -8388,7 +8404,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, 
@@ -8421,7 +8437,7 @@ class Test1 : I1
                 Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
             }
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -8432,7 +8448,7 @@ class Test1 : I1
                 ValidateMethod(m1);
             }
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
@@ -8442,7 +8458,7 @@ class Test1 : I1
 
             Validate1(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
@@ -8480,7 +8496,7 @@ class Test1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -8502,7 +8518,7 @@ class Test2
     }
 }
 ";
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() },
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                          options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -8559,7 +8575,7 @@ public interface I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -8613,7 +8629,7 @@ public interface I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -8685,7 +8701,7 @@ public class C1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -8738,7 +8754,7 @@ public interface I1
     int P17 { private get;}
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -9202,7 +9218,7 @@ public interface I1
     int P17 { private get;}
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -9461,7 +9477,7 @@ public interface I1
     public virtual int P1 { get; } = 0; 
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
@@ -9554,7 +9570,7 @@ class Test2 : I2
 
         private void ValidatePropertyModifiers_05(string source1)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -9629,7 +9645,7 @@ public interface I1
     public abstract int P1 {get; set;} 
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -9776,7 +9792,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput:
@@ -9882,7 +9898,7 @@ class Test1 : I1
 class Test2 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -10122,7 +10138,7 @@ class Test1 : I1, I2, I3, I4, I5, I6, I7
 
         private void ValidatePropertyModifiers_09(string source1)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
@@ -10220,7 +10236,7 @@ class Test1 : I1
 {
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
@@ -10408,14 +10424,14 @@ class Test1 : I1
                                                   DiagnosticDescription[] expected1,
                                                   params DiagnosticDescription[] expected2)
         { 
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
 
             ValidatePropertyModifiers_11(compilation1.SourceModule);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -10431,14 +10447,14 @@ class Test1 : I1
                 ValidatePropertyAccessorModifiers_11(p1set);
             }
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected1);
 
             ValidatePropertyModifiers_11(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected1);
@@ -10452,14 +10468,14 @@ class Test2 : I1
 }
 ";
 
-            var compilation5 = CreateStandardCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation5 = CreateCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation5.VerifyDiagnostics(expected2);
 
             ValidatePropertyNotImplemented_11(compilation5, "Test2");
 
-            var compilation6 = CreateStandardCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation6 = CreateCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation6.VerifyDiagnostics(expected2);
@@ -10571,26 +10587,26 @@ class Test1 : I1
         private void ValidatePropertyModifiers_11_02(string source1, string source2,
                                                   params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
             ValidatePropertyImplementation_11(compilation1.SourceModule);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
 
             ValidatePropertyImplementation_11(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
@@ -10679,7 +10695,7 @@ class Test1 : I1
         private void ValidatePropertyModifiers_11_03(string source1, string source2,
                                                   params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput:
@@ -10688,19 +10704,19 @@ set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidatePropertyImplementatio
 
             ValidatePropertyImplementation_11(compilation1.SourceModule);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
 
             ValidatePropertyImplementation_11(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
@@ -11048,7 +11064,7 @@ class Test1 : Test2, I1
 
         private void ValidatePropertyModifiers_11_08(string source1, string source2)
         {
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput:
@@ -11057,12 +11073,12 @@ Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidatePropertyImpleme
 
             ValidatePropertyImplementationByBase_11(compilation1.SourceModule);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3, expectedOutput:
@@ -11071,7 +11087,7 @@ Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidatePropertyImpleme
 
             ValidatePropertyImplementationByBase_11(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4, expectedOutput:
@@ -11131,26 +11147,26 @@ class Test1 : I1
         private void ValidatePropertyModifiers_11_09(string source1, string source2,
                                                   params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
             ValidatePropertyNotImplemented_11(compilation1, "Test1");
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
 
             ValidatePropertyNotImplemented_11(compilation3, "Test1");
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
@@ -11200,26 +11216,26 @@ class Test1 : Test2, I1
         private void ValidatePropertyModifiers_11_10(string source1, string source2,
                                                      params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
             ValidatePropertyImplementationByBase_11(compilation1.SourceModule);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
 
             ValidatePropertyImplementationByBase_11(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
@@ -11269,13 +11285,13 @@ class Test1 : Test2, I1
         private void ValidatePropertyModifiers_11_11(string source1, string source2,
                                                      params DiagnosticDescription[] expected)
         {
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
                                                          assemblyName: "PropertyModifiers_11_11");
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -11283,7 +11299,7 @@ class Test1 : Test2, I1
             ValidatePropertyImplementationByBase_11(compilation3.SourceModule);
 
             var compilation3Ref = compilation3.EmitToImageReference();
-            var compilation4 = CreateStandardCompilation("", new[] { compilation2.ToMetadataReference(), compilation3Ref }, options: TestOptions.DebugDll,
+            var compilation4 = CreateCompilation("", new[] { compilation2.ToMetadataReference(), compilation3Ref }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
 
             ValidatePropertyImplementationByBase_11(compilation4.GetReferencedAssemblySymbol(compilation3Ref).Modules[0]);
@@ -11303,7 +11319,7 @@ class Test1 : I1
 {
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -11476,7 +11492,7 @@ class Test7 : I7
 
         private void ValidatePropertyModifiers_13(string source1)
         { 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -11604,7 +11620,7 @@ class Test2 : I1, I2, I3
 
         private void ValidatePropertyModifiers_14(string source1, params DiagnosticDescription[] expected)
         { 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(expected);
@@ -11875,7 +11891,7 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
 
         private void ValidatePropertyModifiers_15(string source1, params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -12056,7 +12072,7 @@ class Test2 : I1, I2, I3, I4, I5
 
         private void ValidatePropertyModifiers_16(string source1, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         { 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate);
@@ -12205,7 +12221,7 @@ class Test2 : I1, I2, I3, I4, I5
                 Assert.Null(test2.FindImplementationForInterfaceMember(p5set));
             }
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected1);
@@ -12215,7 +12231,7 @@ class Test2 : I1, I2, I3, I4, I5
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -12305,7 +12321,7 @@ class Test2 : I1, I2, I3, I4, I5
 
         private void ValidatePropertyModifiers_17(string source1, params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -12548,7 +12564,7 @@ class Test2 : I1, I2, I3, I4, I5
 
         private void ValidatePropertyModifiers_18(string source1, params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -12738,7 +12754,7 @@ class Test1 : I1
 
         private void ValidatePropertyModifiers_20(string source1, string source2)
         {
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
@@ -12791,7 +12807,7 @@ set_P1
                 Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
             }
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -12807,7 +12823,7 @@ set_P1
                 ValidateMethod(p1set);
             }
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
@@ -12820,7 +12836,7 @@ set_P1
 
             Validate1(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
@@ -12866,7 +12882,7 @@ class Test1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -12896,7 +12912,7 @@ class Test2
     }
 }
 ";
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() },
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                          options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -13002,7 +13018,7 @@ class Test1 : I1, I2, I3, I4
 
         private void ValidatePropertyModifiers_22(string source1)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
@@ -13241,7 +13257,7 @@ class Test6 : I6
 
         private void ValidatePropertyModifiers_23(string source1, string source2, params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -13259,7 +13275,7 @@ class Test6 : I6
                 ValidateProperty23(GetSingleProperty(im, "I6"), false, Accessibility.Public, Accessibility.Private, m.GlobalNamespace.GetTypeMember("Test6"));
             }
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected);
@@ -13269,7 +13285,7 @@ class Test6 : I6
             ValidateProperty23(GetSingleProperty(compilation2, "I5"), false, Accessibility.Private, Accessibility.Public);
             ValidateProperty23(GetSingleProperty(compilation2, "I6"), false, Accessibility.Public, Accessibility.Private);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, 
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, 
                                                          options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -13361,7 +13377,7 @@ class Test1 : I1
 
         private void ValidatePropertyModifiers_23(string source1, string source2, Accessibility getAccess, Accessibility setAccess, params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -13376,14 +13392,14 @@ class Test1 : I1
                 ValidateProperty23(GetSingleProperty(im, "I1"), true, getAccess, setAccess, test1);
             }
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
             ValidateProperty23(GetSingleProperty(compilation2, "I1"), true, getAccess, setAccess);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() },
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() },
                                                          options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -13391,7 +13407,7 @@ class Test1 : I1
 
             Validate1(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() },
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() },
                                                          options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -14563,7 +14579,7 @@ class Test1 : I1
 
         private void ValidatePropertyModifiers_24(string source1, string source2)
         {
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
@@ -14616,7 +14632,7 @@ set_P1
                 Assert.Equal(access, m1.DeclaredAccessibility);
             }
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -14632,7 +14648,7 @@ set_P1
                 ValidateMethod(p1set, Accessibility.Internal);
             }
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
@@ -14645,7 +14661,7 @@ set_P1
 
             Validate1(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
@@ -14691,7 +14707,7 @@ class Test1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -14721,7 +14737,7 @@ class Test2
     }
 }
 ";
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() },
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                          options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -14760,7 +14776,7 @@ public interface I1
     static int P10 { internal get => throw null; private set => throw null;}
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -14888,7 +14904,7 @@ public interface I2
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -14959,7 +14975,7 @@ public interface I15{ int this[int x] { get; internal set;} }
 public interface I16{ int this[int x] { private get; set;} }
 public interface I17{ int this[int x] { private get;} }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -15422,7 +15438,7 @@ public interface I15{ int this[int x] { get; internal set;} }
 public interface I16{ int this[int x] { private get; set;} }
 public interface I17{ int this[int x] { private get;} }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -15681,7 +15697,7 @@ public interface I1
     public virtual int this[int x] { get; } = 0; 
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -15757,7 +15773,7 @@ public interface I1
     public abstract int this[int x] {get; set;} 
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -15935,7 +15951,7 @@ class Test1 : I1
 {
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -16592,7 +16608,7 @@ class Test1 : I1
 {
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -17349,7 +17365,7 @@ class Test1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -17379,7 +17395,7 @@ class Test2
     }
 }
 ";
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() },
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                          options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -18899,7 +18915,7 @@ public class Test1 : I1, I2, I3, I4
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -18940,7 +18956,7 @@ class Test2
     }
 }
 ";
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() },
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                          options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -18979,7 +18995,7 @@ public interface I1
     int this[double x] { internal get => throw null; private set => throw null;}
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -19110,7 +19126,7 @@ public interface I2
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -19179,7 +19195,7 @@ public interface I1
     extern event System.Action P13;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
@@ -19492,7 +19508,7 @@ public interface I1
     extern event System.Action P13;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
@@ -19885,7 +19901,7 @@ class Test2 : I2
 
         private void ValidateEventModifiers_05(string source1)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -19960,7 +19976,7 @@ public interface I1
     public abstract event System.Action P1; 
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -20056,7 +20072,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput:
@@ -20130,7 +20146,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation2 = CreateStandardCompilation(source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyEmitDiagnostics(
@@ -20175,7 +20191,7 @@ class Test1 : I1
 class Test2 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -20345,7 +20361,7 @@ class Test1 : I1, I2
 
         private void ValidateEventModifiers_09(string source1)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
@@ -20422,7 +20438,7 @@ class Test1 : I1
 {
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
@@ -20630,7 +20646,7 @@ class Test1 : I1
 
         private void ValidateEventModifiers_11(string source1, string source2, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         {
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
@@ -20678,7 +20694,7 @@ class Test1 : I1
                 Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
             }
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -20691,14 +20707,14 @@ class Test1 : I1
                 ValidateMethod(p1.RemoveMethod);
             }
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected1);
 
             Validate1(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected1);
@@ -20712,14 +20728,14 @@ class Test2 : I1
 }
 ";
 
-            var compilation5 = CreateStandardCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation5 = CreateCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation5.VerifyDiagnostics(expected2);
 
             ValidateEventNotImplemented_11(compilation5, "Test2");
 
-            var compilation6 = CreateStandardCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation6 = CreateCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation6.VerifyDiagnostics(expected2);
@@ -20793,26 +20809,26 @@ class Test1 : I1
         private void ValidateEventModifiers_11_02(string source1, string source2,
                                                   params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
             ValidateEventImplementation_11(compilation1.SourceModule);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
 
             ValidateEventImplementation_11(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
@@ -20904,7 +20920,7 @@ class Test1 : I1
         private void ValidateEventModifiers_11_03(string source1, string source2,
                                                   params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput:
@@ -20913,19 +20929,19 @@ set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidateEventImplementation_1
 
             ValidateEventImplementation_11(compilation1.SourceModule);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
 
             ValidateEventImplementation_11(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
@@ -21279,7 +21295,7 @@ class Test1 : Test2, I1
 
         private void ValidateEventModifiers_11_08(string source1, string source2)
         {
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput:
@@ -21288,12 +21304,12 @@ Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidateEventImplementa
 
             ValidateEventImplementationByBase_11(compilation1.SourceModule);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3, expectedOutput:
@@ -21302,7 +21318,7 @@ Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidateEventImplementa
 
             ValidateEventImplementationByBase_11(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4, expectedOutput:
@@ -21365,26 +21381,26 @@ class Test1 : I1
         private void ValidateEventModifiers_11_09(string source1, string source2,
                                                   params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
             ValidateEventNotImplemented_11(compilation1, "Test1");
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
 
             ValidateEventNotImplemented_11(compilation3, "Test1");
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
@@ -21431,26 +21447,26 @@ class Test1 : Test2, I1
         private void ValidateEventModifiers_11_10(string source1, string source2,
                                                      params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
             ValidateEventImplementationByBase_11(compilation1.SourceModule);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
 
             ValidateEventImplementationByBase_11(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
@@ -21497,13 +21513,13 @@ class Test1 : Test2, I1
         private void ValidateEventModifiers_11_11(string source1, string source2,
                                                      params DiagnosticDescription[] expected)
         {
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
                                                          assemblyName: "EventModifiers_11_11");
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -21511,7 +21527,7 @@ class Test1 : Test2, I1
             ValidateEventImplementationByBase_11(compilation3.SourceModule);
 
             var compilation3Ref = compilation3.EmitToImageReference();
-            var compilation4 = CreateStandardCompilation("", new[] { compilation2.ToMetadataReference(), compilation3Ref }, options: TestOptions.DebugDll,
+            var compilation4 = CreateCompilation("", new[] { compilation2.ToMetadataReference(), compilation3Ref }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
 
             ValidateEventImplementationByBase_11(compilation4.GetReferencedAssemblySymbol(compilation3Ref).Modules[0]);
@@ -21531,7 +21547,7 @@ class Test1 : I1
 {
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -21609,7 +21625,7 @@ class Test2 : I2
 
         private void ValidateEventModifiers_13(string source1)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -21726,7 +21742,7 @@ class Test2 : I1, I2, I3
 
         private void ValidateEventModifiers_14(string source1, params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -22045,7 +22061,7 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
 
         private void ValidateEventModifiers_15(string source1, params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -22155,7 +22171,7 @@ class Test2 : I1, I2, I3, I4, I5
 
         private void ValidateEventModifiers_16(string source1)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate);
@@ -22316,7 +22332,7 @@ class Test2 : I1, I2, I3, I4, I5
                 }
             }
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
@@ -22390,7 +22406,7 @@ class Test2 : I1, I2, I3, I4, I5
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -22513,7 +22529,7 @@ class Test2 : I1, I2, I3, I4
 
         private void ValidateEventModifiers_17(string source1, params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -22736,7 +22752,7 @@ class Test2 : I1, I2, I3, I4, I5
 
         private void ValidateEventModifiers_18(string source1, params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -22937,7 +22953,7 @@ class Test1 : I1
 
         private void ValidateEventModifiers_20(string source1, string source2)
         {
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
@@ -22990,7 +23006,7 @@ set_P1
                 Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
             }
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -23004,7 +23020,7 @@ set_P1
                 ValidateMethod(p1.RemoveMethod);
             }
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
@@ -23017,7 +23033,7 @@ set_P1
 
             Validate1(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
@@ -23062,7 +23078,7 @@ class Test1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -23091,7 +23107,7 @@ class Test2
     }
 }
 ";
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() },
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                          options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -23157,7 +23173,7 @@ class Test1 : I1.T1
 
         private void ValidateNestedTypes_01(string source1, Accessibility expected = Accessibility.Public)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -23214,7 +23230,7 @@ class Test1 : I1.T1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -23324,7 +23340,7 @@ class Test1 : I1.T1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -23390,7 +23406,7 @@ class Test1 : I1.T1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -23460,11 +23476,11 @@ class Test1 : I1.T1
 ";
             ValidateNestedTypes_01(source1 + source2, Accessibility.Internal);
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe);
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe);
 
             var expected = new[] {
                 // (2,18): error CS0122: 'I1.T1' is inaccessible due to its protection level
@@ -23488,7 +23504,7 @@ class Test1 : I1.T1
                 };
             compilation2.VerifyDiagnostics(expected);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe);
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe);
 
             compilation3.VerifyDiagnostics(expected);
         }
@@ -23579,7 +23595,7 @@ class Test1 : I1.T1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -23654,7 +23670,7 @@ class Test1 : I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -23669,7 +23685,7 @@ I4.M1
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -23684,7 +23700,7 @@ I4.M1
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateMethodImplementationInDerived_01(compilation3.SourceModule);
@@ -23791,7 +23807,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -23814,7 +23830,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -23868,7 +23884,7 @@ class Test1 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -23892,7 +23908,8 @@ class Test1 : I1
 {}
 ";
 
-            var compilation2 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }),
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -23935,7 +23952,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -23978,7 +23995,7 @@ public interface I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -24026,7 +24043,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -24082,7 +24099,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -24138,7 +24155,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -24179,7 +24196,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -24217,7 +24234,7 @@ class Test1 : I1
             
             CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate1);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
@@ -24234,7 +24251,7 @@ class Test1 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -24270,7 +24287,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation4 = CreateStandardCompilation(source2, options: TestOptions.DebugDll,
+            var compilation4 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -24456,7 +24473,7 @@ class Test1 : I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -24471,7 +24488,7 @@ I4.M1
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
-            var compilation2 = CreateStandardCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24486,7 +24503,7 @@ I4.M1
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
-            var compilation3 = CreateStandardCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateMethodImplementationInDerived_01(compilation3.SourceModule);
@@ -24500,12 +24517,12 @@ I4.M1
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
-            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
-            var compilation5 = CreateStandardCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation5 = CreateCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24520,7 +24537,7 @@ I4.M1
                 Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1()").WithLocation(4, 13)
                 );
 
-            var compilation6 = CreateStandardCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation6 = CreateCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateMethodImplementationInDerived_01(compilation6.SourceModule);
@@ -24582,7 +24599,7 @@ public interface I6 : I1, I2, I3, I5
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -24716,7 +24733,7 @@ class Test12 : I8
 
             foreach (var ref1 in refs1)
             {
-                var compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
+                var compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24741,7 +24758,7 @@ class Test12 : I8
 
                 CompileAndVerify(compilation2, verify: VerifyOnCoreClr, symbolValidator: Validate2);
 
-                compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
+                compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24752,7 +24769,7 @@ class Test12 : I8
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
-                var compilation4 = CreateStandardCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
+                var compilation4 = CreateCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24790,7 +24807,7 @@ I5.I1.M1
 
                 foreach (var ref2 in refs2)
                 {
-                    var compilation3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll,
+                    var compilation3 = CreateCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll,
                                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24834,7 +24851,7 @@ I5.I1.M1
                         Assert.Null(test5.FindImplementationForInterfaceMember(i1m1));
                     }
 
-                    var compilation5 = CreateStandardCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
+                    var compilation5 = CreateCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
                                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24927,12 +24944,12 @@ class Test1 : I2, I3
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24945,7 +24962,7 @@ class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test1", "I1.M1()", "Test1.M1()", "void").WithLocation(2, 15)
                 );
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -25011,7 +25028,7 @@ class Test2 : I2<long>
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -25107,7 +25124,7 @@ I2.I1.M2
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -25124,7 +25141,7 @@ I2.I1.M2
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
@@ -25199,7 +25216,7 @@ class Test1 : I1
 
         private void ValidatePropertyImplementationInDerived_01(string source1, string source2)
         {
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -25214,7 +25231,7 @@ I4.M1
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidatePropertyImplementationInDerived_01);
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -25229,7 +25246,7 @@ I4.M1
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidatePropertyImplementationInDerived_01);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidatePropertyImplementationInDerived_01(compilation3.SourceModule);
@@ -25406,7 +25423,7 @@ class Test1 : I1
 
         private void ValidatePropertyImplementationInDerived_02(string source1, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
@@ -25422,7 +25439,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -25508,7 +25525,7 @@ class Test1 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -25525,7 +25542,8 @@ class Test1 : I1
 {}
 ";
 
-            var compilation2 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }),
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -25573,7 +25591,7 @@ class Test1 : I1
 
         private void ValidatePropertyImplementationInDerived_04(string source1, params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -25615,7 +25633,7 @@ public interface I1
 
         private void ValidatePropertyImplementationInDerived_05(string source1, params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -25874,7 +25892,7 @@ class Test1 : I1
             DiagnosticDescription[] expected1, DiagnosticDescription[] expected2, 
             DiagnosticDescription[] expected3, params DiagnosticDescription[] expected4)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
@@ -25908,7 +25926,7 @@ class Test1 : I1
 
             CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate1);
 
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected2);
@@ -25918,7 +25936,7 @@ class Test1 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -25926,7 +25944,7 @@ class Test1 : I1
 
             Validate1(compilation3.SourceModule);
 
-            var compilation4 = CreateStandardCompilation(source2, options: TestOptions.DebugDll,
+            var compilation4 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected4);
@@ -26125,7 +26143,7 @@ class Test1 : I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -26141,7 +26159,7 @@ I4.M1.set
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidatePropertyImplementationInDerived_01);
 
-            var compilation2 = CreateStandardCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26157,7 +26175,7 @@ I4.M1.set
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidatePropertyImplementationInDerived_01);
 
-            var compilation3 = CreateStandardCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidatePropertyImplementationInDerived_01(compilation3.SourceModule);
@@ -26172,12 +26190,12 @@ I4.M1.set
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidatePropertyImplementationInDerived_01);
 
-            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
-            var compilation5 = CreateStandardCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation5 = CreateCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26185,7 +26203,7 @@ I4.M1.set
 
             compilation5.VerifyDiagnostics(expected);
 
-            var compilation6 = CreateStandardCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation6 = CreateCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidatePropertyImplementationInDerived_01(compilation6.SourceModule);
@@ -26410,7 +26428,7 @@ class Test12 : I8
 
         private void ValidatePropertyImplementationInDerived_12(string source1, string source4, string source5, DiagnosticDescription[] expected1, DiagnosticDescription[] expected2 = null)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -26468,7 +26486,7 @@ class Test5 : I8
 
             foreach (var ref1 in refs1)
             {
-                var compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
+                var compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26493,7 +26511,7 @@ class Test5 : I8
 
                 CompileAndVerify(compilation2, verify: VerifyOnCoreClr, symbolValidator: Validate2);
 
-                compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
+                compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26504,7 +26522,7 @@ class Test5 : I8
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
-                var compilation4 = CreateStandardCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
+                var compilation4 = CreateCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26545,7 +26563,7 @@ I5.I1.M1.set
 
                 foreach (var ref2 in refs2)
                 {
-                    var compilation3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll.WithConcurrentBuild(false),
+                    var compilation3 = CreateCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll.WithConcurrentBuild(false),
                                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26573,7 +26591,7 @@ I5.I1.M1.set
                         VerifyFindImplementationForInterfaceMemberSame(null, test5, i1m1);
                     }
 
-                    var compilation5 = CreateStandardCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
+                    var compilation5 = CreateCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
                                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26661,18 +26679,18 @@ class Test1 : I2, I3
 
         private void ValidatePropertyImplementationInDerived_13(string source1, string source2, DiagnosticDescription[] expected1, DiagnosticDescription[] expected2 = null)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(expected1);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26735,7 +26753,7 @@ class Test2 : I2<long>
 
         private void ValidatePropertyImplementationInDerived_14(string source1, string source2)
         {
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -26803,7 +26821,7 @@ I2.I1.M1.set
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26820,7 +26838,7 @@ I2.I1.M1.set
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
@@ -26897,7 +26915,7 @@ class Test1 : I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -26914,7 +26932,7 @@ I4.M1.remove
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26931,7 +26949,7 @@ I4.M1.remove
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateEventImplementationInDerived_01(compilation3.SourceModule);
@@ -27082,7 +27100,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -27111,7 +27129,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -27174,7 +27192,7 @@ class Test1 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -27204,7 +27222,8 @@ class Test1 : I1
 {}
 ";
 
-            var compilation2 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }),
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -27261,7 +27280,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -27299,7 +27318,7 @@ public interface I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -27346,7 +27365,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -27404,7 +27423,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -27462,7 +27481,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -27523,7 +27542,7 @@ class Test2 : I4
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -27628,7 +27647,7 @@ class Test1 : I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -27645,7 +27664,7 @@ I4.M1.remove
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
-            var compilation2 = CreateStandardCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -27662,7 +27681,7 @@ I4.M1.remove
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
-            var compilation3 = CreateStandardCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateEventImplementationInDerived_01(compilation3.SourceModule);
@@ -27678,12 +27697,12 @@ I4.M1.remove
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
-            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
-            var compilation5 = CreateStandardCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation5 = CreateCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -27695,7 +27714,7 @@ I4.M1.remove
                 Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 28)
                 );
 
-            var compilation6 = CreateStandardCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation6 = CreateCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateEventImplementationInDerived_01(compilation6.SourceModule);
@@ -27782,7 +27801,7 @@ public interface I6 : I1, I2, I3, I5
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -27959,7 +27978,7 @@ class Test12 : I8
 
             foreach (var ref1 in refs1)
             {
-                var compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
+                var compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -27984,7 +28003,7 @@ class Test12 : I8
 
                 CompileAndVerify(compilation2, verify: VerifyOnCoreClr, symbolValidator: Validate2);
 
-                compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
+                compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -27995,7 +28014,7 @@ class Test12 : I8
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
-                var compilation4 = CreateStandardCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
+                var compilation4 = CreateCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -28036,7 +28055,7 @@ I5.I1.M1.remove
 
                 foreach (var ref2 in refs2)
                 {
-                    var compilation3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll.WithConcurrentBuild(false),
+                    var compilation3 = CreateCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll.WithConcurrentBuild(false),
                                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -28080,7 +28099,7 @@ I5.I1.M1.remove
                         VerifyFindImplementationForInterfaceMemberSame(null, test5, i1m1);
                     }
 
-                    var compilation5 = CreateStandardCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
+                    var compilation5 = CreateCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
                                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -28156,12 +28175,12 @@ class Test1 : I2, I3
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -28174,7 +28193,7 @@ class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test1", "I1.M1", "Test1.M1", "System.Action").WithLocation(2, 15)
                 );
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -28240,7 +28259,7 @@ class Test2 : I2<long>
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -28308,7 +28327,7 @@ I2.I1.M1.remove
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -28325,7 +28344,7 @@ I2.I1.M1.remove
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
@@ -29361,7 +29380,7 @@ public interface I1
     int F5 = 5;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
@@ -29430,7 +29449,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -29475,17 +29494,17 @@ class Test2 : I1
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation2, expectedOutput: "112244");
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3, expectedOutput: "112244");
 
-            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -29511,7 +29530,8 @@ class Test2 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), 
+                                                 targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -29549,7 +29569,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -29601,17 +29621,17 @@ class Test2 : I1
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation2, expectedOutput: "124");
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3, expectedOutput: "124");
 
-            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -29637,7 +29657,8 @@ class Test2 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), 
+                                                 targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -29675,7 +29696,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -29722,17 +29743,17 @@ class Test2 : I1
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation2, expectedOutput: "124");
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3, expectedOutput: "124");
 
-            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -29759,6 +29780,7 @@ class Test2 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -29779,7 +29801,7 @@ public interface I1
     static I1() {}
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -29806,7 +29828,7 @@ public interface I1
     private int F5 {get;} = 5;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
@@ -29859,7 +29881,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -29904,17 +29926,17 @@ class Test2 : I1
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation2, expectedOutput: "112244");
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3, expectedOutput: "112244");
 
-            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -29950,6 +29972,7 @@ class Test2 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -29987,7 +30010,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -30034,17 +30057,17 @@ class Test2 : I1
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation2, expectedOutput: "124");
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3, expectedOutput: "124");
 
-            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -30079,7 +30102,8 @@ class Test2 : I1
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
-            var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), 
+                                                 targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -30119,7 +30143,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -30163,17 +30187,17 @@ class Test2 : I1
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation2, expectedOutput: "1122");
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3, expectedOutput: "1122");
 
-            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -30212,6 +30236,7 @@ class Test2 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -30231,7 +30256,7 @@ public interface I1
     private event System.Action F5 = null;
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
@@ -30293,7 +30318,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -30338,17 +30363,17 @@ class Test2 : I1
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation2, expectedOutput: "112244");
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3, expectedOutput: "112244");
 
-            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -30384,6 +30409,7 @@ class Test2 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -30424,7 +30450,7 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -30466,17 +30492,17 @@ class Test2 : I1
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation2, expectedOutput: "1234");
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3, expectedOutput: "1234");
 
-            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -30512,6 +30538,7 @@ class Test2 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -30566,12 +30593,12 @@ public class Test1 : I1
 {
 }
 ";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll,
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation0.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation0.VerifyDiagnostics();
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -30628,7 +30655,7 @@ class Test4
                 // RuntimeSupportsDefaultInterfaceImplementation property for it.
                 var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
 
-                var compilation2 = CreateCompilation(source2, standardRefs, options: TestOptions.DebugExe,
+                var compilation2 = CreateCompilation(source2, standardRefs, options: TestOptions.DebugExe, targetFramework: TargetFramework.Empty,
                                                      parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                 compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
                 compilation2 = compilation2.AddReferences(refs.comp0);
@@ -30644,7 +30671,7 @@ remove E4
 M3
 ");
 
-                var compilation3 = CreateCompilation(source3, standardRefs, options: TestOptions.DebugExe,
+                var compilation3 = CreateCompilation(source3, standardRefs, options: TestOptions.DebugExe, targetFramework: TargetFramework.Empty,
                                                      parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                 compilation3 = compilation3.AddReferences(refs.comp1);
                 Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -30658,7 +30685,7 @@ remove E40
 M30
 ");
 
-                var compilation4 = CreateCompilation(source4, standardRefs, options: TestOptions.DebugExe,
+                var compilation4 = CreateCompilation(source4, standardRefs, options: TestOptions.DebugExe, targetFramework: TargetFramework.Empty,
                                                      parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                 compilation4 = compilation4.AddReferences(refs.comp1);
                 Assert.False(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -30698,7 +30725,7 @@ public interface I1
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             CompileAndVerify(compilation1, expectedOutput: "I1.Main");
         }
@@ -30723,7 +30750,7 @@ public interface I2
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMainTypeName("I2"),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMainTypeName("I2"),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             CompileAndVerify(compilation1, expectedOutput: "I2.Main");
         }
@@ -30929,7 +30956,7 @@ true
 <=
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -30938,13 +30965,13 @@ true
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -30954,7 +30981,7 @@ true
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
 
-            var compilation4 = CreateCompilation(source2, standardRefs, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source2, standardRefs, options: TestOptions.DebugExe, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
             compilation4 = compilation4.AddReferences(compilationReference);
@@ -30962,13 +30989,14 @@ true
             compilation4.VerifyDiagnostics();
             CompileAndVerify(compilation4, expectedOutput: expectedOutput);
 
-            var compilation5 = CreateCompilation(source2, standardRefs.Concat(new[] { metadataReference }), options: TestOptions.DebugExe,
+            var compilation5 = CreateCompilation(source2, standardRefs.Concat(new[] { metadataReference }),
+                                                 options: TestOptions.DebugExe, targetFramework: TargetFramework.Empty,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation5.VerifyDiagnostics();
             CompileAndVerify(compilation5, expectedOutput: expectedOutput);
 
-            var compilation6 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+            var compilation6 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation6.VerifyDiagnostics(
@@ -31040,7 +31068,7 @@ true
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "<=").WithArguments("default interface implementation", "7.1").WithLocation(130, 31)
                 );
 
-            var compilation7 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation7 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation7.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             var expected7 = new DiagnosticDescription[]
@@ -31111,7 +31139,7 @@ true
             };
             compilation7.VerifyDiagnostics(expected7);
 
-            var compilation8 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation8 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation8.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation8.VerifyDiagnostics(expected7);
@@ -31130,7 +31158,7 @@ class Test3 : I1
 }
 ";
 
-            var compilation9 = CreateStandardCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation9 = CreateCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation9.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             var expected9 = new DiagnosticDescription[]
@@ -31144,7 +31172,7 @@ class Test3 : I1
             };
             compilation9.VerifyDiagnostics(expected9);
 
-            var compilation10 = CreateStandardCompilation(source3, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation10 = CreateCompilation(source3, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation10.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation10.VerifyDiagnostics(expected9);
@@ -31214,10 +31242,10 @@ C1.+
 C1.-
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe);
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
 
-            var compilation2 = CreateStandardCompilation(source1 + source3, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source1 + source3, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -31260,7 +31288,7 @@ class Test2 : I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.VerifyDiagnostics(
                 // (4,31): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
@@ -31279,7 +31307,7 @@ class Test2 : I1
 
             CompilationReference compilationReference = compilation1.ToMetadataReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation2.VerifyDiagnostics(
                 // (9,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
@@ -31334,7 +31362,7 @@ class Test2 : I1
 } // end of class I1
 ";
 
-            var compilation3 = CreateCompilationWithCustomILSource(source2, ilSource, options: TestOptions.DebugExe);
+            var compilation3 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
             compilation3.VerifyDiagnostics(
                 // (9,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
                 //         x = x == y;
@@ -31358,7 +31386,7 @@ class Test2 : I1
     }
 }
 ";
-            var compilation4 = CreateCompilationWithCustomILSource(source3, ilSource, options: TestOptions.DebugExe);
+            var compilation4 = CreateCompilationWithIL(source3, ilSource, options: TestOptions.DebugExe);
             compilation4.VerifyDiagnostics();
             CompileAndVerify(compilation4, expectedOutput: @"
 False
@@ -31392,7 +31420,7 @@ public interface I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.VerifyDiagnostics(
                 // (4,37): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
@@ -31452,7 +31480,7 @@ class Test2 : I2
 -
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -31461,13 +31489,13 @@ class Test2 : I2
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -31486,7 +31514,7 @@ class Test2 : I2
 }
 ";
 
-            var compilation9 = CreateStandardCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation9 = CreateCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation9.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             var expected9 = new DiagnosticDescription[]
@@ -31497,7 +31525,7 @@ class Test2 : I2
             };
             compilation9.VerifyDiagnostics(expected9);
 
-            var compilation10 = CreateStandardCompilation(source3, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation10 = CreateCompilation(source3, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation10.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation10.VerifyDiagnostics(expected9);
@@ -31544,7 +31572,7 @@ class Test2 : I2
 I2.-
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -31553,13 +31581,13 @@ I2.-
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -31620,7 +31648,7 @@ class Test2 : I2
 I4.-
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -31629,13 +31657,13 @@ I4.-
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -31693,14 +31721,14 @@ class Test2 : I2
                 Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-x").WithArguments("-", "I2").WithLocation(7, 17)
             };
 
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
             CompilationReference compilationReference = compilation1.ToMetadataReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected);
@@ -31750,7 +31778,7 @@ class Test2
 Test2.-
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -31759,13 +31787,13 @@ Test2.-
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -31831,7 +31859,7 @@ class Test2
 I4.-
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -31840,13 +31868,13 @@ I4.-
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -31906,7 +31934,7 @@ class Test2 : I3
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C1() + x").WithArguments("+", "C1", "I3").WithLocation(7, 17)
             };
 
-            var compilation0 = CreateStandardCompilation(source0 + source1 + source2, options: TestOptions.DebugDll,
+            var compilation0 = CreateCompilation(source0 + source1 + source2, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation0.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation0.VerifyDiagnostics();
@@ -31914,12 +31942,12 @@ class Test2 : I3
             CompilationReference compilationReference0 = compilation0.ToMetadataReference();
             MetadataReference metadataReference0 = compilation0.EmitToImageReference();
 
-            var compilation1 = CreateStandardCompilation(source3, new[] { compilationReference0 }, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source3, new[] { compilationReference0 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
-            var compilation2 = CreateStandardCompilation(source3, new[] { metadataReference0 }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source3, new[] { metadataReference0 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected);
@@ -31938,7 +31966,7 @@ public interface I1
 public interface I2
 { }
 ";
-            var compilation3 = CreateStandardCompilation(source4 + source1 + source2, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source4 + source1 + source2, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -31946,12 +31974,12 @@ public interface I2
             CompilationReference compilationReference3 = compilation3.ToMetadataReference();
             MetadataReference metadataReference3 = compilation3.EmitToImageReference();
 
-            var compilation4 = CreateStandardCompilation(source3, new[] { compilationReference3 }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source3, new[] { compilationReference3 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
 
-            var compilation5 = CreateStandardCompilation(source3, new[] { metadataReference3 }, options: TestOptions.DebugExe,
+            var compilation5 = CreateCompilation(source3, new[] { metadataReference3 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation5.VerifyDiagnostics(expected);
@@ -31967,7 +31995,7 @@ public interface I3 :  I1, I2
     }
 }
 ";
-            var compilation6 = CreateStandardCompilation(source4 + source1 + source5, options: TestOptions.DebugDll,
+            var compilation6 = CreateCompilation(source4 + source1 + source5, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation6.VerifyDiagnostics();
@@ -31975,12 +32003,12 @@ public interface I3 :  I1, I2
             CompilationReference compilationReference6 = compilation6.ToMetadataReference();
             MetadataReference metadataReference6 = compilation6.EmitToImageReference();
 
-            var compilation7 = CreateStandardCompilation(source3, new[] { compilationReference6 }, options: TestOptions.DebugExe,
+            var compilation7 = CreateCompilation(source3, new[] { compilationReference6 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation7.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation7.VerifyDiagnostics(expected);
 
-            var compilation8 = CreateStandardCompilation(source3, new[] { metadataReference6 }, options: TestOptions.DebugExe,
+            var compilation8 = CreateCompilation(source3, new[] { metadataReference6 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation8.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation8.VerifyDiagnostics(expected);
@@ -32039,7 +32067,7 @@ class Test2 : I3
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + new C1()").WithArguments("+", "I3", "C1").WithLocation(7, 17)
             };
 
-            var compilation0 = CreateStandardCompilation(source0 + source1 + source2, options: TestOptions.DebugDll,
+            var compilation0 = CreateCompilation(source0 + source1 + source2, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation0.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation0.VerifyDiagnostics();
@@ -32047,12 +32075,12 @@ class Test2 : I3
             CompilationReference compilationReference0 = compilation0.ToMetadataReference();
             MetadataReference metadataReference0 = compilation0.EmitToImageReference();
 
-            var compilation1 = CreateStandardCompilation(source3, new[] { compilationReference0 }, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source3, new[] { compilationReference0 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
-            var compilation2 = CreateStandardCompilation(source3, new[] { metadataReference0 }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source3, new[] { metadataReference0 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected);
@@ -32071,7 +32099,7 @@ public interface I1
 public interface I2
 { }
 ";
-            var compilation3 = CreateStandardCompilation(source4 + source1 + source2, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source4 + source1 + source2, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -32079,12 +32107,12 @@ public interface I2
             CompilationReference compilationReference3 = compilation3.ToMetadataReference();
             MetadataReference metadataReference3 = compilation3.EmitToImageReference();
 
-            var compilation4 = CreateStandardCompilation(source3, new[] { compilationReference3 }, options: TestOptions.DebugExe,
+            var compilation4 = CreateCompilation(source3, new[] { compilationReference3 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
 
-            var compilation5 = CreateStandardCompilation(source3, new[] { metadataReference3 }, options: TestOptions.DebugExe,
+            var compilation5 = CreateCompilation(source3, new[] { metadataReference3 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation5.VerifyDiagnostics(expected);
@@ -32100,7 +32128,7 @@ public interface I3 :  I1, I2
     }
 }
 ";
-            var compilation6 = CreateStandardCompilation(source4 + source1 + source5, options: TestOptions.DebugDll,
+            var compilation6 = CreateCompilation(source4 + source1 + source5, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation6.VerifyDiagnostics();
@@ -32108,12 +32136,12 @@ public interface I3 :  I1, I2
             CompilationReference compilationReference6 = compilation6.ToMetadataReference();
             MetadataReference metadataReference6 = compilation6.EmitToImageReference();
 
-            var compilation7 = CreateStandardCompilation(source3, new[] { compilationReference6 }, options: TestOptions.DebugExe,
+            var compilation7 = CreateCompilation(source3, new[] { compilationReference6 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation7.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation7.VerifyDiagnostics(expected);
 
-            var compilation8 = CreateStandardCompilation(source3, new[] { metadataReference6 }, options: TestOptions.DebugExe,
+            var compilation8 = CreateCompilation(source3, new[] { metadataReference6 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation8.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation8.VerifyDiagnostics(expected);
@@ -32167,7 +32195,7 @@ class Test2: I1, I2
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "y + x").WithArguments("+", "I2", "I1").WithLocation(9, 13)
             };
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -32175,12 +32203,12 @@ class Test2: I1, I2
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
@@ -32234,7 +32262,7 @@ class Test2 : I2
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments("+", "I1", "I2").WithLocation(9, 13)
             };
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -32242,12 +32270,12 @@ class Test2 : I2
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
@@ -32309,7 +32337,7 @@ I2.+1
 I2.+2
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -32318,13 +32346,13 @@ I2.+2
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -32366,7 +32394,7 @@ I1.+
 I1.+
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -32375,13 +32403,13 @@ I1.+
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -32433,7 +32461,7 @@ I1.+1
 I1.+2
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -32442,13 +32470,13 @@ I1.+2
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -32468,7 +32496,7 @@ class Test2 : I2
 }
 ";
 
-            var compilation9 = CreateStandardCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation9 = CreateCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation9.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             var expected9 = new DiagnosticDescription[]
@@ -32482,7 +32510,7 @@ class Test2 : I2
             };
             compilation9.VerifyDiagnostics(expected9);
 
-            var compilation10 = CreateStandardCompilation(source3, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation10 = CreateCompilation(source3, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.True(compilation10.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation10.VerifyDiagnostics(expected9);
@@ -32530,7 +32558,7 @@ I1.+
 I1.+
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -32539,13 +32567,13 @@ I1.+
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -32600,7 +32628,7 @@ I1.+
 I1.+
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -32609,13 +32637,13 @@ I1.+
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -32664,7 +32692,7 @@ class Test2 : I2
 I2.-
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -32673,13 +32701,13 @@ I2.-
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -32743,7 +32771,7 @@ I2.-
 I2.-
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -32752,13 +32780,13 @@ I2.-
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -32815,7 +32843,7 @@ I2.-
 I2.-
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -32824,13 +32852,13 @@ I2.-
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -32888,7 +32916,7 @@ class Test2 : I3
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "y + x").WithArguments("+", "I3", "I1").WithLocation(9, 13)
             };
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -32896,12 +32924,12 @@ class Test2 : I3
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
@@ -32958,7 +32986,7 @@ class Test2 : I3
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments("+", "I1", "I3").WithLocation(9, 13)
             };
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -32966,12 +32994,12 @@ class Test2 : I3
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
@@ -33028,14 +33056,14 @@ class Test2 : I2
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x - x").WithArguments("-", "I2", "I2").WithLocation(7, 17)
             };
 
-            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
             CompilationReference compilationReference = compilation1.ToMetadataReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected);
@@ -33120,7 +33148,7 @@ I3.-1
 I3.-2
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -33129,13 +33157,13 @@ I3.-2
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -33186,7 +33214,7 @@ class Test2
 Test2.-
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -33195,13 +33223,13 @@ Test2.-
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -33293,7 +33321,7 @@ I3.-2
 I3.-1
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -33302,13 +33330,13 @@ I3.-1
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();
@@ -33347,7 +33375,7 @@ public interface I1
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -33448,7 +33476,7 @@ public interface I4
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -33527,7 +33555,7 @@ I2.-
 I2.-
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -33536,13 +33564,13 @@ I2.-
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics();

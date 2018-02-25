@@ -839,7 +839,7 @@ interface i1
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 43));
 
-            CreateStandardCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (6,35): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 35),
@@ -1699,7 +1699,7 @@ class C
     public extern object P6 { get; } // no error
 }
 ";
-            CreateStandardCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (3,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public static int P1 { get; }
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("static", "7.0", "7.1").WithLocation(3, 23),
@@ -1867,7 +1867,7 @@ class C : I
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (8,19): error CS0106: The modifier 'private' is not valid for this item
                 //     private int I.P1 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("private").WithLocation(8, 19),
@@ -3127,7 +3127,7 @@ class MyClass2 : MyClass
 }
 ";
             //we're diverging from Dev10 - it's a little silly to report two errors saying the same modifier isn't allowed
-            CreateStandardCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (3,17): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     sealed void M();
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("sealed", "7.0", "7.1").WithLocation(3, 17),
@@ -8819,7 +8819,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7);
             
             comp.VerifyDiagnostics(
                 // (5,19): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
@@ -8852,7 +8852,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7);
 
             comp.VerifyDiagnostics(
                 // (5,16): error CS0525: Interfaces cannot contain instance fields
