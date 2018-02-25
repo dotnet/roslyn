@@ -291,15 +291,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)sourceExpression.Type == null);
                 Debug.Assert(sourceExpression.ElementType != null);
 
-                var pointerConversion = default(Conversion);
                 var sourceAsPointer = new PointerTypeSymbol(sourceExpression.ElementType);
-                pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
+                var pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
 
                 if (pointerConversion.IsValid)
                 {
-                    // Report unsafe errors
-                    _binder.ReportUnsafeIfNotAllowed(sourceExpression.Syntax.Location, ref useSiteDiagnostics);
-
                     return Conversion.MakeStackAllocToPointerType(pointerConversion);
                 }
                 else

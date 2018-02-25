@@ -330,6 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversion.Kind)
             {
                 case ConversionKind.StackAllocToPointerType:
+                    ReportUnsafeIfNotAllowed(syntax.Location, diagnostics);
                     stackAllocType = new PointerTypeSymbol(elementType);
                     break;
                 case ConversionKind.StackAllocToSpanType:
