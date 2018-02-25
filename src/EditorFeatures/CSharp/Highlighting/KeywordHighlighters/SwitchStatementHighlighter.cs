@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                 {
                     spans.Add(label.Keyword.Span);
                     spans.Add(EmptySpan(label.ColonToken.Span.End));
+
+                    if (label is CasePatternSwitchLabelSyntax patternLabel && patternLabel.WhenClause != null)
+                    {
+                        spans.Add(patternLabel.WhenClause.WhenKeyword.Span);
+                    }
                 }
 
                 HighlightRelatedKeywords(switchSection, spans, true, true);

@@ -707,5 +707,138 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestWithWhenClauseAndPattern_OnSwitchKeyword()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        {|Cursor:[|switch|]|} (true)
+        {
+            [|case|] true [|when|] true:
+                [|break|];
+            [|case|] bool b:
+                [|break|];
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestWithWhenClauseAndPattern_OnWhenKeyword()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|switch|] (true)
+        {
+            [|case|] true {|Cursor:[|when|]|} true:
+                [|break|];
+            [|case|] bool b:
+                [|break|];
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestWithWhenClauseAndPattern_OnWhenCaseColon()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|switch|] (true)
+        {
+            [|case|] true [|when|] true:{|Cursor:|}
+                [|break|];
+            [|case|] bool b:
+                [|break|];
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestWithWhenClauseAndPattern_OnPatternCaseColon()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|switch|] (true)
+        {
+            [|case|] true [|when|] true:
+                [|break|];
+            [|case|] bool b:{|Cursor:|}
+                [|break|];
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestWithWhenClauseAndPattern_NotOnWhenValue()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case true when {|Cursor:true|}:
+                break;
+            case bool b:
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestWithWhenClauseAndPattern_NotOnPattern1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case true when true:
+                break;
+            case {|Cursor:bool|} b:
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestWithWhenClauseAndPattern_NotOnPattern2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case true when true:
+                break;
+            case bool {|Cursor:b|}:
+                break;
+        }
+    }
+}");
+        }
     }
 }
