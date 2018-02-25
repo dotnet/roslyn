@@ -739,7 +739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics)
         End Function
 
-        Friend Overrides Function CommonWithMetadataImportOptions(value As MetadataImportOptions) As CompilationOptions
+        Protected Overrides Function CommonWithMetadataImportOptions(value As MetadataImportOptions) As CompilationOptions
             Return WithMetadataImportOptions(value)
         End Function
 
@@ -812,12 +812,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.OptimizationLevel = value}
         End Function
 
-        Friend Shadows Function WithMetadataImportOptions(value As MetadataImportOptions) As VisualBasicCompilationOptions
+        ''' <summary>
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with a specified <see cref="CodeAnalysis.MetadataImportOptions"/>.
+        ''' </summary>
+        ''' <returns>A new instance of <see cref="VisualBasicCompilationOptions"/>, if the value is different; otherwise the current instance.</returns>        
+        Public Shadows Function WithMetadataImportOptions(value As MetadataImportOptions) As VisualBasicCompilationOptions
             If value = Me.MetadataImportOptions Then
                 Return Me
             End If
 
-            Return New VisualBasicCompilationOptions(Me) With {.MetadataImportOptions_internal_protected_set = value}
+            Return New VisualBasicCompilationOptions(Me) With {.MetadataImportOptions = value}
         End Function
 
         Friend Function WithReferencesSupersedeLowerVersions(value As Boolean) As VisualBasicCompilationOptions

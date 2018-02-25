@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using Roslyn.Test.Utilities;
@@ -48,6 +49,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return new DesktopAnalyzerAssemblyLoader();
 #else 
             return new ThrowingAnalyzerAssemblyLoader();
+#endif
+        }
+
+        /// <summary>
+        /// Get the location of the assembly that contains this type
+        /// </summary>
+        internal static string GetAssemblyLocation(Type type)
+        {
+#if NET461 || NET46 || NETCOREAPP2_0
+            return type.GetTypeInfo().Assembly.Location;
+#elif NETSTANDARD1_3
+            throw new NotSupportedException();
+#else
+#error Unsupported configuration
 #endif
         }
     }

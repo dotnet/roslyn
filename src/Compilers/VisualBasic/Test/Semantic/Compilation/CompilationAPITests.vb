@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
+Imports System.Security.Cryptography
 Imports System.Text
 Imports System.Threading
 Imports System.Xml.Linq
@@ -344,7 +345,8 @@ End Namespace
                 debugInformationFormat:=CType(-1, DebugInformationFormat),
                 outputNameOverride:=" ",
                 fileAlignment:=513,
-                subsystemVersion:=SubsystemVersion.Create(1000000, -1000000))
+                subsystemVersion:=SubsystemVersion.Create(1000000, -1000000),
+                pdbChecksumAlgorithm:=New HashAlgorithmName("invalid hash algorithm name"))
 
             Dim result = c.Emit(stream, options:=options)
 
@@ -352,9 +354,25 @@ End Namespace
                 Diagnostic(ERRID.ERR_InvalidDebugInformationFormat).WithArguments("-1"),
                 Diagnostic(ERRID.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameCannotStartWithWhitespace),
                 Diagnostic(ERRID.ERR_InvalidFileAlignment).WithArguments("513"),
-                Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("1000000.-1000000"))
+                Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("1000000.-1000000"),
+                Diagnostic(ERRID.ERR_InvalidHashAlgorithmName).WithArguments("invalid hash algorithm name"))
 
             Assert.False(result.Success)
+        End Sub
+
+        <Fact>
+        Sub EmitOptions_PdbChecksumAndDeterminism()
+            Dim options = New EmitOptions(pdbChecksumAlgorithm:=New HashAlgorithmName())
+            Dim diagnosticBag = New DiagnosticBag()
+
+            options.ValidateOptions(diagnosticBag, MessageProvider.Instance, isDeterministic:=True)
+            diagnosticBag.Verify(
+                Diagnostic(ERRID.ERR_InvalidHashAlgorithmName).WithArguments(""))
+
+            diagnosticBag.Clear()
+
+            options.ValidateOptions(diagnosticBag, MessageProvider.Instance, isDeterministic:=False)
+            diagnosticBag.Verify()
         End Sub
 
         <Fact>
@@ -1360,7 +1378,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact>
-        Public sub CreateAnonymousType_IncorrectLengths_Locations()
+        Public Sub CreateAnonymousType_IncorrectLengths_Locations()
             Dim Compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of ArgumentException)(
                 Sub()
