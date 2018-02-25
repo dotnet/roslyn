@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         ///  -----------------------------------------------
         /// </summary>
         private const string SolutionDataTableName = "SolutionData" + Version;
+        private static byte[] SolutionDataTableNamePtr = Util.ToUtf8(SolutionDataTableName);
 
         /// <summary>
         /// Inside the DB we have a table for data that we want associated with a <see cref="Project"/>.
@@ -71,6 +72,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         ///  -----------------------------------------------
         /// </summary>
         private const string ProjectDataTableName = "ProjectData" + Version;
+        private static byte[] ProjectDataTableNamePtr = Util.ToUtf8(ProjectDataTableName);
 
         /// <summary>
         /// Inside the DB we have a table for data that we want associated with a <see cref="Document"/>.
@@ -88,9 +90,11 @@ namespace Microsoft.CodeAnalysis.SQLite
         ///  ----------------------------------------------
         /// </summary>
         private const string DocumentDataTableName = "DocumentData" + Version;
+        private static byte[] DocumentDataTableNamePtr = Util.ToUtf8(DocumentDataTableName);
 
         private const string DataIdColumnName = "DataId";
         private const string DataColumnName = "Data";
+        private static byte[] DataColumnNamePtr = Util.ToUtf8(DataColumnName);
 
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
