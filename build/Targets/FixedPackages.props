@@ -5,7 +5,7 @@
   <PropertyGroup>
     <MicrosoftBuildFixedVersion>14.3.0</MicrosoftBuildFixedVersion>
     <MicrosoftBuildTasksCoreFixedVersion>14.3.0</MicrosoftBuildTasksCoreFixedVersion>
-    <MicrosoftNETCoreAppFixedVersion>2.1.0-preview2-26125-06</MicrosoftNETCoreAppFixedVersion>
+    <MicrosoftNETCoreAppFixedVersion>2.1.0-preview2-26209-04</MicrosoftNETCoreAppFixedVersion>
     <MicrosoftVisualStudioCoreUtilityFixedVersion>14.0.23205</MicrosoftVisualStudioCoreUtilityFixedVersion>
     <MicrosoftVisualStudioEditorFixedVersion>14.0.23205</MicrosoftVisualStudioEditorFixedVersion>
     <MicrosoftVisualStudioShell140FixedVersion>14.0.23205</MicrosoftVisualStudioShell140FixedVersion>

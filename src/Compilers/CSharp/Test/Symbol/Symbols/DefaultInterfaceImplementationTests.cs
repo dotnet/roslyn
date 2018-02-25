@@ -23604,7 +23604,7 @@ class Test1 : I1.T1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void MethodImplementationInDerived_01()
         {
             var source1 =
@@ -23756,7 +23756,7 @@ I4.M1
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void MethodImplementationInDerived_02()
         {
             var source1 =
@@ -23830,7 +23830,7 @@ class Test1 : I1
             ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void MethodImplementationInDerived_03()
         {
             var source1 =
@@ -23906,7 +23906,7 @@ class Test1 : I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void MethodImplementationInDerived_04()
         {
             var source1 =
@@ -23950,7 +23950,7 @@ class Test1 : I1
             ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void MethodImplementationInDerived_05()
         {
             var source1 =
@@ -23991,7 +23991,7 @@ public interface I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void MethodImplementationInDerived_06()
         {
             var source1 =
@@ -24047,7 +24047,7 @@ class Test1 : I1
             ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void MethodImplementationInDerived_07()
         {
             var source1 =
@@ -24103,7 +24103,7 @@ class Test1 : I1
             ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void MethodImplementationInDerived_08()
         {
             var source1 =
@@ -24156,7 +24156,7 @@ class Test1 : I1
             ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void MethodImplementationInDerived_09()
         {
             var source1 =
@@ -24304,7 +24304,7 @@ class Test1 : I1
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void MethodImplementationInDerived_10()
         {
             var source1 =
@@ -24398,7 +24398,7 @@ class Test1 : I1
                 symbolValidator: Validate1);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void MethodImplementationInDerived_11()
         {
             var source1 =
@@ -24535,7 +24535,7 @@ I4.M1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void MethodImplementationInDerived_12()
         {
@@ -24652,11 +24652,10 @@ class Test7 : I6
     {
         I1 i1 = new Test5();
         i1.M1();
-        // PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20083
-        //i1 = new Test6();
-        //i1.M1();
-        //i1 = new Test7();
-        //i1.M1();
+        i1 = new Test6();
+        i1.M1();
+        i1 = new Test7();
+        i1.M1();
     }
 }
 ";
@@ -24781,12 +24780,10 @@ class Test12 : I8
 
                 CompileAndVerify(compilation4,
                     expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
-@"I2.I1.M1"
-// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20083
-//+ @"
-//I5.I1.M1
-//I5.I1.M1
-//"
+@"I2.I1.M1
+I5.I1.M1
+I5.I1.M1
+"
 ,
                     verify: VerifyOnCoreClr,
                     symbolValidator: Validate4);
@@ -24897,7 +24894,7 @@ Test12.M1
             return result;
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void MethodImplementationInDerived_13()
         {
             var source1 =
@@ -24962,7 +24959,7 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void MethodImplementationInDerived_14()
         {
@@ -25101,13 +25098,12 @@ class Test2 : I2<long>
             }
 
             CompileAndVerify(compilation1,
-// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
-//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
-//@"I1.M1
-//I1.M2
-//I2.I1.M1
-//I2.I1.M2
-//",
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I1.M1
+I1.M2
+I2.I1.M1
+I2.I1.M2
+",
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
 
@@ -25119,13 +25115,12 @@ class Test2 : I2<long>
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
-//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
-//@"I1.M1
-//I1.M2
-//I2.I1.M1
-//I2.I1.M2
-//",
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I1.M1
+I1.M2
+I2.I1.M1
+I2.I1.M2
+",
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
 
@@ -25136,18 +25131,17 @@ class Test2 : I2<long>
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
-//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
-//@"I1.M1
-//I1.M2
-//I2.I1.M1
-//I2.I1.M2
-//",
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I1.M1
+I1.M2
+I2.I1.M1
+I2.I1.M2
+",
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void PropertyImplementationInDerived_01()
         {
             var source1 =
@@ -25346,7 +25340,7 @@ I4.M1
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void PropertyImplementationInDerived_02()
         {
             var source1 =
@@ -25437,7 +25431,7 @@ class Test1 : I1
             ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void PropertyImplementationInDerived_03()
         {
             var source1 =
@@ -25538,7 +25532,7 @@ class Test1 : I1
             compilation2.VerifyDiagnostics(expected2);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void PropertyImplementationInDerived_04()
         {
             var source1 =
@@ -25587,7 +25581,7 @@ class Test1 : I1
             ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void PropertyImplementationInDerived_05()
         {
             var source1 =
@@ -25627,7 +25621,7 @@ public interface I1
             compilation1.VerifyDiagnostics(expected);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void PropertyImplementationInDerived_06()
         {
             var source1 =
@@ -25686,7 +25680,7 @@ class Test1 : I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void PropertyImplementationInDerived_07()
         {
             var source1 =
@@ -25745,7 +25739,7 @@ class Test1 : I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void PropertyImplementationInDerived_08()
         {
             var source1 =
@@ -25801,7 +25795,7 @@ class Test1 : I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void PropertyImplementationInDerived_09()
         {
             var source1 =
@@ -25962,7 +25956,7 @@ class Test1 : I1
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void PropertyImplementationInDerived_10()
         {
             var source1 =
@@ -26053,7 +26047,7 @@ class Test2 : I4
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void PropertyImplementationInDerived_11()
         {
             var source1 =
@@ -26199,7 +26193,7 @@ I4.M1.set
             compilation6.VerifyDiagnostics(expected);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void PropertyImplementationInDerived_12()
         {
@@ -26291,11 +26285,10 @@ class Test7 : I6
     {
         I1 i1 = new Test5();
         i1.M1 = i1.M1;
-        // PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20083
-        //i1 = new Test6();
-        //i1.M1 = i1.M1;
-        //i1 = new Test7();
-        //i1.M1 = i1.M1;
+        i1 = new Test6();
+        i1.M1 = i1.M1;
+        i1 = new Test7();
+        i1.M1 = i1.M1;
     }
 }
 ";
@@ -26540,14 +26533,12 @@ class Test5 : I8
                 CompileAndVerify(compilation4,
                     expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.I1.M1.get
-I2.I1.M1.set"
-// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20083
-//+ @"
-//I5.I1.M1.get
-//I5.I1.M1.set
-//I5.I1.M1.get
-//I5.I1.M1.set
-//"
+I2.I1.M1.set
+I5.I1.M1.get
+I5.I1.M1.set
+I5.I1.M1.get
+I5.I1.M1.set
+"
 ,
                     verify: VerifyOnCoreClr,
                     symbolValidator: Validate4);
@@ -26626,7 +26617,7 @@ Test12.M1.set
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void PropertyImplementationInDerived_13()
         {
             var source1 =
@@ -26688,7 +26679,7 @@ class Test1 : I2, I3
             compilation3.VerifyDiagnostics(expected2 ?? expected1);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void PropertyImplementationInDerived_14()
         {
@@ -26803,13 +26794,12 @@ class Test2 : I2<long>
             }
 
             CompileAndVerify(compilation1,
-// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
-//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
-//@"I1.M1.get
-//I1.M1.set
-//I2.I1.M1.get
-//I2.I1.M1.set
-//",
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I1.M1.get
+I1.M1.set
+I2.I1.M1.get
+I2.I1.M1.set
+",
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
 
@@ -26820,14 +26810,13 @@ class Test2 : I2<long>
             Validate(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, 
-// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
-//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
-//@"I1.M1.get
-//I1.M1.set
-//I2.I1.M1.get
-//I2.I1.M1.set
-//",
+            CompileAndVerify(compilation2,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I1.M1.get
+I1.M1.set
+I2.I1.M1.get
+I2.I1.M1.set
+",
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
 
@@ -26837,19 +26826,18 @@ class Test2 : I2<long>
             Validate(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, 
-// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
-//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
-//@"I1.M1.get
-//I1.M1.set
-//I2.I1.M1.get
-//I2.I1.M1.set
-//",
+            CompileAndVerify(compilation3,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I1.M1.get
+I1.M1.set
+I2.I1.M1.get
+I2.I1.M1.set
+",
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void EventImplementationInDerived_01()
         {
             var source1 =
@@ -27056,7 +27044,7 @@ I4.M1.remove
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void EventImplementationInDerived_02()
         {
             var source1 =
@@ -27145,7 +27133,7 @@ class Test1 : I1
             ValidateEventImplementationInDerived_01(compilation2.SourceModule);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void EventImplementationInDerived_03()
         {
             var source1 =
@@ -27236,7 +27224,7 @@ class Test1 : I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void EventImplementationInDerived_04()
         {
             var source1 =
@@ -27291,7 +27279,7 @@ class Test1 : I1
             ValidateEventImplementationInDerived_01(compilation1.SourceModule);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void EventImplementationInDerived_05()
         {
             var source1 =
@@ -27321,7 +27309,7 @@ public interface I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void EventImplementationInDerived_06()
         {
             var source1 =
@@ -27379,7 +27367,7 @@ class Test1 : I1
             ValidateEventImplementationInDerived_01(compilation1.SourceModule);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void EventImplementationInDerived_07()
         {
             var source1 =
@@ -27437,7 +27425,7 @@ class Test1 : I1
             ValidateEventImplementationInDerived_01(compilation1.SourceModule);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void EventImplementationInDerived_08()
         {
             var source1 =
@@ -27495,7 +27483,7 @@ class Test1 : I1
             ValidateEventImplementationInDerived_01(compilation1.SourceModule);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void EventImplementationInDerived_10()
         {
             var source1 =
@@ -27572,7 +27560,7 @@ class Test2 : I4
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void EventImplementationInDerived_11()
         {
             var source1 =
@@ -27719,7 +27707,7 @@ I4.M1.remove
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void EventImplementationInDerived_12()
         {
@@ -27865,13 +27853,12 @@ class Test7 : I6
         I1 i1 = new Test5();
         i1.M1 += null;
         i1.M1 -= null;
-        // PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20083
-        //i1 = new Test6();
-        //i1.M1 += null;
-        //i1.M1 -= null;
-        //i1 = new Test7();
-        //i1.M1 += null;
-        //i1.M1 -= null;
+        i1 = new Test6();
+        i1.M1 += null;
+        i1.M1 -= null;
+        i1 = new Test7();
+        i1.M1 += null;
+        i1.M1 -= null;
     }
 }
 ";
@@ -28037,14 +28024,12 @@ class Test12 : I8
                 CompileAndVerify(compilation4,
                     expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.I1.M1.add
-I2.I1.M1.remove"
-// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20083
-//+ @"
-//I5.I1.M1.add
-//I5.I1.M1.remove
-//I5.I1.M1.add
-//I5.I1.M1.remove
-//"
+I2.I1.M1.remove
+I5.I1.M1.add
+I5.I1.M1.remove
+I5.I1.M1.add
+I5.I1.M1.remove
+"
 ,
                     verify: VerifyOnCoreClr,
                     symbolValidator: Validate4);
@@ -28139,7 +28124,7 @@ Test12.M1.remove
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void EventImplementationInDerived_13()
         {
             var source1 =
@@ -28203,7 +28188,7 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void EventImplementationInDerived_14()
         {
@@ -28313,14 +28298,13 @@ class Test2 : I2<long>
                 VerifyFindImplementationForInterfaceMemberEqual(test2i2m1, test2, test2i1m1);
             }
 
-            CompileAndVerify(compilation1, 
-// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
-//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
-//@"I1.M1.add
-//I1.M1.remove
-//I2.I1.M1.add
-//I2.I1.M1.remove
-//",
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I1.M1.add
+I1.M1.remove
+I2.I1.M1.add
+I2.I1.M1.remove
+",
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
 
@@ -28331,14 +28315,13 @@ class Test2 : I2<long>
             Validate(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, 
-// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
-//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
-//@"I1.M1.add
-//I1.M1.remove
-//I2.I1.M1.add
-//I2.I1.M1.remove
-//",
+            CompileAndVerify(compilation2,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I1.M1.add
+I1.M1.remove
+I2.I1.M1.add
+I2.I1.M1.remove
+",
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
 
@@ -28348,19 +28331,18 @@ class Test2 : I2<long>
             Validate(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, 
-// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
-//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
-//@"I1.M1.add
-//I1.M1.remove
-//I2.I1.M1.add
-//I2.I1.M1.remove
-//",
+            CompileAndVerify(compilation3,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I1.M1.add
+I1.M1.remove
+I2.I1.M1.add
+I2.I1.M1.remove
+",
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void IndexerImplementationInDerived_01()
         {
             var source1 =
@@ -28415,7 +28397,7 @@ class Test1 : I1
             ValidatePropertyImplementationInDerived_01(source1, source2);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void IndexerImplementationInDerived_02()
         {
             var source1 =
@@ -28479,7 +28461,7 @@ class Test1 : I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void IndexerImplementationInDerived_03()
         {
             var source1 =
@@ -28551,7 +28533,7 @@ class Test1 : I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void IndexerImplementationInDerived_04()
         {
             var source1 =
@@ -28590,7 +28572,7 @@ class Test1 : I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void IndexerImplementationInDerived_05()
         {
             var source1 =
@@ -28622,7 +28604,7 @@ public interface I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void IndexerImplementationInDerived_06()
         {
             var source1 =
@@ -28681,7 +28663,7 @@ class Test1 : I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void IndexerImplementationInDerived_07()
         {
             var source1 =
@@ -28740,7 +28722,7 @@ class Test1 : I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void IndexerImplementationInDerived_08()
         {
             var source1 =
@@ -28796,7 +28778,7 @@ class Test1 : I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void IndexerImplementationInDerived_09()
         {
             var source1 =
@@ -28871,7 +28853,7 @@ class Test1 : I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void IndexerImplementationInDerived_10()
         {
             var source1 =
@@ -28962,7 +28944,7 @@ class Test2 : I4
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void IndexerImplementationInDerived_11()
         {
             var source1 =
@@ -29027,7 +29009,7 @@ public interface I3 : I1
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void IndexerImplementationInDerived_12()
         {
@@ -29119,11 +29101,10 @@ class Test7 : I6
     {
         I1 i1 = new Test5();
         i1[0] = i1[0];
-        // PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20083
-        //i1 = new Test6();
-        //i1[0] = i1[0];
-        //i1 = new Test7();
-        //i1[0] = i1[0];
+        i1 = new Test6();
+        i1[0] = i1[0];
+        i1 = new Test7();
+        i1[0] = i1[0];
     }
 }
 ";
@@ -29261,7 +29242,7 @@ class Test12 : I8
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         public void IndexerImplementationInDerived_13()
         {
             var source1 =
@@ -29312,7 +29293,7 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24497")]
+        [Fact]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void IndexerImplementationInDerived_14()
         {

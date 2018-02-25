@@ -261,7 +261,8 @@ namespace Microsoft.Cci
 
             // If this assert fires, the above bug has been fixed and this workaround should
             // be removed
-            Debug.Assert(oldChecksum != newChecksum);
+            // PROTOTYPE(DefaultInterfaceImplementation): This assert started firing with new version of CoreCLR
+            //Debug.Assert(oldChecksum != newChecksum);
 
             Blob getChecksumBlob(PEBuilder builder)
                 => (Blob)typeof(PEBuilder).GetRuntimeFields()
