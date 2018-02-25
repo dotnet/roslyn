@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample1_OnCaseColon()
+        public async Task TestExample1_AfterCaseColon()
         {
             await TestAsync(
 @"class C
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample2_OnGotoCaseSemicolon()
+        public async Task TestExample2_AfterGotoCaseSemicolon()
         {
             await TestAsync(
 @"class C
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestNestedExample1_NotOnCaseValue()
+        public async Task TestNestedExample1_NotBeforeCaseValue()
         {
             await TestAsync(
 @"class C
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestNestedExample1_OnCaseColon()
+        public async Task TestNestedExample1_AfterCaseColon()
         {
             await TestAsync(
 @"class C
@@ -747,7 +747,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestWithWhenClauseAndPattern_OnWhenCaseColon()
+        public async Task TestWithWhenClauseAndPattern_AfterWhenCaseColon()
         {
             await TestAsync(
 @"class C
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestWithWhenClauseAndPattern_OnPatternCaseColon()
+        public async Task TestWithWhenClauseAndPattern_AfterPatternCaseColon()
         {
             await TestAsync(
 @"class C
@@ -804,7 +804,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestWithWhenClauseAndPattern_NotOnPattern1()
+        public async Task TestWithWhenClauseAndPattern_NotOnPattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case true when true:
+                break;
+            case {|Cursor:bool b|}:
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestWithWhenClauseAndPattern_NotInsidePattern1()
         {
             await TestAsync(
 @"class C
@@ -823,7 +842,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestWithWhenClauseAndPattern_NotOnPattern2()
+        public async Task TestWithWhenClauseAndPattern_NotInsidePattern2()
         {
             await TestAsync(
 @"class C
