@@ -7628,6 +7628,12 @@ tryAgain:
                 if (isDeclaration)
                 {
                     decl = ParseVariableDeclaration();
+                    if (decl.Type.Kind == SyntaxKind.RefType)
+                    {
+                        decl = decl.Update(
+                            CheckFeatureAvailability(decl.Type, MessageID.IDS_FeatureRefFor),
+                            decl.Variables);
+                    }
                 }
                 else if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
                 {
@@ -7750,27 +7756,37 @@ tryAgain:
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var statement = this.ParseEmbeddedStatement();
 
-            var decl = variable as DeclarationExpressionSyntax;
-            if (decl != null && decl.designation.Kind != SyntaxKind.ParenthesizedVariableDesignation)
+            if (variable is DeclarationExpressionSyntax decl)
             {
-                // if we see a foreach declaration that isn't a deconstruction, we use the old form of foreach syntax node.
-                SyntaxToken identifier;
-                switch (decl.designation.Kind)
+                if (decl.Type.Kind == SyntaxKind.RefType)
                 {
-                    case SyntaxKind.SingleVariableDesignation:
-                        identifier = ((SingleVariableDesignationSyntax)decl.designation).identifier;
-                        break;
-                    case SyntaxKind.DiscardDesignation:
-                        // revert the identifier from its contextual underscore back to an identifier.
-                        var discard = ((DiscardDesignationSyntax)decl.designation).underscoreToken;
-                        Debug.Assert(discard.Kind == SyntaxKind.UnderscoreToken);
-                        identifier = SyntaxToken.WithValue(SyntaxKind.IdentifierToken, discard.LeadingTrivia.Node, discard.Text, discard.ValueText, discard.TrailingTrivia.Node);
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(decl.designation.Kind);
+                    decl = decl.Update(
+                        CheckFeatureAvailability(decl.Type, MessageID.IDS_FeatureRefForEach),
+                        decl.Designation);
                 }
 
-                return _syntaxFactory.ForEachStatement(@foreach, openParen, decl.Type, identifier, @in, expression, closeParen, statement);
+
+                if (decl.designation.Kind != SyntaxKind.ParenthesizedVariableDesignation)
+                {
+                    // if we see a foreach declaration that isn't a deconstruction, we use the old form of foreach syntax node.
+                    SyntaxToken identifier;
+                    switch (decl.designation.Kind)
+                    {
+                        case SyntaxKind.SingleVariableDesignation:
+                            identifier = ((SingleVariableDesignationSyntax)decl.designation).identifier;
+                            break;
+                        case SyntaxKind.DiscardDesignation:
+                            // revert the identifier from its contextual underscore back to an identifier.
+                            var discard = ((DiscardDesignationSyntax)decl.designation).underscoreToken;
+                            Debug.Assert(discard.Kind == SyntaxKind.UnderscoreToken);
+                            identifier = SyntaxToken.WithValue(SyntaxKind.IdentifierToken, discard.LeadingTrivia.Node, discard.Text, discard.ValueText, discard.TrailingTrivia.Node);
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(decl.designation.Kind);
+                    }
+
+                    return _syntaxFactory.ForEachStatement(@foreach, openParen, decl.Type, identifier, @in, expression, closeParen, statement);
+                }
             }
 
             return _syntaxFactory.ForEachVariableStatement(@foreach, openParen, variable, @in, expression, closeParen, statement);

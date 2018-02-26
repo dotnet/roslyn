@@ -13,6 +13,159 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CodeGenRefLocalTests : CompilingTestBase
     {
         [Fact]
+        public void RefExprNullPropagation()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+struct S : IDisposable
+{
+    public int F;
+    public S(int f) => F = f;
+    public void Dispose()
+    {
+        this.F++;
+        Console.WriteLine(""Dispose"");
+    }
+}
+
+class C
+{
+    public static void Main()
+    {
+        S s1 = new S(10);
+        S s2 = new S(5);
+        ref S rs = ref s1;
+        (rs = ref s2).Dispose();
+        Console.WriteLine(s1.F);
+        Console.WriteLine(s2.F);
+        M(ref s1, ref s2);
+        Console.WriteLine(s1.F);
+        Console.WriteLine(s2.F);
+    }
+
+    private static void M<T>(ref T t1, ref T t2) where T : IDisposable
+    {
+        (t2 = ref t1)?.Dispose();
+    }
+}", expectedOutput: @"
+Dispose
+10
+6
+Dispose
+11
+6");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       78 (0x4e)
+  .maxstack  2
+  .locals init (S V_0, //s1
+                S V_1) //s2
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.s   10
+  IL_0004:  call       ""S..ctor(int)""
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  ldc.i4.5
+  IL_000c:  call       ""S..ctor(int)""
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  call       ""void S.Dispose()""
+  IL_0018:  ldloc.0
+  IL_0019:  ldfld      ""int S.F""
+  IL_001e:  call       ""void System.Console.WriteLine(int)""
+  IL_0023:  ldloc.1
+  IL_0024:  ldfld      ""int S.F""
+  IL_0029:  call       ""void System.Console.WriteLine(int)""
+  IL_002e:  ldloca.s   V_0
+  IL_0030:  ldloca.s   V_1
+  IL_0032:  call       ""void C.M<S>(ref S, ref S)""
+  IL_0037:  ldloc.0
+  IL_0038:  ldfld      ""int S.F""
+  IL_003d:  call       ""void System.Console.WriteLine(int)""
+  IL_0042:  ldloc.1
+  IL_0043:  ldfld      ""int S.F""
+  IL_0048:  call       ""void System.Console.WriteLine(int)""
+  IL_004d:  ret
+}");
+            verifier.VerifyIL("C.M<T>", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  starg.s    V_1
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  initobj    ""T""
+  IL_000c:  ldloc.0
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_0026
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  ldloc.0
+  IL_001d:  box        ""T""
+  IL_0022:  brtrue.s   IL_0026
+  IL_0024:  pop
+  IL_0025:  ret
+  IL_0026:  constrained. ""T""
+  IL_002c:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_0031:  ret
+}");
+        }
+
+        [Fact]
+        public void RefExprUnaryPlus()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        int x = 10;
+        int y = 5;
+        ref int rx = ref x;
+        Console.WriteLine((rx = ref y)++);
+        Console.WriteLine(rx);
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+    }
+}", expectedOutput: @"5
+6
+10
+6");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       40 (0x28)
+  .maxstack  4
+  .locals init (int V_0, //x
+                int V_1, //y
+                int V_2)
+  IL_0000:  ldc.i4.s   10
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.5
+  IL_0004:  stloc.1
+  IL_0005:  ldloca.s   V_1
+  IL_0007:  dup
+  IL_0008:  dup
+  IL_0009:  ldind.i4
+  IL_000a:  stloc.2
+  IL_000b:  ldloc.2
+  IL_000c:  ldc.i4.1
+  IL_000d:  add
+  IL_000e:  stind.i4
+  IL_000f:  ldloc.2
+  IL_0010:  call       ""void System.Console.WriteLine(int)""
+  IL_0015:  ldind.i4
+  IL_0016:  call       ""void System.Console.WriteLine(int)""
+  IL_001b:  ldloc.0
+  IL_001c:  call       ""void System.Console.WriteLine(int)""
+  IL_0021:  ldloc.1
+  IL_0022:  call       ""void System.Console.WriteLine(int)""
+  IL_0027:  ret
+}");
+        }
+
+        [Fact]
         public void RefLocalFor()
         {
             CompileAndVerify(@"
