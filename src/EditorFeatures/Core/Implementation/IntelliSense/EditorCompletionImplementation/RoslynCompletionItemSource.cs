@@ -105,7 +105,7 @@ namespace RoslynCompletionPrototype
 
             var items = completionList.Items.SelectAsArray(roslynItem =>
             {
-                var needsCustomCommit = service.GetProvider(roslynItem) is ICustomCommitCompletionProvider;
+                var needsCustomCommit = service.GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider;
 
                 var item = Convert(document, roslynItem, imageIdService, completionService, filterCache, needsCustomCommit);
                 item.Properties.AddProperty(TriggerSnapshot, triggerLocation.Snapshot);
@@ -221,12 +221,23 @@ namespace RoslynCompletionPrototype
             var roslynItem = item.Properties.GetProperty<RoslynCompletionItem>(RoslynItem); // We're using custom data we deposited in GetCompletionContextAsync
             var triggerSnapshot = item.Properties.GetProperty<ITextSnapshot>(TriggerSnapshot);
 
-            var edit = buffer.CreateEdit();
-            var provider = service.GetProvider(roslynItem);
+            using (var edit = buffer.CreateEdit())
+            {
+                var provider = service.GetProvider(roslynItem);
+                Workspace.TryGetWorkspace(triggerSnapshot.TextBuffer.AsTextContainer(), out var workspace);
+                var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentIdInCurrentContext(triggerSnapshot.TextBuffer.AsTextContainer()));
 
-            ((ICustomCommitCompletionProvider)provider).Commit(roslynItem, view, buffer, triggerSnapshot, null);
+                var change = ((IFeaturesCustomCommitCompletionProvider)provider).GetChangeAsync(document, roslynItem, commitCharacter, CancellationToken.None).WaitAndGetResult(token);
 
-            edit.Apply();
+                edit.Replace(change.TextChange.Span.ToSpan(), change.TextChange.NewText);
+
+                edit.Apply();
+
+                if (change.NewPosition.HasValue)
+                {
+                    view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(buffer.CurrentSnapshot, change.NewPosition.Value));
+                }
+            }
         }
 
         public ImmutableArray<char> GetPotentialCommitCharacters()
