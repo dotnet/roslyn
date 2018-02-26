@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression constructorCall;
                 if (TryGetWellKnownTypeMember(stackAllocNode.Syntax, WellKnownMember.System_Span_T__ctor, out MethodSymbol spanConstructor))
                 {
-                    constructorCall = _factory.New(spanConstructor, stackAllocNode, countTemp);
+                    constructorCall = _factory.New((MethodSymbol)spanConstructor.SymbolAsMember(spanType), stackAllocNode, countTemp);
                 }
                 else
                 {
@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbols: ImmutableArray<Symbol>.Empty,
                         childBoundNodes: ImmutableArray<BoundExpression>.Empty,
                         type: ErrorTypeSymbol.UnknownResultType);
-
                 }
 
                 return new BoundSequence(
