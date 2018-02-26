@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 
         [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestWithNestedLoopAndGotoCase_OnSwitchKeyword()
+        public async Task TestWithGotoCaseAndBreakInsideLoop_OnSwitchKeyword()
         {
             await TestAsync(
 @"class C
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 
         [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestWithNestedLoopAndGotoCase_OnGotoCaseGotoKeyword()
+        public async Task TestWithGotoCaseAndBreakInsideLoop_OnGotoCaseGotoKeyword()
         {
             await TestAsync(
 @"class C
@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 
         [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestWithNestedLoopAndGotoCase_NotOnLoopBreakKeyword()
+        public async Task TestWithGotoCaseAndBreakInsideLoop_NotOnLoopBreakKeyword()
         {
             await TestAsync(
 @"class C

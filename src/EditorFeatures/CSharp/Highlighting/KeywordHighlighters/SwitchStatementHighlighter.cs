@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                     spans.Add(EmptySpan(label.ColonToken.Span.End));
                 }
 
-                HighlightRelatedKeywords(switchSection, spans, true, true);
+                HighlightRelatedKeywords(switchSection, spans, highlightBreaks: true, highlightGotos: true);
             }
 
             return spans;
@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         /// Finds all breaks and continues that are a child of this node, and adds the appropriate spans to the spans
         /// list.
         /// </summary>
-        private void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans, bool highlightBreaks, bool highlightGotos)
+        private void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans,
+            bool highlightBreaks, bool highlightGotos)
         {
             Debug.Assert(highlightBreaks || highlightGotos);
 
@@ -48,16 +49,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                 spans.Add(breakStatement.BreakKeyword.Span);
                 spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
             }
-            else if (highlightGotos && node is GotoStatementSyntax gotoStatement
-                && (!gotoStatement.IsKind(SyntaxKind.GotoStatement) || gotoStatement.Expression.IsMissing))
+            else if (highlightGotos && node is GotoStatementSyntax gotoStatement)
             {
-                var start = gotoStatement.GotoKeyword.SpanStart;
-                var end = !gotoStatement.CaseOrDefaultKeyword.IsKind(SyntaxKind.None)
-                    ? gotoStatement.CaseOrDefaultKeyword.Span.End
-                    : gotoStatement.GotoKeyword.Span.End;
+                // We only want to highlight 'goto case' and 'goto default', not plain old goto statements,
+                // but if the label is missing, we do highlight 'goto' assuming it's more likely that
+                // the user is in the middle of typing 'goto case' or 'goto default'.
+                if (gotoStatement.IsKind(SyntaxKind.GotoCaseStatement, SyntaxKind.GotoDefaultStatement) ||
+                    gotoStatement.Expression.IsMissing)
+                {
+                    var start = gotoStatement.GotoKeyword.SpanStart;
+                    var end = !gotoStatement.CaseOrDefaultKeyword.IsKind(SyntaxKind.None)
+                        ? gotoStatement.CaseOrDefaultKeyword.Span.End
+                        : gotoStatement.GotoKeyword.Span.End;
 
-                spans.Add(TextSpan.FromBounds(start, end));
-                spans.Add(EmptySpan(gotoStatement.SemicolonToken.Span.End));
+                    spans.Add(TextSpan.FromBounds(start, end));
+                    spans.Add(EmptySpan(gotoStatement.SemicolonToken.Span.End));
+                }
             }
             else
             {
