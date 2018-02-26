@@ -20873,7 +20873,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib40(source, assemblyName: "comp", options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, assemblyName: "comp", options: TestOptions.DebugExe);
 
             // emit without pdb
             using (ModuleMetadata block = ModuleMetadata.CreateFromStream(comp.EmitToStream()))

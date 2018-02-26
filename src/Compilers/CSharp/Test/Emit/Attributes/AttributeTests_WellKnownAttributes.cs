@@ -413,7 +413,7 @@ class C
             #endregion
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerifyWithMscorlib46(text, sourceSymbolValidator: attributeValidator);
+            CompileAndVerifyWithMscorlib46(text, references: new[] { TestBase.SystemRef_v46 }, sourceSymbolValidator: attributeValidator);
         }
 
         [Fact]

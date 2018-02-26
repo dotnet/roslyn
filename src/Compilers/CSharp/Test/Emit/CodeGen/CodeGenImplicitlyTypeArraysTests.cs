@@ -120,7 +120,7 @@ namespace Test
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40Extended);
             comp.VerifyDiagnostics(
     // (15,54): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
     //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
