@@ -1,7 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,9 +13,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
     {
+        private class CombinedHighlighter : IHighlighter
+        {
+            private readonly IHighlighter highlighter0;
+            private readonly IHighlighter highlighter1;
+
+            public CombinedHighlighter(IHighlighter highlighter0, IHighlighter highlighter1)
+            {
+                this.highlighter0 = highlighter0;
+                this.highlighter1 = highlighter1;
+            }
+
+            public IEnumerable<TextSpan> GetHighlights(SyntaxNode root, int position, CancellationToken cancellationToken)
+                => highlighter0.GetHighlights(root, position, cancellationToken).Concat(
+                   highlighter1.GetHighlights(root, position, cancellationToken));
+        }
+
         internal override IHighlighter CreateHighlighter()
         {
-            return new AwaitHighlighter();
+            return new CombinedHighlighter(new AsyncMethodHighlighter(), new AsyncParenthesizedLambdaHighlighter());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
