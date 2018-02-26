@@ -2930,7 +2930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Exception Handling Rude Edits
 
-        protected override List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isLeaf)
+        protected override List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isNonLeaf)
         {
             var result = new List<SyntaxNode>();
 
@@ -2941,7 +2941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (kind)
                 {
                     case SyntaxKind.TryStatement:
-                        if (!isLeaf)
+                        if (isNonLeaf)
                         {
                             result.Add(node);
                         }
@@ -3214,20 +3214,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             Match<SyntaxNode> match,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
-            bool isLeaf)
+            bool isNonLeaf)
         {
-            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
-            ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
+            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement);
+            ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isNonLeaf);
         }
 
         private void ReportRudeEditsForCheckedStatements(
             List<RudeEditDiagnostic> diagnostics,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
-            bool isLeaf)
+            bool isNonLeaf)
         {
-            // checked context can be changed around leaf active statement:
-            if (isLeaf)
+            // checked context can't be changed around non-leaf active statement:
+            if (!isNonLeaf)
             {
                 return;
             }
@@ -3279,8 +3279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             List<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
             SyntaxNode oldActiveStatement,
-            SyntaxNode newActiveStatement,
-            bool isLeaf)
+            SyntaxNode newActiveStatement)
         {
             // Rude Edits for fixed/using/lock/foreach statements that are added/updated around an active statement.
             // Although such changes are technically possible, they might lead to confusion since 

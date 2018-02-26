@@ -192,11 +192,6 @@
         <target state="translated">无法在磁盘上找到文件夹的位置</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">读取“{0}”时出错: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
         <target state="translated">程序集</target>
@@ -1433,8 +1428,8 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">读取文件时出错</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="needs-review-translation">读取文件时出错</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1496,6 +1491,16 @@ I agree to all of the foregoing:</source>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
         <target state="translated">此处配置的设置仅适用于计算机。要配置这些设置以使用解决方案，请使用 .editorconfig 文件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="new">Sync Class View</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
         <note />
       </trans-unit>
     </body>

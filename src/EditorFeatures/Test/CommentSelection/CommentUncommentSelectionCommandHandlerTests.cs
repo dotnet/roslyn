@@ -544,7 +544,7 @@ class Goo
         {
             var textUndoHistoryRegistry = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<ITextUndoHistoryRegistry>();
             var editorOperationsFactory = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<IEditorOperationsFactoryService>();
-            var commandHandler = new CommentUncommentSelectionCommandHandler(TestWaitIndicator.Default, textUndoHistoryRegistry, editorOperationsFactory);
+            var commandHandler = new CommentUncommentSelectionCommandHandler(textUndoHistoryRegistry, editorOperationsFactory);
             var service = new MockCommentSelectionService(supportBlockComments);
 
             var trackingSpans = new List<ITrackingSpan>();

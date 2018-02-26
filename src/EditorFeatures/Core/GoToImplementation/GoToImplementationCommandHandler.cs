@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -13,25 +13,28 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.GoToImplementation,
-        ContentTypeNames.RoslynContentType)]
-    internal partial class GoToImplementationCommandHandler : ICommandHandler<GoToImplementationCommandArgs>
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Name(PredefinedCommandHandlerNames.GoToImplementation)]
+    internal partial class GoToImplementationCommandHandler : VSCommanding.ICommandHandler<GoToImplementationCommandArgs>
     {
-        private readonly IWaitIndicator _waitIndicator;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
 
         [ImportingConstructor]
         public GoToImplementationCommandHandler(
-            IWaitIndicator waitIndicator,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
         {
-            _waitIndicator = waitIndicator;
             _streamingPresenters = streamingPresenters;
         }
+
+        public string DisplayName => EditorFeaturesResources.Go_To_Implementation;
 
         private (Document, IGoToImplementationService, IFindUsagesService) GetDocumentAndServices(ITextSnapshot snapshot)
         {
@@ -41,16 +44,16 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                     document?.GetLanguageService<IFindUsagesService>());
         }
 
-        public CommandState GetCommandState(GoToImplementationCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(GoToImplementationCommandArgs args)
         {
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
             var (document, implService, findUsagesService) = GetDocumentAndServices(args.SubjectBuffer.CurrentSnapshot);
             return implService != null || findUsagesService != null
-                ? CommandState.Available
-                : CommandState.Unavailable;
+                ? VSCommanding.CommandState.Available
+                : VSCommanding.CommandState.Unavailable;
         }
 
-        public void ExecuteCommand(GoToImplementationCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(GoToImplementationCommandArgs args, CommandExecutionContext context)
         {
             var (document, implService, findUsagesService) = GetDocumentAndServices(args.SubjectBuffer.CurrentSnapshot);
             if (implService != null || findUsagesService != null)
@@ -58,18 +61,19 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                 var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
                 if (caret.HasValue)
                 {
-                    ExecuteCommand(document, caret.Value, implService, findUsagesService);
-                    return;
+                    ExecuteCommand(document, caret.Value, implService, findUsagesService, context);
+                    return true;
                 }
             }
 
-            nextHandler();
+            return false;
         }
 
         private void ExecuteCommand(
             Document document, int caretPosition,
             IGoToImplementationService synchronousService,
-            IFindUsagesService streamingService)
+            IFindUsagesService streamingService,
+            CommandExecutionContext context)
         {
             var streamingPresenter = GetStreamingPresenter();
 
@@ -81,28 +85,30 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             {
                 // We have all the cheap stuff, so let's do expensive stuff now
                 string messageToShow = null;
-                _waitIndicator.Wait(
-                    EditorFeaturesResources.Go_To_Implementation,
-                    EditorFeaturesResources.Locating_implementations,
-                    allowCancel: true,
-                    action: context =>
+
+                using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Locating_implementations))
+                {
+                    var userCancellationToken = context.OperationContext.UserCancellationToken;
+                    if (canUseStreamingWindow)
                     {
-                        if (canUseStreamingWindow)
-                        {
-                            StreamingGoToImplementation(
-                                document, caretPosition,
-                                streamingService, streamingPresenter,
-                                context.CancellationToken, out messageToShow);
-                        }
-                        else
-                        {
-                            synchronousService.TryGoToImplementation(
-                                document, caretPosition, context.CancellationToken, out messageToShow);
-                        }
-                    });
+                        StreamingGoToImplementation(
+                            document, caretPosition,
+                            streamingService, streamingPresenter,
+                            userCancellationToken, out messageToShow);
+                    }
+                    else
+                    {
+                        synchronousService.TryGoToImplementation(
+                            document, caretPosition, userCancellationToken, out messageToShow);
+                    }
+                }
 
                 if (messageToShow != null)
                 {
+                    // We are about to show a modal UI dialog so we should take over the command execution
+                    // wait context. That means the command system won't attempt to show its own wait dialog 
+                    // and also will take it into consideration when measuring command handling duration.
+                    context.OperationContext.TakeOwnership();
                     var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
                     notificationService.SendNotification(messageToShow,
                         title: EditorFeaturesResources.Go_To_Implementation,

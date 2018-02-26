@@ -767,4 +767,43 @@ Do you want to proceed?</value>
   <data name="Inline_Rename_Field_Text" xml:space="preserve">
     <value>Inline Rename Field Text</value>
   </data>
+  <data name="Block_Comment_Editing" xml:space="preserve">
+    <value>Block Comment Editing</value>
+  </data>
+  <data name="Comment_Uncomment_Selection" xml:space="preserve">
+    <value>Comment/Uncomment Selection</value>
+  </data>
+  <data name="Code_Completion" xml:space="preserve">
+    <value>Code Completion</value>
+  </data>
+  <data name="Execute_In_Interactive" xml:space="preserve">
+    <value>Execute In Interactive</value>
+  </data>
+  <data name="Extract_Interface" xml:space="preserve">
+    <value>Extract Interface</value>
+  </data>
+  <data name="Go_To_Adjacent_Member" xml:space="preserve">
+    <value>Go To Adjacent Member</value>
+  </data>
+  <data name="Interactive" xml:space="preserve">
+    <value>Interactive</value>
+  </data>
+  <data name="Paste_in_Interactive" xml:space="preserve">
+    <value>Paste in Interactive</value>
+  </data>
+  <data name="Navigate_To_Highlight_Reference" xml:space="preserve">
+    <value>Navigate To Highlighted Reference</value>
+  </data>
+  <data name="Outlining" xml:space="preserve">
+    <value>Outlining</value>
+  </data>
+  <data name="Rename_Tracking_Cancellation" xml:space="preserve">
+    <value>Rename Tracking Cancellation</value>
+  </data>
+  <data name="Signature_Help" xml:space="preserve">
+    <value>Signature Help</value>
+  </data>
+  <data name="Smart_Token_Formatter" xml:space="preserve">
+    <value>Smart Token Formatter</value>
+  </data>
 </root>
