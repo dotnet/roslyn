@@ -288,6 +288,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             };
         }
 
+        protected Action<object> Captures(string expectedText)
+        {
+            return content =>
+            {
+                AssertTextAndClassifications(expectedText, expectedClassifications: null, actualContent: ((QuickInfoDisplayDeferredContent)content).CapturesText);
+            };
+        }
+
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
             var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();

@@ -393,6 +393,7 @@ End Class
             Dim missing As NoPiaMissingCanonicalTypeSymbol
             Assert.Equal(SymbolKind.ErrorType, param(0).[Type].Kind)
             missing = DirectCast(param(0).[Type], NoPiaMissingCanonicalTypeSymbol)
+            Assert.False(DirectCast(missing, INamedTypeSymbol).IsSerializable)
             Assert.Same(localTypes2_3, missing.EmbeddingAssembly)
             Assert.Null(missing.Guid)
             Assert.Equal(varS1.ToTestDisplayString(), missing.FullTypeName)
