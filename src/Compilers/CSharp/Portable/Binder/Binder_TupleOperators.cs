@@ -32,15 +32,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TupleBinaryOperatorInfo BindTupleBinaryOperatorInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
             BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
         {
-            int? leftCardinality = GetTupleCardinality(left);
-            int? rightCardinality = GetTupleCardinality(right);
+            int leftCardinality = GetTupleCardinality(left).GetValueOrDefault();
+            int rightCardinality = GetTupleCardinality(right).GetValueOrDefault();
 
-            if (leftCardinality.HasValue && rightCardinality.HasValue)
+            if (leftCardinality > 1 && rightCardinality > 1)
             {
                 TypeSymbol leftType = left.Type;
                 TypeSymbol rightType = right.Type;
 
-                if (leftCardinality.Value != rightCardinality.Value)
+                if (leftCardinality != rightCardinality)
                 {
                     Error(diagnostics, ErrorCode.ERR_TupleSizesMismatchForBinOps, node, leftCardinality, rightCardinality);
 
@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol returnType;
             bool hasErrors;
 
+            // PROTOTYPE(tuple-equality) Logic here is similar to that in BindSimpleBinaryOperator. Is there a way to factore more?
             if (!best.HasValue)
             {
                 resultOperatorKind = kind;
@@ -91,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // PROTOTYPE(tuple-equality) Remember to implement and test equality on `default`
                 bool leftNull = left.IsLiteralNull();
                 bool rightNull = right.IsLiteralNull();
 
@@ -159,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
-            var best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            UnaryOperatorAnalysisResult best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, node, diagnostics, out resultKind, out originalUserDefinedOperators);
             if (best.HasValue)
             {
                 boolConversion = best.Conversion;
@@ -275,6 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return tuple;
             }
 
+            // PROTOTYPE(tuple-equality) check constraints
             NamedTypeSymbol nullableT = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, syntax);
             return nullableT.Construct(tuple);
         }

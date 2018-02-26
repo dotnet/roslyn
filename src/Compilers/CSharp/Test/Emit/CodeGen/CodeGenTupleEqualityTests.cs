@@ -2466,41 +2466,23 @@ class C
         }
 
         [Fact]
-        public void TestOn1Tuple()
+        public void TestOn1Tuple_FromRest()
         {
             var source = @"
 class C
 {
-    public static void Main()
+    public static bool M()
     {
         var x1 = MakeLongTuple(1).Rest;
-        var x1again = MakeLongTuple(1).Rest;
-        var x2 = MakeLongTuple(2).Rest;
 
-        var xNull = MakeLongTuple(null).Rest;
+        bool b1 = x1 == x1;
+        bool b2 = x1 != x1;
 
-        Assert(x1 == x1again);
-        Assert(!(x1 != x1again));
-
-        Assert(x1 != x2);
-        Assert(!(x1 == x2));
-
-        Assert(x1 != xNull);
-        Assert(!(x1 == xNull));
-
-        System.Console.Write(""Success"");
+        return b1 && b2;
     }
     private static (int, int, int, int, int, int, int, int?) MakeLongTuple(int? x)
-    {
-        return (1, 2, 3, 4, 5, 6, 7, x);
-    }
-    private static void Assert(bool value)
-    {
-        if (!value)
-        {
-            throw null;
-        }
-    }
+        => throw null;
+
     public bool Unused((int, int, int, int, int, int, int, int?) t)
     {
         return t.Rest == t.Rest;
@@ -2508,9 +2490,18 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "Success");
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (8,19): error CS0019: Operator '==' cannot be applied to operands of type 'ValueTuple<int?>' and 'ValueTuple<int?>'
+                //         bool b1 = x1 == x1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x1 == x1").WithArguments("==", "ValueTuple<int?>", "ValueTuple<int?>").WithLocation(8, 19),
+                // (9,19): error CS0019: Operator '!=' cannot be applied to operands of type 'ValueTuple<int?>' and 'ValueTuple<int?>'
+                //         bool b2 = x1 != x1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x1 != x1").WithArguments("!=", "ValueTuple<int?>", "ValueTuple<int?>").WithLocation(9, 19),
+                // (18,16): error CS0019: Operator '==' cannot be applied to operands of type 'ValueTuple<int?>' and 'ValueTuple<int?>'
+                //         return t.Rest == t.Rest;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "t.Rest == t.Rest").WithArguments("==", "ValueTuple<int?>", "ValueTuple<int?>").WithLocation(18, 16)
+                );
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -2519,46 +2510,38 @@ class C
 
             var left = model.GetTypeInfo(comparison.Left);
             Assert.Equal("ValueTuple<System.Int32?>", left.Type.ToTestDisplayString());
-            Assert.Equal("ValueTuple<System.Int32?>", left.ConvertedType.ToTestDisplayString());
-            Assert.True(left.Type.IsTupleType);
-            Assert.True(left.ConvertedType.IsTupleType);
+            Assert.Equal("System.Object", left.ConvertedType.ToTestDisplayString());
+            Assert.True(left.Type.IsTupleType); // PROTOTYPE(tuple-equality) Need to investigate this
+        }
 
-            verifier.VerifyIL("C.Unused", @"
+        [Fact]
+        public void TestOn1Tuple_FromValueTuple()
+        {
+            var source = @"
+using System;
+class C
 {
-  // Code size       67 (0x43)
-  .maxstack  2
-  .locals init (System.ValueTuple<int?> V_0,
-                int? V_1,
-                int? V_2,
-                bool V_3)
-  IL_0000:  nop
-  IL_0001:  ldarg.1
-  IL_0002:  ldfld      ""ValueTuple<int?> System.ValueTuple<int, int, int, int, int, int, int, ValueTuple<int?>>.Rest""
-  IL_0007:  ldarg.1
-  IL_0008:  ldfld      ""ValueTuple<int?> System.ValueTuple<int, int, int, int, int, int, int, ValueTuple<int?>>.Rest""
-  IL_000d:  stloc.0
-  IL_000e:  ldfld      ""int? System.ValueTuple<int?>.Item1""
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.0
-  IL_0015:  ldfld      ""int? System.ValueTuple<int?>.Item1""
-  IL_001a:  stloc.2
-  IL_001b:  ldloca.s   V_1
-  IL_001d:  call       ""int int?.GetValueOrDefault()""
-  IL_0022:  ldloca.s   V_2
-  IL_0024:  call       ""int int?.GetValueOrDefault()""
-  IL_0029:  beq.s      IL_002e
-  IL_002b:  ldc.i4.0
-  IL_002c:  br.s       IL_003e
-  IL_002e:  ldloca.s   V_1
-  IL_0030:  call       ""bool int?.HasValue.get""
-  IL_0035:  ldloca.s   V_2
-  IL_0037:  call       ""bool int?.HasValue.get""
-  IL_003c:  ceq
-  IL_003e:  stloc.3
-  IL_003f:  br.s       IL_0041
-  IL_0041:  ldloc.3
-  IL_0042:  ret
-}");
+    public static bool M()
+    {
+        var x1 = ValueTuple.Create((int?)1);
+
+        bool b1 = x1 == x1;
+        bool b2 = x1 != x1;
+
+        return b1 && b2;
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (9,19): error CS0019: Operator '==' cannot be applied to operands of type 'ValueTuple<int?>' and 'ValueTuple<int?>'
+                //         bool b1 = x1 == x1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x1 == x1").WithArguments("==", "ValueTuple<int?>", "ValueTuple<int?>").WithLocation(9, 19),
+                // (10,19): error CS0019: Operator '!=' cannot be applied to operands of type 'ValueTuple<int?>' and 'ValueTuple<int?>'
+                //         bool b2 = x1 != x1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x1 != x1").WithArguments("!=", "ValueTuple<int?>", "ValueTuple<int?>").WithLocation(10, 19)
+                );
         }
 
         [Fact]
@@ -2877,7 +2860,6 @@ public class NotBool
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(new A(1), new A(2)) == (new X(1), new Y(2))").WithArguments("NotBool", "bool").WithLocation(7, 18)
                 );
 
-            // PROTOTYPE(async-streams) Maybe the error location could be more specific when concerning an element of a tuple literal
             validate("(new A(1), 2) != (new X(1), 2)",
                 // (7,18): error CS0029: Cannot implicitly convert type 'NotBool' to 'bool'
                 //         Write($"{(new A(1), 2) != (new X(1), 2)}");

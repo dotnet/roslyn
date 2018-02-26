@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// A tree of binary operators for tuple comparisons.
     ///
     /// For `(a, (b, c)) == (d, (e, f))` we'll hold a Multiple with two elements.
-    /// The first element is a Single (describing the binary operator and conversions are involved in `a == d`).
+    /// The first element is a Single (describing the binary operator and conversions that are involved in `a == d`).
     /// The second element is a Multiple containing two Singles (one for the `b == e` comparison and the other for `c == f`).
     /// </summary>
     internal abstract class TupleBinaryOperatorInfo
@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoolConversion = boolConversion;
                 BoolOperator = boolOperator;
 
-                // If a user-defined comparison operator is present, then the operator kind must be user-defined
-                Debug.Assert(Kind.IsUserDefined() || (object)MethodSymbolOpt == null);
+                Debug.Assert(Kind.IsUserDefined() == ((object)MethodSymbolOpt != null));
             }
 
             internal override bool IsSingle()
@@ -86,6 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal Multiple(ImmutableArray<TupleBinaryOperatorInfo> operators, TypeSymbol leftConvertedType, TypeSymbol rightConvertedType) 
                 : base(leftConvertedType, rightConvertedType)
             {
+                Debug.Assert(leftConvertedType.StrippedType().IsTupleType);
+                Debug.Assert(rightConvertedType.StrippedType().IsTupleType);
                 Debug.Assert(!operators.IsDefaultOrEmpty);
                 Operators = operators;
             }

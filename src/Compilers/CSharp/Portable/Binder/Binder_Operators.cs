@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
-            var best = this.BinaryOperatorOverloadResolution(kind, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            BinaryOperatorAnalysisResult best = this.BinaryOperatorOverloadResolution(kind, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
 
             // However, as an implementation detail, we never "fail to find an applicable 
             // operator" during overload resolution if we have x == null, etc. We always
@@ -560,6 +560,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasErrors)
             {
+                // PROTOTYPE(tuple-equality) There is likely a bug where logic above could have produced diagnostics
+                // PROTOTYPE(tuple-equality) Instead of a separate phase, could tuple equality binding be folded into BinaryOperatorOverloadResolution?
                 if (GetTupleCardinality(left).HasValue &&
                     GetTupleCardinality(right).HasValue &&
                     (kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual))

@@ -94,7 +94,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!shouldCheckConstraints || (object)syntax != null);
             Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
-            Debug.Assert(elementTypes.Length > 1 || elementNames.IsDefault);
+
+            int numElements = elementTypes.Length;
+
+            if (numElements <= 1)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
 
             NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, compilation, diagnostics);
 
