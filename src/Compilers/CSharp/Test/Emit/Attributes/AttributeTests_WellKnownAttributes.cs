@@ -8969,22 +8969,34 @@ public class C
     [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
     public void M()
     {
-        void F1()
+        void F()
         {
-            System.Action L1 = () =>
+            void FF()
             {
                 int x = 1;
+                x = x + x + x;
+            }
+
+            System.Action FL = () =>
+            {
+                int x = 2;
                 x = x + x + x;
             };
         }
 
-        System.Action L2 = () =>
+        System.Action L = () =>
         {
-            void F2()
+            void LF()
             {
-                int x = 2;
+                int x = 3;
                 x = x + x + x;
             }
+
+            System.Action LL = () =>
+            {
+                int x = 4;
+                x = x + x + x;
+            };
         };
     }
 }
@@ -8992,7 +9004,22 @@ public class C
 
             var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.<>c.<M>b__0_2", @"
+            // F
+            comp.VerifyIL("C.<M>g__F|0_0", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action C.<>c.<>9__0_3""
+  IL_0005:  brtrue.s   IL_001c
+  IL_0007:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_000c:  ldftn      ""void C.<>c.<M>b__0_3()""
+  IL_0012:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0017:  stsfld     ""System.Action C.<>c.<>9__0_3""
+  IL_001c:  ret
+}");
+
+            // FF
+            comp.VerifyIL("C.<M>g__FF|0_2", @"
 {
   // Code size        9 (0x9)
   .maxstack  2
@@ -9008,12 +9035,61 @@ public class C
   IL_0008:  ret
 }");
 
-            comp.VerifyIL("C.<M>g__F2|0_3", @"
+            // FL
+            comp.VerifyIL("C.<>c.<M>b__0_3", @"
 {
   // Code size        9 (0x9)
   .maxstack  2
   .locals (int V_0) //x
   IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+
+            // L
+            comp.VerifyIL("C.<>c.<M>b__0_1", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action C.<>c.<>9__0_5""
+  IL_0005:  brtrue.s   IL_001c
+  IL_0007:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_000c:  ldftn      ""void C.<>c.<M>b__0_5()""
+  IL_0012:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0017:  stsfld     ""System.Action C.<>c.<>9__0_5""
+  IL_001c:  ret
+}");
+
+            // LF
+            comp.VerifyIL("C.<M>g__LF|0_4", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.3
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+
+            // LL
+            comp.VerifyIL("C.<>c.<M>b__0_5", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.4
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
   IL_0003:  ldloc.0
