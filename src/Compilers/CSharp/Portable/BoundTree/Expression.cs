@@ -144,4 +144,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => 
             (this.Kind == BoundKind.StatementList || this.Kind == BoundKind.Scope) ? StaticCast<BoundNode>.From(this.Statements) : ImmutableArray<BoundNode>.Empty;
     }
+
+    internal partial class BoundPassByCopy
+    {
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Expression);
+    }
 }

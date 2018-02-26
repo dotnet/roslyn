@@ -121,7 +121,7 @@
        - Embed PDBs to be consistent with Jenkins builds.
     -->
     <RoslynDebugType Condition="'$(OfficialBuild)' == 'true'">portable</RoslynDebugType>
-    <RoslynDebugType Condition="'$(OfficialBuild)' != 'true'">embedded</RoslynDebugType>
+    <RoslynDebugType Condition="'$(OfficialBuild)' != 'true'">full</RoslynDebugType>
 
     <!-- 
       The source root path used for deterministic normalization of source paths.

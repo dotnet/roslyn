@@ -601,7 +601,7 @@ public abstract class C
         public void ScriptEntryPoint_MissingMethods()
         {
             var source = "System.Console.WriteLine(1);";
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyEmitDiagnostics(
                 // (1,1): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1' is not defined or imported
                 // System.Console.WriteLine(1);

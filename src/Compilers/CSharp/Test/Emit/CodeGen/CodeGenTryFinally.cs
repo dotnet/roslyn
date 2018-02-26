@@ -351,7 +351,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, additionalRefs: new MetadataReference[] { SystemRef }, expectedOutput: "hellobyebye");
+            var compilation = CompileAndVerify(source, expectedOutput: "hellobyebye");
             compilation.VerifyIL("Program.Main",
 @"
 {
@@ -2975,7 +2975,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (9,9): warning CS1058: A previous catch clause already catches all exceptions. All non-exceptions thrown will be wrapped in a System.Runtime.CompilerServices.RuntimeWrappedException.
                 //         catch when (a == 1) { }
                 Diagnostic(ErrorCode.WRN_UnreachableGeneralCatch, "catch").WithLocation(9, 9));
@@ -2997,7 +2997,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(540666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540666")]

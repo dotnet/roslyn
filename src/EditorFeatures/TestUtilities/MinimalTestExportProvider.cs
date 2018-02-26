@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                         .ToArray();
         }
 
-        public static IEnumerable<Assembly> GetVisualStudioAssemblies()
+        public static IEnumerable<Assembly> GetEditorAssemblies()
         {
             var assemblies = new[]
             {
