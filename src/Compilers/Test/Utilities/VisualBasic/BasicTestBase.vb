@@ -11,7 +11,7 @@ Imports Roslyn.Test.Utilities
 Imports Xunit
 
 Public MustInherit Class BasicTestBase
-    Inherits BasicTestBaseBase
+    Inherits CommonTestBase
 
     Protected Overloads Function GetCompilationForEmit(
         source As IEnumerable(Of String),
@@ -19,7 +19,7 @@ Public MustInherit Class BasicTestBase
         options As VisualBasicCompilationOptions,
         parseOptions As VisualBasicParseOptions
     ) As VisualBasicCompilation
-        Return DirectCast(MyBase.GetCompilationForEmit(source, additionalRefs, options, parseOptions), VisualBasicCompilation)
+        Return DirectCast(MyClass.GetCompilationForEmit(source, additionalRefs, options, parseOptions), VisualBasicCompilation)
     End Function
 
     Public Function XCDataToString(Optional data As XCData = Nothing) As String
@@ -408,11 +408,6 @@ Public MustInherit Class BasicTestBase
                                 validator:=Sub(assembly) MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField),
                                 expectedSignatures:=expectedSignatures)
     End Function
-
-End Class
-
-Public MustInherit Class BasicTestBaseBase
-    Inherits CommonTestBase
 
     Protected Overrides ReadOnly Property CompilationOptionsReleaseDll As CompilationOptions
         Get
