@@ -8953,6 +8953,78 @@ public class C
 }");
         }
 
+        [Fact]
+        public void SkipLocalsInitAttributeOnMethodPropagatesToNestedLambdaAndLocalFunction()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        void F1()
+        {
+            System.Action L1 = () =>
+            {
+                int x = 1;
+                x = x + x + x;
+            };
+        }
+
+        System.Action L2 = () =>
+        {
+            void F2()
+            {
+                int x = 2;
+                x = x + x + x;
+            }
+        };
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            comp.VerifyIL("C.<>c.<M>b__0_2", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+
+            comp.VerifyIL("C.<M>g__F2|0_3", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+        }
+
         #endregion
 
         [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
