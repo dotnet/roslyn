@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             mocks.PresenterMock _
                 .Verify(
-                    Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession)),
+                    Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IAsyncQuickInfoSession)),
                     Times.Once)
         End Sub
 
@@ -54,10 +54,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub ActiveQuickInfoShouldHandleEscape()
-            Dim presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession))
+            Dim presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IAsyncQuickInfoSession))
             Dim presenterSession = New Mock(Of IQuickInfoPresenterSession)
             presenter _
-                .Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession))) _
+                .Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IAsyncQuickInfoSession))) _
                 .Returns(presenterSession.Object)
 
             Dim mocks = CreateMocks(presenter:=presenter, triggerQuickInfo:=True)
@@ -75,10 +75,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub SlowQuickInfoShouldDismissSessionButNotHandleEscape()
-            Dim presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession))
+            Dim presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IAsyncQuickInfoSession))
             Dim presenterSession = New Mock(Of IQuickInfoPresenterSession)
             presenter _
-                .Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession))) _
+                .Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IAsyncQuickInfoSession))) _
                 .Returns(presenterSession.Object)
 
             Dim mocks = CreateMocks(presenter:=presenter, triggerQuickInfo:=True)
@@ -94,10 +94,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CaretPositionChangedShouldDismissSession()
-            Dim presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession))
+            Dim presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IAsyncQuickInfoSession))
             Dim presenterSession = New Mock(Of IQuickInfoPresenterSession)
             presenter _
-                .Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession))) _
+                .Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IAsyncQuickInfoSession))) _
                 .Returns(presenterSession.Object)
 
             Dim mocks = CreateMocks(presenter:=presenter, triggerQuickInfo:=True)
@@ -110,10 +110,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub SubjectBufferPostChangedShouldDismissSession()
-            Dim presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession))
+            Dim presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IAsyncQuickInfoSession))
             Dim presenterSession = New Mock(Of IQuickInfoPresenterSession)
             presenter _
-                .Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession))) _
+                .Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IAsyncQuickInfoSession))) _
                 .Returns(presenterSession.Object)
 
             Dim mocks = CreateMocks(presenter:=presenter, triggerQuickInfo:=True)
@@ -130,16 +130,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim presenter As IIntelliSensePresenter(Of IQuickInfoPresenterSession, IAsyncQuickInfoSession) =
                 New QuickInfoPresenter(Nothing, Nothing, Nothing, Nothing, Nothing)
 
-            Dim quickInfoSession = New Mock(Of IQuickInfoSession)
+            Dim quickInfoSession = New Mock(Of IAsyncQuickInfoSession)
             With quickInfoSession
-                .Setup(Function(m) m.IsDismissed).Returns(False)
-                .Setup(Sub(m) m.Recalculate())
                 .Setup(Function(m) m.Properties).Returns(New PropertyCollection())
             End With
 
             Dim presenterSession = presenter.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), quickInfoSession.Object)
             'presenterSession.PresentItem(Nothing, Nothing, False)
-            quickInfoSession.Verify(Sub(m) m.Recalculate())
+            'quickInfoSession.Verify(Sub(m) m.Recalculate())
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -147,11 +145,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim presenter As IIntelliSensePresenter(Of IQuickInfoPresenterSession, IAsyncQuickInfoSession) =
                 New QuickInfoPresenter(Nothing, Nothing, Nothing, Nothing, Nothing)
 
-            Dim mockEditorSession = New Mock(Of IQuickInfoSession)
+            Dim mockEditorSession = New Mock(Of IAsyncQuickInfoSession)
             With mockEditorSession
-                .Setup(Function(m) m.IsDismissed) _
-                    .Returns(True)
-                .Setup(Sub(m) m.Recalculate())
                 .Setup(Function(m) m.Properties) _
                     .Returns(New PropertyCollection())
             End With
@@ -173,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Dim presenterSession = presenter.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), mockEditorSession.Object)
             'presenterSession.PresentItem(mockTrackingSpan.Object, Nothing, False)
-            mockEditorSession.Verify(Sub(m) m.Recalculate(), Times.Never)
+            'mockEditorSession.Verify(Sub(m) m.Recalculate(), Times.Never)
         End Sub
 
         ' Create an empty document to use as a non-null parameter when needed
@@ -194,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Private ReadOnly _controller As Controller
             Private ReadOnly _viewMock As Mock(Of ITextView)
 
-            Public ReadOnly Property PresenterMock As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession))
+            Public ReadOnly Property PresenterMock As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IAsyncQuickInfoSession))
 
             Public ReadOnly Property Service As MockQuickInfoService
 
@@ -208,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 controller As Controller,
                 service As MockQuickInfoService,
                 viewMock As Mock(Of ITextView),
-                presenterMock As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession)))
+                presenterMock As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IAsyncQuickInfoSession)))
 
                 _controller = controller
                 Me.Service = service
@@ -257,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Class
 
         Private Shared Function CreateMocks(
-            Optional presenter As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession)) = Nothing,
+            Optional presenter As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IAsyncQuickInfoSession)) = Nothing,
             Optional noDocument As Boolean = False,
             Optional triggerQuickInfo As Boolean = False,
             Optional augmentSession As IAsyncQuickInfoSession = Nothing
@@ -271,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim buffer = s_bufferFactory.CreateTextBuffer()
 
             If presenter Is Nothing Then
-                presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession)) With {
+                presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IAsyncQuickInfoSession)) With {
                     .DefaultValue = DefaultValue.Mock
                 }
             End If

@@ -60,9 +60,19 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                 // do nothing
             }
 
+            private void OnEditorSessionDismissed()
+            {
+                this.Dismissed?.Invoke(this, EventArgs.Empty);
+                // do nothing
+            }
+
+
             public async Task<IntellisenseQuickInfoItem> BuildIntellisenseQuickInfoItemAsync(SnapshotPoint triggerPoint, CodeAnalysisQuickInfoItem quickInfoItem)
             {
                 IntellisenseQuickInfoItem item = null;
+
+                // the following code needs to run in UI thread,
+                // as the UI Elements created by this thread needs to be accessed by the UI
                 await InvokeBelowInputPriority(() =>
                 {
                     var line = triggerPoint.GetContainingLine();
