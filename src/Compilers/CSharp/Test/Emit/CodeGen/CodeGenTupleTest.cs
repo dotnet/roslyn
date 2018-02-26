@@ -3057,7 +3057,7 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void LongTupleDeclaration()
         {
             var source = @"
@@ -9885,7 +9885,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithMscorlib40(source);
             comp.VerifyDiagnostics(
                 // (6,24): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         var x = (1, 2, new System.ArgIterator());
@@ -9924,7 +9924,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithMscorlib40(source);
             comp.VerifyDiagnostics(
                 // (6,36): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         (int x, System.ArgIterator y) y;
@@ -10146,7 +10146,7 @@ CS0151ERR_IntegralTypeValueExpected}
             Assert.Throws<ArgumentNullException>(() => Compilation.GetRequiredLanguageVersion(null));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_01()
         {
             var source = @"
@@ -10588,7 +10588,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_02()
         {
             var source = @"
@@ -10718,7 +10718,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_03()
         {
             var source = @"
@@ -10987,7 +10987,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_05()
         {
             var source = @"
@@ -11410,7 +11410,7 @@ class C
                 );
         }
 
-        [Fact]
+       [ConditionalFact(typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_08()
         {
             var source = @"
@@ -12204,7 +12204,7 @@ Yes");
             Assert.Equal(1, m9Test.Arity);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void CreationOfTupleSymbols_01()
         {
             var source = @"
@@ -12765,8 +12765,8 @@ public class Test
                          m1Tuple.ToTestDisplayString());
         }
 
-        [Fact]
-        public void UnifyUnderlyingWithTuple_05()
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void UnifyUnderlyingWithTuple_05k()
         {
             var source = @"
 using System;
@@ -20858,7 +20858,7 @@ public interface I<in T>
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
         public void TupleInConstant()
         {
@@ -20873,7 +20873,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, assemblyName: "comp", options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib40(source, assemblyName: "comp", options: TestOptions.DebugExe);
 
             // emit without pdb
             using (ModuleMetadata block = ModuleMetadata.CreateFromStream(comp.EmitToStream()))
@@ -20894,7 +20894,7 @@ class C
             // no assertion in MetadataWriter
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
         public void ConstantTypeFromReferencedAssembly()
         {
@@ -20910,10 +20910,10 @@ class C
     }
 }";
 
-            var libComp = CreateCompilation(libSource, assemblyName: "lib");
+            var libComp = CreateCompilationWithMscorlib40(libSource, assemblyName: "lib");
             libComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(source, assemblyName: "comp", references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib40(source, assemblyName: "comp", references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
 
             // emit without pdb
             using (ModuleMetadata block = ModuleMetadata.CreateFromStream(comp.EmitToStream()))
@@ -21369,7 +21369,7 @@ public class A
         }
 #endif
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(13472, "https://github.com/dotnet/roslyn/issues/13472")]
         public void InvalidCastRef()
         {
@@ -21510,7 +21510,7 @@ public class B1
 
         [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
         [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void RefTupleDynamicDecode001()
         {
             string lib = @"
@@ -21970,7 +21970,7 @@ namespace ConsoleApplication5
 
         [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
         [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void RefTupleDynamicDecode004()
         {
             string lib = @"
@@ -23230,7 +23230,7 @@ static class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void Serialization()
         {
             var source = @"

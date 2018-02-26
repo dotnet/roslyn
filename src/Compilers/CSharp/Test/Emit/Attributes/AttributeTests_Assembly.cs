@@ -379,7 +379,7 @@ public class en_US
             compilation = compilation.WithOptions(compilation.Options.WithSpecificDiagnosticOptions(warnings));
             compilation.VerifyEmitDiagnostics();
 
-            compilation = CreateCompilation(
+            compilation = CreateCompilationWithMscorlib40(
 @"
 [assembly: System.Reflection.AssemblyCultureAttribute(""en-US"")]
 
@@ -950,7 +950,7 @@ public class C {}
         private ModuleMetadata GetNetModuleWithAssemblyAttributes(string source = null, IEnumerable<MetadataReference> references = null, string assemblyName = null)
         {
             source = source ?? s_defaultNetModuleSourceHeader + s_defaultNetModuleSourceBody;
-            var netmoduleCompilation = CreateCompilation(source, options: TestOptions.ReleaseModule, references: references, assemblyName: assemblyName);
+            var netmoduleCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseModule, references: references, assemblyName: assemblyName);
             return ModuleMetadata.CreateFromImage(netmoduleCompilation.EmitToArray());
         }
 
@@ -1010,7 +1010,7 @@ public class C {}
             EntityHandle token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
-            var consoleappCompilation = CreateCompilation(
+            var consoleappCompilation = CreateCompilationWithMscorlib40(
                 consoleappSource,
                 references: new[] { netModuleWithAssemblyAttributes.GetReference() },
                 options: TestOptions.ReleaseExe);
@@ -1056,7 +1056,7 @@ public class C {}
             token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
-            consoleappCompilation = CreateCompilation(
+            consoleappCompilation = CreateCompilationWithMscorlib40(
                 consoleappSource,
                 references: new[] { netModuleWithAssemblyAttributes.GetReference() },
                 options: TestOptions.ReleaseModule);
@@ -1364,14 +1364,14 @@ public class C {}
             string netmodule2Source = @"
 [assembly: UserDefinedAssemblyAttrNoAllowMultiple(""UserDefinedAssemblyAttrNoAllowMultiple (from source)"")]
 ";
-            compilation = CreateCompilation(netmodule2Source, options: TestOptions.ReleaseModule, references: new[] { netmodule1Ref });
+            compilation = CreateCompilationWithMscorlib40(netmodule2Source, options: TestOptions.ReleaseModule, references: new[] { netmodule1Ref });
             compilation.VerifyDiagnostics();
             var netmodule2Ref = compilation.EmitToImageReference();
 
             attrs = compilation.Assembly.GetAttributes();
             Assert.Equal(1, attrs.Length);
 
-            compilation = CreateCompilation("", options: TestOptions.ReleaseDll, references: new[] { netmodule1Ref, netmodule2Ref });
+            compilation = CreateCompilationWithMscorlib40("", options: TestOptions.ReleaseDll, references: new[] { netmodule1Ref, netmodule2Ref });
             compilation.VerifyDiagnostics(
                 // error CS7061: Duplicate 'UserDefinedAssemblyAttrNoAllowMultipleAttribute' attribute in 'Test.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("UserDefinedAssemblyAttrNoAllowMultipleAttribute", netmodule1Ref.Display));
@@ -1452,7 +1452,7 @@ class Program
             string defaultHeaderString = @"
 using System;
 ";
-            var defsRef = CreateCompilation(defaultHeaderString + s_defaultNetModuleSourceBody).ToMetadataReference();
+            var defsRef = CreateCompilationWithMscorlib40(defaultHeaderString + s_defaultNetModuleSourceBody).ToMetadataReference();
             MetadataReference netmodule1Ref = GetNetModuleWithAssemblyAttributesRef(source2, references: new[] { defsRef });
 
             var compilation = CreateCompilationWithMscorlib40(source1, references: new[] { defsRef, netmodule1Ref }, options: TestOptions.ReleaseDll);
@@ -1561,7 +1561,7 @@ class Program
 {
     static void Main(string[] args) { }
 }";
-            var compilation = CreateCompilation(source, references: new[] { netmoduleDefsRef, netmodule0Ref, netmodule1Ref, netmodule2Ref, netmodule3Ref }, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { netmoduleDefsRef, netmodule0Ref, netmodule1Ref, netmodule2Ref, netmodule3Ref }, options: TestOptions.ReleaseDll);
 
             TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 21,

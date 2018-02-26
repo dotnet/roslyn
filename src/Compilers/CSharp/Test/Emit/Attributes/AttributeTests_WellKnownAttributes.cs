@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestInteropAttributes01()
         {
-            var source = CreateCompilation(@"
+            var source = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 
@@ -133,7 +133,7 @@ class C
         [Fact]
         public void TestInteropAttributes02()
         {
-            var source = CreateCompilation(@"
+            var source = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 
@@ -255,7 +255,7 @@ class C
             CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestPseudoAttributes1()
         {
             #region "Source"
@@ -413,7 +413,7 @@ class C
             #endregion
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(text, sourceSymbolValidator: attributeValidator);
+            CompileAndVerifyWithMscorlib46(text, sourceSymbolValidator: attributeValidator);
         }
 
         [Fact]
@@ -1362,7 +1362,7 @@ public class Goo: Attribute
     public static void Main() {}
 }";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (15,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Goo([Optional(isOpt: false)][Goo]int y) {}
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute").WithLocation(15, 17),
@@ -1393,7 +1393,7 @@ public class Goo: Attribute
     public static void Main() {}
 }";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (16,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Goo([Optional][Goo]int y) {}
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute"),
@@ -1424,7 +1424,7 @@ public class Goo: Attribute
     public static void Main() {}
 }";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (16,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Goo([Optional(new Goo())][Goo]int y) {}
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute").WithLocation(16, 17),
@@ -4933,7 +4933,7 @@ namespace System
     }
 }";
             var syntaxTree = Parse(source, filename: "test.cs");
-            var compilation = CreateCompilation(syntaxTree);
+            var compilation = CreateCompilationWithMscorlib40(syntaxTree);
 
             var comp = compilation.VerifyDiagnostics(
                 // test.cs(4,6): warning CS0436: The type 'AttributeUsageAttribute' in 'test.cs' conflicts with the imported type 'AttributeUsageAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'test.cs'.
@@ -5220,7 +5220,7 @@ public class InvalidClass5 { }
 public interface InvalidTarget {}
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (26,17): error CS0591: Invalid value for argument to 'ClassInterface' attribute
                 // [ClassInterface((ClassInterfaceType)(-1))]
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(ClassInterfaceType)(-1)").WithArguments("ClassInterface"),
@@ -5299,7 +5299,7 @@ public interface InvalidInterface5 {}
 [InterfaceType(ComInterfaceType.InterfaceIsDual)]
 public class InvalidTarget {}
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (34,16): error CS0591: Invalid value for argument to 'InterfaceType' attribute
                 // [InterfaceType((ComInterfaceType)(-1))]
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(ComInterfaceType)(-1)").WithArguments("InterfaceType"),
@@ -5332,7 +5332,7 @@ using System.Runtime.InteropServices;
 
 [assembly: TypeLibVersionAttribute(0, int.MaxValue)]
 ";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5347,7 +5347,7 @@ public class C
     public const short S = short.MaxValue;
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5358,7 +5358,7 @@ using System.Runtime.InteropServices;
 
 [assembly: TypeLibVersionAttribute(-1, int.MinValue)]
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (4,36): error CS0591: Invalid value for argument to 'TypeLibVersionAttribute' attribute
                 // [assembly: TypeLibVersionAttribute(-1, int.MinValue)]
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "-1").WithArguments("TypeLibVersionAttribute"),
@@ -5375,7 +5375,7 @@ using System.Runtime.InteropServices;
 
 [assembly: TypeLibVersionAttribute(""str"", 0)]
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (4,36): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                 // [assembly: TypeLibVersionAttribute("str", 0)]
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""str""").WithArguments("1", "string", "int"));

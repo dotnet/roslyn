@@ -645,9 +645,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return null;
         }
 
-        #endregion
+#endregion
 
-        #region Semantic Model Helpers
+#region Semantic Model Helpers
 
         public Tuple<TNode, SemanticModel> GetBindingNodeAndModel<TNode>(CSharpCompilation compilation, int treeIndex = 0) where TNode : SyntaxNode
         {
@@ -772,9 +772,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Assert.Equal(bindText, node.ToString());
             return ((TNode)node);
         }
-        #endregion
+#endregion
 
-        #region Attributes
+#region Attributes
 
         internal IEnumerable<string> GetAttributeNames(ImmutableArray<SynthesizedAttributeData> attributes)
         {
@@ -791,9 +791,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return attributes.Select(a => a.ToString());
         }
 
-        #endregion
+#endregion
 
-        #region Documentation Comments
+#region Documentation Comments
 
         internal static string GetDocumentationCommentText(CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
         {
@@ -855,9 +855,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
         }
 
-        #endregion
+#endregion
 
-        #region IL Validation
+#region IL Validation
 
         internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers)
         {
@@ -989,9 +989,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
         }
 
-        #endregion
+#endregion
 
-        #region IOperation tree validation
+#region IOperation tree validation
 
         protected static (IOperation operation, SyntaxNode node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation)
             where TSyntaxNode : SyntaxNode
@@ -1119,9 +1119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return ilReference;
         }
 
-        #endregion
+#endregion
 
-        #region Span
+#region Span
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
@@ -1356,6 +1356,6 @@ namespace System
             }
         }
     }";
-        #endregion
+#endregion
     }
 }

@@ -136,13 +136,11 @@ namespace Roslyn.Test.Utilities
                 sb.Append(" ");
                 sb.Append(parameter.Name);
 
-#if NET46 || NET461
                 var defaultValue = parameter.RawDefaultValue;
                 if (defaultValue != DBNull.Value)
                 {
                     AppendValue(defaultValue, sb);
                 }
-#endif
             }
         }
 
