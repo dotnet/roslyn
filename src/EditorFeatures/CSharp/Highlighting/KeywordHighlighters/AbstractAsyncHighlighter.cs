@@ -68,6 +68,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                         spans.Add(awaitToken.Span);
                     }
                     break;
+
+                case UsingStatementSyntax usingStatement:
+                    if (usingStatement.AwaitKeyword.Kind() == SyntaxKind.AwaitKeyword)
+                    {
+                        spans.Add(usingStatement.AwaitKeyword.Span);
+                    }
+                    break;
+
+                case CommonForEachStatementSyntax forEachStatement:
+                    if (forEachStatement.AwaitKeyword.Kind() == SyntaxKind.AwaitKeyword)
+                    {
+                        spans.Add(forEachStatement.AwaitKeyword.Span);
+                    }
+                    break;
             }
 
             foreach (var child in node.ChildNodes())
