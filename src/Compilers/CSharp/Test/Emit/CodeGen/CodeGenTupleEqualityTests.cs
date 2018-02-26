@@ -2926,12 +2926,12 @@ public class NotBool
 
             var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (7,18): error CS0266: Cannot implicitly convert type 'NotBool' to 'bool'. An explicit conversion exists (are you missing a cast?)
+                // (7,18): error CS0029: Cannot implicitly convert type 'NotBool' to 'bool'
                 //         Write($"{(new A(1), new A(2)) == (new X(1), new Y(2))}");
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(new A(1), new A(2)) == (new X(1), new Y(2))").WithArguments("NotBool", "bool").WithLocation(7, 18),
-                // (7,18): error CS0266: Cannot implicitly convert type 'NotBool' to 'bool'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(new A(1), new A(2)) == (new X(1), new Y(2))").WithArguments("NotBool", "bool").WithLocation(7, 18),
+                // (7,18): error CS0029: Cannot implicitly convert type 'NotBool' to 'bool'
                 //         Write($"{(new A(1), new A(2)) == (new X(1), new Y(2))}");
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(new A(1), new A(2)) == (new X(1), new Y(2))").WithArguments("NotBool", "bool").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(new A(1), new A(2)) == (new X(1), new Y(2))").WithArguments("NotBool", "bool").WithLocation(7, 18)
                 );
         }
     }

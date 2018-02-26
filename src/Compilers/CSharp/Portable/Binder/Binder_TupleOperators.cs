@@ -128,13 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void PrepareBoolConversionAndTruthOperator(TypeSymbol type, BinaryExpressionSyntax node, BinaryOperatorKind binaryOperator, DiagnosticBag diagnostics,
             out Conversion boolConversion, out UnaryOperatorSignature boolOperator)
         {
-            BoundExpression comparisonResult = new BoundTupleOperandPlaceholder(node, type);
-            var boolean = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
-
             // Is the operand implicitly convertible to bool?
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var conversion = this.Conversions.ClassifyConversionFromExpression(comparisonResult, boolean, ref useSiteDiagnostics);
+            var boolean = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
+            var conversion = this.Conversions.ClassifyImplicitConversionFromType(type, boolean, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if (conversion.IsImplicit)
@@ -161,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
+            BoundExpression comparisonResult = new BoundTupleOperandPlaceholder(node, type);
             UnaryOperatorAnalysisResult best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, node, diagnostics, out resultKind, out originalUserDefinedOperators);
             if (best.HasValue)
             {
@@ -216,8 +215,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var compilation = this.Compilation;
             var operators = operatorsBuilder.ToImmutableAndFree();
-            TypeSymbol leftTupleType = MakeConvertedType(operators, node.Left, left, isNullable, compilation, diagnostics, isRight: false);
-            TypeSymbol rightTupleType = MakeConvertedType(operators, node.Right, right, isNullable, compilation, diagnostics, isRight: true);
+
+            TypeSymbol leftTupleType = MakeConvertedType(operators.SelectAsArray(o => o.LeftConvertedType), node.Left, left, isNullable, compilation, diagnostics, isRight: false);
+            TypeSymbol rightTupleType = MakeConvertedType(operators.SelectAsArray(o => o.RightConvertedType), node.Right, right, isNullable, compilation, diagnostics, isRight: true);
 
             return new TupleBinaryOperatorInfo.Multiple(operators, leftTupleType, rightTupleType);
         }
@@ -262,10 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Make a tuple type (with appropriate nesting) from the types (on the left or on the right) collected
         /// from binding element-wise binary operators.
         /// </summary>
-        private TypeSymbol MakeConvertedType(ImmutableArray<TupleBinaryOperatorInfo> operators, CSharpSyntaxNode syntax,
+        private TypeSymbol MakeConvertedType(ImmutableArray<TypeSymbol> convertedTypes, CSharpSyntaxNode syntax,
             ImmutableArray<BoundExpression> elements, bool isNullable, CSharpCompilation compilation, DiagnosticBag diagnostics, bool isRight)
         {
-            ImmutableArray<TypeSymbol> convertedTypes = operators.SelectAsArray((o, r) => r ? o.RightConvertedType : o.LeftConvertedType, isRight);
             ImmutableArray<Location> elementLocations = elements.SelectAsArray(e => e.Syntax.Location);
 
             var tuple = TupleTypeSymbol.Create(locationOpt: null, elementTypes: convertedTypes,

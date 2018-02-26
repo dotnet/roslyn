@@ -88,6 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var isLeftNullable = coreLeft.Type.IsNullableType();
             if (isLeftNullable)
             {
+                // Ex: if converted type of left is `(int, long)?` and the type is `(int, int)?`, it's easier to apply the conversion here than try to
+                // do the int->long conversion later (when `left.Item2` is used). So we save left instead of coreLeft.
                 BoundExpression savedLeft = EvaluateSideEffectingArgumentToTemp(VisitExpression(left), outerEffects, ref initialEffectsAndTemps.temps);
                 leftHasValue = MakeHasValueTemp(savedLeft, initialEffectsAndTemps.temps, outerEffects);
                 leftValue = MakeValueOrDefaultTemp(savedLeft, initialEffectsAndTemps.temps, innerEffects);
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 leftHasValue = MakeBooleanConstant(left.Syntax, true);
-                leftValue = SaveTupleIfNotLiteral(coreLeft, ref inLeftLiteral, initialEffectsAndTemps, isRight: false);
+                leftValue = SaveTupleIfNotLiteral(coreLeft, ref inLeftLiteral, initialEffectsAndTemps.temps, initialEffectsAndTemps.leftInit);
             }
 
             BoundExpression rightHasValue;
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 rightHasValue = MakeBooleanConstant(right.Syntax, true);
-                rightValue = SaveTupleIfNotLiteral(coreRight, ref inRightLiteral, initialEffectsAndTemps, isRight: true);
+                rightValue = SaveTupleIfNotLiteral(coreRight, ref inRightLiteral, initialEffectsAndTemps.temps, initialEffectsAndTemps.rightInit);
             }
 
             BoundExpression logicalExpression = RewriteNonNullableNestedTupleOperators(operators, leftValue, rightValue, boolType, initialEffectsAndTemps.temps, innerEffects, initialEffectsAndTemps, operatorKind, inLeftLiteral, inRightLiteral);
@@ -123,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isLeftNullable && !isRightNullable)
             {
+                // The outer sequence degenerates when we know that both `leftHasValue` and `rightHasValue` are true
                 return innerSequence;
             }
 
@@ -161,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression MakeTemp(BoundExpression loweredExpression, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
+        private BoundLocal MakeTemp(BoundExpression loweredExpression, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
         {
             BoundLocal temp = _factory.StoreToTemp(loweredExpression, out BoundAssignmentOperator assignmentToTemp);
             effects.Add(assignmentToTemp);
@@ -172,8 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns a temp which is initialized with lowered-expression.HasValue
         /// </summary>
-        private BoundExpression MakeHasValueTemp(BoundExpression expression, ArrayBuilder<LocalSymbol> temps,
-            ArrayBuilder<BoundExpression> effects)
+        private BoundLocal MakeHasValueTemp(BoundExpression expression, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
         {
             BoundExpression hasValueCall = MakeNullableHasValue(expression.Syntax, expression);
             return MakeTemp(hasValueCall, temps, effects);
@@ -182,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns a temp which is initialized with lowered-expression.GetValueOrDefault()
         /// </summary>
-        private BoundExpression MakeValueOrDefaultTemp(BoundExpression expression,
+        private BoundLocal MakeValueOrDefaultTemp(BoundExpression expression,
             ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
         {
             BoundExpression valueOrDefaultCall = MakeOptimizedGetValueOrDefault(expression.Syntax, expression);
@@ -204,8 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression currentResult = null;
             for (int i = 0; i < nestedOperators.Length; i++)
             {
-                BoundExpression leftElement = GetTuplePart(left, i, nestedOperators, temps, effects, effectAndTemps, isRight: false);
-                BoundExpression rightElement = GetTuplePart(right, i, nestedOperators, temps, effects, effectAndTemps, isRight: true);
+                BoundExpression leftElement = GetTuplePart(left, i, nestedOperators, effectAndTemps.temps, effectAndTemps.leftInit);
+                BoundExpression rightElement = GetTuplePart(right, i, nestedOperators, effectAndTemps.temps, effectAndTemps.rightInit);
                 var nextLogicalOperand = RewriteTupleOperator(nestedOperators[i], leftElement, rightElement, type, effectAndTemps, operatorKind, inLeftLiteral, inRightLiteral);
                 if (currentResult is null)
                 {
@@ -221,11 +223,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return currentResult;
         }
 
-        private BoundExpression SaveTupleIfNotLiteral(BoundExpression tuple, ref bool inLiteral, TupleOperatorSideEffectsAndTemps effectsAndTemps, bool isRight)
+        private BoundExpression SaveTupleIfNotLiteral(BoundExpression tuple, ref bool inLiteral, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> initEffects)
         {
-            if (TupleNeedsSaving(tuple) && inLiteral)
+            if (inLiteral && TupleNeedsSaving(tuple))
             {
-                var tupleTemp = EvaluateSideEffectingArgumentToTemp(VisitExpression(tuple), isRight ? effectsAndTemps.rightInit : effectsAndTemps.leftInit, ref effectsAndTemps.temps);
+                var tupleTemp = EvaluateSideEffectingArgumentToTemp(VisitExpression(tuple), initEffects, ref temps);
                 inLiteral = false;
                 return tupleTemp;
             }
@@ -268,13 +270,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         // If getting the element of a tuple literal corresponding to a nested operator, we just return it
         // If getting the element of a tuple type, we save it into the local side-effects
         private BoundExpression GetTuplePart(BoundExpression tuple, int i, ImmutableArray<TupleBinaryOperatorInfo> operators,
-            ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects, TupleOperatorSideEffectsAndTemps initialEffectsAndTemps, bool isRight)
+            ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> initEffects)
         {
             // Example:
             // (1, 2) == (1, 2);
             if (IsTupleExpression(tuple.Kind))
             {
-                return MakeTemp(((BoundTupleExpression)tuple).Arguments[i], operators[i], initialEffectsAndTemps, isRight);
+                return MakeTemp(((BoundTupleExpression)tuple).Arguments[i], operators[i], temps, initEffects);
             }
 
             // Example:
@@ -285,14 +287,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var tupleConversion = (BoundConversion)tuple;
                 if (tupleConversion.Conversion.Kind == ConversionKind.ImplicitNullable)
                 {
-                    return GetTuplePart(tupleConversion.Operand, i, operators, temps, effects, initialEffectsAndTemps, isRight);
+                    return GetTuplePart(tupleConversion.Operand, i, operators, temps, initEffects);
                 }
 
                 if ((tupleConversion.Conversion.Kind == ConversionKind.ImplicitTupleLiteral || tupleConversion.Conversion.Kind == ConversionKind.Identity)
                     && IsTupleExpression(tupleConversion.Operand.Kind))
                 {
                     var coreArgument = WithoutImplicitNullableConversions(((BoundTupleExpression)tupleConversion.Operand).Arguments[i]);
-                    return MakeTemp(coreArgument, operators[i], initialEffectsAndTemps, isRight);
+                    return MakeTemp(coreArgument, operators[i], temps, initEffects);
                 }
             }
 
@@ -305,11 +307,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeTupleFieldAccessAndReportUseSiteDiagnostics(tuple, tuple.Syntax, tuple.Type.TupleElements[i]);
         }
 
-        private BoundExpression MakeTemp(BoundExpression expr, TupleBinaryOperatorInfo op, TupleOperatorSideEffectsAndTemps initialEffectsAndTemps, bool isRight)
+        private BoundExpression MakeTemp(BoundExpression expr, TupleBinaryOperatorInfo op, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> initEffects)
         {
+            Debug.Assert(temps != null);
+
             if (op.IsSingle())
             {
-                return EvaluateSideEffectingArgumentToTemp(VisitExpression(expr), isRight ? initialEffectsAndTemps.rightInit : initialEffectsAndTemps.leftInit, ref initialEffectsAndTemps.temps);
+                return EvaluateSideEffectingArgumentToTemp(VisitExpression(expr), initEffects, ref temps);
             }
             else
             {

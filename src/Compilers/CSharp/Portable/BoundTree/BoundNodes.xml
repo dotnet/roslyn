@@ -93,7 +93,7 @@
   <!--
   In a tuple binary operator, this node is used to represent tuple elements in a tuple binary
   operator, and to represent an element-wise comparison result to convert back to bool.
-  It is does not survive the initial binding.
+  It does not survive the initial binding.
   -->
   <Node Name="BoundTupleOperandPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
