@@ -251,7 +251,7 @@ namespace Namespace
 class name2
 {
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (14,13): error CS0158: The label 'name1' shadows another label by the same name in a contained scope
                 // name1: Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_LabelShadow, "name1").WithArguments("name1"),
@@ -339,7 +339,7 @@ class Class
 class name2
 {
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -381,7 +381,7 @@ namespace name1
         }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
@@ -409,7 +409,7 @@ namespace name1
         static void Bar(D x) { }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -447,7 +447,7 @@ class Class<name1, name2>
         }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,51): error CS0412: 'name4': a parameter or local variable cannot have the same name as a method type parameter
                 // void Method<name3, name4>(name1 other1, name4 name4) // 0412 on name4
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "name4").WithArguments("name4").WithLocation(4, 51),
@@ -530,7 +530,7 @@ class Base
 {
     protected static long name2 = 5;
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -574,7 +574,7 @@ class Class
 
     private long other = 0, name = 6;
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (13,50): error CS0128: A local variable named 'name' is already defined in this scope
                 //                     int other = M(), name = M(), name = other; // 0128, 0135
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "name").WithArguments("name"),
@@ -599,7 +599,7 @@ class Class
     private static int x = 123;
     private static int z = x + ((System.Func<int>)( ()=>{ int x = M(); return x; } ))();
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -624,7 +624,7 @@ partial struct PartialStruct
 {
     internal long name;
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -752,7 +752,7 @@ class Class
     }
     public long name2 = 4;
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (7,9): error CS0841: Cannot use local variable 'name4' before it is declared
     //         name4 = name6;             // 0841 on name4; used before declared. 0103 on name6; not defined in this context
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "name4").WithArguments("name4").WithLocation(7, 9),
@@ -827,7 +827,7 @@ class Class
         return (name1, name2) => name1;              // 0136 on both name1 and name2
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,22): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //         foreach (var name1 in "string")            // 0136
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(7, 22),
@@ -872,7 +872,7 @@ class Class
         };
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (5,57): error CS0100: The parameter name 'name2' is a duplicate
                 //     public static void Method(int name1, int name2, int name2) // 0100 on name2
                 Diagnostic(ErrorCode.ERR_DuplicateParamName, "name2").WithArguments("name2").WithLocation(5, 57),
@@ -903,7 +903,7 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
             // (7,28): error CS0100: The parameter name 'x' is a duplicate
             //         D d1 = (int x, int x) => { return 1; };
             Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x").WithLocation(7, 28),
@@ -1001,7 +1001,7 @@ class Base
 {
     protected static long name2 = 12;
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (24,21): error CS0136: A local or parameter named 'name3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //                 int name3 = M(); // 0136: Native compiler says 0135, Roslyn says 0136. The conflict is with the other local.
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name3").WithArguments("name3").WithLocation(24, 21),
@@ -1068,7 +1068,7 @@ class Class
         Console.WriteLine(name2); 
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (15,27): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 // const int name1 = 2;              // 0136 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(15, 27),
@@ -1123,7 +1123,7 @@ class Class
         Console.WriteLine(name1);
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (10,23): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //             const int name1 = @name2; // 0136 on name1 because it conflicts with parameter
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(10, 23)
@@ -1153,7 +1153,7 @@ class Class
     }
     static long name2 = name1 + name2;
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (11,30): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 // foreach (var name2 in "string")    // 0136 on name2
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2"),
@@ -1188,7 +1188,7 @@ class Class
         System.Console.WriteLine(name3); // Eliminate warning
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (11,26): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 // for (int name2 = name1; name2 <= name2++; ++name2)   // 0136 on name2
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(11, 26),
@@ -1225,7 +1225,7 @@ partial class Class
         }
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (10,34): error CS1931: The range variable 'name' conflicts with a previous declaration of 'name'
                 // for (var name = from name in "string" orderby name select name; name != null; ) ;                     // 1931
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "name").WithArguments("name"),
@@ -1251,7 +1251,7 @@ class Class
         //End
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
 
@@ -1289,7 +1289,7 @@ class Class : System.IDisposable
         }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (17,21): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //                 int name1 = 2;  // 0136 on name1 
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(17, 21),
@@ -1330,7 +1330,7 @@ class Class
         }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1380,7 +1380,7 @@ class Class
         }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (10,18): error CS0844: Cannot use local variable 'name1' before it is declared. The declaration of the local variable hides the field 'Class.name1'.
     //             case name1: break;                      // 0844: use of 'int name1' below before it is declared -- surprising error, but correct. Also notes that local name1 hides field.
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclarationAndHidesField, "name1").WithArguments("name1", "Class.name1").WithLocation(10, 18),
@@ -1512,7 +1512,7 @@ class Base
 {
     protected static long name2 = 2;
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (27,21): error CS0136: A local or parameter named 'name4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //                 var name4 = string.Empty;             // 0136: Roslyn reports this here; native reports it below.
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name4").WithArguments("name4").WithLocation(27, 21),
@@ -1648,7 +1648,7 @@ partial class Class
         return null;
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
     // (26,34): error CS1930: The range variable 'name2' has already been declared
     //                              let name2 = 2               // 1930
     Diagnostic(ErrorCode.ERR_QueryDuplicateRangeVariable, "name2").WithArguments("name2").WithLocation(26, 34),
@@ -1674,7 +1674,7 @@ public class Class
         }
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (7,26): error CS1948: The range variable 'T' cannot have the same name as a method type parameter
                 // var q = from T in "" 
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "T").WithArguments("T"),
@@ -1728,7 +1728,7 @@ class A
         int x2;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (10,24): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because
                 // that name is used in an enclosing local scope to define a local or parameter int y1 = M(x1 => {
                 //             });
@@ -1777,7 +1777,7 @@ class A
         int x2;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (11,24): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used
                 // in an enclosing local scope to define a local or parameter int y1 = M(x1 => { });
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1"),
@@ -1842,7 +1842,7 @@ class Outer
         }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(835569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835569")]
@@ -1861,7 +1861,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Assembly").WithArguments("System.Reflection.Assembly").WithLocation(9, 41)
                 );
         }
@@ -1890,7 +1890,7 @@ class D
         c.M();
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (17,21): error CS0104: 'Nested' is an ambiguous reference between 'Static<int>.Nested' and 'Static<string>.Nested'
                 //         var c = new Nested();
                 Diagnostic(ErrorCode.ERR_AmbigContext, "Nested").WithArguments("Nested", "Static<int>.Nested", "Static<string>.Nested").WithLocation(17, 21));
@@ -1919,7 +1919,7 @@ class D
         var c = new Nested();
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,7): warning CS0105: The using directive for 'Static<string>' appeared previously in this namespace
                 // using Static<System.String>;
                 Diagnostic(ErrorCode.WRN_DuplicateUsing, "Static<System.String>").WithArguments("Static<string>").WithLocation(3, 14),
@@ -1954,7 +1954,7 @@ namespace N
         }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using Static<string>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static Static<string>;").WithLocation(2, 1));

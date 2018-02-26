@@ -34,7 +34,7 @@ class C
         ref readonly int y = ref x;
     }
 }", options: TestOptions.Regular7_1);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
                 // (7,13): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
                 //         ref readonly int y = ref x;
@@ -44,7 +44,7 @@ class C
         [Fact]
         public void CovariantConversionRefReadonly()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -62,7 +62,7 @@ class C
         [Fact]
         public void ImplicitNumericRefReadonlyConversion()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -80,7 +80,7 @@ class C
         [Fact]
         public void RefReadonlyLocalToLiteral()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -97,7 +97,7 @@ class C
         [Fact]
         public void RefReadonlyNoCaptureInLambda()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -119,7 +119,7 @@ class C
         [Fact]
         public void RefReadonlyInLambda()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -138,7 +138,7 @@ class C
         [Fact]
         public void RefReadonlyNoCaptureInLocalFunction()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -160,7 +160,7 @@ class C
         [Fact]
         public void RefReadonlyInLocalFunction()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -199,7 +199,7 @@ class C
         [Fact]
         public void RefReadonlyInIterator()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System.Collections.Generic;
 class C
 {
@@ -219,7 +219,7 @@ class C
         [Fact]
         public void RefReadonlyLocalNotWritable()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 struct S
 {
     public int X;
@@ -254,7 +254,7 @@ class C
         [Fact]
         public void StripReadonlyInReturn()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     ref int M(ref int p)
@@ -272,7 +272,7 @@ class C
         [Fact]
         public void MixingRefParams()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -1357,7 +1357,7 @@ class C
 ";
             CompileAndVerify(text,
                 expectedOutput: "frog",
-                additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
+                references: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1399,7 +1399,7 @@ class C
 public delegate ref TR RefFunc<T1, TR>(T1 t1);
 public delegate ref TR RefFunc<T1, T2, TR>(T1 t1, T2 t2);
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text)
+            CreateCompilationWithMscorlib40AndSystemCore(text)
                 .GetDiagnostics()
                 // It turns out each of them is diagnosed with ErrorCode.ERR_InvalidExprTerm in the midst
                 // of a flurry of other syntax errors.
@@ -1482,7 +1482,7 @@ class TestClass
     }
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (9,17): error CS8154: The body of 'localFunction()' cannot be an iterator block because 'localFunction()' returns by reference
                 //         ref int localFunction()
                 Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "localFunction").WithArguments("localFunction()").WithLocation(9, 17),
@@ -1508,7 +1508,7 @@ class TestClass
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (11,51): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
                 //         Expression<RefReturnIntDelegate> lambda = (y) => ref x;
                 Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "(y) => ref x").WithLocation(11, 51));
@@ -1531,7 +1531,7 @@ class TestClass
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (11,51): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
                 //         Expression<RefReturnIntDelegate> lambda = y => ref x;
                 Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "y => ref x").WithLocation(11, 51));
@@ -1578,7 +1578,7 @@ namespace TestRefReturns
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (32,71): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
                 //             Expression<Func<int>> lambda1 = () => TakeRefFunction(ref RefReturnFunction());
                 Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "RefReturnFunction()").WithLocation(32, 71),
@@ -1611,7 +1611,7 @@ class TestClass
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (8,74): error CS8159: Cannot return the range variable 'c' by reference
                 //         var x = from c in "TestValue" select (RefCharDelegate)(() => ref c);
                 Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "c").WithArguments("c").WithLocation(8, 74),
@@ -1642,7 +1642,7 @@ class TestClass
     }
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (12,43): error CS8173: The expression must be of type 'int?' because it is being assigned by reference
                 //         ref int? nullableConversion = ref intVar;
                 Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "intVar").WithArguments("int?").WithLocation(12, 43),
@@ -1683,7 +1683,7 @@ class TestClass
     }
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (13,21): error CS8176: Iterators cannot have by reference locals
                 //             ref int z = ref x;
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "z").WithLocation(13, 21),
@@ -2003,7 +2003,7 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (13,41): error CS8930: Cannot use ref local 'rl' inside an anonymous method, lambda expression, or query expression
                 //         var d = new D(delegate { return rl; });
                 Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "rl").WithArguments("rl").WithLocation(13, 41),
@@ -2559,7 +2559,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (13,27): error CS8090: Lambda expressions that return by reference cannot be converted to expression trees
                 //         Expression<D> d = () => ref field;
                 Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "() => ref field").WithLocation(13, 27),
@@ -2593,7 +2593,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (16,32): error CS8091: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
                 //         Expression<D> e = c => c.P;
                 Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "c.P").WithLocation(16, 32),
@@ -2745,7 +2745,7 @@ class Test
         [Fact]
         public void RefReadOnlyInEnumeratorMethodsDisallowed()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System.Collections.Generic;
 class Test
 {
@@ -2762,7 +2762,7 @@ class Test
         [Fact]
         public void CannotCallRefReadOnlyMethodsUsingDiscardParameter()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
 	void M(in int p)

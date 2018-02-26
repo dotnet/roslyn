@@ -607,7 +607,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.M", @"
 {
@@ -650,7 +650,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.<M>g__M1|0_0(in int, in (int Alice, int Bob))", @"
 {
@@ -720,7 +720,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput:@"42");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput:@"42");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -753,7 +753,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -1919,7 +1919,7 @@ struct S1
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -1942,15 +1942,15 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
         }
 
         [Fact]
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary_Right()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -1973,15 +1973,15 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
         }
 
         [Fact]
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary_Left()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -2004,15 +2004,15 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
         }
 
         [Fact]
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Unary()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public bool Value { get; set; }
@@ -2034,15 +2034,15 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "False");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "False");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "False");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "False");
         }
 
         [Fact]
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Conversion()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public bool Value { get; set; }
@@ -2064,8 +2064,8 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "3");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "3");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "3");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "3");
         }
 
         [Fact]
@@ -2883,7 +2883,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: "XX");
 
             verifier.VerifyIL("X.M()", @"
