@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             });
         }
 
-        public void AnalyzeInvocationForIgnoredReturnValue(SyntaxNodeAnalysisContext context, ImmutableArray<INamedTypeSymbol> immutableTypeSymbols)
+        public static void AnalyzeInvocationForIgnoredReturnValue(SyntaxNodeAnalysisContext context, ImmutableArray<INamedTypeSymbol> immutableTypeSymbols)
         {
             SemanticModel model = context.SemanticModel;
             var candidateInvocation = (InvocationExpressionSyntax)context.Node;

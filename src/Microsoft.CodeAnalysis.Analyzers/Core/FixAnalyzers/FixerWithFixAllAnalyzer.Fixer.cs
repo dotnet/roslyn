@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             context.RegisterCodeFix(CodeAction.Create(title, c => AddMethodAsync(context.Document, classDecl, c), equivalenceKey: title), context.Diagnostics);
         }
 
-        private async Task<Document> AddMethodAsync(Document document, SyntaxNode classDecl, CancellationToken cancellationToken)
+        private static async Task<Document> AddMethodAsync(Document document, SyntaxNode classDecl, CancellationToken cancellationToken)
         {
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;

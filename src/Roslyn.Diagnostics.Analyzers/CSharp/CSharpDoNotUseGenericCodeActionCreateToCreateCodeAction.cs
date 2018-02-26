@@ -27,7 +27,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             protected override void GetSyntaxAnalyzer(CodeBlockStartAnalysisContext<SyntaxKind> context, ImmutableHashSet<ISymbol> symbols)
             {
                 var analyzer = new SyntaxAnalyzer(symbols);
-                context.RegisterSyntaxNodeAction(analyzer.AnalyzeNode, analyzer.SyntaxKindsOfInterest.ToArray());
+                context.RegisterSyntaxNodeAction(analyzer.AnalyzeNode, SyntaxAnalyzer.SyntaxKindsOfInterest.ToArray());
             }
         }
 
@@ -37,7 +37,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             {
             }
 
-            public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest => ImmutableArray.Create(SyntaxKind.InvocationExpression);
+            public static ImmutableArray<SyntaxKind> SyntaxKindsOfInterest => ImmutableArray.Create(SyntaxKind.InvocationExpression);
 
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
