@@ -543,7 +543,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (Op
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For J = 1 T ... Next')
         Body: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For J = 1 T ... Next')
-            IBranchOperation (BranchKind.Break, Label: exit) (OperationKind.Branch, Type: null) (Syntax: 'Exit For')
+            IBranchOperation (BranchKind.Break, Label Id: 3) (OperationKind.Branch, Type: null) (Syntax: 'Exit For')
         NextVariables(0)
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(I)')
         Expression: 
@@ -890,7 +890,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (Op
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         WhenTrue: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If i Mod 2  ... End If')
-            IBranchOperation (BranchKind.Continue, Label: continue) (OperationKind.Branch, Type: null) (Syntax: 'Continue For')
+            IBranchOperation (BranchKind.Continue, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'Continue For')
         WhenFalse: 
           null
   NextVariables(0)
