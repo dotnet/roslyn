@@ -337,8 +337,37 @@ class D : C<B>, I<B>
             Assert.Equal(null, constraintType.IsNullable);
         }
 
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): Return type and parameter types of explicit implementations have nullability set.
+        [Fact(Skip = "TODO")]
         public void UnannotatedAssemblies_04()
+        {
+            var source =
+@"interface I<T>
+{
+    I<object[]> F();
+}
+class C : I<string>
+{
+    I<object[]> I<string>.F() => null;
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics();
+            var type = comp.GetMember<NamedTypeSymbol>("C");
+            var interfaceType = type.Interfaces().Single();
+            var typeArg = interfaceType.TypeArgumentsNoUseSiteDiagnostics.Single();
+            Assert.Equal(null, typeArg.IsNullable);
+            var method = type.GetMember<MethodSymbol>("I<System.String>.F");
+            Assert.Equal(null, method.ReturnType.IsNullable);
+            typeArg = ((NamedTypeSymbol)method.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single();
+            Assert.Equal(null, typeArg.IsNullable);
+            var parameter = method.Parameters.Single();
+            Assert.Equal(null, parameter.Type.IsNullable);
+            typeArg = ((NamedTypeSymbol)parameter.Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single();
+            Assert.Equal(null, typeArg.IsNullable);
+        }
+
+        [Fact]
+        public void UnannotatedAssemblies_05()
         {
             var source0 =
 @"public class C<T>
@@ -369,7 +398,7 @@ public class C
         }
 
         [Fact]
-        public void UnannotatedAssemblies_05()
+        public void UnannotatedAssemblies_06()
         {
             var source0 =
 @"public interface I
@@ -467,7 +496,7 @@ class P
         }
 
         [Fact]
-        public void UnannotatedAssemblies_06()
+        public void UnannotatedAssemblies_07()
         {
             var source0 =
 @"public interface I
@@ -551,7 +580,7 @@ public class D : C
         }
 
         [Fact]
-        public void UnannotatedAssemblies_07()
+        public void UnannotatedAssemblies_08()
         {
             var source0 =
 @"public abstract class A

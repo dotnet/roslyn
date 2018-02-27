@@ -10,25 +10,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     internal sealed class UsesIsNullableVisitor : CSharpSymbolVisitor<bool>
     {
-        private readonly PooledHashSet<TypeSymbol> _visited;
         private readonly ArrayBuilder<Symbol> _builder;
 
         private UsesIsNullableVisitor(ArrayBuilder<Symbol> builder)
         {
-            _visited = PooledHashSet<TypeSymbol>.GetInstance();
             _builder = builder;
-        }
-
-        private void Free()
-        {
-            _visited.Free();
         }
 
         internal static void GetUses(ArrayBuilder<Symbol> builder, Symbol symbol)
         {
             var visitor = new UsesIsNullableVisitor(builder);
             visitor.Visit(symbol);
-            visitor.Free();
         }
 
         public override bool VisitNamespace(NamespaceSymbol symbol)
@@ -121,10 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         private bool UsesIsNullable(TypeSymbol type)
         {
             if (type is null)
-            {
-                return false;
-            }
-            if (!_visited.Add(type))
             {
                 return false;
             }
