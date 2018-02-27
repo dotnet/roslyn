@@ -466,7 +466,7 @@ Public MustInherit Class BasicTestBase
     End Function
 
     Public Shared Shadows Function GetPdbXml(source As XElement, Optional options As VisualBasicCompilationOptions = Nothing, Optional methodName As String = "") As XElement
-        Dim compilation = CreateCompilationWithMscorlib40(source, options)
+        Dim compilation = CreateCompilationWithMscorlib40(source, options:=options)
         compilation.VerifyDiagnostics()
         Return GetPdbXml(compilation, methodName)
     End Function
