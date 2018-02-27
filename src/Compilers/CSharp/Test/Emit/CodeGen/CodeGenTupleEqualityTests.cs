@@ -956,7 +956,7 @@ public class C
         }
 
         [Fact]
-        public void TestNoCompatBreak()
+        public void TestCustomOperatorPreferred()
         {
             var source = @"
 namespace System
@@ -1002,7 +1002,69 @@ public class C
 ";
             var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
+            // Note: custom operator== picked ahead of tuple equality (compat scenario)
             CompileAndVerify(comp, expectedOutput: "Correct operator was called");
+        }
+
+        [Fact]
+        void TestCustomOperatorPreferred_Nested()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        System.Console.Write( (1, 2, (3, 4)) == (1, 2, (3, 4)) );
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public static bool operator ==(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+        {
+            System.Console.Write(""Correct operator was called "");
+            return true;
+        }
+        public static bool operator !=(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+            => throw null;
+
+        public override bool Equals(object o)
+            => throw null;
+
+        public override int GetHashCode()
+            => throw null;
+    }
+    public struct ValueTuple<T1, T2, T3>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+            this.Item3 = item3;
+        }
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            // Note: custom operator== picked ahead of tuple equality
+            CompileAndVerify(comp, expectedOutput: "Correct operator was called True");
         }
 
         [Fact]
@@ -2933,6 +2995,60 @@ public class NotBool
                 //         Write($"{(new A(1), new A(2)) == (new X(1), new Y(2))}");
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(new A(1), new A(2)) == (new X(1), new Y(2))").WithArguments("NotBool", "bool").WithLocation(7, 18)
                 );
+        }
+
+        [Fact]
+        void TestValueTupleWithObsoleteEqualityOperator()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        _ = (1, 2) == (3, 4);
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        [System.Obsolete]
+        public static bool operator==(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+        {
+            System.Console.Write(""operator "");
+            return true;
+        }
+
+        public static bool operator!=(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+            => throw null;
+
+        public override bool Equals(object other)
+            => throw null;
+
+        public override int GetHashCode()
+            => throw null;
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS0612: '(int, int).operator ==((int, int), (int, int))' is obsolete
+                //         _ = (1, 2) == (3, 4);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2) == (3, 4)").WithArguments("(int, int).operator ==((int, int), (int, int))").WithLocation(6, 13)
+                );
+
+            // Note: custom operator== picked ahead of tuple equality
+            CompileAndVerify(comp, expectedOutput: "operator");
         }
     }
 }
