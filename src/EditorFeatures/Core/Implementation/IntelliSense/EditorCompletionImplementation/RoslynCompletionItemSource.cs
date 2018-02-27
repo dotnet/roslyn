@@ -227,10 +227,11 @@ namespace RoslynCompletionPrototype
                 Workspace.TryGetWorkspace(triggerSnapshot.TextBuffer.AsTextContainer(), out var workspace);
                 var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentIdInCurrentContext(triggerSnapshot.TextBuffer.AsTextContainer()));
 
+                // TODO: We actually want the document from the initial snapshot, not the CurrentSnapshot.
+                edit.Delete(applicableSpan.GetSpan(buffer.CurrentSnapshot));
+
                 var change = ((IFeaturesCustomCommitCompletionProvider)provider).GetChangeAsync(document, roslynItem, commitCharacter, CancellationToken.None).WaitAndGetResult(token);
-
                 edit.Replace(change.TextChange.Span.ToSpan(), change.TextChange.NewText);
-
                 edit.Apply();
 
                 if (change.NewPosition.HasValue)
