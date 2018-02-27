@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IsWritable means the variable is writable. If this is a ref variable, IsWritable
                 // does not imply anything about the storage location
                 if (localSymbol.RefKind == RefKind.RefReadOnly ||
-                    (localSymbol.RefKind == RefKind.None && !localSymbol.IsWritable))
+                    (localSymbol.RefKind == RefKind.None && !localSymbol.IsWritableVariable))
                 {
                     ReportReadonlyLocalError(node, localSymbol, valueKind, checkingReceiver, diagnostics);
                     return false;
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_RefLocalOrParamExpected, node.Location, localSymbol);
                     return false;
                 }
-                else if (!localSymbol.IsWritable)
+                else if (!localSymbol.IsWritableVariable)
                 {
                     ReportReadonlyLocalError(node, localSymbol, valueKind, checkingReceiver, diagnostics);
                     return false;
