@@ -407,8 +407,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             for (int i = 1, n = chosenItems.Length; i < n; i++)
             {
                 var chosenItem = chosenItems[i];
-                int.TryParse(bestItem.Properties.GetValueOrDefault("MatchPriority"), out var bestItemPriority);
-                int.TryParse(chosenItem.Properties.GetValueOrDefault("MatchPriority"), out var currentItemPriority);
+                int.TryParse(ImmutableDictionary.GetValueOrDefault(bestItem.Properties, "MatchPriority"), out var bestItemPriority);
+                int.TryParse(ImmutableDictionary.GetValueOrDefault(chosenItem.Properties, "MatchPriority"), out var currentItemPriority);
 
                 if (currentItemPriority > bestItemPriority)
                 {
