@@ -491,7 +491,7 @@ End Module
 
         <Fact>
         Public Sub ImplementNonInterface()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="ImplementNonInterface">
        <file name="a.vb">
 Option Strict On
@@ -555,7 +555,7 @@ BC30232: Implemented type must be an interface.
         <WorkItem(531308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531308")>
         <Fact>
         Public Sub ImplementsClauseAndObsoleteAttribute()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="ImplementsClauseAndObsoleteAttribute">
        <file name="a.vb">
 Imports System
@@ -604,7 +604,7 @@ BC31075: 'Event goo()' is obsolete.
 
         <Fact>
         Public Sub UnimplementedInterface()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="UnimplementedInterface">
        <file name="a.vb">
 Option Strict On
@@ -637,7 +637,7 @@ BC31035: Interface 'I1' is not implemented by this class.
 
         <Fact>
         Public Sub UnimplementedInterface2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="UnimplementedInterface2">
        <file name="a.vb">
 Option Strict On
@@ -678,7 +678,7 @@ BC31035: Interface 'I1' is not implemented by this class.
 
         <Fact>
         Public Sub ImplementUnknownType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="ImplementUnknownType">
        <file name="a.vb">
 Option Strict On
@@ -725,7 +725,7 @@ BC30002: Type 'System.UnknownType' is not defined.
             ' I2.Foo(Integer), even though only I2.Foo(String, String) matches the method arguments provided. This
             ' matches Dev10 behavior.
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="AmbiguousInterface">
        <file name="a.vb">
 Option Strict On
@@ -760,7 +760,7 @@ BC30149: Class 'Class1' must implement 'Sub Foo(x As Integer)' for interface 'I2
 
         <Fact>
         Public Sub AmbiguousInterface_02()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="AmbiguousInterface">
        <file name="a.vb">
 Option Strict On
@@ -798,7 +798,7 @@ BC31040: 'Foo' exists in multiple base interfaces. Use the name of the interface
 
         <Fact>
         Public Sub AmbiguousInterface_03()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="AmbiguousInterface">
        <file name="a.vb">
 Option Strict On
@@ -842,7 +842,7 @@ BC31040: 'Foo' exists in multiple base interfaces. Use the name of the interface
 
         <Fact>
         Public Sub AmbiguousInterface_04()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="AmbiguousInterface">
        <file name="a.vb">
 Option Strict On
@@ -875,7 +875,7 @@ BC30937: Member 'I1(Of Integer, Integer).Foo' that matches this signature cannot
 
         <Fact>
         Public Sub AmbiguousInterface_05()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="AmbiguousInterface">
        <file name="a.vb">
 Option Strict On
@@ -951,7 +951,7 @@ BC30149: Class 'Class2' must implement 'Sub Foo(i As String)' for interface 'I1'
             ' I2.Foo(Integer), even though only I2.Foo(String, String) matches the method arguments provided. This
             ' matches Dev10 behavior.
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="AmbiguousInterfaceProperty">
        <file name="a.vb">
 Option Strict On
@@ -997,7 +997,7 @@ BC31040: 'Foo' exists in multiple base interfaces. Use the name of the interface
 
         <Fact>
         Public Sub NoMethodOfSig()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="NoMethodOfSig">
        <file name="a.vb">
 Option Strict On
@@ -1065,7 +1065,7 @@ BC30401: 'Z3' cannot implement 'Foo' because there is no matching property on in
         <WorkItem(577934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577934")>
         <Fact>
         Public Sub Bug577934a()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation>
        <file name="a.vb">
 Option Strict On
@@ -1089,7 +1089,7 @@ End Class
         <WorkItem(577934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577934")>
         <Fact>
         Public Sub Bug577934b()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation>
        <file name="a.vb">
 Option Strict On
@@ -1113,7 +1113,7 @@ End Class
         <WorkItem(577934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577934")>
         <Fact>
         Public Sub Bug577934c()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation>
        <file name="a.vb">
 Option Strict On
@@ -1136,7 +1136,7 @@ End Class
 
         <Fact>
         Public Sub NoMethodOfName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="NoMethodOfName">
        <file name="a.vb">
 Option Strict On
@@ -1195,7 +1195,7 @@ BC30401: 'Zing' cannot implement 'Foo' because there is no matching property on 
 
         <Fact>
         Public Sub GenericSubstitutionAmbiguity()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="GenericSubstitutionAmbiguity">
        <file name="a.vb">
 Option Strict On
@@ -1244,7 +1244,7 @@ BC30937: Member 'I1(Of String).Bar' that matches this signature cannot be implem
 
         <Fact>
         Public Sub GenericSubstitutionAmbiguityProperty()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="GenericSubstitutionAmbiguityProperty">
        <file name="a.vb">
 Option Strict On
@@ -1307,7 +1307,7 @@ BC30937: Member 'I1(Of String).Bar' that matches this signature cannot be implem
 
         <Fact>
         Public Sub InterfaceReimplementation2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="InterfaceReimplementation2">
        <file name="a.vb">
 Option Strict On
@@ -1387,7 +1387,7 @@ End Namespace
 
         <Fact>
         Public Sub UnimplementedMembers()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation name="UnimplementedMembers">
        <file name="a.vb">
 Option Strict On
@@ -1446,7 +1446,7 @@ BC30149: Class 'Class1' must implement 'Sub Zap()' for interface 'I3'.
 
         <Fact>
         Public Sub ImplementTwice()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="ImplementTwice">
        <file name="a.vb">
 Interface IFoo
@@ -1499,7 +1499,7 @@ BC30583: 'IFoo.Bang' cannot be implemented more than once.
         ' error message.
         <Fact>
         Public Sub ImplementStatic()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
    <compilation name="ImplementStatic">
        <file name="a.vb">
 Public Class Class1
@@ -1524,7 +1524,7 @@ BC30401: 'Baz' cannot implement 'StaticMethod' because there is no matching sub 
 
         <Fact>
         Public Sub InterfaceUnification1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="InterfaceUnification1">
        <file name="a.vb">
 Imports System.Collections.Generic
@@ -1563,7 +1563,7 @@ BC32131: Cannot implement interface 'Z(Of Y)' because the interface 'IFoo(Of Y)'
 
         <Fact>
         Public Sub InterfaceUnification2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="InterfaceUnification2">
        <file name="a.vb">
 Interface I(Of T)
@@ -1618,7 +1618,7 @@ BC32131: Cannot implement interface 'I2(Of T2)' because the interface 'I(Of T2)'
 
         <Fact>
         Public Sub InterfaceUnification3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="InterfaceUnification1">
        <file name="a.vb">
 Interface I(Of T, S)
@@ -1641,7 +1641,7 @@ BC32072: Cannot implement interface 'I(Of I(Of T, S), S)' because its implementa
 
         <Fact>
         Public Sub InterfaceUnification4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="InterfaceUnification4">
        <file name="a.vb">
 Class A(Of T, S)
@@ -1667,7 +1667,7 @@ End Class
 
         <Fact>
         Public Sub InterfaceUnification5()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="InterfaceUnification5">
        <file name="a.vb">
 Option Strict On
@@ -1699,7 +1699,7 @@ BC32072: Cannot implement interface 'Outer(Of D, A).IFoo(Of B, C)' because its i
 
         <Fact>
         Public Sub SimpleImplementationApi()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="SimpleImplementation">
         <file name="a.vb">
 Option Strict On
@@ -1772,7 +1772,7 @@ End Class
         <WorkItem(545581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545581")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfaceMethodWithNothingDefaultValue">
         <file name="a.vb">
 Option Strict On
@@ -1796,7 +1796,7 @@ End Class
         <WorkItem(545581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545581")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue2()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfaceMethodWithNothingDefaultValue2">
         <file name="a.vb">
 Option Strict On
@@ -1820,7 +1820,7 @@ End Class
         <WorkItem(545581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545581")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue3()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="ImplementInterfaceMethodWithNothingDefaultValue3">
         <file name="a.vb">
 Option Strict On
@@ -1845,7 +1845,7 @@ End Class
         <WorkItem(545581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545581")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue4()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfaceMethodWithNothingDefaultValue4">
         <file name="a.vb">
 Option Strict On
@@ -1869,7 +1869,7 @@ End Class
         <WorkItem(545581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545581")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue5()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfaceMethodWithNothingDefaultValue5">
         <file name="a.vb">
 Option Strict On
@@ -1894,7 +1894,7 @@ End Class
         <WorkItem(545891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545891")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue6()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfaceMethodWithNothingDefaultValue6">
         <file name="a.vb">
 Interface I(Of T)
@@ -1918,7 +1918,7 @@ End Class
         <WorkItem(545891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545891")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue7()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfaceMethodWithNothingDefaultValue7">
         <file name="a.vb">
 Interface I(Of T)
@@ -1942,7 +1942,7 @@ End Class
         <WorkItem(545891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545891")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue8()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfaceMethodWithNothingDefaultValue7">
         <file name="a.vb">
 Interface I(Of T)
@@ -1966,7 +1966,7 @@ End Class
         <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNanDefaultValue()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfaceMethodWithNanDefaultValue">
         <file name="a.vb">
 Option Strict On
@@ -1990,7 +1990,7 @@ End Class
         <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNanDefaultValue2()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfaceMethodWithNanDefaultValue2">
         <file name="a.vb">
 Option Strict On
@@ -2014,7 +2014,7 @@ End Class
         <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNanDefaultValue3()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfaceMethodWithNanDefaultValue3">
         <file name="a.vb">
 Option Strict On
@@ -2038,7 +2038,7 @@ End Class
         <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNanDefaultValue4()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfaceMethodWithNanDefaultValue4">
         <file name="a.vb">
 Option Strict On
@@ -2062,7 +2062,7 @@ End Class
         <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfacePropertyWithNanDefaultValue()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfacePropertyWithNanDefaultValue">
         <file name="a.vb">
 Option Strict On
@@ -2088,7 +2088,7 @@ End Class
         <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfacePropertyWithNanDefaultValue2()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfacePropertyWithNanDefaultValue2">
         <file name="a.vb">
 Option Strict On
@@ -2114,7 +2114,7 @@ End Class
         <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfacePropertyWithNanDefaultValue3()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfacePropertyWithNanDefaultValue3">
         <file name="a.vb">
 Option Strict On
@@ -2140,7 +2140,7 @@ End Class
         <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfacePropertyWithNanDefaultValue4()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ImplementInterfacePropertyWithNanDefaultValue4">
         <file name="a.vb">
 Option Strict On
@@ -2173,7 +2173,7 @@ BC30401: 'Foo' cannot implement 'Foo' because there is no matching property on i
 
         <Fact>
         Public Sub SimpleImplementationApiProperty()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="SimpleImplementationProperty">
         <file name="a.vb">
 Option Strict On
@@ -2273,7 +2273,7 @@ End Class
 
         <Fact>
         Public Sub UnimplementedMethods()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="SimpleImplementation">
         <file name="a.vb">
 Option Strict On
@@ -2355,7 +2355,7 @@ BC30149: Class 'Foo' must implement 'Sub SayItWithStyle(style As String)' for in
 
         <Fact>
         Public Sub UnimplementedProperties()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="UnimplementedProperties">
         <file name="a.vb">
 Option Strict On
@@ -2463,7 +2463,7 @@ BC30149: Class 'Foo' must implement 'ReadOnly Property Style(s As String) As Str
 
         <Fact>
         Public Sub UnimplementedInterfaceAPI()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="UnimplementedInterfaceAPI">
         <file name="a.vb">
 Option Strict On
@@ -2508,7 +2508,7 @@ BC31035: Interface 'IFoo' is not implemented by this class.
 
         <Fact>
         Public Sub GenericInterface()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="SimpleImplementation">
         <file name="a.vb">
 Option Strict On
@@ -2563,7 +2563,7 @@ End Class
         ' See MDInterfaceMapping.cs to understand this test case.
         <Fact>
         Public Sub MetadataInterfaceMapping()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
    <compilation name="ImplementStatic">
        <file name="a.vb">
 Public Class D
@@ -2666,7 +2666,7 @@ X.quux1
 
         <Fact>
         Public Sub Bug6095()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation name="Bug6095">
        <file name="a.vb">
 Imports System
@@ -2695,7 +2695,7 @@ End Namespace
 
         <Fact>
         Public Sub Bug7931()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="Bug6095">
        <file name="a.vb">
 Imports System
@@ -2733,7 +2733,7 @@ BC30401: 'F' cannot implement 'F' because there is no matching function on inter
         <WorkItem(543664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543664")>
         <Fact()>
         Public Sub Bug11554()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="Bug11554">
        <file name="a.vb">
 Interface I
@@ -2765,7 +2765,7 @@ BC30401: 'M' cannot implement 'M' because there is no matching sub on interface 
 
         <Fact>
         Public Sub PropAccessorAgreement()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="PropAccessorAgreement">
        <file name="a.vb">
 Interface I1
@@ -3016,7 +3016,7 @@ End Class
 
         <Fact, WorkItem(544531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544531")>
         Public Sub VarianceAmbiguity1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="VarianceAmbiguity1">
        <file name="a.vb">
 Option Strict On
@@ -3068,7 +3068,7 @@ BC42333: Interface 'IEnumerable(Of Animals)' is ambiguous with another implement
 
         <Fact, WorkItem(544531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544531")>
         Public Sub VarianceAmbiguity2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="VarianceAmbiguity2">
        <file name="a.vb">
 Option Strict On
@@ -3115,7 +3115,7 @@ BC42333: Interface 'IEnumerable(Of Mammals)' is ambiguous with another implement
 
         <Fact()>
         Public Sub VarianceAmbiguity3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="VarianceAmbiguity3">
        <file name="a.vb">
 Option Strict On
@@ -3170,7 +3170,7 @@ BC42333: Interface 'IFoo(Of Y, U)' is ambiguous with another implemented interfa
 
         <Fact()>
         Public Sub VarianceAmbiguity4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="VarianceAmbiguity4">
        <file name="a.vb">
 Option Strict On
@@ -3233,7 +3233,7 @@ BC42333: Interface 'IFoo(Of Y, S(Of U))' is ambiguous with another implemented i
 
         <Fact()>
         Public Sub VarianceAmbiguity5()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="VarianceAmbiguity5">
        <file name="a.vb">
 Option Strict On
@@ -3326,7 +3326,7 @@ BC42333: Interface 'IFoo(Of J, T)' is ambiguous with another implemented interfa
         <WorkItem(545863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545863")>
         <Fact>
         Public Sub Bug14589()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation name="Bug14589">
        <file name="a.vb">
 Interface I(Of T)
@@ -3473,13 +3473,13 @@ D.Explicit
             Dim ref1a = comp1.EmitToImageReference()
             Dim ref1b = comp1.EmitToImageReference()
 
-            Dim comp2 = CreateCompilationWithMscorlibAndReferences(source2, {ref1a})
+            Dim comp2 = CreateCompilationWithMscorlib40AndReferences(source2, {ref1a})
             Dim ref2Metadata = comp2.EmitToImageReference()
             Dim ref2Source = New VisualBasicCompilationReference(comp2)
 
             Dim verifyComp3 As Action(Of MetadataReference, MetadataReference) =
                 Sub(ref1, ref2)
-                    Dim comp3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source3, {ref1, ref2}, TestOptions.ReleaseExe)
+                    Dim comp3 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source3, {ref1, ref2}, TestOptions.ReleaseExe)
                     CompileAndVerify(comp3, expectedOutput:=expectedOutput)
 
                     Dim globalNamespace = comp3.GlobalNamespace
@@ -3521,7 +3521,7 @@ D.Explicit
         <WorkItem(578746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578746")>
         <Fact>
         Public Sub Bug578746a()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation>
        <file name="a.vb">
 Interface I(Of T)
@@ -3542,7 +3542,7 @@ End Class
         <WorkItem(578746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578746")>
         <Fact>
         Public Sub Bug578746b()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation>
        <file name="a.vb">
 Interface I
@@ -3563,7 +3563,7 @@ End Class
         <WorkItem(578746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578746")>
         <Fact>
         Public Sub Bug578746c()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation>
        <file name="a.vb">
 Interface I
@@ -3592,7 +3592,7 @@ BC30401: 'Foo' cannot implement 'Foo' because there is no matching sub on interf
         <WorkItem(578746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578746")>
         <Fact>
         Public Sub Bug578746d()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation>
        <file name="a.vb">
 Class A : End Class
@@ -3613,7 +3613,7 @@ End Class
         <WorkItem(578074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578074")>
         <Fact>
         Public Sub Bug578074()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation>
        <file name="a.vb">
 Interface I
@@ -3797,7 +3797,7 @@ End Module
                </compilation>
 
             Dim ilRef = CompileIL(il.Value)
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {ilRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {ilRef}, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 Explicit implementation
 Explicit implementation
@@ -3875,7 +3875,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -3959,7 +3959,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -4054,7 +4054,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -4112,7 +4112,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -4181,7 +4181,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -4250,7 +4250,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -4335,7 +4335,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -4400,7 +4400,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[

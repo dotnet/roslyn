@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub Lambda1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -49,7 +49,7 @@ End Module
 
         <Fact>
         Public Sub Lambda2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -82,7 +82,7 @@ End Module
 
         <Fact>
         Public Sub Lambda3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -117,7 +117,7 @@ End Module
 
         <Fact>
         Public Sub Lambda4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -150,7 +150,7 @@ End Module
 
         <Fact>
         Public Sub Lambda5()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb">
 Module Module1
@@ -188,7 +188,7 @@ End Module
 
         <Fact>
         Public Sub Lambda6()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -226,7 +226,7 @@ End Module
 
         <Fact>
         Public Sub Lambda7()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -262,7 +262,7 @@ End Module
 
         <Fact>
         Public Sub Lambda8()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -298,7 +298,7 @@ End Module
 
         <Fact>
         Public Sub Lambda9()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -337,7 +337,7 @@ End Module
 
         <Fact>
         Public Sub Lambda10()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -373,7 +373,7 @@ End Module
 
         <Fact>
         Public Sub Lambda11()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -413,7 +413,7 @@ End Module
 
         <Fact>
         Public Sub Lambda12()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -454,7 +454,7 @@ End Module
 
         <Fact>
         Public Sub Lambda13()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb">
 Module Module1
@@ -489,7 +489,7 @@ End Module
 
         <Fact>
         Public Sub Lambda14()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -519,7 +519,7 @@ End Module
 
         <Fact>
         Public Sub Bug8643()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -556,7 +556,7 @@ End Module
 
         <Fact>
         Public Sub Bug8522()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -596,7 +596,7 @@ End Module
         <WorkItem(9805, "DevDiv_Projects/Roslyn")>
         <Fact>
         Public Sub LambdaInWhileStatement()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Test
@@ -618,7 +618,7 @@ End Module
 
         <Fact>
         Public Sub SingleLineLambdaWithDimStatement()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Test
@@ -642,7 +642,7 @@ End Module
         <Fact, WorkItem(544647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544647")>
         Public Sub InvokeGenericOverloadedMethod()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System
@@ -665,7 +665,7 @@ Module M
 
 End Module
     </file>
-    </compilation>, additionalRefs:={SystemCoreRef})
+    </compilation>, references:={SystemCoreRef})
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
@@ -680,7 +680,7 @@ End Module
 
         <Fact, WorkItem(566495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566495")>
         Public Sub Bug566495()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
         <compilation>
             <file name="a.vb"><![CDATA[
         Imports System.Linq
@@ -741,7 +741,7 @@ BC30203: Identifier expected.
         <Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")>
         Public Sub Bug960755_01()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System.Collections.Generic
@@ -768,7 +768,7 @@ End Class
         <Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")>
         Public Sub Bug960755_02()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System.Collections.Generic
@@ -794,7 +794,7 @@ End Class
         <Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")>
         Public Sub Bug960755_03()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System.Collections.Generic
@@ -824,7 +824,7 @@ End Class
         <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
         Public Sub ParameterReference_01()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System
@@ -861,7 +861,7 @@ BC30203: Identifier expected.
         <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
         Public Sub ParameterReference_02()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System
@@ -900,7 +900,7 @@ BC30203: Identifier expected.
         <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
         Public Sub ParameterReference_03()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System
@@ -936,7 +936,7 @@ BC30203: Identifier expected.
         <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
         Public Sub ParameterReference_04()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System
