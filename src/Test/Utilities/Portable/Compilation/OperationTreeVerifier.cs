@@ -22,10 +22,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly IOperation _root;
         private readonly StringBuilder _builder;
         private readonly Dictionary<SyntaxNode, IOperation> _explictNodeMap;
+        private readonly Dictionary<ILabelSymbol, uint> _labelIdMap;
 
         private const string indent = "  ";
         private string _currentIndent;
         private bool _pendingIndent;
+        private uint _currentLabelId = 0;
 
         public OperationTreeVerifier(Compilation compilation, IOperation root, int initialIndent)
         {
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _pendingIndent = true;
 
             _explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+            _labelIdMap = new Dictionary<ILabelSymbol, uint>();
         }
 
         public static void Verify(Compilation compilation, IOperation operation, string expectedOperationTree, int initialIndent = 0)
@@ -227,6 +230,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var typeStr = type != null ? type.ToTestDisplayString() : "null";
             LogString($"{header}: {typeStr}");
+        }
+
+        private uint GetLabelId(ILabelSymbol symbol)
+        {
+            if (_labelIdMap.ContainsKey(symbol))
+            {
+                return _labelIdMap[symbol];
+            }
+
+            var id = _currentLabelId++;
+            _labelIdMap[symbol] = id;
+            return id;
         }
 
         private static string FormatBoolProperty(string propertyName, bool value) => $"{propertyName}: {(value ? "True" : "False")}";
@@ -431,7 +446,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSwitch(ISwitchOperation operation)
         {
             var caseCountStr = $"{operation.Cases.Length} cases";
-            LogString($"{nameof(ISwitchOperation)} ({caseCountStr})");
+            var exitLabelStr = operation.ExitLabel != null ? $", Exit Label Id: {GetLabelId(operation.ExitLabel)}" :
+                                                             string.Empty;
+            LogString($"{nameof(ISwitchOperation)} ({caseCountStr}{exitLabelStr})");
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Value, header: "Switch expression");
@@ -511,8 +528,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void LogLoopStatementHeader(ILoopOperation operation)
         {
-            var kindStr = $"{nameof(LoopKind)}.{operation.LoopKind}";
-            LogString($" ({kindStr})");
+            var propertyStringBuilder = new StringBuilder();
+            propertyStringBuilder.Append(" (");
+            propertyStringBuilder.Append($"{nameof(LoopKind)}.{operation.LoopKind}");
+            if (operation.ContinueLabel != null)
+            {
+                propertyStringBuilder.Append($", Continue Label Id: {GetLabelId(operation.ContinueLabel)}");
+            }
+            if (operation.ExitLabel != null)
+            {
+                propertyStringBuilder.Append($", Exit Label Id: {GetLabelId(operation.ExitLabel)}");
+            }
+            propertyStringBuilder.Append(")");
+            LogString(propertyStringBuilder.ToString());
             LogCommonPropertiesAndNewLine(operation);
 
             LogLocals(operation.Locals);
@@ -533,10 +561,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ILabeledOperation));
 
-            // TODO: Put a better workaround to skip compiler generated labels.
             if (!operation.Label.IsImplicitlyDeclared)
             {
                 LogString($" (Label: {operation.Label.Name})");
+            }
+            else
+            {
+                LogString($" (Label Id: {GetLabelId(operation.Label)})");
             }
 
             LogCommonPropertiesAndNewLine(operation);
@@ -548,7 +579,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IBranchOperation));
             var kindStr = $"{nameof(BranchKind)}.{operation.BranchKind}";
-            var labelStr = !operation.Target.IsImplicitlyDeclared ? $", Label: {operation.Target.Name}" : string.Empty;
+            // If the label is implicit, or if it has been assigned an id (such as VB Exit Do/While/Switch labels) then print the id, instead of the name.
+            var labelStr = !(operation.Target.IsImplicitlyDeclared || _labelIdMap.ContainsKey(operation.Target)) ? $", Label: {operation.Target.Name}" : $", Label Id: {GetLabelId(operation.Target)}";
             LogString($" ({kindStr}{labelStr})");
             LogCommonPropertiesAndNewLine(operation);
 
@@ -581,6 +613,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitTry(ITryOperation operation)
         {
             LogString(nameof(ITryOperation));
+            if (operation.ExitLabel != null)
+            {
+                LogString($" (Exit Label Id: {GetLabelId(operation.ExitLabel)})");
+            }
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Body, "Body");
@@ -1287,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 Unindent();
             }
-            
+
             base.VisitPropertyInitializer(operation);
         }
 

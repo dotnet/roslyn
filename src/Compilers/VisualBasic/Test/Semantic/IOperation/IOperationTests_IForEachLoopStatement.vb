@@ -28,7 +28,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each s  ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each s  ... Next')
   Locals: Local_1: s As System.String
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: s As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's As String')
@@ -76,7 +76,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each it ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each it ... Next')
   Locals: Local_1: item As System.String
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: item As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'item As String')
@@ -124,7 +124,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next')
   Locals: Local_1: y As System.Char
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: y As System.Char) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y As Char')
@@ -143,7 +143,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
               ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: B) (Syntax: '"B"c')
         WhenTrue: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If y = "B"c ... End If')
-            IBranchOperation (BranchKind.Break, Label: exit) (OperationKind.Branch, Type: null) (Syntax: 'Exit For')
+            IBranchOperation (BranchKind.Break, Label Id: 1) (OperationKind.Branch, Type: null) (Syntax: 'Exit For')
         WhenFalse: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Else ... riteLine(y)')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(y)')
@@ -182,7 +182,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next y, x')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next y, x')
   Locals: Local_1: x As System.String
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: x As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x As String')
@@ -195,7 +195,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
         ILocalReferenceOperation: S (OperationKind.LocalReference, Type: System.String()) (Syntax: 'S')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each x  ... Next y, x')
-      IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next y, x')
+      IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next y, x')
         Locals: Local_1: y As System.Char
         LoopControlVariable: 
           IVariableDeclaratorOperation (Symbol: y As System.Char) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y As Char')
@@ -214,7 +214,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                     ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: B) (Syntax: '"B"c')
               WhenTrue: 
                 IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If y = "B"c ... End If')
-                  IBranchOperation (BranchKind.Continue, Label: continue) (OperationKind.Branch, Type: null) (Syntax: 'Continue For')
+                  IBranchOperation (BranchKind.Continue, Label Id: 2) (OperationKind.Branch, Type: null) (Syntax: 'Continue For')
               WhenFalse: 
                 null
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(y)')
@@ -258,7 +258,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next')
   Locals: Local_1: y As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y As Integer')
@@ -305,7 +305,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
   Locals: Local_1: x As System.String
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: x As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x As String')
@@ -318,7 +318,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
         ILocalReferenceOperation: S (OperationKind.LocalReference, Type: System.String()) (Syntax: 'S')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each x  ... Next')
-      IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next')
+      IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next')
         Locals: Local_1: y As System.Char
         LoopControlVariable: 
           IVariableDeclaratorOperation (Symbol: y As System.Char) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y As Char')
@@ -372,7 +372,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
   Locals: Local_1: x As System.Object
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: x As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
@@ -420,7 +420,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next')
   Locals: Local_1: y As System.Char
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: y As System.Char) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
@@ -468,7 +468,7 @@ End Structure
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
   Locals: Local_1: x As System.Object
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: x As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
@@ -551,7 +551,7 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each co ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each co ... Next')
   Locals: Local_1: country As <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: country As <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'country')
@@ -586,7 +586,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                               ILocalReferenceOperation: country (OperationKind.LocalReference, Type: <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>) (Syntax: 'country')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each cu ... Next')
+      IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'For Each cu ... Next')
         Locals: Local_1: customer As Customer
         LoopControlVariable: 
           IVariableDeclaratorOperation (Symbol: customer As Customer) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'customer')
@@ -661,7 +661,7 @@ End Module
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each [C ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each [C ... Next')
   Locals: Local_1: Custom As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: Custom As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: '[Custom]')
@@ -715,7 +715,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IBranchOperation (BranchKind.Break, Label: exit) (OperationKind.Branch, Type: null) (Syntax: 'Exit For')
+      IBranchOperation (BranchKind.Break, Label Id: 1) (OperationKind.Branch, Type: null) (Syntax: 'Exit For')
   NextVariables(0)
 ]]>.Value
 
@@ -740,7 +740,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
   Locals: Local_1: x As System.Object
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: x As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
@@ -802,7 +802,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
   Locals: Local_1: x As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
@@ -869,7 +869,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each el ... ambda_local')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each el ... ambda_local')
   LoopControlVariable: 
     ILocalReferenceOperation: element_lambda_local (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'element_lambda_local')
   Collection: 
@@ -912,7 +912,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For Each el ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For Each el ... Next')
   Locals: Local_1: element As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: element As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'element As Integer')
@@ -959,7 +959,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each s  ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each s  ... Next')
   Locals: Local_1: s As System.String
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: s As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's As String')
@@ -1022,7 +1022,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each o  ... Next')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each o  ... Next')
   Locals: Local_1: o As System.Object
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: o As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'o')
@@ -1075,7 +1075,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each X  ... Next X')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each X  ... Next X')
   LoopControlVariable: 
     IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
       Instance Receiver: 
@@ -1115,7 +1115,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each c. ... Next c.X')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each c. ... Next c.X')
   LoopControlVariable: 
     IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'c.X')
       Instance Receiver: 
@@ -1155,7 +1155,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For Each i  ... Next i')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For Each i  ... Next i')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i as Integer')

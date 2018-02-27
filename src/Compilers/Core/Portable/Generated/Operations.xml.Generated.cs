@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class ArgumentOperation : BaseArgument
     {
-        public ArgumentOperation(IOperation value, ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : 
+        public ArgumentOperation(IOperation value, ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
             base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, constantValue, isImplicit)
         {
             Value = SetParentOperation(value, this);
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyArgumentOperation(Lazy<IOperation> value, ArgumentKind argumentKind, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : 
+        public LazyArgumentOperation(Lazy<IOperation> value, ArgumentKind argumentKind, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
             base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, constantValue, isImplicit)
         {
             _lazyValue = value;
@@ -2031,8 +2031,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseForEachLoopStatement : LoopStatement, IForEachLoopOperation
     {
-        public BaseForEachLoopStatement(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(LoopKind.ForEach, locals, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseForEachLoopStatement(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(LoopKind.ForEach, locals, continueLabel, exitLabel, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
         public override IEnumerable<IOperation> Children
@@ -2089,8 +2089,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class ForEachLoopStatement : BaseForEachLoopStatement, IForEachLoopOperation
     {
-        public ForEachLoopStatement(ImmutableArray<ILocalSymbol> locals, IOperation loopControlVariable, IOperation collection, ImmutableArray<IOperation> nextVariables, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        public ForEachLoopStatement(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, IOperation loopControlVariable, IOperation collection, ImmutableArray<IOperation> nextVariables, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LoopControlVariable = SetParentOperation(loopControlVariable, this);
             Collection = SetParentOperation(collection, this);
@@ -2114,8 +2114,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<ImmutableArray<IOperation>> _lazyNextVariables;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyForEachLoopStatement(ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> loopControlVariable, Lazy<IOperation> collection, Lazy<ImmutableArray<IOperation>> nextVariables, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyForEachLoopStatement(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, Lazy<IOperation> loopControlVariable, Lazy<IOperation> collection, Lazy<ImmutableArray<IOperation>> nextVariables, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyLoopControlVariable = loopControlVariable ?? throw new System.ArgumentNullException(nameof(loopControlVariable));
             _lazyCollection = collection ?? throw new System.ArgumentNullException(nameof(collection));
@@ -2134,8 +2134,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseForLoopStatement : LoopStatement, IForLoopOperation
     {
-        public BaseForLoopStatement(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(LoopKind.For, locals, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseForLoopStatement(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(LoopKind.For, locals, continueLabel, exitLabel, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2195,8 +2195,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class ForLoopStatement : BaseForLoopStatement, IForLoopOperation
     {
-        public ForLoopStatement(ImmutableArray<IOperation> before, IOperation condition, ImmutableArray<IOperation> atLoopBottom, ImmutableArray<ILocalSymbol> locals, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        public ForLoopStatement(ImmutableArray<IOperation> before, IOperation condition, ImmutableArray<IOperation> atLoopBottom, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Before = SetParentOperation(before, this);
             Condition = SetParentOperation(condition, this);
@@ -2220,8 +2220,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<ImmutableArray<IOperation>> _lazyAtLoopBottom;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyForLoopStatement(Lazy<ImmutableArray<IOperation>> before, Lazy<IOperation> condition, Lazy<ImmutableArray<IOperation>> atLoopBottom, ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyForLoopStatement(Lazy<ImmutableArray<IOperation>> before, Lazy<IOperation> condition, Lazy<ImmutableArray<IOperation>> atLoopBottom, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyBefore = before ?? throw new System.ArgumentNullException(nameof(before));
             _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
@@ -2240,8 +2240,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseForToLoopStatement : LoopStatement, IForToLoopOperation
     {
-        public BaseForToLoopStatement(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(LoopKind.ForTo, locals, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseForToLoopStatement(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(LoopKind.ForTo, locals, continueLabel, exitLabel, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2318,8 +2318,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class ForToLoopStatement : BaseForToLoopStatement, IForToLoopOperation
     {
-        public ForToLoopStatement(ImmutableArray<ILocalSymbol> locals, IOperation loopControlVariable, IOperation initialValue, IOperation limitValue, IOperation stepValue, IOperation body, ImmutableArray<IOperation> nextVariables, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        public ForToLoopStatement(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, IOperation loopControlVariable, IOperation initialValue, IOperation limitValue, IOperation stepValue, IOperation body, ImmutableArray<IOperation> nextVariables, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LoopControlVariable = SetParentOperation(loopControlVariable, this);
             InitialValue = SetParentOperation(initialValue, this);
@@ -2349,8 +2349,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<IOperation> _lazyBody;
         private readonly Lazy<ImmutableArray<IOperation>> _lazyNextVariables;
 
-        public LazyForToLoopStatement(ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> loopControlVariable, Lazy<IOperation> initialValue, Lazy<IOperation> limitValue, Lazy<IOperation> stepValue, Lazy<IOperation> body, Lazy<ImmutableArray<IOperation>> nextVariables, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyForToLoopStatement(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, Lazy<IOperation> loopControlVariable, Lazy<IOperation> initialValue, Lazy<IOperation> limitValue, Lazy<IOperation> stepValue, Lazy<IOperation> body, Lazy<ImmutableArray<IOperation>> nextVariables, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyLoopControlVariable = loopControlVariable ?? throw new System.ArgumentNullException(nameof(loopControlVariable));
             _lazyInitialValue = initialValue ?? throw new System.ArgumentNullException(nameof(initialValue));
@@ -3399,11 +3399,13 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class LoopStatement : Operation, ILoopOperation
     {
-        protected LoopStatement(LoopKind loopKind, ImmutableArray<ILocalSymbol> locals, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected LoopStatement(LoopKind loopKind, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LoopKind = loopKind;
             Locals = locals;
+            ContinueLabel = continueLabel;
+            ExitLabel = exitLabel;
         }
         /// <summary>
         /// Kind of the loop.
@@ -3413,6 +3415,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Declarations local to the loop.
         /// </summary>
         public ImmutableArray<ILocalSymbol> Locals { get; }
+        public ILabelSymbol ContinueLabel { get; }
+        public ILabelSymbol ExitLabel { get; }
         /// <summary>
         /// Body of the loop.
         /// </summary>
@@ -4623,9 +4627,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseSwitchStatement : Operation, ISwitchOperation
     {
-        protected BaseSwitchStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseSwitchStatement(ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.Switch, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            ExitLabel = exitLabel;
         }
 
         public override IEnumerable<IOperation> Children
@@ -4645,6 +4650,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
         }
+        public ILabelSymbol ExitLabel { get; }
         /// <summary>
         /// Value to be switched upon.
         /// </summary>
@@ -4668,8 +4674,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class SwitchStatement : BaseSwitchStatement, ISwitchOperation
     {
-        public SwitchStatement(IOperation value, ImmutableArray<ISwitchCaseOperation> cases, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public SwitchStatement(IOperation value, ImmutableArray<ISwitchCaseOperation> cases, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Value = SetParentOperation(value, this);
             Cases = SetParentOperation(cases, this);
@@ -4687,8 +4693,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<IOperation> _lazyValue;
         private readonly Lazy<ImmutableArray<ISwitchCaseOperation>> _lazyCases;
 
-        public LazySwitchStatement(Lazy<IOperation> value, Lazy<ImmutableArray<ISwitchCaseOperation>> cases, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazySwitchStatement(Lazy<IOperation> value, Lazy<ImmutableArray<ISwitchCaseOperation>> cases, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
             _lazyCases = cases;
@@ -4715,9 +4721,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseTryStatement : Operation, ITryOperation
     {
-        protected BaseTryStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseTryStatement(ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.Try, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            ExitLabel = exitLabel;
         }
 
         public override IEnumerable<IOperation> Children
@@ -4741,6 +4748,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
         }
+        public ILabelSymbol ExitLabel { get; }
         /// <summary>
         /// Body of the try, over which the handlers are active.
         /// </summary>
@@ -4768,8 +4776,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class TryStatement : BaseTryStatement, ITryOperation
     {
-        public TryStatement(IBlockOperation body, ImmutableArray<ICatchClauseOperation> catches, IBlockOperation finallyHandler, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public TryStatement(IBlockOperation body, ImmutableArray<ICatchClauseOperation> catches, IBlockOperation finallyHandler, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Body = SetParentOperation(body, this);
             Catches = SetParentOperation(catches, this);
@@ -4790,8 +4798,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<ImmutableArray<ICatchClauseOperation>> _lazyCatches;
         private readonly Lazy<IBlockOperation> _lazyFinallyHandler;
 
-        public LazyTryStatement(Lazy<IBlockOperation> body, Lazy<ImmutableArray<ICatchClauseOperation>> catches, Lazy<IBlockOperation> finallyHandler, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyTryStatement(Lazy<IBlockOperation> body, Lazy<ImmutableArray<ICatchClauseOperation>> catches, Lazy<IBlockOperation> finallyHandler, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
             _lazyCatches = catches;
@@ -5599,8 +5607,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseWhileLoopStatement : LoopStatement, IWhileLoopOperation
     {
-        public BaseWhileLoopStatement(ImmutableArray<ILocalSymbol> locals, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(LoopKind.While, locals, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseWhileLoopStatement(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(LoopKind.While, locals, continueLabel, exitLabel, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ConditionIsTop = conditionIsTop;
             ConditionIsUntil = conditionIsUntil;
@@ -5676,8 +5684,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class WhileLoopStatement : BaseWhileLoopStatement, IWhileLoopOperation
     {
-        public WhileLoopStatement(IOperation condition, IOperation body, IOperation ignoredCondition, ImmutableArray<ILocalSymbol> locals, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
+        public WhileLoopStatement(IOperation condition, IOperation body, IOperation ignoredCondition, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Condition = SetParentOperation(condition, this);
             Body = SetParentOperation(body, this);
@@ -5702,8 +5710,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<IOperation> _lazyBody;
         private readonly Lazy<IOperation> _lazyIgnoredCondition;
 
-        public LazyWhileLoopStatement(Lazy<IOperation> condition, Lazy<IOperation> body, Lazy<IOperation> ignoredCondition, ImmutableArray<ILocalSymbol> locals, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyWhileLoopStatement(Lazy<IOperation> condition, Lazy<IOperation> body, Lazy<IOperation> ignoredCondition, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
