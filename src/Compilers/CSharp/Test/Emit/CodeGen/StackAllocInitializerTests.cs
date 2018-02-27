@@ -10,6 +10,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class StackAllocInitializerTests : CompilingTestBase
     {
         [Fact]
+        public void TestElementThrow()
+        {
+            var text = @"
+using System;
+
+static unsafe class C
+{
+    static void Use(int* i) {}
+    
+    static int M() { return 0; }
+
+    static void Main()
+    {
+        var p = stackalloc[] { M(), true ? throw null : M(), M() };
+        Use(p);
+    }
+}
+";
+            CompileAndVerify(text,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
+                options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Fails).VerifyIL("C.Main",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  4
+  IL_0000:  ldc.i4.s   12
+  IL_0002:  conv.u
+  IL_0003:  localloc
+  IL_0005:  dup
+  IL_0006:  call       ""int C.M()""
+  IL_000b:  stind.i4
+  IL_000c:  dup
+  IL_000d:  ldc.i4.4
+  IL_000e:  add
+  IL_000f:  ldnull
+  IL_0010:  throw
+}");
+        }
+
+        [Fact]
         public void TestUnused()
         {
             var text = @"

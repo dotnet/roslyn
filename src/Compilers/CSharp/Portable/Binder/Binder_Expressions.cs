@@ -3209,16 +3209,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (sizeOpt != null)
             {
-                int? constantSizeOpt = GetIntegerConstantForArraySize(sizeOpt);
-                if (!sizeOpt.HasAnyErrors && constantSizeOpt == null)
+                if (!sizeOpt.HasAnyErrors)
                 {
-                    Error(diagnostics, ErrorCode.ERR_ConstantExpected, sizeOpt.Syntax);
-                    hasErrors = true;
-                }
-                else if (boundInitExprOpt.Length != constantSizeOpt)
-                {
-                    Error(diagnostics, ErrorCode.ERR_ArrayInitializerIncorrectLength, node, constantSizeOpt.Value);
-                    hasErrors = true;
+                    int? constantSizeOpt = GetIntegerConstantForArraySize(sizeOpt);
+                    if (constantSizeOpt == null)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_ConstantExpected, sizeOpt.Syntax);
+                        hasErrors = true;
+                    }
+                    else if (boundInitExprOpt.Length != constantSizeOpt)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_ArrayInitializerIncorrectLength, node, constantSizeOpt.Value);
+                        hasErrors = true;
+                    }
                 }
             }
             else

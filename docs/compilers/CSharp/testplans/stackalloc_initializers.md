@@ -10,24 +10,24 @@ In such case we can just check them off.
 ### correctness ###
 - [ ] check that partial result is not visible. - if element throws and exception caught, whole thing is not reassigned to the new value. (try spans and ordinary stackallocs)
 - [ ] if we refer to the elements of outer local in the initializers we still see the old values.
-- [ ] put `await` in the size or in the middle of element initializers
+- [x] put `await` in the size or in the middle of element initializers
 - [ ] initializer uses a local that is captured by a lambda expression. See that if lambda changes the value of the local, then we see the updated value when initializing
 
 ### errors ##
 - [x] invalid array shapes - multidimensional, nested, size mismatches, ... 
 - [x] bad conversions
 - [x] bad local initialization contexts - using, fixed. 
-- [ ] should it work in `for(int* x = stackalloc...)`, probably the same ways as before... ?  
+- [x] should it work in `for(int* x = stackalloc...)`, probably the same ways as before... ?  
 - [X] missing various span parts.
-- [ ] outer expression is not usable in elements (not assigned yet)
+- [x] outer expression is not usable in elements (not assigned yet)
 - [ ] in the array type inference case the outer expression cannot be used to determine the type - [ ] should be an error and should not be some kind of crash due to circular dependency
 - [ ] make it to infer strange types. 
-	- [ ] dynamic
+	- [x] dynamic
 	- [ ] ref-struct
-	- [ ] void   (use a void method to initialize an element)
+	- [x] void   (use a void method to initialize an element)
 	- [X] lambda expression   (formally typeless)
 	- [X] null
-	- [ ] discard  `_` - is not even a value. 
+	- [x] discard  `_` - is not even a value. 
 
 ## API ##
 
