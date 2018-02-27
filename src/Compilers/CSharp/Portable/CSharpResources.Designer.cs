@@ -5984,6 +5984,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &quot;Invalid rank specifier: expected &apos;]&apos;.
+        /// </summary>
+        internal static string ERR_InvalidStackAllocArray {
+            get {
+                return ResourceManager.GetString("ERR_InvalidStackAllocArray", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid version {0} for /subsystemversion. The version must be 6.02 or greater for ARM or AppContainerExe, and 4.00 or greater otherwise.
         /// </summary>
         internal static string ERR_InvalidSubsystemVersion {

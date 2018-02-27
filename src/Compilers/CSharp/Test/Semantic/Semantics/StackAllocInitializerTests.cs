@@ -248,10 +248,14 @@ unsafe class Test
     public void Method1()
     {
         var obj1 = stackalloc int[,] { 1 };
+        var obj2 = stackalloc    [,] { 1 };
     }
 }", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
+                // (7,35): error CS8373: "Invalid rank specifier: expected ']'
+                //         var obj2 = stackalloc    [,] { 1 };
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(7, 35),
                 // (6,31): error CS1575: A stackalloc expression requires [] after type
                 //         var obj1 = stackalloc int[,] { 1 };
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[,]").WithLocation(6, 31)

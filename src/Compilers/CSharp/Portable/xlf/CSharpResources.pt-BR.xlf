@@ -8615,6 +8615,11 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="new">stackalloc initializer</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidStackAllocArray">
+        <source>"Invalid rank specifier: expected ']'</source>
+        <target state="new">"Invalid rank specifier: expected ']'</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

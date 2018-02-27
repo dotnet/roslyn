@@ -10703,6 +10703,26 @@ tryAgain:
             var @stackalloc = this.EatToken(SyntaxKind.StackAllocKeyword);
             @stackalloc = CheckFeatureAvailability(@stackalloc, MessageID.IDS_FeatureStackAllocInitializer);
             var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
+
+            int lastTokenPosition = -1;
+            while (IsMakingProgress(ref lastTokenPosition))
+            {
+                if (this.IsPossibleExpression())
+                {
+                    var size = this.AddError(this.ParseExpressionCore(), ErrorCode.ERR_InvalidStackAllocArray);
+                    openBracket = AddTrailingSkippedSyntax(openBracket, size);
+                }
+
+                if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                {
+                    var comma = this.AddError(this.EatToken(), ErrorCode.ERR_InvalidStackAllocArray);
+                    openBracket = AddTrailingSkippedSyntax(openBracket, comma);
+                    continue;
+                }
+
+                break;
+            }
+
             var closeBracket = this.EatToken(SyntaxKind.CloseBracketToken);
             var initializer = this.ParseArrayInitializer();
             return _syntaxFactory.ImplicitStackAllocArrayCreationExpression(@stackalloc, openBracket, closeBracket, initializer);
