@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Classification;
 
@@ -11,64 +10,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         public sealed class XmlDocClassificationTypes
         {
             [DebuggerStepThrough]
-            public Tuple<string, string> AttributeName(string value)
-            {
-                return Tuple.Create(value, ClassificationTypeNames.XmlDocCommentAttributeName);
-            }
+            public FormattedClassification AttributeName(string text) => New(text, ClassificationTypeNames.XmlDocCommentAttributeName);
 
             [DebuggerStepThrough]
-            public Tuple<string, string> AttributeQuotes(string value)
-            {
-                return Tuple.Create(value, ClassificationTypeNames.XmlDocCommentAttributeQuotes);
-            }
+            public FormattedClassification AttributeQuotes(string text) => New(text, ClassificationTypeNames.XmlDocCommentAttributeQuotes);
 
             [DebuggerStepThrough]
-            public Tuple<string, string> AttributeValue(string value)
-            {
-                return Tuple.Create(value, ClassificationTypeNames.XmlDocCommentAttributeValue);
-            }
+            public FormattedClassification AttributeValue(string text) => New(text, ClassificationTypeNames.XmlDocCommentAttributeValue);
 
             [DebuggerStepThrough]
-            public Tuple<string, string> CDataSection(string value)
-            {
-                return Tuple.Create(value, ClassificationTypeNames.XmlDocCommentCDataSection);
-            }
+            public FormattedClassification CDataSection(string text) => New(text, ClassificationTypeNames.XmlDocCommentCDataSection);
 
             [DebuggerStepThrough]
-            public Tuple<string, string> Comment(string value)
-            {
-                return Tuple.Create(value, ClassificationTypeNames.XmlDocCommentComment);
-            }
+            public FormattedClassification Comment(string text) => New(text, ClassificationTypeNames.XmlDocCommentComment);
 
             [DebuggerStepThrough]
-            public Tuple<string, string> Delimiter(string value)
-            {
-                return Tuple.Create(value, ClassificationTypeNames.XmlDocCommentDelimiter);
-            }
+            public FormattedClassification Delimiter(string text) => New(text, ClassificationTypeNames.XmlDocCommentDelimiter);
 
             [DebuggerStepThrough]
-            public Tuple<string, string> EntityReference(string value)
-            {
-                return Tuple.Create(value, ClassificationTypeNames.XmlDocCommentEntityReference);
-            }
+            public FormattedClassification EntityReference(string text) => New(text, ClassificationTypeNames.XmlDocCommentEntityReference);
 
             [DebuggerStepThrough]
-            public Tuple<string, string> Name(string value)
-            {
-                return Tuple.Create(value, ClassificationTypeNames.XmlDocCommentName);
-            }
+            public FormattedClassification Name(string text) => New(text, ClassificationTypeNames.XmlDocCommentName);
 
             [DebuggerStepThrough]
-            public Tuple<string, string> ProcessingInstruction(string value)
-            {
-                return Tuple.Create(value, ClassificationTypeNames.XmlDocCommentProcessingInstruction);
-            }
+            public FormattedClassification ProcessingInstruction(string text) => New(text, ClassificationTypeNames.XmlDocCommentProcessingInstruction);
 
             [DebuggerStepThrough]
-            public Tuple<string, string> Text(string value)
-            {
-                return Tuple.Create(value, ClassificationTypeNames.XmlDocCommentText);
-            }
+            public FormattedClassification Text(string text) => New(text, ClassificationTypeNames.XmlDocCommentText);
         }
     }
 }

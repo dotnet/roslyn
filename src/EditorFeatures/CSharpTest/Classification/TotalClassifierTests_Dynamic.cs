@@ -150,7 +150,7 @@ class C
                 Class("C"),
                 Punctuation.OpenCurly,
                 Identifier("dynamic"),
-                Operators.Text("::"),
+                Operators.ColonColon,
                 Identifier("Goo"),
                 Field("a"),
                 Punctuation.Semicolon,
@@ -285,7 +285,7 @@ class C
                 Keyword("static"),
                 Keyword("dynamic"),
                 Keyword("operator"),
-                Operators.Text("+"),
+                Operators.Plus,
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
                 Parameter("d1"),
@@ -378,7 +378,7 @@ class C
                 Identifier("Select"),
                 Punctuation.OpenParen,
                 Parameter("dynamic"),
-                Operators.Text("=>"),
+                Operators.EqualsGreaterThan,
                 Parameter("dynamic"),
                 Operators.Dot,
                 Identifier("Length"),
@@ -768,7 +768,7 @@ partial void F(dynamic d)
                 Keyword("enum"),
                 Enum("A"),
                 Punctuation.OpenCurly,
-                EnumField("dynamic"),
+                EnumMember("dynamic"),
                 Punctuation.CloseCurly);
         }
 
@@ -862,9 +862,9 @@ partial void F(dynamic d)
                 Keyword("dynamic"),
                 Parameter("d"),
                 Punctuation.CloseParen,
-                Operators.Text("=>"),
+                Operators.EqualsGreaterThan,
                 Parameter("d"),
-                Operators.Text("=="),
+                Operators.EqualsEquals,
                 Identifier("dynamic"),
                 Punctuation.CloseParen,
                 Punctuation.Semicolon);

@@ -1,7 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 {
@@ -9,168 +15,284 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
     {
         protected readonly ClassificationBuilder ClassificationBuilder;
 
+        protected ClassificationBuilder.OperatorClassificationTypes Operators => ClassificationBuilder.Operator;
+        protected ClassificationBuilder.PunctuationClassificationTypes Punctuation => ClassificationBuilder.Punctuation;
+        protected ClassificationBuilder.XmlDocClassificationTypes XmlDoc => ClassificationBuilder.XmlDoc;
+
         protected AbstractClassifierTests()
         {
             this.ClassificationBuilder = new ClassificationBuilder();
         }
 
-        [DebuggerStepThrough]
-        protected Tuple<string, string> Struct(string value)
+        protected abstract Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string text, TextSpan span, ParseOptions parseOptions);
+
+        protected abstract string WrapInClass(string className, string code);
+        protected abstract string WrapInExpression(string code);
+        protected abstract string WrapInMethod(string className, string methodName, string code);
+        protected abstract string WrapInNamespace(string code);
+
+        protected abstract Task DefaultTestAsync(string code, string allCode, FormattedClassification[] expected);
+
+        protected async Task TestAsync(
+           string code,
+           string allCode,
+           ParseOptions parseOptions,
+           params FormattedClassification[] expected)
         {
-            return ClassificationBuilder.Struct(value);
+            var start = allCode.IndexOf(code, StringComparison.Ordinal);
+            var length = code.Length;
+            var span = new TextSpan(start, length);
+            var actual = await GetClassificationSpansAsync(allCode, span, parseOptions);
+
+            actual = actual.Sort((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
+
+            var actualFormatted = actual.Select(a => new FormattedClassification(allCode.Substring(a.TextSpan.Start, a.TextSpan.Length), a.ClassificationType));
+            AssertEx.Equal(expected, actualFormatted);
+        }
+
+        protected async Task TestAsync(
+           string code,
+           string allCode,
+           ParseOptions[] parseOptionsSet,
+           params FormattedClassification[] expected)
+        {
+            foreach (var parseOptions in parseOptionsSet)
+            {
+                await TestAsync(code, allCode, parseOptions, expected);
+            }
+        }
+
+        protected async Task TestAsync(
+           string code,
+           ParseOptions[] parseOptionsSet,
+           params FormattedClassification[] expected)
+        {
+            foreach (var parseOptions in parseOptionsSet)
+            {
+                await TestAsync(code, code, parseOptions, expected);
+            }
+        }
+
+        protected async Task TestAsync(
+            string code,
+            params FormattedClassification[] expected)
+        {
+            await DefaultTestAsync(code, code, expected);
+        }
+
+        protected async Task TestAsync(
+            string code,
+            string allCode,
+            params FormattedClassification[] expected)
+        {
+            await DefaultTestAsync(code, allCode, expected);
+        }
+
+        protected async Task TestInClassAsync(
+            string className,
+            string code,
+            ParseOptions[] parseOptionsSet,
+            params FormattedClassification[] expected)
+        {
+            var allCode = WrapInClass(className, code);
+
+            await TestAsync(code, allCode, parseOptionsSet, expected);
+        }
+
+        protected async Task TestInClassAsync(
+            string className,
+            string code,
+            params FormattedClassification[] expected)
+        {
+            var allCode = WrapInClass(className, code);
+
+            await DefaultTestAsync(code, allCode, expected);
+        }
+
+        protected Task TestInClassAsync(
+            string code,
+            ParseOptions[] parseOptionsSet,
+            params FormattedClassification[] expected)
+        {
+            return TestInClassAsync("C", code, parseOptionsSet, expected);
+        }
+
+        protected Task TestInClassAsync(
+            string code,
+            params FormattedClassification[] expected)
+        {
+            return TestInClassAsync("C", code, expected);
+        }
+
+        protected async Task TestInExpressionAsync(
+            string code,
+            params FormattedClassification[] expected)
+        {
+            var allCode = WrapInExpression(code);
+
+            await DefaultTestAsync(code, allCode, expected);
+        }
+
+        protected async Task TestInExpressionAsync(
+            string code,
+            ParseOptions[] parseOptionsSet,
+            params FormattedClassification[] expected)
+        {
+            var allCode = WrapInExpression(code);
+
+            await TestAsync(code, allCode, parseOptionsSet, expected);
+        }
+
+        protected async Task TestInMethodAsync(
+            string className,
+            string methodName,
+            string code,
+            ParseOptions[] parseOptionsSet,
+            params FormattedClassification[] expected)
+        {
+            var allCode = WrapInMethod(className, methodName, code);
+
+            await TestAsync(code, allCode, parseOptionsSet, expected);
+        }
+
+        protected async Task TestInMethodAsync(
+            string className,
+            string methodName,
+            string code,
+            params FormattedClassification[] expected)
+        {
+            var allCode = WrapInMethod(className, methodName, code);
+
+            await DefaultTestAsync(code, allCode, expected);
+        }
+
+        protected Task TestInMethodAsync(
+            string methodName,
+            string code,
+            ParseOptions[] parseOptionsSet,
+            params FormattedClassification[] expected)
+        {
+            return TestInMethodAsync("C", methodName, code, parseOptionsSet, expected);
+        }
+
+        protected Task TestInMethodAsync(
+            string methodName,
+            string code,
+            params FormattedClassification[] expected)
+        {
+            return TestInMethodAsync("C", methodName, code, expected);
+        }
+
+        protected Task TestInMethodAsync(
+            string code,
+            ParseOptions[] parseOptionsSet,
+            params FormattedClassification[] expected)
+        {
+            return TestInMethodAsync("C", "M", code, parseOptionsSet, expected);
+        }
+
+        protected Task TestInMethodAsync(
+            string code,
+            params FormattedClassification[] expected)
+        {
+            return TestInMethodAsync("C", "M", code, expected);
+        }
+
+        protected async Task TestInNamespaceAsync(
+            string code,
+            ParseOptions[] parseOptionsSet,
+            params FormattedClassification[] expected)
+        {
+            var allCode = WrapInNamespace(code);
+
+            await TestAsync(code, allCode, parseOptionsSet, expected);
+        }
+
+        protected async Task TestInNamespaceAsync(
+            string code,
+            params FormattedClassification[] expected)
+        {
+            var allCode = WrapInNamespace(code);
+
+            await DefaultTestAsync(code, allCode, expected);
         }
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Enum(string value)
-        {
-            return ClassificationBuilder.Enum(value);
-        }
+        protected static FormattedClassification[] Classifications(params FormattedClassification[] expected) => expected;
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Interface(string value)
-        {
-            return ClassificationBuilder.Interface(value);
-        }
+        protected static ParseOptions[] ParseOptions(params ParseOptions[] options) => options;
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Class(string value)
-        {
-            return ClassificationBuilder.Class(value);
-        }
+        protected FormattedClassification Struct(string text) => ClassificationBuilder.Struct(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Delegate(string value)
-        {
-            return ClassificationBuilder.Delegate(value);
-        }
+        protected FormattedClassification Enum(string text) => ClassificationBuilder.Enum(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> TypeParameter(string value)
-        {
-            return ClassificationBuilder.TypeParameter(value);
-        }
+        protected FormattedClassification Interface(string text) => ClassificationBuilder.Interface(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Field(string value)
-        {
-            return ClassificationBuilder.Field(value);
-        }
+        protected FormattedClassification Class(string text) => ClassificationBuilder.Class(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> EnumField(string value)
-        {
-            return ClassificationBuilder.EnumField(value);
-        }
+        protected FormattedClassification Delegate(string text) => ClassificationBuilder.Delegate(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Constant(string value)
-        {
-            return ClassificationBuilder.Constant(value);
-        }
+        protected FormattedClassification TypeParameter(string text) => ClassificationBuilder.TypeParameter(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Local(string value)
-        {
-            return ClassificationBuilder.Local(value);
-        }
+        protected FormattedClassification Field(string text) => ClassificationBuilder.Field(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Parameter(string value)
-        {
-            return ClassificationBuilder.Parameter(value);
-        }
+        protected FormattedClassification EnumMember(string text) => ClassificationBuilder.EnumMember(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Method(string value)
-        {
-            return ClassificationBuilder.Method(value);
-        }
+        protected FormattedClassification Constant(string text) => ClassificationBuilder.Constant(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> ExtensionMethod(string value)
-        {
-            return ClassificationBuilder.ExtensionMethod(value);
-        }
+        protected FormattedClassification Local(string text) => ClassificationBuilder.Local(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Property(string value)
-        {
-            return ClassificationBuilder.Property(value);
-        }
+        protected FormattedClassification Parameter(string text) => ClassificationBuilder.Parameter(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Event(string value)
-        {
-            return ClassificationBuilder.Event(value);
-        }
+        protected FormattedClassification Method(string text) => ClassificationBuilder.Method(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> String(string value)
-        {
-            return ClassificationBuilder.String(value);
-        }
+        protected FormattedClassification ExtensionMethod(string text) => ClassificationBuilder.ExtensionMethod(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Verbatim(string value)
-        {
-            return ClassificationBuilder.Verbatim(value);
-        }
+        protected FormattedClassification Property(string text) => ClassificationBuilder.Property(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Keyword(string value)
-        {
-            return ClassificationBuilder.Keyword(value);
-        }
+        protected FormattedClassification Event(string text) => ClassificationBuilder.Event(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> PPKeyword(string value)
-        {
-            return ClassificationBuilder.PPKeyword(value);
-        }
+        protected FormattedClassification String(string text) => ClassificationBuilder.String(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> PPText(string value)
-        {
-            return ClassificationBuilder.PPText(value);
-        }
+        protected FormattedClassification Verbatim(string text) => ClassificationBuilder.Verbatim(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Identifier(string value)
-        {
-            return ClassificationBuilder.Identifier(value);
-        }
+        protected FormattedClassification Keyword(string text) => ClassificationBuilder.Keyword(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Inactive(string value)
-        {
-            return ClassificationBuilder.Inactive(value);
-        }
+        protected FormattedClassification PPKeyword(string text) => ClassificationBuilder.PPKeyword(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Comment(string value)
-        {
-            return ClassificationBuilder.Comment(value);
-        }
+        protected FormattedClassification PPText(string text) => ClassificationBuilder.PPText(text);
 
         [DebuggerStepThrough]
-        protected Tuple<string, string> Number(string value)
-        {
-            return ClassificationBuilder.Number(value);
-        }
+        protected FormattedClassification Identifier(string text) => ClassificationBuilder.Identifier(text);
 
-        protected ClassificationBuilder.PunctuationClassificationTypes Punctuation
-        {
-            get { return ClassificationBuilder.Punctuation; }
-        }
+        [DebuggerStepThrough]
+        protected FormattedClassification Inactive(string text) => ClassificationBuilder.Inactive(text);
 
-        protected ClassificationBuilder.OperatorClassificationTypes Operators
-        {
-            get { return ClassificationBuilder.Operator; }
-        }
+        [DebuggerStepThrough]
+        protected FormattedClassification Comment(string text) => ClassificationBuilder.Comment(text);
 
-        protected ClassificationBuilder.XmlDocClassificationTypes XmlDoc
-        {
-            get { return ClassificationBuilder.XmlDoc; }
-        }
+        [DebuggerStepThrough]
+        protected FormattedClassification Number(string text) => ClassificationBuilder.Number(text);
     }
 }

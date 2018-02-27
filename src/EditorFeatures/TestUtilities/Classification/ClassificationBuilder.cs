@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Classification;
 
@@ -8,253 +7,129 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 {
     public partial class ClassificationBuilder
     {
-        private readonly OperatorClassificationTypes _operator = new OperatorClassificationTypes();
-        private readonly PunctuationClassificationTypes _punctuation = new PunctuationClassificationTypes();
-        private readonly XmlDocClassificationTypes _xmlDoc = new XmlDocClassificationTypes();
+        public PunctuationClassificationTypes Punctuation { get; } = new PunctuationClassificationTypes();
+        public OperatorClassificationTypes Operator { get; } = new OperatorClassificationTypes();
+        public XmlDocClassificationTypes XmlDoc { get; } = new XmlDocClassificationTypes();
+
+        private static FormattedClassification New(string text, string typeName) => new FormattedClassification(text, typeName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Struct(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.StructName);
-        }
+        public FormattedClassification Struct(string text) => New(text, ClassificationTypeNames.StructName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Enum(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.EnumName);
-        }
+        public FormattedClassification Enum(string text) => New(text, ClassificationTypeNames.EnumName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Interface(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.InterfaceName);
-        }
+        public FormattedClassification Interface(string text) => New(text, ClassificationTypeNames.InterfaceName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Class(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.ClassName);
-        }
+        public FormattedClassification Class(string text) => New(text, ClassificationTypeNames.ClassName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Delegate(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.DelegateName);
-        }
+        public FormattedClassification Delegate(string text) => New(text, ClassificationTypeNames.DelegateName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> TypeParameter(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.TypeParameterName);
-        }
+        public FormattedClassification TypeParameter(string text) => New(text, ClassificationTypeNames.TypeParameterName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Field(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.FieldName);
-        }
+        public FormattedClassification Field(string text) => New(text, ClassificationTypeNames.FieldName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> EnumField(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.EnumMemberName);
-        }
+        public FormattedClassification EnumMember(string text) => New(text, ClassificationTypeNames.EnumMemberName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Constant(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.ConstantName);
-        }
+        public FormattedClassification Constant(string text) => New(text, ClassificationTypeNames.ConstantName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Local(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.LocalName);
-        }
+        public FormattedClassification Local(string text) => New(text, ClassificationTypeNames.LocalName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Parameter(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.ParameterName);
-        }
+        public FormattedClassification Parameter(string text) => New(text, ClassificationTypeNames.ParameterName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Method(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.MethodName);
-        }
+        public FormattedClassification Method(string text) => New(text, ClassificationTypeNames.MethodName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> ExtensionMethod(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.ExtensionMethodName);
-        }
+        public FormattedClassification ExtensionMethod(string text) => New(text, ClassificationTypeNames.ExtensionMethodName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Property(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.PropertyName);
-        }
+        public FormattedClassification Property(string text) => New(text, ClassificationTypeNames.PropertyName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Event(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.EventName);
-        }
+        public FormattedClassification Event(string text) => New(text, ClassificationTypeNames.EventName);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> String(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.StringLiteral);
-        }
+        public FormattedClassification String(string text) => New(text, ClassificationTypeNames.StringLiteral);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Verbatim(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.VerbatimStringLiteral);
-        }
+        public FormattedClassification Verbatim(string text) => New(text, ClassificationTypeNames.VerbatimStringLiteral);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Keyword(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.Keyword);
-        }
+        public FormattedClassification Keyword(string text) => New(text, ClassificationTypeNames.Keyword);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> WhiteSpace(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.WhiteSpace);
-        }
+        public FormattedClassification WhiteSpace(string text) => New(text, ClassificationTypeNames.WhiteSpace);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Text(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.Text);
-        }
+        public FormattedClassification Text(string text) => New(text, ClassificationTypeNames.Text);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> NumericLiteral(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.NumericLiteral);
-        }
+        public FormattedClassification NumericLiteral(string text) => New(text, ClassificationTypeNames.NumericLiteral);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> PPKeyword(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.PreprocessorKeyword);
-        }
+        public FormattedClassification PPKeyword(string text) => New(text, ClassificationTypeNames.PreprocessorKeyword);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> PPText(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.PreprocessorText);
-        }
+        public FormattedClassification PPText(string text) => New(text, ClassificationTypeNames.PreprocessorText);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Identifier(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.Identifier);
-        }
+        public FormattedClassification Identifier(string text) => New(text, ClassificationTypeNames.Identifier);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Inactive(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.ExcludedCode);
-        }
+        public FormattedClassification Inactive(string text) => New(text, ClassificationTypeNames.ExcludedCode);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Comment(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.Comment);
-        }
+        public FormattedClassification Comment(string text) => New(text, ClassificationTypeNames.Comment);
 
         [DebuggerStepThrough]
-        public Tuple<string, string> Number(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.NumericLiteral);
-        }
+        public FormattedClassification Number(string text) => New(text, ClassificationTypeNames.NumericLiteral);
 
-        public Tuple<string, string> LineContinuation
-        {
-            get
-            {
-                return Tuple.Create("_", ClassificationTypeNames.Punctuation);
-            }
-        }
+        public FormattedClassification LineContinuation { get; } = New("_", ClassificationTypeNames.Punctuation);
 
-        public Tuple<string, string> Module(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.ModuleName);
-        }
+        [DebuggerStepThrough]
+        public FormattedClassification Module(string text) => New(text, ClassificationTypeNames.ModuleName);
 
-        public Tuple<string, string> VBXmlName(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.XmlLiteralName);
-        }
+        [DebuggerStepThrough]
+        public FormattedClassification VBXmlName(string text) => New(text, ClassificationTypeNames.XmlLiteralName);
 
-        public Tuple<string, string> VBXmlText(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.XmlLiteralText);
-        }
+        [DebuggerStepThrough]
+        public FormattedClassification VBXmlText(string text) => New(text, ClassificationTypeNames.XmlLiteralText);
 
-        public Tuple<string, string> VBXmlProcessingInstruction(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.XmlLiteralProcessingInstruction);
-        }
+        [DebuggerStepThrough]
+        public FormattedClassification VBXmlProcessingInstruction(string text) => New(text, ClassificationTypeNames.XmlLiteralProcessingInstruction);
 
-        public Tuple<string, string> VBXmlEmbeddedExpression(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.XmlLiteralEmbeddedExpression);
-        }
+        [DebuggerStepThrough]
+        public FormattedClassification VBXmlEmbeddedExpression(string text) => New(text, ClassificationTypeNames.XmlLiteralEmbeddedExpression);
 
-        public Tuple<string, string> VBXmlDelimiter(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.XmlLiteralDelimiter);
-        }
+        [DebuggerStepThrough]
+        public FormattedClassification VBXmlDelimiter(string text) => New(text, ClassificationTypeNames.XmlLiteralDelimiter);
 
-        public Tuple<string, string> VBXmlComment(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.XmlLiteralComment);
-        }
+        [DebuggerStepThrough]
+        public FormattedClassification VBXmlComment(string text) => New(text, ClassificationTypeNames.XmlLiteralComment);
 
-        public Tuple<string, string> VBXmlCDataSection(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.XmlLiteralCDataSection);
-        }
+        [DebuggerStepThrough]
+        public FormattedClassification VBXmlCDataSection(string text) => New(text, ClassificationTypeNames.XmlLiteralCDataSection);
 
-        public Tuple<string, string> VBXmlAttributeValue(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.XmlLiteralAttributeValue);
-        }
+        [DebuggerStepThrough]
+        public FormattedClassification VBXmlAttributeValue(string text) => New(text, ClassificationTypeNames.XmlLiteralAttributeValue);
 
-        public Tuple<string, string> VBXmlAttributeQuotes(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.XmlLiteralAttributeQuotes);
-        }
+        [DebuggerStepThrough]
+        public FormattedClassification VBXmlAttributeQuotes(string text) => New(text, ClassificationTypeNames.XmlLiteralAttributeQuotes);
 
-        public Tuple<string, string> VBXmlAttributeName(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.XmlLiteralAttributeName);
-        }
+        [DebuggerStepThrough]
+        public FormattedClassification VBXmlAttributeName(string text) => New(text, ClassificationTypeNames.XmlLiteralAttributeName);
 
-        public Tuple<string, string> VBXmlEntityReference(string value)
-        {
-            return Tuple.Create(value, ClassificationTypeNames.XmlLiteralEntityReference);
-        }
-
-        public PunctuationClassificationTypes Punctuation
-        {
-            get { return _punctuation; }
-        }
-
-        public OperatorClassificationTypes Operator
-        {
-            get { return _operator; }
-        }
-
-        public XmlDocClassificationTypes XmlDoc
-        {
-            get { return _xmlDoc; }
-        }
+        [DebuggerStepThrough]
+        public FormattedClassification VBXmlEntityReference(string text) => New(text, ClassificationTypeNames.XmlLiteralEntityReference);
     }
 }
