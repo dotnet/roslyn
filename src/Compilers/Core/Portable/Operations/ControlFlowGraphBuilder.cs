@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                                 // Transfer all content of the sub-region into the current region
                                 region.Locals = region.Locals.Concat(subRegion.Locals);
-                                MergeSubRegionAndFree(region, subRegion, blocks, regionMap);
+                                MergeSubRegionAndFree(subRegion, blocks, regionMap);
                                 result = true;
                                 break;
                             }
@@ -221,9 +221,13 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        private static void MergeSubRegionAndFree(RegionBuilder enclosing, RegionBuilder subRegion, ArrayBuilder<BasicBlock> blocks, PooledDictionary<BasicBlock, RegionBuilder> regionMap)
+        /// <summary>
+        /// Merge content of <paramref name="subRegion"/> into its enclosing region and free it.
+        /// </summary>
+        private static void MergeSubRegionAndFree(RegionBuilder subRegion, ArrayBuilder<BasicBlock> blocks, PooledDictionary<BasicBlock, RegionBuilder> regionMap)
         {
-            Debug.Assert(subRegion.Enclosing == enclosing);
+            Debug.Assert(subRegion.Kind != ControlFlowGraph.RegionKind.Root);
+            RegionBuilder enclosing = subRegion.Enclosing;
 
 #if DEBUG
             subRegion.AboutToFree();
@@ -322,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Operations
                             block.InternalNext.Destination == null && block.InternalNext.Flags == BasicBlock.BranchFlags.StructuredExceptionHandling &&
                             block.Predecessors.IsEmpty)
                         {
-                            // Nothing usefull is happening in this finally, let's remove it
+                            // Nothing useful is happening in this finally, let's remove it
                             RegionBuilder tryAndFinally = currentRegion.Enclosing;
                             Debug.Assert(tryAndFinally.Kind == ControlFlowGraph.RegionKind.TryAndFinally);
                             Debug.Assert(tryAndFinally.Regions.Count == 2);
@@ -335,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Operations
                             if (@try.Locals.IsEmpty)
                             {
                                 i = @try.FirstBlock.Ordinal - 1; // restart at the first block of removed .try region
-                                MergeSubRegionAndFree(tryAndFinally, @try, blocks, regionMap);
+                                MergeSubRegionAndFree(@try, blocks, regionMap);
                             }
                             else
                             {
@@ -346,10 +350,10 @@ namespace Microsoft.CodeAnalysis.Operations
                                 i--; // restart at the block that was following the tryAndFinally
                             }
 
-                            MergeSubRegionAndFree(tryAndFinally, currentRegion, blocks, regionMap);
+                            MergeSubRegionAndFree(currentRegion, blocks, regionMap);
 
                             RegionBuilder tryAndFinallyEnclosing = tryAndFinally.Enclosing;
-                            MergeSubRegionAndFree(tryAndFinallyEnclosing, tryAndFinally, blocks, regionMap);
+                            MergeSubRegionAndFree(tryAndFinally, blocks, regionMap);
 
                             count--;
                             Debug.Assert(regionMap[block] == tryAndFinallyEnclosing);
