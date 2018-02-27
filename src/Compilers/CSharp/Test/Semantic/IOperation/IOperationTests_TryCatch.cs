@@ -1027,27 +1027,8 @@ class C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1} {R2}
-
-.try {R1, R2}
-{
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (0)
-        Next (Regular) Block[B3]
-            Finalizing: {R3}
-            Leaving: {R2} {R1}
-}
-.finally {R3}
-{
-    Block[B2] - Block
-        Predecessors (0)
-        Statements (0)
-        Next (StructuredExceptionHandling) Block[null]
-}
-
-Block[B3] - Exit
-    Predecessors: [B1]
+Block[B1] - Exit
+    Predecessors: [B0]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1697,45 +1678,33 @@ class C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1} {R2} {R3} {R4}
+        Entering: {R1} {R2}
 
 .try {R1, R2}
 {
-    .try {R3, R4}
-    {
-        Block[B1] - Block
-            Predecessors: [B0]
-            Statements (0)
-            Next (Regular) Block[B4]
-                Finalizing: {R6}
-                Leaving: {R4} {R3} {R2} {R1}
-    }
-    .catch {R5} (Exception1)
-    {
-        Locals: [Exception1 e]
-        Block[B2] - Block
-            Predecessors (0)
-            Statements (1)
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception1 e)')
-                  Left: 
-                    ILocalReferenceOperation: e (IsDeclaration: True) (OperationKind.LocalReference, Type: Exception1, IsImplicit) (Syntax: '(Exception1 e)')
-                  Right: 
-                    ICaughtExceptionOperation (OperationKind.CaughtException, Type: Exception1, IsImplicit) (Syntax: '(Exception1 e)')
-
-            Next (Regular) Block[B4]
-                Finalizing: {R6}
-                Leaving: {R5} {R3} {R2} {R1}
-    }
-}
-.finally {R6}
-{
-    Block[B3] - Block
-        Predecessors (0)
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (StructuredExceptionHandling) Block[null]
+        Next (Regular) Block[B3]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (Exception1)
+{
+    Locals: [Exception1 e]
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception1 e)')
+              Left: 
+                ILocalReferenceOperation: e (IsDeclaration: True) (OperationKind.LocalReference, Type: Exception1, IsImplicit) (Syntax: '(Exception1 e)')
+              Right: 
+                ICaughtExceptionOperation (OperationKind.CaughtException, Type: Exception1, IsImplicit) (Syntax: '(Exception1 e)')
+
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
 }
 
-Block[B4] - Exit
+Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
@@ -2686,6 +2655,461 @@ Block[B0] - Entry
 
 Block[B3] - Exit
     Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TryFlow_21()
+        {
+            var source = @"
+#pragma warning disable CS0168
+#pragma warning disable CS0219
+class C
+{
+    void F()
+    /*<bind>*/{
+        try
+        {
+            int i;
+            i = 1;
+        }
+        finally
+        {
+            int j;
+        }
+    }/*</bind>*/
+}";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 i]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 1')
+                  Left: 
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TryFlow_22()
+        {
+            var source = @"
+#pragma warning disable CS0168
+#pragma warning disable CS0219
+class C
+{
+    void F()
+    /*<bind>*/{
+        int i = 3;
+        try
+        {}
+        finally
+        {}
+    }/*</bind>*/
+}";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 i]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = 3')
+              Left: 
+                ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'i = 3')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TryFlow_23()
+        {
+            var source = @"
+#pragma warning disable CS0168
+#pragma warning disable CS0219
+class C
+{
+    void F()
+    /*<bind>*/{
+        {
+            int i = 3;
+            try
+            {}
+            finally
+            {}
+        }
+        {
+            int j = 4;
+        }
+    }/*</bind>*/
+}";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 i]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = 3')
+              Left: 
+                ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'i = 3')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+            Entering: {R2}
+}
+.locals {R2}
+{
+    Locals: [System.Int32 j]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'j = 4')
+              Left: 
+                ILocalReferenceOperation: j (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'j = 4')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+
+        Next (Regular) Block[B3]
+            Leaving: {R2}
+}
+
+Block[B3] - Exit
+    Predecessors: [B2]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TryFlow_24()
+        {
+            var source = @"
+#pragma warning disable CS0168
+#pragma warning disable CS0219
+class C
+{
+    void F()
+    /*<bind>*/{
+        try
+        {
+            int i;
+            i = 1;
+        }
+        finally
+        {
+            try
+            {}
+            finally
+            {}
+        }
+    }/*</bind>*/
+}";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 i]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 1')
+                  Left: 
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TryFlow_25()
+        {
+            var source = @"
+#pragma warning disable CS0168
+#pragma warning disable CS0219
+class C
+{
+    void F(int p)
+    /*<bind>*/{
+        p = 1;
+        {
+            int a = 2;
+        }
+        p = 3;
+        try
+        {
+            {
+                int i;
+                i = 4;
+            }
+            p = 5;
+            {
+                int j;
+                j = 6;
+            }
+        }
+        finally
+        {
+        }
+        p = 7;
+        {
+            int b = 8;
+        }
+        p = 9;
+        {
+            int c = 10;
+        }
+    }/*</bind>*/
+}";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = 1;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'p = 1')
+              Left: 
+                IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B2]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 a]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a = 2')
+              Left: 
+                ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'a = 2')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+        Next (Regular) Block[B3]
+            Leaving: {R1}
+}
+
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = 3;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'p = 3')
+              Left: 
+                IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+    Next (Regular) Block[B4]
+        Entering: {R2}
+
+.locals {R2}
+{
+    Locals: [System.Int32 i]
+    Block[B4] - Block
+        Predecessors: [B3]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 4;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 4')
+                  Left: 
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+
+        Next (Regular) Block[B5]
+            Leaving: {R2}
+}
+
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = 5;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'p = 5')
+              Left: 
+                IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+
+    Next (Regular) Block[B6]
+        Entering: {R3}
+
+.locals {R3}
+{
+    Locals: [System.Int32 j]
+    Block[B6] - Block
+        Predecessors: [B5]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 6;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = 6')
+                  Left: 
+                    ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')
+
+        Next (Regular) Block[B7]
+            Leaving: {R3}
+}
+
+Block[B7] - Block
+    Predecessors: [B6]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = 7;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'p = 7')
+              Left: 
+                IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 7) (Syntax: '7')
+
+    Next (Regular) Block[B8]
+        Entering: {R4}
+
+.locals {R4}
+{
+    Locals: [System.Int32 b]
+    Block[B8] - Block
+        Predecessors: [B7]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'b = 8')
+              Left: 
+                ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'b = 8')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 8) (Syntax: '8')
+
+        Next (Regular) Block[B9]
+            Leaving: {R4}
+}
+
+Block[B9] - Block
+    Predecessors: [B8]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = 9;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'p = 9')
+              Left: 
+                IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 9) (Syntax: '9')
+
+    Next (Regular) Block[B10]
+        Entering: {R5}
+
+.locals {R5}
+{
+    Locals: [System.Int32 c]
+    Block[B10] - Block
+        Predecessors: [B9]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'c = 10')
+              Left: 
+                ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'c = 10')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+
+        Next (Regular) Block[B11]
+            Leaving: {R5}
+}
+
+Block[B11] - Exit
+    Predecessors: [B10]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
