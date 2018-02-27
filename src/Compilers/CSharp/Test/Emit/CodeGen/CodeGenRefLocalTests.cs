@@ -13,6 +13,99 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CodeGenRefLocalTests : CompilingTestBase
     {
         [Fact]
+        public void RefLocalFor()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    class LinkedList
+    {
+        public int Value;
+        public LinkedList Next;
+    }
+    public static void Main()
+    {
+        var list = new LinkedList() { Value = 0,
+            Next = new LinkedList() { Value = 0,
+                Next = new LinkedList() { Value = 0, Next = null } } };
+
+        for (ref var cur = ref list; cur != null; cur = ref cur.Next)
+        {
+            Console.WriteLine(cur.Value);
+        }
+        for (ref var cur = ref list; cur != null; cur = ref cur.Next)
+        {
+            cur.Value++;
+        }
+        for (ref readonly var cur = ref list; cur != null; cur = ref cur.Next)
+        {
+            Console.WriteLine(cur.Value);
+        }
+    }
+}", expectedOutput: @"0
+0
+0
+1
+1
+1");
+        }
+
+        [Fact]
+        public void RefLocalForeach()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var re = new RefEnumerable();
+        foreach (ref var x in re)
+        {
+            Console.WriteLine(x);
+        }
+        foreach (ref var x in re)
+        {
+            x++;
+        }
+        foreach (ref readonly var x in re)
+        {
+            Console.WriteLine(x);
+        }
+    }
+}
+
+class RefEnumerable
+{
+    private readonly int[] _arr = new int[5];
+    public StructEnum GetEnumerator() => new StructEnum(_arr);
+
+    public struct StructEnum
+    {
+        private readonly int[] _arr;
+        private int _current;
+        public StructEnum(int[] arr)
+        {
+            _arr = arr;
+            _current = -1;
+        }
+        public ref int Current => ref _arr[_current];
+        public bool MoveNext() => ++_current != _arr.Length;
+    }
+}", expectedOutput: @"0
+0
+0
+0
+0
+1
+1
+1
+1
+1");
+        }
+
+        [Fact]
         public void RefReassignDifferentTupleNames()
         {
             var comp = CreateStandardCompilation(@"

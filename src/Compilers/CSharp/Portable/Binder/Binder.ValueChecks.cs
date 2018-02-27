@@ -477,7 +477,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.WRN_AssignmentToLockOrDispose, local.Syntax.Location, localSymbol);
                 }
 
-                if (!localSymbol.IsWritable)
+                // IsWritable means the variable is writable. If this is a ref variable, IsWritable
+                // does not imply anything about the storage location
+                if (localSymbol.RefKind == RefKind.RefReadOnly ||
+                    (localSymbol.RefKind == RefKind.None && !localSymbol.IsWritableVariable))
                 {
                     ReportReadonlyLocalError(node, localSymbol, valueKind, checkingReceiver, diagnostics);
                     return false;
@@ -485,10 +488,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (RequiresRefAssignableVariable(valueKind))
             {
-                if (!(localSymbol.RefKind == RefKind.Ref ||
-                      localSymbol.RefKind == RefKind.RefReadOnly))
+                if (localSymbol.RefKind == RefKind.None)
                 {
                     diagnostics.Add(ErrorCode.ERR_RefLocalOrParamExpected, node.Location, localSymbol);
+                    return false;
+                }
+                else if (!localSymbol.IsWritableVariable)
+                {
+                    ReportReadonlyLocalError(node, localSymbol, valueKind, checkingReceiver, diagnostics);
                     return false;
                 }
             }
@@ -795,21 +802,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private bool CheckCallValueKind(BoundCall call, SyntaxNode node, BindValueKind valueKind, bool checkingReceiver, DiagnosticBag diagnostics)
+            => CheckMethodReturnValueKind(call.Method, call.Syntax, node, valueKind, checkingReceiver, diagnostics);
+
+        protected bool CheckMethodReturnValueKind(
+            MethodSymbol methodSymbol,
+            SyntaxNode callSyntaxOpt,
+            SyntaxNode node,
+            BindValueKind valueKind,
+            bool checkingReceiver,
+            DiagnosticBag diagnostics)
         {
             // A call can only be a variable if it returns by reference. If this is the case,
             // whether or not it is a valid variable depends on whether or not the call is the
             // RHS of a return or an assign by reference:
             // - If call is used in a context demanding ref-returnable reference all of its ref
             //   inputs must be ref-returnable
-            var methodSymbol = call.Method;
-            var callSyntax = call.Syntax;
 
             if (RequiresVariable(valueKind) && methodSymbol.RefKind == RefKind.None)
             {
                 if (checkingReceiver)
                 {
                     // Error is associated with expression, not node which may be distinct.
-                    Error(diagnostics, ErrorCode.ERR_ReturnNotLValue, callSyntax, methodSymbol);
+                    Error(diagnostics, ErrorCode.ERR_ReturnNotLValue, callSyntaxOpt, methodSymbol);
                 }
                 else
                 {
@@ -832,6 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
+
         }
 
         private bool CheckPropertyValueKind(SyntaxNode node, BoundExpression expr, BindValueKind valueKind, bool checkingReceiver, DiagnosticBag diagnostics)

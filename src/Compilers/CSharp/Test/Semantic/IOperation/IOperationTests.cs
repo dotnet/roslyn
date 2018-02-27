@@ -13,6 +13,152 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.IOperation)]
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.RefLocalsReturns)]
+        [Fact]
+        public void IOperationRefFor()
+        {
+            var tree = CSharpSyntaxTree.ParseText(@"
+using System;
+class C
+{
+    public class LinkedList
+    {
+        public int Value;
+        public LinkedList Next;
+    }
+    public void M(LinkedList list)
+    {
+        for (ref readonly var cur = ref list; cur != null; cur = ref cur.Next)
+        {
+            Console.WriteLine(cur.Value);
+        }
+    }
+}", options: TestOptions.Regular);
+            var comp = CreateStandardCompilation(tree);
+            comp.VerifyDiagnostics();
+            var m = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
+            comp.VerifyOperationTree(m, @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (ref re ... }')
+    Locals: Local_1: C.LinkedList cur
+    Condition: 
+      IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'cur != null')
+        Left: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'cur')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILocalReferenceOperation: cur (OperationKind.LocalReference, Type: C.LinkedList) (Syntax: 'cur')
+        Right: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    Before:
+        IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'ref readonl ...  = ref list')
+          IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'ref readonl ...  = ref list')
+            Declarators:
+                IVariableDeclaratorOperation (Symbol: C.LinkedList cur) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'cur = ref list')
+                  Initializer: 
+                    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ref list')
+                      IParameterReferenceOperation: list (OperationKind.ParameterReference, Type: C.LinkedList) (Syntax: 'list')
+            Initializer: 
+              null
+    AtLoopBottom:
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'cur = ref cur.Next')
+          Expression: 
+            ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: C.LinkedList) (Syntax: 'cur = ref cur.Next')
+              Left: 
+                ILocalReferenceOperation: cur (OperationKind.LocalReference, Type: C.LinkedList) (Syntax: 'cur')
+              Right: 
+                IFieldReferenceOperation: C.LinkedList C.LinkedList.Next (OperationKind.FieldReference, Type: C.LinkedList) (Syntax: 'cur.Next')
+                  Instance Receiver: 
+                    ILocalReferenceOperation: cur (OperationKind.LocalReference, Type: C.LinkedList) (Syntax: 'cur')
+    Body: 
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... cur.Value);')
+          Expression: 
+            IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... (cur.Value)')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'cur.Value')
+                    IFieldReferenceOperation: System.Int32 C.LinkedList.Value (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'cur.Value')
+                      Instance Receiver: 
+                        ILocalReferenceOperation: cur (OperationKind.LocalReference, Type: C.LinkedList) (Syntax: 'cur')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+            var op = (IForLoopOperation)comp.GetSemanticModel(tree).GetOperation(tree.GetRoot().DescendantNodes().OfType<ForStatementSyntax>().Single());
+            Assert.Equal(RefKind.RefReadOnly, op.Locals.Single().RefKind);
+        }
+
+        [CompilerTrait(CompilerFeature.RefLocalsReturns)]
+        [Fact]
+        public void IOperationRefForeach()
+        {
+            var tree = CSharpSyntaxTree.ParseText(@"
+using System;
+class C
+{
+    public void M(RefEnumerable re)
+    {
+        foreach (ref readonly var x in re)
+        {
+            Console.WriteLine(x);
+        }
+    }
+}
+
+class RefEnumerable
+{
+    private readonly int[] _arr = new int[5];
+    public StructEnum GetEnumerator() => new StructEnum(_arr);
+
+    public struct StructEnum
+    {
+        private readonly int[] _arr;
+        private int _current;
+        public StructEnum(int[] arr)
+        {
+            _arr = arr;
+            _current = -1;
+        }
+        public ref int Current => ref _arr[_current];
+        public bool MoveNext() => ++_current != _arr.Length;
+    }
+}", options: TestOptions.Regular);
+            var comp = CreateStandardCompilation(tree);
+            comp.VerifyDiagnostics();
+            var m = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
+            comp.VerifyOperationTree(m, @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (re ... }')
+    Locals: Local_1: System.Int32 x
+    LoopControlVariable: 
+      IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+        Initializer: 
+          null
+    Collection: 
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: RefEnumerable, IsImplicit) (Syntax: 're')
+        Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: re (OperationKind.ParameterReference, Type: RefEnumerable) (Syntax: 're')
+    Body: 
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(x);')
+          Expression: 
+            IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(x)')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    NextVariables(0)");
+            var op = (IForEachLoopOperation)comp.GetSemanticModel(tree).GetOperation(tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single());
+            Assert.Equal(RefKind.RefReadOnly, op.Locals.Single().RefKind);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(382240, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=382240")]

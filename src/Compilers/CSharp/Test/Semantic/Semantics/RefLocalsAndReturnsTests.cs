@@ -13,6 +13,119 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class RefLocalsAndReturnsTests : CompilingTestBase
     {
         [Fact]
+        public void RefForeachErrorRecovery()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        foreach (ref var x in )
+        {
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,31): error CS1525: Invalid expression term ')'
+                //         foreach (ref var x in )
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 31));
+        }
+
+        [Fact]
+        public void RefForToReadonly()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M(in int x)
+    {
+        for (ref int i = ref x; i < 0; i++) {}
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,30): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                //         for (ref int i = ref x; i < 0; i++) {}
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "x").WithArguments("variable", "in int").WithLocation(6, 30));
+        }
+
+        [Fact]
+        public void RefForOutOfScope()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    ref int M()
+    {
+        int x = 0;
+        for (ref int i = ref x; i < 0; i++)
+        {
+            if (i == 0)
+            {
+                return ref i;
+            }
+        }
+        return ref (new int[1])[0];
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (11,28): error CS8157: Cannot return 'i' by reference because it was initialized to a value that cannot be returned by reference
+                //                 return ref i;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "i").WithArguments("i").WithLocation(11, 28));
+        }
+
+        [Fact]
+        public void RefForeachReadonly()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+class C
+{
+    void M()
+    {
+        foreach (ref var v in new int[0])
+        {
+        }
+        foreach (ref readonly var v in new int[0])
+        {
+        }
+        foreach (ref var v in new RefEnumerable())
+        {
+            Console.WriteLine(v);
+        }
+    }
+}
+
+class RefEnumerable
+{
+    private readonly int[] _arr = new int[5];
+    public StructEnum GetEnumerator() => new StructEnum(_arr);
+
+    public struct StructEnum
+    {
+        private readonly int[] _arr;
+        private int _current;
+        public StructEnum(int[] arr)
+        {
+            _arr = arr;
+            _current = -1;
+        }
+        public ref readonly int Current => ref _arr[_current];
+        public bool MoveNext() => ++_current != _arr.Length;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,31): error CS1510: A ref or out value must be an assignable variable
+                //         foreach (ref var v in new int[0])
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new int[0]").WithLocation(7, 31),
+                // (10,40): error CS1510: A ref or out value must be an assignable variable
+                //         foreach (ref readonly var v in new int[0])
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new int[0]").WithLocation(10, 40),
+                // (13,31): error CS8331: Cannot assign to method 'RefEnumerable.StructEnum.Current.get' because it is a readonly variable
+                //         foreach (ref var v in new RefEnumerable())
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "new RefEnumerable()").WithArguments("method", "RefEnumerable.StructEnum.Current.get").WithLocation(13, 31));
+        }
+
+        [Fact]
         public void RefReassignIdentityConversion()
         {
             var comp = CreateStandardCompilation(@"
@@ -193,12 +306,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (18,18): error CS1073: Unexpected token 'ref'
-                //         foreach (ref int x in new E())
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(18, 18),
-                // (21,13): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (21,13): error CS1656: Cannot assign to 'x' because it is a 'foreach iteration variable'
                 //             x = ref y;
-                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "x").WithArguments("x").WithLocation(21, 13));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "x").WithArguments("x", "foreach iteration variable").WithLocation(21, 13));
         }
 
         [Fact]

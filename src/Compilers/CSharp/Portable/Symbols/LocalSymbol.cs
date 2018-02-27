@@ -253,7 +253,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract SyntaxNode GetDeclaratorSyntax();
 
-        internal virtual bool IsWritable
+        /// <summary>
+        /// Describes whether this represents a modifiable variable. Note that
+        /// this refers to the variable, not the underlying value, so if this
+        /// variable is a ref-local, the writability refers to ref-assignment,
+        /// not assignment to the underlying storage.
+        /// </summary>
+        internal virtual bool IsWritableVariable
         {
             get
             {
@@ -265,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case LocalDeclarationKind.UsingVariable:
                         return false;
                     default:
-                        return RefKind != RefKind.RefReadOnly;
+                        return true;
                 }
             }
         }

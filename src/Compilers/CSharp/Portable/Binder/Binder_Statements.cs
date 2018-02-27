@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var typeSyntax = node.Declaration.Type.SkipRef(out RefKind _);
+            var typeSyntax = node.Declaration.Type.SkipRef(out _);
             bool isConst = node.IsConst;
 
             bool isVar;
@@ -640,8 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or it might not; if it is not then we do not want to report an error. If it is, then
             // we want to treat the declaration as an explicitly typed declaration.
 
-            RefKind refKind;
-            TypeSymbol declType = BindType(typeSyntax.SkipRef(out refKind), diagnostics, out isVar, out alias);
+            TypeSymbol declType = BindType(typeSyntax.SkipRef(out _), diagnostics, out isVar, out alias);
             Debug.Assert((object)declType != null || isVar);
 
             if (isVar)
@@ -754,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expression;
         }
 
-        protected static bool IsInitializerRefKindValid(
+        private static bool IsInitializerRefKindValid(
             EqualsValueClauseSyntax initializer,
             CSharpSyntaxNode node,
             RefKind variableRefKind,
@@ -2202,6 +2201,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var typeSyntax = nodeOpt.Type;
+            // Fixed and using variables are not allowed to be ref-like, but regular variables are
+            if (localKind == LocalDeclarationKind.RegularVariable)
+            {
+                typeSyntax = typeSyntax.SkipRef(out _);
+            }
 
             AliasSymbol alias;
             bool isVar;
