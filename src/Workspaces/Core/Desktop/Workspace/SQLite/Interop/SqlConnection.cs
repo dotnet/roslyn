@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         }
 
 
-        private static byte[] mainPtr = Util.ToUtf8("main");
+        private static readonly byte[] mainPtr = Util.ToUtf8WithNullTerminator("main");
         private Stream ReadBlob_InTransaction(byte[] tableName, byte[] columnName, long rowId)
         {
             const int ReadOnlyFlags = 0;

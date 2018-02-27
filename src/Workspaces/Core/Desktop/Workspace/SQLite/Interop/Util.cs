@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 {
     internal static class Util
     {
-        internal static byte[] ToUtf8(string text)
+        internal static byte[] ToUtf8WithNullTerminator(string text)
         {
             if (text == null)
             {
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             // SQLite expects null terminated UTF8, so append an extra null terminator
-            return Encoding.UTF8.GetBytes (text + "\0");
+            return Encoding.UTF8.GetBytes(text + "\0");
         }
     }
 }
