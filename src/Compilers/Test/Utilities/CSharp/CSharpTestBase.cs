@@ -255,11 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 getExpectedBlob,
                 isField);
 
-        protected override CompilationOptions CompilationOptionsReleaseDll
-        {
-            get { return TestOptions.ReleaseDll; }
-        }
-
         #region SyntaxTree Factories
 
         public static SyntaxTree Parse(string text, string filename = "", CSharpParseOptions options = null)
@@ -533,22 +528,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 return MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
             }
-        }
-
-        protected override Compilation GetCompilationForEmit(
-            IEnumerable<string> source,
-            IEnumerable<MetadataReference> references,
-            CompilationOptions options,
-            ParseOptions parseOptions)
-        {
-            var single = new[] { MscorlibRef };
-            references = references != null ? single.Concat(references) : single;
-            return CreateEmptyCompilation(
-                source.ToArray(),
-                references: (IEnumerable<MetadataReference>)references,
-                options: (CSharpCompilationOptions)options,
-                parseOptions: (CSharpParseOptions)parseOptions,
-                assemblyName: GetUniqueName());
         }
 
         /// <summary>

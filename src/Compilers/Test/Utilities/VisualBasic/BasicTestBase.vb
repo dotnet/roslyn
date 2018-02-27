@@ -418,25 +418,6 @@ Public MustInherit Class BasicTestBase
                                 expectedSignatures:=expectedSignatures)
     End Function
 
-    Protected Overrides ReadOnly Property CompilationOptionsReleaseDll As CompilationOptions
-        Get
-            Return TestOptions.ReleaseDll
-        End Get
-    End Property
-
-    Protected Overrides Function GetCompilationForEmit(
-        source As IEnumerable(Of String),
-        references As IEnumerable(Of MetadataReference),
-        options As CompilationOptions,
-        parseOptions As ParseOptions
-    ) As Compilation
-        Return VisualBasicCompilation.Create(
-            GetUniqueName(),
-            syntaxTrees:=source.Select(Function(t) VisualBasicSyntaxTree.ParseText(t, options:=DirectCast(parseOptions, VisualBasicParseOptions))),
-            references:=If(references IsNot Nothing, DefaultVbReferences.Concat(references), DefaultVbReferences),
-            options:=DirectCast(options, VisualBasicCompilationOptions))
-    End Function
-
     Public Shared Function CreateSubmission(code As String,
                                             Optional references As IEnumerable(Of MetadataReference) = Nothing,
                                             Optional options As VisualBasicCompilationOptions = Nothing,
