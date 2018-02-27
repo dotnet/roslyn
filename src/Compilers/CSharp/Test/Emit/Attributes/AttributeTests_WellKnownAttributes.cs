@@ -8865,6 +8865,266 @@ public class C
 }");
         }
 
+        [Fact]
+        public void SkipLocalsInitAttributeOnMethodPropagatesToLocalFunction()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        void F()
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            comp.VerifyIL("C.<M>g__F|0_0", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnMethodPropagatesToLambda()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        System.Action L = () =>
+        {
+            int x = 2;
+            x = x + x + x;
+        };
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            comp.VerifyIL("C.<>c.<M>b__0_0", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnMethodPropagatesToNestedLambdaAndLocalFunction()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        void F()
+        {
+            int y = 1;
+            y = y + y + y;
+
+            void FF()
+            {
+                int x = 2;
+                x = x + x + x;
+            }
+
+            System.Action FL = () =>
+            {
+                int x = 3;
+                x = x + x + x;
+            };
+        }
+
+        System.Action L = () =>
+        {
+            int y = 4;
+            y = y + y + y;
+
+            void LF()
+            {
+                int x = 5;
+                x = x + x + x;
+            }
+
+            System.Action LL = () =>
+            {
+                int x = 6;
+                x = x + x + x;
+            };
+        };
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            // F
+            comp.VerifyIL("C.<M>g__F|0_0", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals (int V_0) //y
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ldsfld     ""System.Action C.<>c.<>9__0_3""
+  IL_000d:  brtrue.s   IL_0024
+  IL_000f:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0014:  ldftn      ""void C.<>c.<M>b__0_3()""
+  IL_001a:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001f:  stsfld     ""System.Action C.<>c.<>9__0_3""
+  IL_0024:  ret
+}");
+
+            // FF
+            comp.VerifyIL("C.<M>g__FF|0_2", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+
+            // FL
+            comp.VerifyIL("C.<>c.<M>b__0_3", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.3
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+
+            // L
+            comp.VerifyIL("C.<>c.<M>b__0_1", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals (int V_0) //y
+  IL_0000:  ldc.i4.4
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ldsfld     ""System.Action C.<>c.<>9__0_5""
+  IL_000d:  brtrue.s   IL_0024
+  IL_000f:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0014:  ldftn      ""void C.<>c.<M>b__0_5()""
+  IL_001a:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001f:  stsfld     ""System.Action C.<>c.<>9__0_5""
+  IL_0024:  ret
+}");
+
+            // LF
+            comp.VerifyIL("C.<M>g__LF|0_4", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.5
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+
+            // LL
+            comp.VerifyIL("C.<>c.<M>b__0_5", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.6
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+        }
+
         #endregion
 
         [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
