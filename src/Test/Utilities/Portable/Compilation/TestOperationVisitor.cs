@@ -831,6 +831,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void VisitSymbolInitializer(ISymbolInitializerOperation operation)
         {
+            foreach (var local in operation.Locals)
+            {
+                Assert.NotNull(local);
+            }
+
             Assert.Same(operation.Value, operation.Children.Single());
         }
 
@@ -847,6 +852,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitVariableInitializer(IVariableInitializerOperation operation)
         {
             Assert.Equal(OperationKind.VariableInitializer, operation.Kind);
+            Assert.Empty(operation.Locals);
             VisitSymbolInitializer(operation);
         }
 
