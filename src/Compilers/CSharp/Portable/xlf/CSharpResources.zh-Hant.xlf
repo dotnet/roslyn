@@ -8616,8 +8616,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidStackAllocArray">
-        <source>"Invalid rank specificier: expected ']'</source>
-        <target state="new">"Invalid rank specificier: expected ']'</target>
+        <source>"Invalid rank specifier: expected ']'</source>
+        <target state="new">"Invalid rank specifier: expected ']'</target>
         <note />
       </trans-unit>
     </body>

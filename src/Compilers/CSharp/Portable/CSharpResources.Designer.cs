@@ -5984,7 +5984,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &quot;Invalid rank specificier: expected &apos;]&apos;.
+        ///   Looks up a localized string similar to &quot;Invalid rank specifier: expected &apos;]&apos;.
         /// </summary>
         internal static string ERR_InvalidStackAllocArray {
             get {
