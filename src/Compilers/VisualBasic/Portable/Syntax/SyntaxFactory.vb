@@ -1111,7 +1111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each err In lastToken.GetDiagnostics()
                 Select Case DirectCast(err.Code, ERRID)
                     Case ERRID.ERR_UnterminatedStringLiteral
-                        If Parser.CheckFeatureAvailability(languageVersion, Feature.MultilineStringLiterals) Then
+                        If LanguageFeatures.CheckFeatureAvailability.IsAvailable(Feature.MultilineStringLiterals, options) Then
                             Return False
                         End If
                 End Select

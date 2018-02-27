@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                                        declarations,
                                                        optionalTerminator)
 
-            Dim regionsAreAllowedEverywhere = Not haveRegionDirectives OrElse Parser.CheckFeatureAvailability(Feature.RegionsEverywhere)
+            Dim regionsAreAllowedEverywhere = Not haveRegionDirectives OrElse LanguageFeatures.CheckFeatureAvailability.IsAvailable(Feature.RegionsEverywhere, _parser.Options)
 
             If notClosedIfDirectives IsNot Nothing OrElse notClosedRegionDirectives IsNot Nothing OrElse notClosedExternalSourceDirective IsNot Nothing OrElse
                Not regionsAreAllowedEverywhere Then
@@ -470,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 If reportAnError Then
-                    rewritten = _parser.ReportFeatureUnavailable(Feature.RegionsEverywhere, rewritten)
+                    rewritten = LanguageFeatures.ReportFeatureUnavailable(rewritten, Feature.RegionsEverywhere, _parser.options)
                 End If
 
                 Return rewritten

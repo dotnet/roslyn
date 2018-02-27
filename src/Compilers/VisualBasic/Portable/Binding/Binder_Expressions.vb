@@ -365,8 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim inferredType As TupleTypeSymbol = Nothing
             If hasInferredType Then
-                Dim disallowInferredNames = Me.Compilation.LanguageVersion.DisallowInferredTupleElementNames()
-
+                Dim disallowInferredNames = LanguageFeatures.SpecificFeature.DisallowInferredTupleElementNames(Me.Compilation.LanguageVersion)
                 inferredType = TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNames, Me.Compilation,
                                                       shouldCheckConstraints:=True,
                                                       errorPositions:=If(disallowInferredNames, inferredPositions, Nothing),

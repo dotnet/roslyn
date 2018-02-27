@@ -468,9 +468,8 @@ DoneWithErrorReporting:
                        implementingProperty.GetMethod IsNot Nothing AndAlso implementingProperty.SetMethod IsNot Nothing Then
 
                     errorReported = errorReported Or
-                                    Not InternalSyntax.Parser.CheckFeatureAvailability(diagBag, implementedMemberSyntax.GetLocation(),
-                                        DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
-                                        InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite)
+                                    Not LanguageFeatures.CheckFeatureAvailability.CheckFeatureAvailability(
+                                        InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite, DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options, implementedMemberSyntax.GetLocation(), diagBag)
                 End If
             End If
 

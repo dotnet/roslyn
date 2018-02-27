@@ -220,11 +220,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 access = Accessibility.ProtectedOrFriend
             ElseIf (foundModifiers And (SourceMemberFlags.Private Or SourceMemberFlags.Protected)) = (SourceMemberFlags.Private Or SourceMemberFlags.Protected) Then
                 access = Accessibility.ProtectedAndFriend
-                InternalSyntax.Parser.CheckFeatureAvailability(
-                    diagBag,
+                LanguageFeatures.CheckFeatureAvailability.CheckFeatureAvailability(
+                    InternalSyntax.Feature.PrivateProtected,
+                    DirectCast(privateProtectedToken.SyntaxTree, VisualBasicSyntaxTree).Options,
                     privateProtectedToken.GetLocation(),
-                    DirectCast(privateProtectedToken.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
-                    InternalSyntax.Feature.PrivateProtected)
+                    diagBag)
             ElseIf (foundModifiers And SourceMemberFlags.Friend) <> 0 Then
                 access = Accessibility.Friend
             ElseIf (foundModifiers And SourceMemberFlags.Protected) <> 0 Then
