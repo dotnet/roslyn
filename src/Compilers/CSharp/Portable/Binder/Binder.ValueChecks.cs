@@ -660,19 +660,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
         }
 
-        private static bool CheckSimpleAssignmentValueKind(SyntaxNode node, BoundAssignmentOperator assignment, BindValueKind valueKind, DiagnosticBag diagnostics)
+        private bool CheckSimpleAssignmentValueKind(SyntaxNode node, BoundAssignmentOperator assignment, BindValueKind valueKind, DiagnosticBag diagnostics)
         {
             // Only ref-assigns produce LValues
             if (assignment.IsRef)
             {
-                if (RequiresRefAssignableVariable(valueKind))
-                {
-                    return true;
-                }
-                if (RequiresAssignableVariable(valueKind))
-                {
-                    return assignment.Left.GetRefKind() != RefKind.RefReadOnly;
-                }
+                return CheckValueKind(node, assignment.Left, valueKind, checkingReceiver: false, diagnostics);
             }
 
             Error(diagnostics, GetStandardLvalueError(valueKind), node);
@@ -1840,6 +1833,17 @@ moreArguments:
                         default,
                         scopeOfTheContainingExpression,
                         isRefEscape: true);
+
+                case BoundKind.AssignmentOperator:
+                    var assignment = (BoundAssignmentOperator)expr;
+
+                    if (!assignment.IsRef)
+                    {
+                        // non-ref assignments are RValues
+                        break;
+                    }
+
+                    return GetRefEscape(assignment.Left, scopeOfTheContainingExpression);
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
@@ -2032,6 +2036,23 @@ moreArguments:
                         escapeTo,
                         diagnostics,
                         isRefEscape: true);
+
+                case BoundKind.AssignmentOperator:
+                    var assignment = (BoundAssignmentOperator)expr;
+
+                    // Only ref-assignments can be LValues
+                    if (!assignment.IsRef)
+                    {
+                        break;
+                    }
+
+                    return CheckRefEscape(
+                        node,
+                        assignment.Left,
+                        escapeFrom,
+                        escapeTo,
+                        checkingReceiver: false,
+                        diagnostics);
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
@@ -2529,7 +2550,7 @@ moreArguments:
 
                 case BoundKind.AssignmentOperator:
                     var assignment = (BoundAssignmentOperator)expr;
-                    return CheckValEscape(node, assignment.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                    return CheckValEscape(node, assignment.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.IncrementOperator:
                     var increment = (BoundIncrementOperator)expr;

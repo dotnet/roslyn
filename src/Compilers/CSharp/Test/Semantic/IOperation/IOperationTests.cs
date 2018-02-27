@@ -13,6 +13,81 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.IOperation)]
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.RefLocalsReturns)]
+        [Fact]
+        public void RefReassignmentExpressions()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    ref readonly int M(ref int rx)
+    {
+        ref int ry = ref rx;
+        rx = ref ry;
+        ry = ref """".Length == 0
+            ? ref (rx = ref ry)
+            : ref (ry = ref rx);
+        return ref (ry = ref rx);
+    }
+}");
+            comp.VerifyDiagnostics();
+
+            var m = comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
+            comp.VerifyOperationTree(m, expectedOperationTree: @"
+IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  Locals: Local_1: System.Int32 ry
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'ref int ry = ref rx;')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'ref int ry = ref rx')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Int32 ry) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ry = ref rx')
+            Initializer: 
+              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ref rx')
+                IParameterReferenceOperation: rx (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'rx')
+      Initializer: 
+        null
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'rx = ref ry;')
+    Expression: 
+      ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'rx = ref ry')
+        Left: 
+          IParameterReferenceOperation: rx (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'rx')
+        Right: 
+          ILocalReferenceOperation: ry (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'ry')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ry = ref """" ...  = ref rx);')
+    Expression: 
+      ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'ry = ref """" ... y = ref rx)')
+        Left: 
+          ILocalReferenceOperation: ry (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'ry')
+        Right: 
+          IConditionalOperation (IsRef) (OperationKind.Conditional, Type: System.Int32) (Syntax: '"""".Length = ... y = ref rx)')
+            Condition: 
+              IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '"""".Length == 0')
+                Left: 
+                  IPropertyReferenceOperation: System.Int32 System.String.Length { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '"""".Length')
+                    Instance Receiver: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
+                Right: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+            WhenTrue: 
+              ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'rx = ref ry')
+                Left: 
+                  IParameterReferenceOperation: rx (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'rx')
+                Right: 
+                  ILocalReferenceOperation: ry (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'ry')
+            WhenFalse: 
+              ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'ry = ref rx')
+                Left: 
+                  ILocalReferenceOperation: ry (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'ry')
+                Right: 
+                  IParameterReferenceOperation: rx (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'rx')
+  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return ref  ...  = ref rx);')
+    ReturnedValue: 
+      ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'ry = ref rx')
+        Left: 
+          ILocalReferenceOperation: ry (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'ry')
+        Right: 
+          IParameterReferenceOperation: rx (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'rx')");
+        }
+
         [CompilerTrait(CompilerFeature.RefLocalsReturns)]
         [Fact]
         public void IOperationRefFor()

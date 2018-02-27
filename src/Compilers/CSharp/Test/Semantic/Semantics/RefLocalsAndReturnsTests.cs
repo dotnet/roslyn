@@ -13,6 +13,73 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class RefLocalsAndReturnsTests : CompilingTestBase
     {
         [Fact]
+        public void RefReturnRefExpression()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    readonly int _ro = 42;
+    int _rw = 42;
+
+    ref int M1(ref int rrw) => ref (rrw = ref _rw);
+
+    ref readonly int M2(in int rro) => ref (rro = ref _ro);
+
+    ref readonly int M3(in int rro) => ref (rro = ref _rw);
+
+    ref int M4(in int rro) => ref (rro = ref _rw);
+
+    ref int M5(ref int rrw) => ref (rrw = ref _ro);
+}");
+            comp.VerifyDiagnostics(
+                // (13,36): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                //     ref int M4(in int rro) => ref (rro = ref _rw);
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "rro = ref _rw").WithArguments("variable", "in int").WithLocation(13, 36),
+                // (15,47): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                //     ref int M5(ref int rrw) => ref (rrw = ref _ro);
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "_ro").WithLocation(15, 47));
+        }
+
+        [Fact]
+        public void ReadonlyFieldRefReassign()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    readonly int _ro = 42;
+    int _rw = 42;
+
+    void M()
+    {
+        ref readonly var rro = ref _ro;
+        ref var rrw = ref _rw;
+
+        rrw = ref (rro = ref _ro);
+        rrw = ref (rro = ref rrw);
+
+        rrw = ref (true
+                    ? ref (rro = ref _rw)
+                    : ref (rrw = ref _rw));
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (12,20): error CS1510: A ref or out value must be an assignable variable
+                //         rrw = ref (rro = ref _ro);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "rro = ref _ro").WithLocation(12, 20),
+                // (13,20): error CS1510: A ref or out value must be an assignable variable
+                //         rrw = ref (rro = ref rrw);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "rro = ref rrw").WithLocation(13, 20),
+                // (16,28): error CS1510: A ref or out value must be an assignable variable
+                //                     ? ref (rro = ref _rw)
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "rro = ref _rw").WithLocation(16, 28),
+                // (15,20): error CS1510: A ref or out value must be an assignable variable
+                //         rrw = ref (true
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, @"true
+                    ? ref (rro = ref _rw)
+                    : ref (rrw = ref _rw)").WithLocation(15, 20));
+        }
+
+        [Fact]
         public void RefForeachErrorRecovery()
         {
             var comp = CreateStandardCompilation(@"
