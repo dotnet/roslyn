@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.DeconstructionPattern:
                 case SyntaxKind.DiscardPattern:
                 case SyntaxKind.PropertyPattern:
+                case SyntaxKind.VarPattern when ((VarPatternSyntax)node).Designation.Kind == SyntaxKind.ParenthesizedVariableDesignation:
                     return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
                 default:
                     return node;
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private bool IsVarType()
         {
-            if (!this.CurrentToken.IsVar())
+            if (!this.CurrentToken.IsIdentifierVar())
             {
                 return false;
             }
@@ -236,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     return false;
                 case SyntaxKind.IdentifierToken:
-                    var result = this.IsTrueIdentifier();
+                    bool result = this.IsTrueIdentifier();
                     this.EatToken();
                     return result;
                 case SyntaxKind.OpenParenToken:
@@ -313,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         /// <param name="forCase">prevents the use of "when" for the identifier</param>
         /// <returns></returns>
-        private CSharpSyntaxNode ParseExpressionOrPattern(bool forCase)
+        private CSharpSyntaxNode ParseExpressionOrPattern(bool forCase, Precedence precedence)
         {
             // handle common error recovery situations during typing
             var tk = this.CurrentToken.Kind;
@@ -334,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // type of a declaration or recursive pattern, nor as a type in an in-type expression starting
                 // in C# 7. The binder will give a diagnostic if
                 // there is a usable symbol in scope by that name. You can always escape it, using `@_`.
-                // TODO(patterns2): Should we use the "contextual keyword" infrastructure for this?
+                // PROTOTYPE(patterns2): Should we use the "contextual keyword" infrastructure for this?
                 return _syntaxFactory.DiscardPattern(this.EatToken(SyntaxKind.IdentifierToken));
             }
 
@@ -362,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 this.Reset(ref resetPoint);
-                return this.ParseSubExpression(Precedence.Expression);
+                return this.ParseSubExpression(precedence);
             }
             finally
             {
@@ -405,6 +406,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return result;
             }
 
+            if (type?.Kind == SyntaxKind.IdentifierName)
+            {
+                var typeIdentifier = (IdentifierNameSyntax)type;
+                var typeIdentifierToken = typeIdentifier.Identifier;
+                if (typeIdentifierToken.ContextualKind == SyntaxKind.VarKeyword)
+                {
+                    // we have a "var" pattern; "var" is not permitted to be a stand-in for a type (or a constant) in a pattern.
+                    var varToken = ConvertToKeyword(typeIdentifierToken);
+                    bool wasTupleDesignator = this.CurrentToken.Kind == SyntaxKind.OpenParenToken;
+                    var varDesignation = ParseDesignation();
+                    if (wasTupleDesignator)
+                    {
+                        return _syntaxFactory.VarPattern(varToken, varDesignation);
+                    }
+                    else
+                    {
+                        // PROTOTYPE(patterns2): we parse it as a declaration pattern when we have simple designation, for compatibility.
+                        // PROTOTYPE(patterns2): can we change it to use a var pattern in all cases?
+                        //return _syntaxFactory.VarPattern(varIdentifier, varDesignation);
+                        return _syntaxFactory.DeclarationPattern(_syntaxFactory.IdentifierName(typeIdentifierToken), varDesignation);
+                    }
+                }
+            }
+
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && (type != null || !looksLikeCast()))
             {
                 // It is possible this is a parenthesized (constant) expression.
@@ -415,11 +440,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     closeToken: out SyntaxToken closeParenToken,
                     openKind: SyntaxKind.OpenParenToken,
                     closeKind: SyntaxKind.CloseParenToken);
-                //if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
-                //{
-                //    // Testers do the darndest things, in this case putting a lambda expression where a pattern is expected.
-                //    return null;
-                //}
 
                 parsePropertySubpattern(out PropertySubpatternSyntax propertySubpattern0);
                 parseDesignation(out VariableDesignationSyntax designation0);
@@ -428,15 +448,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     propertySubpattern0 == null &&
                     designation0 == null &&
                     subPatterns.Count == 1 &&
-                    subPatterns[0].NameColon == null &&
-                    subPatterns[0].Pattern is ConstantPatternSyntax cp)
+                    subPatterns[0].NameColon == null)
                 {
-                    // There is an ambiguity between a deconstruction pattern `(` pattern `)`
-                    // and a constant expression pattern that happens to be parenthesized.
-                    // We normalize to the parenthesized expression, and semantic analysis
-                    // will notice the parens and treat it whichever way is semantically sensible,
-                    // giving priority to its treatment as a constant expression.
-                    return _syntaxFactory.ConstantPattern(_syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken));
+                    if (subPatterns[0].Pattern is ConstantPatternSyntax cp)
+                    {
+                        // There is an ambiguity between a deconstruction pattern `(` pattern `)`
+                        // and a constant expression pattern that happens to be parenthesized.
+                        // We treat such syntax as a parenthesized expression always.
+                        return _syntaxFactory.ConstantPattern(_syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken));
+                    }
+
+                    // 2017-11-20 LDM decision is to disallow a deconstruction pattern that contains just a
+                    // single subpattern but for which the type is omitted. We'll look at other ways of disambiguating later,
+                    // such as perhaps permitting `var` to infer the type, or a trailing comma. This also keeps the design
+                    // space open for using parens for grouping patterns in the future, e.g. if we introduce `or` and
+                    // `and` patterns.
+
+                    var result = _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern0, designation0);
+                    return this.AddError(result, ErrorCode.ERR_SingleElementPositionalPattern);
                 }
 
                 return _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern0, designation0);
@@ -457,9 +486,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return null;
         }
 
-        private PatternSyntax ParsePattern()
+        private PatternSyntax ParsePattern(Precedence precedence)
         {
-            var node = ParseExpressionOrPattern(forCase: false);
+            var node = ParseExpressionOrPattern(forCase: false, precedence: precedence);
             switch (node)
             {
                 case PatternSyntax pattern:
@@ -550,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 nameColon = _syntaxFactory.NameColon(name, colon);
             }
 
-            var pattern = ParsePattern();
+            var pattern = ParsePattern(Precedence.Ternary);
             return this._syntaxFactory.SubpatternElement(nameColon, pattern);
         }
 

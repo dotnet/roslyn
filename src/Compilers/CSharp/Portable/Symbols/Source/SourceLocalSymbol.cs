@@ -165,11 +165,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(
                 nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
+                nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
                 nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
                 nodeToBind.Kind() == SyntaxKind.VariableDeclarator &&
                     new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
                         Contains(nodeToBind.Ancestors().OfType<StatementSyntax>().First().Kind()) ||
                 nodeToBind is ExpressionSyntax);
+            Debug.Assert(!(nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm) || nodeBinder is SwitchExpressionArmBinder);
             return typeSyntax?.IsVar != false && kind != LocalDeclarationKind.DeclarationExpressionVariable
                 ? new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone)
                 : new SourceLocalSymbol(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, kind);
@@ -309,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (_typeSyntax.IsVar)
                 {
-                    TypeSymbol declType = this.TypeSyntaxBinder.BindType(_typeSyntax, new DiagnosticBag(), out var isVar);
+                    TypeSymbol declType = this.TypeSyntaxBinder.BindType(_typeSyntax, new DiagnosticBag(), out bool isVar);
                     return isVar;
                 }
 
@@ -332,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                declType = typeBinder.BindType(_typeSyntax.SkipRef(out var refKind), diagnostics, out isVar);
+                declType = typeBinder.BindType(_typeSyntax.SkipRef(out _), diagnostics, out isVar);
             }
 
             if (isVar)
@@ -526,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
-                var initializerOpt = this._initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
+                BoundExpression initializerOpt = this._initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
                 return initializerOpt?.Type;
             }
 
@@ -543,10 +545,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (this.IsConst && _constantTuple == null)
                 {
                     var value = Microsoft.CodeAnalysis.ConstantValue.Bad;
-                    var initValueNodeLocation = _initializer.Value.Location;
+                    Location initValueNodeLocation = _initializer.Value.Location;
                     var diagnostics = DiagnosticBag.GetInstance();
                     Debug.Assert(inProgress != this);
-                    var type = this.Type;
+                    TypeSymbol type = this.Type;
                     if (boundInitValue == null)
                     {
                         var inProgressBinder = new LocalInProgressBinder(this, this._initializerBinder);
@@ -726,7 +728,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                     nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
                     nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
+                    nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
                     nodeToBind is ExpressionSyntax);
+                Debug.Assert(!(nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm) || nodeBinder is SwitchExpressionArmBinder);
                 this._nodeBinder = nodeBinder;
                 this._nodeToBind = nodeToBind;
                 this._forbiddenZone = forbiddenZone;
@@ -755,6 +759,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // int x, y[out var Z, 1 is int I];
                         // for (int x, y[out var Z, 1 is int I]; ;) {}
                         _nodeBinder.BindDeclaratorArguments((VariableDeclaratorSyntax)_nodeToBind, diagnostics);
+                        break;
+                    case SyntaxKind.SwitchExpressionArm:
+                        var arm = (SwitchExpressionArmSyntax)_nodeToBind;
+                        var armBinder = (SwitchExpressionArmBinder)_nodeBinder;
+                        armBinder.BindSwitchExpressionArm(arm, diagnostics);
                         break;
                     default:
                         _nodeBinder.BindExpression((ExpressionSyntax)_nodeToBind, diagnostics);

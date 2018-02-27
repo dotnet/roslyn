@@ -210,6 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         RestoreKeyword = 8480,
         ReferenceKeyword = 8481,
         LoadKeyword = 8485,
+        VarKeyword = 8486,
 
         InterpolatedStringStartToken = 8482,            // $"
         InterpolatedStringEndToken = 8483,              // "
@@ -556,11 +557,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         WhenClause = 9013,
         DiscardDesignation = 9014,
 
+        // added along with recursive patterns
         PropertyPattern = 9020,
         PropertySubpattern = 9021,
         SubpatternElement = 9022,
         DeconstructionPattern = 9023,
         DiscardPattern = 9024,
+        SwitchExpression = 9025,
+        SwitchExpressionArm = 9026,
+        VarPattern = 9027,
 
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
         // Please start with 9040 if you add more kinds below.

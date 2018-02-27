@@ -7084,7 +7084,7 @@ tryAgain:
                         return null;
 
                     case SyntaxKind.OpenParenToken:
-                        if (current.IsVar())
+                        if (current.IsIdentifierVar())
                         {
                             // potentially either a tuple type in a local declaration (true), or
                             // a tuple lvalue in a deconstruction assignment (false).
@@ -7982,7 +7982,7 @@ tryAgain:
                         }
                         else
                         {
-                            var node = CheckRecursivePatternFeature(ParseExpressionOrPattern(forCase: true));
+                            var node = CheckRecursivePatternFeature(ParseExpressionOrPattern(forCase: true, precedence: Precedence.Ternary));
                             if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword && node is ExpressionSyntax)
                             {
                                 // if there is a 'where' token, we treat a case expression as a constant pattern.
@@ -8805,8 +8805,11 @@ tryAgain:
                     return Precedence.PointerIndirection;
                 case SyntaxKind.AddressOfExpression:
                     return Precedence.AddressOf;
-                default:
+                case SyntaxKind.ConditionalExpression:
+                case SyntaxKind.SwitchExpression:
                     return Precedence.Expression;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(op);
             }
         }
 
@@ -9062,7 +9065,7 @@ tryAgain:
             // Only take the ternary if we're at a precedence less than the null coalescing
             // expression.
 
-            if (tk == SyntaxKind.QuestionToken && precedence <= Precedence.Ternary)
+            if (tk == SyntaxKind.QuestionToken && precedence < Precedence.Coalescing)
             {
                 var questionToken = this.EatToken();
                 var colonLeft = this.ParsePossibleRefExpression();
@@ -9085,7 +9088,75 @@ tryAgain:
                 }
             }
 
+            // From the proposed language spec:
+            //
+            // switch-expression:
+            //  null-coalescing-expression switch ( switch-expression-case-list )
+            // switch-expression-case-list:
+            //  switch-expression-case
+            //  switch-expression-case , switch-expression-case-list
+            // switch-expression-case:
+            //  pattern => expression
+            //
+            // Only take the switch if we're at a precedence less than the null coalescing expression.
+
+            else if (tk == SyntaxKind.SwitchKeyword && precedence < Precedence.Coalescing)
+            {
+                // PROTOTYPE(patterns2): for better error recovery when an expression is typed on a line before
+                // a switch statement, we should check if the cases between the parens look like cases with
+                // arrows, and whether the
+                // switch keyword is on the same line as the end of the expression. If those are not satisfied,
+                // we should refuse to consume the switch token here and instead let a "missing semicolon"
+                // occur in a caller. For now we just put up with poor error recovery in that case.
+                var governingExpression = leftOperand;
+                var switchKeyword = this.EatToken();
+                var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+                var arms = this.ParseSwitchExpressionArms();
+                // PROTOTYPE(patterns2): Should skip any unexpected tokens up through the close brace token.
+                var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
+                leftOperand = _syntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBrace, arms, closeBrace);
+                leftOperand = this.CheckFeatureAvailability(leftOperand, MessageID.IDS_FeatureRecursivePatterns);
+            }
+
             return leftOperand;
+        }
+
+        private SeparatedSyntaxList<SwitchExpressionArmSyntax> ParseSwitchExpressionArms()
+        {
+            // PROTOTYPE(patterns2): Error recovery here leaves much to be desired.
+            var arms = _pool.AllocateSeparated<SwitchExpressionArmSyntax>();
+            do
+            {
+                // Use a precedence that excludes lambdas, assignments, and a ternary which could have a
+                // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
+                // to be consumed by the switch arm. The strange side-effect of that is that the ternary
+                // expression is not permitted as a constant expression here; it would have to be parenthesized.
+                var pattern = ParsePattern(Precedence.Coalescing);
+                var whenClause = ParseWhenClause();
+                var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
+                var expression = ParseExpressionCore();
+                var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(pattern, whenClause, arrow, expression);
+                arms.Add(switchExpressionCase);
+                if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                {
+                    var commaToken = this.EatToken();
+                    if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
+                    {
+                        commaToken = this.AddError(commaToken, ErrorCode.ERR_UnexpectedToken);
+                    }
+
+                    arms.AddSeparator(commaToken);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken);
+
+            SeparatedSyntaxList<SwitchExpressionArmSyntax> result = arms;
+            _pool.Free(arms);
+            return result;
         }
 
         private ExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, MessageID feature)
@@ -9259,7 +9330,7 @@ tryAgain:
         /// </summary>
         private bool IsPossibleDeconstructionLeft(Precedence precedence)
         {
-            if (precedence > Precedence.Assignment || !(this.CurrentToken.IsVar() || IsPredefinedType(this.CurrentToken.Kind)))
+            if (precedence > Precedence.Assignment || !(this.CurrentToken.IsIdentifierVar() || IsPredefinedType(this.CurrentToken.Kind)))
             {
                 return false;
             }

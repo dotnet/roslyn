@@ -17,8 +17,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly LocalRewriter _localRewriter;
             private readonly SyntheticBoundNodeFactory _factory;
 
-            private readonly ArrayBuilder<BoundExpression> _conjunctBuilder;
+            /// <summary>
+            /// Accumulates side-effects that come before the next conjunct.
+            /// </summary>
             private readonly ArrayBuilder<BoundExpression> _sideEffectBuilder;
+
+            /// <summary>
+            /// Accumulates conjuncts (conditions that must all be true) for the translation. When a conjunct is added,
+            /// elements of the _sideEffectBuilder, if any, should be added as part of a sequence expression for
+            /// the conjunct being added.
+            /// </summary>
+            private readonly ArrayBuilder<BoundExpression> _conjunctBuilder;
+
             private readonly DagTempAllocator _tempAllocator;
 
             private readonly BoundExpression _loweredInput;
@@ -64,10 +74,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!_map.TryGetValue(dagTemp, out BoundExpression result))
                     {
                         // PROTOTYPE(patterns2): Not sure what temp kind should be used for `is pattern`.
-                        var temp = _factory.SynthesizedLocal(dagTemp.Type, syntax: _factory.Syntax, kind: SynthesizedLocalKind.SwitchCasePatternMatching);
-                        _map.Add(dagTemp, _factory.Local(temp));
-                        _temps.Add(temp);
+                        LocalSymbol temp = _factory.SynthesizedLocal(dagTemp.Type, syntax: _factory.Syntax, kind: SynthesizedLocalKind.SwitchCasePatternMatching);
                         result = _factory.Local(temp);
+                        _map.Add(dagTemp, result);
+                        _temps.Add(temp);
                     }
 
                     return result;
@@ -86,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private bool LowerDecision(BoundDagDecision decision)
             {
-                var oldSyntax = _factory.Syntax;
+                SyntaxNode oldSyntax = _factory.Syntax;
                 _factory.Syntax = decision.Syntax;
-                var result = LowerDecisionCore(decision);
+                bool result = LowerDecisionCore(decision);
                 _factory.Syntax = oldSyntax;
                 return result;
             }
@@ -111,14 +121,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     self._conjunctBuilder.Add(expression);
                 }
 
-                var input = _tempAllocator.GetTemp(decision.Input);
+                BoundExpression input = _tempAllocator.GetTemp(decision.Input);
                 switch (decision)
                 {
                     case BoundNonNullDecision d:
                         // If the actual input is a constant, short-circuit this test
                         if (d.Input == _inputTemp && _loweredInput.ConstantValue != null)
                         {
-                            var decisionResult = _loweredInput.ConstantValue != ConstantValue.Null;
+                            bool decisionResult = _loweredInput.ConstantValue != ConstantValue.Null;
                             if (!decisionResult)
                             {
                                 _conjunctBuilder.Add(_factory.Literal(decisionResult));
@@ -140,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the actual input is a constant, short-circuit this test
                         if (d.Input == _inputTemp && _loweredInput.ConstantValue != null)
                         {
-                            var decisionResult = _loweredInput.ConstantValue == d.Value;
+                            bool decisionResult = _loweredInput.ConstantValue == d.Value;
                             if (!decisionResult)
                             {
                                 _conjunctBuilder.Add(_factory.Literal(decisionResult));
@@ -153,31 +163,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            var systemObject = _factory.SpecialType(SpecialType.System_Object);
+                            Debug.Assert(!input.Type.IsNullableType());
                             addConjunct(ref this, _localRewriter.MakeEqual(_factory.Literal(d.Value, input.Type), input));
                         }
                         break;
                     case BoundDagFieldEvaluation f:
                         {
-                            var field = f.Field;
+                            FieldSymbol field = f.Field;
                             field = field.TupleUnderlyingField ?? field;
                             var outputTemp = new BoundDagTemp(f.Syntax, field.Type, f, 0);
-                            var output = _tempAllocator.GetTemp(outputTemp);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             _sideEffectBuilder.Add(_factory.AssignmentExpression(output, _factory.Field(input, field)));
                         }
                         break;
                     case BoundDagPropertyEvaluation p:
                         {
-                            var property = p.Property;
+                            PropertySymbol property = p.Property;
                             property = property.TupleUnderlyingProperty ?? property;
                             var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p, 0);
-                            var output = _tempAllocator.GetTemp(outputTemp);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             _sideEffectBuilder.Add(_factory.AssignmentExpression(output, _factory.Property(input, property)));
                         }
                         break;
                     case BoundDagDeconstructEvaluation d:
                         {
-                            var method = d.DeconstructMethod;
+                            MethodSymbol method = d.DeconstructMethod;
                             var refKindBuilder = ArrayBuilder<RefKind>.GetInstance();
                             var argBuilder = ArrayBuilder<BoundExpression>.GetInstance();
                             BoundExpression receiver;
@@ -192,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Debug.Assert(method.IsExtensionMethod);
                                 receiver = _factory.Type(method.ContainingType);
-                                addArg(RefKind.None, input);
+                                addArg(method.ParameterRefKinds[0], input);
                                 extensionExtra = 1;
                             }
                             else
@@ -202,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             for (int i = extensionExtra; i < method.ParameterCount; i++)
                             {
-                                var parameter = method.Parameters[i];
+                                ParameterSymbol parameter = method.Parameters[i];
                                 Debug.Assert(parameter.RefKind == RefKind.Out);
                                 var outputTemp = new BoundDagTemp(d.Syntax, parameter.Type, d, i - extensionExtra);
                                 addArg(RefKind.Out, _tempAllocator.GetTemp(outputTemp));
@@ -212,16 +222,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case BoundDagTypeEvaluation t:
                         {
-                            var inputType = input.Type;
+                            TypeSymbol inputType = input.Type;
                             if (inputType.IsDynamic())
                             {
                                 inputType = _factory.SpecialType(SpecialType.System_Object);
                             }
 
-                            var type = t.Type;
+                            TypeSymbol type = t.Type;
                             var outputTemp = new BoundDagTemp(t.Syntax, type, t, 0);
-                            var output = _tempAllocator.GetTemp(outputTemp);
-                            var conversion = _factory.Compilation.ClassifyConversion(inputType, output.Type);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            Conversion conversion = _factory.Compilation.ClassifyConversion(inputType, output.Type);
                             if (conversion.Exists)
                             {
                                 _sideEffectBuilder.Add(_factory.AssignmentExpression(output, _factory.Convert(type, input, conversion)));
@@ -240,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public BoundExpression LowerIsPattern(BoundPattern pattern, CSharpCompilation compilation)
             {
                 var decisionBuilder = new DecisionDagBuilder(compilation);
-                var inputTemp = decisionBuilder.TranslatePattern(_loweredInput, pattern, out ImmutableArray<BoundDagDecision> decisions, out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings);
+                BoundDagTemp inputTemp = decisionBuilder.TranslatePattern(_loweredInput, pattern, out ImmutableArray<BoundDagDecision> decisions, out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings);
                 Debug.Assert(inputTemp == _inputTemp);
 
                 // first, copy the input expression into the input temp
@@ -259,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // then process all of the individual decisions
-                foreach (var decision in decisions)
+                foreach (BoundDagDecision decision in decisions)
                 {
                     if (LowerDecision(decision))
                     {
@@ -274,20 +284,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundExpression result = null;
-                foreach (var conjunct in _conjunctBuilder)
+                foreach (BoundExpression conjunct in _conjunctBuilder)
                 {
                     result = (result == null) ? conjunct : _factory.LogicalAnd(result, conjunct);
                 }
 
                 var bindingsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-                foreach (var (left, right) in bindings)
+                foreach ((BoundExpression left, BoundDagTemp right) in bindings)
                 {
                     bindingsBuilder.Add(_factory.AssignmentExpression(left, _tempAllocator.GetTemp(right)));
                 }
 
                 if (bindingsBuilder.Count > 0)
                 {
-                    var c = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, bindingsBuilder.ToImmutableAndFree(), _factory.Literal(true));
+                    BoundSequence c = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, bindingsBuilder.ToImmutableAndFree(), _factory.Literal(true));
                     result = (result == null) ? c : (BoundExpression)_factory.LogicalAnd(result, c);
                 }
                 else if (result == null)
@@ -306,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // NaN must be treated specially, as operator== and .Equals() disagree.
                 Debug.Assert(loweredLiteral.Type == input.Type);
-                var condition = _factory.InstanceCall(loweredLiteral, "Equals", input);
+                BoundExpression condition = _factory.InstanceCall(loweredLiteral, "Equals", input);
                 if (!condition.HasErrors && condition.Type.SpecialType != SpecialType.System_Boolean)
                 {
                     // Diagnose some kinds of broken core APIs
@@ -318,8 +328,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return condition;
             }
 
-            var booleanType = _factory.SpecialType(SpecialType.System_Boolean);
-            var intType = _factory.SpecialType(SpecialType.System_Int32);
+            NamedTypeSymbol booleanType = _factory.SpecialType(SpecialType.System_Boolean);
+            NamedTypeSymbol intType = _factory.SpecialType(SpecialType.System_Int32);
             switch (loweredLiteral.Type.SpecialType)
             {
                 case SpecialType.System_Boolean:
@@ -350,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     // PROTOTYPE(patterns2): need more efficient code for enum test, e.g. `color is Color.Red`
                     // This is the (correct but inefficient) fallback for any type that isn't yet implemented (e.g. enums)
-                    var systemObject = _factory.SpecialType(SpecialType.System_Object);
+                    NamedTypeSymbol systemObject = _factory.SpecialType(SpecialType.System_Object);
                     return _factory.StaticCall(
                         systemObject,
                         "Equals",
@@ -362,8 +372,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
-            var loweredExpression = VisitExpression(node.Expression);
-            var loweredPattern = LowerPattern(node.Pattern);
+            BoundExpression loweredExpression = VisitExpression(node.Expression);
+            BoundPattern loweredPattern = LowerPattern(node.Pattern);
             using (var x = new IsPatternExpressionLocalRewriter(this, loweredExpression))
             {
                 return x.LowerIsPattern(loweredPattern, this._compilation);

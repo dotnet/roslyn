@@ -457,6 +457,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ConditionalExpression:
                     return BindConditionalOperator((ConditionalExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.SwitchExpression:
+                    return BindSwitchExpression((SwitchExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
                 case SyntaxKind.CharacterLiteralExpression:
@@ -582,6 +585,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundDefaultExpression(node, constantValueOpt: null, type: null);
         }
 
+        internal virtual BoundSwitchExpressionCase BindSwitchExpressionArm(SwitchExpressionArmSyntax node, DiagnosticBag diagnostics)
+        {
+            return this.Next.BindSwitchExpressionArm(node, diagnostics);
+        }
+
         private BoundExpression BindRefExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var firstToken = node.GetFirstToken();
@@ -619,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            switch (node.Parent.Kind())
+            switch (parent.Kind())
             {
                 case SyntaxKind.ConditionalExpression: // ?:
                     {
@@ -631,6 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var binaryParent = (BinaryExpressionSyntax)parent;
                         return node == binaryParent.Right;
                     }
+                case SyntaxKind.SwitchExpressionArm:
                 case SyntaxKind.ArrowExpressionClause:
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:

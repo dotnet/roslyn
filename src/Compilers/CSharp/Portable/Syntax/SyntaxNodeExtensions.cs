@@ -54,24 +54,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// to skip over any nodes that could have associated binders, especially
         /// if changes are made later.
         /// 
-        /// "Local binder" is a vague term that refers to binders that represent
-        /// scopes for names (e.g. BlockBinders) rather than binders that tweak
-        /// default behaviors (e.g. FieldInitializerBinders).  Local binders are
+        /// "Local binder" is a term that refers to binders that are
         /// created by LocalBinderFactory.
         /// </summary>
         internal static bool CanHaveAssociatedLocalBinder(this SyntaxNode syntax)
         {
-            SyntaxKind kind;
-            return syntax.IsAnonymousFunction() ||
-                syntax is StatementSyntax ||
-                (kind = syntax.Kind()) == SyntaxKind.CatchClause ||
-                kind == SyntaxKind.CatchFilterClause ||
-                kind == SyntaxKind.SwitchSection ||
-                kind == SyntaxKind.EqualsValueClause ||
-                kind == SyntaxKind.Attribute ||
-                kind == SyntaxKind.ArgumentList ||
-                kind == SyntaxKind.ArrowExpressionClause ||
-                IsValidScopeDesignator(syntax as ExpressionSyntax);
+            SyntaxKind kind = syntax.Kind();
+            switch (kind)
+            {
+                case SyntaxKind.CatchClause:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.CatchFilterClause:
+                case SyntaxKind.SwitchSection:
+                case SyntaxKind.EqualsValueClause:
+                case SyntaxKind.Attribute:
+                case SyntaxKind.ArgumentList:
+                case SyntaxKind.ArrowExpressionClause:
+                case SyntaxKind.SwitchExpression:
+                case SyntaxKind.SwitchExpressionArm:
+                    return true;
+                default:
+                    return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);
+
+            }
         }
 
         internal static bool IsValidScopeDesignator(this ExpressionSyntax expression)

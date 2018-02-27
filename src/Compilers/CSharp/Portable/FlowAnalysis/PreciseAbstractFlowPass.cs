@@ -2724,6 +2724,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
+
+        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        {
+            VisitRvalue(node.GoverningExpression);
+            var dispatchState = this.State;
+            var endState = UnreachableState();
+            foreach (var section in node.SwitchSections)
+            {
+                SetState(dispatchState.Clone());
+                VisitPattern(node.GoverningExpression, section.Pattern);
+                SetState(StateWhenTrue);
+                if (section.Guard != null)
+                {
+                    VisitCondition(section.Guard);
+                    SetState(StateWhenTrue);
+                }
+
+                VisitRvalue(section.Value);
+                IntersectWith(ref endState, ref this.State);
+            }
+
+            SetState(endState);
+            return null;
+        }
+
         #endregion visitors
     }
 }

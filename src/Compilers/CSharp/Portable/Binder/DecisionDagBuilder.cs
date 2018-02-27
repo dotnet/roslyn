@@ -62,10 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var rootIdentifier = new BoundDagTemp(switchExpression.Syntax, switchExpression.Type, null, 0);
             int i = 0;
-            var builder = ArrayBuilder<PartialCaseDecision>.GetInstance();
-            foreach (var section in switchSections)
+            var builder = ArrayBuilder<PartialCaseDecision>.GetInstance(switchSections.Length);
+            foreach (BoundPatternSwitchSection section in switchSections)
             {
-                foreach (var label in section.SwitchLabels)
+                foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
                 {
                     builder.Add(MakePartialCaseDecision(++i, rootIdentifier, label));
                 }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private PartialCaseDecision MakePartialCaseDecision(int index, BoundDagTemp input, BoundPatternSwitchLabel label)
         {
-            MakeAndSimplifyDecisionsAndBindings(input, label.Pattern, out ImmutableArray<BoundDagDecision> decisions, out var bindings);
+            MakeAndSimplifyDecisionsAndBindings(input, label.Pattern, out ImmutableArray<BoundDagDecision> decisions, out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings);
             return new PartialCaseDecision(index, label.Syntax, decisions, bindings, label.Guard, label.Label);
         }
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // contribute to the result. This will, for example, permit us to match `(2, 3) is (2, _)` without
             // fetching `Item2` from the input.
             var usedValues = PooledHashSet<BoundDagEvaluation>.GetInstance();
-            foreach (var (_, temp) in bindingsBuilder)
+            foreach ((var _, BoundDagTemp temp) in bindingsBuilder)
             {
                 if (temp.Source != (object)null)
                 {
@@ -192,8 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(BoundExpression, BoundDagTemp)> bindings,
             ref HashSet<DiagnosticInfo> discardedUseSiteDiagnostics)
         {
-            var type = declaration.DeclaredType.Type;
-            var syntax = declaration.Syntax;
+            TypeSymbol type = declaration.DeclaredType.Type;
+            SyntaxNode syntax = declaration.Syntax;
 
             // Add a null and type test if needed.
             if (!declaration.IsVar)
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 input = ConvertToType(input, declaration.Syntax, type, decisions, ref discardedUseSiteDiagnostics);
             }
 
-            var left = declaration.VariableAccess;
+            BoundExpression left = declaration.VariableAccess;
             if (left != null)
             {
                 Debug.Assert(left.Type == input.Type);
@@ -235,8 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (input.Type != type)
             {
-                var inputType = input.Type.StrippedType(); // since a null check has already been done
-                var conversion = Conversions.ClassifyBuiltInConversion(inputType, type, ref discardedUseSiteDiagnostics);
+                TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
+                Conversion conversion = Conversions.ClassifyBuiltInConversion(inputType, type, ref discardedUseSiteDiagnostics);
                 if (input.Type.IsDynamic() ? type.SpecialType == SpecialType.System_Object : conversion.IsImplicit)
                 {
                     // type test not needed, only the type cast
@@ -285,29 +285,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we have a "deconstruction" form, which is either an invocation of a Deconstruct method, or a disassembly of a tuple
                 if (recursive.DeconstructMethodOpt != null)
                 {
-                    var method = recursive.DeconstructMethodOpt;
+                    MethodSymbol method = recursive.DeconstructMethodOpt;
                     var evaluation = new BoundDagDeconstructEvaluation(recursive.Syntax, method, input);
                     decisions.Add(evaluation);
                     int extensionExtra = method.IsStatic ? 1 : 0;
                     int count = Math.Min(method.ParameterCount - extensionExtra, recursive.Deconstruction.Length);
                     for (int i = 0; i < count; i++)
                     {
-                        var pattern = recursive.Deconstruction[i];
-                        var syntax = pattern.Syntax;
+                        BoundPattern pattern = recursive.Deconstruction[i];
+                        SyntaxNode syntax = pattern.Syntax;
                         var output = new BoundDagTemp(syntax, method.Parameters[i + extensionExtra].Type, evaluation, i);
                         MakeDecisionsAndBindings(output, pattern, decisions, bindings, ref discardedUseSiteDiagnostics);
                     }
                 }
                 else if (input.Type.IsTupleType)
                 {
-                    var elements = input.Type.TupleElements;
-                    var elementTypes = input.Type.TupleElementTypes;
+                    ImmutableArray<FieldSymbol> elements = input.Type.TupleElements;
+                    ImmutableArray<TypeSymbol> elementTypes = input.Type.TupleElementTypes;
                     int count = Math.Min(elementTypes.Length, recursive.Deconstruction.Length);
                     for (int i = 0; i < count; i++)
                     {
-                        var pattern = recursive.Deconstruction[i];
-                        var syntax = pattern.Syntax;
-                        var field = elements[i];
+                        BoundPattern pattern = recursive.Deconstruction[i];
+                        SyntaxNode syntax = pattern.Syntax;
+                        FieldSymbol field = elements[i];
                         var evaluation = new BoundDagFieldEvaluation(syntax, field, input); // fetch the ItemN field
                         decisions.Add(evaluation);
                         var output = new BoundDagTemp(syntax, field.Type, evaluation, 0);
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // TODO(patterns2): This should not occur except in error cases. Perhaps this will be used to handle the ITuple case.
+                    // PROTOTYPE(patterns2): This should not occur except in error cases. Perhaps this will be used to handle the ITuple case.
                     Debug.Assert(recursive.HasAnyErrors);
                 }
             }
@@ -326,8 +326,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we have a "property" form
                 for (int i = 0; i < recursive.PropertiesOpt.Length; i++)
                 {
-                    var prop = recursive.PropertiesOpt[i];
-                    var symbol = prop.symbol;
+                    (Symbol symbol, BoundPattern pattern) prop = recursive.PropertiesOpt[i];
+                    Symbol symbol = prop.symbol;
                     BoundDagEvaluation evaluation;
                     switch (symbol)
                     {
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundDecision(syntax, defaultLabel);
             }
 
-            var first = cases[0];
+            PartialCaseDecision first = cases[0];
             if (first.Decisions.IsDefaultOrEmpty)
             {
                 // The first pattern has fully matched
@@ -380,8 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // in case the where clause fails, we prepare for the remaining cases.
-                    var remainingCases = cases.WhereAsArray(d => d != first);
-                    var whereFails = MakeDecisionDag(syntax, remainingCases, defaultLabel);
+                    ImmutableArray<PartialCaseDecision> remainingCases = cases.WhereAsArray(d => d != first);
+                    BoundDecisionDag whereFails = MakeDecisionDag(syntax, remainingCases, defaultLabel);
                     return new BoundWhereClause(first.Syntax, first.Bindings, first.WhereClause, new BoundDecision(first.Syntax, first.CaseLabel), whereFails);
                 }
             }
@@ -390,12 +390,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (first.Decisions[0])
                 {
                     case BoundDagEvaluation e:
-                        var tail = MakeDecisionDag(syntax, RemoveEvaluation(cases, e), defaultLabel);
+                        BoundDecisionDag tail = MakeDecisionDag(syntax, RemoveEvaluation(cases, e), defaultLabel);
                         return new BoundEvaluationPoint(syntax, e, tail);
                     case BoundDagDecision d:
                         SplitCases(cases, d, out ImmutableArray<PartialCaseDecision> whenTrueDecisions, out ImmutableArray<PartialCaseDecision> whenFalseDecisions);
-                        var whenTrue = MakeDecisionDag(syntax, whenTrueDecisions, defaultLabel);
-                        var whenFalse = MakeDecisionDag(syntax, whenFalseDecisions, defaultLabel);
+                        BoundDecisionDag whenTrue = MakeDecisionDag(syntax, whenTrueDecisions, defaultLabel);
+                        BoundDecisionDag whenFalse = MakeDecisionDag(syntax, whenFalseDecisions, defaultLabel);
                         return new BoundDecisionPoint(syntax, d, whenTrue, whenFalse);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(first.Decisions[0].Kind);
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var whenTrueBuilder = ArrayBuilder<PartialCaseDecision>.GetInstance();
             var whenFalseBuilder = ArrayBuilder<PartialCaseDecision>.GetInstance();
-            foreach (var c in cases)
+            foreach (PartialCaseDecision c in cases)
             {
                 FilterCase(c, d, whenTrueBuilder, whenFalseBuilder);
             }
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var trueBuilder = ArrayBuilder<BoundDagDecision>.GetInstance();
             var falseBuilder = ArrayBuilder<BoundDagDecision>.GetInstance();
-            foreach (var dd in c.Decisions)
+            foreach (BoundDagDecision dd in c.Decisions)
             {
                 CheckConsistentDecision(d: d, other: dd,
                     permitsTrue: out bool permitsTrue, permitsFalse: out bool permitsFalse,
@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundTypeDecision t2:
                             // If T1 could never be T2, then success of T1 implies failure of T2.
-                            var matchPossible = Binder.ExpressionOfTypeMatchesPatternType(Conversions, t1.Type, t2.Type, ref discardedUseSiteDiagnostics, out _);
+                            bool? matchPossible = Binder.ExpressionOfTypeMatchesPatternType(Conversions, t1.Type, t2.Type, ref discardedUseSiteDiagnostics, out _);
                             if (matchPossible == false) permitsTrue = false;
                             // If every T2 is a T1, then failure of T1 implies failure of T2.
                             matchPossible = Binder.ExpressionOfTypeMatchesPatternType(Conversions, t2.Type, t1.Type, ref discardedUseSiteDiagnostics, out _);

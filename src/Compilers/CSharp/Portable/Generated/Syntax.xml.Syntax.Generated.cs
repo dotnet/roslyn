@@ -6848,6 +6848,80 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
   }
 
+  public sealed partial class VarPatternSyntax : PatternSyntax
+  {
+    private VariableDesignationSyntax designation;
+
+    internal VarPatternSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken VarKeyword 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VarPatternSyntax)this.Green).varKeyword, this.Position, 0); }
+    }
+
+    public VariableDesignationSyntax Designation 
+    {
+        get
+        {
+            return this.GetRed(ref this.designation, 1);
+        }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 1: return this.GetRed(ref this.designation, 1);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 1: return this.designation;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitVarPattern(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitVarPattern(this);
+    }
+
+    public VarPatternSyntax Update(SyntaxToken varKeyword, VariableDesignationSyntax designation)
+    {
+        if (varKeyword != this.VarKeyword || designation != this.Designation)
+        {
+            var newNode = SyntaxFactory.VarPattern(varKeyword, designation);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public VarPatternSyntax WithVarKeyword(SyntaxToken varKeyword)
+    {
+        return this.Update(varKeyword, this.Designation);
+    }
+
+    public VarPatternSyntax WithDesignation(VariableDesignationSyntax designation)
+    {
+        return this.Update(this.VarKeyword, designation);
+    }
+  }
+
   public sealed partial class DeconstructionPatternSyntax : PatternSyntax
   {
     private TypeSyntax type;
@@ -11356,6 +11430,231 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public DefaultSwitchLabelSyntax WithColonToken(SyntaxToken colonToken)
     {
         return this.Update(this.Keyword, colonToken);
+    }
+  }
+
+  public sealed partial class SwitchExpressionSyntax : ExpressionSyntax
+  {
+    private ExpressionSyntax governingExpression;
+    private SyntaxNode arms;
+
+    internal SwitchExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public ExpressionSyntax GoverningExpression 
+    {
+        get
+        {
+            return this.GetRedAtZero(ref this.governingExpression);
+        }
+    }
+
+    public SyntaxToken SwitchKeyword 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionSyntax)this.Green).switchKeyword, this.GetChildPosition(1), this.GetChildIndex(1)); }
+    }
+
+    public SyntaxToken OpenBraceToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionSyntax)this.Green).openBraceToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+    }
+
+    public SeparatedSyntaxList<SwitchExpressionArmSyntax> Arms 
+    {
+        get
+        {
+            var red = this.GetRed(ref this.arms, 3);
+            if (red != null)
+                return new SeparatedSyntaxList<SwitchExpressionArmSyntax>(red, this.GetChildIndex(3));
+
+            return default(SeparatedSyntaxList<SwitchExpressionArmSyntax>);
+        }
+    }
+
+    public SyntaxToken CloseBraceToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionSyntax)this.Green).closeBraceToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.GetRedAtZero(ref this.governingExpression);
+            case 3: return this.GetRed(ref this.arms, 3);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.governingExpression;
+            case 3: return this.arms;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitSwitchExpression(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitSwitchExpression(this);
+    }
+
+    public SwitchExpressionSyntax Update(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
+    {
+        if (governingExpression != this.GoverningExpression || switchKeyword != this.SwitchKeyword || openBraceToken != this.OpenBraceToken || arms != this.Arms || closeBraceToken != this.CloseBraceToken)
+        {
+            var newNode = SyntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBraceToken, arms, closeBraceToken);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public SwitchExpressionSyntax WithGoverningExpression(ExpressionSyntax governingExpression)
+    {
+        return this.Update(governingExpression, this.SwitchKeyword, this.OpenBraceToken, this.Arms, this.CloseBraceToken);
+    }
+
+    public SwitchExpressionSyntax WithSwitchKeyword(SyntaxToken switchKeyword)
+    {
+        return this.Update(this.GoverningExpression, switchKeyword, this.OpenBraceToken, this.Arms, this.CloseBraceToken);
+    }
+
+    public SwitchExpressionSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
+    {
+        return this.Update(this.GoverningExpression, this.SwitchKeyword, openBraceToken, this.Arms, this.CloseBraceToken);
+    }
+
+    public SwitchExpressionSyntax WithArms(SeparatedSyntaxList<SwitchExpressionArmSyntax> arms)
+    {
+        return this.Update(this.GoverningExpression, this.SwitchKeyword, this.OpenBraceToken, arms, this.CloseBraceToken);
+    }
+
+    public SwitchExpressionSyntax WithCloseBraceToken(SyntaxToken closeBraceToken)
+    {
+        return this.Update(this.GoverningExpression, this.SwitchKeyword, this.OpenBraceToken, this.Arms, closeBraceToken);
+    }
+
+    public SwitchExpressionSyntax AddArms(params SwitchExpressionArmSyntax[] items)
+    {
+        return this.WithArms(this.Arms.AddRange(items));
+    }
+  }
+
+  public sealed partial class SwitchExpressionArmSyntax : CSharpSyntaxNode
+  {
+    private PatternSyntax pattern;
+    private WhenClauseSyntax whenClause;
+    private ExpressionSyntax expression;
+
+    internal SwitchExpressionArmSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public PatternSyntax Pattern 
+    {
+        get
+        {
+            return this.GetRedAtZero(ref this.pattern);
+        }
+    }
+
+    public WhenClauseSyntax WhenClause 
+    {
+        get
+        {
+            return this.GetRed(ref this.whenClause, 1);
+        }
+    }
+
+    public SyntaxToken EqualsGreaterThanToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionArmSyntax)this.Green).equalsGreaterThanToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+    }
+
+    public ExpressionSyntax Expression 
+    {
+        get
+        {
+            return this.GetRed(ref this.expression, 3);
+        }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.GetRedAtZero(ref this.pattern);
+            case 1: return this.GetRed(ref this.whenClause, 1);
+            case 3: return this.GetRed(ref this.expression, 3);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.pattern;
+            case 1: return this.whenClause;
+            case 3: return this.expression;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitSwitchExpressionArm(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitSwitchExpressionArm(this);
+    }
+
+    public SwitchExpressionArmSyntax Update(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+    {
+        if (pattern != this.Pattern || whenClause != this.WhenClause || equalsGreaterThanToken != this.EqualsGreaterThanToken || expression != this.Expression)
+        {
+            var newNode = SyntaxFactory.SwitchExpressionArm(pattern, whenClause, equalsGreaterThanToken, expression);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public SwitchExpressionArmSyntax WithPattern(PatternSyntax pattern)
+    {
+        return this.Update(pattern, this.WhenClause, this.EqualsGreaterThanToken, this.Expression);
+    }
+
+    public SwitchExpressionArmSyntax WithWhenClause(WhenClauseSyntax whenClause)
+    {
+        return this.Update(this.Pattern, whenClause, this.EqualsGreaterThanToken, this.Expression);
+    }
+
+    public SwitchExpressionArmSyntax WithEqualsGreaterThanToken(SyntaxToken equalsGreaterThanToken)
+    {
+        return this.Update(this.Pattern, this.WhenClause, equalsGreaterThanToken, this.Expression);
+    }
+
+    public SwitchExpressionArmSyntax WithExpression(ExpressionSyntax expression)
+    {
+        return this.Update(this.Pattern, this.WhenClause, this.EqualsGreaterThanToken, expression);
     }
   }
 

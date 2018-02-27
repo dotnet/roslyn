@@ -158,15 +158,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             // There's supposed to be a SwitchBinder (or other overrider of this method) in the chain.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override BoundExpression BindSwitchExpressionCore(SwitchExpressionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        {
+            // There's supposed to be a SwitchExpressionBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
         internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, DiagnosticBag diagnostics)
         {
             // There's supposed to be a SwitchBinder (or other overrider of this method) in the chain.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override BoundSwitchExpressionCase BindSwitchExpressionArm(SwitchExpressionArmSyntax node, DiagnosticBag diagnostics)
+        {
+            // There's supposed to be an overrider of this method (e.g. SwitchExpressionArmBinder) for the arm in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 

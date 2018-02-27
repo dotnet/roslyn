@@ -37,15 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             // If it is a valid C# 6 switch statement, we use the old binder to bind it.
-            if (!UseV7SwitchBinder) return base.BindSwitchExpressionAndSections(node, originalBinder, diagnostics);
+            if (!UseV7SwitchBinder) return base.BindSwitchStatementCore(node, originalBinder, diagnostics);
 
             Debug.Assert(SwitchSyntax.Equals(node));
 
             // Bind switch expression and set the switch governing type.
-            var boundSwitchExpression = SwitchGoverningExpression;
+            var boundSwitchGoverningExpression = SwitchGoverningExpression;
             diagnostics.AddRange(SwitchGoverningDiagnostics);
 
             BoundPatternSwitchLabel defaultLabel;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var locals = GetDeclaredLocalsForScope(node);
             var functions = GetDeclaredLocalFunctionsForScope(node);
             return new BoundPatternSwitchStatement(
-                node, boundSwitchExpression, someCaseMatches,
+                node, boundSwitchGoverningExpression, someCaseMatches,
                 locals, functions, switchSections, defaultLabel, this.BreakLabel, isComplete);
         }
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             someCaseMatches = false;
 
             // Bind match sections
-            var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
+            var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance(SwitchSyntax.Sections.Count);
             SubsumptionDiagnosticBuilder subsumption = new SubsumptionDiagnosticBuilder(ContainingMemberOrLambda, SwitchSyntax, this.Conversions, SwitchGoverningType);
             foreach (var sectionSyntax in SwitchSyntax.Sections)
             {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             // Bind match section labels
-            var boundLabelsBuilder = ArrayBuilder<BoundPatternSwitchLabel>.GetInstance();
+            var boundLabelsBuilder = ArrayBuilder<BoundPatternSwitchLabel>.GetInstance(node.Labels.Count);
             var sectionBinder = originalBinder.GetBinder(node); // this binder can bind pattern variables from the section.
             Debug.Assert(sectionBinder != null);
             var labelsByNode = LabelsByNode;
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Bind switch section statements
-            var boundStatementsBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+            var boundStatementsBuilder = ArrayBuilder<BoundStatement>.GetInstance(node.Statements.Count);
             foreach (var statement in node.Statements)
             {
                 boundStatementsBuilder.Add(sectionBinder.BindStatement(statement, diagnostics));

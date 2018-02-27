@@ -15,7 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal class GlobalExpressionVariable : SourceMemberFieldSymbol
     {
         private TypeSymbol _lazyType;
-        private SyntaxReference _typeSyntax;
+
+        /// <summary>
+        /// The type syntax, if any, from source. Optional for patterns that can omit an explicit type.
+        /// </summary>
+        private SyntaxReference _typeSyntaxOpt;
 
         internal GlobalExpressionVariable(
             SourceMemberContainerTypeSymbol containingType,
@@ -27,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, modifiers, name, syntax, location)
         {
             Debug.Assert(DeclaredAccessibility == Accessibility.Private);
-            _typeSyntax = typeSyntax?.GetReference();
+            _typeSyntaxOpt = typeSyntax?.GetReference();
         }
 
         internal static GlobalExpressionVariable Create(
@@ -50,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList => default(SyntaxList<AttributeListSyntax>);
-        protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntax?.GetSyntax();
+        protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntaxOpt?.GetSyntax();
         protected override SyntaxTokenList ModifiersTokenList => default(SyntaxTokenList);
         public override bool HasInitializer => false;
         protected override ConstantValue MakeConstantValue(

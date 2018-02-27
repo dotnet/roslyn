@@ -1619,15 +1619,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid operand for pattern match; value required, but found &apos;{0}&apos;..
-        /// </summary>
-        internal static string ERR_BadIsPatternExpression {
-            get {
-                return ResourceManager.GetString("ERR_BadIsPatternExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Iterators cannot have ref or out parameters.
         /// </summary>
         internal static string ERR_BadIteratorArgType {
@@ -1840,6 +1831,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadParamType {
             get {
                 return ResourceManager.GetString("ERR_BadParamType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid operand for pattern match; value required, but found &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_BadPatternExpression {
+            get {
+                return ResourceManager.GetString("ERR_BadPatternExpression", resourceCulture);
             }
         }
         
@@ -3307,6 +3307,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DefaultMemberOnIndexedType {
             get {
                 return ResourceManager.GetString("ERR_DefaultMemberOnIndexedType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A default literal &apos;default&apos; is not valid as a pattern. Use another literal (e.g. &apos;0&apos; or &apos;null&apos;) as appropriate. To match everything, use a discard pattern &apos;_&apos;..
+        /// </summary>
+        internal static string ERR_DefaultPattern {
+            get {
+                return ResourceManager.GetString("ERR_DefaultPattern", resourceCulture);
             }
         }
         
@@ -8972,6 +8981,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add &apos;{}&apos; after the close paren to disambiguate..
+        /// </summary>
+        internal static string ERR_SingleElementPositionalPattern {
+            get {
+                return ResourceManager.GetString("ERR_SingleElementPositionalPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A single-line comment may not be used in an interpolated string..
         /// </summary>
         internal static string ERR_SingleLineCommentInExpressionHole {
@@ -9211,6 +9229,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_SubexpressionNotInNameof {
             get {
                 return ResourceManager.GetString("ERR_SubexpressionNotInNameof", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No best type was found for the switch expression..
+        /// </summary>
+        internal static string ERR_SwitchExpressionNoBestType {
+            get {
+                return ResourceManager.GetString("ERR_SwitchExpressionNoBestType", resourceCulture);
             }
         }
         
@@ -9976,6 +10003,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_VarInvocationLvalueReserved {
             get {
                 return ResourceManager.GetString("ERR_VarInvocationLvalueReserved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The syntax &apos;var&apos; for a pattern is not permitted to bind to a type, but it binds to &apos;{0}&apos; here..
+        /// </summary>
+        internal static string ERR_VarMayNotBindToType {
+            get {
+                return ResourceManager.GetString("ERR_VarMayNotBindToType", resourceCulture);
             }
         }
         
@@ -11439,15 +11475,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type must be &apos;var&apos;..
-        /// </summary>
-        internal static string TypeMustBeVar {
-            get {
-                return ResourceManager.GetString("TypeMustBeVar", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens..
         /// </summary>
         internal static string UseLiteralForNumeric {
@@ -12726,7 +12753,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate..
+        ///   Looks up a localized string similar to Did you mean to use the default switch label (&apos;default:&apos;) rather than &apos;case default:&apos;? If you really mean to use the default value, use another literal (&apos;case 0:&apos; or &apos;case null:&apos;) as appropriate..
         /// </summary>
         internal static string WRN_DefaultInSwitch {
             get {
@@ -12735,7 +12762,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate..
+        ///   Looks up a localized string similar to Did you mean to use the default switch label (&apos;default:&apos;) rather than &apos;case default:&apos;?.
         /// </summary>
         internal static string WRN_DefaultInSwitch_Title {
             get {

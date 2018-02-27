@@ -324,13 +324,16 @@ namespace My
                     break;
                 case int i:
                     break;
-                // case Type (int x, 3) { A: 5, B: 7 } identifier:
-                // break;
+                // case Type (int x, 3) { A: _, B: 7 } identifier:
+                //     break;
+                // case var (x, y, (z, w)):
+                //     break;
                 default:
                     {
                         return;
                     }
             }
+            var z7 = 1 switch { 1 => 1 };
             while (i &lt; 10)
             {
                 ++i;

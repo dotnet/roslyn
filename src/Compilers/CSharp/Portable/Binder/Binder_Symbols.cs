@@ -90,104 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // Only IdentifierNameSyntax instances may be 'var'.
-                var identifierValueText = ((IdentifierNameSyntax)syntax).Identifier.ValueText;
-
-                Symbol symbol = null;
-
-                // Perform name lookup without generating diagnostics as it could possibly be 
-                // "var" keyword in the current context.
-                var lookupResult = LookupResult.GetInstance();
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                this.LookupSymbolsInternal(lookupResult, identifierValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, basesBeingResolved: basesBeingResolved,
-                    options: LookupOptions.NamespacesOrTypesOnly, diagnose: false);
-                diagnostics.Add(syntax, useSiteDiagnostics);
-
-                // We have following possible cases for lookup:
-
-                //  1) LookupResultKind.Empty: isVar = true
-
-                //  2) LookupResultKind.Viable:
-                //      a) Single viable result that corresponds to 1) a non-error type: isVar = false
-                //                                                  2) an error type: isVar = true
-                //      b) Single viable result that corresponds to namespace: isVar = true
-                //      c) Multi viable result (ambiguous result), we must return an error type: isVar = false
-
-                // 3) Non viable, non empty lookup result: isVar = true
-
-                // BREAKING CHANGE:     Case (2)(c) is a breaking change from the native compiler.
-                // BREAKING CHANGE:     Native compiler interprets lookup with ambiguous result to correspond to bind
-                // BREAKING CHANGE:     to "var" keyword (isVar = true), rather than reporting an error.
-                // BREAKING CHANGE:     See test SemanticErrorTests.ErrorMeansSuccess_var() for an example.
-
-                switch (lookupResult.Kind)
-                {
-                    case LookupResultKind.Empty:
-                        // Case (1)
-                        isVar = true;
-                        symbol = null;
-                        break;
-
-                    case LookupResultKind.Viable:
-                        // Case (2)
-                        DiagnosticBag resultDiagnostics = DiagnosticBag.GetInstance();
-                        bool wasError;
-                        symbol = ResultSymbol(
-                            lookupResult,
-                            identifierValueText,
-                            arity: 0,
-                            where: syntax,
-                            diagnostics: resultDiagnostics,
-                            suppressUseSiteDiagnostics: false,
-                            wasError: out wasError);
-
-                        // Here, we're mimicking behavior of dev10.  If "var" fails to bind
-                        // as a type, even if the reason is (e.g.) a type/alias conflict, then treat
-                        // it as the contextual keyword.
-                        if (wasError && lookupResult.IsSingleViable)
-                        {
-                            // NOTE: don't report diagnostics - we're not going to use the lookup result.
-                            resultDiagnostics.Free();
-                            // Case (2)(a)(2)
-                            goto default;
-                        }
-
-                        diagnostics.AddRange(resultDiagnostics);
-                        resultDiagnostics.Free();
-
-                        if (lookupResult.IsSingleViable)
-                        {
-                            var type = UnwrapAlias(symbol, diagnostics, syntax) as TypeSymbol;
-
-                            if ((object)type != null)
-                            {
-                                // Case (2)(a)(1)
-                                isVar = false;
-                            }
-                            else
-                            {
-                                // Case (2)(b)
-                                Debug.Assert(UnwrapAliasNoDiagnostics(symbol) is NamespaceSymbol);
-                                isVar = true;
-                                symbol = null;
-                            }
-                        }
-                        else
-                        {
-                            // Case (2)(c)
-                            isVar = false;
-                        }
-
-                        break;
-
-                    default:
-                        // Case (3)
-                        isVar = true;
-                        symbol = null;
-                        break;
-                }
-
-                lookupResult.Free();
-
+                SyntaxToken varToken = ((IdentifierNameSyntax)syntax).Identifier;
+                var symbol = BindVarType(varToken, diagnostics, out isVar, basesBeingResolved);
                 if (isVar)
                 {
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureImplicitLocal, diagnostics);
@@ -195,6 +99,124 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return symbol;
             }
+        }
+
+        /// <summary>
+        /// Bind the use of "var" as a type, where it could possibly be used to be an implicit type.
+        /// If the syntax binds to an alias symbol to a type, it returns the alias symbol.
+        /// </summary>
+        /// <param name="varToken">The token where "var" appeared.</param>
+        /// <param name="diagnostics">Diagnostics.</param>
+        /// <param name="isVar">
+        /// Set to false if syntax binds to a type or alias to a type in the current context and true if
+        /// it binds to "var" keyword in the current context.
+        /// </param>
+        /// <returns>
+        /// Bound type or alias if "var" binds to a type or alias to a type in the current context and
+        /// null if syntax binds to "var" keyword in the current context.
+        /// </returns>
+        private Symbol BindVarType(SyntaxToken varToken, DiagnosticBag diagnostics, out bool isVar, ConsList<Symbol> basesBeingResolved)
+        {
+            var identifierValueText = varToken.ValueText;
+            Debug.Assert("var" == identifierValueText);
+
+            Symbol symbol = null;
+
+            // Perform name lookup without generating diagnostics as it could possibly be 
+            // "var" keyword in the current context.
+            var lookupResult = LookupResult.GetInstance();
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            this.LookupSymbolsInternal(lookupResult, identifierValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, basesBeingResolved: basesBeingResolved,
+                options: LookupOptions.NamespacesOrTypesOnly, diagnose: false);
+            diagnostics.Add(varToken, useSiteDiagnostics);
+
+            // We have following possible cases for lookup:
+
+            //  1) LookupResultKind.Empty: isVar = true
+
+            //  2) LookupResultKind.Viable:
+            //      a) Single viable result that corresponds to 1) a non-error type: isVar = false
+            //                                                  2) an error type: isVar = true
+            //      b) Single viable result that corresponds to namespace: isVar = true
+            //      c) Multi viable result (ambiguous result), we must return an error type: isVar = false
+
+            // 3) Non viable, non empty lookup result: isVar = true
+
+            // BREAKING CHANGE:     Case (2)(c) is a breaking change from the native compiler.
+            // BREAKING CHANGE:     Native compiler interprets lookup with ambiguous result to correspond to bind
+            // BREAKING CHANGE:     to "var" keyword (isVar = true), rather than reporting an error.
+            // BREAKING CHANGE:     See test SemanticErrorTests.ErrorMeansSuccess_var() for an example.
+
+            switch (lookupResult.Kind)
+            {
+                case LookupResultKind.Empty:
+                    // Case (1)
+                    isVar = true;
+                    symbol = null;
+                    break;
+
+                case LookupResultKind.Viable:
+                    // Case (2)
+                    DiagnosticBag resultDiagnostics = DiagnosticBag.GetInstance();
+                    bool wasError;
+                    symbol = ResultSymbol(
+                        lookupResult,
+                        identifierValueText,
+                        arity: 0,
+                        where: varToken.Parent,
+                        diagnostics: resultDiagnostics,
+                        suppressUseSiteDiagnostics: false,
+                        wasError: out wasError);
+
+                    // Here, we're mimicking behavior of dev10.  If "var" fails to bind
+                    // as a type, even if the reason is (e.g.) a type/alias conflict, then treat
+                    // it as the contextual keyword.
+                    if (wasError && lookupResult.IsSingleViable)
+                    {
+                        // NOTE: don't report diagnostics - we're not going to use the lookup result.
+                        resultDiagnostics.Free();
+                        // Case (2)(a)(2)
+                        goto default;
+                    }
+
+                    diagnostics.AddRange(resultDiagnostics);
+                    resultDiagnostics.Free();
+
+                    if (lookupResult.IsSingleViable)
+                    {
+                        var type = UnwrapAlias(symbol, diagnostics, varToken.Parent) as TypeSymbol;
+
+                        if ((object)type != null)
+                        {
+                            // Case (2)(a)(1)
+                            isVar = false;
+                        }
+                        else
+                        {
+                            // Case (2)(b)
+                            Debug.Assert(UnwrapAliasNoDiagnostics(symbol) is NamespaceSymbol);
+                            isVar = true;
+                            symbol = null;
+                        }
+                    }
+                    else
+                    {
+                        // Case (2)(c)
+                        isVar = false;
+                    }
+
+                    break;
+
+                default:
+                    // Case (3)
+                    isVar = true;
+                    symbol = null;
+                    break;
+            }
+
+            lookupResult.Free();
+
+            return symbol;
         }
 
         // Binds the given expression syntax as Type.

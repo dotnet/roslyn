@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override int GetHashCode()
         {
-            return this.Type.GetHashCode() ^ (this.Source?.GetHashCode() ?? 0) ^ this.Index;
+            return Hash.Combine(this.Type.GetHashCode(), Hash.Combine(this.Source?.GetHashCode() ?? 0, this.Index));
         }
         public static bool operator ==(BoundDagTemp left, BoundDagTemp right)
         {

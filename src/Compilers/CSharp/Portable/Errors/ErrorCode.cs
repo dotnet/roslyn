@@ -1359,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics for pattern-matching introduced in C# 7
         ERR_ThrowMisplaced = 8115,
         ERR_PatternNullableType = 8116,
-        ERR_BadIsPatternExpression = 8117,
+        ERR_BadPatternExpression = 8117,
         ERR_SwitchExpressionValueExpected = 8119,
         ERR_PatternIsSubsumed = 8120,
         ERR_PatternWrongType = 8121,
@@ -1564,6 +1564,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_WrongNumberOfSubpatterns = 8402,
         ERR_PropertyPatternNameMissing = 8403,
         //ERR_FeatureIsUnimplemented = 8404,
+        ERR_DefaultPattern = 8405,
+        ERR_SwitchExpressionNoBestType = 8406,
+        ERR_SingleElementPositionalPattern = 8407,
+        ERR_VarMayNotBindToType = 8408,
         #endregion diagnostics introduced for recursive patterns
 
     }

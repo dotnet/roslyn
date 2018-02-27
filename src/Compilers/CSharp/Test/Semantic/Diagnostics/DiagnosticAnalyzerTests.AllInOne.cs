@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             syntaxKinds.Add(SyntaxKind.SubpatternElement);
             syntaxKinds.Add(SyntaxKind.DeconstructionPattern);
             syntaxKinds.Add(SyntaxKind.DiscardPattern);
+            syntaxKinds.Add(SyntaxKind.VarPattern);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });

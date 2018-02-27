@@ -272,9 +272,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 case BoundKind.DiscardPattern:
-                    // because we always handle `default:` last, and that is the only way to get a wildcard pattern,
-                    // we should never need to see if it subsumes something else.
-                    throw ExceptionUtilities.UnexpectedValue(decisionTree.Kind);
+                    if (pattern.Syntax.Kind() == SyntaxKind.DefaultSwitchLabel)
+                    {
+                        // The default pattern is always considered reachable (never subsumed).
+                        return 0;
+                    }
+
+                    return decisionTree.MatchIsComplete ? ErrorCode.ERR_PatternIsSubsumed : 0;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }

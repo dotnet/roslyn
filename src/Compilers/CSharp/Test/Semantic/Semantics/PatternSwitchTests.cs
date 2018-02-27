@@ -1792,7 +1792,7 @@ class Program
             var model = compilation.GetSemanticModel(tree);
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").Single();
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
         [Fact, WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
@@ -1827,7 +1827,7 @@ class Program
             var model = compilation.GetSemanticModel(tree);
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").Single();
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
         [Fact, WorkItem(14296, "https://github.com/dotnet/roslyn/issues/14296")]

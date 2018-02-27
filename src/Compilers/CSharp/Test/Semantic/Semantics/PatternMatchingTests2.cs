@@ -315,5 +315,537 @@ public class Point
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "True");
         }
+
+        [Fact]
+        public void DefaultPattern()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int i = 12;
+        if (i is default) {} // error 1
+        if (i is (default)) {} // error 2
+        switch (i) { case default: break; } // warning 3
+        switch (i) { case default when true: break; } // error 4
+        switch ((1, 2)) { case (1, default): break; } // error 5
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is default) {} // error 1
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 18),
+                // (7,19): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is (default)) {} // error 2
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(7, 19),
+                // (8,27): warning CS8313: Did you mean to use the default switch label ('default:') rather than 'case default:'? If you really mean to use the default value, use another literal ('case 0:' or 'case null:') as appropriate.
+                //         switch (i) { case default: break; } // warning 3
+                Diagnostic(ErrorCode.WRN_DefaultInSwitch, "default").WithLocation(8, 27),
+                // (9,27): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         switch (i) { case default when true: break; } // error 4
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(9, 27),
+                // (10,36): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         switch ((1, 2)) { case (1, default): break; } // error 5
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 36)
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_01()
+        {
+            // test appropriate language version or feature flag
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        var r = 1 switch { _ => 0 };
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+                // (5,17): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //         var r = 1 switch ( _ => 0 );
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch { _ => 0 }").WithArguments("recursive patterns", "patterns2").WithLocation(5, 17)
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_02()
+        {
+            // test switch expression's governing expression has no type
+            // test switch expression's governing expression has type void
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        var r1 = (1, null) switch { _ => 0 };
+        var r2 = System.Console.Write(1) switch { _ => 0 };
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                // (5,18): error CS8117: Invalid operand for pattern match; value required, but found '(int, <null>)'.
+                //         var r1 = (1, null) switch ( _ => 0 );
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "(1, null)").WithArguments("(int, <null>)").WithLocation(5, 18),
+                // (6,18): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
+                //         var r2 = System.Console.Write(1) switch ( _ => 0 );
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "System.Console.Write(1)").WithArguments("void").WithLocation(6, 18)
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_03()
+        {
+            // test that a ternary expression is not at an appropriate precedence
+            // for the constant expression of a constant pattern in a switch expression arm.
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        bool b = true;
+        var r1 = b switch { true ? true : true => true, false => false };
+        var r2 = b switch { (true ? true : true) => true, false => false };
+    }
+}";
+            // PROTOTYPE(patterns2): This is admittedly poor syntax error recovery (for the line declaring r2),
+            // but this test demonstrates that it is a syntax error.
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                // (6,34): error CS1003: Syntax error, '=>' expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>", "?").WithLocation(6, 34),
+                // (6,34): error CS1525: Invalid expression term '?'
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(6, 34),
+                // (6,48): error CS1513: } expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 48),
+                // (6,48): error CS1003: Syntax error, ',' expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 48),
+                // (6,51): error CS1002: ; expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "true").WithLocation(6, 51),
+                // (6,55): error CS1002: ; expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 55),
+                // (6,55): error CS1513: } expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 55),
+                // (6,63): error CS1002: ; expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(6, 63),
+                // (6,63): error CS1513: } expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 63),
+                // (6,72): error CS1002: ; expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 72),
+                // (6,73): error CS1597: Semicolon after method or accessor block is not valid
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(6, 73),
+                // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1),
+                // (7,9): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         var r2 = b switch { (true ? true : true) => true, false => false };
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 9),
+                // (7,18): error CS0103: The name 'b' does not exist in the current context
+                //         var r2 = b switch { (true ? true : true) => true, false => false };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_04()
+        {
+            // test that a ternary expression is permitted as a constant pattern in recursive contexts and the case expression.
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        var b = (true, false);
+        var r1 = b switch { (true ? true : true, _) => true, _ => false };
+        var r2 = b is (true ? true : true, _);
+        switch (b.Item1) { case true ? true : true: break; }
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_05()
+        {
+            // test throw expression in match arm.
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        var x = 1 switch { 1 => 1, _ => throw null };
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_06()
+        {
+            // test common type vs delegate in match expression
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        var x = 1 switch { 0 => M, 1 => new D(M), 2 => M };
+        x();
+    }
+    public static void M() {}
+    public delegate void D();
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_07()
+        {
+            // test flow analysis of the switch expression
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int q = 1;
+        int u;
+        var x = q switch { 0 => u=0, 1 => u=1, _ => u=2 };
+        System.Console.WriteLine(u);
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_08()
+        {
+            // test flow analysis of the switch expression
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int q = 1;
+        int u;
+        var x = q switch { 0 => u=0, 1 => 1, _ => u=2 };
+        System.Console.WriteLine(u);
+    }
+    static int M(int i) => i;
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                // (8,34): error CS0165: Use of unassigned local variable 'u'
+                //         System.Console.WriteLine(u);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "u").WithArguments("u").WithLocation(8, 34)
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_09()
+        {
+            // test flow analysis of the switch expression
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int q = 1;
+        int u;
+        var x = q switch { 0 => u=0, 1 => u=M(u), _ => u=2 };
+        System.Console.WriteLine(u);
+    }
+    static int M(int i) => i;
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                // (7,47): error CS0165: Use of unassigned local variable 'u'
+                //         var x = q switch { 0 => u=0, 1 => u=M(u), _ => u=2 };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "u").WithArguments("u").WithLocation(7, 47)
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_10()
+        {
+            // test lazily inferring variables in the pattern
+            // test lazily inferring variables in the when clause
+            // test lazily inferring variables in the arrow expression
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int a = 1;
+        var b = a switch { var x1 => x1 };
+        var c = a switch { var x2 when x2 is var x3 => x3 };
+        var d = a switch { var x4 => x4 is var x5 ? x5 : 1 };
+    }
+    static int M(int i) => i;
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics(
+                );
+            var names = new[] { "x1", "x2", "x3", "x4", "x5" };
+            var tree = compilation.SyntaxTrees[0];
+            foreach (var designation in tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>())
+            {
+                var model = compilation.GetSemanticModel(tree);
+                var symbol = model.GetDeclaredSymbol(designation);
+                Assert.Equal(SymbolKind.Local, symbol.Kind);
+                Assert.Equal("int", ((LocalSymbol)symbol).Type.ToDisplayString());
+            }
+            foreach (var ident in tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>())
+            {
+                var model = compilation.GetSemanticModel(tree);
+                var typeInfo = model.GetTypeInfo(ident);
+                Assert.Equal("int", typeInfo.Type.ToDisplayString());
+            }
+        }
+
+        [Fact]
+        public void ShortDiscardInIsPattern()
+        {
+            // test that we forbid a short discard at the top level of an is-pattern expression
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int a = 1;
+        if (a is _) { }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         if (a is _) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(6, 18)
+                );
+        }
+
+        [Fact]
+        public void Patterns2_04()
+        {
+            // Test that a single-element deconstruct pattern is an error if no further elements disambiguate.
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        var t = new System.ValueTuple<int>(1);
+        if (t is (int x)) { }                           // error 1
+        switch (t) { case (_): break; }                 // error 2
+        var u = t switch { (int y) => y, _ => 2 };      // error 3
+        if (t is (int z1) _) { }                     // ok
+        if (t is (Item1: int z2)) { }                // ok
+        if (t is (int z3) { }) { }                   // ok
+        if (t is ValueTuple<int>(int z4)) { }        // ok
+    }
+    private static bool Check<T>(T expected, T actual)
+    {
+        if (!object.Equals(expected, actual)) throw new Exception($""expected: {expected}; actual: {actual}"");
+        return true;
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T>
+    {
+        public T Item1;
+
+        public ValueTuple(T item1)
+        {
+            this.Item1 = item1;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                //         if (t is (int x)) { }                           // error 1
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(int x)").WithLocation(8, 18),
+                // (9,27): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                //         switch (t) { case (_): break; }                 // error 2
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(_)").WithLocation(9, 27),
+                // (10,28): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                //         var u = t switch { (int y) => y, _ => 2 };      // error 3
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(int y)").WithLocation(10, 28)
+                );
+        }
+
+        [Fact]
+        public void Patterns2_05()
+        {
+            // Test parsing the var pattern
+            // Test binding the var pattern
+            // Test lowering the var pattern for the is-expression
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        var t = (1, 2);
+        { Check(true, t is var (x, y) && x == 1 && y == 2); }
+        { Check(false, t is var (x, y) && x == 1 && y == 3); }
+    }
+    private static void Check<T>(T expected, T actual)
+    {
+        if (!object.Equals(expected, actual)) throw new Exception($""Expected: '{expected}', Actual: '{actual}'"");
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"");
+        }
+
+        [Fact]
+        public void Patterns2_06()
+        {
+            // Test that 'var' does not bind to a type
+            var source =
+@"
+using System;
+namespace N
+{
+    class Program
+    {
+        public static void Main()
+        {
+            var t = (1, 2);
+            { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
+            { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
+            { Check(true, t is var x); }                           // error 3
+        }
+        private static void Check<T>(T expected, T actual)
+        {
+            if (!object.Equals(expected, actual)) throw new Exception($""Expected: '{expected}', Actual: '{actual}'"");
+        }
+    }
+    class var { }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics(
+                // (9,21): error CS0029: Cannot implicitly convert type '(int, int)' to 'N.var'
+                //             var t = (1, 2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2)").WithArguments("(int, int)", "N.var").WithLocation(9, 21),
+                // (10,32): error CS8408: The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to 'N.var' here.
+                //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
+                Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(10, 32),
+                // (10,32): error CS1061: 'var' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'var' could be found (are you missing a using directive or an assembly reference?)
+                //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "var (x, y)").WithArguments("N.var", "Deconstruct").WithLocation(10, 32),
+                // (10,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'var', with 2 out parameters and a void return type.
+                //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "var (x, y)").WithArguments("N.var", "2").WithLocation(10, 32),
+                // (11,33): error CS8408: The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to 'N.var' here.
+                //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
+                Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(11, 33),
+                // (11,33): error CS1061: 'var' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'var' could be found (are you missing a using directive or an assembly reference?)
+                //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "var (x, y)").WithArguments("N.var", "Deconstruct").WithLocation(11, 33),
+                // (11,33): error CS8129: No suitable Deconstruct instance or extension method was found for type 'var', with 2 out parameters and a void return type.
+                //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "var (x, y)").WithArguments("N.var", "2").WithLocation(11, 33),
+                // (12,32): error CS8408: The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to 'N.var' here.
+                //             { Check(true, t is var x); }                           // error 3
+                Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(12, 32)
+                );
+        }
+
+        // PROTOTYPE(patterns2): Need to have tests that exercise:
+        // PROTOTYPE(patterns2): Building the decision tree for the var-pattern
+        // PROTOTYPE(patterns2): Definite assignment for the var-pattern
+        // PROTOTYPE(patterns2): Variable finder for the var-pattern
+        // PROTOTYPE(patterns2): Scope binder contains an approprate scope for the var-pattern
+        // PROTOTYPE(patterns2): Lazily binding types for variables declared in the var-pattern
+        // PROTOTYPE(patterns2): Error when there is a type or constant named var in scope where the var pattern is used
     }
 }

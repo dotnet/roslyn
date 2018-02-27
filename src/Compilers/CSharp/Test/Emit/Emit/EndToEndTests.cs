@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                     numberFluentCalls = 510;
                     break;
                 case 32 when !isDebug:
-                    numberFluentCalls = 1350;
+                    numberFluentCalls = 1335;
                     break;
                 case 64 when isDebug:
                     numberFluentCalls = 225;

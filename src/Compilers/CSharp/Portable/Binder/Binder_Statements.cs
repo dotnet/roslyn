@@ -2089,12 +2089,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
             Binder switchBinder = this.GetBinder(node);
-            return switchBinder.BindSwitchExpressionAndSections(node, switchBinder, diagnostics);
+            return switchBinder.BindSwitchStatementCore(node, switchBinder, diagnostics);
         }
 
-        internal virtual BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        internal virtual BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
-            return this.Next.BindSwitchExpressionAndSections(node, originalBinder, diagnostics);
+            return this.Next.BindSwitchStatementCore(node, originalBinder, diagnostics);
         }
 
         internal virtual void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, DiagnosticBag diagnostics)

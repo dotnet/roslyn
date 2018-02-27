@@ -59,16 +59,52 @@ Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax.Pattern.get -> Micr
 Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax.WithNameColon(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax.WithPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax.EqualsGreaterThanToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax.Expression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax.Pattern.get -> Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern, Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax whenClause, Microsoft.CodeAnalysis.SyntaxToken equalsGreaterThanToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax.WhenClause.get -> Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax.WithEqualsGreaterThanToken(Microsoft.CodeAnalysis.SyntaxToken equalsGreaterThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax.WithPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax.WithWhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax whenClause) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax.AddArms(params Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax.Arms.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax>
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax.CloseBraceToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax.GoverningExpression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax.OpenBraceToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax.SwitchKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax governingExpression, Microsoft.CodeAnalysis.SyntaxToken switchKeyword, Microsoft.CodeAnalysis.SyntaxToken openBraceToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax> arms, Microsoft.CodeAnalysis.SyntaxToken closeBraceToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax.WithArms(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax> arms) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax.WithCloseBraceToken(Microsoft.CodeAnalysis.SyntaxToken closeBraceToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax.WithGoverningExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax governingExpression) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax.WithOpenBraceToken(Microsoft.CodeAnalysis.SyntaxToken openBraceToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax.WithSwitchKeyword(Microsoft.CodeAnalysis.SyntaxToken switchKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax.Designation.get -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken varKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax designation) -> Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax.VarKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax.WithDesignation(Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax designation) -> Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax.WithVarKeyword(Microsoft.CodeAnalysis.SyntaxToken varKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeconstructionPattern = 9023 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DiscardPattern = 9024 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.PropertyPattern = 9020 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.PropertySubpattern = 9021 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SubpatternElement = 9022 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.SwitchExpression = 9025 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.SwitchExpressionArm = 9026 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.VarKeyword = 8486 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.VarPattern = 9027 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDeconstructionPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDiscardPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitPropertySubpattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertySubpatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitSubpatternElement(Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitSwitchExpression(Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitSwitchExpressionArm(Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitVarPattern(Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
@@ -86,6 +122,12 @@ static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeconstructionInfo(this
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetInConversion(this Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation compoundAssignment) -> Microsoft.CodeAnalysis.CSharp.Conversion
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetOutConversion(this Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation compoundAssignment) -> Microsoft.CodeAnalysis.CSharp.Conversion
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Argument(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax
+override Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DeconstructionPattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax> subPatterns, Microsoft.CodeAnalysis.CSharp.Syntax.PropertySubpatternSyntax propertySubpattern, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax designation) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DeconstructionPattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax> subPatterns, Microsoft.CodeAnalysis.SyntaxToken closeParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.PropertySubpatternSyntax propertySubpattern, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax designation) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DeconstructionPattern(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax> subPatterns = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax
@@ -97,13 +139,27 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.PropertySubpattern(Microsoft.
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RefType(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubpatternElement(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubpatternElement(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SwitchExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax governingExpression) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SwitchExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax governingExpression, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax> arms) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SwitchExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax governingExpression, Microsoft.CodeAnalysis.SyntaxToken switchKeyword, Microsoft.CodeAnalysis.SyntaxToken openBraceToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax> arms, Microsoft.CodeAnalysis.SyntaxToken closeBraceToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SwitchExpressionArm(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SwitchExpressionArm(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern, Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax whenClause, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SwitchExpressionArm(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern, Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax whenClause, Microsoft.CodeAnalysis.SyntaxToken equalsGreaterThanToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VarPattern(Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax designation) -> Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VarPattern(Microsoft.CodeAnalysis.SyntaxToken varKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax designation) -> Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDeconstructionPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDiscardPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitPropertySubpattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertySubpatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitSubpatternElement(Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitSwitchExpression(Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitSwitchExpressionArm(Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitVarPattern(Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDeconstructionPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDiscardPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitPropertySubpattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertySubpatternSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitSubpatternElement(Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitSwitchExpression(Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitSwitchExpressionArm(Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitVarPattern(Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax node) -> TResult

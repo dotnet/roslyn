@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void EnsureSwitchGoverningExpressionAndDiagnosticsBound()
         {
             var switchGoverningDiagnostics = new DiagnosticBag();
-            var boundSwitchExpression = BindSwitchExpression(switchGoverningDiagnostics);
+            var boundSwitchExpression = BindSwitchGoverningExpression(switchGoverningDiagnostics);
             _switchGoverningDiagnostics = switchGoverningDiagnostics;
             Interlocked.CompareExchange(ref _switchGoverningExpression, boundSwitchExpression, null);
         }
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         # region "Switch statement binding methods"
 
-        internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             Debug.Assert(SwitchSyntax.Equals(node));
 
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Bind the switch expression
-        private BoundExpression BindSwitchExpression(DiagnosticBag diagnostics)
+        private BoundExpression BindSwitchGoverningExpression(DiagnosticBag diagnostics)
         {
             // We are at present inside the switch binder, but the switch expression is not
             // bound in the context of the switch binder; it's bound in the context of the
@@ -452,9 +452,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = this.GetBinder(node);
             Debug.Assert(binder != null);
 
-            var switchExpression = binder.BindValue(node, diagnostics, BindValueKind.RValue);
+            var switchGoverningExpression = binder.BindValue(node, diagnostics, BindValueKind.RValue);
 
-            var switchGoverningType = switchExpression.Type;
+            var switchGoverningType = switchGoverningExpression.Type;
 
             if ((object)switchGoverningType != null && !switchGoverningType.IsErrorType())
             {
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CheckFeatureAvailability(node, MessageID.IDS_FeatureSwitchOnBool, diagnostics);
                     }
 
-                    return switchExpression;
+                    return switchGoverningExpression;
                 }
                 else
                 {
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(conversion.Method.IsUserDefinedConversion());
                         Debug.Assert(conversion.UserDefinedToConversion.IsIdentity);
                         Debug.Assert(resultantGoverningType.IsValidV6SwitchGoverningType(isTargetTypeOfUserDefinedOp: true));
-                        return binder.CreateConversion(node, switchExpression, conversion, false, resultantGoverningType, diagnostics);
+                        return binder.CreateConversion(node, switchGoverningExpression, conversion, false, resultantGoverningType, diagnostics);
                     }
                     else if (switchGoverningType.SpecialType != SpecialType.System_Void)
                     {
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, node.Location);
                         }
 
-                        return switchExpression;
+                        return switchGoverningExpression;
                     }
                     else
                     {
@@ -514,13 +514,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (!switchExpression.HasAnyErrors)
+            if (!switchGoverningExpression.HasAnyErrors)
             {
-                Debug.Assert((object)switchExpression.Type == null || switchExpression.Type.SpecialType == SpecialType.System_Void);
-                diagnostics.Add(ErrorCode.ERR_SwitchExpressionValueExpected, node.Location, switchExpression.Display);
+                Debug.Assert((object)switchGoverningExpression.Type == null || switchGoverningExpression.Type.SpecialType == SpecialType.System_Void);
+                diagnostics.Add(ErrorCode.ERR_SwitchExpressionValueExpected, node.Location, switchGoverningExpression.Display);
             }
 
-            return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(switchExpression), switchGoverningType ?? CreateErrorType());
+            return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(switchGoverningExpression), switchGoverningType ?? CreateErrorType());
         }
 
         private LabelSymbol BindConstantJumpTarget(ConstantValue constantValue, CSharpSyntaxNode syntax)
