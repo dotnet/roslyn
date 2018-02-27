@@ -8,11 +8,11 @@ using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
 {
-    [Export(typeof(EditorCompletion.IAsyncCompletionServiceProvider))]
+    [Export(typeof(IAsyncCompletionServiceProvider))]
     [Name("C# and Visual Basic Completion Service Provider")]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal class EditorAsyncCompletionServiceProvider : EditorCompletion.IAsyncCompletionServiceProvider
+    internal class EditorAsyncCompletionServiceProvider : IAsyncCompletionServiceProvider
     {
         private readonly IAsyncCompletionBroker _broker;
         private EditorAsyncCompletionService _instance;
