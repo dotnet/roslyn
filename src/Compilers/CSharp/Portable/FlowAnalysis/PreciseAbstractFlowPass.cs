@@ -1025,6 +1025,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
+        {
+            Visit(node.Left);
+            Visit(node.Right);
+            return null;
+        }
+
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
