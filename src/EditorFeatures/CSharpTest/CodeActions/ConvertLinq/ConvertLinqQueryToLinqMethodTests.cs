@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CodeAnalysis.CSharp.ConvertLinq.CSharpConvertLinqQueryToLinqMethodProvider();
 
-        #region Diagnostics
+      #region Diagnostics
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Conversion_WhereOrderByTrivialSelect()
@@ -59,9 +59,21 @@ select num",
 @"new[]{ ""apples"", ""blueberries"", ""oranges"", ""bananas"", ""apricots"" }.GroupBy(w => w[0]).Where(fruitGroup => fruitGroup.Count() >= 2
 ).Select(fruitGroup => new { FirstLetter = fruitGroup.Key, Words = fruitGroup.Count() })");
         }
-        #endregion
 
-        #region No Diagnostics
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        public async Task Conversion_MultipleFrom()
+        {
+            await Test(
+"from x in new [] {0} from y in new [] {1} from z in new [] {2} where x + y + z < 5 select x * x",
+"new [] {0}.SelectMany(x => new [] {1}, (x, y) => (x, y)).SelectMany(VBIt => new [] {2}, (VBIt1, z) => (VBIt1, z)).Where(VBIt => VBIt.VBIt1.x + VBIt.VBIt1.y + VBIt.z< 5).Select(VBIt => VBIt.VBIt1.x* VBIt.VBIt1.x)");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        public async Task Conversion_TrivialSelect()
+        {
+            await Test("from a in new int[] { 1, 2, 3 } select a", "new int[] { 1, 2, 3 }");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Conversion_DoubleFrom()
@@ -74,55 +86,42 @@ select num",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
-        public async Task Conversion_Join()
-        {
-            await Test("from a in new[] { 1, 2, 3 } join b in new[] { 4 } on a equals b select a", 
-                "new[] { 1, 2, 3 }.Join(new[] { 4 }, a => a, b => b, a => a)");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Conversion_IntoDoubleFrom()
         {
             await Test("from a in new[] { 1, 2, 3 } select a.ToString() into b from c in b select c",
                 "new[] { 1, 2, 3 }.Select(a => a.ToString()).SelectMany(b => b, (b, c) => c)");
         }
 
+        #endregion
+
+        #region No Diagnostics
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
-        public async Task Convert_Let1()
+        public async Task NoDiagnostics_Join()
         {
-            await Test(
+            await TestNoDiagnostics("from a in new[] { 1, 2, 3 } join b in new[] { 4 } on a equals b select a");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        public async Task NoDiagnostics_Let1()
+        {
+            await TestNoDiagnostics(
 @"from sentence in new[] { ""aa bb"", ""ee ff"", ""ii"" }
     let words = sentence.Split(' ')
     from word in words
     let w = word.ToLower()
     where w[0] == 'a'
-    select word",
-@"new[] { ""aa bb"", ""ee ff"", ""ii"" }
-.Select(sentence => sentence.Split(' ')
-).SelectMany(<> h__TransparentIdentifier0=>words
-,<> h__TransparentIdentifier0=>    from word in words
-).Select(<> h__TransparentIdentifier1=>word.ToLower()
-).Where(<> h__TransparentIdentifier2=>w[0] == 'a'
-).Select(<> h__TransparentIdentifier2=>word)");
+    select word");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
-        public async Task Conversion_Let2()
+        public async Task NoDiagnostics_Let2()
         {
-            await Test(
+            await TestNoDiagnostics(
 @"from x in ""123"" 
     let z = x.ToString()
     select z into w
-    select int.Parse(w)",
-@"""123""
-.Select(x => x.ToString()
-).Select(<>h__TransparentIdentifier0 => z).Select(w => int.Parse(w))");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
-        public async Task Conversion_TrivialSelect()
-        {
-            await Test("from a in new int[] { 1, 2, 3 } select a", "new int[] { 1, 2, 3 }");
+    select int.Parse(w)");
         }
 
         #endregion

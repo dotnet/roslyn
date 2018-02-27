@@ -29,9 +29,14 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                 return operation as IInvocationOperation;
             }
 
-            protected static ImmutableArray<string> GetIdentifierNames(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            protected IOperation GetOperation(SyntaxNode node)
             {
-                var operation = semanticModel.GetOperation(node, cancellationToken);
+                return _semanticModel.GetOperation(node, _cancellationToken);
+            }
+
+            protected ImmutableArray<string> GetIdentifierNames(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            {
+                var operation = GetOperation(node);
                 if (operation == null)
                 {
                     return default;

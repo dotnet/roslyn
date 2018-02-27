@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 var fromClause = source.FromClause;
                 var expression = fromClause.Expression.WithoutTrailingTrivia();
                 if (fromClause.Type != null)
-                { 
+                {
                     var identifier = SyntaxFactory.IdentifierName(nameof(Enumerable.Cast));
                     var generic = SyntaxFactory.GenericName(identifier.Identifier, SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(fromClause.Type)));
                     var memberAccessExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, generic);
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             expression = ProcessOrderByClause(expression, (OrderByClauseSyntax)queryClause);
                             break;
                         case SyntaxKind.FromClause:
-                            expression = CreateInvocationExpression(expression, ((FromClauseSyntax)queryClause).Expression, nameof(Enumerable.SelectMany));
+                            expression = ProcessNestedFromClause(expression, ((FromClauseSyntax)queryClause).Expression, nameof(Enumerable.SelectMany));
                             break;
                         case SyntaxKind.JoinClause: // Not supported because linq queries seem to provide essentially simpler syntax for the same than query methods.
                         default:
@@ -81,6 +81,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 return expression;
             }
 
+            private ExpressionSyntax ProcessNestedFromClause(ExpressionSyntax expression, ExpressionSyntax bodyExpression, string keyword)
+            {
+                var expressionOperation = GetOperation(bodyExpression);
+
+                var invocationOperation = FindParentInvocationOperation(expressionOperation);
+                var firstArgument = CreateArgument(invocationOperation.Arguments.Where(a => a.Value.Kind == OperationKind.DelegateCreation).First());
+                var secondArgument = SyntaxFactory.Argument(CreateTupleExpression(((invocationOperation.Arguments.Where(a => a.Value.Kind == OperationKind.DelegateCreation).Last()).Value as IDelegateCreationOperation).Target as IAnonymousFunctionOperation));
+                var arguments = new[] { firstArgument, secondArgument };
+
+                var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments));
+                var identifierName = SyntaxFactory.IdentifierName(keyword);
+                var memberAccessExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, identifierName);
+                return SyntaxFactory.InvocationExpression(memberAccessExpression, argumentList);
+            }
+
             private ExpressionSyntax ProcesSelectClause(ExpressionSyntax expression, SelectClauseSyntax selectClause)
             {
                 var selectExpression = selectClause.Expression;
@@ -99,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
             private ExpressionSyntax CreateInvocationExpression(ExpressionSyntax expression, ExpressionSyntax bodyExpression, string keyword)
             {
-                var expressionOperation = _semanticModel.GetOperation(bodyExpression, _cancellationToken);
+                var expressionOperation = GetOperation(bodyExpression);
                 IEnumerable<ArgumentSyntax> arguments;
                 if (expressionOperation != null)
                 {
@@ -123,18 +138,52 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 var anonymousFunction = (argumentOperation.Value as IDelegateCreationOperation).Target as IAnonymousFunctionOperation;
                 var parameters = SyntaxFactory.SeparatedList(anonymousFunction.Symbol.Parameters.Select(p => SyntaxFactory.Parameter(SyntaxFactory.Identifier(BeautifyName(p.Name)))));
                 var body = MakeIdentifierNameReplacements(anonymousFunction.Body.Operations.First().Syntax);
+                return SyntaxFactory.Argument(CreateLambdaExpression(parameters, body));
+            }
 
-                LambdaExpressionSyntax lambdaExpression;
+            private LambdaExpressionSyntax CreateLambdaExpression(SeparatedSyntaxList<ParameterSyntax> parameters, CSharpSyntaxNode body)
+            {
                 if (parameters.Count == 1)
                 {
-                    lambdaExpression = SyntaxFactory.SimpleLambdaExpression(parameters.First(), body);
+                    return SyntaxFactory.SimpleLambdaExpression(parameters.First(), body);
                 }
                 else
                 {
-                    lambdaExpression = SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.ParameterList(parameters), body);
+                    return SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.ParameterList(parameters), body);
+                }
+            }
+
+            // TODO rename
+            private LambdaExpressionSyntax CreateTupleExpression(IAnonymousFunctionOperation anonymousFunction)
+            {
+                var parameters = SyntaxFactory.SeparatedList(anonymousFunction.Symbol.Parameters.Select(p => SyntaxFactory.Parameter(SyntaxFactory.Identifier(BeautifyName(p.Name)))));
+                var returnedValue = ((anonymousFunction.Body as IBlockOperation).Operations.First() as IReturnOperation).ReturnedValue;
+                IEnumerable<IdentifierNameSyntax> identifiers;
+                switch (returnedValue.Kind)
+                {
+                    case OperationKind.ObjectCreation:
+                        // TODO get identifier name?
+                        identifiers = (returnedValue as IObjectCreationOperation).Arguments.Select(arg => SyntaxFactory.IdentifierName(BeautifyName(arg.Parameter.Name)));
+                        break;
+                    case OperationKind.ParameterReference:
+                        // TODO get identifier name?
+                        identifiers = new[] {
+                            SyntaxFactory.IdentifierName(BeautifyName((returnedValue as IParameterReferenceOperation).Parameter.Name)) };
+                        break;
+                    default:
+                        // TODO what to do with a.b.c?
+                        throw new NotImplementedException($"CreateTupleExpression for {returnedValue.Kind}");
                 }
 
-                return SyntaxFactory.Argument(lambdaExpression);
+                if (identifiers.Count() == 1)
+                {
+                    return CreateLambdaExpression(parameters, identifiers.First());
+                }
+                else
+                {
+                    var tuple = SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(identifiers.Select(identifier => SyntaxFactory.Argument(identifier))));
+                    return CreateLambdaExpression(parameters, tuple);
+                }
             }
 
             private ExpressionSyntax ProcessOrderByClause(ExpressionSyntax expression, OrderByClauseSyntax orderByClause)

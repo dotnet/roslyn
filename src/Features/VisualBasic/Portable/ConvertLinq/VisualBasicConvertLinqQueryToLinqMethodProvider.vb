@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
                 ' TODO do we need to check for cast?
                 Dim anonymousFunction = DirectCast(DirectCast(argumentOperation.Value, IDelegateCreationOperation).Target, IAnonymousFunctionOperation)
                 Dim syntax = anonymousFunction.Body.Operations.First().Syntax
-                Dim lambdaBody = DirectCast(New LambdaRewriter(_semanticModel, _cancellationToken).Visit(syntax), VisualBasicSyntaxNode)
+                Dim lambdaBody = MakeIdentifierNameReplacements(syntax)
                 Dim argument = SyntaxFactory.SingleLineFunctionLambdaExpression(CreateLambdaHeader(anonymousFunction), lambdaBody)
                 Return SyntaxFactory.SimpleArgument(argument)
             End Function
@@ -195,23 +195,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
                 Return expression
             End Function
 
+            Private Shared Function BeautifyName(name As String) As String
+                Return name.Replace("$", "")
+            End Function
+
+            Private Function MakeIdentifierNameReplacements(node As SyntaxNode) As VisualBasicSyntaxNode
+                Return DirectCast(New LambdaRewriter(Function(n) GetIdentifierName(n)).Visit(node), VisualBasicSyntaxNode)
+            End Function
+
+            Private Function GetIdentifierName(node As IdentifierNameSyntax) As String
+                Dim names = GetIdentifierNames(_semanticModel, node, _cancellationToken)
+                If (names.IsDefault) Then
+                    Return String.Empty
+                Else
+                    Return BeautifyName(String.Join(".", names))
+                End If
+            End Function
+
             Private Class LambdaRewriter
                 Inherits VisualBasicSyntaxRewriter
                 Private _semanticModel As SemanticModel
                 Private _cancellationToken As CancellationToken
+                Private _getNameMethod As Func(Of IdentifierNameSyntax, String)
 
-                Public Sub New(semanticModel As SemanticModel, cancellationToken As CancellationToken)
-                    _semanticModel = semanticModel
-                    _cancellationToken = cancellationToken
+                Public Sub New(getNameMethod As Func(Of IdentifierNameSyntax, String))
+                    _getNameMethod = getNameMethod
                 End Sub
 
                 Public Overrides Function VisitIdentifierName(node As IdentifierNameSyntax) As SyntaxNode
-                    Dim names = GetIdentifierNames(_semanticModel, node, _cancellationToken)
-                    If names.IsDefault() Then
-                        Return MyBase.VisitIdentifierName(node)
-                    Else
-                        Return SyntaxFactory.IdentifierName(names.Join(".").Replace("$", ""))
-                    End If
+                    Dim name = _getNameMethod(node)
+                    Return If(String.IsNullOrEmpty(name), MyBase.VisitIdentifierName(node), SyntaxFactory.IdentifierName(name))
                 End Function
             End Class
         End Class
