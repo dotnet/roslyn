@@ -11,12 +11,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         private bool IsControlBlock(SyntaxNode node)
         {
+            if (node == null)
+            {
+                return false;
+            }
             if (node.Kind() == SyntaxKind.SwitchStatement)
             {
                 return true;
             }
 
-            var parentKind = node?.Parent.Kind();
+            var parentKind = node.Parent.Kind();
+
             switch (parentKind.GetValueOrDefault())
             {
                 case SyntaxKind.IfStatement:
