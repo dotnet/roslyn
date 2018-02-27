@@ -3,14 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -18,40 +16,13 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
-namespace RoslynCompletionPrototype
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
 {
-
-    [Export(typeof(EditorCompletion.IAsyncCompletionServiceProvider))]
-    [Name("C# and Visual Basic Completion Service Provider")]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal class RoslynAsyncCompletionServiceProvider : EditorCompletion.IAsyncCompletionServiceProvider
-    {
-        private readonly IAsyncCompletionBroker _broker;
-        private RoslynAsyncCompletionService _instance;
-
-        [ImportingConstructor]
-        public RoslynAsyncCompletionServiceProvider(IAsyncCompletionBroker broker)
-        {
-            _broker = broker;
-        }
-
-        public EditorCompletion.IAsyncCompletionService GetOrCreate(ITextView textView)
-        {
-            if (_instance == null)
-            {
-                _instance = new RoslynAsyncCompletionService(_broker);
-            }
-
-            return _instance;
-        }
-    }
-
-    internal class RoslynAsyncCompletionService : EditorCompletion.IAsyncCompletionService
+    internal class EditorAsyncCompletionService : EditorCompletion.IAsyncCompletionService
     {
         private readonly IAsyncCompletionBroker _broker;
 
@@ -59,7 +30,7 @@ namespace RoslynCompletionPrototype
         private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
 
-        public RoslynAsyncCompletionService(IAsyncCompletionBroker broker)
+        public EditorAsyncCompletionService(IAsyncCompletionBroker broker)
         {
             _broker = broker;
         }
@@ -661,22 +632,6 @@ namespace RoslynCompletionPrototype
                 FilterText = filterText;
                 MatchedFilterText = matchedFilterText;
             }
-        }
-    }
-
-    // TODO: Move
-    static class StringExtensions
-    {
-        public static int GetCaseInsensitivePrefixLength(this string string1, string string2)
-        {
-            int x = 0;
-            while (x < string1.Length && x < string2.Length &&
-                   char.ToUpper(string1[x]) == char.ToUpper(string2[x]))
-            {
-                x++;
-            }
-
-            return x;
         }
     }
 }

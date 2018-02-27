@@ -2,14 +2,11 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -18,31 +15,14 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 
-namespace RoslynCompletionPrototype
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
 {
-    [Export(typeof(IAsyncCompletionItemSourceProvider))]
-    [Name("C# and Visual Basic Item Source Provider")]
-    [ContentType(ContentTypeNames.VisualBasicContentType)]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    internal class RoslynCompletionItemSourceProvider : IAsyncCompletionItemSourceProvider
-    {
-        RoslynCompletionItemSource _instance;
-
-        IAsyncCompletionItemSource IAsyncCompletionItemSourceProvider.GetOrCreate(ITextView textView)
-        {
-            if (_instance == null)
-                _instance = new RoslynCompletionItemSource();
-            return _instance;
-        }
-    }
-
-    internal class RoslynCompletionItemSource : IAsyncCompletionItemSource
+    internal class CompletionItemSource : IAsyncCompletionItemSource
     {
         private ImmutableArray<char> CommitChars => ImmutableArray.Create(
             ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
