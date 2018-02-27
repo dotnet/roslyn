@@ -190,10 +190,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sideEffects(count) As BoundStatement
 
             For i = 0 To count - 1
-                Dim fixup As XmlLiteralFixupData.LocalWithInitialization = fixups(i)
-                locals(i) = fixup.Local
+                Dim fixup As XmlLiteralFixupData.LocalWithInitialization = fixups(AggregateSyntaxNotWithinSyntaxTree)
+                locals(AggregateSyntaxNotWithinSyntaxTree) = fixup.Local
                 Dim init As BoundExpression = fixup.Initialization
-                sideEffects(i) = New BoundExpressionStatement(init.Syntax, init)
+                sideEffects(AggregateSyntaxNotWithinSyntaxTree) = New BoundExpressionStatement(init.Syntax, init)
             Next
 
             sideEffects(count) = DirectCast(node, BoundStatement)
@@ -393,7 +393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If block IsNot Nothing Then
                 Dim consequenceWithEnd(block.Statements.Length) As BoundStatement
                 For i = 0 To block.Statements.Length - 1
-                    consequenceWithEnd(i) = block.Statements(i)
+                    consequenceWithEnd(AggregateSyntaxNotWithinSyntaxTree) = block.Statements(AggregateSyntaxNotWithinSyntaxTree)
                 Next
 
                 consequenceWithEnd(block.Statements.Length) = additionOpt
@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim consequenceWithEnd(block.Statements.Length) As BoundStatement
             For i = 0 To block.Statements.Length - 1
-                consequenceWithEnd(i) = block.Statements(i)
+                consequenceWithEnd(AggregateSyntaxNotWithinSyntaxTree) = block.Statements(AggregateSyntaxNotWithinSyntaxTree)
             Next
 
             consequenceWithEnd(block.Statements.Length) = additionOpt

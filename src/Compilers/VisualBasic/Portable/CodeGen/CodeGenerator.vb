@@ -129,8 +129,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim resumePointsBuilder = ArrayBuilder(Of Integer).GetInstance
 
                 For i = 0 To yieldPoints.Count - 1
-                    Dim yieldOffset = _builder.GetILOffsetFromMarker(yieldPoints(i))
-                    Dim resumeOffset = _builder.GetILOffsetFromMarker(resumePoints(i))
+                    Dim yieldOffset = _builder.GetILOffsetFromMarker(yieldPoints(AggregateSyntaxNotWithinSyntaxTree))
+                    Dim resumeOffset = _builder.GetILOffsetFromMarker(resumePoints(AggregateSyntaxNotWithinSyntaxTree))
 
                     Debug.Assert(resumeOffset >= 0) ' resume marker should always be reachable from dispatch
 

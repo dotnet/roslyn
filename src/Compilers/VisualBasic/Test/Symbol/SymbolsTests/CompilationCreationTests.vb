@@ -2210,19 +2210,19 @@ End Class
 
             Assert.Equal(numTrees, actualSyntaxTrees.Length)
             For i = 0 To numTrees - 1
-                Assert.Equal(expectedSyntaxTrees(i), actualSyntaxTrees(i))
+                Assert.Equal(expectedSyntaxTrees(AggregateSyntaxNotWithinSyntaxTree), actualSyntaxTrees(AggregateSyntaxNotWithinSyntaxTree))
             Next
 
             For i = 0 To numTrees - 1
                 For j = 0 To numTrees - 1
-                    Assert.Equal(Math.Sign(compilation.CompareSyntaxTreeOrdering(expectedSyntaxTrees(i), expectedSyntaxTrees(j))), Math.Sign(i.CompareTo(j)))
+                    Assert.Equal(Math.Sign(compilation.CompareSyntaxTreeOrdering(expectedSyntaxTrees(AggregateSyntaxNotWithinSyntaxTree), expectedSyntaxTrees(j))), Math.Sign(AggregateSyntaxNotWithinSyntaxTree.CompareTo(j)))
                 Next
             Next
 
             Dim types = expectedSyntaxTrees.Select(Function(tree) compilation.GetSemanticModel(tree).GetDeclaredSymbol(tree.GetCompilationUnitRoot().Members.Single())).ToArray()
             For i = 0 To numTrees - 1
                 For j = 0 To numTrees - 1
-                    Assert.Equal(Math.Sign(compilation.CompareSourceLocations(types(i).Locations(0), types(j).Locations(0))), Math.Sign(i.CompareTo(j)))
+                    Assert.Equal(Math.Sign(compilation.CompareSourceLocations(types(AggregateSyntaxNotWithinSyntaxTree).Locations(0), types(j).Locations(0))), Math.Sign(AggregateSyntaxNotWithinSyntaxTree.CompareTo(j)))
                 Next
             Next
         End Sub

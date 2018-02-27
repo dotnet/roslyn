@@ -168,8 +168,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 End If
 
                 For i = 0 To slotCount1 - 1
-                    Dim child1 = before.GetSlot(i)
-                    Dim child2 = after.GetSlot(i)
+                    Dim child1 = before.GetSlot(AggregateSyntaxNotWithinSyntaxTree)
+                    Dim child2 = after.GetSlot(AggregateSyntaxNotWithinSyntaxTree)
                     If Not AreEquivalentRecursive(child1, child2, kind, ignoreChildNode, topLevel) Then
                         Return False
                     End If
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     End If
 
                     For i = 0 To beforeModifiers.Count - 1
-                        If Not beforeModifiers.Any(afterModifiers(i).Kind) Then
+                        If Not beforeModifiers.Any(afterModifiers(AggregateSyntaxNotWithinSyntaxTree).Kind) Then
                             Return False
                         End If
                     Next

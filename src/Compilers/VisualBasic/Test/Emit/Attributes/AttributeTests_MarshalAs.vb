@@ -385,10 +385,10 @@ Class X
 
             Dim expectedBlobs = New Dictionary(Of String, Byte())()
             For i = 0 To SByte.MaxValue
-                If i <> DirectCast(UnmanagedType.CustomMarshaler, Integer) Then
-                    Dim fldName As String = String.Format("m_{0:X}", i)
-                    source.AppendLine(String.Format("<MarshalAs(UnmanagedType.LPArray, ArraySubType := CType(&H{0:X}, UnmanagedType))>Dim {1} As Integer", i, fldName))
-                    expectedBlobs.Add(fldName, New Byte() {&H2A, CByte(i)})
+                If AggregateSyntaxNotWithinSyntaxTree <> DirectCast(UnmanagedType.CustomMarshaler, Integer) Then
+                    Dim fldName As String = String.Format("m_{0:X}", AggregateSyntaxNotWithinSyntaxTree)
+                    source.AppendLine(String.Format("<MarshalAs(UnmanagedType.LPArray, ArraySubType := CType(&H{0:X}, UnmanagedType))>Dim {1} As Integer", AggregateSyntaxNotWithinSyntaxTree, fldName))
+                    expectedBlobs.Add(fldName, New Byte() {&H2A, CByte(AggregateSyntaxNotWithinSyntaxTree)})
                 End If
             Next
             source.AppendLine("End Class")

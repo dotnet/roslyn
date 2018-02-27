@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Return first sort key from all declarations.
             Dim sortKey As LexicalSortKey = New LexicalSortKey(_declarations(0).NameLocation, compilation)
             For i = 1 To _declarations.Length - 1
-                sortKey = LexicalSortKey.First(sortKey, New LexicalSortKey(_declarations(i).NameLocation, compilation))
+                sortKey = LexicalSortKey.First(sortKey, New LexicalSortKey(_declarations(AggregateSyntaxNotWithinSyntaxTree).NameLocation, compilation))
             Next
             Return sortKey
         End Function

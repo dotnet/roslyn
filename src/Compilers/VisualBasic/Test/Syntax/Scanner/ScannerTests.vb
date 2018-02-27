@@ -696,7 +696,7 @@ End If]]>.Value,
         Assert.Equal(str, result)
         Assert.Equal(tokens.Length, kinds.Length)
         For i = 0 To tokens.Length - 1
-            Assert.Equal(tokens(i).Kind, kinds(i))
+            Assert.Equal(tokens(AggregateSyntaxNotWithinSyntaxTree).Kind, kinds(AggregateSyntaxNotWithinSyntaxTree))
         Next
     End Sub
 

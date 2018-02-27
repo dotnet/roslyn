@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Dim list = DirectCast(statement, BoundStatementList)
                     Dim n As Integer = list.Statements.Length
                     For i = 0 To n - 1
-                        EmitStatement(list.Statements(i))
+                        EmitStatement(list.Statements(AggregateSyntaxNotWithinSyntaxTree))
                     Next
 
                 Case BoundKind.ReturnStatement

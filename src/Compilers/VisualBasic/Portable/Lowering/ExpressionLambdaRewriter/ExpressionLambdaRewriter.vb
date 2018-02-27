@@ -517,8 +517,8 @@ lSelect:
             Dim count As Integer = expressions.Length
             Dim newExpr(count - 1) As BoundExpression
             For i = 0 To count - 1
-                Debug.Assert(expressions(i).Type Is Me.Int32Type)
-                newExpr(i) = Visit(expressions(i))
+                Debug.Assert(expressions(AggregateSyntaxNotWithinSyntaxTree).Type Is Me.Int32Type)
+                newExpr(AggregateSyntaxNotWithinSyntaxTree) = Visit(expressions(AggregateSyntaxNotWithinSyntaxTree))
             Next
             Return _factory.Array(_expressionType, newExpr.AsImmutableOrNull())
         End Function
@@ -564,8 +564,8 @@ lSelect:
             Dim newInitializers(initializerCount - 1) As BoundExpression
 
             For i = 0 To initializerCount - 1
-                Debug.Assert(initializers(i).Kind = BoundKind.AssignmentOperator)
-                Dim assignment = DirectCast(initializers(i), BoundAssignmentOperator)
+                Debug.Assert(initializers(AggregateSyntaxNotWithinSyntaxTree).Kind = BoundKind.AssignmentOperator)
+                Dim assignment = DirectCast(initializers(AggregateSyntaxNotWithinSyntaxTree), BoundAssignmentOperator)
 
                 Debug.Assert(assignment.LeftOnTheRightOpt Is Nothing)
                 Dim left As BoundExpression = assignment.Left
@@ -594,7 +594,7 @@ lSelect:
                                                       Me._factory.FieldInfo(DirectCast(leftSymbol, FieldSymbol)),
                                                       Me._factory.MethodInfo((DirectCast(leftSymbol, PropertySymbol)).SetMethod))
 
-                newInitializers(i) = _factory.Convert(MemberBindingType, ConvertRuntimeHelperToExpressionTree("Bind", memberRef, Visit(right)))
+                newInitializers(AggregateSyntaxNotWithinSyntaxTree) = _factory.Convert(MemberBindingType, ConvertRuntimeHelperToExpressionTree("Bind", memberRef, Visit(right)))
             Next
 
             Return _factory.Array(MemberBindingType, newInitializers.AsImmutableOrNull())
@@ -606,8 +606,8 @@ lSelect:
             Dim newInitializers(initializerCount - 1) As BoundExpression
 
             For i = 0 To initializerCount - 1
-                Debug.Assert(initializers(i).Kind = BoundKind.Call)
-                Dim [call] = DirectCast(initializers(i), BoundCall)
+                Debug.Assert(initializers(AggregateSyntaxNotWithinSyntaxTree).Kind = BoundKind.Call)
+                Dim [call] = DirectCast(initializers(AggregateSyntaxNotWithinSyntaxTree), BoundCall)
 
                 ' Note, for extension methods we are dropping the "Me" parameter to remove
                 ' BoundCollectionInitializerExpression.PlaceholderOpt references from the tree.
@@ -615,7 +615,7 @@ lSelect:
                 ' At run-time, this code is going to throw because ElementInit API doesn't accept
                 ' shared methods. We don't fail compilation in this scenario due to backward
                 ' compatibility reasons.
-                newInitializers(i) = _factory.Convert(
+                newInitializers(AggregateSyntaxNotWithinSyntaxTree) = _factory.Convert(
                                             ElementInitType,
                                             ConvertRuntimeHelperToExpressionTree(
                                                     "ElementInit",
@@ -650,7 +650,7 @@ lSelect:
 
                 Dim methodInfos(properties.Length - 1) As BoundExpression
                 For i = 0 To properties.Length - 1
-                    methodInfos(i) = Me._factory.Convert(Me.MemberInfoType, Me._factory.MethodInfo(properties(i).GetMethod))
+                    methodInfos(AggregateSyntaxNotWithinSyntaxTree) = Me._factory.Convert(Me.MemberInfoType, Me._factory.MethodInfo(properties(AggregateSyntaxNotWithinSyntaxTree).GetMethod))
                 Next
 
                 Return ConvertRuntimeHelperToExpressionTree("New", ctor, args, Me._factory.Array(Me.MemberInfoType, methodInfos.AsImmutableOrNull()))
@@ -708,7 +708,7 @@ lSelect:
         Private Function ConvertArgumentsIntoArray(exprs As ImmutableArray(Of BoundExpression)) As BoundExpression
             Dim newArgs(exprs.Length - 1) As BoundExpression
             For i = 0 To exprs.Length - 1
-                newArgs(i) = Visit(exprs(i))
+                newArgs(AggregateSyntaxNotWithinSyntaxTree) = Visit(exprs(AggregateSyntaxNotWithinSyntaxTree))
             Next
             Return _factory.Array(_expressionType, newArgs.AsImmutableOrNull)
         End Function

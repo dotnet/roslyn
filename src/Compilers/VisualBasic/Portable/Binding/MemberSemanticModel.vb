@@ -990,8 +990,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundNodes As ImmutableArray(Of BoundNode) = GetBoundNodes(node)
             Dim bound As BoundNode = Nothing
             For i = 0 To boundNodes.Length - 1
-                If boundNodes(i).Kind = BoundKind.QueryClause OrElse boundNodes(i).Kind = BoundKind.QueryableSource Then
-                    bound = boundNodes(i)
+                If boundNodes(AggregateSyntaxNotWithinSyntaxTree).Kind = BoundKind.QueryClause OrElse boundNodes(AggregateSyntaxNotWithinSyntaxTree).Kind = BoundKind.QueryableSource Then
+                    bound = boundNodes(AggregateSyntaxNotWithinSyntaxTree)
                     Exit For
                 End If
             Next
@@ -2107,7 +2107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(existing.Length = added.Length)
 
                         For i = 0 To existing.Length - 1
-                            Debug.Assert(existing(i).Kind = added(i).Kind, "New bound node does not match existing bound node")
+                            Debug.Assert(existing(AggregateSyntaxNotWithinSyntaxTree).Kind = added(AggregateSyntaxNotWithinSyntaxTree).Kind, "New bound node does not match existing bound node")
                         Next
 #End If
                     End If

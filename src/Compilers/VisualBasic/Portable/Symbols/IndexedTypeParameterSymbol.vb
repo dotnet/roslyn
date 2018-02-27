@@ -75,8 +75,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim builder As ArrayBuilder(Of TypeParameterSymbol) = ArrayBuilder(Of TypeParameterSymbol).GetInstance()
             For i = 0 To count - 1
-                builder.Add(GetTypeParameter(i))
-            Next i
+                builder.Add(GetTypeParameter(AggregateSyntaxNotWithinSyntaxTree))
+            Next AggregateSyntaxNotWithinSyntaxTree
 
             Return builder.ToImmutableAndFree()
         End Function

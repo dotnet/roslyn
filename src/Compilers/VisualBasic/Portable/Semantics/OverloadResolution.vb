@@ -1434,13 +1434,13 @@ ResolutionComplete:
             Dim applicableCandidates As Integer = bucket.Count
 
             For i = 0 To bucket.Count - 1 Step 1
-                Dim left = candidates(bucket(i))
+                Dim left = candidates(bucket(AggregateSyntaxNotWithinSyntaxTree))
 
                 If left.State <> CandidateAnalysisResultState.Applicable Then
                     Continue For
                 End If
 
-                For j = i + 1 To bucket.Count - 1 Step 1
+                For j = AggregateSyntaxNotWithinSyntaxTree + 1 To bucket.Count - 1 Step 1
                     Dim right = candidates(bucket(j))
 
                     If right.State <> CandidateAnalysisResultState.Applicable Then
@@ -1457,7 +1457,7 @@ ResolutionComplete:
                         Else
                             Debug.Assert(rightWins)
                             left.State = CandidateAnalysisResultState.Shadowed
-                            candidates(bucket(i)) = left
+                            candidates(bucket(AggregateSyntaxNotWithinSyntaxTree)) = left
                             applicableCandidates -= 1
                             Exit For
                         End If
@@ -1938,7 +1938,7 @@ ResolutionComplete:
                     leftParamType = GetParameterTypeFromVirtualSignature(left, leftParamIndex)
                     AdvanceParameterInVirtualSignature(left, leftParamIndex)
                 Else
-                    leftParamType = GetParameterTypeFromVirtualSignature(left, left.ArgsToParamsOpt(i))
+                    leftParamType = GetParameterTypeFromVirtualSignature(left, left.ArgsToParamsOpt(AggregateSyntaxNotWithinSyntaxTree))
                 End If
 
                 Dim rightParamType As TypeSymbol
@@ -1947,15 +1947,15 @@ ResolutionComplete:
                     rightParamType = GetParameterTypeFromVirtualSignature(right, rightParamIndex)
                     AdvanceParameterInVirtualSignature(right, rightParamIndex)
                 Else
-                    rightParamType = GetParameterTypeFromVirtualSignature(right, right.ArgsToParamsOpt(i))
+                    rightParamType = GetParameterTypeFromVirtualSignature(right, right.ArgsToParamsOpt(AggregateSyntaxNotWithinSyntaxTree))
                 End If
 
                 ' Parameters matching omitted arguments do not participate.
-                If arguments(i).Kind = BoundKind.OmittedArgument Then
+                If arguments(AggregateSyntaxNotWithinSyntaxTree).Kind = BoundKind.OmittedArgument Then
                     Continue For
                 End If
 
-                Dim cmp = CompareParameterTypeApplicability(leftParamType, rightParamType, arguments(i), binder, useSiteDiagnostics)
+                Dim cmp = CompareParameterTypeApplicability(leftParamType, rightParamType, arguments(AggregateSyntaxNotWithinSyntaxTree), binder, useSiteDiagnostics)
 
                 If cmp = ApplicabilityComparisonResult.LeftIsMoreApplicable Then
                     leftHasMoreApplicableParameterType = True
@@ -4266,7 +4266,7 @@ ContinueCandidatesLoop:
                     leftParamType = GetParameterTypeFromVirtualSignature(left, leftParamIndex, leftParamTypeForGenericityCheck)
                     AdvanceParameterInVirtualSignature(left, leftParamIndex)
                 Else
-                    leftParamType = GetParameterTypeFromVirtualSignature(left, left.ArgsToParamsOpt(i), leftParamTypeForGenericityCheck)
+                    leftParamType = GetParameterTypeFromVirtualSignature(left, left.ArgsToParamsOpt(AggregateSyntaxNotWithinSyntaxTree), leftParamTypeForGenericityCheck)
                 End If
 
                 Dim rightParamType As TypeSymbol
@@ -4276,15 +4276,15 @@ ContinueCandidatesLoop:
                     rightParamType = GetParameterTypeFromVirtualSignature(right, rightParamIndex, rightParamTypeForGenericityCheck)
                     AdvanceParameterInVirtualSignature(right, rightParamIndex)
                 Else
-                    rightParamType = GetParameterTypeFromVirtualSignature(right, right.ArgsToParamsOpt(i), rightParamTypeForGenericityCheck)
+                    rightParamType = GetParameterTypeFromVirtualSignature(right, right.ArgsToParamsOpt(AggregateSyntaxNotWithinSyntaxTree), rightParamTypeForGenericityCheck)
                 End If
 
                 ' Parameters matching omitted arguments do not participate.
-                If arguments(i).Kind = BoundKind.OmittedArgument Then
+                If arguments(AggregateSyntaxNotWithinSyntaxTree).Kind = BoundKind.OmittedArgument Then
                     Continue For
                 End If
 
-                If SignatureMismatchForThePurposeOfShadowingBasedOnGenericity(leftParamType, rightParamType, arguments(i), binder) Then
+                If SignatureMismatchForThePurposeOfShadowingBasedOnGenericity(leftParamType, rightParamType, arguments(AggregateSyntaxNotWithinSyntaxTree), binder) Then
                     Return False
                 End If
 
@@ -4447,7 +4447,7 @@ ContinueCandidatesLoop:
                     leftParamType = GetParameterTypeFromVirtualSignature(left, leftParamIndex, leftParamTypeForGenericityCheck)
                     AdvanceParameterInVirtualSignature(left, leftParamIndex)
                 Else
-                    leftParamType = GetParameterTypeFromVirtualSignature(left, left.ArgsToParamsOpt(i), leftParamTypeForGenericityCheck)
+                    leftParamType = GetParameterTypeFromVirtualSignature(left, left.ArgsToParamsOpt(AggregateSyntaxNotWithinSyntaxTree), leftParamTypeForGenericityCheck)
                 End If
 
                 Dim rightParamType As TypeSymbol
@@ -4457,15 +4457,15 @@ ContinueCandidatesLoop:
                     rightParamType = GetParameterTypeFromVirtualSignature(right, rightParamIndex, rightParamTypeForGenericityCheck)
                     AdvanceParameterInVirtualSignature(right, rightParamIndex)
                 Else
-                    rightParamType = GetParameterTypeFromVirtualSignature(right, right.ArgsToParamsOpt(i), rightParamTypeForGenericityCheck)
+                    rightParamType = GetParameterTypeFromVirtualSignature(right, right.ArgsToParamsOpt(AggregateSyntaxNotWithinSyntaxTree), rightParamTypeForGenericityCheck)
                 End If
 
                 ' Parameters matching omitted arguments do not participate.
-                If arguments(i).Kind = BoundKind.OmittedArgument Then
+                If arguments(AggregateSyntaxNotWithinSyntaxTree).Kind = BoundKind.OmittedArgument Then
                     Continue For
                 End If
 
-                If SignatureMismatchForThePurposeOfShadowingBasedOnGenericity(leftParamType, rightParamType, arguments(i), binder) Then
+                If SignatureMismatchForThePurposeOfShadowingBasedOnGenericity(leftParamType, rightParamType, arguments(AggregateSyntaxNotWithinSyntaxTree), binder) Then
                     Return False ' no winner if the types of the parameter are different
                 End If
 
@@ -4561,7 +4561,7 @@ ContinueCandidatesLoop:
                         Dim leftArgWins As Boolean = False
                         Dim rightArgWins As Boolean = False
 
-                        If CompareParameterTypeGenericDepth(leftTypeArguments(i), rightTypeArguments(i), leftArgWins, rightArgWins) Then
+                        If CompareParameterTypeGenericDepth(leftTypeArguments(AggregateSyntaxNotWithinSyntaxTree), rightTypeArguments(AggregateSyntaxNotWithinSyntaxTree), leftArgWins, rightArgWins) Then
                             Debug.Assert(leftArgWins <> rightArgWins)
 
                             If leftArgWins Then

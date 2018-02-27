@@ -416,12 +416,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             arguments.SymbolPart = symbolPart
 
             For i = 0 To boundAttributeTypes.Length - 1
-                Dim attributeType As NamedTypeSymbol = boundAttributeTypes(i)
+                Dim attributeType As NamedTypeSymbol = boundAttributeTypes(AggregateSyntaxNotWithinSyntaxTree)
                 If Not attributeType.IsErrorType() Then
-                    arguments.Binder = New EarlyWellKnownAttributeBinder(Me, binders(i))
+                    arguments.Binder = New EarlyWellKnownAttributeBinder(Me, binders(AggregateSyntaxNotWithinSyntaxTree))
                     arguments.AttributeType = attributeType
-                    arguments.AttributeSyntax = attributesToBind(i)
-                    attributeBuilder(i) = Me.EarlyDecodeWellKnownAttribute(arguments)
+                    arguments.AttributeSyntax = attributesToBind(AggregateSyntaxNotWithinSyntaxTree)
+                    attributeBuilder(AggregateSyntaxNotWithinSyntaxTree) = Me.EarlyDecodeWellKnownAttribute(arguments)
                 End If
             Next
 
@@ -456,13 +456,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             arguments.SymbolPart = symbolPart
 
             For i = 0 To totalAttributesCount - 1
-                Dim boundAttribute As VisualBasicAttributeData = boundAttributes(i)
-                Dim attributeSyntax As AttributeSyntax = attributeSyntaxList(i)
-                Dim binder As Binder = binders(i)
+                Dim boundAttribute As VisualBasicAttributeData = boundAttributes(AggregateSyntaxNotWithinSyntaxTree)
+                Dim attributeSyntax As AttributeSyntax = attributeSyntaxList(AggregateSyntaxNotWithinSyntaxTree)
+                Dim binder As Binder = binders(AggregateSyntaxNotWithinSyntaxTree)
                 If Not boundAttribute.HasErrors AndAlso ValidateAttributeUsage(boundAttribute, attributeSyntax, binder.Compilation, symbolPart, diagnostics, uniqueAttributeTypes) Then
                     arguments.Attribute = boundAttribute
                     arguments.AttributeSyntaxOpt = attributeSyntax
-                    arguments.Index = i
+                    arguments.Index = AggregateSyntaxNotWithinSyntaxTree
                     Me.DecodeWellKnownAttribute(arguments)
                 End If
             Next

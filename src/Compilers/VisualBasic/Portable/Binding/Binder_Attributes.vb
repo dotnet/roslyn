@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim totalAttributesCount As Integer = attributesToBind.Length
             Dim boundAttributeTypes = New NamedTypeSymbol(totalAttributesCount - 1) {}
             For i = 0 To totalAttributesCount - 1
-                boundAttributeTypes(i) = BindAttributeType(binders(i), attributesToBind(i), ownerSymbol, diagnostics)
+                boundAttributeTypes(AggregateSyntaxNotWithinSyntaxTree) = BindAttributeType(binders(AggregateSyntaxNotWithinSyntaxTree), attributesToBind(AggregateSyntaxNotWithinSyntaxTree), ownerSymbol, diagnostics)
             Next
 
             Return boundAttributeTypes.AsImmutableOrNull()

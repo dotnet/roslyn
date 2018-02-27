@@ -364,12 +364,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim rewrittenSideeffects As ArrayBuilder(Of BoundExpression) = Nothing
                 If Not sideeffects.IsDefault Then
                     For i = 0 To sideeffects.Length - 1
-                        Dim sideeffect As BoundExpression = sideeffects(i)
+                        Dim sideeffect As BoundExpression = sideeffects(AggregateSyntaxNotWithinSyntaxTree)
                         Dim rewrittenSideeffect As BoundExpression = Me.VisitExpression(sideeffect, ExprContext.Sideeffects)
 
                         If rewrittenSideeffects Is Nothing AndAlso rewrittenSideeffect IsNot sideeffect Then
                             rewrittenSideeffects = ArrayBuilder(Of BoundExpression).GetInstance()
-                            rewrittenSideeffects.AddRange(sideeffects, i)
+                            rewrittenSideeffects.AddRange(sideeffects, AggregateSyntaxNotWithinSyntaxTree)
                         End If
 
                         If rewrittenSideeffects IsNot Nothing Then
@@ -719,13 +719,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 For i = 0 To arguments.Length - 1
 
                     ' Treat the __arglist() as a value parameter.
-                    Dim context As ExprContext = If(i = parameters.Length OrElse Not parameters(i).IsByRef, ExprContext.Value, ExprContext.Address)
+                    Dim context As ExprContext = If(AggregateSyntaxNotWithinSyntaxTree = parameters.Length OrElse Not parameters(AggregateSyntaxNotWithinSyntaxTree).IsByRef, ExprContext.Value, ExprContext.Address)
 
-                    Dim arg As BoundExpression = arguments(i)
+                    Dim arg As BoundExpression = arguments(AggregateSyntaxNotWithinSyntaxTree)
                     Dim rewrittenArg As BoundExpression = VisitExpression(arg, context)
                     If rewrittenArguments Is Nothing AndAlso arg IsNot rewrittenArg Then
                         rewrittenArguments = ArrayBuilder(Of BoundExpression).GetInstance()
-                        rewrittenArguments.AddRange(arguments, i)
+                        rewrittenArguments.AddRange(arguments, AggregateSyntaxNotWithinSyntaxTree)
                     End If
 
                     If rewrittenArguments IsNot Nothing Then
@@ -1139,12 +1139,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         ' array itself will be pushed on the stack here.
                         EnsureOnlyEvalStack()
 
-                        Dim initializer As BoundExpression = initializers(i)
+                        Dim initializer As BoundExpression = initializers(AggregateSyntaxNotWithinSyntaxTree)
                         Dim rewrittenInitializer As BoundExpression = Me.VisitExpression(initializer, ExprContext.Value)
 
                         If rewrittenInitializers Is Nothing AndAlso rewrittenInitializer IsNot initializer Then
                             rewrittenInitializers = ArrayBuilder(Of BoundExpression).GetInstance()
-                            rewrittenInitializers.AddRange(initializers, i)
+                            rewrittenInitializers.AddRange(initializers, AggregateSyntaxNotWithinSyntaxTree)
                         End If
 
                         If rewrittenInitializers IsNot Nothing Then

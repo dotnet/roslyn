@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim locals(declarations.Length - 1) As LocalSymbol
             For i = 0 To declarations.Length - 1
-                locals(i) = declarations(i).LocalSymbol
+                locals(AggregateSyntaxNotWithinSyntaxTree) = declarations(AggregateSyntaxNotWithinSyntaxTree).LocalSymbol
             Next
             Return AmbiguousLocalsPseudoSymbol.Create(locals.AsImmutableOrNull())
         End Function

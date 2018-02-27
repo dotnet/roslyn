@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim parts = method.ToDisplayParts(DisplayFormat)
             Dim numParts = parts.Length
             For i = 0 To numParts - 1
-                Dim part = parts(i)
+                Dim part = parts(AggregateSyntaxNotWithinSyntaxTree)
                 Dim displayString = part.ToString()
                 Select Case part.Kind
                     Case SymbolDisplayPartKind.ClassName
@@ -40,9 +40,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         Else
                             ' Drop any remaining display class name parts and the subsequent dot...
                             Do
-                                i += 1
-                            Loop While ((i < numParts) AndAlso parts(i).Kind <> SymbolDisplayPartKind.MethodName)
-                            i -= 1
+                                AggregateSyntaxNotWithinSyntaxTree += 1
+                            Loop While ((AggregateSyntaxNotWithinSyntaxTree < numParts) AndAlso parts(AggregateSyntaxNotWithinSyntaxTree).Kind <> SymbolDisplayPartKind.MethodName)
+                            AggregateSyntaxNotWithinSyntaxTree -= 1
                         End If
                     Case SymbolDisplayPartKind.MethodName
                         If displayString.StartsWith(StringConstants.LambdaMethodNamePrefix, StringComparison.Ordinal) Then

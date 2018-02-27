@@ -359,7 +359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim hc As Integer = Hash.Combine(Me.Syntax.GetHashCode(), Me._parameters.Length)
             hc = Hash.Combine(hc, Me.ReturnType.GetHashCode())
             For i = 0 To Me._parameters.Length - 1
-                hc = Hash.Combine(hc, Me._parameters(i).Type.GetHashCode())
+                hc = Hash.Combine(hc, Me._parameters(AggregateSyntaxNotWithinSyntaxTree).Type.GetHashCode())
             Next
             Return hc
         End Function

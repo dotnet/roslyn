@@ -4365,8 +4365,8 @@ End Class
         ' Find last '(' token.
         Dim indexOfOpenParen = -1
         For i = 0 To tokens.Length - 1
-            If tokens(i).Kind = SyntaxKind.OpenParenToken Then
-                indexOfOpenParen = i
+            If tokens(AggregateSyntaxNotWithinSyntaxTree).Kind = SyntaxKind.OpenParenToken Then
+                indexOfOpenParen = AggregateSyntaxNotWithinSyntaxTree
             End If
         Next
         Assert.NotEqual(indexOfOpenParen, -1)
@@ -8405,7 +8405,7 @@ End Class
     Private Shared Sub CheckArray(Of T)(actual As T(), ParamArray expected As T())
         Assert.Equal(expected.Length, actual.Length)
         For i = 0 To actual.Length - 1
-            Assert.Equal(expected(i), actual(i))
+            Assert.Equal(expected(AggregateSyntaxNotWithinSyntaxTree), actual(AggregateSyntaxNotWithinSyntaxTree))
         Next
     End Sub
 

@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Function(builder)
                 Dim code = 0
                 For i = 0 To builder.Count - 1
-                    Dim value = builder(i)
+                    Dim value = builder(AggregateSyntaxNotWithinSyntaxTree)
                     ' shift because there could be the same trivia nodes in the list
                     code = (code << 1) Xor RuntimeHelpers.GetHashCode(value)
                 Next
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 For i = 0 To builder.Count - 1
-                    If builder(i) IsNot list.ItemUntyped(i) Then
+                    If builder(AggregateSyntaxNotWithinSyntaxTree) IsNot list.ItemUntyped(AggregateSyntaxNotWithinSyntaxTree) Then
                         Return False
                     End If
                 Next
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Shared Function CanCache(trivia As SyntaxListBuilder) As Boolean
             For i = 0 To trivia.Count - 1
-                Dim t = trivia(i)
+                Dim t = trivia(AggregateSyntaxNotWithinSyntaxTree)
                 Select Case t.RawKind
                     Case SyntaxKind.WhitespaceTrivia,
                         SyntaxKind.EndOfLineTrivia,

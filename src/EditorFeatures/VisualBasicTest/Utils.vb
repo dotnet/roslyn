@@ -155,8 +155,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
 
             If removeTrailingLineBreaks Then
                 For i = lines.Count - 1 To 0 Step -1
-                    If lines(i).Length = 0 Then
-                        lines.RemoveAt(i)
+                    If lines(AggregateSyntaxNotWithinSyntaxTree).Length = 0 Then
+                        lines.RemoveAt(AggregateSyntaxNotWithinSyntaxTree)
                     Else
                         Exit For
                     End If

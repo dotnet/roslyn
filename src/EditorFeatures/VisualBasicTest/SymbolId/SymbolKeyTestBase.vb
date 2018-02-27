@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             Assert.Equal(origlist.Count, newlist.Count)
 
             For i = 0 To newlist.Count - 1
-                ResolveAndVerifySymbol(newlist(i), origlist(i), originalCompilation)
+                ResolveAndVerifySymbol(newlist(AggregateSyntaxNotWithinSyntaxTree), origlist(AggregateSyntaxNotWithinSyntaxTree), originalCompilation)
             Next
 
         End Sub
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             ' 1 based - BIND#:
             For i = 1 To count
                 Try
-                    Dim node = CompilationUtils.FindBindingText(Of T)(comp, fileName, i)
+                    Dim node = CompilationUtils.FindBindingText(Of T)(comp, fileName, AggregateSyntaxNotWithinSyntaxTree)
                     list.Add(node)
                 Catch ex As Exception
                     Exit For

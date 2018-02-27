@@ -2844,7 +2844,7 @@ BC30455: Argument not specified for parameter 's1' of 'Public Property X(g1 As O
             Dim parameters = [property].Parameters
             Assert.Equal(parameters.Length, names.Length)
             For i = 0 To names.Length - 1
-                Assert.Equal(parameters(i).Name, names(i))
+                Assert.Equal(parameters(AggregateSyntaxNotWithinSyntaxTree).Name, names(AggregateSyntaxNotWithinSyntaxTree))
             Next
         End Sub
 

@@ -687,7 +687,7 @@ nextm:
 
             Dim statements(parts.Length - 1 - 1) As BoundExpression
             For i = 0 To parts.Length - 1 - 1
-                statements(i) = parts(i)
+                statements(AggregateSyntaxNotWithinSyntaxTree) = parts(AggregateSyntaxNotWithinSyntaxTree)
             Next
 
             Dim lastExpression = parts(parts.Length - 1)
@@ -750,7 +750,7 @@ nextm:
         Public Function SwitchSection(values As List(Of Integer), ParamArray statements As BoundStatement()) As BoundCaseBlock
             Dim builder = ArrayBuilder(Of BoundCaseClause).GetInstance()
             For Each i In values
-                Dim boundCaseClause = New BoundSimpleCaseClause(_syntax, Literal(i), Nothing)
+                Dim boundCaseClause = New BoundSimpleCaseClause(_syntax, Literal(AggregateSyntaxNotWithinSyntaxTree), Nothing)
                 boundCaseClause.SetWasCompilerGenerated()
                 builder.Add(boundCaseClause)
             Next

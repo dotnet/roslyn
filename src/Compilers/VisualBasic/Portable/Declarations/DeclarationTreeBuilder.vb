@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             For i = fullName.Length - 2 To 0 Step -1
                 decl = New SingleNamespaceDeclaration(
-                    name:=fullName(i),
+                    name:=fullName(AggregateSyntaxNotWithinSyntaxTree),
                     hasImports:=False,
                     syntaxReference:=parentReference,
                     nameLocation:=parentReference.GetLocation(),
@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' treat all root namespace parts as implicitly escaped.
                 ' a root namespace with a name "global" will actually create "Global.[global]"
                 ns = New SingleNamespaceDeclaration(
-                    name:=UnescapeIdentifier(_rootNamespace(i)),
+                    name:=UnescapeIdentifier(_rootNamespace(AggregateSyntaxNotWithinSyntaxTree)),
                     hasImports:=True,
                     syntaxReference:=syntaxReference,
                     nameLocation:=nameLocation,
@@ -444,7 +444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim nestedTypes As ArrayBuilder(Of Integer) = typeEntry.NestedTypes
                     If nestedTypes IsNot Nothing Then
                         For i = 0 To nestedTypes.Count - 1
-                            childrenBuilder.Add(typeStack(nestedTypes(i)).TypeDeclaration)
+                            childrenBuilder.Add(typeStack(nestedTypes(AggregateSyntaxNotWithinSyntaxTree)).TypeDeclaration)
                         Next
                         nestedTypes.Free()
                     End If

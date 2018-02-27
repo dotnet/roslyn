@@ -336,9 +336,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' (reporting error on Object rather than C in C = A(Of Object) for instance).
 
             For i = 0 To memberImports.Length - 1
-                Dim type = TryCast(memberImports(i).NamespaceOrType, TypeSymbol)
+                Dim type = TryCast(memberImports(AggregateSyntaxNotWithinSyntaxTree).NamespaceOrType, TypeSymbol)
                 If type IsNot Nothing Then
-                    Dim location = memberImportsSyntax(i).GetLocation()
+                    Dim location = memberImportsSyntax(AggregateSyntaxNotWithinSyntaxTree).GetLocation()
                     type.CheckAllConstraints(location, diagnostics)
                 End If
             Next

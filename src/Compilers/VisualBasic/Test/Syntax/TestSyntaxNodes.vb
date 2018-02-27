@@ -223,15 +223,15 @@ End Class
 
                 For i = 0 To list.Count - 1
                     ' Make sure children's full spans are adjacent
-                    If i > 0 Then
-                        Assert.Equal(list(i - 1).FullSpan.End, list(i).FullSpan.Start)
+                    If AggregateSyntaxNotWithinSyntaxTree > 0 Then
+                        Assert.Equal(list(AggregateSyntaxNotWithinSyntaxTree - 1).FullSpan.End, list(AggregateSyntaxNotWithinSyntaxTree).FullSpan.Start)
                     End If
-                    If i < list.Count - 1 Then
-                        Assert.Equal(list(i).FullSpan.End, list(i + 1).FullSpan.Start)
+                    If AggregateSyntaxNotWithinSyntaxTree < list.Count - 1 Then
+                        Assert.Equal(list(AggregateSyntaxNotWithinSyntaxTree).FullSpan.End, list(AggregateSyntaxNotWithinSyntaxTree + 1).FullSpan.Start)
                     End If
 
                     ' Recursively verify
-                    VerifyAllSpans(list(i))
+                    VerifyAllSpans(list(AggregateSyntaxNotWithinSyntaxTree))
                 Next
             End If
         End Sub
@@ -246,10 +246,10 @@ End Class
                 For i = 0 To list.Count - 2
                     ' Make sure children's full spans are adjacent
 
-                    Assert.Equal(list(i).FullSpan.End, list(i + 1).FullSpan.Start)
+                    Assert.Equal(list(AggregateSyntaxNotWithinSyntaxTree).FullSpan.End, list(AggregateSyntaxNotWithinSyntaxTree + 1).FullSpan.Start)
 
                     ' Recursively verify
-                    Dim node = list(i)
+                    Dim node = list(AggregateSyntaxNotWithinSyntaxTree)
                     If node.IsNode Then
                         VerifyAllSpans(node.AsNode)
                     End If
@@ -267,16 +267,16 @@ End Class
 
                 For i = 0 To list.Count - 1
                     ' Make sure children's full spans are adjacent
-                    If i > 0 Then
-                        Assert.Equal(list(i - 1).FullSpan.End, list(i).FullSpan.Start)
+                    If AggregateSyntaxNotWithinSyntaxTree > 0 Then
+                        Assert.Equal(list(AggregateSyntaxNotWithinSyntaxTree - 1).FullSpan.End, list(AggregateSyntaxNotWithinSyntaxTree).FullSpan.Start)
                     End If
-                    If i < list.Count - 1 Then
-                        Assert.Equal(list(i).FullSpan.End, list(i + 1).FullSpan.Start)
+                    If AggregateSyntaxNotWithinSyntaxTree < list.Count - 1 Then
+                        Assert.Equal(list(AggregateSyntaxNotWithinSyntaxTree).FullSpan.End, list(AggregateSyntaxNotWithinSyntaxTree + 1).FullSpan.Start)
                     End If
 
                     ' Recursively verify
-                    If list(i).IsNode Then
-                        VerifyAllSpans(list(i).AsNode)
+                    If list(AggregateSyntaxNotWithinSyntaxTree).IsNode Then
+                        VerifyAllSpans(list(AggregateSyntaxNotWithinSyntaxTree).AsNode)
                     End If
                 Next
             End If
@@ -291,11 +291,11 @@ End Class
 
                 For i = 0 To list.Count - 1
                     ' Make sure children's full spans are adjacent
-                    If i > 0 Then
-                        Assert.Equal(list(i - 1).FullSpan.End, list(i).FullSpan.Start)
+                    If AggregateSyntaxNotWithinSyntaxTree > 0 Then
+                        Assert.Equal(list(AggregateSyntaxNotWithinSyntaxTree - 1).FullSpan.End, list(AggregateSyntaxNotWithinSyntaxTree).FullSpan.Start)
                     End If
-                    If i < list.Count - 1 Then
-                        Assert.Equal(list(i).FullSpan.End, list(i + 1).FullSpan.Start)
+                    If AggregateSyntaxNotWithinSyntaxTree < list.Count - 1 Then
+                        Assert.Equal(list(AggregateSyntaxNotWithinSyntaxTree).FullSpan.End, list(AggregateSyntaxNotWithinSyntaxTree + 1).FullSpan.Start)
                     End If
                 Next
             End If
@@ -311,7 +311,7 @@ End Class
                 For i = 0 To list.Count - 2
                     ' Make sure children's full spans are adjacent
 
-                    Assert.Equal(list(i).FullSpan.End, list(i + 1).FullSpan.Start)
+                    Assert.Equal(list(AggregateSyntaxNotWithinSyntaxTree).FullSpan.End, list(AggregateSyntaxNotWithinSyntaxTree + 1).FullSpan.Start)
 
                 Next
             End If
@@ -949,9 +949,9 @@ End Class
             errorList.Sort(AddressOf CompareDiagnostics)
 
             For i = 0 To errorList.Count - 1
-                Assert.True(expectedSpans(i) =
-                            errorList(i).Location.SourceSpan, "Error " & i & " have different spans")
-                Assert.True(expectedErrorCodes(i) = errorList(i).Code, "Error " & i & " have different codes")
+                Assert.True(expectedSpans(AggregateSyntaxNotWithinSyntaxTree) =
+                            errorList(AggregateSyntaxNotWithinSyntaxTree).Location.SourceSpan, "Error " & AggregateSyntaxNotWithinSyntaxTree & " have different spans")
+                Assert.True(expectedErrorCodes(AggregateSyntaxNotWithinSyntaxTree) = errorList(AggregateSyntaxNotWithinSyntaxTree).Code, "Error " & AggregateSyntaxNotWithinSyntaxTree & " have different codes")
             Next
 
             Assert.Equal(expectedErrorCodes.Length, errorList.Count)
@@ -971,9 +971,9 @@ End Class
             errorList.Sort(AddressOf CompareDiagnostics)
 
             For i = 0 To errorList.Count - 1
-                Assert.True(expectedSpans(i) =
-                            errorList(i).Location.SourceSpan, "Error " & i & " have different spans")
-                Assert.True(expectedErrorCodes(i) = errorList(i).Code, "Error " & i & " have different codes")
+                Assert.True(expectedSpans(AggregateSyntaxNotWithinSyntaxTree) =
+                            errorList(AggregateSyntaxNotWithinSyntaxTree).Location.SourceSpan, "Error " & AggregateSyntaxNotWithinSyntaxTree & " have different spans")
+                Assert.True(expectedErrorCodes(AggregateSyntaxNotWithinSyntaxTree) = errorList(AggregateSyntaxNotWithinSyntaxTree).Code, "Error " & AggregateSyntaxNotWithinSyntaxTree & " have different codes")
             Next
 
             Assert.Equal(expectedErrorCodes.Length, errorList.Count)
@@ -2109,7 +2109,7 @@ End Class
             ' Descendant nodes contain EOF
             Assert.Equal(tokens.Count - 1, list.Count)
             For i = 0 To list.Count - 1
-                Assert.Equal(list(i), tokens(i))
+                Assert.Equal(list(AggregateSyntaxNotWithinSyntaxTree), tokens(AggregateSyntaxNotWithinSyntaxTree))
             Next
 
             ' Verify that EOF is returned when calling with Any predicate.

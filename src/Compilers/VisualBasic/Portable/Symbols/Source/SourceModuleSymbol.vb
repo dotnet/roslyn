@@ -463,18 +463,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If Not memberImports.IsDefault Then
                 For i = 0 To memberImports.Length - 1
-                    Dim type = TryCast(memberImports(i).NamespaceOrType, TypeSymbol)
+                    Dim type = TryCast(memberImports(AggregateSyntaxNotWithinSyntaxTree).NamespaceOrType, TypeSymbol)
                     If type IsNot Nothing Then
-                        ValidateImport(type, memberImportsInfo(i), diagnostics)
+                        ValidateImport(type, memberImportsInfo(AggregateSyntaxNotWithinSyntaxTree), diagnostics)
                     End If
                 Next
             End If
 
             If Not aliasImports.IsDefault Then
                 For i = 0 To aliasImports.Length - 1
-                    Dim type = TryCast(aliasImports(i).Alias.Target, TypeSymbol)
+                    Dim type = TryCast(aliasImports(AggregateSyntaxNotWithinSyntaxTree).Alias.Target, TypeSymbol)
                     If type IsNot Nothing Then
-                        ValidateImport(type, aliasImportsInfo(i), diagnostics)
+                        ValidateImport(type, aliasImportsInfo(AggregateSyntaxNotWithinSyntaxTree), diagnostics)
                     End If
                 Next
             End If

@@ -124,9 +124,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Dim parameters As ImmutableArray(Of ParameterSymbol) = candidateMethod.Parameters
                         For i = 0 To signatureParameterCount - 1
-                            Dim parameter As ParameterSymbol = parameters(i)
-                            If parameter.IsByRef <> signatureTypes(i).IsByRef OrElse
-                                    Not parameter.Type.IsSameTypeIgnoringAll(signatureTypes(i).Type) Then
+                            Dim parameter As ParameterSymbol = parameters(AggregateSyntaxNotWithinSyntaxTree)
+                            If parameter.IsByRef <> signatureTypes(AggregateSyntaxNotWithinSyntaxTree).IsByRef OrElse
+                                    Not parameter.Type.IsSameTypeIgnoringAll(signatureTypes(AggregateSyntaxNotWithinSyntaxTree).Type) Then
 
                                 ' Signature does not match
                                 Exit Select
@@ -156,9 +156,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         For i = 0 To signatureParameterCount - 1
-                            Dim parameter As ParameterSymbol = parameters(i)
-                            If parameter.IsByRef <> signatureTypes(i).IsByRef OrElse
-                                    Not parameter.Type.IsSameTypeIgnoringAll(signatureTypes(i).Type) Then
+                            Dim parameter As ParameterSymbol = parameters(AggregateSyntaxNotWithinSyntaxTree)
+                            If parameter.IsByRef <> signatureTypes(AggregateSyntaxNotWithinSyntaxTree).IsByRef OrElse
+                                    Not parameter.Type.IsSameTypeIgnoringAll(signatureTypes(AggregateSyntaxNotWithinSyntaxTree).Type) Then
 
                                 ' Signature does not match
                                 Exit Select
@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim arguments As SeparatedSyntaxList(Of TypeSyntax) = genericName.TypeArgumentList.Arguments
 
                     For i = 0 To arguments.Count - 1
-                        Dim typeSyntax As TypeSyntax = arguments(i)
+                        Dim typeSyntax As TypeSyntax = arguments(AggregateSyntaxNotWithinSyntaxTree)
 
                         Select Case typeSyntax.Kind
                             Case SyntaxKind.IdentifierName
@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                 ' As we go 'left-to-right' don't override right-most parameters with the same name
                                 If Not typeParameters.ContainsKey(typeParameterName) Then
-                                    typeParameters(typeParameterName) = New CrefTypeParameterSymbol(i, typeParameterName, identifier)
+                                    typeParameters(typeParameterName) = New CrefTypeParameterSymbol(AggregateSyntaxNotWithinSyntaxTree, typeParameterName, identifier)
                                 End If
 
                             Case Else
@@ -831,37 +831,37 @@ lAgain:
             Dim typeParameterSymbols(arguments.Count - 1) As TypeSymbol
 
             For i = 0 To arguments.Count - 1
-                Dim typeSyntax As TypeSyntax = arguments(i)
+                Dim typeSyntax As TypeSyntax = arguments(AggregateSyntaxNotWithinSyntaxTree)
                 Dim created As CrefTypeParameterSymbol = Nothing
 
                 Select Case typeSyntax.Kind
                     Case SyntaxKind.IdentifierName
                         Dim identifier = DirectCast(typeSyntax, IdentifierNameSyntax)
-                        created = New CrefTypeParameterSymbol(i, identifier.Identifier.ValueText, identifier)
-                        typeParameterSymbols(i) = created
+                        created = New CrefTypeParameterSymbol(AggregateSyntaxNotWithinSyntaxTree, identifier.Identifier.ValueText, identifier)
+                        typeParameterSymbols(AggregateSyntaxNotWithinSyntaxTree) = created
 
                     Case Else
                         ' An error case
-                        created = New CrefTypeParameterSymbol(i, StringConstants.NamedSymbolErrorName, typeSyntax)
-                        typeParameterSymbols(i) = created
+                        created = New CrefTypeParameterSymbol(AggregateSyntaxNotWithinSyntaxTree, StringConstants.NamedSymbolErrorName, typeSyntax)
+                        typeParameterSymbols(AggregateSyntaxNotWithinSyntaxTree) = created
                 End Select
 
                 typeParameters(created.Name) = created
             Next
 
             For i = 0 To symbols.Count - 1
-                Dim symbol As Symbol = symbols(i)
+                Dim symbol As Symbol = symbols(AggregateSyntaxNotWithinSyntaxTree)
 lAgain:
                 Select Case symbol.Kind
                     Case SymbolKind.Method
                         Dim method = DirectCast(symbol, MethodSymbol)
                         Debug.Assert(method.Arity = genericName.TypeArgumentList.Arguments.Count)
-                        symbols(i) = method.Construct(typeParameterSymbols.AsImmutableOrNull.As(Of TypeSymbol))
+                        symbols(AggregateSyntaxNotWithinSyntaxTree) = method.Construct(typeParameterSymbols.AsImmutableOrNull.As(Of TypeSymbol))
 
                     Case SymbolKind.NamedType, SymbolKind.ErrorType
                         Dim type = DirectCast(symbol, NamedTypeSymbol)
                         Debug.Assert(type.Arity = genericName.TypeArgumentList.Arguments.Count)
-                        symbols(i) = type.Construct(typeParameterSymbols.AsImmutableOrNull.As(Of TypeSymbol))
+                        symbols(AggregateSyntaxNotWithinSyntaxTree) = type.Construct(typeParameterSymbols.AsImmutableOrNull.As(Of TypeSymbol))
 
                     Case SymbolKind.Alias
                         symbol = DirectCast(symbol, AliasSymbol).Target
@@ -1111,7 +1111,7 @@ lAgain:
                 Case SyntaxKind.GenericName
                     Dim genericArguments = DirectCast(name, GenericNameSyntax).TypeArgumentList.Arguments
                     For i = 0 To genericArguments.Count - 1
-                        If genericArguments(i).Kind <> SyntaxKind.IdentifierName Then
+                        If genericArguments(AggregateSyntaxNotWithinSyntaxTree).Kind <> SyntaxKind.IdentifierName Then
                             Return True
                         End If
                     Next

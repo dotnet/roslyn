@@ -1299,7 +1299,7 @@ Lambda(
                 Me.Type = type
                 builder.Append(Keyword).Append(" ").Append(Me.Type).Append("{")
                 For i = 0 To _operators.Count - 1
-                    builder.Append(If(i > 0, ", ", "")).Append(_operators(i).AssignTypes(typeFrom, typeTo))
+                    builder.Append(If(AggregateSyntaxNotWithinSyntaxTree > 0, ", ", "")).Append(_operators(AggregateSyntaxNotWithinSyntaxTree).AssignTypes(typeFrom, typeTo))
                 Next
                 builder.Append("}")
                 Return builder.ToString()
@@ -1316,9 +1316,9 @@ Lambda(
                        New OperatorDescriptor With {.IsWidenning = Not isNarrowing, .TypeFromLifted = True, .TypeToLifted = True}}
 
             For i = 0 To ops.Count - 1
-                TestConversion_UserDefinedTypes_OneOp(isNarrowing, type1, type2, ops(i), list)
-                For j = i + 1 To ops.Count - 1
-                    TestConversion_UserDefinedTypes_TwoOps(isNarrowing, type1, type2, ops(i), ops(j), list)
+                TestConversion_UserDefinedTypes_OneOp(isNarrowing, type1, type2, ops(AggregateSyntaxNotWithinSyntaxTree), list)
+                For j = AggregateSyntaxNotWithinSyntaxTree + 1 To ops.Count - 1
+                    TestConversion_UserDefinedTypes_TwoOps(isNarrowing, type1, type2, ops(AggregateSyntaxNotWithinSyntaxTree), ops(j), list)
                 Next
             Next
         End Sub

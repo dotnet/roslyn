@@ -119,10 +119,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Fix type arguments to be of the right length.
                 Dim newTypeArguments(0 To genericType.Arity - 1) As TypeSymbol
                 For i = 0 To genericType.Arity - 1
-                    If i < typeArguments.Length Then
-                        newTypeArguments(i) = typeArguments(i)
+                    If AggregateSyntaxNotWithinSyntaxTree < typeArguments.Length Then
+                        newTypeArguments(AggregateSyntaxNotWithinSyntaxTree) = typeArguments(AggregateSyntaxNotWithinSyntaxTree)
                     Else
-                        newTypeArguments(i) = genericType.TypeParameters(i).OriginalDefinition
+                        newTypeArguments(AggregateSyntaxNotWithinSyntaxTree) = genericType.TypeParameters(AggregateSyntaxNotWithinSyntaxTree).OriginalDefinition
                     End If
                 Next
                 typeArguments = newTypeArguments.AsImmutableOrNull

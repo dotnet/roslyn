@@ -1123,7 +1123,7 @@ End Module
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
             For Each i In {1, 4}
-                Dim pos1 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i) - 1
+                Dim pos1 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree) - 1
 
                 Dim names1 = semanticModel.LookupNames(pos1)
 
@@ -1137,7 +1137,7 @@ End Module
             Next
 
             For Each i In {2, 3}
-                Dim pos2 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos2 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names2 = semanticModel.LookupNames(pos2)
 
@@ -1151,7 +1151,7 @@ End Module
             Next
 
             For Each i In {5, 7, 8, 11, 12, 18}
-                Dim pos5 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i) - 1
+                Dim pos5 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree) - 1
 
                 Dim names5 = semanticModel.LookupNames(pos5)
 
@@ -1166,7 +1166,7 @@ End Module
             Next
 
             For Each i In {6, 9, 10, 13, 14, 15, 16, 17}
-                Dim pos6 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos6 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names6 = semanticModel.LookupNames(pos6)
 
@@ -1181,7 +1181,7 @@ End Module
             Next
 
             For Each i In {19, 21}
-                Dim pos19 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos19 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names19 = semanticModel.LookupNames(pos19)
 
@@ -1324,7 +1324,7 @@ End Module
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
             For Each i In {1, 4}
-                Dim pos1 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i) - 1
+                Dim pos1 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree) - 1
 
                 Dim names1 = semanticModel.LookupNames(pos1)
 
@@ -1338,7 +1338,7 @@ End Module
             Next
 
             For Each i In {2, 3}
-                Dim pos2 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos2 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names2 = semanticModel.LookupNames(pos2)
 
@@ -1352,7 +1352,7 @@ End Module
             Next
 
             For Each i In {5, 7, 8, 11, 12}
-                Dim pos5 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i) - 1
+                Dim pos5 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree) - 1
 
                 Dim names5 = semanticModel.LookupNames(pos5)
 
@@ -1367,7 +1367,7 @@ End Module
             Next
 
             For Each i In {6, 9, 10, 13, 14}
-                Dim pos6 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos6 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names6 = semanticModel.LookupNames(pos6)
 
@@ -1382,7 +1382,7 @@ End Module
             Next
 
             For Each i In {19, 21}
-                Dim pos19 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos19 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names19 = semanticModel.LookupNames(pos19)
 
@@ -1419,7 +1419,7 @@ End Module
             End If
 
             For Each i In {22, 24}
-                Dim pos22 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos22 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names22 = semanticModel.LookupNames(pos22)
 
@@ -1440,7 +1440,7 @@ End Module
             Next
 
             For Each i In {23, 25}
-                Dim pos23 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos23 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names23 = semanticModel.LookupNames(pos23)
 
@@ -1599,7 +1599,7 @@ End Module
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
             For Each i In {1, 2}
-                Dim pos1 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i) - 1
+                Dim pos1 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree) - 1
 
                 Dim names1 = semanticModel.LookupNames(pos1)
 
@@ -1612,7 +1612,7 @@ End Module
             Next
 
             For Each i In {3, 4, 5}
-                Dim pos3 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos3 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names3 = semanticModel.LookupNames(pos3)
 
@@ -1625,7 +1625,7 @@ End Module
             Next
 
             For Each i In {6, 7}
-                Dim pos6 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i) - 1
+                Dim pos6 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree) - 1
 
                 Dim names6 = semanticModel.LookupNames(pos6)
 
@@ -1639,7 +1639,7 @@ End Module
             Next
 
             For Each i In {8, 9, 10, 11, 12}
-                Dim pos8 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos8 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names8 = semanticModel.LookupNames(pos8)
 
@@ -1653,7 +1653,7 @@ End Module
             Next
 
             For Each i In {13, 14, 16}
-                Dim pos13 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos13 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names13 = semanticModel.LookupNames(pos13)
 
@@ -1667,7 +1667,7 @@ End Module
             Next
 
             For Each i In {15, 17, 18, 19, 20}
-                Dim pos15 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos15 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names15 = semanticModel.LookupNames(pos15)
 
@@ -1751,7 +1751,7 @@ End Module
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
             For Each i In {1, 2}
-                Dim pos1 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i) - 1
+                Dim pos1 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree) - 1
 
                 Dim names1 = semanticModel.LookupNames(pos1)
 
@@ -1766,7 +1766,7 @@ End Module
             Next
 
             For Each i In {3, 4, 5}
-                Dim pos3 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos3 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names3 = semanticModel.LookupNames(pos3)
 
@@ -1781,7 +1781,7 @@ End Module
             Next
 
             For Each i In {6, 7}
-                Dim pos6 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i) - 1
+                Dim pos6 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree) - 1
 
                 Dim names6 = semanticModel.LookupNames(pos6)
 
@@ -1797,7 +1797,7 @@ End Module
             Next
 
             For Each i In {8, 9, 10, 11, 12}
-                Dim pos8 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos8 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names8 = semanticModel.LookupNames(pos8)
 
@@ -1813,7 +1813,7 @@ End Module
             Next
 
             For Each i In {13, 14, 16}
-                Dim pos13 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos13 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names13 = semanticModel.LookupNames(pos13)
 
@@ -1829,7 +1829,7 @@ End Module
             Next
 
             For Each i In {15, 17, 18, 19, 20}
-                Dim pos15 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, i)
+                Dim pos15 As Integer = CompilationUtils.FindBindingTextPosition(compilation, "a.vb", Nothing, AggregateSyntaxNotWithinSyntaxTree)
 
                 Dim names15 = semanticModel.LookupNames(pos15)
 

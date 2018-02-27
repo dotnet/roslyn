@@ -2824,7 +2824,7 @@ Module Module1
          Dim c = New Customer With { _]]>.Value)
 
         For i = 0 To depth
-            Dim line = String.Format("Dim x{0} = Sub()", i)
+            Dim line = String.Format("Dim x{0} = Sub()", AggregateSyntaxNotWithinSyntaxTree)
             builder.AppendLine(line)
         Next
 
@@ -2881,7 +2881,7 @@ End Module]]>.Value)
         Dim builder As New StringBuilder()
         builder.AppendLine("Sub()")
         For i = 0 To depth
-            Dim line = String.Format("Dim x{0} = Sub()", i)
+            Dim line = String.Format("Dim x{0} = Sub()", AggregateSyntaxNotWithinSyntaxTree)
             builder.AppendLine(line)
         Next
 
@@ -2902,7 +2902,7 @@ End Module]]>.Value)
         Dim builder As New StringBuilder()
         builder.AppendLine("Dim c = Sub()")
         For i = 0 To depth
-            Dim line = String.Format("Dim x{0} = Sub()", i)
+            Dim line = String.Format("Dim x{0} = Sub()", AggregateSyntaxNotWithinSyntaxTree)
             builder.AppendLine(line)
         Next
 

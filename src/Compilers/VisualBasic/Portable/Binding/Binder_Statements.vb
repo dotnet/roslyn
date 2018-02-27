@@ -998,7 +998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf asClauseOpt Is Nothing OrElse asClauseOpt.Kind <> SyntaxKind.AsNewClause Then
                     ' Dim x,y,z as integer
                     For i = 0 To names.Count - 1
-                        Dim var = BindVariableDeclaration(varDecl, names(i), asClauseOpt, If(i = names.Count - 1, initializerOpt, Nothing), diagnostics)
+                        Dim var = BindVariableDeclaration(varDecl, names(AggregateSyntaxNotWithinSyntaxTree), asClauseOpt, If(AggregateSyntaxNotWithinSyntaxTree = names.Count - 1, initializerOpt, Nothing), diagnostics)
                         builder.Add(var)
                     Next
                 Else
@@ -1007,7 +1007,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim locals = ArrayBuilder(Of BoundLocalDeclaration).GetInstance(nameCount)
                     For i = 0 To nameCount - 1
                         ' Pass the asClause to each local declaration so local knows its type and for error reporting.
-                        Dim var = BindVariableDeclaration(varDecl, names(i), asClauseOpt, Nothing, diagnostics, i > 0)
+                        Dim var = BindVariableDeclaration(varDecl, names(AggregateSyntaxNotWithinSyntaxTree), asClauseOpt, Nothing, diagnostics, AggregateSyntaxNotWithinSyntaxTree > 0)
                         locals.Add(var)
                     Next
                     ' At this point all of the local declarations have an initializer. Remove the initializers from the individual local declarations
@@ -1017,8 +1017,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     locals(0) = var0.Update(var0.LocalSymbol, Nothing, var0.IdentifierInitializerOpt, True)
 #If DEBUG Then
                     For i = 0 To names.Count - 1
-                        Debug.Assert(locals(i).InitializedByAsNew)
-                        Debug.Assert(locals(i).InitializerOpt Is Nothing OrElse locals(i).InitializerOpt.Kind = BoundKind.BadExpression OrElse locals(i).InitializerOpt.Kind = BoundKind.ArrayCreation)
+                        Debug.Assert(locals(AggregateSyntaxNotWithinSyntaxTree).InitializedByAsNew)
+                        Debug.Assert(locals(AggregateSyntaxNotWithinSyntaxTree).InitializerOpt Is Nothing OrElse locals(AggregateSyntaxNotWithinSyntaxTree).InitializerOpt.Kind = BoundKind.BadExpression OrElse locals(AggregateSyntaxNotWithinSyntaxTree).InitializerOpt.Kind = BoundKind.ArrayCreation)
                     Next
 #End If
 
@@ -2028,8 +2028,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim locals As ArrayBuilder(Of LocalSymbol) = Nothing
 
             For i = 0 To boundStatements.Length - 1
-                Dim boundStatement As BoundStatement = stmtListBinder.BindStatement(stmtList(i), diagnostics)
-                boundStatements(i) = boundStatement
+                Dim boundStatement As BoundStatement = stmtListBinder.BindStatement(stmtList(AggregateSyntaxNotWithinSyntaxTree), diagnostics)
+                boundStatements(AggregateSyntaxNotWithinSyntaxTree) = boundStatement
 
                 Select Case boundStatement.Kind
                     Case BoundKind.LocalDeclaration
@@ -2046,7 +2046,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             DeclareLocal(locals, localDecl)
                         Next
                 End Select
-            Next i
+            Next AggregateSyntaxNotWithinSyntaxTree
 
             If locals Is Nothing Then
                 Return New BoundBlock(syntax, stmtList, ImmutableArray(Of LocalSymbol).Empty, boundStatements.AsImmutableOrNull())
@@ -2733,7 +2733,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             blocks.Add(BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated())
 
             For i = 0 To node.ElseIfBlocks.Count - 1
-                Dim elseIfBlock = node.ElseIfBlocks(i)
+                Dim elseIfBlock = node.ElseIfBlocks(AggregateSyntaxNotWithinSyntaxTree)
                 conditions.Add(BindBooleanExpression(elseIfBlock.ElseIfStatement.Condition, diagnostics))
                 blocks.Add(BindBlock(elseIfBlock, elseIfBlock.Statements, diagnostics).MakeCompilerGenerated())
             Next
@@ -2746,13 +2746,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For i = conditions.Count - 1 To 0 Step -1
                 Dim syntax As VisualBasicSyntaxNode
-                If i = 0 Then
+                If AggregateSyntaxNotWithinSyntaxTree = 0 Then
                     syntax = node
                 Else
-                    syntax = node.ElseIfBlocks(i - 1)
+                    syntax = node.ElseIfBlocks(AggregateSyntaxNotWithinSyntaxTree - 1)
                 End If
 
-                currentAlternative = New BoundIfStatement(syntax, conditions(i), blocks(i), currentAlternative)
+                currentAlternative = New BoundIfStatement(syntax, conditions(AggregateSyntaxNotWithinSyntaxTree), blocks(AggregateSyntaxNotWithinSyntaxTree), currentAlternative)
             Next
 
             blocks.Free()

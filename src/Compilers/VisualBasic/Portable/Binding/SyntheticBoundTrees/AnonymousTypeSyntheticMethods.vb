@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim properties = Me.AnonymousType.Properties
                 Dim names(properties.Length - 1) As String
                 For i = 0 To properties.Length - 1
-                    names(i) = properties(i).Name
+                    names(AggregateSyntaxNotWithinSyntaxTree) = properties(AggregateSyntaxNotWithinSyntaxTree).Name
                 Next
                 Dim hashBase As Integer = CInt(CRC32.ComputeCRC32(names))
 #End If

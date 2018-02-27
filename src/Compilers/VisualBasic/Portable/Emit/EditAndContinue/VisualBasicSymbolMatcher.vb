@@ -310,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                 ' match non-manifest module by name:
                 For i = 1 To otherAssembly.Modules.Length - 1
-                    Dim otherModule = otherAssembly.Modules(i)
+                    Dim otherModule = otherAssembly.Modules(AggregateSyntaxNotWithinSyntaxTree)
 
                     ' use case sensitive comparison -- modules whose names differ in casing are considered distinct
                     If StringComparer.Ordinal.Equals(otherModule.Name, [module].Name) Then

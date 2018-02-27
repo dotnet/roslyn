@@ -516,8 +516,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim targetLocals = newBody.Locals
                 Debug.Assert(originalLocals.Length = targetLocals.Length)
                 For i = 0 To originalLocals.Length - 1
-                    Dim originalLocal = originalLocals(i)
-                    Dim targetLocal = targetLocals(i)
+                    Dim originalLocal = originalLocals(AggregateSyntaxNotWithinSyntaxTree)
+                    Dim targetLocal = targetLocals(AggregateSyntaxNotWithinSyntaxTree)
                     Debug.Assert(TypeOf originalLocal IsNot EELocalSymbol OrElse
                         DirectCast(originalLocal, EELocalSymbol).Ordinal = DirectCast(targetLocal, EELocalSymbol).Ordinal)
                     localMap.Add(originalLocal, targetLocal)

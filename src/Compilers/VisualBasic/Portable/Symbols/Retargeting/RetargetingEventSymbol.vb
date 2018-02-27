@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Dim builder = ArrayBuilder(Of EventSymbol).GetInstance()
 
             For i = 0 To impls.Length - 1
-                Dim retargeted = Me.RetargetingModule.RetargetingTranslator.RetargetImplementedEvent(impls(i))
+                Dim retargeted = Me.RetargetingModule.RetargetingTranslator.RetargetImplementedEvent(impls(AggregateSyntaxNotWithinSyntaxTree))
                 If retargeted IsNot Nothing Then
                     builder.Add(retargeted)
                 End If

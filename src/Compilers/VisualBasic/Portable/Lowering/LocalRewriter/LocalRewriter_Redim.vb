@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 Dim statements = New BoundStatement(node.Clauses.Length - 1) {}
                 For i = 0 To node.Clauses.Length - 1
-                    statements(i) = DirectCast(Me.Visit(node.Clauses(i)), BoundStatement)
+                    statements(AggregateSyntaxNotWithinSyntaxTree) = DirectCast(Me.Visit(node.Clauses(AggregateSyntaxNotWithinSyntaxTree)), BoundStatement)
                 Next
                 Return New BoundStatementList(node.Syntax, statements.AsImmutableOrNull())
             End If

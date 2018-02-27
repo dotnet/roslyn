@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim errors = DirectCast(node, Syntax.InternalSyntax.VisualBasicSyntaxNode).GetDiagnostics
                         If errors IsNot Nothing Then
                             For i = 0 To errors.Count - 1
-                                Dim greenError = errors(i)
+                                Dim greenError = errors(AggregateSyntaxNotWithinSyntaxTree)
                                 Debug.Assert(greenError IsNot Nothing)
                                 errorList.Add(CreateSyntaxError(tree, nodeOrToken, greenError))
                             Next
@@ -264,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim errors = DirectCast(n.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode).GetDiagnostics
                         If errors IsNot Nothing Then
                             For i = 0 To errors.Length - 1
-                                Dim e = errors(i)
+                                Dim e = errors(AggregateSyntaxNotWithinSyntaxTree)
                                 errorList.Add(CreateSyntaxError(tree, n, e))
                             Next
                         End If

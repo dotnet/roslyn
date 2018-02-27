@@ -2834,7 +2834,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim current = TryCast(Me._compilation.GlobalNamespace, NamespaceOrTypeSymbol)
                 For i = 1 To spine.Count - 1
-                    current = GetSymbol(current, spine(i))
+                    current = GetSymbol(current, spine(AggregateSyntaxNotWithinSyntaxTree))
                 Next
 
                 Return current

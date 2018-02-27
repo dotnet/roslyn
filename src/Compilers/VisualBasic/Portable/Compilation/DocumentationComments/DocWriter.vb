@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ElseIf Me._writer IsNot Nothing Then
                         Me._writer.Write(MakeIndent(IndentDepth))
                         For i = 0 To length - 1
-                            Me._writer.Write(message(start + i))
+                            Me._writer.Write(message(start + AggregateSyntaxNotWithinSyntaxTree))
                         Next
                         If appendNewLine Then
                             Me._writer.WriteLine()

@@ -857,7 +857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim firstIndex = _genericParameterHandles.Count - Arity
 
                 For i = 0 To ownedParams.Length - 1
-                    ownedParams(i) = New PETypeParameterSymbol(moduleSymbol, Me, CUShort(i), _genericParameterHandles(firstIndex + i))
+                    ownedParams(AggregateSyntaxNotWithinSyntaxTree) = New PETypeParameterSymbol(moduleSymbol, Me, CUShort(AggregateSyntaxNotWithinSyntaxTree), _genericParameterHandles(firstIndex + AggregateSyntaxNotWithinSyntaxTree))
                 Next
 
                 ImmutableInterlocked.InterlockedCompareExchange(_lazyTypeParameters,
@@ -1355,8 +1355,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 IndexedTypeParameterSymbol.Take(nestedTypeParameters.Length).As(Of TypeSymbol))
 
             For i = 0 To n - 1
-                Dim containingTypeParameter = containingTypeParameters(i)
-                Dim nestedTypeParameter = nestedTypeParameters(i)
+                Dim containingTypeParameter = containingTypeParameters(AggregateSyntaxNotWithinSyntaxTree)
+                Dim nestedTypeParameter = nestedTypeParameters(AggregateSyntaxNotWithinSyntaxTree)
                 If Not MethodSignatureComparer.HaveSameConstraints(
                     containingTypeParameter,
                     containingTypeMap,
@@ -1489,8 +1489,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Shared Function GetIndexOfFirstMember(members As ImmutableArray(Of Symbol), kind As SymbolKind) As Integer
             Dim n = members.Length
             For i = 0 To n - 1
-                If members(i).Kind = kind Then
-                    Return i
+                If members(AggregateSyntaxNotWithinSyntaxTree).Kind = kind Then
+                    Return AggregateSyntaxNotWithinSyntaxTree
                 End If
             Next
             Return n
@@ -1506,7 +1506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
             Dim n = members.Length
             For i = offset To n - 1
-                Dim member = members(i)
+                Dim member = members(AggregateSyntaxNotWithinSyntaxTree)
                 If member.Kind <> kind Then
                     Return
                 End If

@@ -841,7 +841,7 @@ Done:
             Debug.Assert(typeParameters2.Length = arity)
 
             For i = 0 To arity - 1
-                If Not HaveSameConstraints(typeParameters1(i), typeSubstitution1, typeParameters2(i), typeSubstitution2) Then
+                If Not HaveSameConstraints(typeParameters1(AggregateSyntaxNotWithinSyntaxTree), typeSubstitution1, typeParameters2(AggregateSyntaxNotWithinSyntaxTree), typeSubstitution2) Then
                     Return False
                 End If
             Next

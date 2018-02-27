@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
             Dim a(arity - 1) As TypeSymbol
 
             For i = 0 To a.Length - 1
-                a(i) = ErrorTypeSymbol.UnknownResultType
+                a(AggregateSyntaxNotWithinSyntaxTree) = ErrorTypeSymbol.UnknownResultType
             Next
 
             Return a

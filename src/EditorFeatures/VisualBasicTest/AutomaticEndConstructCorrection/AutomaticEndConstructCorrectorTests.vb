@@ -365,10 +365,10 @@ End Class</code>.Value
                 End If
 
                 For i = 0 To type.Length - 1
-                    Dim charToInsert = type(i)
+                    Dim charToInsert = type(AggregateSyntaxNotWithinSyntaxTree)
                     buffer.Insert(caretPosition.GetPosition(buffer.CurrentSnapshot), charToInsert)
 
-                    Dim insertedString = type.Substring(0, i + 1)
+                    Dim insertedString = type.Substring(0, AggregateSyntaxNotWithinSyntaxTree + 1)
                     For Each span In document.SelectedSpans.Skip(1)
                         Dim trackingSpan = New LetterOnlyTrackingSpan(span.ToSnapshotSpan(document.InitialTextSnapshot))
                         Assert.Equal(expectedStringGetter(insertedString), trackingSpan.GetText(document.TextBuffer.CurrentSnapshot))

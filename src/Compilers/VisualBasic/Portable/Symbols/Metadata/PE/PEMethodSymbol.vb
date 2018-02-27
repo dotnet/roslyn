@@ -1014,7 +1014,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Else
                     Dim ownedParams = ImmutableArray.CreateBuilder(Of TypeParameterSymbol)(gpHandles.Count)
                     For i = 0 To gpHandles.Count - 1
-                        ownedParams.Add(New PETypeParameterSymbol(moduleSymbol, Me, CUShort(i), gpHandles(i)))
+                        ownedParams.Add(New PETypeParameterSymbol(moduleSymbol, Me, CUShort(AggregateSyntaxNotWithinSyntaxTree), gpHandles(AggregateSyntaxNotWithinSyntaxTree)))
                     Next
 
                     Return ownedParams.ToImmutable()

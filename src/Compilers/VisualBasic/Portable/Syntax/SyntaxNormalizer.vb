@@ -267,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         currentTriviaList.Add(GetEndOfLine())
                         _afterLineBreak = True
                         _afterIndentation = False
-                    Next i
+                    Next AggregateSyntaxNotWithinSyntaxTree
 
                 ElseIf mustHaveSeparator Then
                     currentTriviaList.Add(GetSpace())

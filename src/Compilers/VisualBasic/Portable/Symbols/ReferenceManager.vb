@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(assemblyModules.Length = referencedModulesReferences.Length + 1)
 
                 For i = 1 To assemblyModules.Length - 1
-                    assemblyModules(i).SetReferences(referencedModulesReferences(i - 1))
+                    assemblyModules(AggregateSyntaxNotWithinSyntaxTree).SetReferences(referencedModulesReferences(AggregateSyntaxNotWithinSyntaxTree - 1))
                 Next
             End Sub
 
@@ -939,13 +939,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(sourceReferencedAssemblies.Length = sourceReferencedAssemblySymbols.Length)
 
                     For i = 0 To sourceReferencedAssemblies.Length - 1
-                        If Not sourceReferencedAssemblySymbols(i).IsLinked Then
-                            refs.Add(sourceReferencedAssemblies(i))
+                        If Not sourceReferencedAssemblySymbols(AggregateSyntaxNotWithinSyntaxTree).IsLinked Then
+                            refs.Add(sourceReferencedAssemblies(AggregateSyntaxNotWithinSyntaxTree))
                         End If
                     Next
 
                     For i = 1 To modules.Length - 1
-                        refs.AddRange(modules(i).GetReferencedAssemblies())
+                        refs.AddRange(modules(AggregateSyntaxNotWithinSyntaxTree).GetReferencedAssemblies())
                     Next
 
                     Return refs.ToImmutableAndFree()

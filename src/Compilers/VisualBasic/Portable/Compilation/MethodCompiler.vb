@@ -1087,14 +1087,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim diagnosticInfos = ArrayBuilder(Of DiagnosticInfo).GetInstance()
             Dim referencingMethod As MethodSymbol = path(startsAt)
             For i = startsAt + 1 To endsAt
-                Dim referencedMethod As MethodSymbol = path(i)
+                Dim referencedMethod As MethodSymbol = path(AggregateSyntaxNotWithinSyntaxTree)
                 diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_SubNewCycle2, referencingMethod, referencedMethod))
                 referencingMethod = referencedMethod
             Next
 
             '  Report Errors for all constructors in the cycle
             For i = startsAt To endsAt - 1
-                referencingMethod = path(i)
+                referencingMethod = path(AggregateSyntaxNotWithinSyntaxTree)
 
                 '  Report an error
                 diagnostics.Add(

@@ -62,7 +62,7 @@ End Class"
                 Dim tasks(10) As Task
 
                 For j = 0 To tasks.Length - 1
-                    Dim startAt As Integer = i + j + 1
+                    Dim startAt As Integer = AggregateSyntaxNotWithinSyntaxTree + j + 1
                     tasks(j) = Task.Run(Sub()
                                             MatchAll(matcher, members, startAt)
                                             Thread.Sleep(10)
@@ -76,7 +76,7 @@ End Class"
         Private Shared Sub MatchAll(matcher As VisualBasicSymbolMatcher, members As ImmutableArray(Of Symbol), startAt As Integer)
             Dim n As Integer = members.Length
             For i = 0 To n - 1
-                Dim member = members((i + startAt) Mod n)
+                Dim member = members((AggregateSyntaxNotWithinSyntaxTree + startAt) Mod n)
                 Dim other = matcher.MapDefinition(DirectCast(member, Cci.IDefinition))
                 Assert.NotNull(other)
             Next

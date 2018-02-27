@@ -682,7 +682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim newArgs(oldArgs.Length - 1) As BoundExpression
             For i = 0 To oldArgs.Length - 1
-                newArgs(i) = AdjustCallArgumentForLiftedOperator(oldArgs(i), parameters(i).Type)
+                newArgs(AggregateSyntaxNotWithinSyntaxTree) = AdjustCallArgumentForLiftedOperator(oldArgs(AggregateSyntaxNotWithinSyntaxTree), parameters(AggregateSyntaxNotWithinSyntaxTree).Type)
             Next
 
             Dim methodReturnType As TypeSymbol = [call].Method.ReturnType

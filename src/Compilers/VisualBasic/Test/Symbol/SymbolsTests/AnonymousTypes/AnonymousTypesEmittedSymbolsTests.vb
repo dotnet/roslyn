@@ -272,7 +272,7 @@ End Module
                 End Using
 
                 ' do some speculative semantic query
-                Dim expr1 = SyntaxFactory.ParseExpression(<text>New With { .aa = 1, .BB<%= i %> = "" }</text>.Value)
+                Dim expr1 = SyntaxFactory.ParseExpression(<text>New With { .aa = 1, .BB<%= AggregateSyntaxNotWithinSyntaxTree %> = "" }</text>.Value)
                 Dim info1 = model.GetSpeculativeTypeInfo(position, expr1, SpeculativeBindingOption.BindAsExpression)
                 Assert.NotNull(info1.Type)
             Next

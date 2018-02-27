@@ -440,11 +440,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function AsSeparatedList(Of TOther As SyntaxNode)(list As SyntaxNodeOrTokenList) As SeparatedSyntaxList(Of TOther)
             Dim builder = SeparatedSyntaxListBuilder(Of TOther).Create
             For Each i In list
-                Dim node = i.AsNode
+                Dim node = AggregateSyntaxNotWithinSyntaxTree.AsNode
                 If node IsNot Nothing Then
                     builder.Add(DirectCast(DirectCast(node, SyntaxNode), TOther))
                 Else
-                    builder.AddSeparator(i.AsToken)
+                    builder.AddSeparator(AggregateSyntaxNotWithinSyntaxTree.AsToken)
                 End If
             Next
             Return builder.ToList

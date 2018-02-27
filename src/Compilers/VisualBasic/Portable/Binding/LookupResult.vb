@@ -721,7 +721,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #If DEBUG Then
             If imported Then
                 For i = 0 To _symList.Count - 1
-                    Debug.Assert(_symList(i).DeclaredAccessibility = other.Symbol.DeclaredAccessibility)
+                    Debug.Assert(_symList(AggregateSyntaxNotWithinSyntaxTree).DeclaredAccessibility = other.Symbol.DeclaredAccessibility)
                 Next
             End If
 #End If

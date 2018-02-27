@@ -1124,9 +1124,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim argCount As Integer = attrData.CommonConstructorArguments.Length
             For i = 0 To argCount - 1
-                Dim arg As Integer = attrData.GetConstructorArgument(Of Integer)(i, SpecialType.System_Int32)
+                Dim arg As Integer = attrData.GetConstructorArgument(Of Integer)(AggregateSyntaxNotWithinSyntaxTree, SpecialType.System_Int32)
                 If arg < 0 Then
-                    diagnostics.Add(ERRID.ERR_BadAttribute1, If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(i).GetLocation(), NoLocation.Singleton), attrData.AttributeClass)
+                    diagnostics.Add(ERRID.ERR_BadAttribute1, If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(AggregateSyntaxNotWithinSyntaxTree).GetLocation(), NoLocation.Singleton), attrData.AttributeClass)
                 End If
             Next
         End Sub

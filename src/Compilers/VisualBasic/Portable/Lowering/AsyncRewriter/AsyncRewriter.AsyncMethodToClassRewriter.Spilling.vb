@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim indices As ImmutableArray(Of BoundExpression) = array.Indices
                         Dim spilledIndices(indices.Length - 1) As BoundExpression
                         For i = 0 To indices.Length - 1
-                            spilledIndices(i) = SpillRValue(indices(i), builder)
+                            spilledIndices(AggregateSyntaxNotWithinSyntaxTree) = SpillRValue(indices(AggregateSyntaxNotWithinSyntaxTree), builder)
                         Next
 
                         array = array.Update(spilledExpression, spilledIndices.AsImmutableOrNull, array.IsLValue, array.Type)
@@ -405,7 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Release references held by the spill temps:
                 Dim fields As ImmutableArray(Of FieldSymbol) = spill.SpillFields
                 For i = 0 To fields.Length - 1
-                    Dim field As FieldSymbol = fields(i)
+                    Dim field As FieldSymbol = fields(AggregateSyntaxNotWithinSyntaxTree)
 
                     If TypeNeedsClearing(field.Type) Then
                         newStatements.Add(F.Assignment(F.Field(F.Me(), field, True), F.Null(field.Type)))

@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim indices(indicesCount - 1) As BoundExpression
                 For i = 0 To indicesCount - 1
-                    indices(i) = origIndices(i).Materialize(rewriter, False)
+                    indices(AggregateSyntaxNotWithinSyntaxTree) = origIndices(AggregateSyntaxNotWithinSyntaxTree).Materialize(rewriter, False)
                 Next
 
                 Dim arrayPointer As BoundExpression = Me.ArrayPointer.Materialize(rewriter, False)

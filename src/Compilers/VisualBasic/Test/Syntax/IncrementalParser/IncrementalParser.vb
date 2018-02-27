@@ -2568,8 +2568,8 @@ End Class
         Assert.Equal(tokensA.Count, tokensB.Count)
 
         For i = 0 To tokensA.Count - 1
-            Dim tokenA = tokensA(i)
-            Dim tokenB = tokensB(i)
+            Dim tokenA = tokensA(AggregateSyntaxNotWithinSyntaxTree)
+            Dim tokenB = tokensB(AggregateSyntaxNotWithinSyntaxTree)
             Assert.Equal(tokenA.Kind, tokenB.Kind)
             Assert.Equal(tokenA.ToFullString(), tokenB.ToFullString())
         Next
@@ -2588,7 +2588,7 @@ End Class
         Assert.Equal(diagnosticsA.Count, diagnosticsB.Count)
 
         For i = 0 To diagnosticsA.Count - 1
-            Assert.Equal(diagnosticsA(i).Stringize(), diagnosticsB(i).Stringize())
+            Assert.Equal(diagnosticsA(AggregateSyntaxNotWithinSyntaxTree).Stringize(), diagnosticsB(AggregateSyntaxNotWithinSyntaxTree).Stringize())
         Next
     End Sub
 
@@ -2597,9 +2597,9 @@ End Class
         ' Normalize line terminators.
         Dim builder = ArrayBuilder(Of Char).GetInstance()
         For i = 0 To str.Length - 1
-            Dim c = str(i)
+            Dim c = str(AggregateSyntaxNotWithinSyntaxTree)
             If (c = vbLf(0)) AndAlso
-                ((i = str.Length - 1) OrElse (str(i + 1) <> vbCr(0))) Then
+                ((AggregateSyntaxNotWithinSyntaxTree = str.Length - 1) OrElse (str(AggregateSyntaxNotWithinSyntaxTree + 1) <> vbCr(0))) Then
                 builder.AddRange(vbCrLf)
             Else
                 builder.Add(c)

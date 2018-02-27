@@ -320,10 +320,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim typeParameters(0 To arity - 1) As TypeParameterSymbol
 
             For i = 0 To arity - 1
-                Dim typeParamSyntax = typeParamsSyntax(i)
+                Dim typeParamSyntax = typeParamsSyntax(AggregateSyntaxNotWithinSyntaxTree)
                 Dim ident = typeParamSyntax.Identifier
                 Binder.DisallowTypeCharacter(ident, diagBag, ERRID.ERR_TypeCharOnGenericParam)
-                typeParameters(i) = New SourceTypeParameterOnMethodSymbol(Me, i, ident.ValueText,
+                typeParameters(AggregateSyntaxNotWithinSyntaxTree) = New SourceTypeParameterOnMethodSymbol(Me, AggregateSyntaxNotWithinSyntaxTree, ident.ValueText,
                                                                           binder.GetSyntaxReference(typeParamSyntax))
 
                 ' method type parameters cannot have same name as containing Function (but can for a Sub)

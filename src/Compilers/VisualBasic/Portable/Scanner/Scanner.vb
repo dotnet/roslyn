@@ -412,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim n = chars.Length
             If Not CanGet(offset + n - 1) Then Return False
             For i = 0 To n - 1
-                If chars(i) <> Peek(offset + i) Then Return False
+                If chars(AggregateSyntaxNotWithinSyntaxTree) <> Peek(offset + AggregateSyntaxNotWithinSyntaxTree) Then Return False
             Next
             Return True
         End Function
@@ -707,7 +707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         If (position + s_conflictMarkerLength) <= text.Length Then
                             For i = 0 To s_conflictMarkerLength - 1
-                                If text(position + i) <> firstCh Then
+                                If text(position + AggregateSyntaxNotWithinSyntaxTree) <> firstCh Then
                                     Return False
                                 End If
                             Next
@@ -863,7 +863,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         End If
 
                         For i = 0 To triviaList.Count - 1
-                            tList.Add(triviaList(i))
+                            tList.Add(triviaList(AggregateSyntaxNotWithinSyntaxTree))
                         Next
                         _triviaListPool.Free(triviaList)
 
@@ -908,7 +908,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Dim n = more.Count
                     For i = 0 To n - 1
-                        tList.Add(more(i))
+                        tList.Add(more(AggregateSyntaxNotWithinSyntaxTree))
                     Next
                     more.Clear()
                 End While
@@ -931,7 +931,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return False
             End If
             For i = 0 To n - 2
-                If tList(i).RawKind <> SyntaxKind.WhitespaceTrivia Then
+                If tList(AggregateSyntaxNotWithinSyntaxTree).RawKind <> SyntaxKind.WhitespaceTrivia Then
                     Return False
                 End If
             Next
@@ -1466,7 +1466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 For i = 1 To spellingLength - 1
-                    If Not IsIdentifierPartCharacter(spelling(i)) Then
+                    If Not IsIdentifierPartCharacter(spelling(AggregateSyntaxNotWithinSyntaxTree)) Then
                         Return False
                     End If
                 Next
@@ -2053,7 +2053,7 @@ FullWidthRepeat2:
                 ' // Copy the text of the literal to deal with fullwidth
                 Dim scratch = GetScratch()
                 For i = 0 To literalWithoutTypeChar - 1
-                    Dim curCh = Peek(i)
+                    Dim curCh = Peek(AggregateSyntaxNotWithinSyntaxTree)
                     If curCh <> "_"c Then
                         scratch.Append(If(IsFullWidth(curCh), MakeHalfWidth(curCh), curCh))
                     End If

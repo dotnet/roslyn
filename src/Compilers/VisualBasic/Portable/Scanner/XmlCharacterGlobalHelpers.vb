@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim n = pwcText.Length - 1
             For i = 0 To n
 
-                wch = pwcText(i)
+                wch = pwcText(AggregateSyntaxNotWithinSyntaxTree)
 
                 If XmlCharType.InRange(wch, "0"c, "9"c) Then
                     ulCode = (ulCode * 16UI) + CUInt(AscW(wch)) - CUInt(AscW("0"c))
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim n = pwcText.Length - 1
             For i = 0 To n
 
-                wch = pwcText(i)
+                wch = pwcText(AggregateSyntaxNotWithinSyntaxTree)
 
                 If XmlCharType.InRange(wch, "0"c, "9"c) Then
                     ulCode = (ulCode * 10) + AscW(wch) - AscW("0"c)

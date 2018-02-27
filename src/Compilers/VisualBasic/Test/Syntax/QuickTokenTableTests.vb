@@ -17,7 +17,7 @@ Public Class QuickTokenTableTests
 
             Dim ca = qt.Chars
             For i = 0 To qt.Length - 1
-                Assert.Equal(ca(i), s(i))
+                Assert.Equal(ca(AggregateSyntaxNotWithinSyntaxTree), s(AggregateSyntaxNotWithinSyntaxTree))
             Next
         End Using
     End Sub
@@ -76,7 +76,7 @@ Public Class QuickTokenTableTests
 
         Dim count = rand.Next(10, 20)
         For i = 0 To count - 1
-            buf(i) = RandomLetter(rand)
+            buf(AggregateSyntaxNotWithinSyntaxTree) = RandomLetter(rand)
         Next
         buf(count) = " "c
         buf(count + 1) = "Z"c
@@ -98,7 +98,7 @@ Public Class QuickTokenTableTests
         Dim buf(0 To 40) As Char
 
         For i = 0 To e.Item1.Length - 1
-            buf(i) = e.Item1(i)
+            buf(AggregateSyntaxNotWithinSyntaxTree) = e.Item1(AggregateSyntaxNotWithinSyntaxTree)
         Next
         buf(e.Item1.Length) = "Z"c
 

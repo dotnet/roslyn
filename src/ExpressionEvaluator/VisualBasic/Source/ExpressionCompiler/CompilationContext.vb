@@ -1462,7 +1462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Debug.Assert(desiredTypeMap.PairsIncludingParent.Length = arity)
 
             For i = 0 To arity - 1
-                If Not MethodSignatureComparer.HaveSameConstraints(candidateMethodDefinition.TypeParameters(i), candidateTypeMap, desiredTypeParameters(i), desiredTypeMap) Then
+                If Not MethodSignatureComparer.HaveSameConstraints(candidateMethodDefinition.TypeParameters(AggregateSyntaxNotWithinSyntaxTree), candidateTypeMap, desiredTypeParameters(AggregateSyntaxNotWithinSyntaxTree), desiredTypeMap) Then
                     Return False
                 End If
             Next

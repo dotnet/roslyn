@@ -227,10 +227,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim rewrittenCallArguments(origSideEffects.Length - 1) As BoundExpression
             For i = 0 To origSideEffects.Length - 1
-                Debug.Assert(origSideEffects(i).Kind = BoundKind.Call)
-                Dim [call] = DirectCast(origSideEffects(i), BoundCall)
+                Debug.Assert(origSideEffects(AggregateSyntaxNotWithinSyntaxTree).Kind = BoundKind.Call)
+                Dim [call] = DirectCast(origSideEffects(AggregateSyntaxNotWithinSyntaxTree), BoundCall)
                 Debug.Assert([call].Arguments.Length = 1)
-                rewrittenCallArguments(i) = VisitExpressionNode([call].Arguments(0))
+                rewrittenCallArguments(AggregateSyntaxNotWithinSyntaxTree) = VisitExpressionNode([call].Arguments(0))
             Next
 
             If rewriterInfo.PrefixesPlaceholder IsNot Nothing Then

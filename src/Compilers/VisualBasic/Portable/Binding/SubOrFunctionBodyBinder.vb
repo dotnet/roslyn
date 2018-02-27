@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _parameterMap = New Dictionary(Of String, Symbol)(mapSize, CaseInsensitiveComparison.Comparer)
 
             For i = 0 To count - 1
-                Dim parameterSymbol = parameters(i)
+                Dim parameterSymbol = parameters(AggregateSyntaxNotWithinSyntaxTree)
                 ' If there are two parameters with the same name, the first takes precedence.
                 ' This is an error condition anyway, but it seems more logical and
                 ' it really doesn't matter which order we use.

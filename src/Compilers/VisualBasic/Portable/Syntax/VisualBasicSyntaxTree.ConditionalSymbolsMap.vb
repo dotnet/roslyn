@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Ensure that all the defining #Const directives for this conditional symbol are pushed onto the stack in source code order.
                     Dim prevPosition As Integer = Int32.MaxValue
                     For i = 0 To conditionalStack.Count - 1
-                        Dim position As Integer = conditionalStack(i).Item2
+                        Dim position As Integer = conditionalStack(AggregateSyntaxNotWithinSyntaxTree).Item2
                         Debug.Assert(prevPosition >= position)
                         prevPosition = position
                     Next

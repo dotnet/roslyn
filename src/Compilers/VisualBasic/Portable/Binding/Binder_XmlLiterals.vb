@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' prefixes were discovered, to match the native compiler.
                 Dim importedNamespaces = rootInfoOpt.ImportedNamespaces
                 For i = importedNamespaces.Count - 1 To 0 Step -1
-                    Dim pair = importedNamespaces(i)
+                    Dim pair = importedNamespaces(AggregateSyntaxNotWithinSyntaxTree)
                     Dim attribute = BindXmlnsAttribute(syntax, pair.Key, pair.Value, diagnostics)
                     sideEffectBuilder.Add(BindInvocationExpressionIfGroupNotNothing(syntax, addGroup, ImmutableArray.Create(Of BoundExpression)(attribute), diagnostics))
                 Next
@@ -1991,7 +1991,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     Dim parameters(n - 2) As ParameterSymbol
                     For i = 0 To n - 2
-                        parameters(i) = New ReducedAccessorParameterSymbol(propertyOrAccessor, originalParameters(i + 1))
+                        parameters(AggregateSyntaxNotWithinSyntaxTree) = New ReducedAccessorParameterSymbol(propertyOrAccessor, originalParameters(AggregateSyntaxNotWithinSyntaxTree + 1))
                     Next
                     Return parameters.AsImmutableOrNull()
                 End If

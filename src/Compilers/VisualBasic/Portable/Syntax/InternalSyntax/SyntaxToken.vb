@@ -257,14 +257,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If leadingTrivia IsNot Nothing Then
                 Dim triviaList = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia)
                 For i = 0 To triviaList.Count - 1
-                    DirectCast(triviaList.ItemUntyped(i), VisualBasicSyntaxNode).AddSyntaxErrors(accumulatedErrors)
+                    DirectCast(triviaList.ItemUntyped(AggregateSyntaxNotWithinSyntaxTree), VisualBasicSyntaxNode).AddSyntaxErrors(accumulatedErrors)
                 Next
             End If
             Dim trailingTrivia = GetTrailingTrivia()
             If trailingTrivia IsNot Nothing Then
                 Dim triviaList = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia)
                 For i = 0 To triviaList.Count - 1
-                    DirectCast(triviaList.ItemUntyped(i), VisualBasicSyntaxNode).AddSyntaxErrors(accumulatedErrors)
+                    DirectCast(triviaList.ItemUntyped(AggregateSyntaxNotWithinSyntaxTree), VisualBasicSyntaxNode).AddSyntaxErrors(accumulatedErrors)
                 Next
             End If
         End Sub

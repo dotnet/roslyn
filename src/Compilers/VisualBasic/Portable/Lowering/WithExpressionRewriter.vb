@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim n = value.Indices.Length
             Dim indices(n - 1) As BoundExpression
             For i = 0 To n - 1
-                indices(i) = CaptureRValue(value.Indices(i), state)
+                indices(AggregateSyntaxNotWithinSyntaxTree) = CaptureRValue(value.Indices(AggregateSyntaxNotWithinSyntaxTree), state)
             Next
 
             Return value.Update(boundArrayTemp, indices.AsImmutableOrNull(), value.IsLValue, value.Type)

@@ -172,8 +172,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' No unification will be performed
             Dim assemblies = ModuleSymbol.GetReferencedAssemblies()
             For i = 0 To assemblies.Length - 1
-                If identity.Equals(assemblies(i)) Then
-                    Return i
+                If identity.Equals(assemblies(AggregateSyntaxNotWithinSyntaxTree)) Then
+                    Return AggregateSyntaxNotWithinSyntaxTree
                 End If
             Next
             Return -1
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                     If containingAssembly IsNot Nothing Then
                         For i = 0 To assemblies.Length - 1 Step 1
-                            If containingAssembly Is assemblies(i) Then
+                            If containingAssembly Is assemblies(AggregateSyntaxNotWithinSyntaxTree) Then
                                 Return True
                             End If
                         Next

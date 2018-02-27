@@ -2003,11 +2003,11 @@ End Namespace
             Dim children2 = testNs2.GetMembers().OrderBy(Function(m) m.Name).ToArray()
 
             For i = 0 To children1.Count - 1
-                Assert.Same(children1(i), children2(i))
+                Assert.Same(children1(AggregateSyntaxNotWithinSyntaxTree), children2(AggregateSyntaxNotWithinSyntaxTree))
 
-                If children1(i).Kind = SymbolKind.Namespace Then
-                    TestEqualityRecursive(DirectCast(testNs1.GetMembers(children1(i).Name).Single(), NamespaceSymbol),
-                                      DirectCast(testNs1.GetMembers(children1(i).Name).Single(), NamespaceSymbol),
+                If children1(AggregateSyntaxNotWithinSyntaxTree).Kind = SymbolKind.Namespace Then
+                    TestEqualityRecursive(DirectCast(testNs1.GetMembers(children1(AggregateSyntaxNotWithinSyntaxTree).Name).Single(), NamespaceSymbol),
+                                      DirectCast(testNs1.GetMembers(children1(AggregateSyntaxNotWithinSyntaxTree).Name).Single(), NamespaceSymbol),
                                       kind,
                                       factory)
                 End If

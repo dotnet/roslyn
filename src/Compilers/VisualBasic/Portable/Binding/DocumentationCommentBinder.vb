@@ -179,13 +179,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Do we have any method or property?
             Dim originalDef2Symbol As Dictionary(Of Symbol, Integer) = Nothing
             For i = 0 To symbols.Count - 1
-                Dim sym As Symbol = symbols(i)
+                Dim sym As Symbol = symbols(AggregateSyntaxNotWithinSyntaxTree)
                 Select Case sym.Kind
                     Case SymbolKind.Method, SymbolKind.Property
                         If originalDef2Symbol Is Nothing Then
                             originalDef2Symbol = New Dictionary(Of Symbol, Integer)()
                         End If
-                        originalDef2Symbol.Add(sym.OriginalDefinition, i)
+                        originalDef2Symbol.Add(sym.OriginalDefinition, AggregateSyntaxNotWithinSyntaxTree)
                 End Select
             Next
 
@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim indices2remove As ArrayBuilder(Of Integer) = Nothing
             For i = 0 To symbols.Count - 1
                 Dim index As Integer = -1
-                Dim sym As Symbol = symbols(i)
+                Dim sym As Symbol = symbols(AggregateSyntaxNotWithinSyntaxTree)
 
                 Select Case sym.Kind
 
@@ -244,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' remove elements by indices from 'indices2remove'
             For i = 0 To indices2remove.Count - 1
-                symbols(indices2remove(i)) = Nothing
+                symbols(indices2remove(AggregateSyntaxNotWithinSyntaxTree)) = Nothing
             Next
 
             Dim target As Integer = 0

@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim foundMatch = False
 
             For i = 0 To description.Signatures.Length - 1
-                Dim targetSignature = description.Signatures(i)
+                Dim targetSignature = description.Signatures(AggregateSyntaxNotWithinSyntaxTree)
                 If targetSignature(0) <> SignatureAttributes.Instance Then
                     Continue For
                 End If
@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
 
                 If foundMatch Then
-                    Return i
+                    Return AggregateSyntaxNotWithinSyntaxTree
                 End If
             Next
 

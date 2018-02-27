@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim count As Integer = myFields.Length
             Dim otherFields As ImmutableArray(Of AnonymousTypeField) = other.Fields
             For i = 0 To count - 1
-                If Not myFields(i).Type.Equals(otherFields(i).Type) Then
+                If Not myFields(AggregateSyntaxNotWithinSyntaxTree).Type.Equals(otherFields(AggregateSyntaxNotWithinSyntaxTree).Type) Then
                     Return False
                 End If
             Next
@@ -120,13 +120,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim anyChange As Boolean = False
 
             For i = 0 To fieldCount - 1
-                Dim current As AnonymousTypeField = Me.Fields(i)
-                newFields(i) = New AnonymousTypeField(current.Name,
+                Dim current As AnonymousTypeField = Me.Fields(AggregateSyntaxNotWithinSyntaxTree)
+                newFields(AggregateSyntaxNotWithinSyntaxTree) = New AnonymousTypeField(current.Name,
                                                       current.Type.InternalSubstituteTypeParameters(substitution).Type,
                                                       current.Location,
                                                       current.IsKey)
                 If Not anyChange Then
-                    anyChange = current.Type IsNot newFields(i).Type
+                    anyChange = current.Type IsNot newFields(AggregateSyntaxNotWithinSyntaxTree).Type
                 End If
             Next
 

@@ -1094,7 +1094,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim containingSymbolA = symbolA.ContainingSymbol
 
                 For i = 1 To symbols.Length - 1
-                    Dim symbolB = symbols(i)
+                    Dim symbolB = symbols(AggregateSyntaxNotWithinSyntaxTree)
                     Dim containingSymbolB = symbolB.ContainingSymbol
 
                     If containingSymbolA <> containingSymbolB Then
@@ -1327,7 +1327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' if we are not resolving bases we can just go through AllInterfaces list
                 If basesBeingResolved Is Nothing Then
                     For Each i In derived.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                        If i = base Then
+                        If AggregateSyntaxNotWithinSyntaxTree = base Then
                             Return True
                         End If
                     Next
@@ -1358,18 +1358,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not interfaces.IsDefaultOrEmpty Then
                     For Each i In interfaces
-                        If i = base Then
+                        If AggregateSyntaxNotWithinSyntaxTree = base Then
                             Return True
                         End If
 
-                        If verified.Contains(i) Then
+                        If verified.Contains(AggregateSyntaxNotWithinSyntaxTree) Then
                             ' seen this already
                             Continue For
                         End If
 
                         If IsDerivedInterface(
                             base,
-                            i,
+                            AggregateSyntaxNotWithinSyntaxTree,
                             basesBeingResolved,
                             verified,
                             useSiteDiagnostics) Then
@@ -1856,14 +1856,14 @@ ExitForFor:
                     End If
 
                     For Each i In interfaces
-                        If descendants IsNot Nothing AndAlso descendants.Contains(i.OriginalDefinition) Then
+                        If descendants IsNot Nothing AndAlso descendants.Contains(AggregateSyntaxNotWithinSyntaxTree.OriginalDefinition) Then
                             ' About to get in an inheritance cycle
                             Continue For
                         End If
 
-                        i.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
+                        AggregateSyntaxNotWithinSyntaxTree.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
 
-                        Dim newInfo As New InterfaceInfo(i, inComInterfaceContext, descendants)
+                        Dim newInfo As New InterfaceInfo(AggregateSyntaxNotWithinSyntaxTree, inComInterfaceContext, descendants)
                         If processed.Add(newInfo) Then
                             lookIn.Enqueue(newInfo)
                         End If

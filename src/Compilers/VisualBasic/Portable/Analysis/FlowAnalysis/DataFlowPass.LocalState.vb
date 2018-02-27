@@ -99,9 +99,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim oldNext As Integer = _state.Assigned.Capacity
             _state.Assigned.EnsureCapacity(nextVariableSlot)
             For i = oldNext To nextVariableSlot - 1
-                Dim id As VariableIdentifier = Me.variableBySlot(i)
+                Dim id As VariableIdentifier = Me.variableBySlot(AggregateSyntaxNotWithinSyntaxTree)
                 If id.ContainingSlot >= SlotKind.FirstAvailable AndAlso _state.Assigned(id.ContainingSlot) Then
-                    _state.Assign(i)
+                    _state.Assign(AggregateSyntaxNotWithinSyntaxTree)
                 End If
             Next
         End Sub

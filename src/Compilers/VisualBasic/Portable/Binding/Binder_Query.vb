@@ -815,7 +815,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For i = If(skipFirstVariable, 1, 0) To variables.Count - 1
 
-                Dim variable As ExpressionRangeVariableSyntax = variables(i)
+                Dim variable As ExpressionRangeVariableSyntax = variables(AggregateSyntaxNotWithinSyntaxTree)
 
                 ' Create LambdaSymbol for the shape of the selector lambda.
                 Dim param As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(GetQueryLambdaParameterName(source.RangeVariables), 0,
@@ -858,11 +858,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim operatorNameLocation As TextSpan
 
-                    If i = 0 Then
+                    If AggregateSyntaxNotWithinSyntaxTree = 0 Then
                         ' This is the first variable.
                         operatorNameLocation = clauseSyntax.LetKeyword.Span
                     Else
-                        operatorNameLocation = variables.GetSeparator(i - 1).Span
+                        operatorNameLocation = variables.GetSeparator(AggregateSyntaxNotWithinSyntaxTree - 1).Span
                     End If
 
                     boundCallOrBadExpression = BindQueryOperatorCall(variable, source,
@@ -1047,7 +1047,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For i = If(source Is sourceOpt, 0, 1) To variables.Count - 1
 
-                Dim variable As CollectionRangeVariableSyntax = variables(i)
+                Dim variable As CollectionRangeVariableSyntax = variables(AggregateSyntaxNotWithinSyntaxTree)
 
                 ' Create LambdaSymbol for the shape of the many-selector lambda.
                 Dim manySelectorParam As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(GetQueryLambdaParameterName(source.RangeVariables), 0,
@@ -1089,7 +1089,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' in the join lambda.
                 Dim absorbNextOperator As QueryClauseSyntax = Nothing
 
-                If i = variables.Count - 1 Then
+                If AggregateSyntaxNotWithinSyntaxTree = variables.Count - 1 Then
                     absorbNextOperator = JoinShouldAbsorbNextOperator(operatorsEnumerator)
                 End If
 
@@ -1142,7 +1142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' restrict the shape of the Anonymous Type in method's declaration, the operators should be
                         ' insensitive to the shape of the Anonymous Type.
                         joinSelector = joinSelectorBinder.BuildJoinSelector(variable,
-                                                                            (i = variables.Count - 1 AndAlso
+                                                                            (AggregateSyntaxNotWithinSyntaxTree = variables.Count - 1 AndAlso
                                                                                 MustProduceFlatCompoundVariable(operatorsEnumerator)),
                                                                             diagnostics)
                     Else
@@ -1181,11 +1181,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim operatorNameLocation As TextSpan
 
-                    If i = 0 Then
+                    If AggregateSyntaxNotWithinSyntaxTree = 0 Then
                         ' This is the first variable.
                         operatorNameLocation = clauseSyntax.GetFirstToken().Span
                     Else
-                        operatorNameLocation = variables.GetSeparator(i - 1).Span
+                        operatorNameLocation = variables.GetSeparator(AggregateSyntaxNotWithinSyntaxTree - 1).Span
                     End If
 
                     boundCallOrBadExpression = BindQueryOperatorCall(variable, source,
@@ -1203,7 +1203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               boundCallOrBadExpression.Type)
 
                 If absorbNextOperator IsNot Nothing Then
-                    Debug.Assert(i = variables.Count - 1)
+                    Debug.Assert(AggregateSyntaxNotWithinSyntaxTree = variables.Count - 1)
                     source = AbsorbOperatorFollowingJoin(DirectCast(source, BoundQueryClause),
                                                          absorbNextOperator, operatorsEnumerator,
                                                          joinSelectorDeclaredRangeVariables,
@@ -2615,7 +2615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim keyBinder As QueryLambdaBinder = Nothing
 
             For i = 0 To orderByOrderings.Count - 1
-                Dim ordering As OrderingSyntax = orderByOrderings(i)
+                Dim ordering As OrderingSyntax = orderByOrderings(AggregateSyntaxNotWithinSyntaxTree)
 
                 ' Create LambdaSymbol for the shape of the key lambda.
                 Dim param As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(lambdaParameterName, 0,
@@ -2655,7 +2655,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim operatorName As String
                     Dim operatorNameLocation As TextSpan
 
-                    If i = 0 Then
+                    If AggregateSyntaxNotWithinSyntaxTree = 0 Then
                         ' This is the first ordering.
                         If ordering.Kind = SyntaxKind.AscendingOrdering Then
                             operatorName = StringConstants.OrderByMethod
@@ -2673,7 +2673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             operatorName = StringConstants.ThenByDescendingMethod
                         End If
 
-                        operatorNameLocation = orderByOrderings.GetSeparator(i - 1).Span
+                        operatorNameLocation = orderByOrderings.GetSeparator(AggregateSyntaxNotWithinSyntaxTree - 1).Span
                     End If
 
                     boundCallOrBadExpression = BindQueryOperatorCall(ordering, sourceOrPreviousOrdering,

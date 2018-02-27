@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function ComputeTypeFlags(declaration As MergedTypeDeclaration, isTopLevel As Boolean) As SourceTypeFlags
             Dim mergedModifiers As DeclarationModifiers = DeclarationModifiers.None
             For i = 0 To declaration.Declarations.Length - 1
-                mergedModifiers = mergedModifiers Or declaration.Declarations(i).Modifiers
+                mergedModifiers = mergedModifiers Or declaration.Declarations(AggregateSyntaxNotWithinSyntaxTree).Modifiers
             Next
 
             Dim modifiers = mergedModifiers
@@ -1880,7 +1880,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' NOTE: conflicting partial method declarations and implementations are NOT removed 
                     Dim newMembers = ArrayBuilder(Of Symbol).GetInstance()
                     For i = 0 To memberGroup.Length - 1
-                        Dim member As Symbol = memberGroup(i)
+                        Dim member As Symbol = memberGroup(AggregateSyntaxNotWithinSyntaxTree)
                         If bestImplMethod IsNot member Then
                             newMembers.Add(member)
                         End If

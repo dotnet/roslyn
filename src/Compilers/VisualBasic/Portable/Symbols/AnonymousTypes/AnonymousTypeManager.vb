@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim count As Integer = leftDescr.Fields.Length
             Debug.Assert(count = rightDescr.Fields.Length)
             For i = 0 To count - 1
-                If Not leftDescr.Fields(i).Type.IsSameType(rightDescr.Fields(i).Type, compareKind) Then
+                If Not leftDescr.Fields(AggregateSyntaxNotWithinSyntaxTree).Type.IsSameType(rightDescr.Fields(AggregateSyntaxNotWithinSyntaxTree).Type, compareKind) Then
                     Return False
                 End If
             Next

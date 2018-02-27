@@ -37,11 +37,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim result As New List(Of Symbol)
                 If (_endOfRegionState.Reachable) Then
                     For Each i In _endOfRegionState.Assigned.TrueBits
-                        If (i >= variableBySlot.Length) Then
+                        If (AggregateSyntaxNotWithinSyntaxTree >= variableBySlot.Length) Then
                             Continue For
                         End If
 
-                        Dim v = variableBySlot(i)
+                        Dim v = variableBySlot(AggregateSyntaxNotWithinSyntaxTree)
                         If v.Exists AndAlso v.Symbol.Kind <> SymbolKind.Field Then
                             result.Add(v.Symbol)
                         End If

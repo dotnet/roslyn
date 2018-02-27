@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim parsedImportList As New List(Of GlobalImport)
                 Dim importList As SyntaxList(Of ImportsStatementSyntax) = tree.GetCompilationUnitRoot().Imports
                 For i = 0 To importList.Count - 1
-                    Dim statement = importList(i)
+                    Dim statement = importList(AggregateSyntaxNotWithinSyntaxTree)
                     Dim importsClausesSyntaxList As SeparatedSyntaxList(Of ImportsClauseSyntax) = statement.ImportsClauses
 
                     If importsClauses.Count > 0 Then
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             syntaxErrors = syntaxErrors.Concat(New VBDiagnostic(New DiagnosticInfo(MessageProvider.Instance, ERRID.ERR_ExpectedEOS), importsClausesSyntaxList(1).GetLocation()))
                         End If
 
-                        Dim import = New GlobalImport(clause, importsClauseArray(i))
+                        Dim import = New GlobalImport(clause, importsClauseArray(AggregateSyntaxNotWithinSyntaxTree))
 
                         Dim errors = From diag In syntaxErrors
                                      Select import.MapDiagnostic(diag)
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             For i = start + 1 To lastIdentifierCharacterIndex
-                If Not SyntaxFacts.IsIdentifierPartCharacter(name(i)) Then
+                If Not SyntaxFacts.IsIdentifierPartCharacter(name(AggregateSyntaxNotWithinSyntaxTree)) Then
                     Return False
                 End If
             Next

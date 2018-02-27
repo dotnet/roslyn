@@ -677,7 +677,7 @@ End Module
 
             Dim Lst_members As New List(Of String)
             For Each i In typeSymbol.GetMembers
-                Lst_members.Add(i.ToString)
+                Lst_members.Add(AggregateSyntaxNotWithinSyntaxTree.ToString)
             Next
 
             Assert.Contains("Private _Field As Integer", Lst_members)

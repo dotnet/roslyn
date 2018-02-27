@@ -879,8 +879,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                          ImmutableArray(Of TypeParameterSymbol).Empty)
 
             For i = 0 To params.Count - 1
-                Dim paramSyntax = syntaxOpt.Parameters(i)
-                Dim param = params(i)
+                Dim paramSyntax = syntaxOpt.Parameters(AggregateSyntaxNotWithinSyntaxTree)
+                Dim param = params(AggregateSyntaxNotWithinSyntaxTree)
 
                 If methodSymbol IsNot Nothing Then
                     If Not methodSymbol.IsSub AndAlso Not methodSymbol.IsUserDefinedOperator() Then
@@ -891,7 +891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Section 9.2.5, "Method Parameters" from the VB Language Reference mentions that duplicate parameter names 
                     ' are allowed but discouraged for delegates and extern methods
                     If Not methodSymbol.MethodKind = MethodKind.DeclareMethod Then
-                        CheckParameterNameNotDuplicate(params, i, paramSyntax, param, diagBag)
+                        CheckParameterNameNotDuplicate(params, AggregateSyntaxNotWithinSyntaxTree, paramSyntax, param, diagBag)
                     End If
                 End If
 
@@ -956,8 +956,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     diagBag)
 
             For i = 0 To params.Count - 1
-                Dim paramSyntax = syntaxOpt.Parameters(i)
-                Dim param = params(i)
+                Dim paramSyntax = syntaxOpt.Parameters(AggregateSyntaxNotWithinSyntaxTree)
+                Dim param = params(AggregateSyntaxNotWithinSyntaxTree)
 
                 ' "Property parameters cannot have the name 'Value'."
                 If CheckReservedParameterName(StringConstants.ValueParameterName, paramSyntax, ERRID.ERR_PropertySetParamCollisionWithValue, diagBag) Then
@@ -965,7 +965,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     CheckReservedParameterName(container.Name, paramSyntax, ERRID.ERR_ParamNameFunctionNameCollision, diagBag)
                 End If
 
-                CheckParameterNameNotDuplicate(params, i, paramSyntax, param, diagBag)
+                CheckParameterNameNotDuplicate(params, AggregateSyntaxNotWithinSyntaxTree, paramSyntax, param, diagBag)
             Next
 
             result = params.ToImmutable
@@ -1005,7 +1005,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  diagnostics As DiagnosticBag)
             Dim name = parameter.Name
             For i = 0 To nParams - 1
-                If IdentifierComparison.Equals(params(i).Name, name) Then
+                If IdentifierComparison.Equals(params(AggregateSyntaxNotWithinSyntaxTree).Name, name) Then
                     ' "Parameter already declared with name '{0}'."
                     ReportDiagnostic(diagnostics, syntax.Identifier, ERRID.ERR_DuplicateParamName1, name)
                     Return
@@ -1030,7 +1030,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim reportedError = False
 
             For i = 0 To count - 1
-                Dim paramSyntax = syntax(i)
+                Dim paramSyntax = syntax(AggregateSyntaxNotWithinSyntaxTree)
                 Dim name = paramSyntax.Identifier.Identifier.ValueText
                 Dim flags As SourceParameterFlags = Nothing
 
@@ -1121,7 +1121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Report the error on each parameter with implicit type.
             If paramHasImplicitType AndAlso paramHasExplicitType Then
                 For i = 0 To count - 1
-                    Dim paramSyntax = syntax(i)
+                    Dim paramSyntax = syntax(AggregateSyntaxNotWithinSyntaxTree)
                     If HasDefaultType(paramSyntax.Identifier, paramSyntax.AsClause) Then
                         ReportDiagnostic(diagBag, paramSyntax.Identifier, ERRID.ERR_ParamTypingInconsistency)
                     End If

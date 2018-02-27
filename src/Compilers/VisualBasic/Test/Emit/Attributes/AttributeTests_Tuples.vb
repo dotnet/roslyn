@@ -233,8 +233,8 @@ BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neut
             Assert.Equal(srcTypes.Length, peTypes.Count)
 
             For i = 0 To srcTypes.Length - 1
-                Dim srcType = srcTypes(i)
-                Dim peType = peTypes(i)
+                Dim srcType = srcTypes(AggregateSyntaxNotWithinSyntaxTree)
+                Dim peType = peTypes(AggregateSyntaxNotWithinSyntaxTree)
 
                 Assert.Equal(ToTestString(srcType.BaseType), ToTestString(peType.BaseType))
 

@@ -411,8 +411,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim pairs = ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)).GetInstance()
             Try
                 For i = 0 To params.Length - 1
-                    Dim param As TypeParameterSymbol = params(i)
-                    Dim arg As TypeWithModifiers = args(i)
+                    Dim param As TypeParameterSymbol = params(AggregateSyntaxNotWithinSyntaxTree)
+                    Dim arg As TypeWithModifiers = args(AggregateSyntaxNotWithinSyntaxTree)
 
                     Debug.Assert(param.IsDefinition)
 
@@ -543,11 +543,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             builder.Append("{"c)
             For i = 0 To _pairs.Length - 1
-                If i <> 0 Then
+                If AggregateSyntaxNotWithinSyntaxTree <> 0 Then
                     builder.Append(", ")
                 End If
 
-                builder.AppendFormat("{0}->{1}", _pairs(i).Key.ToString(), _pairs(i).Value.Type.ToString())
+                builder.AppendFormat("{0}->{1}", _pairs(AggregateSyntaxNotWithinSyntaxTree).Key.ToString(), _pairs(AggregateSyntaxNotWithinSyntaxTree).Value.Type.ToString())
             Next
             builder.Append("}"c)
         End Sub
@@ -768,19 +768,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             For i = 0 To oldPairs.Length - 1 Step 1
-                Dim newValue As TypeWithModifiers = oldPairs(i).Value.InternalSubstituteTypeParameters(additionalSubstitution)
+                Dim newValue As TypeWithModifiers = oldPairs(AggregateSyntaxNotWithinSyntaxTree).Value.InternalSubstituteTypeParameters(additionalSubstitution)
 
                 ' Mark that we had this substitution even if it is going to disappear.
                 ' We still don't want to append substitution for this guy from additionalSubstitution.
-                haveSubstitutionForOrdinal(oldPairs(i).Key.Ordinal) = True
+                haveSubstitutionForOrdinal(oldPairs(AggregateSyntaxNotWithinSyntaxTree).Key.Ordinal) = True
 
-                If Not newValue.Equals(oldPairs(i).Value) Then
+                If Not newValue.Equals(oldPairs(AggregateSyntaxNotWithinSyntaxTree).Value) Then
                     pairsHaveChanged = True
                 End If
 
                 ' Do not add identity mapping.
-                If Not newValue.Is(oldPairs(i).Key) Then
-                    pairs.Add(New KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)(oldPairs(i).Key, newValue))
+                If Not newValue.Is(oldPairs(AggregateSyntaxNotWithinSyntaxTree).Key) Then
+                    pairs.Add(New KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)(oldPairs(AggregateSyntaxNotWithinSyntaxTree).Key, newValue))
                 End If
             Next
 

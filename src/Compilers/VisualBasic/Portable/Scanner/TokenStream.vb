@@ -405,8 +405,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #If DEBUG Then
             Dim terminatorOffset = -1
             For i = 0 To _tokens.Count - 1
-                If _tokens(i).InnerTokenObject.Kind = SyntaxKind.StatementTerminatorToken Then
-                    terminatorOffset = i
+                If _tokens(AggregateSyntaxNotWithinSyntaxTree).InnerTokenObject.Kind = SyntaxKind.StatementTerminatorToken Then
+                    terminatorOffset = AggregateSyntaxNotWithinSyntaxTree
                     Exit For
                 End If
             Next

@@ -288,12 +288,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim n = constraints.Count
             For i = 0 To n - 1
-                Dim pair1 = constraints(i)
+                Dim pair1 = constraints(AggregateSyntaxNotWithinSyntaxTree)
                 If pair1.IsBad Then
                     Continue For
                 End If
 
-                For j = i + 1 To n - 1
+                For j = AggregateSyntaxNotWithinSyntaxTree + 1 To n - 1
                     Dim pair2 = constraints(j)
                     If pair2.IsBad Then
                         Continue For
@@ -592,8 +592,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim succeeded = True
 
             For i = 0 To n - 1
-                Dim typeArgument = typeArguments(i)
-                Dim typeParameter = typeParameters(i)
+                Dim typeArgument = typeArguments(AggregateSyntaxNotWithinSyntaxTree)
+                Dim typeParameter = typeParameters(AggregateSyntaxNotWithinSyntaxTree)
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 If Not CheckConstraints(constructedSymbol, substitution, typeParameter, typeArgument, diagnosticsBuilder, useSiteDiagnostics) Then
                     succeeded = False

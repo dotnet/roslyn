@@ -79,12 +79,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             For i = 0 To userDefined.Length - 1
-                Dim attribute As VisualBasicAttributeData = userDefined(i)
+                Dim attribute As VisualBasicAttributeData = userDefined(AggregateSyntaxNotWithinSyntaxTree)
 
                 If Me.Kind = SymbolKind.Assembly Then
                     ' We need to filter out duplicate assembly attributes,
                     ' i.e. attributes that bind to the same constructor and have identical arguments.
-                    If DirectCast(Me, SourceAssemblySymbol).IsIndexOfDuplicateAssemblyAttribute(i) Then
+                    If DirectCast(Me, SourceAssemblySymbol).IsIndexOfDuplicateAssemblyAttribute(AggregateSyntaxNotWithinSyntaxTree) Then
                         Continue For
                     End If
                 End If

@@ -935,7 +935,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function NodesAreCorrectType(Of TNode)(list As SyntaxNodeOrTokenList) As Boolean
             Dim n = list.Count
             For i = 0 To n - 1
-                Dim element = list(i)
+                Dim element = list(AggregateSyntaxNotWithinSyntaxTree)
                 If element.IsNode AndAlso Not (TypeOf element.AsNode() Is TNode) Then
                     Return False
                 End If
@@ -945,8 +945,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function HasSeparatedNodeTokenPattern(list As SyntaxNodeOrTokenList) As Boolean
             For i = 0 To list.Count - 1
-                Dim element = list(i)
-                If element.IsToken = ((i And 1) = 0) Then
+                Dim element = list(AggregateSyntaxNotWithinSyntaxTree)
+                If element.IsToken = ((AggregateSyntaxNotWithinSyntaxTree And 1) = 0) Then
                     Return False
                 End If
             Next

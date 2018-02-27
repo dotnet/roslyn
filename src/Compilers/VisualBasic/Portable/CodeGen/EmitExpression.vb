@@ -530,8 +530,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitArguments(arguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of ParameterSymbol))
             Debug.Assert(arguments.Length = parameters.Length)
             For i = 0 To arguments.Length - 1
-                Dim argument = arguments(i)
-                Dim parameter = parameters(i)
+                Dim argument = arguments(AggregateSyntaxNotWithinSyntaxTree)
+                Dim parameter = parameters(AggregateSyntaxNotWithinSyntaxTree)
                 If parameter.IsByRef Then
                     Dim temp = EmitAddress(argument, AddressKind.Writeable)
                     Debug.Assert(temp Is Nothing, "passing args byref should not clone them into temps. That should be done in rewriter.")

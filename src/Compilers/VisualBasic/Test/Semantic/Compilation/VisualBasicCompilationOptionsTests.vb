@@ -350,7 +350,7 @@ BC2014: the value '<%= rootNs %>' is invalid for option 'RootNamespace'
 
             Assert.Equal(importStrings.Length, opt.GlobalImports.Count)
             For i = 0 To importStrings.Length - 1
-                Assert.Equal(importStrings(i).Trim(), opt.GlobalImports(i).Clause.ToString)
+                Assert.Equal(importStrings(AggregateSyntaxNotWithinSyntaxTree).Trim(), opt.GlobalImports(AggregateSyntaxNotWithinSyntaxTree).Clause.ToString)
             Next
         End Sub
 
@@ -369,7 +369,7 @@ BC2014: the value '<%= rootNs %>' is invalid for option 'RootNamespace'
             Dim expectedTexts = (From e In expectedErrors Order By e Select e).ToArray()
 
             For i = 0 To diagnostics.Length - 1
-                Assert.Equal(expectedTexts(i), errorTexts(i))
+                Assert.Equal(expectedTexts(AggregateSyntaxNotWithinSyntaxTree), errorTexts(AggregateSyntaxNotWithinSyntaxTree))
             Next
         End Sub
 

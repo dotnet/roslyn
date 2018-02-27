@@ -617,12 +617,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim typeParametersBuilder As ArrayBuilder(Of Symbol) = Nothing
 
                     For i = 0 To symbols.Length - 1
-                        Dim symbol = symbols(i)
+                        Dim symbol = symbols(AggregateSyntaxNotWithinSyntaxTree)
                         If symbol.Kind = SymbolKind.TypeParameter Then
                             If symbolsBuilder Is Nothing Then
-                                symbolsBuilder = ArrayBuilder(Of Symbol).GetInstance(i)
+                                symbolsBuilder = ArrayBuilder(Of Symbol).GetInstance(AggregateSyntaxNotWithinSyntaxTree)
                                 typeParametersBuilder = ArrayBuilder(Of Symbol).GetInstance()
-                                symbolsBuilder.AddRange(symbols, i)
+                                symbolsBuilder.AddRange(symbols, AggregateSyntaxNotWithinSyntaxTree)
                             End If
                             typeParametersBuilder.Add(DirectCast(symbol, TypeParameterSymbol))
                         ElseIf symbolsBuilder IsNot Nothing Then

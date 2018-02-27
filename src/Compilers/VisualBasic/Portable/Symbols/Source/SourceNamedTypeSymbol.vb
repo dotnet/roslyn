@@ -917,7 +917,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim typeParamListSyntax = GetTypeParameterListSyntax(syntaxNode).Parameters
                     Debug.Assert(typeParamListSyntax.Count = n)
 
-                    Dim typeParamSyntax = typeParamListSyntax(i)
+                    Dim typeParamSyntax = typeParamListSyntax(AggregateSyntaxNotWithinSyntaxTree)
                     If name Is Nothing Then
                         name = typeParamSyntax.Identifier.ValueText
                     End If
@@ -927,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Debug.Assert(name IsNot Nothing)
                 Debug.Assert(syntaxRefBuilder.Count > 0)
 
-                typeParameters(i) = New SourceTypeParameterOnTypeSymbol(Me, i, name, syntaxRefBuilder.ToImmutableAndFree())
+                typeParameters(AggregateSyntaxNotWithinSyntaxTree) = New SourceTypeParameterOnTypeSymbol(Me, AggregateSyntaxNotWithinSyntaxTree, name, syntaxRefBuilder.ToImmutableAndFree())
             Next
 
             Return typeParameters.AsImmutableOrNull()
@@ -950,7 +950,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim typeParameterSet As New HashSet(Of String)(IdentifierComparison.Comparer)
                 ' Check for duplicate type parameters
                 For i = 0 To typeParameters.Length - 1
-                    Dim s = typeParameters(i)
+                    Dim s = typeParameters(AggregateSyntaxNotWithinSyntaxTree)
                     If Not typeParameterSet.Contains(s.Name) Then
                         typeParameterSet.Add(s.Name)
 
@@ -2393,7 +2393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function HasInstanceFields() As Boolean
             Dim members = Me.GetMembersUnordered()
             For i = 0 To members.Length - 1
-                Dim m = members(i)
+                Dim m = members(AggregateSyntaxNotWithinSyntaxTree)
                 If Not m.IsShared And m.Kind = SymbolKind.Field Then
                     Return True
                 End If

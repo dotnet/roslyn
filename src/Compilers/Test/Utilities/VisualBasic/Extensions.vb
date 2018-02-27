@@ -55,7 +55,7 @@ Friend Module Extensions
 
         lastContainer = container
         For i = 0 To parts.Length - 2
-            lastContainer = DirectCast(lastContainer.GetMember(parts(i)), NamespaceOrTypeSymbol)
+            lastContainer = DirectCast(lastContainer.GetMember(parts(AggregateSyntaxNotWithinSyntaxTree)), NamespaceOrTypeSymbol)
         Next
 
         Return lastContainer.GetMembers(parts(parts.Length - 1))
@@ -252,7 +252,7 @@ Friend Module Extensions
             End If
 
             For i = 0 To expArgs.Count - 1
-                If Not IsEqual(actArgs(i), expArgs(i)) Then
+                If Not IsEqual(actArgs(AggregateSyntaxNotWithinSyntaxTree), expArgs(AggregateSyntaxNotWithinSyntaxTree)) Then
                     Return False
                 End If
             Next
@@ -291,8 +291,8 @@ Friend Module Extensions
         Dim a = DirectCast(o, Array)
         Dim ret As Boolean = True
         For i = 0 To a.Length - 1
-            Dim v = a.GetValue(i)
-            Dim c = tc(i)
+            Dim v = a.GetValue(AggregateSyntaxNotWithinSyntaxTree)
+            Dim c = tc(AggregateSyntaxNotWithinSyntaxTree)
             ret = ret And IsEqual(c, v)
         Next
         Return ret

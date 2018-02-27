@@ -195,8 +195,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
                 Assert.Equal(todoLists.Count, list.Count)
 
                 For i = 0 To todoLists.Count - 1 Step 1
-                    Dim todo = todoLists(i)
-                    Dim span = list(i)
+                    Dim todo = todoLists(AggregateSyntaxNotWithinSyntaxTree)
+                    Dim span = list(AggregateSyntaxNotWithinSyntaxTree)
 
                     Dim line = document.InitialTextSnapshot.GetLineFromPosition(span.Start)
 

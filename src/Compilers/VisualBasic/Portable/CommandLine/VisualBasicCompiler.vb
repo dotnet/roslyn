@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 For i = 0 To sourceFiles.Length - 1
                     ' NOTE: order of trees is important!!
-                    trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i), errorLogger)
+                    trees(AggregateSyntaxNotWithinSyntaxTree) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(AggregateSyntaxNotWithinSyntaxTree), errorLogger)
                 Next
             End If
 

@@ -441,7 +441,7 @@ a.vb
         Private Sub AssertGlobalImports(expectedImportStrings As String(), actualImports As GlobalImport())
             Assert.Equal(expectedImportStrings.Length, actualImports.Count)
             For i = 0 To expectedImportStrings.Length - 1
-                Assert.Equal(expectedImportStrings(i), actualImports(i).Clause.ToString)
+                Assert.Equal(expectedImportStrings(AggregateSyntaxNotWithinSyntaxTree), actualImports(AggregateSyntaxNotWithinSyntaxTree).Clause.ToString)
             Next
         End Sub
 
@@ -1832,8 +1832,8 @@ End Module").Path
                                     Function(d) New With {d.Key, d.Value}).OrderBy(Function(o) o.Key)
 
             For i = 0 To symbols.Length - 1
-                Assert.Equal(symbols(i)(0), sortedDefines(i).Key)
-                Assert.Equal(symbols(i)(1), sortedDefines(i).Value)
+                Assert.Equal(symbols(AggregateSyntaxNotWithinSyntaxTree)(0), sortedDefines(AggregateSyntaxNotWithinSyntaxTree).Key)
+                Assert.Equal(symbols(AggregateSyntaxNotWithinSyntaxTree)(1), sortedDefines(AggregateSyntaxNotWithinSyntaxTree).Value)
             Next
         End Sub
 
@@ -4771,7 +4771,7 @@ Class C
             Assert.Equal(1 + paths.Length, refPaths.Length)
             Assert.Equal(If(sdkPathOrNothing, RuntimeEnvironment.GetRuntimeDirectory()), refPaths(0))
             For i = 0 To paths.Count - 1
-                Assert.Equal(paths(i), refPaths(i + 1))
+                Assert.Equal(paths(AggregateSyntaxNotWithinSyntaxTree), refPaths(AggregateSyntaxNotWithinSyntaxTree + 1))
             Next
         End Sub
 

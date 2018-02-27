@@ -33,8 +33,8 @@ Friend Module ParserTestUtilities
             Dim expectedXml = expectedErrors.<error>
             expectedDiagnostics = New DiagnosticDescription(expectedXml.Count - 1) {}
             For i = 0 To expectedDiagnostics.Length - 1
-                Dim e = expectedXml.ElementAt(i)
-                expectedDiagnostics(i) = TestBase.Diagnostic(CType(CInt(e.@id), ERRID))
+                Dim e = expectedXml.ElementAt(AggregateSyntaxNotWithinSyntaxTree)
+                expectedDiagnostics(AggregateSyntaxNotWithinSyntaxTree) = TestBase.Diagnostic(CType(CInt(e.@id), ERRID))
 
                 Debug.Assert(e.@line Is Nothing, "'line' attribute will be ignored")
                 Debug.Assert(e.@column Is Nothing, "'column' attribute will be ignored")
@@ -179,8 +179,8 @@ Friend Module ParserTestUtilities
 
         Dim count As Integer = If(s1.Length < s2.Length, s1.Length, s2.Length)
         For i = 0 To count - 1
-            If s1(i) <> s2(i) Then
-                Return i
+            If s1(AggregateSyntaxNotWithinSyntaxTree) <> s2(AggregateSyntaxNotWithinSyntaxTree) Then
+                Return AggregateSyntaxNotWithinSyntaxTree
             End If
         Next
         Return count

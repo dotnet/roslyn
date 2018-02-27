@@ -1330,8 +1330,8 @@ BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
             Dim builder As New StringBuilder()
             builder.AppendLine("Enum E")
             For i = 0 To n - 1
-                builder.Append(String.Format("    M{0}", i))
-                Dim value = getMemberValue(i, n)
+                builder.Append(String.Format("    M{0}", AggregateSyntaxNotWithinSyntaxTree))
+                Dim value = getMemberValue(AggregateSyntaxNotWithinSyntaxTree, n)
                 If Not String.IsNullOrEmpty(value) Then
                     builder.Append(" = ")
                     builder.Append(value)

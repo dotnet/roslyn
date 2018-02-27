@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
             Dim builder = ArrayBuilder(Of PropertySymbol).GetInstance()
             For i = 0 To impls.Length - 1
-                Dim retargeted = Me.RetargetingModule.RetargetingTranslator.Retarget(impls(i), PropertySignatureComparer.RetargetedExplicitPropertyImplementationComparer)
+                Dim retargeted = Me.RetargetingModule.RetargetingTranslator.Retarget(impls(AggregateSyntaxNotWithinSyntaxTree), PropertySignatureComparer.RetargetedExplicitPropertyImplementationComparer)
                 If retargeted IsNot Nothing Then
                     builder.Add(retargeted)
                 End If

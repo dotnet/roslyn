@@ -198,14 +198,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub MarkLocalsUnassigned()
             For i = SlotKind.FirstAvailable To nextVariableSlot - 1
-                Dim symbol As Symbol = variableBySlot(i).Symbol
+                Dim symbol As Symbol = variableBySlot(AggregateSyntaxNotWithinSyntaxTree).Symbol
                 Select Case symbol.Kind
                     Case SymbolKind.Local
                         If Not DirectCast(symbol, LocalSymbol).IsConst Then
-                            SetSlotState(i, False)
+                            SetSlotState(AggregateSyntaxNotWithinSyntaxTree, False)
                         End If
                     Case SymbolKind.Parameter
-                        SetSlotState(i, False)
+                        SetSlotState(AggregateSyntaxNotWithinSyntaxTree, False)
                 End Select
             Next
         End Sub

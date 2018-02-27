@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim hasNamespaces As Boolean = False
 
                         For i = 0 To builder.Count - 1
-                            If builder(i).Kind = SymbolKind.Namespace Then
+                            If builder(AggregateSyntaxNotWithinSyntaxTree).Kind = SymbolKind.Namespace Then
                                 hasNamespaces = True
                                 Exit For
                             End If

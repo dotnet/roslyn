@@ -826,8 +826,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim memberContainingType As NamedTypeSymbol = member.ContainingType
             For i = 0 To builder.Count - 1
                 Dim exactMatchIgnoringCustomModifiers As Boolean = False
-                If builder(i).ContainingType <> memberContainingType AndAlso
-                        SignaturesMatch(builder(i), member, Nothing, exactMatchIgnoringCustomModifiers) AndAlso exactMatchIgnoringCustomModifiers Then
+                If builder(AggregateSyntaxNotWithinSyntaxTree).ContainingType <> memberContainingType AndAlso
+                        SignaturesMatch(builder(AggregateSyntaxNotWithinSyntaxTree), member, Nothing, exactMatchIgnoringCustomModifiers) AndAlso exactMatchIgnoringCustomModifiers Then
                     ' Do NOT add
                     Exit Sub
                 End If

@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim metadataExprs = New Cci.IMetadataExpression(values.Length - 1) {}
             For i = 0 To values.Length - 1
-                metadataExprs(i) = CreateMetadataExpression(values(i), context)
+                metadataExprs(AggregateSyntaxNotWithinSyntaxTree) = CreateMetadataExpression(values(AggregateSyntaxNotWithinSyntaxTree), context)
             Next
 
             Return New MetadataCreateArray(arrayType,

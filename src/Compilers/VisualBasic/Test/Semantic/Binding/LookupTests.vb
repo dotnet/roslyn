@@ -1934,7 +1934,7 @@ BC37229: 'T1' is ambiguous between declarations in namespaces 'NS1.NS6.NS7, NS2.
             Next
 
             For Each i In {3, 6, 9, 24}
-                Dim info3 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info3 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
 
                 Assert.Null(info3.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info3.CandidateReason)
@@ -1943,7 +1943,7 @@ BC37229: 'T1' is ambiguous between declarations in namespaces 'NS1.NS6.NS7, NS2.
             Next
 
             For Each i In {2, 5, 8, 23}
-                Dim info2 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info2 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
 
                 Assert.Null(info2.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info2.CandidateReason)
@@ -1951,40 +1951,40 @@ BC37229: 'T1' is ambiguous between declarations in namespaces 'NS1.NS6.NS7, NS2.
             Next
 
             For Each i In {1, 4, 7, 22}
-                Dim info1 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info1 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
 
                 Assert.Null(info1.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info1.CandidateReason)
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS4.NS6", "NS5.NS6"}, info1.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"},
-                         semanticModel.LookupNamespacesAndTypes(nodes(i).Position, name:="NS6").AsEnumerable().
+                         semanticModel.LookupNamespacesAndTypes(nodes(AggregateSyntaxNotWithinSyntaxTree).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"},
-                         semanticModel.LookupSymbols(nodes(i).Position, name:="NS6").AsEnumerable().
+                         semanticModel.LookupSymbols(nodes(AggregateSyntaxNotWithinSyntaxTree).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
 
             For Each i In {10, 13, 16, 19}
-                Dim info2 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info2 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
 
                 Assert.Null(info2.Symbol)
-                Assert.Equal(If(i = 16, CandidateReason.Ambiguous, If(i = 19, CandidateReason.NotAnAttributeType, CandidateReason.NotATypeOrNamespace)), info2.CandidateReason)
+                Assert.Equal(If(AggregateSyntaxNotWithinSyntaxTree = 16, CandidateReason.Ambiguous, If(AggregateSyntaxNotWithinSyntaxTree = 19, CandidateReason.NotAnAttributeType, CandidateReason.NotATypeOrNamespace)), info2.CandidateReason)
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"}, info2.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
 
             For Each i In {12, 15, 18, 21}
-                Dim info3 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info3 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
 
                 Assert.Null(info3.Symbol)
-                Assert.Equal(If(i = 18, CandidateReason.Ambiguous, If(i = 21, CandidateReason.NotAnAttributeType, CandidateReason.NotATypeOrNamespace)), info3.CandidateReason)
+                Assert.Equal(If(AggregateSyntaxNotWithinSyntaxTree = 18, CandidateReason.Ambiguous, If(AggregateSyntaxNotWithinSyntaxTree = 21, CandidateReason.NotAnAttributeType, CandidateReason.NotATypeOrNamespace)), info3.CandidateReason)
                 ' Content of this list should determine content of lists below !!!
                 Assert.Equal({"NS1.NS6.NS7", "NS2.NS6.NS7", "NS4.NS6.NS7", "NS5.NS6.NS7", "NS9.NS6.NS7"}, info3.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
 
             For Each i In {11, 14, 17, 20}
-                Dim info3 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info3 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
 
                 Assert.Null(info3.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info3.CandidateReason)
@@ -2105,7 +2105,7 @@ End Namespace
             Next
 
             For Each i In {3, 6, 9}
-                Dim info3 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info3 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
                 Assert.Equal("NS1.NS6.NS7.T1", info3.Symbol.ToTestDisplayString())
             Next
 
@@ -2113,23 +2113,23 @@ End Namespace
             Assert.Equal("Sub NS1.NS6.NS7.T1..ctor()", info12.Symbol.ToTestDisplayString())
 
             For Each i In {2, 5, 8, 11}
-                Dim info2 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info2 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
                 Assert.Equal("NS1.NS6.NS7", info2.Symbol.ToTestDisplayString())
                 Assert.Equal(NamespaceKind.Module, DirectCast(info2.Symbol, NamespaceSymbol).NamespaceKind)
             Next
 
             For Each i In {1, 4, 7, 10}
-                Dim info1 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info1 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
                 Assert.Equal("NS1.NS6", info1.Symbol.ToTestDisplayString())
                 Assert.Equal(NamespaceKind.Module, DirectCast(info1.Symbol, NamespaceSymbol).NamespaceKind)
 
 
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"},
-                             semanticModel.LookupNamespacesAndTypes(nodes(i).Position, name:="NS6").AsEnumerable().
+                             semanticModel.LookupNamespacesAndTypes(nodes(AggregateSyntaxNotWithinSyntaxTree).Position, name:="NS6").AsEnumerable().
                                 Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"},
-                             semanticModel.LookupSymbols(nodes(i).Position, name:="NS6").AsEnumerable().
+                             semanticModel.LookupSymbols(nodes(AggregateSyntaxNotWithinSyntaxTree).Position, name:="NS6").AsEnumerable().
                                 Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
         End Sub
@@ -2248,32 +2248,32 @@ BC30002: Type 'NS6.NS7.M1' is not defined.
             Next
 
             For Each i In {3, 6, 9, 12}
-                Dim info3 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info3 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
                 Assert.Null(info3.Symbol)
-                Assert.Equal(If(i = 3, CandidateReason.Ambiguous, CandidateReason.NotATypeOrNamespace), info3.CandidateReason)
+                Assert.Equal(If(AggregateSyntaxNotWithinSyntaxTree = 3, CandidateReason.Ambiguous, CandidateReason.NotATypeOrNamespace), info3.CandidateReason)
                 ' Content of this list should determine content of lists below !!!
                 Assert.Equal({"Sub NS1.NS6.NS7.T1.M1()", "Sub NS2.NS6.NS7.T1.M1()", "Sub NS5.NS6.NS7.T1.M1()"}, info3.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
 
             For Each i In {2, 5, 8, 11}
-                Dim info2 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info2 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
                 Assert.Null(info2.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info2.CandidateReason)
                 Assert.Equal({"NS1.NS6.NS7", "NS2.NS6.NS7", "NS5.NS6.NS7"}, info2.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
 
             For Each i In {1, 4, 7, 10}
-                Dim info1 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info1 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
                 Assert.Null(info1.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info1.CandidateReason)
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS5.NS6"}, info1.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
-                         semanticModel.LookupNamespacesAndTypes(nodes(i).Position, name:="NS6").AsEnumerable().
+                         semanticModel.LookupNamespacesAndTypes(nodes(AggregateSyntaxNotWithinSyntaxTree).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
-                         semanticModel.LookupSymbols(nodes(i).Position, name:="NS6").AsEnumerable().
+                         semanticModel.LookupSymbols(nodes(AggregateSyntaxNotWithinSyntaxTree).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
         End Sub
@@ -2606,7 +2606,7 @@ BC30562: 'T1' is ambiguous between declarations in Modules 'NS1.NS6.NS7.Module1,
             Next
 
             For Each i In {3, 6, 9, 12}
-                Dim info3 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info3 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
                 Assert.Null(info3.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info3.CandidateReason)
                 ' Content of this list should determine content of lists below !!!
@@ -2614,24 +2614,24 @@ BC30562: 'T1' is ambiguous between declarations in Modules 'NS1.NS6.NS7.Module1,
             Next
 
             For Each i In {2, 5, 8, 11}
-                Dim info2 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info2 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
                 Assert.Null(info2.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info2.CandidateReason)
                 Assert.Equal({"NS1.NS6.NS7", "NS2.NS6.NS7", "NS5.NS6.NS7"}, info2.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
 
             For Each i In {1, 4, 7, 10}
-                Dim info1 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info1 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
                 Assert.Null(info1.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info1.CandidateReason)
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS5.NS6"}, info1.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
-                         semanticModel.LookupNamespacesAndTypes(nodes(i).Position, name:="NS6").AsEnumerable().
+                         semanticModel.LookupNamespacesAndTypes(nodes(AggregateSyntaxNotWithinSyntaxTree).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
-                         semanticModel.LookupSymbols(nodes(i).Position, name:="NS6").AsEnumerable().
+                         semanticModel.LookupSymbols(nodes(AggregateSyntaxNotWithinSyntaxTree).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
         End Sub
@@ -2739,7 +2739,7 @@ BC30109: 'Module1.T1' is a class type and cannot be used as an expression.
             Next
 
             For Each i In {3, 6, 9}
-                Dim info3 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info3 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
                 Assert.Equal("NS1.NS6.NS7.Module1.T1", info3.Symbol.ToTestDisplayString())
             Next
 
@@ -2747,22 +2747,22 @@ BC30109: 'Module1.T1' is a class type and cannot be used as an expression.
             Assert.Equal("Sub NS1.NS6.NS7.Module1.T1..ctor()", info12.Symbol.ToTestDisplayString())
 
             For Each i In {2, 5, 8, 11}
-                Dim info2 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info2 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
                 Assert.Equal("NS1.NS6.NS7", info2.Symbol.ToTestDisplayString())
                 Assert.Equal(NamespaceKind.Module, DirectCast(info2.Symbol, NamespaceSymbol).NamespaceKind)
             Next
 
             For Each i In {1, 4, 7, 10}
-                Dim info1 = semanticModel.GetSymbolInfo(nodes(i))
+                Dim info1 = semanticModel.GetSymbolInfo(nodes(AggregateSyntaxNotWithinSyntaxTree))
                 Assert.Equal("NS1.NS6", info1.Symbol.ToTestDisplayString())
                 Assert.Equal(NamespaceKind.Module, DirectCast(info1.Symbol, NamespaceSymbol).NamespaceKind)
 
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
-                         semanticModel.LookupNamespacesAndTypes(nodes(i).Position, name:="NS6").AsEnumerable().
+                         semanticModel.LookupNamespacesAndTypes(nodes(AggregateSyntaxNotWithinSyntaxTree).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
-                         semanticModel.LookupSymbols(nodes(i).Position, name:="NS6").AsEnumerable().
+                         semanticModel.LookupSymbols(nodes(AggregateSyntaxNotWithinSyntaxTree).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
         End Sub

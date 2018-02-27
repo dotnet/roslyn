@@ -67,13 +67,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Dim names = declarator.Names
                         For i = 0 To names.Count - 1
-                            Dim modifiedIdentifier = names(i)
+                            Dim modifiedIdentifier = names(AggregateSyntaxNotWithinSyntaxTree)
 
                             ' if this is not an AsNew declaration with multiple names and an initializer (error case), then only use
                             ' the initializer for the last variable.
                             Dim localVar = LocalSymbol.Create(Me.ContainingMember, Me,
                                                              modifiedIdentifier.Identifier, modifiedIdentifier, asClauseOptSyntax,
-                                                             If(isNotAsNewAndHasInitializer AndAlso i = names.Count - 1,
+                                                             If(isNotAsNewAndHasInitializer AndAlso AggregateSyntaxNotWithinSyntaxTree = names.Count - 1,
                                                                 declarator.Initializer,
                                                                 Nothing),
                                                              declarationKind)

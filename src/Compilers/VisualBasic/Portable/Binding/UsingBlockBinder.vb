@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim names = variableDeclarator.Names
                     For i = 0 To names.Count - 1
-                        Dim name = names(i)
+                        Dim name = names(AggregateSyntaxNotWithinSyntaxTree)
 
                         ' we'll simply reuse the logic for local variables here (incl. local type inference)
 
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' the initializer for the last variable.
                         localsBuilder.Add(LocalSymbol.Create(Me.ContainingMember, Me,
                                                              name.Identifier, name, variableDeclarator.AsClause,
-                                                             If(isNotAsNewAndHasInitializer AndAlso i = names.Count - 1,
+                                                             If(isNotAsNewAndHasInitializer AndAlso AggregateSyntaxNotWithinSyntaxTree = names.Count - 1,
                                                                 variableDeclarator.Initializer,
                                                                 Nothing),
                                                              LocalDeclarationKind.Using))

@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Debug.Assert(Not intersects)
 
                     For i = 0 To dummyCnt - 1
-                        If newDef.ConflictsWithDummy(defs(i)) Then
+                        If newDef.ConflictsWithDummy(defs(AggregateSyntaxNotWithinSyntaxTree)) Then
                             intersects = True
                             Exit For
                         End If
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                     If Not intersects Then
                         For i = dummyCnt To defs.Count - 1
-                            If newDef.ConflictsWith(defs(i)) Then
+                            If newDef.ConflictsWith(defs(AggregateSyntaxNotWithinSyntaxTree)) Then
                                 intersects = True
                                 Exit For
                             End If

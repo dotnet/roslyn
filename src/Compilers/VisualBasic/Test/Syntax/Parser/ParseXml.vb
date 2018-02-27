@@ -3947,7 +3947,7 @@ End Module
             </errors>)
         ' Test all Unicode space characters other than &H20.
         For i = &H21 To &HFFFF
-            Dim c = ChrW(i)
+            Dim c = ChrW(AggregateSyntaxNotWithinSyntaxTree)
             ' Note: SyntaxFacts.IsWhitespace(c) considers &H200B as
             ' space even though the UnicodeCategory is Format.
             If (Char.GetUnicodeCategory(c) = Globalization.UnicodeCategory.SpaceSeparator) OrElse

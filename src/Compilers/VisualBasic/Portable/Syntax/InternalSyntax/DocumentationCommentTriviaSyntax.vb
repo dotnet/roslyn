@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim childCnt = node.SlotCount
             If childCnt > 0 Then
                 For i = 0 To childCnt - 1
-                    Dim child = node.GetSlot(i)
+                    Dim child = node.GetSlot(AggregateSyntaxNotWithinSyntaxTree)
                     WriteInteriorXml(child, sb)
                 Next
             Else
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Shared Sub WriteInteriorXml(node As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), sb As StringBuilder)
             For i = 0 To node.Count - 1
-                Dim t = node(i)
+                Dim t = node(AggregateSyntaxNotWithinSyntaxTree)
                 If t.Kind <> SyntaxKind.DocumentationCommentExteriorTrivia Then
                     sb.Append(t.ToString)
                 End If

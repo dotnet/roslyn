@@ -2972,7 +2972,7 @@ ProduceBoundNode:
 
                 Dim argsArr(arguments.Count - 1) As ArgumentSyntax
                 For i = 0 To argsArr.Length - 1
-                    argsArr(i) = arguments(i)
+                    argsArr(AggregateSyntaxNotWithinSyntaxTree) = arguments(AggregateSyntaxNotWithinSyntaxTree)
                 Next
 
                 args = argsArr.AsImmutableOrNull
@@ -3025,7 +3025,7 @@ ProduceBoundNode:
                                     For i = 0 To argCount - 1
                                         argumentNamesBuilder.Add(Nothing)
                                         argumentNamesLocationsBuilder.Add(Nothing)
-                                    Next i
+                                    Next AggregateSyntaxNotWithinSyntaxTree
                                 End If
 
                                 Dim id = simpleArgument.NameColonEquals.Name.Identifier

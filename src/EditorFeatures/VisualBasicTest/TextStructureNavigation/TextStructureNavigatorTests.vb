@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
             For i = 7 To 12
                 AssertExtent(
                     "Public Module Module1",
-                    pos:=i,
+                    pos:=AggregateSyntaxNotWithinSyntaxTree,
                     isSignificant:=True,
                     start:=7, length:=6)
             Next
@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
             For i = 13 To 13 + 8
                 AssertExtent(
                     "Public Class SomeClass : Inherits Object",
-                    pos:=i,
+                    pos:=AggregateSyntaxNotWithinSyntaxTree,
                     isSignificant:=True,
                     start:=13, length:=9)
             Next
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
             For i = 12 To 12 + 7
                 AssertExtent(
                     "Friend Enum [Module] As Long",
-                    pos:=i,
+                    pos:=AggregateSyntaxNotWithinSyntaxTree,
                     isSignificant:=True,
                     start:=12, length:=8)
             Next
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
             For i = 37 To 37 + 12
                 AssertExtent(
                     "Class Test : Dim number As Double = -1.234678E-120 : End Class",
-                    pos:=i,
+                    pos:=AggregateSyntaxNotWithinSyntaxTree,
                     isSignificant:=True,
                     start:=37, length:=13)
             Next

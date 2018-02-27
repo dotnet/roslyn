@@ -10076,8 +10076,8 @@ AssemblyName
             Assert.Equal(expected.Length, names.Count)
 
             For i = 0 To names.Count - 1
-                Dim e = expected(i)
-                Dim sym = names(i)
+                Dim e = expected(AggregateSyntaxNotWithinSyntaxTree)
+                Dim sym = names(AggregateSyntaxNotWithinSyntaxTree)
 
                 Assert.Equal(e.Syntax, sym.ToString().Trim())
 
@@ -11898,8 +11898,8 @@ xmlDoc)
             Assert.Equal(expected.Length, names.Count)
 
             For i = 0 To names.Count - 1
-                Dim e = expected(i)
-                Dim sym = names(i)
+                Dim e = expected(AggregateSyntaxNotWithinSyntaxTree)
+                Dim sym = names(AggregateSyntaxNotWithinSyntaxTree)
 
                 Assert.Equal(e.Name, sym.ToString().Trim())
 

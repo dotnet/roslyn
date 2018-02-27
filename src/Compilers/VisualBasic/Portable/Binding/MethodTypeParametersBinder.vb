@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' type parameters can only be accessed with arity 0
             ' Since there are typically just one or two type parameters, using a dictionary/ILookup would be overkill.
             For i = 0 To _typeParameters.Length - 1
-                Dim tp = _typeParameters(i)
+                Dim tp = _typeParameters(AggregateSyntaxNotWithinSyntaxTree)
                 If IdentifierComparison.Equals(tp.Name, name) Then
                     lookupResult.SetFrom(CheckViability(tp, arity, options, Nothing, useSiteDiagnostics))
                 End If

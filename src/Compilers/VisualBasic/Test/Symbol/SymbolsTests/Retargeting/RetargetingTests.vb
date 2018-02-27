@@ -1331,7 +1331,7 @@ End Namespace
             'Check the Type Parameters
             Assert.Equal(sourceType.TypeParameters.Length, retargetingType.TypeParameters.Length)
             For i = 0 To sourceType.TypeParameters.Length - 1
-                CheckTypeParameters(sourceType.TypeParameters(i), retargetingType.TypeParameters(i))
+                CheckTypeParameters(sourceType.TypeParameters(AggregateSyntaxNotWithinSyntaxTree), retargetingType.TypeParameters(AggregateSyntaxNotWithinSyntaxTree))
             Next
 
             'Single Constraints
@@ -1345,7 +1345,7 @@ End Namespace
             Assert.False(sourceType.TypeParameters(0).HasConstructorConstraint)
             Assert.Equal(sourceType.TypeParameters(0).HasConstructorConstraint, retargetingType.TypeParameters(0).HasConstructorConstraint)
             For i = 0 To sourceType.TypeParameters(0).ConstraintTypes.Length - 1
-                CheckTypes(sourceType.TypeParameters(0).ConstraintTypes(i), retargetingType.TypeParameters(0).ConstraintTypes(i))
+                CheckTypes(sourceType.TypeParameters(0).ConstraintTypes(AggregateSyntaxNotWithinSyntaxTree), retargetingType.TypeParameters(0).ConstraintTypes(AggregateSyntaxNotWithinSyntaxTree))
             Next
             Assert.Equal("TestInterface", CType(sourceType.TypeParameters(0).ConstraintTypes(0), SourceNamedTypeSymbol).Name)
 
@@ -1360,8 +1360,8 @@ End Namespace
             Assert.True(sourceType.TypeParameters(0).HasConstructorConstraint)
             Assert.Equal(sourceType.TypeParameters(0).HasConstructorConstraint, retargetingType.TypeParameters(0).HasConstructorConstraint)
             For i = 0 To sourceType.TypeParameters.Length - 1
-                CheckTypeParameters(sourceType.TypeParameters(i), retargetingType.TypeParameters(i))
-                CheckTypes(sourceType.TypeParameters(0).ConstraintTypes(i), retargetingType.TypeParameters(0).ConstraintTypes(i))
+                CheckTypeParameters(sourceType.TypeParameters(AggregateSyntaxNotWithinSyntaxTree), retargetingType.TypeParameters(AggregateSyntaxNotWithinSyntaxTree))
+                CheckTypes(sourceType.TypeParameters(0).ConstraintTypes(AggregateSyntaxNotWithinSyntaxTree), retargetingType.TypeParameters(0).ConstraintTypes(AggregateSyntaxNotWithinSyntaxTree))
             Next
             Assert.Equal("TestClass", CType(sourceType.TypeParameters(0).ConstraintTypes(0), SourceNamedTypeSymbol).Name)
         End Sub

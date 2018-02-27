@@ -1009,7 +1009,7 @@ Friend Module CompilationUtils
 
         Dim diagnosticsAndIndices(allDiagnostics.Length - 1) As DiagnosticAndIndex
         For i = 0 To allDiagnostics.Length - 1
-            diagnosticsAndIndices(i) = New DiagnosticAndIndex(allDiagnostics(i), i)
+            diagnosticsAndIndices(AggregateSyntaxNotWithinSyntaxTree) = New DiagnosticAndIndex(allDiagnostics(AggregateSyntaxNotWithinSyntaxTree), AggregateSyntaxNotWithinSyntaxTree)
         Next
 
         Array.Sort(diagnosticsAndIndices, Function(diag1, diag2) CompareErrors(diag1, diag2))
@@ -1236,7 +1236,7 @@ Friend Module CompilationUtils
         Array.Sort(symbolDescriptions)
 
         For i = 0 To descriptions.Length - 1
-            Assert.Equal(symbolDescriptions(i), descriptions(i))
+            Assert.Equal(symbolDescriptions(AggregateSyntaxNotWithinSyntaxTree), descriptions(AggregateSyntaxNotWithinSyntaxTree))
         Next
     End Sub
 

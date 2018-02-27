@@ -523,11 +523,11 @@ End Class"
             Dim m = pattern.Length
             For i = startIndex To n - m - 1
                 For j = 0 To m - 1
-                    If bytes(i + j) <> pattern(j) Then
+                    If bytes(AggregateSyntaxNotWithinSyntaxTree + j) <> pattern(j) Then
                         GoTo EndOfLoop
                     End If
                 Next
-                Return i
+                Return AggregateSyntaxNotWithinSyntaxTree
 EndOfLoop:
             Next
             Return -1

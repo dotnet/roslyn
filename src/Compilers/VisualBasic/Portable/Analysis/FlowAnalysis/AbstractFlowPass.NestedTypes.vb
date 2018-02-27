@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If count <= Me._path.Length Then
                     For i = 0 To count - 1
-                        If Me._path(i) <> other(i) Then
+                        If Me._path(AggregateSyntaxNotWithinSyntaxTree) <> other(AggregateSyntaxNotWithinSyntaxTree) Then
                             Return False
                         End If
                     Next

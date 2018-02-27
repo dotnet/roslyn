@@ -461,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
             Dim builder = ArrayBuilder(Of MethodSymbol).GetInstance()
             For i = 0 To impls.Length - 1
-                Dim retargeted = RetargetingTranslator.Retarget(impls(i), MethodSignatureComparer.RetargetedExplicitMethodImplementationComparer)
+                Dim retargeted = RetargetingTranslator.Retarget(impls(AggregateSyntaxNotWithinSyntaxTree), MethodSignatureComparer.RetargetedExplicitMethodImplementationComparer)
                 If retargeted IsNot Nothing Then
                     builder.Add(retargeted)
                 End If

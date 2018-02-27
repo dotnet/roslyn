@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim substituted As ParameterSymbol() = New ParameterSymbol(count - 1) {}
 
                 For i = 0 To count - 1
-                    substituted(i) = SubstitutedParameterSymbol.CreateMethodParameter(Me, unsubstituted(i))
+                    substituted(AggregateSyntaxNotWithinSyntaxTree) = SubstitutedParameterSymbol.CreateMethodParameter(Me, unsubstituted(AggregateSyntaxNotWithinSyntaxTree))
                 Next
 
                 Return substituted.AsImmutableOrNull()

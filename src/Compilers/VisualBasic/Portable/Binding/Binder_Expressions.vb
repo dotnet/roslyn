@@ -442,9 +442,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim builder = ArrayBuilder(Of Boolean).GetInstance(elementNames.Count)
             For i = 0 To elementNames.Count - 1
 
-                Dim inferredName As String = inferredElementNames(i)
-                If elementNames(i) Is Nothing AndAlso inferredName IsNot Nothing Then
-                    elementNames(i) = inferredName
+                Dim inferredName As String = inferredElementNames(AggregateSyntaxNotWithinSyntaxTree)
+                If elementNames(AggregateSyntaxNotWithinSyntaxTree) Is Nothing AndAlso inferredName IsNot Nothing Then
+                    elementNames(AggregateSyntaxNotWithinSyntaxTree) = inferredName
                     builder.Add(True)
                 Else
                     builder.Add(False)
@@ -3880,10 +3880,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim builder As ArrayBuilder(Of BoundExpression) = Nothing
             For i = 0 To boundArguments.Length - 1
-                Dim index As BoundExpression = boundArguments(i)
+                Dim index As BoundExpression = boundArguments(AggregateSyntaxNotWithinSyntaxTree)
                 If builder Is Nothing AndAlso index.IsLValue Then
                     builder = ArrayBuilder(Of BoundExpression).GetInstance()
-                    For k = 0 To i - 1
+                    For k = 0 To AggregateSyntaxNotWithinSyntaxTree - 1
                         builder.Add(boundArguments(k))
                     Next
                 End If
@@ -3921,8 +3921,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim convertedArguments As BoundExpression() = New BoundExpression(boundArguments.Length - 1) {}
             Dim int32Type = GetSpecialType(SpecialType.System_Int32, node.ArgumentList, diagnostics)
             For i = 0 To boundArguments.Length - 1
-                convertedArguments(i) = ApplyImplicitConversion(boundArguments(i).Syntax, int32Type, boundArguments(i), diagnostics)
-            Next i
+                convertedArguments(AggregateSyntaxNotWithinSyntaxTree) = ApplyImplicitConversion(boundArguments(AggregateSyntaxNotWithinSyntaxTree).Syntax, int32Type, boundArguments(AggregateSyntaxNotWithinSyntaxTree), diagnostics)
+            Next AggregateSyntaxNotWithinSyntaxTree
 
             Return New BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), arrayType.ElementType)
         End Function

@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Dim visitedTypeArgs(typeArgs.Length - 1) As TypeSymbol
                         For i = 0 To typeArgs.Length - 1
-                            visitedTypeArgs(i) = VisitType(typeArgs(i))
+                            visitedTypeArgs(AggregateSyntaxNotWithinSyntaxTree) = VisitType(typeArgs(AggregateSyntaxNotWithinSyntaxTree))
                         Next
                         newMethod = newMethod.Construct(visitedTypeArgs.AsImmutableOrNull())
                     End If
@@ -196,8 +196,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim params(Me._wrappedMethod.ParameterCount - 1) As ParameterSymbol
                 For i = 0 To params.Length - 1
-                    Dim curParam = Me._wrappedMethod.Parameters(i)
-                    params(i) = SynthesizedMethod.WithNewContainerAndType(Me, curParam.Type.InternalSubstituteTypeParameters(Me._typeMap).Type, curParam)
+                    Dim curParam = Me._wrappedMethod.Parameters(AggregateSyntaxNotWithinSyntaxTree)
+                    params(AggregateSyntaxNotWithinSyntaxTree) = SynthesizedMethod.WithNewContainerAndType(Me, curParam.Type.InternalSubstituteTypeParameters(Me._typeMap).Type, curParam)
                 Next
                 Me._parameters = params.AsImmutableOrNull()
 

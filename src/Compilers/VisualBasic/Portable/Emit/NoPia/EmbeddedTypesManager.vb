@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
             _lazyWellKnownTypeMethods = New MethodSymbol(WellKnownMember.Count - 1) {}
             For i = 0 To WellKnownMember.Count - 1
-                _lazyWellKnownTypeMethods(i) = ErrorMethodSymbol.UnknownMethod
+                _lazyWellKnownTypeMethods(AggregateSyntaxNotWithinSyntaxTree) = ErrorMethodSymbol.UnknownMethod
             Next
         End Sub
 

@@ -112,8 +112,8 @@ End Namespace
             Dim newlist = newSymbols.OrderBy(Function(s) s.Name).ToList()
             ' case sensitive
             For i = 0 To newlist.Count - 1 Step 1
-                Dim sym1 = origlist(i)
-                Dim sym2 = newlist(i)
+                Dim sym1 = origlist(AggregateSyntaxNotWithinSyntaxTree)
+                Dim sym2 = newlist(AggregateSyntaxNotWithinSyntaxTree)
 
                 AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.None, expectEqual:=False)
                 Dim resolvedSymbol = ResolveSymbol(sym2, comp1, SymbolIdComparison.None) ' ignored

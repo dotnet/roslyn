@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance()
             For i = 0 To initializers.Length - 1
-                Dim siblingInitializers = initializers(i)
+                Dim siblingInitializers = initializers(AggregateSyntaxNotWithinSyntaxTree)
 
                 ' All sibling initializers share the same parent node and tree
                 ' so we can reuse the parent binder across siblings.
@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If initializer.FieldsOrProperties.IsDefault Then
                         ' use the binder of the Script class for global statements
-                        Dim isLast = (i = initializers.Length - 1 AndAlso j = siblingInitializers.Length - 1)
+                        Dim isLast = (AggregateSyntaxNotWithinSyntaxTree = initializers.Length - 1 AndAlso j = siblingInitializers.Length - 1)
                         boundInitializers.Add(parentBinder.BindGlobalStatement(scriptInitializerOpt, DirectCast(initializerNode, StatementSyntax), diagnostics, isLast))
                         Continue For
                     End If

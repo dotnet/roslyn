@@ -589,12 +589,12 @@ End Module
             Dim members As ImmutableArray(Of Symbol) = a1.GetMembers()
 
             For i = 0 To members.Length - 2
-                Dim method = DirectCast(members(i), MethodSymbol)
+                Dim method = DirectCast(members(AggregateSyntaxNotWithinSyntaxTree), MethodSymbol)
 
-                Assert.Equal(baseLine(i).Kind, method.MethodKind)
+                Assert.Equal(baseLine(AggregateSyntaxNotWithinSyntaxTree).Kind, method.MethodKind)
 
                 Dim display As String = method.ToDisplayString()
-                Assert.Equal(baseLine(i).Display, display)
+                Assert.Equal(baseLine(AggregateSyntaxNotWithinSyntaxTree).Display, display)
                 Assert.Equal("Function A1." & method.Name &
                              display.Substring(display.IndexOf("("c)).
                                 Replace("Boolean", "System.Boolean").
@@ -1186,12 +1186,12 @@ End Module
             Dim members As ImmutableArray(Of Symbol) = a1.GetMembers()
 
             For i = 0 To members.Length - 2
-                Dim method = DirectCast(members(i), MethodSymbol)
+                Dim method = DirectCast(members(AggregateSyntaxNotWithinSyntaxTree), MethodSymbol)
 
-                Assert.Equal(baseLine(i).Kind, method.MethodKind)
+                Assert.Equal(baseLine(AggregateSyntaxNotWithinSyntaxTree).Kind, method.MethodKind)
 
                 Dim display As String = method.ToDisplayString()
-                Assert.Equal(baseLine(i).Display, display)
+                Assert.Equal(baseLine(AggregateSyntaxNotWithinSyntaxTree).Display, display)
                 Assert.Equal("Function A1." & method.Name &
                              display.Substring(display.IndexOf("("c)).
                                 Replace("Boolean", "System.Boolean").
@@ -1372,7 +1372,7 @@ End Module
             Dim members As ImmutableArray(Of Symbol) = a1.GetMembers()
 
             For i = 0 To members.Length - 2
-                Dim method = DirectCast(members(i), MethodSymbol)
+                Dim method = DirectCast(members(AggregateSyntaxNotWithinSyntaxTree), MethodSymbol)
                 Assert.Equal(MethodKind.Ordinary, method.MethodKind)
             Next
         End Sub
@@ -1950,12 +1950,12 @@ End Module
             Dim members As ImmutableArray(Of Symbol) = a1.GetMembers()
 
             For i = 0 To members.Length - 2
-                Dim method = DirectCast(members(i), MethodSymbol)
+                Dim method = DirectCast(members(AggregateSyntaxNotWithinSyntaxTree), MethodSymbol)
 
-                Assert.Equal(baseLine(i).Kind, method.MethodKind)
+                Assert.Equal(baseLine(AggregateSyntaxNotWithinSyntaxTree).Kind, method.MethodKind)
 
                 Dim display As String = method.ToDisplayString()
-                Assert.Equal(baseLine(i).Display, display)
+                Assert.Equal(baseLine(AggregateSyntaxNotWithinSyntaxTree).Display, display)
                 Assert.Equal("Function A1." & method.Name &
                              display.Substring(display.IndexOf("("c)).
                                 Replace("Boolean", "System.Boolean").
@@ -2085,12 +2085,12 @@ End Module
             Dim members As ImmutableArray(Of Symbol) = a1.GetMembers()
 
             For i = 0 To members.Length - 2
-                Dim method = DirectCast(members(i), MethodSymbol)
+                Dim method = DirectCast(members(AggregateSyntaxNotWithinSyntaxTree), MethodSymbol)
 
-                Assert.Equal(baseLine(i).Kind, method.MethodKind)
+                Assert.Equal(baseLine(AggregateSyntaxNotWithinSyntaxTree).Kind, method.MethodKind)
 
                 Dim display As String = method.ToDisplayString()
-                Assert.Equal(baseLine(i).Display, display)
+                Assert.Equal(baseLine(AggregateSyntaxNotWithinSyntaxTree).Display, display)
                 Assert.Equal("Function A1." & method.Name &
                              display.Substring(display.IndexOf("("c)).
                                 Replace("Boolean", "System.Boolean").

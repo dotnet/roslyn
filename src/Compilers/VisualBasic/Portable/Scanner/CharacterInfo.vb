@@ -356,17 +356,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim characters As Char() = Nothing
             For i = 0 To text.Length - 1
-                Dim c = text(i)
+                Dim c = text(AggregateSyntaxNotWithinSyntaxTree)
 
                 If IsFullWidth(c) Then
                     If characters Is Nothing Then
                         characters = New Char(text.Length - 1) {}
-                        text.CopyTo(0, characters, 0, i)
+                        text.CopyTo(0, characters, 0, AggregateSyntaxNotWithinSyntaxTree)
                     End If
 
-                    characters(i) = MakeHalfWidth(c)
+                    characters(AggregateSyntaxNotWithinSyntaxTree) = MakeHalfWidth(c)
                 ElseIf characters IsNot Nothing Then
-                    characters(i) = c
+                    characters(AggregateSyntaxNotWithinSyntaxTree) = c
                 End If
             Next
 

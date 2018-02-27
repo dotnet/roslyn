@@ -356,9 +356,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         <Conditional("DEBUG")>
         Friend Shared Sub VerifyTypeParameters(container As Symbol, typeParameters As ImmutableArray(Of TypeParameterSymbol))
             For i = 0 To typeParameters.Length - 1
-                Dim typeParameter = typeParameters(i)
+                Dim typeParameter = typeParameters(AggregateSyntaxNotWithinSyntaxTree)
                 Debug.Assert(typeParameter.ContainingSymbol Is container)
-                Debug.Assert(typeParameter.Ordinal = i)
+                Debug.Assert(typeParameter.Ordinal = AggregateSyntaxNotWithinSyntaxTree)
             Next
         End Sub
 

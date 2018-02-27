@@ -862,8 +862,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sawArrayRankDifference As Boolean = False
             Dim sawArrayOfArraysDifference As Boolean = False
             For i = 0 To numParams - 1
-                Dim xType As TypeSymbol = xParameterTypes(i)
-                Dim yType As TypeSymbol = yParameterTypes(i)
+                Dim xType As TypeSymbol = xParameterTypes(AggregateSyntaxNotWithinSyntaxTree)
+                Dim yType As TypeSymbol = yParameterTypes(AggregateSyntaxNotWithinSyntaxTree)
                 Dim typeKind As TypeKind = xType.TypeKind
                 If yType.TypeKind <> typeKind Then
                     Return False

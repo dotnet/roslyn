@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arguments As ImmutableArray(Of BoundExpression) = node.Arguments
             Dim newArguments(arguments.Length - 1) As BoundExpression
             For i = 0 To arguments.Length - 1
-                newArguments(i) = DirectCast(Visit(arguments(i)), BoundExpression)
+                newArguments(AggregateSyntaxNotWithinSyntaxTree) = DirectCast(Visit(arguments(AggregateSyntaxNotWithinSyntaxTree)), BoundExpression)
             Next
 
             Return node.Update(rewrittenPropertySymbol,
@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim typeArgs = method.TypeArguments
                     Dim visitedTypeArgs(typeArgs.Length - 1) As TypeSymbol
                     For i = 0 To typeArgs.Length - 1
-                        visitedTypeArgs(i) = VisitType(typeArgs(i))
+                        visitedTypeArgs(AggregateSyntaxNotWithinSyntaxTree) = VisitType(typeArgs(AggregateSyntaxNotWithinSyntaxTree))
                     Next
                     newMethod = newMethod.Construct(visitedTypeArgs)
                 End If

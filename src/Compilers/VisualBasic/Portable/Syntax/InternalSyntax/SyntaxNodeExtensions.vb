@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Else
                 Dim builder = SyntaxListBuilder(Of VisualBasicSyntaxNode).Create()
                 For i = 0 To indexOfEnd - 1
-                    builder.Add(trivia(i))
+                    builder.Add(trivia(AggregateSyntaxNotWithinSyntaxTree))
                 Next
                 Return builder.ToList()
             End If
@@ -310,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Else
                 Dim builder = SyntaxListBuilder(Of VisualBasicSyntaxNode).Create()
                 For i = indexOfEnd To trivia.Count - 1
-                    builder.Add(trivia(i))
+                    builder.Add(trivia(AggregateSyntaxNotWithinSyntaxTree))
                 Next
                 Return builder.ToList()
             End If
@@ -329,8 +329,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim n = Math.Min(n1 - offset1, n2 - offset2)
 #If DEBUG Then
             For i = 0 To n - 1
-                Dim t1 = trivia1(i + n1 - n)
-                Dim t2 = trivia2(i + n2 - n)
+                Dim t1 = trivia1(AggregateSyntaxNotWithinSyntaxTree + n1 - n)
+                Dim t2 = trivia2(AggregateSyntaxNotWithinSyntaxTree + n2 - n)
                 Debug.Assert(t1.Kind = t2.Kind)
                 Debug.Assert(t1.ToFullString() = t2.ToFullString())
             Next
@@ -342,8 +342,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function GetIndexAfterLastSkippedToken(trivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As Integer
             Dim n = trivia.Count
             For i = n - 1 To 0 Step -1
-                If trivia(i).Kind = SyntaxKind.SkippedTokensTrivia Then
-                    Return i + 1
+                If trivia(AggregateSyntaxNotWithinSyntaxTree).Kind = SyntaxKind.SkippedTokensTrivia Then
+                    Return AggregateSyntaxNotWithinSyntaxTree + 1
                 End If
             Next
             Return 0
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim trivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(triviaList)
 
             For i = 0 To trivia.Count - 1
-                Select Case trivia.ItemUntyped(i).RawKind
+                Select Case trivia.ItemUntyped(AggregateSyntaxNotWithinSyntaxTree).RawKind
                     Case SyntaxKind.XmlDocument,
                         SyntaxKind.SkippedTokensTrivia,
                         SyntaxKind.IfDirectiveTrivia,
@@ -620,7 +620,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' Recurse to subtrees.
             For i = 0 To this.SlotCount() - 1
-                Dim green = this.GetSlot(i)
+                Dim green = this.GetSlot(AggregateSyntaxNotWithinSyntaxTree)
                 If green IsNot Nothing Then
                     CollectConstituentTokensAndDiagnostics(green, tokenListBuilder, nonTokenDiagnostics)
                 End If
@@ -639,7 +639,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim trivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(this)
 
             For i = 0 To trivia.Count - 1
-                Dim kind = trivia.ItemUntyped(i).RawKind
+                Dim kind = trivia.ItemUntyped(AggregateSyntaxNotWithinSyntaxTree).RawKind
                 If kind = SyntaxKind.WhitespaceTrivia OrElse
                     kind = SyntaxKind.EndOfLineTrivia Then
 
@@ -660,7 +660,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim trivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(this)
 
             For i = 0 To trivia.Count - 1
-                Dim kind = trivia.ItemUntyped(i).RawKind
+                Dim kind = trivia.ItemUntyped(AggregateSyntaxNotWithinSyntaxTree).RawKind
                 If kind = SyntaxKind.CommentTrivia Then
                     Return True
                 End If

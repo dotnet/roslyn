@@ -417,7 +417,7 @@ lAgain:
             Dim result(args.Count - 1) As TypeSymbol
             Dim diagBag = DiagnosticBag.GetInstance
             For i = 0 To args.Count - 1
-                result(i) = Me.BindTypeSyntax(args(i), diagBag)
+                result(AggregateSyntaxNotWithinSyntaxTree) = Me.BindTypeSyntax(args(AggregateSyntaxNotWithinSyntaxTree), diagBag)
             Next
             diagBag.Free()
             Return result.AsImmutableOrNull()

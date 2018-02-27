@@ -14978,10 +14978,10 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
 
             For i = 0 To members.Length - 1
                 For j = 0 To members.Length - 1
-                    If i <> j Then
-                        Assert.NotSame(members(i), members(j))
-                        Assert.False(members(i).Equals(members(j)))
-                        Assert.False(members(j).Equals(members(i)))
+                    If AggregateSyntaxNotWithinSyntaxTree <> j Then
+                        Assert.NotSame(members(AggregateSyntaxNotWithinSyntaxTree), members(j))
+                        Assert.False(members(AggregateSyntaxNotWithinSyntaxTree).Equals(members(j)))
+                        Assert.False(members(j).Equals(members(AggregateSyntaxNotWithinSyntaxTree)))
                     End If
                 Next
             Next
@@ -15005,18 +15005,18 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
                 Assert.Equal(members1.Length, members2.Length)
 
                 For i = 0 To members1.Length - 1
-                    Assert.NotSame(members1(i), members2(i))
-                    Assert.True(members1(i).Equals(members2(i)))
-                    Assert.True(members2(i).Equals(members1(i)))
-                    Assert.Equal(members2(i).GetHashCode(), members1(i).GetHashCode())
+                    Assert.NotSame(members1(AggregateSyntaxNotWithinSyntaxTree), members2(AggregateSyntaxNotWithinSyntaxTree))
+                    Assert.True(members1(AggregateSyntaxNotWithinSyntaxTree).Equals(members2(AggregateSyntaxNotWithinSyntaxTree)))
+                    Assert.True(members2(AggregateSyntaxNotWithinSyntaxTree).Equals(members1(AggregateSyntaxNotWithinSyntaxTree)))
+                    Assert.Equal(members2(AggregateSyntaxNotWithinSyntaxTree).GetHashCode(), members1(AggregateSyntaxNotWithinSyntaxTree).GetHashCode())
 
-                    If members1(i).Kind = SymbolKind.Method Then
-                        Dim parameters1 = DirectCast(members1(i), MethodSymbol).Parameters
-                        Dim parameters2 = DirectCast(members2(i), MethodSymbol).Parameters
+                    If members1(AggregateSyntaxNotWithinSyntaxTree).Kind = SymbolKind.Method Then
+                        Dim parameters1 = DirectCast(members1(AggregateSyntaxNotWithinSyntaxTree), MethodSymbol).Parameters
+                        Dim parameters2 = DirectCast(members2(AggregateSyntaxNotWithinSyntaxTree), MethodSymbol).Parameters
                         AssertTupleMembersParametersEquality(parameters1, parameters2)
 
-                        Dim typeParameters1 = DirectCast(members1(i), MethodSymbol).TypeParameters
-                        Dim typeParameters2 = DirectCast(members2(i), MethodSymbol).TypeParameters
+                        Dim typeParameters1 = DirectCast(members1(AggregateSyntaxNotWithinSyntaxTree), MethodSymbol).TypeParameters
+                        Dim typeParameters2 = DirectCast(members2(AggregateSyntaxNotWithinSyntaxTree), MethodSymbol).TypeParameters
                         Assert.Equal(typeParameters1.Length, typeParameters2.Length)
                         For j = 0 To typeParameters1.Length - 1
                             Assert.NotSame(typeParameters1(j), typeParameters2(j))
@@ -15024,18 +15024,18 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
                             Assert.True(typeParameters2(j).Equals(typeParameters1(j)))
                             Assert.Equal(typeParameters2(j).GetHashCode(), typeParameters1(j).GetHashCode())
                         Next
-                    ElseIf members1(i).Kind = SymbolKind.Property Then
-                        Dim parameters1 = DirectCast(members1(i), PropertySymbol).Parameters
-                        Dim parameters2 = DirectCast(members2(i), PropertySymbol).Parameters
+                    ElseIf members1(AggregateSyntaxNotWithinSyntaxTree).Kind = SymbolKind.Property Then
+                        Dim parameters1 = DirectCast(members1(AggregateSyntaxNotWithinSyntaxTree), PropertySymbol).Parameters
+                        Dim parameters2 = DirectCast(members2(AggregateSyntaxNotWithinSyntaxTree), PropertySymbol).Parameters
                         AssertTupleMembersParametersEquality(parameters1, parameters2)
                     End If
                 Next
 
                 For i = 0 To members1.Length - 1
                     For j = 0 To members2.Length - 1
-                        If i <> j Then
-                            Assert.NotSame(members1(i), members2(j))
-                            Assert.False(members1(i).Equals(members2(j)))
+                        If AggregateSyntaxNotWithinSyntaxTree <> j Then
+                            Assert.NotSame(members1(AggregateSyntaxNotWithinSyntaxTree), members2(j))
+                            Assert.False(members1(AggregateSyntaxNotWithinSyntaxTree).Equals(members2(j)))
                         End If
                     Next
                 Next

@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim capturedIndices(indicesCount - 1) As CapturedSymbolOrExpression
                     For i = 0 To indicesCount - 1
-                        capturedIndices(i) = CaptureExpression(typeMap, indices(i), initializers)
+                        capturedIndices(AggregateSyntaxNotWithinSyntaxTree) = CaptureExpression(typeMap, indices(AggregateSyntaxNotWithinSyntaxTree), initializers)
                     Next
 
                     Return New CapturedArrayAccessExpression(capturedArrayPointer, capturedIndices.AsImmutableOrNull)

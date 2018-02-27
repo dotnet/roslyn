@@ -461,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' update slots, reuse collection
                     ' NOTE: we don't filter out SlotKind.NotTracked values
                     For i = 0 To result.Count - 1
-                        result(i) = GetOrCreateSlot(fieldAccess.FieldSymbol, result(0))
+                        result(AggregateSyntaxNotWithinSyntaxTree) = GetOrCreateSlot(fieldAccess.FieldSymbol, result(0))
                     Next
 
                 Case BoundKind.WithLValueExpressionPlaceholder, BoundKind.WithRValueExpressionPlaceholder
@@ -1387,7 +1387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim expression = DirectCast(node, BoundExpression)
                     Dim slots As SlotCollection = MakeSlotsForExpression(expression)
                     For i = 0 To slots.Count - 1
-                        SetSlotState(slots(i), assigned)
+                        SetSlotState(slots(AggregateSyntaxNotWithinSyntaxTree), assigned)
                     Next
                     slots.Free()
                     If assigned Then NoteWrite(expression, value)

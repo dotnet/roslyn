@@ -3888,7 +3888,7 @@ End interface
 
         Private Shared Function SequenceMatches(buffer As Byte(), startIndex As Integer, pattern As Byte()) As Boolean
             For i = 0 To pattern.Length - 1
-                If buffer(startIndex + i) <> pattern(i) Then Return False
+                If buffer(startIndex + AggregateSyntaxNotWithinSyntaxTree) <> pattern(AggregateSyntaxNotWithinSyntaxTree) Then Return False
             Next
             Return True
         End Function
@@ -3896,7 +3896,7 @@ End interface
         Private Shared Function IndexOfPattern(buffer As Byte(), startIndex As Integer, pattern As Byte()) As Integer
             Dim [end] = buffer.Length - pattern.Length
             For i = startIndex To [end] - 1
-                If SequenceMatches(buffer, i, pattern) Then Return i
+                If SequenceMatches(buffer, AggregateSyntaxNotWithinSyntaxTree, pattern) Then Return AggregateSyntaxNotWithinSyntaxTree
             Next
             Return -1
         End Function

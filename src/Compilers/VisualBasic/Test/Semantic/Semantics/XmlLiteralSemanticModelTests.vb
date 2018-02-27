@@ -471,9 +471,9 @@ BC30456: 'Value' is not a member of 'IEnumerable(Of Object)'.
             Dim method = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("M").GetMember(Of MethodSymbol)("M")
             Dim n = method.Parameters.Length - 1
             For i = 0 To n
-                Dim parameter = method.Parameters(i)
+                Dim parameter = method.Parameters(AggregateSyntaxNotWithinSyntaxTree)
                 Dim type = parameter.Type
-                Dim descriptions = If(i < n, {"Property InternalXmlHelper.Value As String"}, {})
+                Dim descriptions = If(AggregateSyntaxNotWithinSyntaxTree < n, {"Property InternalXmlHelper.Value As String"}, {})
                 Dim symbols = model.LookupSymbols(position, container:=type, name:="Value", includeReducedExtensionMethods:=True)
                 CheckSymbols(symbols, descriptions)
                 symbols = model.LookupSymbols(position, container:=Nothing, name:="Value", includeReducedExtensionMethods:=True)

@@ -219,8 +219,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             ' Populate any remaining locals that were Not matched to source.
             For i = 0 To result.Length - 1
-                If result(i).IsDefault Then
-                    result(i) = New EncLocalInfo(slotMetadata(i).SignatureOpt)
+                If result(AggregateSyntaxNotWithinSyntaxTree).IsDefault Then
+                    result(AggregateSyntaxNotWithinSyntaxTree) = New EncLocalInfo(slotMetadata(AggregateSyntaxNotWithinSyntaxTree).SignatureOpt)
                 End If
             Next
 

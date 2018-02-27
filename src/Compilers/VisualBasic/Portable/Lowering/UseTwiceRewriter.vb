@@ -228,9 +228,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim indicesSecond(n - 1) As BoundExpression
 
             For i = 0 To n - 1
-                Dim result = UseTwiceRValue(containingMember, node.Indices(i), arg)
-                indicesFirst(i) = result.First
-                indicesSecond(i) = result.Second
+                Dim result = UseTwiceRValue(containingMember, node.Indices(AggregateSyntaxNotWithinSyntaxTree), arg)
+                indicesFirst(AggregateSyntaxNotWithinSyntaxTree) = result.First
+                indicesSecond(AggregateSyntaxNotWithinSyntaxTree) = result.Second
             Next
 
             Dim second = node.Update(boundArrayTemp, indicesSecond.AsImmutableOrNull(), node.IsLValue, node.Type)
@@ -335,13 +335,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim secondArgsArray(nArgs - 1) As BoundExpression
 
                 For i = 0 To nArgs - 1
-                    Dim boundArgument As BoundExpression = node.Arguments(i)
+                    Dim boundArgument As BoundExpression = node.Arguments(AggregateSyntaxNotWithinSyntaxTree)
                     If boundArgument.Kind = BoundKind.ArrayCreation AndAlso DirectCast(boundArgument, BoundArrayCreation).IsParamArrayArgument Then
                         ' ParamArray argument
-                        UseTwiceParamArrayArgument(containingMember, DirectCast(boundArgument, BoundArrayCreation), arg, firstArgsArray(i), secondArgsArray(i))
+                        UseTwiceParamArrayArgument(containingMember, DirectCast(boundArgument, BoundArrayCreation), arg, firstArgsArray(AggregateSyntaxNotWithinSyntaxTree), secondArgsArray(AggregateSyntaxNotWithinSyntaxTree))
                     Else
                         ' Regular argument
-                        UseTwiceRegularArgument(containingMember, boundArgument, arg, firstArgsArray(i), secondArgsArray(i))
+                        UseTwiceRegularArgument(containingMember, boundArgument, arg, firstArgsArray(AggregateSyntaxNotWithinSyntaxTree), secondArgsArray(AggregateSyntaxNotWithinSyntaxTree))
                     End If
                 Next
 
@@ -394,19 +394,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim secondArgsArray(nArgs - 1) As BoundExpression
 
                 For i = 0 To nArgs - 1
-                    Dim boundArgument As BoundExpression = node.ArgumentsOpt(i)
+                    Dim boundArgument As BoundExpression = node.ArgumentsOpt(AggregateSyntaxNotWithinSyntaxTree)
                     ' LateBound argument
                     If Not boundArgument.IsSupportingAssignment() Then
-                        UseTwiceRegularArgument(containingMember, boundArgument, arg, firstArgsArray(i), secondArgsArray(i))
+                        UseTwiceRegularArgument(containingMember, boundArgument, arg, firstArgsArray(AggregateSyntaxNotWithinSyntaxTree), secondArgsArray(AggregateSyntaxNotWithinSyntaxTree))
                     Else
                         Dim temp = New SynthesizedLocal(containingMember, boundArgument.Type, SynthesizedLocalKind.LoweringTemp)
                         arg.Add(temp)
 
-                        firstArgsArray(i) = New BoundLateBoundArgumentSupportingAssignmentWithCapture(boundArgument.Syntax,
+                        firstArgsArray(AggregateSyntaxNotWithinSyntaxTree) = New BoundLateBoundArgumentSupportingAssignmentWithCapture(boundArgument.Syntax,
                                                                                                       boundArgument,
                                                                                                       temp,
                                                                                                       boundArgument.Type)
-                        secondArgsArray(i) = New BoundLocal(boundArgument.Syntax, temp, isLValue:=False, type:=temp.Type)
+                        secondArgsArray(AggregateSyntaxNotWithinSyntaxTree) = New BoundLocal(boundArgument.Syntax, temp, isLValue:=False, type:=temp.Type)
                     End If
                 Next
 

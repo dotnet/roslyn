@@ -1250,12 +1250,12 @@ lUnsplitAndFinish:
                 Dim n As Integer = Math.Min(parameters.Length, arguments.Length)
                 ' The first loop reflects passing arguments to the method/property
                 For i = 0 To n - 1
-                    VisitArgument(arguments(i), parameters(i))
+                    VisitArgument(arguments(AggregateSyntaxNotWithinSyntaxTree), parameters(AggregateSyntaxNotWithinSyntaxTree))
                 Next
                 ' The second loop reflects writing to ByRef arguments after the method returned
                 For i = 0 To n - 1
-                    If parameters(i).IsByRef Then
-                        WriteArgument(arguments(i), parameters(i).IsOut)
+                    If parameters(AggregateSyntaxNotWithinSyntaxTree).IsByRef Then
+                        WriteArgument(arguments(AggregateSyntaxNotWithinSyntaxTree), parameters(AggregateSyntaxNotWithinSyntaxTree).IsOut)
                     End If
                 Next
             End If
@@ -2101,7 +2101,7 @@ lUnsplitAndFinish:
         Public Overrides Function VisitArrayAccess(node As BoundArrayAccess) As BoundNode
             VisitRvalue(node.Expression)
             For Each i In node.Indices
-                VisitRvalue(i)
+                VisitRvalue(AggregateSyntaxNotWithinSyntaxTree)
             Next
             Return Nothing
         End Function

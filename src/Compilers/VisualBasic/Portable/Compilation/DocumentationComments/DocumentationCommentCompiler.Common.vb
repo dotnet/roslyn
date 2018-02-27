@@ -276,13 +276,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim array = ArrayBuilder(Of XmlNodeWithAttributes).GetInstance
                 For i = 0 To nodes.Count - 1
-                    array.Add(New XmlNodeWithAttributes(nodes(i)))
+                    array.Add(New XmlNodeWithAttributes(nodes(AggregateSyntaxNotWithinSyntaxTree)))
                 Next
                 array.Sort()
 
                 For i = 0 To array.Count - 2
-                    Dim node1 As XmlNodeWithAttributes = array(i)
-                    Dim node2 As XmlNodeWithAttributes = array(i + 1)
+                    Dim node1 As XmlNodeWithAttributes = array(AggregateSyntaxNotWithinSyntaxTree)
+                    Dim node2 As XmlNodeWithAttributes = array(AggregateSyntaxNotWithinSyntaxTree + 1)
 
                     If XmlNodeWithAttributes.CompareAttributes(node1.Attributes, node2.Attributes) = 0 Then
                         If reportErrors Then

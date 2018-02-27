@@ -1105,11 +1105,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(allMissing OrElse destinationNames.Length = sourceLength)
 
             For i = 0 To sourceLength - 1
-                Dim sourceName = sourceNames(i)
-                Dim wasInferred = If(noInferredNames, False, inferredNames(i))
+                Dim sourceName = sourceNames(AggregateSyntaxNotWithinSyntaxTree)
+                Dim wasInferred = If(noInferredNames, False, inferredNames(AggregateSyntaxNotWithinSyntaxTree))
 
-                If sourceName IsNot Nothing AndAlso Not wasInferred AndAlso (allMissing OrElse String.CompareOrdinal(destinationNames(i), sourceName) <> 0) Then
-                    diagnostics.Add(ERRID.WRN_TupleLiteralNameMismatch, literal.Arguments(i).Syntax.Parent.Location, sourceName, destination)
+                If sourceName IsNot Nothing AndAlso Not wasInferred AndAlso (allMissing OrElse String.CompareOrdinal(destinationNames(AggregateSyntaxNotWithinSyntaxTree), sourceName) <> 0) Then
+                    diagnostics.Add(ERRID.WRN_TupleLiteralNameMismatch, literal.Arguments(AggregateSyntaxNotWithinSyntaxTree).Syntax.Parent.Location, sourceName, destination)
                 End If
             Next
         End Sub
