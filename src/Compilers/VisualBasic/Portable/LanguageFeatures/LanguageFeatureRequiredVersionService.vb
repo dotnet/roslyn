@@ -3,7 +3,6 @@ Imports System.Runtime.CompilerServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures
 
-
     Friend Class VisualBasicRequiredLanguageVersionService
         Private ReadOnly Property _RequiredVersionsForFeature As New Dictionary(Of Feature, VisualBasicRequiredLanguageVersion)()
         Public Shared ReadOnly Instance As New VisualBasicRequiredLanguageVersionService
@@ -112,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures
         <Extension>
         Friend Function ReportFeatureUnavailable(Of TNode As Syntax.InternalSyntax.VisualBasicSyntaxNode)(node As TNode, feature As Feature, options As VisualBasicParseOptions) As TNode
             Dim f = feature.GetNameAndRequiredVersion()
-            Return Syntax.InternalSyntax.Parser.ReportSyntaxError(node, ERRID.ERR_LanguageVersion, options.LanguageVersion.GetErrorName(), f.Info, f.Version)
+            Return Parser.ReportSyntaxError(node, ERRID.ERR_LanguageVersion, options.LanguageVersion.GetErrorName(), f.Info, f.Version)
         End Function
 
         Private Function ReportFeatureUnavailable(feature As Feature, options As VisualBasicParseOptions, location As Location) As Diagnostic
@@ -186,5 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures
 
             Return Parser.ReportSyntaxError(argument, ERRID.ERR_ExpectedNamedArgument, VisualBasicRequiredLanguageVersionService.Instance.GetRequiredLanguageVersion(Feature.NonTrailingNamedArguments))
         End Function
+
     End Module
+
 End Namespace
