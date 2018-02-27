@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                 await InvokeBelowInputPriority(() =>
                 {
                     var line = triggerPoint.GetContainingLine();
-                    var lineNumber = triggerPoint.GetContainingLine().LineNumber;
                     var lineSpan = this._subjectBuffer.CurrentSnapshot.CreateTrackingSpan(
                         line.Extent,
                         SpanTrackingMode.EdgeInclusive);
