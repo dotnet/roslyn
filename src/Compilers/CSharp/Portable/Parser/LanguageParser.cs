@@ -10709,13 +10709,13 @@ tryAgain:
             {
                 if (this.IsPossibleExpression())
                 {
-                    var size = this.AddError(this.ParseExpressionCore(), ErrorCode.ERR_BadStackAllocExpr);
+                    var size = this.AddError(this.ParseExpressionCore(), ErrorCode.ERR_InvalidStackAllocArray);
                     openBracket = AddTrailingSkippedSyntax(openBracket, size);
                 }
 
                 if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
-                    var comma = this.AddError(this.EatToken(), ErrorCode.ERR_BadStackAllocExpr);
+                    var comma = this.AddError(this.EatToken(), ErrorCode.ERR_InvalidStackAllocArray);
                     openBracket = AddTrailingSkippedSyntax(openBracket, comma);
                     continue;
                 }

@@ -1556,6 +1556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion7_3 = 8370,
         WRN_AttributesOnBackingFieldsNotAvailable = 8371,
         ERR_DoNotUseFixedBufferAttrOnProperty = 8372,
+        ERR_InvalidStackAllocArray = 8373,
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }

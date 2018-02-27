@@ -116,9 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 // (1,1): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
                 // stackalloc[1] { 42 }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(1, 1),
-                // (1,12): error CS1575: A stackalloc expression requires [] after type
+                // (1,12): error CS8373: "Invalid rank specificier: expected ']'
                 // stackalloc[1] { 42 }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "1").WithLocation(1, 12)
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "1").WithLocation(1, 12)
                 );
             N(SyntaxKind.ImplicitStackAllocArrayCreationExpression);
             {
@@ -150,9 +150,9 @@ class C {
 ";
 
             ParseAndValidate(test,
-                // (4,28): error CS1575: A stackalloc expression requires [] after type
+                // (4,28): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[3] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "3").WithLocation(4, 28)
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "3").WithLocation(4, 28)
                 );
         }
 
@@ -168,12 +168,12 @@ class C {
 ";
 
             ParseAndValidate(test,
-                // (4,28): error CS1575: A stackalloc expression requires [] after type
+                // (4,28): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[3,] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "3").WithLocation(4, 28),
-                // (4,29): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "3").WithLocation(4, 28),
+                // (4,29): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[3,] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, ",").WithLocation(4, 29)
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(4, 29)
                 );
         }
 
@@ -189,12 +189,12 @@ class C {
 ";
 
             ParseAndValidate(test,
-                // (4,29): error CS1575: A stackalloc expression requires [] after type
+                // (4,29): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[,3] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "3").WithLocation(4, 29),
-                // (4,28): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "3").WithLocation(4, 29),
+                // (4,28): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[,3] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, ",").WithLocation(4, 28)
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(4, 28)
                 );
         }
 
@@ -210,12 +210,12 @@ class C {
 ";
 
             ParseAndValidate(test,
-                // (4,29): error CS1575: A stackalloc expression requires [] after type
+                // (4,29): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[,3 { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "3").WithLocation(4, 29),
-                // (4,28): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "3").WithLocation(4, 29),
+                // (4,28): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[,3 { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, ",").WithLocation(4, 28),
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(4, 28),
                 // (4,31): error CS1003: Syntax error, ']' expected
                 //         var x = stackalloc[,3 { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 31)
@@ -234,9 +234,9 @@ class C {
 ";
 
             ParseAndValidate(test,
-                // (4,28): error CS1575: A stackalloc expression requires [] after type
+                // (4,28): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[3 { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "3").WithLocation(4, 28),
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "3").WithLocation(4, 28),
                 // (4,30): error CS1003: Syntax error, ']' expected
                 //         var x = stackalloc[3 { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 30)
@@ -255,12 +255,12 @@ class C {
 ";
 
             ParseAndValidate(test,
-                // (4,28): error CS1575: A stackalloc expression requires [] after type
+                // (4,28): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[3, { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "3").WithLocation(4, 28),
-                // (4,29): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "3").WithLocation(4, 28),
+                // (4,29): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[3, { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, ",").WithLocation(4, 29),
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(4, 29),
                 // (4,31): error CS1003: Syntax error, ']' expected
                 //         var x = stackalloc[3, { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 31)
@@ -279,15 +279,15 @@ class C {
 ";
 
             ParseAndValidate(test,
-                // (4,28): error CS1575: A stackalloc expression requires [] after type
+                // (4,28): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[3,,] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "3").WithLocation(4, 28),
-                // (4,29): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "3").WithLocation(4, 28),
+                // (4,29): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[3,,] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, ",").WithLocation(4, 29),
-                // (4,30): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(4, 29),
+                // (4,30): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[3,,] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, ",").WithLocation(4, 30)
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(4, 30)
                 );
         }
 
@@ -303,15 +303,15 @@ class C {
 ";
 
             ParseAndValidate(test,
-                // (4,29): error CS1575: A stackalloc expression requires [] after type
+                // (4,29): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[,3,] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "3").WithLocation(4, 29),
-                // (4,28): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "3").WithLocation(4, 29),
+                // (4,28): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[,3,] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, ",").WithLocation(4, 28),
-                // (4,30): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(4, 28),
+                // (4,30): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[,3,] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, ",").WithLocation(4, 30)
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(4, 30)
                 );
         }
 
@@ -327,15 +327,15 @@ class C {
 ";
 
             ParseAndValidate(test,
-                // (4,30): error CS1575: A stackalloc expression requires [] after type
+                // (4,30): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[,,3] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "3").WithLocation(4, 30),
-                // (4,28): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "3").WithLocation(4, 30),
+                // (4,28): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[,,3] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, ",").WithLocation(4, 28),
-                // (4,29): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(4, 28),
+                // (4,29): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[,,3] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, ",").WithLocation(4, 29)
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(4, 29)
                 );
         }
 
@@ -351,18 +351,18 @@ class C {
 ";
 
             ParseAndValidate(test,
-                // (4,28): error CS1575: A stackalloc expression requires [] after type
+                // (4,28): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[3,,3] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "3").WithLocation(4, 28),
-                // (4,31): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "3").WithLocation(4, 28),
+                // (4,31): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[3,,3] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "3").WithLocation(4, 31),
-                // (4,29): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "3").WithLocation(4, 31),
+                // (4,29): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[3,,3] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, ",").WithLocation(4, 29),
-                // (4,30): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(4, 29),
+                // (4,30): error CS8373: "Invalid rank specificier: expected ']'
                 //         var x = stackalloc[3,,3] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, ",").WithLocation(4, 30)
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(4, 30)
                 );
         }
 

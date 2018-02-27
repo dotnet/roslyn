@@ -253,9 +253,9 @@ unsafe class Test
 }", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (7,35): error CS1575: A stackalloc expression requires [] after type
+                // (7,35): error CS8373: "Invalid rank specificier: expected ']'
                 //         var obj2 = stackalloc    [,] { 1 };
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, ",").WithLocation(7, 35),
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(7, 35),
                 // (6,31): error CS1575: A stackalloc expression requires [] after type
                 //         var obj1 = stackalloc int[,] { 1 };
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[,]").WithLocation(6, 31)
