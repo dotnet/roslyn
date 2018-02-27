@@ -5433,7 +5433,7 @@ Class Program
 End Class
 ]]></file></compilation>
 
-            Dim compilation = CompileAndVerify(source, additionalRefs:={s_propertiesDll}, expectedOutput:="0")
+            Dim compilation = CompileAndVerify(source, references:={s_propertiesDll}, expectedOutput:="0")
             Dim ilSource = <![CDATA[{
   // Code size       27 (0x1b)
   .maxstack  2
@@ -5529,7 +5529,7 @@ BC30456: 'StaticInt32Get' is not a member of 'Mismatched'.
             End Sub
         End Class
         ]]></file></compilation>
-            Dim result = CompileAndVerify(source, additionalRefs:={s_propertiesDll}, expectedOutput:="0")
+            Dim result = CompileAndVerify(source, references:={s_propertiesDll}, expectedOutput:="0")
             Dim ilSource = <![CDATA[{
 // Code size       27 (0x1b)
 .maxstack  2
@@ -7002,7 +7002,7 @@ End Module
 ]]>
                     </file>
                 </compilation>
-            Dim compilation2 = CompileAndVerify(source2, additionalRefs:={reference1}, expectedOutput:=<![CDATA[
+            Dim compilation2 = CompileAndVerify(source2, references:={reference1}, expectedOutput:=<![CDATA[
 get_P: 1
 set_Q: 2
 ]]>)

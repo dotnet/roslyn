@@ -149,7 +149,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe, additionalRefs:={SystemCoreRef},
+            CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe, references:={SystemCoreRef},
                              expectedOutput:=
             <![CDATA[
 1

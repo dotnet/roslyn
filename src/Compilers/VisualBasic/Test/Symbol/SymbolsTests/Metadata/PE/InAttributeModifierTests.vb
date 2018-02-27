@@ -31,7 +31,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="5")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="5")
         End Sub
 
         <Fact>
@@ -58,7 +58,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="5")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="5")
         End Sub
 
         <Fact>
@@ -88,7 +88,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="5")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="5")
         End Sub
 
         <Fact>
@@ -113,7 +113,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="4")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="4")
         End Sub
 
         <Fact>
@@ -907,7 +907,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="20")
         End Sub
 
         <Fact>
@@ -941,7 +941,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="20")
         End Sub
 
         <Fact>
@@ -978,7 +978,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="20")
         End Sub
 
         <Fact>
@@ -1017,7 +1017,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="20")
         End Sub
     End Class
 

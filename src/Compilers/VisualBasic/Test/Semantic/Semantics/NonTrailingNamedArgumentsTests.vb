@@ -330,11 +330,11 @@ End Class
 
             Dim libComp = CreateCompilationWithMscorlibAndVBRuntime(lib_vb, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
-            Dim verifier1 = CompileAndVerify(source, expectedOutput:="1 2.", additionalRefs:={libComp.ToMetadataReference()},
+            Dim verifier1 = CompileAndVerify(source, expectedOutput:="1 2.", references:={libComp.ToMetadataReference()},
                                             parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             verifier1.VerifyDiagnostics()
 
-            Dim verifier2 = CompileAndVerify(source, expectedOutput:="1 2.", additionalRefs:={libComp.EmitToImageReference()},
+            Dim verifier2 = CompileAndVerify(source, expectedOutput:="1 2.", references:={libComp.EmitToImageReference()},
                                             parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             verifier2.VerifyDiagnostics()
         End Sub

@@ -1817,7 +1817,7 @@ End Module
     </file>
 </compilation>
             CompileAndVerify(source,
-                additionalRefs:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
+                references:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
                 expectedOutput:=<![CDATA[
 Called SubWithParamArray: 1 2
 SubWithParamArray returned: 1 2
@@ -1877,7 +1877,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                additionalRefs:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
+                references:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
                 expectedOutput:=<![CDATA[
 Called SubWithByRefParamArrayOfReferenceTypes_Identify_1.
 SubWithByRefParamArrayOfReferenceTypes_Identify_1 returned: 1 2
@@ -1914,7 +1914,7 @@ End Module
     </file>
     </compilation>
                 CompileAndVerify(source,
-                    additionalRefs:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
+                    references:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
                     expectedOutput:=<![CDATA[
 Called SubWithParamArray: 1 2
 Called SubWithByRefParamArrayOfReferenceTypes_Identify_2.
@@ -2137,7 +2137,7 @@ End Module
     </compilation>
 
             CompileAndVerify(source,
-                additionalRefs:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
+                references:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
                 expectedOutput:=<![CDATA[
 ByRefParamArraySubOfBase returned: 23 2 3
     ]]>)

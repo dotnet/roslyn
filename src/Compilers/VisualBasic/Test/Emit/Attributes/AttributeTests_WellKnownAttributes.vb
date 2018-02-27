@@ -853,7 +853,7 @@ End Class
 </compilation>
 
             Dim ilReference = CompileIL(ilSource.Value)
-            CompileAndVerify(source, expectedOutput:="0", additionalRefs:={ilReference})
+            CompileAndVerify(source, expectedOutput:="0", references:={ilReference})
             ' The native compiler would produce a working exe, but that exe would fail at runtime
         End Sub
 
