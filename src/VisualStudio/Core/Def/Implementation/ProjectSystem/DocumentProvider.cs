@@ -348,7 +348,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
             _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out var itemid);
 
-
             if (_runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer shimTextBuffer)
             {
                 var hasAssociatedRoslynDocument = false;

@@ -6,12 +6,13 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -44,6 +45,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly object _globalNotificationsGate = new object();
         private Task<GlobalNotificationState> _globalNotificationsTask = Task.FromResult(GlobalNotificationState.NotStarted);
 
+        private readonly object _currentRemoteWorkspaceNotificationTaskGate = new object();
+        private Task _currentRemoteWorkspaceNotificationTask = Task.CompletedTask;
+
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
         {
@@ -59,10 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     () => CreateWorkerAsync(workspace, primary, timeout, cancellationToken), timeout, cancellationToken).ConfigureAwait(false);
 
                 instance.Started();
-
-                // Create a workspace host to hear about workspace changes.  We'll 
-                // remote those changes over to the remote side when they happen.
-                await RegisterWorkspaceHostAsync(workspace, instance).ConfigureAwait(false);
 
                 // return instance
                 return instance;
@@ -116,34 +116,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
-        // internal for debugging purpose
-        internal static async Task RegisterWorkspaceHostAsync(Workspace workspace, RemoteHostClient client)
-        {
-            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace == null)
-            {
-                return;
-            }
-
-            // Create a connection to the host in the BG to avoid taking the hit of loading service 
-            // hub on the UI thread.  We'll initially set its ref count to 1, and we will decrement 
-            // that ref-count at the end of the using block.  During this time though, when the 
-            // projectTracker is sending events, the workspace host can then use that connection 
-            // instead of having to expensively spin up a fresh one.
-            var session = await client.TryCreateKeepAliveSessionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false);
-            var host = new WorkspaceHost(vsWorkspace, session);
-
-            // RegisterWorkspaceHost is required to be called from UI thread so push the code
-            // to UI thread to run. 
-            await Task.Factory.SafeStartNew(() =>
-            {
-                var projectTracker = vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider);
-
-                projectTracker.RegisterWorkspaceHost(host);
-                projectTracker.StartSendingEventsToWorkspaceHost(host);
-            }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
-        }
-
         private ServiceHubRemoteHostClient(
             Workspace workspace,
             ConnectionManager connectionManager,
@@ -169,6 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         protected override void OnStarted()
         {
             RegisterGlobalOperationNotifications();
+            RegisterPersistentStorageLocationServiceChanges();
         }
 
         protected override void OnStopped()
@@ -179,6 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // the Disconnected event we subscribe is to detect #2 case. and this method is for #1 case. so when we are willingly disconnecting
             // we don't need the event, otherwise, Disconnected event will be called twice.
             UnregisterGlobalOperationNotifications();
+            UnregisterPersistentStorageLocationServiceChanges();
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
             _connectionManager.Shutdown();
@@ -268,6 +242,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // Mark that we're stopped now.
                 return GlobalNotificationState.NotStarted;
             }
+        }
+
+        private void RegisterPersistentStorageLocationServiceChanges()
+        {
+            var persistentStorageLocationService = this.Workspace.Services.GetService<IPersistentStorageLocationService>();
+            if (persistentStorageLocationService != null)
+            {
+                persistentStorageLocationService.StorageLocationChanging += OnPersistentStorageLocationServiceStorageLocationChanging;
+
+                EnqueueStorageLocationChange(Workspace.CurrentSolution.Id, persistentStorageLocationService.TryGetStorageLocation(Workspace.CurrentSolution.Id));
+            }
+        }
+
+        private void OnPersistentStorageLocationServiceStorageLocationChanging(object sender, PersistentStorageLocationChangingEventArgs e)
+        {
+            EnqueueStorageLocationChange(e.SolutionId, e.NewStorageLocation);
+
+            if (e.MustUseNewStorageLocationImmediately)
+            {
+                _currentRemoteWorkspaceNotificationTask.Wait();
+            }
+        }
+
+        private void EnqueueStorageLocationChange(SolutionId solutionId, string storageLocation)
+        {
+            lock (_currentRemoteWorkspaceNotificationTaskGate)
+            {
+                _currentRemoteWorkspaceNotificationTask = _currentRemoteWorkspaceNotificationTask.SafeContinueWithFromAsync(_ =>
+                {
+                    return _rpc.InvokeAsync(
+                        nameof(IRemoteHostService.UpdateSolutionStorageLocation),
+                        new object[] { solutionId, storageLocation });
+                }, CancellationToken.None, TaskScheduler.Default);
+            }
+        }
+
+        private void UnregisterPersistentStorageLocationServiceChanges()
+        {
+            var persistentStorageLocationService = this.Workspace.Services.GetService<IPersistentStorageLocationService>();
+            if (persistentStorageLocationService != null)
+            {
+                persistentStorageLocationService.StorageLocationChanging -= OnPersistentStorageLocationServiceStorageLocationChanging;
+            }
+
+            // Wait for any remaining tasks to be cleared, otherwise we might have OOP being torn down while we are still running
+            _currentRemoteWorkspaceNotificationTask.Wait();
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)

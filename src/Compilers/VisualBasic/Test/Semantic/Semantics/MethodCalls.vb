@@ -2983,7 +2983,7 @@ End Module
             Dim assemblyPath = TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray
 
             CompileAndVerify(source,
-                        additionalRefs:={assemblyPath},
+                        references:={assemblyPath},
                          expectedOutput:=<![CDATA[
 Called SubWithByRefParamArrayOfReferenceTypes_Identify_1.
 True
@@ -3086,7 +3086,7 @@ End Class
     </file>
 </compilation>
             CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(123)
 123
@@ -3154,7 +3154,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3225,7 +3225,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3295,7 +3295,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3369,7 +3369,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3442,7 +3442,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3558,7 +3558,7 @@ End Class
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(123)
 PassByRef: 124, 123.
@@ -3738,7 +3738,7 @@ End Class
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 101
 101
@@ -4074,7 +4074,7 @@ End Module
     </file>
 </compilation>
             CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(123)
 123
@@ -4208,7 +4208,7 @@ End Module
     </file>
 </compilation>
             CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 100
 0
