@@ -1274,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundFieldEqualsValue.WasCompilerGenerated;
-            return new LazyFieldInitializer(initializedFields, value, kind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyFieldInitializer(boundFieldEqualsValue.Locals.As<ILocalSymbol>(), initializedFields, value, kind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IPropertyInitializerOperation CreateBoundPropertyEqualsValueOperation(BoundPropertyEqualsValue boundPropertyEqualsValue)
@@ -1286,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundPropertyEqualsValue.WasCompilerGenerated;
-            return new LazyPropertyInitializer(initializedProperties, value, kind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyPropertyInitializer(boundPropertyEqualsValue.Locals.As<ILocalSymbol>(), initializedProperties, value, kind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IParameterInitializerOperation CreateBoundParameterEqualsValueOperation(BoundParameterEqualsValue boundParameterEqualsValue)
@@ -1298,7 +1298,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundParameterEqualsValue.WasCompilerGenerated;
-            return new LazyParameterInitializer(parameter, value, kind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyParameterInitializer(boundParameterEqualsValue.Locals.As<ILocalSymbol>(), parameter, value, kind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IBlockOperation CreateBoundBlockOperation(BoundBlock boundBlock)

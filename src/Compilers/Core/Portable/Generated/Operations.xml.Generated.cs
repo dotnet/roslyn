@@ -1733,6 +1733,8 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return visitor.VisitVariableInitializer(this, argument);
         }
+
+        ImmutableArray<ILocalSymbol> ISymbolInitializerOperation.Locals => ImmutableArray<ILocalSymbol>.Empty;
     }
 
     /// <summary>
@@ -1768,11 +1770,15 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseFieldInitializer : SymbolInitializer, IFieldInitializerOperation
     {
-        public BaseFieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BaseFieldInitializer(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IFieldSymbol> initializedFields, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            Locals = locals;
             InitializedFields = initializedFields;
         }
+
+        public ImmutableArray<ILocalSymbol> Locals { get; }
+
         /// <summary>
         /// Initialized fields. There can be multiple fields for Visual Basic fields declared with As New.
         /// </summary>
@@ -1803,8 +1809,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class FieldInitializer : BaseFieldInitializer, IFieldInitializerOperation
     {
-        public FieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, IOperation value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(initializedFields, kind, semanticModel, syntax, type, constantValue, isImplicit)
+        public FieldInitializer(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IFieldSymbol> initializedFields, IOperation value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, initializedFields, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ValueImpl = value;
         }
@@ -1818,8 +1824,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyFieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, Lazy<IOperation> value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(initializedFields, kind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyFieldInitializer(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IFieldSymbol> initializedFields, Lazy<IOperation> value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, initializedFields, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
@@ -3762,11 +3768,15 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseParameterInitializer : SymbolInitializer, IParameterInitializerOperation
     {
-        public BaseParameterInitializer(IParameterSymbol parameter, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BaseParameterInitializer(ImmutableArray<ILocalSymbol> locals, IParameterSymbol parameter, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            Locals = locals;
             Parameter = parameter;
         }
+
+        public ImmutableArray<ILocalSymbol> Locals { get; }
+
         /// <summary>
         /// Initialized parameter.
         /// </summary>
@@ -3797,8 +3807,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class ParameterInitializer : BaseParameterInitializer, IParameterInitializerOperation
     {
-        public ParameterInitializer(IParameterSymbol parameter, IOperation value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(parameter, kind, semanticModel, syntax, type, constantValue, isImplicit)
+        public ParameterInitializer(ImmutableArray<ILocalSymbol> locals, IParameterSymbol parameter, IOperation value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, parameter, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ValueImpl = value;
         }
@@ -3812,8 +3822,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyParameterInitializer(IParameterSymbol parameter, Lazy<IOperation> value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(parameter, kind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyParameterInitializer(ImmutableArray<ILocalSymbol> locals, IParameterSymbol parameter, Lazy<IOperation> value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, parameter, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
@@ -4015,11 +4025,15 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BasePropertyInitializer : SymbolInitializer, IPropertyInitializerOperation
     {
-        public BasePropertyInitializer(ImmutableArray<IPropertySymbol> initializedProperties, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BasePropertyInitializer(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IPropertySymbol> initializedProperties, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            Locals = locals;
             InitializedProperties = initializedProperties;
         }
+
+        public ImmutableArray<ILocalSymbol> Locals { get; }
+
         /// <summary>
         /// Initialized properties. There can be multiple properties for Visual Basic 'WithEvents' declaration with AsNew clause.
         /// </summary>
@@ -4050,8 +4064,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class PropertyInitializer : BasePropertyInitializer, IPropertyInitializerOperation
     {
-        public PropertyInitializer(ImmutableArray<IPropertySymbol> initializedProperties, IOperation value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(initializedProperties, kind, semanticModel, syntax, type, constantValue, isImplicit)
+        public PropertyInitializer(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IPropertySymbol> initializedProperties, IOperation value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, initializedProperties, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ValueImpl = value;
         }
@@ -4065,8 +4079,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyPropertyInitializer(ImmutableArray<IPropertySymbol> initializedProperties, Lazy<IOperation> value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(initializedProperties, kind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyPropertyInitializer(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IPropertySymbol> initializedProperties, Lazy<IOperation> value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, initializedProperties, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
@@ -4713,7 +4727,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents an initializer for a field, property, or parameter.
     /// </summary>
-    internal abstract partial class SymbolInitializer : Operation, ISymbolInitializerOperation
+    internal abstract partial class SymbolInitializer : Operation
     {
         protected SymbolInitializer(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(kind, semanticModel, syntax, type, constantValue, isImplicit)

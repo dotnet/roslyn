@@ -1198,6 +1198,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 Unindent();
             }
 
+            LogLocals(operation.Locals);
             base.VisitFieldInitializer(operation);
         }
 
@@ -1205,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IVariableInitializerOperation));
             LogCommonPropertiesAndNewLine(operation);
-
+            Assert.Empty(operation.Locals);
             base.VisitVariableInitializer(operation);
         }
 
@@ -1239,7 +1240,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 Unindent();
             }
-            
+
+            LogLocals(operation.Locals);
             base.VisitPropertyInitializer(operation);
         }
 
@@ -1250,6 +1252,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
+            LogLocals(operation.Locals);
             base.VisitParameterInitializer(operation);
         }
 

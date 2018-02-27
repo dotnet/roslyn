@@ -33,12 +33,8 @@
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
-  <Node Name="BoundFieldInitializer" Base="BoundInitializer">
-    <Field Name="Field" Type="FieldSymbol"/>
-    <Field Name="InitialValue" Type="BoundExpression"/>
-  </Node>
-
-  <AbstractNode Name="BoundEqualsValue" Base="BoundNode">
+  <AbstractNode Name="BoundEqualsValue" Base="BoundInitializer">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <!-- Expression representing the value. -->
     <Field Name="Value" Type="BoundExpression"/>
   </AbstractNode>
