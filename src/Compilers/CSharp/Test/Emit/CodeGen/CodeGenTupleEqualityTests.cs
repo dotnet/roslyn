@@ -875,7 +875,7 @@ public class C
             var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
-            // TODO verify converted type on null
+            // PROTOTYPE(tuple-equality) verify converted type on null
         }
 
         [Fact]
@@ -1064,6 +1064,45 @@ Operator '!=' cannot be applied to operands of type 'System.ValueTuple<int,int>'
         }
 
         [Fact]
+        public void TestNestedDynamic()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        dynamic d1 = (1, 1, 1);
+
+        try
+        {
+            _ = (2, d1) == (2, (1, 1, 1));
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+        {
+            System.Console.WriteLine(e.Message);
+        }
+
+        try
+        {
+            _ = (3, d1) != (3, (1, 2, 3));
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+        {
+            System.Console.WriteLine(e.Message);
+        }
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"Operator '==' cannot be applied to operands of type 'System.ValueTuple<int,int,int>' and 'System.ValueTuple<int,int,int>'
+Operator '!=' cannot be applied to operands of type 'System.ValueTuple<int,int,int>' and 'System.ValueTuple<int,int,int>'");
+        }
+
+        [Fact]
         public void TestComparisonWithDeconstructionResult()
         {
             var source = @"
@@ -1125,7 +1164,7 @@ public class C
 {
     public static void Main()
     {
-        System.Console.WriteLine($""{(new A(1), new A(2)) == (new X(3), new Y(4))}"");
+        System.Console.Write($""{EXPRESSION}"");
     }
 }
 namespace System
@@ -1137,9 +1176,9 @@ namespace System
 
         public ValueTuple(T1 item1, T2 item2)
         {
-            System.Console.WriteLine(""ValueTuple"");
             this.Item1 = item1;
             this.Item2 = item2;
+            throw null;
         }
     }
 }
@@ -1152,15 +1191,18 @@ public class A : Base
 {
     public A(int i) : base(i)
     {
-        System.Console.WriteLine($""A:{i}"");
+        System.Console.Write($""A:{i}, "");
     }
     public static bool operator ==(A a, Y y)
     {
-        System.Console.WriteLine(""A == Y"");
-        return true;
+        System.Console.Write($""A({a.I}) == Y({y.I}), "");
+        return a.I == y.I;
     }
     public static bool operator !=(A a, Y y)
-        => throw null;
+    {
+        System.Console.Write($""A({a.I}) != Y({y.I}), "");
+        return a.I != y.I;
+    }
     public override bool Equals(object o)
         => throw null;
     public override int GetHashCode()
@@ -1170,14 +1212,14 @@ public class X : Base
 {
     public X(int i) : base(i)
     {
-        System.Console.WriteLine($""X:{i}"");
+        System.Console.Write($""X:{i}, "");
     }
 }
 public class Y : Base
 {
     public Y(int i) : base(i)
     {
-        System.Console.WriteLine($""Y:{i}"");
+        System.Console.Write($""Y:{i}, "");
     }
     public static implicit operator Y(X x)
     {
@@ -1186,17 +1228,22 @@ public class Y : Base
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput:
-@"A:1
-A:2
-X:3
-X -> Y:3
-Y:4
-A == Y
-A == Y
-True");
+
+            validate("(new A(1), new A(2)) == (new X(1), new Y(2))", "A:1, A:2, X:1, X -> Y:1, Y:2, A(1) == Y(1), A(2) == Y(2), True");
+            validate("(new A(1), new A(2)) == (new X(30), new Y(40))", "A:1, A:2, X:30, X -> Y:30, Y:40, A(1) == Y(30), False");
+            validate("(new A(1), new A(2)) == (new X(1), new Y(50))", "A:1, A:2, X:1, X -> Y:1, Y:50, A(1) == Y(1), A(2) == Y(50), False");
+
+            validate("(new A(1), new A(2)) != (new X(1), new Y(2))", "A:1, A:2, X:1, X -> Y:1, Y:2, A(1) != Y(1), A(2) != Y(2), False");
+            validate("(new A(1), new A(2)) != (new X(30), new Y(40))", "A:1, A:2, X:30, X -> Y:30, Y:40, A(1) != Y(30), True");
+            validate("(new A(1), new A(2)) != (new X(50), new Y(2))", "A:1, A:2, X:50, X -> Y:50, Y:2, A(1) != Y(50), True");
+            validate("(new A(1), new A(2)) != (new X(1), new Y(60))", "A:1, A:2, X:1, X -> Y:1, Y:60, A(1) != Y(1), A(2) != Y(60), True");
+
+            void validate(string expression, string expected)
+            {
+                var comp = CreateStandardCompilation(source.Replace("EXPRESSION", expression), options: TestOptions.DebugExe);
+                comp.VerifyDiagnostics();
+                CompileAndVerify(comp, expectedOutput: expected);
+            }
         }
 
         [Fact]
@@ -2463,6 +2510,51 @@ class C
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True False False True");
+        }
+
+        [Fact]
+        public void TestOnLongTuple()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        Assert(MakeLongTuple(1) == MakeLongTuple(1));
+        Assert(!(MakeLongTuple(1) != MakeLongTuple(1)));
+
+        Assert(MakeLongTuple(1) == (1, 1, 1, 1, 1, 1, 1, 1, 1));
+        Assert(!(MakeLongTuple(1) != (1, 1, 1, 1, 1, 1, 1, 1, 1)));
+
+        Assert(MakeLongTuple(1) == MakeLongTuple(1, 1));
+        Assert(!(MakeLongTuple(1) != MakeLongTuple(1, 1)));
+
+        Assert(!(MakeLongTuple(1) == MakeLongTuple(1, 2)));
+        Assert(!(MakeLongTuple(1) == MakeLongTuple(2, 1)));
+        Assert(MakeLongTuple(1) != MakeLongTuple(1, 2));
+        Assert(MakeLongTuple(1) != MakeLongTuple(2, 1));
+
+        System.Console.Write(""Success"");
+    }
+    private static (int, int, int, int, int, int, int, int, int) MakeLongTuple(int x)
+        => (x, x, x, x, x, x, x, x, x);
+
+    private static (int?, int, int?, int, int?, int, int?, int, int?)? MakeLongTuple(int? x, int y)
+        => (x, y, x, y, x, y, x, y, x);
+
+    private static void Assert(bool test)
+    {
+        if (!test)
+        {
+            throw null;
+        }
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Success");
         }
 
         [Fact]
