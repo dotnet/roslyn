@@ -337,18 +337,17 @@ class D : C<B>, I<B>
             Assert.Equal(null, constraintType.IsNullable);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Return type and parameter types of explicit implementations have nullability set.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void UnannotatedAssemblies_04()
         {
             var source =
 @"interface I<T>
 {
-    I<object[]> F();
+    I<object[]> F(I<T> t);
 }
 class C : I<string>
 {
-    I<object[]> I<string>.F() => null;
+    I<object[]> I<string>.F(I<string> s) => null;
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();

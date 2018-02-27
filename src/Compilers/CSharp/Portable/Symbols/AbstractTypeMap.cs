@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return TypeSymbolWithAnnotations.Create(result);
+            return TypeSymbolWithAnnotations.Create(result, ImmutableArray<CustomModifier>.Empty, isNullableIfReferenceType: null);
         }
 
         internal TypeSymbolWithAnnotations SubstituteType(TypeSymbolWithAnnotations previous)

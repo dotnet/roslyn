@@ -1354,8 +1354,7 @@ public class C : I<byte, char>
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            // PROTOTYPE(NullableReferenceTypes): Return type and parameter types of explicit implementations have nullability set.
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef }, skipUsesIsNullable: true);
+            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
