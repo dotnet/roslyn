@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 @"
 delegate void A();
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // (2,15): error CS0518: Predefined type 'System.MulticastDelegate' is not defined or imported
                 // delegate void A();
@@ -47,8 +47,8 @@ delegate void A();
         public void MissingAsyncTypes()
         {
             var source = "delegate void A();";
-            var comp = CreateCompilation(
-                trees: new[] { Parse(source) },
+            var comp = CreateEmptyCompilation(
+                source: new[] { Parse(source) },
                 references: new[] { MinCorlibRef });
 
             comp.VerifyDiagnostics();
@@ -63,7 +63,7 @@ class A {
     delegate void D();
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var d = a.GetMembers("D")[0] as NamedTypeSymbol;
@@ -80,7 +80,7 @@ class A {
 delegate void D(int x);
 delegate void D(float y);
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var diags = comp.GetDeclarationDiagnostics();
             Assert.Equal(1, diags.Count());
 
@@ -98,7 +98,7 @@ class A {
     public System.Func<int> Field;
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var field = a.GetMembers("Field")[0] as FieldSymbol;
@@ -119,7 +119,7 @@ class A {
             var text =
 @"delegate void MyDel(int n);";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var v = comp.GlobalNamespace.GetTypeMembers("MyDel", 0).Single();
             Assert.NotEqual(null, v);
             Assert.Equal(SymbolKind.NamedType, v.Kind);
@@ -147,7 +147,7 @@ namespace System
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var myDel = global.GetTypeMembers("MyDel", 0).Single() as NamedTypeSymbol;
 
@@ -194,7 +194,7 @@ namespace System
     internal delegate void D<Q>(Q q);
 }";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var namespaceNS = comp.GlobalNamespace.GetMembers("NS").First() as NamespaceOrTypeSymbol;
             Assert.Equal(1, namespaceNS.GetTypeMembers().Length);
 
@@ -220,7 +220,7 @@ namespace System
             var text = @"
 delegate void @out();
 ";
-            var comp = CreateStandardCompilation(Parse(text));
+            var comp = CreateCompilation(Parse(text));
             NamedTypeSymbol dout = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("out").Single();
             Assert.Equal("out", dout.Name);
             Assert.Equal("@out", dout.ToString());
@@ -249,7 +249,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -293,7 +293,7 @@ namespace CSSample
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (17,19): warning CS0169: The field 'CSSample.Program.d3' is never used
                 //         static D3 d3;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "d3").WithArguments("CSSample.Program.d3"));
@@ -313,7 +313,7 @@ class Program
   }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (7,27): error CS0428: Cannot convert method group 'Main' to non-delegate type 'System.MulticastDelegate'. Did you intend to invoke the method?
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.MulticastDelegate"));
         }
@@ -325,7 +325,7 @@ class Program
             var text = @"
 delegate int D(int x, ref int y, out int z);
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
@@ -369,7 +369,7 @@ class Goo
   }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(612002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612002")]
@@ -379,7 +379,7 @@ class Goo
             var text = @"
 delegate void D(out int result);
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
@@ -410,7 +410,7 @@ delegate void D(out int result);
             var text = @"
 delegate void D(out int @__result);
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
@@ -441,7 +441,7 @@ delegate void D(out int @__result);
             var text = @"
 delegate void D(out int result, out int @__result);
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
@@ -475,7 +475,7 @@ delegate void D(out int result, out int @__result);
             var text = @"
 delegate void D(int callback, int @object);
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
@@ -588,7 +588,7 @@ public class DelegateTest
     public static void RunG<T>(T t) { }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // These match Dev10.
 
                 // (44,14): error CS0123: No overload for 'FTT' matches delegate 'DelegateTest.Da'
@@ -696,7 +696,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(634014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634014")]
@@ -709,7 +709,7 @@ class C
 {
     D d = async delegate { };
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,17): error CS1988: Async methods cannot have ref or out parameters
                 //     D d = async delegate { };
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "delegate"),

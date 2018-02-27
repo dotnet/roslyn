@@ -1330,9 +1330,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal ImmutableArray<BoundExpression> MakeTempsForDiscardArguments(ImmutableArray<BoundExpression> arguments, ArrayBuilder<LocalSymbol> builder)
         {
-            var discardsCount = arguments.Count(a => a.Kind == BoundKind.DiscardExpression);
+            var discardsPresent = arguments.Any(a => a.Kind == BoundKind.DiscardExpression);
 
-            if (discardsCount != 0)
+            if (discardsPresent)
             {
                 arguments = arguments.SelectAsArray(
                     (arg, t) => arg.Kind == BoundKind.DiscardExpression ? t.factory.MakeTempForDiscard((BoundDiscardExpression)arg, t.builder) : arg,

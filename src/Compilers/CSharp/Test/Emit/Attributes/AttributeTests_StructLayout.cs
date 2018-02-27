@@ -232,7 +232,7 @@ using System.Runtime.InteropServices;
 [StructLayout(LayoutKind.Sequential, Size = 1, Pack = 512  )] class P512   {}
 [StructLayout(LayoutKind.Sequential, Size = 1, Pack = Int32.MaxValue  )] class PMax   {}
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (5,48): error CS0599: Invalid value for named attribute argument 'Pack'
                 Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = -1").WithArguments("Pack"),
                 // (6,48): error CS0599: Invalid value for named attribute argument 'Pack'
@@ -257,7 +257,7 @@ using System.Runtime.InteropServices;
 
 [StructLayout(LayoutKind.Sequential, Size = -1)] class S {}
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,38): error CS0599: Invalid value for named attribute argument 'Size'
                 Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Size = -1").WithArguments("Size"));
         }
@@ -284,7 +284,7 @@ public class C4 { }
 [StructLayout(LayoutKind.Sequential, CharSet = (CharSet)Int32.MaxValue)]
 public class C5 { }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (5,15): error CS0591: Invalid value for argument to 'StructLayout' attribute
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(LayoutKind)(-1)").WithArguments("StructLayout"),
                 // (8,15): error CS0591: Invalid value for argument to 'StructLayout' attribute
@@ -443,7 +443,7 @@ enum En
     A = 1
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset"),
                 // (14,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
@@ -517,7 +517,7 @@ partial struct S
     public int x;
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (5,15): warning CS0282: There is no defined ordering between fields in multiple declarations of partial struct 'C'. To specify an ordering, all instance fields must be in the same declaration.
                 Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "C").WithArguments("C"));
         }
@@ -538,7 +538,7 @@ partial struct C
 {
     public int y;
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]

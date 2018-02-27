@@ -1173,7 +1173,7 @@ namespace System
     public struct Span<T> { }
     public struct ReadOnlySpan<T> { }
 }";
-            var reference = CreateCompilation(
+            var reference = CreateEmptyCompilation(
                 spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.ReleaseDll);
@@ -1190,7 +1190,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: TestOptions.ReleaseExe);
@@ -1207,7 +1207,7 @@ namespace System
     public ref struct Span<T> { }
     public ref struct ReadOnlySpan<T> { }
 }";
-            var reference = CreateCompilation(
+            var reference = CreateEmptyCompilation(
                 spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.ReleaseDll);
@@ -1224,7 +1224,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: TestOptions.ReleaseExe);
@@ -1251,7 +1251,7 @@ namespace System
         }
     }
 }";
-            var reference = CreateCompilation(
+            var reference = CreateEmptyCompilation(
                 spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.UnsafeReleaseDll);
@@ -1268,7 +1268,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: TestOptions.ReleaseExe);
@@ -1292,7 +1292,7 @@ namespace System
         }
     }
 }";
-            var reference = CreateCompilation(
+            var reference = CreateEmptyCompilation(
                 spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.UnsafeReleaseDll);
@@ -1309,7 +1309,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: TestOptions.ReleaseExe);
@@ -1340,7 +1340,7 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (8,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
                 //     public static Point field2 = new Point();
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(8, 19),
@@ -1374,7 +1374,7 @@ ref struct Program
     }
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (8,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
                 //     public static Point field2 = new Point();
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(8, 19),
