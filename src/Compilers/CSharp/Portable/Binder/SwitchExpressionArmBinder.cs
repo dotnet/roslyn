@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node == _arm);
             Binder caseBinder = this.GetBinder(node);
-            bool hasErrors = _switchExpressionBinder.InputExpression.HasErrors;
+            bool hasErrors = _switchExpressionBinder.SwitchGoverningType.IsErrorType();
             ImmutableArray<LocalSymbol> locals = _armScopeBinder.Locals;
             BoundPattern pattern = caseBinder.BindPattern(node.Pattern, _switchExpressionBinder.SwitchGoverningType, hasErrors, diagnostics);
             BoundExpression guard = node.WhenClause != null
