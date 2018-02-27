@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
             if (fieldSymbol.IsConst)
             {
-                return fieldSymbol.ContainingType.IsEnumType() ? ClassificationTypeNames.EnumFieldName : ClassificationTypeNames.ConstantName;
+                return fieldSymbol.ContainingType.IsEnumType() ? ClassificationTypeNames.EnumMemberName : ClassificationTypeNames.ConstantName;
             }
             return ClassificationTypeNames.FieldName;
         }

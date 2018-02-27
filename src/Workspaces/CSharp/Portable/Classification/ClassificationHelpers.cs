@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Parent is EnumMemberDeclarationSyntax enumMemberDeclaration && enumMemberDeclaration.Identifier == token)
             {
-                return ClassificationTypeNames.EnumFieldName;
+                return ClassificationTypeNames.EnumMemberName;
             }
             else if (token.Parent is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Identifier == token)
             {

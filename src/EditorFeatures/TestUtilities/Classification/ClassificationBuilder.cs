@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         [DebuggerStepThrough]
         public Tuple<string, string> EnumField(string value)
         {
-            return Tuple.Create(value, ClassificationTypeNames.EnumFieldName);
+            return Tuple.Create(value, ClassificationTypeNames.EnumMemberName);
         }
 
         [DebuggerStepThrough]
