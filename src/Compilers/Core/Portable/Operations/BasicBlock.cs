@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                 }
 
                                 builder.Add(leavingRegions[i + 1].Regions.Last());
-                                Debug.Assert(builder.Last().Kind == ControlFlowGraph.RegionKind.Handler);
+                                Debug.Assert(builder.Last().Kind == ControlFlowGraph.RegionKind.Finally);
                             }
                         }
 

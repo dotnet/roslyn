@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private class RegionBuilder
         {
-            public readonly ControlFlowGraph.RegionKind Kind;
+            public ControlFlowGraph.RegionKind Kind;
             public RegionBuilder Enclosing { get; private set; } = null;
             public readonly ITypeSymbol ExceptionType;
             public BasicBlock FirstBlock = null;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     case ControlFlowGraph.RegionKind.FilterAndHandler:
                         Debug.Assert(Regions.Count <= 2);
-                        Debug.Assert(lastKind == (Regions.Count < 2 ? ControlFlowGraph.RegionKind.Filter : ControlFlowGraph.RegionKind.Handler));
+                        Debug.Assert(lastKind == (Regions.Count < 2 ? ControlFlowGraph.RegionKind.Filter : ControlFlowGraph.RegionKind.Catch));
                         break;
 
                     case ControlFlowGraph.RegionKind.TryAndCatch:
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         }
                         else
                         {
-                            Debug.Assert(lastKind == ControlFlowGraph.RegionKind.Handler || lastKind == ControlFlowGraph.RegionKind.FilterAndHandler);
+                            Debug.Assert(lastKind == ControlFlowGraph.RegionKind.Catch || lastKind == ControlFlowGraph.RegionKind.FilterAndHandler);
                         }
                         break;
 
@@ -77,17 +77,80 @@ namespace Microsoft.CodeAnalysis.Operations
                         }
                         else
                         {
-                            Debug.Assert(lastKind == ControlFlowGraph.RegionKind.Handler);
+                            Debug.Assert(lastKind == ControlFlowGraph.RegionKind.Finally);
                         }
                         break;
 
                     default:
                         Debug.Assert(lastKind != ControlFlowGraph.RegionKind.Filter);
-                        Debug.Assert(lastKind != ControlFlowGraph.RegionKind.Handler);
+                        Debug.Assert(lastKind != ControlFlowGraph.RegionKind.Catch);
+                        Debug.Assert(lastKind != ControlFlowGraph.RegionKind.Finally);
                         Debug.Assert(lastKind != ControlFlowGraph.RegionKind.Try);
                         break;
                 }
 #endif
+            }
+
+            public void Remove(RegionBuilder region)
+            {
+                Debug.Assert(region.Enclosing == this);
+
+                if (Regions.Count == 1)
+                {
+                    Debug.Assert(Regions[0] == region);
+                    Regions.Clear();
+                }
+                else
+                {
+                    Regions.RemoveAt(Regions.IndexOf(region));
+                }
+
+                region.Enclosing = null;
+            }
+
+            public void ReplaceRegion(RegionBuilder toReplace, ArrayBuilder<RegionBuilder> replaceWith)
+            {
+                Debug.Assert(toReplace.Enclosing == this);
+                Debug.Assert(toReplace.FirstBlock.Ordinal <= replaceWith.First().FirstBlock.Ordinal);
+                Debug.Assert(toReplace.LastBlock.Ordinal >= replaceWith.Last().LastBlock.Ordinal);
+
+                int insertAt;
+
+                if (Regions.Count == 1)
+                {
+                    Debug.Assert(Regions[0] == toReplace);
+                    insertAt = 0;
+                }
+                else
+                {
+                    insertAt = Regions.IndexOf(toReplace);
+                }
+
+                int replaceWithCount = replaceWith.Count;
+                if (replaceWithCount == 1)
+                {
+                    RegionBuilder single = replaceWith[0];
+                    single.Enclosing = this;
+                    Regions[insertAt] = single;
+                }
+                else
+                {
+                    int originalCount = Regions.Count;
+                    Regions.Count = replaceWithCount - 1 + originalCount;
+
+                    for (int i = originalCount - 1, j = Regions.Count - 1; i > insertAt; i--, j--)
+                    {
+                        Regions[j] = Regions[i];
+                    }
+
+                    foreach (RegionBuilder region in replaceWith)
+                    {
+                        region.Enclosing = this;
+                        Regions[insertAt++] = region;
+                    }
+                }
+
+                toReplace.Enclosing = null;
             }
 
             public void ExtendToInclude(BasicBlock block)

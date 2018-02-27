@@ -52,14 +52,15 @@ Microsoft.CodeAnalysis.Operations.ControlFlowGraph.Region.LastBlockOrdinal.get -
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.Region.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.Region.Regions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.ControlFlowGraph.Region>
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
+Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.Catch = 4 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.Filter = 3 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.FilterAndHandler = 5 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
-Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.Handler = 4 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
+Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.Finally = 7 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.Locals = 1 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.Root = 0 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.Try = 2 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.TryAndCatch = 6 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
-Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.TryAndFinally = 7 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
+Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.TryAndFinally = 8 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.Root.get -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.Region
 Microsoft.CodeAnalysis.Operations.ICaughtExceptionOperation
 Microsoft.CodeAnalysis.Operations.ICoalesceOperation.ValueConversion.get -> Microsoft.CodeAnalysis.Operations.CommonConversion
