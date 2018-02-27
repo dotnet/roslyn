@@ -1545,6 +1545,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArguments(operation.Arguments);
         }
 
+        public override void VisitConstructorBodyOperation(IConstructorBodyOperation operation)
+        {
+            LogString(nameof(IConstructorBodyOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            LogLocals(operation.Locals);
+            Visit(operation.Initializer, "Initializer");
+            Visit(operation.BlockBody, "BlockBody");
+            Visit(operation.ExpressionBody, "ExpressionBody");
+        }
+
+        public override void VisitMethodBodyOperation(IMethodBodyOperation operation)
+        {
+            LogString(nameof(IMethodBodyOperation));
+            LogCommonPropertiesAndNewLine(operation);
+            Visit(operation.BlockBody, "BlockBody");
+            Visit(operation.ExpressionBody, "ExpressionBody");
+        }
+
         #endregion
     }
 }

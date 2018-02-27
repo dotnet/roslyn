@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -86,11 +87,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitBlock(IBlockOperation operation)
         {
             Assert.Equal(OperationKind.Block, operation.Kind);
-
-            foreach (var local in operation.Locals)
-            {
-                Assert.NotNull(local);
-            }
+            VisitLocals(operation.Locals);
 
             AssertEx.Equal(operation.Operations, operation.Children);
         }
@@ -831,11 +828,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void VisitSymbolInitializer(ISymbolInitializerOperation operation)
         {
-            foreach (var local in operation.Locals)
-            {
-                Assert.NotNull(local);
-            }
-
+            VisitLocals(operation.Locals);
             Assert.Same(operation.Value, operation.Children.Single());
         }
 
@@ -1116,6 +1109,57 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             else
             {
                 AssertEx.Equal(new[] { operation.MinimumValue, operation.MaximumValue }, operation.Children);
+            }
+        }
+
+        public override void VisitConstructorBodyOperation(IConstructorBodyOperation operation)
+        {
+            Assert.Equal(OperationKind.ConstructorBodyOperation, operation.Kind);
+            VisitLocals(operation.Locals);
+
+            var builder = ArrayBuilder<IOperation>.GetInstance();
+
+            if (operation.Initializer != null)
+            {
+                builder.Add(operation.Initializer);
+            }
+
+            if (operation.BlockBody != null)
+            {
+                builder.Add(operation.BlockBody);
+            }
+
+            if (operation.ExpressionBody != null)
+            {
+                builder.Add(operation.ExpressionBody);
+            }
+
+            AssertEx.Equal(builder, operation.Children);
+            builder.Free();
+        }
+
+        public override void VisitMethodBodyOperation(IMethodBodyOperation operation)
+        {
+            Assert.Equal(OperationKind.MethodBodyOperation, operation.Kind);
+
+            if (operation.BlockBody != null)
+            {
+                if (operation.ExpressionBody != null)
+                {
+                    AssertEx.Equal(new[] { operation.BlockBody, operation.ExpressionBody }, operation.Children);
+                }
+                else
+                {
+                    Assert.Same(operation.BlockBody, operation.Children.Single());
+                }
+            }
+            else if (operation.ExpressionBody != null)
+            {
+                Assert.Same(operation.ExpressionBody, operation.Children.Single());
+            }
+            else
+            {
+                Assert.Empty(operation.Children);
             }
         }
     }

@@ -5,9 +5,22 @@ Microsoft.CodeAnalysis.MetadataImportOptions
 Microsoft.CodeAnalysis.MetadataImportOptions.All = 2 -> Microsoft.CodeAnalysis.MetadataImportOptions
 Microsoft.CodeAnalysis.MetadataImportOptions.Internal = 1 -> Microsoft.CodeAnalysis.MetadataImportOptions
 Microsoft.CodeAnalysis.MetadataImportOptions.Public = 0 -> Microsoft.CodeAnalysis.MetadataImportOptions
+Microsoft.CodeAnalysis.OperationKind.ConstructorBodyOperation = 88 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.MethodBodyOperation = 87 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation
+Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation.Initializer.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
+Microsoft.CodeAnalysis.Operations.IMethodBodyBaseOperation
+Microsoft.CodeAnalysis.Operations.IMethodBodyBaseOperation.BlockBody.get -> Microsoft.CodeAnalysis.Operations.IBlockOperation
+Microsoft.CodeAnalysis.Operations.IMethodBodyBaseOperation.ExpressionBody.get -> Microsoft.CodeAnalysis.Operations.IBlockOperation
+Microsoft.CodeAnalysis.Operations.IMethodBodyOperation
 Microsoft.CodeAnalysis.Operations.ISymbolInitializerOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Operations.ITupleOperation.NaturalType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 abstract Microsoft.CodeAnalysis.DataFlowAnalysis.CapturedInside.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
 abstract Microsoft.CodeAnalysis.DataFlowAnalysis.CapturedOutside.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DeconstructMethodName = "Deconstruct" -> string
 static Microsoft.CodeAnalysis.Diagnostic.Create(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor, Microsoft.CodeAnalysis.Location location, Microsoft.CodeAnalysis.DiagnosticSeverity effectiveSeverity, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Location> additionalLocations, System.Collections.Immutable.ImmutableDictionary<string, string> properties, params object[] messageArgs) -> Microsoft.CodeAnalysis.Diagnostic
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitConstructorBodyOperation(Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitMethodBodyOperation(Microsoft.CodeAnalysis.Operations.IMethodBodyOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitConstructorBodyOperation(Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitMethodBodyOperation(Microsoft.CodeAnalysis.Operations.IMethodBodyOperation operation, TArgument argument) -> TResult

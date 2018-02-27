@@ -485,5 +485,15 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new RaiseEventStatement(Visit(operation.EventReference), VisitArray(operation.Arguments), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
+
+        public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, object argument)
+        {
+            return new ConstructorBodyOperation(operation.Locals, ((Operation)operation).SemanticModel, operation.Syntax, Visit(operation.Initializer), Visit(operation.BlockBody), Visit(operation.ExpressionBody));
+        }
+
+        public override IOperation VisitMethodBodyOperation(IMethodBodyOperation operation, object argument)
+        {
+            return new MethodBodyOperation(((Operation)operation).SemanticModel, operation.Syntax, Visit(operation.BlockBody), Visit(operation.ExpressionBody));
+        }
     }
 }

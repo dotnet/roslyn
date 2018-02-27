@@ -148,7 +148,7 @@ System.Console.WriteLine();
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "PROTOTYPE(ExpressionVariables)")]
+        [Fact]
         public void TestParentOperations()
         {
             var sourceCode = TestResource.AllInOneCSharpCode;

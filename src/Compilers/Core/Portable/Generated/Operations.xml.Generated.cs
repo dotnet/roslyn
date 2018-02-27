@@ -6480,4 +6480,163 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         protected override IOperation ExpressionImpl => _lazyExpression.Value;
     }
+
+    internal abstract class BaseMethodBodyBaseOperation : Operation, IMethodBodyBaseOperation
+    {
+        protected BaseMethodBodyBaseOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax) :
+            base(kind, semanticModel, syntax, type: null, constantValue: default, isImplicit: false)
+        {
+        }
+
+        public abstract IBlockOperation BlockBody { get; }
+        public abstract IBlockOperation ExpressionBody { get; }
+        public abstract override IEnumerable<IOperation> Children { get; }
+    }
+
+    internal abstract class BaseMethodBodyOperation : BaseMethodBodyBaseOperation, IMethodBodyOperation
+    {
+        protected BaseMethodBodyOperation(SemanticModel semanticModel, SyntaxNode syntax) :
+            base(OperationKind.MethodBodyOperation, semanticModel, syntax)
+        {
+        }
+
+        public sealed override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                IBlockOperation blockBody = BlockBody;
+                if (blockBody != null)
+                {
+                    yield return blockBody;
+                }
+
+                IBlockOperation expressionBody = ExpressionBody;
+                if (expressionBody != null)
+                {
+                    yield return expressionBody;
+                }
+            }
+        }
+
+        public sealed override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitMethodBodyOperation(this);
+        }
+
+        public sealed override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitMethodBodyOperation(this, argument);
+        }
+    }
+
+    internal sealed class MethodBodyOperation : BaseMethodBodyOperation
+    {
+        public MethodBodyOperation(SemanticModel semanticModel, SyntaxNode syntax, IBlockOperation blockBody, IBlockOperation expressionBody) :
+            base(semanticModel, syntax)
+        {
+            BlockBody = SetParentOperation(blockBody, this);
+            ExpressionBody = SetParentOperation(expressionBody, this);
+        }
+
+        public override IBlockOperation BlockBody { get; }
+        public override IBlockOperation ExpressionBody { get; }
+    }
+
+    internal sealed class LazyMethodBodyOperation : BaseMethodBodyOperation
+    {
+        private readonly Lazy<IBlockOperation> _lazyBlockBody;
+        private readonly Lazy<IBlockOperation> _lazyExpressionBody;
+
+        public LazyMethodBodyOperation(SemanticModel semanticModel, SyntaxNode syntax, Lazy<IBlockOperation> blockBody, Lazy<IBlockOperation> expressionBody) :
+            base(semanticModel, syntax)
+        {
+            _lazyBlockBody = blockBody;
+            _lazyExpressionBody = expressionBody;
+        }
+
+        public override IBlockOperation BlockBody => SetParentOperation(_lazyBlockBody.Value, this);
+        public override IBlockOperation ExpressionBody => SetParentOperation(_lazyExpressionBody.Value, this);
+    }
+
+    internal abstract class BaseConstructorBodyOperation : BaseMethodBodyBaseOperation, IConstructorBodyOperation
+    {
+        protected BaseConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax) :
+            base(OperationKind.ConstructorBodyOperation, semanticModel, syntax)
+        {
+            Locals = locals;
+        }
+
+        public ImmutableArray<ILocalSymbol> Locals { get; }
+        public abstract IOperation Initializer { get; }
+
+        public sealed override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                IOperation initializer = Initializer;
+                if (initializer != null)
+                {
+                    yield return initializer;
+                }
+
+                IBlockOperation blockBody = BlockBody;
+                if (blockBody != null)
+                {
+                    yield return blockBody;
+                }
+
+                IBlockOperation expressionBody = ExpressionBody;
+                if (expressionBody != null)
+                {
+                    yield return expressionBody;
+                }
+            }
+        }
+
+        public sealed override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitConstructorBodyOperation(this);
+        }
+
+        public sealed override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitConstructorBodyOperation(this, argument);
+        }
+    }
+
+    internal sealed class ConstructorBodyOperation : BaseConstructorBodyOperation
+    {
+        public ConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, 
+                                        IOperation initializer, IBlockOperation blockBody, IBlockOperation expressionBody) :
+            base(locals, semanticModel, syntax)
+        {
+            Initializer = SetParentOperation(initializer, this);
+            BlockBody = SetParentOperation(blockBody, this);
+            ExpressionBody = SetParentOperation(expressionBody, this);
+        }
+
+        public override IOperation Initializer { get; }
+        public override IBlockOperation BlockBody { get; }
+        public override IBlockOperation ExpressionBody { get; }
+    }
+
+    internal sealed class LazyConstructorBodyOperation : BaseConstructorBodyOperation
+    {
+        private readonly Lazy<IOperation> _lazyInitializer;
+        private readonly Lazy<IBlockOperation> _lazyBlockBody;
+        private readonly Lazy<IBlockOperation> _lazyExpressionBody;
+
+        public LazyConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, 
+                                            Lazy<IOperation> initializer, Lazy<IBlockOperation> blockBody, Lazy<IBlockOperation> expressionBody) :
+            base(locals, semanticModel, syntax)
+        {
+            _lazyInitializer = initializer;
+            _lazyBlockBody = blockBody;
+            _lazyExpressionBody = expressionBody;
+        }
+
+        public override IOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
+        public override IBlockOperation BlockBody => SetParentOperation(_lazyBlockBody.Value, this);
+        public override IBlockOperation ExpressionBody => SetParentOperation(_lazyExpressionBody.Value, this);
+    }
 }
