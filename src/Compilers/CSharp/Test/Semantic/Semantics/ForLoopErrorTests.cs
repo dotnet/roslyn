@@ -23,7 +23,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).
+            CreateCompilation(text).
                 VerifyDiagnostics(
                     Diagnostic(ErrorCode.ERR_SemicolonExpected, ","),
                     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(","),
@@ -51,7 +51,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).
+            CreateCompilation(text).
                 VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConv, "i").WithArguments("int", "bool"));
         }
 
@@ -72,7 +72,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).
+            CreateCompilation(text).
                 VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b").WithArguments("bool?", "bool"));
         }
 
@@ -90,7 +90,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).
+            CreateCompilation(text).
                 VerifyDiagnostics(
                     Diagnostic(ErrorCode.ERR_CloseParenExpected, ";"),
                     Diagnostic(ErrorCode.ERR_RbraceExpected, ")")
@@ -106,7 +106,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).
+            CreateCompilation(text).
                 VerifyDiagnostics(
                     Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
                     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
@@ -137,7 +137,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).
+            CreateCompilation(text).
                 VerifyDiagnostics(Diagnostic(ErrorCode.ERR_LabelNotFound, "outerLoop").WithArguments("outerLoop"),
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "j"),
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outerLoop"));
@@ -162,7 +162,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).
+            CreateCompilationWithMscorlib40AndSystemCore(text).
                 VerifyDiagnostics(
                     Diagnostic(ErrorCode.ERR_NoImplicitConv,
 @"from x in new[] { 1, 2, 3 }
@@ -190,7 +190,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp.GetDiagnostics(),
                 new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement });
         }

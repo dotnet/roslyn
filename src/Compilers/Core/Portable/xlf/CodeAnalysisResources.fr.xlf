@@ -830,7 +830,7 @@
       </trans-unit>
       <trans-unit id="CompilerDiagnosticIdReported">
         <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="new">Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</target>
+        <target state="translated">Le diagnostic rapporté présente un ID '{0}', que seul le compilateur doit signaler.</target>
         <note />
       </trans-unit>
       <trans-unit id="FlowAnalysisFeatureDisabled">

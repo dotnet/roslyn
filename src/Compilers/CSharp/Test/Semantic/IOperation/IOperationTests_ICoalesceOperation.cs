@@ -24,7 +24,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -114,7 +114,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -208,7 +208,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -302,7 +302,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -393,7 +393,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics(
                 // (6,18): error CS0019: Operator '??' cannot be applied to operands of type 'int?' and 'DateTime'
@@ -489,8 +489,7 @@ class C
         result = input ?? alternative;
     }/*</bind>*/
 }";
-
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { CSharpRef }, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, references: new[] { CSharpRef }, parseOptions: TestOptions.RegularWithFlowAnalysisFeature, targetFramework: TargetFramework.Mscorlib40AndSystemCore);
 
             compilation.VerifyDiagnostics();
 
@@ -584,7 +583,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { CSharpRef }, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, references: new[] { CSharpRef }, parseOptions: TestOptions.RegularWithFlowAnalysisFeature, targetFramework: TargetFramework.Mscorlib40AndSystemCore);
 
             compilation.VerifyDiagnostics();
 
@@ -675,7 +674,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics(
                 // (6,18): error CS0019: Operator '??' cannot be applied to operands of type '<null>' and 'int'
@@ -772,7 +771,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -863,7 +862,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -957,7 +956,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -1044,7 +1043,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -1165,7 +1164,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 

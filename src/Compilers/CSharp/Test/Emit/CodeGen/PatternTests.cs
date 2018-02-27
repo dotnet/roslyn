@@ -27,7 +27,7 @@ static class C {
     public static bool M() => ((object)123) is int i;
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -50,7 +50,7 @@ static class C {
     public static bool M() => ((object)123) is int i;
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -80,7 +80,7 @@ static class C {
     static bool M2(int? x) => x is int i;
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -125,7 +125,7 @@ static class C {
     static bool M2(int? x) => x is int i;
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -163,7 +163,7 @@ public class C
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"eval";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -235,7 +235,7 @@ class IdentityAccessor<T>
         return Guid.Empty;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { LinqAssemblyRef });
             compilation.VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("X<T>.Y<U>",
@@ -303,7 +303,7 @@ class Program
         System.Console.WriteLine(null != (x as Derived));
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, references: new[] { LinqAssemblyRef });
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"True

@@ -282,6 +282,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return Owner.GetOnAnalyzerException(projectId, DiagnosticLogAggregator);
         }
 
+        internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
+        {
+            return _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
+        }
+
         private static string GetDocumentLogMessage(string title, Document document, DiagnosticAnalyzer analyzer)
         {
             return $"{title}: ({document.FilePath ?? document.Name}), ({analyzer.ToString()})";

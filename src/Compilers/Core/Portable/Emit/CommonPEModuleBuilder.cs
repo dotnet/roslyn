@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Emit.NoPia;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal ConcurrentDictionary<IMethodSymbol, CompilationTestData.MethodData> TestData { get; private set; }
 
         internal readonly DebugInformationFormat DebugInformationFormat;
+        internal readonly HashAlgorithmName PdbChecksumAlgorithm;
 
         public CommonPEModuleBuilder(
             IEnumerable<ResourceDescription> manifestResources,
@@ -60,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Emit
             SerializationProperties = serializationProperties;
             _methodBodyMap = new ConcurrentDictionary<IMethodSymbol, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
             DebugInformationFormat = emitOptions.DebugInformationFormat;
+            PdbChecksumAlgorithm = emitOptions.PdbChecksumAlgorithm;
         }
 
         /// <summary>

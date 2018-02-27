@@ -969,7 +969,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -1019,7 +1019,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -1103,7 +1103,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -1343,7 +1343,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -1436,7 +1436,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -1494,7 +1494,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -1574,7 +1574,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -1689,7 +1689,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -1767,7 +1767,7 @@ class C
     bool filter(out int i) => throw null;
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -1864,7 +1864,7 @@ class C
     bool filter(out int i) => throw null;
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -1953,7 +1953,7 @@ class C
     bool filter(out int i) => throw null;
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -2044,7 +2044,7 @@ class C
     bool filter(out int i) => throw null;
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -2127,7 +2127,7 @@ class C
     bool filter(out int i) => throw null;
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -2218,7 +2218,7 @@ class C
     bool filter(out int i) => throw null;
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -2299,7 +2299,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -2364,7 +2364,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -2423,7 +2423,7 @@ class C
     bool filter(out int i) => throw null;
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -2514,7 +2514,7 @@ class C
     bool filter(out int i) => throw null;
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -2592,7 +2592,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -2654,7 +2654,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 

@@ -156,7 +156,7 @@ namespace RunTests
         /// </summary>
         private static async Task HandleTimeout(Options options, CancellationToken cancellationToken)
         {
-            var procDumpFilePath = Path.Combine(options.ProcDumpPath, "procdump.exe");
+            var procDumpFilePath = GetProcDumpInfo(options).Value.ProcDumpFilePath;
 
             async Task DumpProcess(Process targetProcess, string dumpFilePath)
             {
@@ -217,7 +217,7 @@ namespace RunTests
                 var dumpDir = options.LogFilePath != null
                     ? Path.GetDirectoryName(options.LogFilePath)
                     : Directory.GetCurrentDirectory();
-                return new ProcDumpInfo(options.ProcDumpPath, dumpDir);
+                return new ProcDumpInfo(Path.Combine(options.ProcDumpPath, "procdump.exe"), dumpDir);
             }
 
             return null;
