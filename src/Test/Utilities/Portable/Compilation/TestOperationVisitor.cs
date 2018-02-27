@@ -828,11 +828,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void VisitSymbolInitializer(ISymbolInitializerOperation operation)
         {
-            foreach (var local in operation.Locals)
-            {
-                Assert.NotNull(local);
-            }
-
+            VisitLocals(operation.Locals);
             Assert.Same(operation.Value, operation.Children.Single());
         }
 

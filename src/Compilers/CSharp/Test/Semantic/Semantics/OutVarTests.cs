@@ -33064,11 +33064,11 @@ public class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+            var initializerSyntax = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
 
-            Assert.Equal(": this(out var x)", node1.ToString());
+            Assert.Equal(": this(out var x)", initializerSyntax.ToString());
 
-            compilation.VerifyOperationTree(node1, expectedOperationTree:
+            compilation.VerifyOperationTree(initializerSyntax, expectedOperationTree:
 @"
 IInvocationOperation ( C..ctor(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: ': this(out var x)')
   Instance Receiver: 
@@ -33080,14 +33080,14 @@ IInvocationOperation ( C..ctor(out System.Int32 x)) (OperationKind.Invocation, T
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
-            IOperation operation1 = model.GetOperation(node1);
-            Assert.Equal(OperationKind.ExpressionStatement, operation1.Parent.Kind);
+            IOperation initializerOperation = model.GetOperation(initializerSyntax);
+            Assert.Equal(OperationKind.ExpressionStatement, initializerOperation.Parent.Kind);
 
-            var node2 = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
+            var blockBodySyntax = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
 
-            Assert.Equal("{ M(out var y); }", node2.ToString());
+            Assert.Equal("{ M(out var y); }", blockBodySyntax.ToString());
 
-            compilation.VerifyOperationTree(node2, expectedOperationTree:
+            compilation.VerifyOperationTree(blockBodySyntax, expectedOperationTree:
 @"
 IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ M(out var y); }')
   Locals: Local_1: System.Int32 y
@@ -33103,16 +33103,16 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
-            IOperation operation2 = model.GetOperation(node2);
-            Assert.Equal(OperationKind.ConstructorBodyOperation, operation2.Parent.Kind);
-            Assert.Same(operation1.Parent.Parent, operation2.Parent);
-            Assert.Null(operation2.Parent.Parent);
+            IOperation blockBodyOperation = model.GetOperation(blockBodySyntax);
+            Assert.Equal(OperationKind.ConstructorBodyOperation, blockBodyOperation.Parent.Kind);
+            Assert.Same(initializerOperation.Parent.Parent, blockBodyOperation.Parent);
+            Assert.Null(blockBodyOperation.Parent.Parent);
 
-            var node3 = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().First();
+            var expressionBodySyntax = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().First();
 
-            Assert.Equal("=> M(out var z)", node3.ToString());
+            Assert.Equal("=> M(out var z)", expressionBodySyntax.ToString());
 
-            compilation.VerifyOperationTree(node3, expectedOperationTree:
+            compilation.VerifyOperationTree(expressionBodySyntax, expectedOperationTree:
 @"
 IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> M(out var z)')
   Locals: Local_1: System.Int32 z
@@ -33129,13 +33129,13 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
 
-            Assert.Same(operation2.Parent, model.GetOperation(node3).Parent);
+            Assert.Same(blockBodyOperation.Parent, model.GetOperation(expressionBodySyntax).Parent);
 
-            var node4 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var declarationSyntax = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
 
-            Assert.Same(operation2.Parent, model.GetOperation(node4));
+            Assert.Same(blockBodyOperation.Parent, model.GetOperation(declarationSyntax));
 
-            compilation.VerifyOperationTree(node4, expectedOperationTree:
+            compilation.VerifyOperationTree(declarationSyntax, expectedOperationTree:
 @"
 IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null, IsInvalid) (Syntax: 'C() : this( ... out var z);')
   Locals: Local_1: System.Int32 x
@@ -33204,11 +33204,11 @@ public class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().First();
+            var expressionBodySyntax = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().First();
 
-            Assert.Equal("=> M(out var y)", node1.ToString());
+            Assert.Equal("=> M(out var y)", expressionBodySyntax.ToString());
 
-            compilation.VerifyOperationTree(node1, expectedOperationTree:
+            compilation.VerifyOperationTree(expressionBodySyntax, expectedOperationTree:
 @"
 IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> M(out var y)')
   Locals: Local_1: System.Int32 y
@@ -33224,15 +33224,15 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
-            IOperation operation1 = model.GetOperation(node1);
-            Assert.Equal(OperationKind.MethodBodyOperation, operation1.Parent.Kind);
-            Assert.Null(operation1.Parent.Parent);
+            IOperation expressionBodyOperation = model.GetOperation(expressionBodySyntax);
+            Assert.Equal(OperationKind.MethodBodyOperation, expressionBodyOperation.Parent.Kind);
+            Assert.Null(expressionBodyOperation.Parent.Parent);
 
-            var node2 = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
+            var blockBodySyntax = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
 
-            Assert.Equal("{return M(out var x);}", node2.ToString());
+            Assert.Equal("{return M(out var x);}", blockBodySyntax.ToString());
 
-            compilation.VerifyOperationTree(node2, expectedOperationTree:
+            compilation.VerifyOperationTree(blockBodySyntax, expectedOperationTree:
 @"
 IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{return M(out var x);}')
   Locals: Local_1: System.Int32 x
@@ -33249,17 +33249,17 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
 
-            IOperation operation2 = model.GetOperation(node2);
-            Assert.Same(operation1.Parent, operation2.Parent);
+            IOperation blockBodyOperation = model.GetOperation(blockBodySyntax);
+            Assert.Same(expressionBodyOperation.Parent, blockBodyOperation.Parent);
 
-            var node3 = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().ElementAt(1);
+            var propertyExpressionBodySyntax = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().ElementAt(1);
 
-            Assert.Equal("=> M(out var z)", node3.ToString());
-            Assert.Null(model.GetOperation(node3)); // https://github.com/dotnet/roslyn/issues/24900
+            Assert.Equal("=> M(out var z)", propertyExpressionBodySyntax.ToString());
+            Assert.Null(model.GetOperation(propertyExpressionBodySyntax)); // https://github.com/dotnet/roslyn/issues/24900
 
-            var node4 = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
-            Assert.Same(operation1.Parent, model.GetOperation(node4));
-            compilation.VerifyOperationTree(node4, expectedOperationTree:
+            var declarationSyntax = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+            Assert.Same(expressionBodyOperation.Parent, model.GetOperation(declarationSyntax));
+            compilation.VerifyOperationTree(declarationSyntax, expectedOperationTree:
 @"
 IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) (Syntax: 'get {return ... out var y);')
   BlockBody: 
