@@ -73,7 +73,7 @@ Public Module Module1
 End Module
 ]]>
                     </file>
-                </compilation>, additionalRefs:={proj1ref, proj2ref}, expectedOutput:="Class3.f")
+                </compilation>, references:={proj1ref, proj2ref}, expectedOutput:="Class3.f")
 
             proj3.VerifyDiagnostics()   ' no errors.
         End Sub
@@ -144,7 +144,7 @@ Public Module Module1
 End Module
 ]]>
                     </file>
-                </compilation>, additionalRefs:={proj1ref, proj2ref}, expectedOutput:="Class3.P")
+                </compilation>, references:={proj1ref, proj2ref}, expectedOutput:="Class3.P")
 
             proj3.VerifyDiagnostics()   ' no errors.
         End Sub
@@ -421,7 +421,7 @@ Public Module Module1
 End Module
 ]]>
                             </file>
-                        </compilation>, additionalRefs:={proj1Ref, proj2Ref}, expectedOutput:="Class3.f")
+                        </compilation>, references:={proj1Ref, proj2Ref}, expectedOutput:="Class3.f")
 
                     proj3.VerifyDiagnostics()   ' no errors.
 
