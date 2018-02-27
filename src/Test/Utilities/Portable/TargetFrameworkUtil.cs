@@ -32,6 +32,11 @@ namespace Roslyn.Test.Utilities
         /// This is represents the set of tests which must be mscorlib40 on desktop but full net standard on coreclr.
         /// </summary>
         StandardCompat,
+       
+        /// <summary>
+        /// Compat framework for the default set of references many vb compilations get.
+        /// </summary>
+        DefaultVb,
 
         // The flavors of mscorlib we support + extending them with LINQ and dynamic.
         Mscorlib40,
@@ -93,6 +98,7 @@ namespace Roslyn.Test.Utilities
                 case TargetFramework.StandardAndCSharp: return StandardAndCSharpReferences;
                 case TargetFramework.StandardAndVBRuntime: return StandardAndVBRuntimeReferences;
                 case TargetFramework.StandardCompat: return StandardCompatReferences;
+                case TargetFramework.DefaultVb: return DefaultVbReferencs;
                 default: throw new InvalidOperationException($"Unexpected target framework {tf}");
             }
         }

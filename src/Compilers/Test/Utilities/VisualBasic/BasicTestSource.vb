@@ -51,6 +51,16 @@ Public Structure BasicTestSource
         Throw New Exception($"Unexpected value: {Value}")
     End Function
 
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name="source">The sources compile according to the following schema        
+    ''' &lt;compilation name="assemblyname[optional]"&gt;
+    ''' &lt;file name="file1.vb[optional]"&gt;
+    ''' source
+    ''' &lt;/file&gt;
+    ''' &lt;/compilation&gt;
+    ''' </param>
     Public Shared Widening Operator CType(source As XElement) As BasicTestSource
         Return New BasicTestSource(source)
     End Operator

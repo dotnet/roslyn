@@ -357,8 +357,7 @@ Public MustInherit Class BasicTestBase
     ''' &lt;/file&gt;
     ''' &lt;/compilation&gt;
     ''' </param>
-    Friend Function CompileWithCustomILSource(source As XElement,
-                                              ilSource As String,
+    Friend Function CompileWithCustomILSource(source As XElement, ilSource As String,
                                               Optional options As VisualBasicCompilationOptions = Nothing,
                                               Optional compilationVerifier As Action(Of VisualBasicCompilation) = Nothing,
                                               Optional expectedOutput As String = Nothing) As CompilationVerifier
@@ -384,6 +383,16 @@ Public MustInherit Class BasicTestBase
 
         Return CompileAndVerify(compilation, expectedOutput:=expectedOutput)
     End Function
+
+    Friend Overloads Function CompileAndVerifyFieldMarshal(source As String,
+                                                           expectedBlobs As Dictionary(Of String, Byte()),
+                                                           Optional getExpectedBlob As Func(Of String, PEAssembly, Byte()) = Nothing,
+                                                           Optional expectedSignatures As SignatureDescription() = Nothing,
+                                                           Optional isField As Boolean = True) As CompilationVerifier
+        Dim xmlSource = <compilation><field><%= source %></field></compilation>
+        Return CompileAndVerifyFieldMarshal(xmlSource, expectedBlobs, getExpectedBlob, expectedSignatures, isField)
+    End Function
+
 
     Friend Overloads Function CompileAndVerifyFieldMarshal(source As XElement,
                                                            expectedBlobs As Dictionary(Of String, Byte()),
