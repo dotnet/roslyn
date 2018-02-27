@@ -19,10 +19,24 @@ Friend Module CompilationUtils
         Return source.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
     End Function
 
-    Public Function CreateEmptyCompilation(source As IEnumerable(Of SyntaxTree),
-                                      Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                      Optional options As VisualBasicCompilationOptions = Nothing,
-                                      Optional assemblyName As String = Nothing) As VisualBasicCompilation
+    Public Function CreateCompilation(
+        source As BasicTestSource,
+        Optional references As IEnumerable(Of MetadataReference) = Nothing,
+        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional targetFramework As TargetFramework = TargetFramework.StandardAndVBRuntime,
+        Optional assemblyName As String = Nothing) As VisualBasicCompilation
+        references = TargetFrameworkUtil.GetReferences(targetFramework, references)
+        Return CreateEmptyCompilation(source, references, options, parseOptions, assemblyName)
+    End Function
+
+    Public Function CreateEmptyCompilation(
+        source As BasicTestSource,
+        Optional references As IEnumerable(Of MetadataReference) = Nothing,
+        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional assemblyName As String = Nothing) As VisualBasicCompilation
+
         If options Is Nothing Then
             options = TestOptions.ReleaseDll
         End If
@@ -32,10 +46,11 @@ Friend Module CompilationUtils
             options = options.WithConcurrentBuild(False)
         End If
 
+        Dim trees = source.GetSyntaxTrees(parseOptions, assemblyName)
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(
                                             If(assemblyName, GetUniqueName()),
-                                            source,
+                                            trees,
                                             references,
                                             options)
                                       End Function
@@ -43,24 +58,24 @@ Friend Module CompilationUtils
         Return createCompilationLambda()
     End Function
 
+    Public Function CreateEmptyCompilation(
+            identity As AssemblyIdentity,
+            source As BasicTestSource,
+            Optional references As MetadataReference() = Nothing,
+            Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
 
-    Public Function CreateEmptyCompilation(source As IEnumerable(Of String),
-                                      Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                      Optional options As VisualBasicCompilationOptions = Nothing,
-                                      Optional assemblyName As String = Nothing,
-                                      Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
+        Dim trees = source.GetSyntaxTrees()
+        Dim createCompilationLambda = Function()
+                                          Return VisualBasicCompilation.Create(identity.Name, trees, references, options)
+                                      End Function
+        CompilationExtensions.ValidateIOperations(createCompilationLambda)
+        Dim c = createCompilationLambda()
+        Assert.NotNull(c.Assembly) ' force creation of SourceAssemblySymbol
 
-        Return CreateEmptyCompilation(ParseSources(source, parseOptions), references, options, assemblyName)
+        DirectCast(c.Assembly, SourceAssemblySymbol).m_lazyIdentity = identity
+        Return c
     End Function
 
-    Public Function CreateEmptyCompilation(source As String,
-                                      Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                      Optional options As VisualBasicCompilationOptions = Nothing,
-                                      Optional assemblyName As String = Nothing,
-                                      Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-
-        Return CreateEmptyCompilation({source}, references, options, assemblyName, parseOptions)
-    End Function
 
     Public Function CreateCompilationWithMscorlib40(source As IEnumerable(Of SyntaxTree),
                                                   Optional references As IEnumerable(Of MetadataReference) = Nothing,
@@ -216,7 +231,7 @@ Friend Module CompilationUtils
                                                               Optional assemblyName As String = Nothing) As VisualBasicCompilation
 
         Dim references = {MscorlibRef, SystemRef, MsvbRef}
-        Return CreateEmptyCompilation(source, references, options, assemblyName)
+        Return CreateEmptyCompilation(source.ToArray(), references, options:=options, assemblyName:=assemblyName)
     End Function
 
     Public Function CreateCompilationWithMscorlib40AndVBRuntime(source As XElement,
@@ -333,37 +348,6 @@ Friend Module CompilationUtils
                                       End Function
         CompilationExtensions.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
-    End Function
-
-    ''' <param name="source">The sources compile according to the following schema        
-    ''' &lt;compilation name="assemblyname[optional]"&gt;
-    ''' &lt;file name="file1.vb[optional]"&gt;
-    ''' source
-    ''' &lt;/file&gt;
-    ''' &lt;/compilation&gt;
-    ''' </param>
-    Public Function CreateEmptyCompilation(source As XElement,
-                                                       Optional options As VisualBasicCompilationOptions = Nothing,
-                                                       Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Return CreateEmptyCompilationWithReferences(source, DirectCast({}, IEnumerable(Of MetadataReference)), options, parseOptions)
-    End Function
-
-    Public Function CreateEmptyCompilation(
-            identity As AssemblyIdentity,
-            source() As String,
-            references() As MetadataReference,
-            Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
-
-        Dim trees = If(source Is Nothing, Nothing, source.Select(AddressOf VisualBasicSyntaxTree.ParseText).ToArray())
-        Dim createCompilationLambda = Function()
-                                          Return VisualBasicCompilation.Create(identity.Name, trees, references, options)
-                                      End Function
-        CompilationExtensions.ValidateIOperations(createCompilationLambda)
-        Dim c = createCompilationLambda()
-        Assert.NotNull(c.Assembly) ' force creation of SourceAssemblySymbol
-
-        DirectCast(c.Assembly, SourceAssemblySymbol).m_lazyIdentity = identity
-        Return c
     End Function
 
     ''' <summary>

@@ -26,6 +26,8 @@ namespace Roslyn.Test.Utilities
         Standard,
         StandardAndCSharp,
 
+        StandardAndVBRuntime,
+
         /// <summary>
         /// This is represents the set of tests which must be mscorlib40 on desktop but full net standard on coreclr.
         /// </summary>
@@ -35,9 +37,11 @@ namespace Roslyn.Test.Utilities
         Mscorlib40,
         Mscorlib40Extended, 
         Mscorlib40AndSystemCore,
+        Mscorlib40AndVBRuntime,
         Mscorlib45,
         Mscorlib45Extended,
         Mscorlib45AndCSharp,
+        Mscorlib45AndVBRuntime,
         Mscorlib46,
         Mscorlib46Extended,
     }
@@ -65,6 +69,7 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> WinRTReferences => ImmutableArray.Create(TestBase.WinRtRefs);
         public static ImmutableArray<MetadataReference> StandardReferences => CoreClrShim.IsRunningOnCoreClr ? NetStandard20References : Mscorlib46ExtendedReferences;
         public static ImmutableArray<MetadataReference> StandardAndCSharpReferences => StandardReferences.Add(StandardCSharpReference);
+        public static ImmutableArray<MetadataReference> StandardAndVBRuntimeReferences => CoreClrShim.IsRunningOnCoreClr ? NetStandard20References.Add(NetStandard20.MicrosoftVisualBasicRef) : Mscorlib46ExtendedReferences.Add(TestBase.MsvbRef_v4_0_30319_17929);
         public static ImmutableArray<MetadataReference> StandardCompatReferences => CoreClrShim.IsRunningOnCoreClr ? NetStandard20References : Mscorlib40References;
 
         public static ImmutableArray<MetadataReference> GetReferences(TargetFramework tf)
@@ -75,15 +80,18 @@ namespace Roslyn.Test.Utilities
                 case TargetFramework.Mscorlib40: return Mscorlib40References;
                 case TargetFramework.Mscorlib40Extended: return Mscorlib40ExtendedReferences;
                 case TargetFramework.Mscorlib40AndSystemCore: return Mscorlib40andSystemCoreReferences;
+                case TargetFramework.Mscorlib40AndVBRuntime: return Mscorlib40andVBRuntimeReferences;
                 case TargetFramework.Mscorlib45: return Mscorlib45References;
                 case TargetFramework.Mscorlib45Extended: return Mscorlib45ExtendedReferences;
                 case TargetFramework.Mscorlib45AndCSharp: return Mscorlib45AndCSharpReferences;
+                case TargetFramework.Mscorlib45AndVBRuntime: return Mscorlib45AndVBRuntimeReferences;
                 case TargetFramework.Mscorlib46: return Mscorlib46References;
                 case TargetFramework.Mscorlib46Extended: return Mscorlib46ExtendedReferences;
                 case TargetFramework.NetStandard20: return NetStandard20References;
                 case TargetFramework.WinRT: return WinRTReferences;
                 case TargetFramework.Standard: return StandardReferences;
                 case TargetFramework.StandardAndCSharp: return StandardAndCSharpReferences;
+                case TargetFramework.StandardAndVBRuntime: return StandardAndVBRuntimeReferences;
                 case TargetFramework.StandardCompat: return StandardCompatReferences;
                 default: throw new InvalidOperationException($"Unexpected target framework {tf}");
             }
