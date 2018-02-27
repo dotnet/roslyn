@@ -65,7 +65,7 @@ select num",
         {
             await Test(
 "from x in new [] {0} from y in new [] {1} from z in new [] {2} where x + y + z < 5 select x * x",
-"new [] {0}.SelectMany(x => new [] {1}, (x, y) => (x, y)).SelectMany(VBIt => new [] {2}, (VBIt1, z) => (VBIt1, z)).Where(VBIt => VBIt.VBIt1.x + VBIt.VBIt1.y + VBIt.z< 5).Select(VBIt => VBIt.VBIt1.x* VBIt.VBIt1.x)");
+"new [] {0}.SelectMany(x => new [] {1}, (x, y) => (x, y)).SelectMany(__queryIdentifier0 => new [] {2}, (__queryIdentifier0, z) => (__queryIdentifier0, z)).Where(__queryIdentifier1 => __queryIdentifier1.__queryIdentifier0.x + __queryIdentifier1.__queryIdentifier0.y + __queryIdentifier1.z < 5).Select(__queryIdentifier1 => __queryIdentifier1.__queryIdentifier0.x * __queryIdentifier1.__queryIdentifier0.x)");
         }
 
 

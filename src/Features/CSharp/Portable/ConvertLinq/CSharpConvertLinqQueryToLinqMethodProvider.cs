@@ -86,13 +86,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 var expressionOperation = GetOperation(bodyExpression);
 
                 var invocationOperation = FindParentInvocationOperation(expressionOperation);
-                var firstArgument = CreateArgument(invocationOperation.Arguments.Where(a => a.Value.Kind == OperationKind.DelegateCreation).First());
-                var secondArgument = SyntaxFactory.Argument(CreateTupleExpression(((invocationOperation.Arguments.Where(a => a.Value.Kind == OperationKind.DelegateCreation).Last()).Value as IDelegateCreationOperation).Target as IAnonymousFunctionOperation));
-                var arguments = new[] { firstArgument, secondArgument };
+                var argumentOperations = invocationOperation.Arguments.Where(a => a.Value.Kind == OperationKind.DelegateCreation);
+                var firstLambda = CreateLambdaExpression(argumentOperations.First());
 
-                var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments));
+                var secondArgumentOperation = argumentOperations.Last();
+                var secondArgumentAnonymousFunction = ((argumentOperations.Last()).Value as IDelegateCreationOperation).Target as IAnonymousFunctionOperation;
+                var returnedValue = ((secondArgumentAnonymousFunction.Body as IBlockOperation).Operations.First() as IReturnOperation).ReturnedValue;
+                LambdaExpressionSyntax secondLambda;
+                if (returnedValue.Kind == OperationKind.ObjectCreation)
+                {
+                    secondLambda = CreateTupleExpression(secondArgumentAnonymousFunction, returnedValue as IObjectCreationOperation);
+                }
+                else
+                {
+                    secondLambda = CreateLambdaExpression(secondArgumentOperation);
+                }
+
+                return CreateInvocationExpression(expression, new[] { firstLambda, secondLambda }, keyword);
+            }
+
+            private static InvocationExpressionSyntax CreateInvocationExpression(ExpressionSyntax parentExpression, IEnumerable<ExpressionSyntax> expressions, string keyword)
+            {
+                var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(expressions.Select(expression => SyntaxFactory.Argument(expression))));
                 var identifierName = SyntaxFactory.IdentifierName(keyword);
-                var memberAccessExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, identifierName);
+                var memberAccessExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, parentExpression, identifierName);
                 return SyntaxFactory.InvocationExpression(memberAccessExpression, argumentList);
             }
 
@@ -115,65 +132,45 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             private ExpressionSyntax CreateInvocationExpression(ExpressionSyntax expression, ExpressionSyntax bodyExpression, string keyword)
             {
                 var expressionOperation = GetOperation(bodyExpression);
-                IEnumerable<ArgumentSyntax> arguments;
+                IEnumerable<ExpressionSyntax> expressions;
                 if (expressionOperation != null)
                 {
                     var invocationOperation = FindParentInvocationOperation(expressionOperation);
-                    arguments = invocationOperation.Arguments.Where(a => a.Value.Kind == OperationKind.DelegateCreation).Select(argument => CreateArgument(argument));
+                    expressions = invocationOperation.Arguments.Where(a => a.Value.Kind == OperationKind.DelegateCreation).Select(argument => CreateLambdaExpression(argument));
                 }
                 else
                 {
-                    arguments = Enumerable.Empty<ArgumentSyntax>();
+                    expressions = Enumerable.Empty<ExpressionSyntax>();
                 }
 
-                var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments));
-                var identifierName = SyntaxFactory.IdentifierName(keyword);
-                var memberAccessExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, identifierName);
-                return SyntaxFactory.InvocationExpression(memberAccessExpression, argumentList);
+                return CreateInvocationExpression(expression, expressions, keyword);
             }
 
-            private ArgumentSyntax CreateArgument(IArgumentOperation argumentOperation)
+            private LambdaExpressionSyntax CreateLambdaExpression(IArgumentOperation argumentOperation)
             {
                 // TODO do we need to check for cast?
                 var anonymousFunction = (argumentOperation.Value as IDelegateCreationOperation).Target as IAnonymousFunctionOperation;
-                var parameters = SyntaxFactory.SeparatedList(anonymousFunction.Symbol.Parameters.Select(p => SyntaxFactory.Parameter(SyntaxFactory.Identifier(BeautifyName(p.Name)))));
+                var parameters = CreateParameters(anonymousFunction);
                 var body = MakeIdentifierNameReplacements(anonymousFunction.Body.Operations.First().Syntax);
-                return SyntaxFactory.Argument(CreateLambdaExpression(parameters, body));
+                return CreateLambdaExpression(parameters, body);
             }
 
-            private LambdaExpressionSyntax CreateLambdaExpression(SeparatedSyntaxList<ParameterSyntax> parameters, CSharpSyntaxNode body)
+            private LambdaExpressionSyntax CreateLambdaExpression(IEnumerable<ParameterSyntax> parameters, CSharpSyntaxNode body)
             {
-                if (parameters.Count == 1)
+                if (parameters.Count() == 1)
                 {
                     return SyntaxFactory.SimpleLambdaExpression(parameters.First(), body);
                 }
                 else
                 {
-                    return SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.ParameterList(parameters), body);
+                    return SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters)), body);
                 }
             }
 
-            // TODO rename
-            private LambdaExpressionSyntax CreateTupleExpression(IAnonymousFunctionOperation anonymousFunction)
+            private LambdaExpressionSyntax CreateTupleExpression(IAnonymousFunctionOperation anonymousFunction, IObjectCreationOperation objectCreation)
             {
-                var parameters = SyntaxFactory.SeparatedList(anonymousFunction.Symbol.Parameters.Select(p => SyntaxFactory.Parameter(SyntaxFactory.Identifier(BeautifyName(p.Name)))));
-                var returnedValue = ((anonymousFunction.Body as IBlockOperation).Operations.First() as IReturnOperation).ReturnedValue;
-                IEnumerable<IdentifierNameSyntax> identifiers;
-                switch (returnedValue.Kind)
-                {
-                    case OperationKind.ObjectCreation:
-                        // TODO get identifier name?
-                        identifiers = (returnedValue as IObjectCreationOperation).Arguments.Select(arg => SyntaxFactory.IdentifierName(BeautifyName(arg.Parameter.Name)));
-                        break;
-                    case OperationKind.ParameterReference:
-                        // TODO get identifier name?
-                        identifiers = new[] {
-                            SyntaxFactory.IdentifierName(BeautifyName((returnedValue as IParameterReferenceOperation).Parameter.Name)) };
-                        break;
-                    default:
-                        // TODO what to do with a.b.c?
-                        throw new NotImplementedException($"CreateTupleExpression for {returnedValue.Kind}");
-                }
+                var parameters = CreateParameters(anonymousFunction);
+                var identifiers = (objectCreation as IObjectCreationOperation).Arguments.Select(arg => SyntaxFactory.IdentifierName(BeautifyName(arg.Parameter.Name)));
 
                 if (identifiers.Count() == 1)
                 {
@@ -184,6 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     var tuple = SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(identifiers.Select(identifier => SyntaxFactory.Argument(identifier))));
                     return CreateLambdaExpression(parameters, tuple);
                 }
+            }
+
+            private static IEnumerable<ParameterSyntax> CreateParameters(IAnonymousFunctionOperation anonymousFunction)
+            {
+                return anonymousFunction.Symbol.Parameters.Select(p => SyntaxFactory.Parameter(SyntaxFactory.Identifier(BeautifyName(p.Name))));
             }
 
             private ExpressionSyntax ProcessOrderByClause(ExpressionSyntax expression, OrderByClauseSyntax orderByClause)
@@ -213,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
             private static string BeautifyName(string name)
             {
-                return name.Replace("$", "");
+                return name.Replace("<>h__TransparentIdentifier", "__queryIdentifier");
             }
 
             private string GetIdentifierName(IdentifierNameSyntax node)
