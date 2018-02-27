@@ -171,7 +171,7 @@ class Program
 
             var comp2 = CompileAndVerify(s2,
                 options: TestOptions.UnsafeReleaseExe,
-                additionalRefs: new MetadataReference[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
+                references: new MetadataReference[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 expectedOutput: "12", verify: Verification.Fails).Compilation;
 
             var f = (FieldSymbol)comp2.GlobalNamespace.GetTypeMembers("S")[0].GetMembers("x")[0];
@@ -239,7 +239,7 @@ unsafe class C
     fixed int G[1];
 }
 ";
-            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (5,15): error CS1642: Fixed size buffer fields may only be members of structs
                 //     fixed int G[1];
                 Diagnostic(ErrorCode.ERR_FixedNotInStruct, "G"),
@@ -264,7 +264,7 @@ unsafe struct S
 }
 ";
             // CONSIDER: Dev11 reports CS1666 (ERR_FixedBufferNotFixed), but that's no more helpful.
-            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,18): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //     fixed int F1[(new S()).G];
                 Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "(new S()).G").WithLocation(6, 18),
@@ -291,7 +291,7 @@ unsafe struct S
             // CONSIDER: Dev11 also reports CS0110 (ERR_CircConstValue), but Roslyn doesn't regard this as a cycle:
             // F has no initializer, so it has no constant value, so the constant value of F is "null" - not "the 
             // constant value of F" (i.e. cyclic).
-            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (5,17): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //     fixed int G[default(S).G];
                 Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "default(S).G").WithLocation(5, 17),
@@ -313,7 +313,7 @@ unsafe struct S
 {
     fixed int F[3, 4];
 }";
-            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,16): error CS7092: A fixed buffer may only have one dimension.
                 //     fixed int F[3, 4];
                 Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[3, 4]"));
@@ -398,7 +398,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
     // (8,34): error CS0106: The modifier 'readonly' is not valid for this item
     //     public readonly fixed UInt32 StartOfTables[ 16 ];
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("readonly").WithLocation(8, 34)
@@ -427,7 +427,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
     // (8,32): error CS0106: The modifier 'static' is not valid for this item
     //     public static fixed UInt32 StartOfTables[ 16 ];
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("static").WithLocation(8, 32)
@@ -456,7 +456,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
     // (8,18): error CS1031: Type expected
     //     public fixed const UInt32 StartOfTables[ 16 ];
     Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(8, 18),
@@ -512,7 +512,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
     // (8,18): error CS1031: Type expected
     //     public const fixed UInt32 StartOfTables[ 16 ];
     Diagnostic(ErrorCode.ERR_TypeExpected, "fixed").WithLocation(8, 18),
@@ -553,7 +553,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
     // (8,34): error CS0106: The modifier 'volatile' is not valid for this item
     //     public volatile fixed UInt32 StartOfTables[ 16 ];
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("volatile").WithLocation(8, 34)

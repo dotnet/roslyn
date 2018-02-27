@@ -805,19 +805,10 @@ End Class";
 
                 // set up events
                 bool started = false;
-                bool stopped = false;
+                reporter.Started += (o, a) => { started = true; };
 
-                reporter.ProgressChanged += (o, s) =>
-                {
-                    if (s)
-                    {
-                        started = true;
-                    }
-                    else
-                    {
-                        stopped = true;
-                    }
-                };
+                bool stopped = false;
+                reporter.Stopped += (o, a) => { stopped = true; };
 
                 var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
                 registrationService.Register(workspace);

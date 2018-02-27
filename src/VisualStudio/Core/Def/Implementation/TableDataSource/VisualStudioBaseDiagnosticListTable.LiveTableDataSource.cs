@@ -28,20 +28,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
+            private readonly IServiceProvider _serviceProvider;
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticData> _tracker;
 
-            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
+            public LiveTableDataSource(IServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
                 base(workspace)
             {
                 _workspace = workspace;
+                _serviceProvider = serviceProvider;
                 _identifier = identifier;
 
                 _tracker = new OpenDocumentTracker<DiagnosticData>(_workspace);
 
                 _diagnosticService = diagnosticService;
+                _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
-                ConnectToDiagnosticService(workspace, diagnosticService);
+                PopulateInitialData(workspace, diagnosticService);
             }
 
             public override string DisplayName => ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source;
@@ -170,19 +173,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 var item = (UpdatedEventArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
-            }
-
-            private void ConnectToDiagnosticService(Workspace workspace, IDiagnosticService diagnosticService)
-            {
-                if (diagnosticService == null)
-                {
-                    // it can be null in unit test
-                    return;
-                }
-
-                _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
-
-                PopulateInitialData(workspace, diagnosticService);
             }
 
             private static bool ShouldInclude(DiagnosticData diagnostic)

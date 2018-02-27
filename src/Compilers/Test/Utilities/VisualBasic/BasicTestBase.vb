@@ -82,7 +82,7 @@ Public MustInherit Class BasicTestBase
         Optional emitOptions As EmitOptions = Nothing,
         Optional verify As Verification = Verification.Passes) As CompilationVerifier
 
-        Return MyBase.CompileAndVerify(
+        Return MyBase.CompileAndVerifyCommon(
             compilation,
             manifestResources,
             dependencies,
@@ -188,7 +188,7 @@ Public MustInherit Class BasicTestBase
         Dim sourceTrees = ParseSourceXml(source, parseOptions, assemblyName)
         Dim compilation = CreateCompilation(sourceTrees, allReferences, options, assemblyName)
 
-        Return MyBase.CompileAndVerify(
+        Return MyBase.CompileAndVerifyCommon(
             compilation,
             Nothing,
             dependencies,
@@ -227,7 +227,7 @@ Public MustInherit Class BasicTestBase
 
         Dim compilation = CreateCompilation(source, allReferences, options, assemblyName, parseOptions)
 
-        Return MyBase.CompileAndVerify(
+        Return MyBase.CompileAndVerifyCommon(
             compilation,
             Nothing,
             dependencies,

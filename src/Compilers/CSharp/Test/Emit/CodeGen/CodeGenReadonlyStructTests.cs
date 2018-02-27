@@ -44,7 +44,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -60,7 +60,7 @@ class Program
   IL_0024:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
+            comp = CompileAndVerify(text, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -100,7 +100,7 @@ class Program
     }
 ";
 
-            var comp1 = CreateStandardCompilation(text1, assemblyName: "A");
+            var comp1 = CreateCompilation(text1, assemblyName: "A");
             var ref1 = comp1.EmitToImageReference();
 
             var text = @"
@@ -115,7 +115,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -131,7 +131,7 @@ class Program
   IL_0024:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
+            comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -181,7 +181,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -199,7 +199,7 @@ class Program
   IL_002a:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
+            comp = CompileAndVerify(text, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -254,7 +254,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -273,7 +273,7 @@ class Program
   IL_002f:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"hello2");
+            comp = CompileAndVerify(text, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -317,7 +317,7 @@ class Program
     }
 ";
 
-            var comp1 = CreateStandardCompilation(text1, assemblyName: "A");
+            var comp1 = CreateCompilation(text1, assemblyName: "A");
             var ref1 = comp1.EmitToImageReference();
 
             var text = @"
@@ -334,7 +334,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
+            var comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -353,7 +353,7 @@ class Program
   IL_002f:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"hello2");
+            comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -407,7 +407,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Test", @"
 {
@@ -453,7 +453,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.S1.Test()", @"
 {
@@ -504,7 +504,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"Program+S1Program+S1");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"Program+S1Program+S1");
 
             comp.VerifyIL("Program.S1.Test()", @"
 {
@@ -555,7 +555,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242");
 
             comp.VerifyIL("Program.S1..ctor(int)", @"
 {
@@ -623,7 +623,7 @@ class Program
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (27,13): error CS1604: Cannot assign to 'this' because it is read-only
                 //             this = default; // error
@@ -695,7 +695,7 @@ class Program
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (19,24): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
                 //             void F() { x = i;} // Error           
@@ -809,7 +809,7 @@ class Program
 }
 ";
 
-            var comp = CreateStandardCompilation(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             // S1
             NamedTypeSymbol namedType = comp.GetTypeByMetadataName("Program+S1");
@@ -894,7 +894,7 @@ class Program
             Assert.False(type.IsReadOnly);
 
             // S1 from image
-            var clientComp = CreateStandardCompilation("", references: new[] { comp.EmitToImageReference() });
+            var clientComp = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
             NamedTypeSymbol s1 = clientComp.GetTypeByMetadataName("Program+S1");
             Assert.True(s1.IsReadOnly);
             Assert.Empty(s1.GetAttributes());
@@ -980,10 +980,10 @@ class Program
     delegate int D1();
 }
 ";
-            var comp1 = CreateStandardCompilation(text1, assemblyName: "A");
+            var comp1 = CreateCompilation(text1, assemblyName: "A");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp = CreateStandardCompilation("//NO CODE HERE", new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation("//NO CODE HERE", new[] { ref1 }, parseOptions: TestOptions.Regular);
 
             // S1
             NamedTypeSymbol namedType = comp.GetTypeByMetadataName("Program+S1");
@@ -1096,19 +1096,24 @@ class Test
 
             CompileAndVerify(comp, expectedOutput: "10", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
-  // Code size       26 (0x1a)
+  // Code size       29 (0x1d)
   .maxstack  2
-  .locals init (System.Span<int> V_0) //x
-  IL_0000:  ldc.i4.s   40
-  IL_0002:  conv.u
-  IL_0003:  localloc
-  IL_0005:  ldc.i4.s   10
-  IL_0007:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_000c:  stloc.0
-  IL_000d:  ldloca.s   V_0
-  IL_000f:  call       ""int System.Span<int>.Length.get""
-  IL_0014:  call       ""void System.Console.WriteLine(int)""
-  IL_0019:  ret
+  .locals init (System.Span<int> V_0, //x
+                int V_1)
+  IL_0000:  ldc.i4.s   10
+  IL_0002:  stloc.1
+  IL_0003:  ldloc.1
+  IL_0004:  conv.u
+  IL_0005:  ldc.i4.4
+  IL_0006:  mul.ovf.un
+  IL_0007:  localloc
+  IL_0009:  ldloc.1
+  IL_000a:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""int System.Span<int>.Length.get""
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
 }");
         }
 
@@ -1168,92 +1173,6 @@ class Test
   IL_0029:  blt.s      IL_0004
   IL_002b:  ret
 }");
-        }
-
-        [Fact]
-        public void StackAllocSpanLengthConstantFolding()
-        {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
-using System;
-class Test
-{
-    public static void Main()
-    {
-        const int a = 5, b = 6;
-        Span<int> x = stackalloc int[a * b];
-        Console.Write(x.Length);
-    }
-}", TestOptions.ReleaseExe);
-
-            CompileAndVerify(comp, expectedOutput: "30", verify: Verification.Fails).VerifyIL("Test.Main", @"
-{
-  // Code size       26 (0x1a)
-  .maxstack  2
-  .locals init (System.Span<int> V_0) //x
-  IL_0000:  ldc.i4.s   120
-  IL_0002:  conv.u
-  IL_0003:  localloc
-  IL_0005:  ldc.i4.s   30
-  IL_0007:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_000c:  stloc.0
-  IL_000d:  ldloca.s   V_0
-  IL_000f:  call       ""int System.Span<int>.Length.get""
-  IL_0014:  call       ""void System.Console.Write(int)""
-  IL_0019:  ret
-}");
-        }
-
-        [Fact]
-        public void StackAllocSpanLengthOverflow()
-        {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
-using System;
-class Test
-{
-    static void M()
-    {
-        Span<int> x = stackalloc int[int.MaxValue];
-    }
-
-    public static void Main()
-    {
-        try
-        {
-            M();
-        }
-        catch (OverflowException)
-        {
-            Console.WriteLine(""overflow"");
-        }
-    }
-}", TestOptions.ReleaseExe);
-
-            var expectedIL = @"
-{
-  // Code size       22 (0x16)
-  .maxstack  2
-  IL_0000:  ldc.i4     0x7fffffff
-  IL_0005:  conv.u
-  IL_0006:  ldc.i4.4
-  IL_0007:  mul.ovf.un
-  IL_0008:  localloc
-  IL_000a:  ldc.i4     0x7fffffff
-  IL_000f:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_0014:  pop
-  IL_0015:  ret
-}";
-
-            var isx86 = (IntPtr.Size == 4);
-            if (isx86)
-            {
-                CompileAndVerify(comp, expectedOutput: "overflow", verify: Verification.Fails).VerifyIL("Test.M", expectedIL);
-            }
-            else 
-            {
-                // On 64bit the native int does not overflow, so we get StackOverflow instead
-                // therefore we will just check the IL
-                CompileAndVerify(comp, verify: Verification.Fails).VerifyIL("Test.M", expectedIL);
-            }
         }
 
         [Fact]

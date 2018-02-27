@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -708,7 +707,6 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        [DebuggerDisplay("{" + nameof(Display) + ",nq}")]
         private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
         {
             private readonly Metadata _metadata;

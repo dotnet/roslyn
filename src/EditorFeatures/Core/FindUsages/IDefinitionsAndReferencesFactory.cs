@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 includeHiddenLocations, includeClassifiedSpans: true, cancellationToken: cancellationToken);
         }
 
+
         private static async Task<DefinitionItem> ToDefinitionItemAsync(
             this ISymbol definition,
             Project project,

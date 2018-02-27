@@ -37,7 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 if (errorSource == null)
                 {
-                    // it can be null in unit test
                     return;
                 }
 

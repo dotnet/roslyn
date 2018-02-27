@@ -40,20 +40,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             var reporter = crawlerService.GetProgressReporter(workspace);
-            reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
 
             // set initial value
-            SolutionCrawlerProgressChanged(reporter.InProgress);
+            IsStable = !reporter.InProgress;
+
+            ChangeStableState(stable: IsStable);
+
+            reporter.Started += OnSolutionCrawlerStarted;
+            reporter.Stopped += OnSolutionCrawlerStopped;
         }
 
-        private void OnSolutionCrawlerProgressChanged(object sender, bool running)
+        private void OnSolutionCrawlerStarted(object sender, EventArgs e)
         {
-            SolutionCrawlerProgressChanged(running);
+            IsStable = false;
+            ChangeStableState(IsStable);
         }
 
-        private void SolutionCrawlerProgressChanged(bool running)
+        private void OnSolutionCrawlerStopped(object sender, EventArgs e)
         {
-            IsStable = !running;
+            IsStable = true;
             ChangeStableState(IsStable);
         }
     }
