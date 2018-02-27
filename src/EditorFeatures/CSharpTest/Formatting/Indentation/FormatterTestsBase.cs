@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Moq;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             var indentationLineFromBuffer = snapshot.GetLineFromPosition(point);
 
             var commandHandler = new SmartTokenFormatterCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object);
-            commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(textView, subjectDocument.TextBuffer), () => { });
+            commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(textView, subjectDocument.TextBuffer), () => { }, TestCommandExecutionContext.Create());
             var newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot;
 
             int? actualIndentation;

@@ -1,13 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.FindReferences
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Public Class FindReferencesCommandHandlerTests
@@ -38,14 +38,12 @@ class C
 
                 Dim context = New FindReferencesTests.TestContext()
                 Dim commandHandler = New FindReferencesCommandHandler(
-                    workspace.GetService(Of IWaitIndicator),
-                    {New Lazy(Of IStreamingFindUsagesPresenter)(Function() New MockStreamingFindReferencesPresenter(context))},
+                    {}, {New Lazy(Of IStreamingFindUsagesPresenter)(Function() New MockStreamingFindReferencesPresenter(context))},
                     listenerProvider)
 
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
                 commandHandler.ExecuteCommand(
-                    New FindReferencesCommandArgs(view, textBuffer), Sub()
-                                                                     End Sub)
+                    New FindReferencesCommandArgs(view, textBuffer), Utilities.TestCommandExecutionContext.Create())
 
                 ' Wait for the find refs to be done.
                 Await listenerProvider.GetWaiter(FeatureAttribute.FindReferences).CreateWaitTask()

@@ -192,11 +192,6 @@
         <target state="translated">Nie można odnaleźć lokalizacji folderu na dysku</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">Błąd podczas odczytywania elementu „{0}”: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
         <target state="translated">Zestaw </target>
@@ -1433,8 +1428,8 @@ Funkcja „Uproszczone ładowanie rozwiązania” jest włączona dla bieżąceg
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">Błąd podczas odczytu pliku</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="needs-review-translation">Błąd podczas odczytu pliku</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1496,6 +1491,16 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
         <target state="translated">Ustawienia skonfigurowane w tym miejscu mają zastosowanie tylko do Twojej maszyny. Aby skonfigurować te ustawienia tak, aby były przenoszone z Twoim rozwiązaniem, użyj plików .editorconfig.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="new">Sync Class View</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Live_code_analysis">

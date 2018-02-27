@@ -192,11 +192,6 @@
         <target state="translated">디스크에서 폴더의 위치를 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">{0}'을(를) 읽는 동안 오류가 발생했습니다. {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
         <target state="translated">어셈블리 </target>
@@ -1433,8 +1428,8 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">파일을 읽는 동안 오류가 발생했습니다.</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="needs-review-translation">파일을 읽는 동안 오류가 발생했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1496,6 +1491,16 @@ I agree to all of the foregoing:</source>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
         <target state="translated">여기서 구성하는 설정은 사용자의 컴퓨터에만 적용됩니다. 이러한 설정을 사용자의 솔루션에서 사용하도록 구성하려면 .editorconfig 파일을 사용하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="new">Sync Class View</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Live_code_analysis">
