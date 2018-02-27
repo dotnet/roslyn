@@ -956,7 +956,7 @@ public class C
         }
 
         [Fact]
-        public void TestNoCompatBreak()
+        public void TestCustomOperatorPreferred()
         {
             var source = @"
 namespace System
@@ -973,16 +973,12 @@ namespace System
         }
 
         public static bool operator ==(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
-        {
-            System.Console.Write(""Correct operator was called"");
-            return true;
-        }
+            => throw null;
         public static bool operator !=(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
             => throw null;
 
         public override bool Equals(object o)
             => throw null;
-
         public override int GetHashCode()
             => throw null;
     }
@@ -993,16 +989,73 @@ public class C
     {
         var t1 = (1, 1);
         var t2 = (2, 2);
-        if (t1 == t2)
-        {
-            return;
-        }
+        System.Console.Write(t1 == t2);
+        System.Console.Write(t1 != t2);
     }
 }
 ";
             var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Correct operator was called");
+            // Note: tuple equality picked ahead of custom operator== (small compat break)
+            CompileAndVerify(comp, expectedOutput: "FalseTrue");
+        }
+
+        [Fact]
+        void TestTupleEqualityPreferredOverCustomOperator_Nested()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        System.Console.Write( (1, 2, (3, 4)) == (1, 2, (3, 4)) );
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public static bool operator ==(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+            => throw null;
+        public static bool operator !=(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+            => throw null;
+
+        public override bool Equals(object o)
+            => throw null;
+
+        public override int GetHashCode()
+            => throw null;
+    }
+    public struct ValueTuple<T1, T2, T3>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+            this.Item3 = item3;
+        }
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            // Note: tuple equality picked ahead of custom operator==
+            CompileAndVerify(comp, expectedOutput: "True");
         }
 
         [Fact]
@@ -3025,6 +3078,53 @@ public class NotBool
                 //         Write($"{(new A(1), new A(2)) == (new X(1), new Y(2))}");
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(new A(1), new A(2)) == (new X(1), new Y(2))").WithArguments("NotBool", "bool").WithLocation(7, 18)
                 );
+        }
+
+        [Fact]
+        void TestValueTupleWithObsoleteEqualityOperator()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        System.Console.Write((1, 2) == (3, 4));
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        [System.Obsolete]
+        public static bool operator==(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+            => throw null;
+
+        public static bool operator!=(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+            => throw null;
+
+        public override bool Equals(object other)
+            => throw null;
+
+        public override int GetHashCode()
+            => throw null;
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            // Note: tuple equality picked ahead of custom operator==
+            CompileAndVerify(comp, expectedOutput: "False");
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundTupleBinaryOperator BindTupleBinaryOperator(BinaryExpressionSyntax node, BinaryOperatorKind kind,
             BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
         {
-            TupleBinaryOperatorInfo operators = BindTupleBinaryOperatorInfo(node, kind, left, right, diagnostics);
+            TupleBinaryOperatorInfo operators = BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
 
             BoundExpression convertedLeft = GenerateConversionForAssignment(operators.LeftConvertedType, left, diagnostics);
             BoundExpression convertedRight = GenerateConversionForAssignment(operators.RightConvertedType, right, diagnostics);
@@ -32,37 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TupleBinaryOperatorInfo BindTupleBinaryOperatorInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
             BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
         {
-            int leftCardinality = GetTupleCardinality(left).GetValueOrDefault();
-            int rightCardinality = GetTupleCardinality(right).GetValueOrDefault();
-
-            if (leftCardinality > 1 && rightCardinality > 1)
-            {
-                TypeSymbol leftType = left.Type;
-                TypeSymbol rightType = right.Type;
-
-                if (leftCardinality != rightCardinality)
-                {
-                    Error(diagnostics, ErrorCode.ERR_TupleSizesMismatchForBinOps, node, leftCardinality, rightCardinality);
-
-                    return new TupleBinaryOperatorInfo.Single(leftType ?? CreateErrorType(), rightType ?? CreateErrorType(),
-                        BinaryOperatorKind.Error, methodSymbolOpt: null, boolConversion: Conversion.NoConversion, boolOperator: default);
-                }
-
-                // typeless tuple literals are not nullable
-                bool leftNullable = leftType?.IsNullableType() == true;
-                bool rightNullable = rightType?.IsNullableType() == true;
-
-                return BindTupleBinaryOperatorNestedInfo(node, kind,
-                    GetTupleArgumentsOrPlaceholders(left), GetTupleArgumentsOrPlaceholders(right),
-                    leftNullable || rightNullable, diagnostics);
-            }
-
-            return BindTupleBinaryOperatorSingleInfo(node, kind, left, right, diagnostics);
-        }
-
-        private TupleBinaryOperatorInfo BindTupleBinaryOperatorSingleInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
-            BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
-        {
             TypeSymbol leftType = left.Type;
             TypeSymbol rightType = right.Type;
 
@@ -71,53 +40,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindTupleDynamicBinaryOperatorSingleInfo(node, kind, left, right, diagnostics);
             }
 
+            if (GetTupleCardinality(left) > 1 && GetTupleCardinality(right) > 1)
+            {
+                return BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
+            }
+
             LookupResultKind resultKind;
-            BinaryOperatorAnalysisResult best = this.BinaryOperatorOverloadResolution(kind, left, right, node, diagnostics, out resultKind, out var _);
+            BinaryOperatorSignature signature;
 
-            MethodSymbol resultMethod = null;
-            BinaryOperatorKind resultOperatorKind;
-            TypeSymbol convertedLeftType;
-            TypeSymbol convertedRightType;
-            TypeSymbol returnType;
-            bool hasErrors;
+            bool foundOperator = BindSimpleBinaryOperatorParts(node, diagnostics, left, right, kind,
+                out resultKind, originalUserDefinedOperators: out _, out signature);
 
-            // PROTOTYPE(tuple-equality) Logic here is similar to that in BindSimpleBinaryOperator. Is there a way to factore more?
-            if (!best.HasValue)
-            {
-                resultOperatorKind = kind;
-                convertedLeftType = leftType ?? CreateErrorType();
-                convertedRightType = rightType ?? CreateErrorType();
-                returnType = CreateErrorType();
-                hasErrors = true;
-            }
-            else
-            {
-                // PROTOTYPE(tuple-equality) Remember to implement and test equality on `default`
-                bool leftNull = left.IsLiteralNull();
-                bool rightNull = right.IsLiteralNull();
-
-                var signature = best.Signature;
-
-                bool isObjectEquality = signature.Kind == BinaryOperatorKind.ObjectEqual || signature.Kind == BinaryOperatorKind.ObjectNotEqual;
-
-                resultOperatorKind = signature.Kind;
-                resultMethod = signature.Method;
-                convertedLeftType = signature.LeftType;
-                convertedRightType = signature.RightType;
-                returnType = signature.ReturnType; // PROTOTYPE(tuple-equality) Do we need a special case for nullable equality? (see BindSimpleBinaryOperator)
-
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                hasErrors = isObjectEquality && !BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull, rightType, rightNull, ref useSiteDiagnostics);
-                diagnostics.Add(node, useSiteDiagnostics);
-            }
-
-            if (hasErrors)
+            if (!foundOperator)
             {
                 ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, resultKind);
             }
 
-            PrepareBoolConversionAndTruthOperator(returnType, node, kind, diagnostics, out Conversion boolConversion, out UnaryOperatorSignature boolOperator);
-            return new TupleBinaryOperatorInfo.Single(convertedLeftType, convertedRightType, resultOperatorKind, resultMethod, boolConversion, boolOperator);
+            TypeSymbol convertedLeftType = signature.LeftType;
+            TypeSymbol convertedRightType = signature.RightType;
+            if (convertedLeftType is null)
+            {
+                Debug.Assert(convertedRightType is null);
+
+                convertedLeftType = leftType ?? CreateErrorType();
+                convertedRightType = rightType ?? CreateErrorType();
+            }
+
+            PrepareBoolConversionAndTruthOperator(signature.ReturnType, node, kind, diagnostics, out Conversion boolConversion, out UnaryOperatorSignature boolOperator);
+            return new TupleBinaryOperatorInfo.Single(convertedLeftType, convertedRightType, signature.Kind, signature.Method, boolConversion, boolOperator);
         }
 
         /// <summary>
@@ -200,29 +150,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private TupleBinaryOperatorInfo BindTupleBinaryOperatorNestedInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
-            ImmutableArray<BoundExpression> left, ImmutableArray<BoundExpression> right,
-            bool isNullable, DiagnosticBag diagnostics)
+            BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
         {
-            int length = left.Length;
-            Debug.Assert(length == right.Length);
+            TypeSymbol leftType = left.Type;
+            TypeSymbol rightType = right.Type;
+
+            int leftCardinality = GetTupleCardinality(left);
+            int rightCardinality = GetTupleCardinality(right);
+
+            if (leftCardinality != rightCardinality)
+            {
+                Error(diagnostics, ErrorCode.ERR_TupleSizesMismatchForBinOps, node, leftCardinality, rightCardinality);
+
+                return new TupleBinaryOperatorInfo.Single(leftType ?? CreateErrorType(), rightType ?? CreateErrorType(),
+                    BinaryOperatorKind.Error, methodSymbolOpt: null, boolConversion: Conversion.NoConversion, boolOperator: default);
+            }
+
+            // typeless tuple literals are not nullable
+            bool leftNullable = leftType?.IsNullableType() == true;
+            bool rightNullable = rightType?.IsNullableType() == true;
+
+            var leftParts = GetTupleArgumentsOrPlaceholders(left);
+            var rightParts = GetTupleArgumentsOrPlaceholders(right);
+
+            int length = leftParts.Length;
+            Debug.Assert(length == rightParts.Length);
 
             var operatorsBuilder = ArrayBuilder<TupleBinaryOperatorInfo>.GetInstance(length);
 
             for (int i = 0; i < length; i++)
             {
-                operatorsBuilder.Add(BindTupleBinaryOperatorInfo(node, kind, left[i], right[i], diagnostics));
+                operatorsBuilder.Add(BindTupleBinaryOperatorInfo(node, kind, leftParts[i], rightParts[i], diagnostics));
             }
 
             var compilation = this.Compilation;
             var operators = operatorsBuilder.ToImmutableAndFree();
-
-            TypeSymbol leftTupleType = MakeConvertedType(operators.SelectAsArray(o => o.LeftConvertedType), node.Left, left, isNullable, compilation, diagnostics, isRight: false);
-            TypeSymbol rightTupleType = MakeConvertedType(operators.SelectAsArray(o => o.RightConvertedType), node.Right, right, isNullable, compilation, diagnostics, isRight: true);
+            bool isNullable = leftNullable || rightNullable;
+            TypeSymbol leftTupleType = MakeConvertedType(operators.SelectAsArray(o => o.LeftConvertedType), node.Left, leftParts, isNullable, compilation, diagnostics, isRight: false);
+            TypeSymbol rightTupleType = MakeConvertedType(operators.SelectAsArray(o => o.RightConvertedType), node.Right, rightParts, isNullable, compilation, diagnostics, isRight: true);
 
             return new TupleBinaryOperatorInfo.Multiple(operators, leftTupleType, rightTupleType);
         }
 
-        private static int? GetTupleCardinality(BoundExpression expr)
+        private static int GetTupleCardinality(BoundExpression expr)
         {
             if (expr.Kind == BoundKind.TupleLiteral)
             {
@@ -233,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = expr.Type;
             if (type is null)
             {
-                return null;
+                return -1;
             }
 
             type = type.StrippedType();
@@ -243,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return type.TupleElementTypes.Length;
             }
 
-            return null;
+            return -1;
         }
 
         private static ImmutableArray<BoundExpression> GetTupleArgumentsOrPlaceholders(BoundExpression expr)
