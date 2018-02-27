@@ -5530,4 +5530,7 @@
   <data name="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment" xml:space="preserve">
     <value>{0} is not a valid Visual Basic compound assignment operation</value>
   </data>
+  <data name="FEATURE_InterpolatedStrings" xml:space="preserve">
+    <value>interpolated strings</value>
+  </data>
 </root>
