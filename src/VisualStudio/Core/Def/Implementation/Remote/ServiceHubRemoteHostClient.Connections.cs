@@ -57,12 +57,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
 
                 // operation timed out, more than we are willing to wait
-                RemoteHostCrashInfoBar.ShowInfoBar();
+                ShowInfoBar();
 
-                // throw soft crash exception to minimize hard crash. it doesn't
-                // gurantee 100% hard crash free. but 99% it doesn't cause
-                // hard crash
-                throw new SoftCrashException("retry timed out", cancellationToken);
+                // user didn't ask for cancellation, but we can't fullfill this request. so we
+                // create our own cancellation token and then throw it. this doesn't guarantee
+                // 100% that we won't crash, but this is at least safest way we know until user
+                // restart VS (with info bar)
+                using (var ownCancellationSource = new CancellationTokenSource())
+                {
+                    ownCancellationSource.Cancel();
+                    ownCancellationSource.Token.ThrowIfCancellationRequested();
+                }
+
+                throw ExceptionUtilities.Unreachable;
             }
 
             public static async Task<Stream> RequestServiceAsync(
@@ -142,6 +149,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     // report service hub logs along with dump
                     (new Exception("RequestServiceAsync Timeout")).ReportServiceHubNFW("RequestServiceAsync Timeout");
+                }
+            }
+
+            private static bool s_infoBarReported = false;
+
+            private static void ShowInfoBar()
+            {
+                // use info bar to show warning to users
+                if (CodeAnalysis.PrimaryWorkspace.Workspace != null && !s_infoBarReported)
+                {
+                    // do not report it multiple times
+                    s_infoBarReported = true;
+
+                    // use info bar to show warning to users
+                    CodeAnalysis.PrimaryWorkspace.Workspace.Services.GetService<IErrorReportingService>()?.ShowGlobalErrorInfo(
+                        ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio);
                 }
             }
             #endregion

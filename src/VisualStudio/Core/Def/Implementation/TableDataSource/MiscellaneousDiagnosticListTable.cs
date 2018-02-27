@@ -20,17 +20,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly LiveTableDataSource _source;
 
         [ImportingConstructor]
-        public MiscellaneousDiagnosticListTable(MiscellaneousFilesWorkspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-            this((Workspace)workspace, diagnosticService, provider)
+        public MiscellaneousDiagnosticListTable(
+            SVsServiceProvider serviceProvider, MiscellaneousFilesWorkspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
+            this(serviceProvider, (Workspace)workspace, diagnosticService, provider)
         {
             ConnectWorkspaceEvents();
         }
 
         /// this is for test only
         internal MiscellaneousDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-            base(workspace, diagnosticService, provider)
+            this(null, workspace, diagnosticService, provider)
         {
-            _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
+        }
+
+        private MiscellaneousDiagnosticListTable(
+            SVsServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
+            base(serviceProvider, workspace, diagnosticService, provider)
+        {
+            _source = new LiveTableDataSource(serviceProvider, workspace, diagnosticService, IdentifierString);
             AddInitialTableSource(workspace.CurrentSolution, _source);
         }
 

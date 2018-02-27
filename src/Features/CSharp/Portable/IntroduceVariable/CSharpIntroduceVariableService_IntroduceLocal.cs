@@ -115,9 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 ? SyntaxFactory.Block(declarationStatement)
                 : SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
 
-            // Add an elastic newline so that the formatter will place this new lambda body across multiple lines.
-            newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed))
-                             .WithAdditionalAnnotations(Formatter.Annotation);
+            newBody = newBody.WithAdditionalAnnotations(Formatter.Annotation);
 
             var newLambda = oldLambda is ParenthesizedLambdaExpressionSyntax
                 ? ((ParenthesizedLambdaExpressionSyntax)oldLambda).WithBody(newBody)

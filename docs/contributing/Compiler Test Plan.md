@@ -36,7 +36,7 @@ This document provides guidance for thinking about language interactions and tes
     - fields
     - properties (including get/set accessors)
     - events (including add/remove accessors)
-- Parameter modifiers (ref, out, in, params)
+- Parameter modifiers (ref, out, params)
 - Attributes (including security attribute)
 - Generics (type arguments, constraints, variance)
 - Default and constant values
@@ -58,7 +58,6 @@ This document provides guidance for thinking about language interactions and tes
 - Multi-declaration
 - NoPIA
 - Dynamic
-- Ref structs, Readonly structs
  
 # Code
 - Operators (see Eric's list below)
@@ -80,7 +79,7 @@ This document provides guidance for thinking about language interactions and tes
     - Ref / out parameters
     - Compound operators (+=, /=, etc ..) 
     - Assignment exprs
-- Ref return, ref readonly return, ref ternary, ref readonly local
+- Ref returns
 - `this = e;` in `struct` .ctor
 
 # Misc
