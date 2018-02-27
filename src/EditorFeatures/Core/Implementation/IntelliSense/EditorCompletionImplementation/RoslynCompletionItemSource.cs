@@ -142,13 +142,13 @@ namespace RoslynCompletionPrototype
             {
                 var warningImage = imageService.GetImageId(Glyph.CompletionWarning);
 
-                attributeImages = SpecializedCollections.SingletonEnumerable(new AccessibleImageId(warningImage.Guid, warningImage.Id, "Temporary Automation Id", "Temporary Automation Name")).ToImmutableArray();
+                attributeImages = SpecializedCollections.SingletonEnumerable(new AccessibleImageId(warningImage.Guid, warningImage.Id, "Temporary Automation Name")).ToImmutableArray();
             }
 
             var item = new EditorCompletion.CompletionItem(
                 roslynItem.DisplayText,
                 this,
-                new AccessibleImageId(imageId.Guid, imageId.Id, "Temporary Automation ID", "Temporary Automation Name"), // TODO
+                new AccessibleImageId(imageId.Guid, imageId.Id, "Temporary Automation Name"), // TODO
                 filters,
                 suffix: string.Empty,
                 needsCustomCommit,
@@ -180,7 +180,7 @@ namespace RoslynCompletionPrototype
                         var itemFilter = new CompletionFilter(
                             filter.DisplayText, 
                             filter.AccessKey.ToString(), 
-                            new AccessibleImageId(imageId.Guid, imageId.Id, "Temporary Automation Id", "Temporary Automation Name")); // TODO
+                            new AccessibleImageId(imageId.Guid, imageId.Id, "Temporary Automation Name")); // TODO
                         filterCache[filter.DisplayText] = itemFilter;
                         result.Add(itemFilter);
                     }
