@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private TypeSymbol InferResultType(ImmutableArray<BoundSwitchExpressionCase> switchCases, DiagnosticBag diagnostics)
         {
-            var seenTypes = new HashSet<TypeSymbol>();
+            var seenTypes = PooledHashSet<TypeSymbol>.GetInstance();
             var typesInOrder = ArrayBuilder<TypeSymbol>.GetInstance();
             foreach (var @case in switchCases)
             {
@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 commonType = CreateErrorType();
             }
 
+            seenTypes.Free();
             return commonType;
         }
 

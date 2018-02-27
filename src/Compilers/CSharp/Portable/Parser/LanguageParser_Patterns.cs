@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         // There is an ambiguity between a deconstruction pattern `(` pattern `)`
                         // and a constant expression pattern that happens to be parenthesized.
-                        // We treat such syntax as a parenthseized expression always.
+                        // We treat such syntax as a parenthesized expression always.
                         return _syntaxFactory.ConstantPattern(_syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken));
                     }
 

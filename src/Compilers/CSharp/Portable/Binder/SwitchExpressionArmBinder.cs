@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node == _arm);
             var caseBinder = this.GetBinder(node);
-            var hasErrors = _switchExpressionBinder.SwitchGoverningExpression.HasErrors;
+            var hasErrors = _switchExpressionBinder.SwitchGoverningType.IsErrorType();
             var locals = _armScopeBinder.Locals;
             var pattern = caseBinder.BindPattern(node.Pattern, _switchExpressionBinder.SwitchGoverningType, hasErrors, diagnostics);
             var guard = node.WhenClause != null
-                ? caseBinder.BindBooleanExpression((ExpressionSyntax)node.WhenClause.Condition, diagnostics)
+                ? caseBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
                 : null;
-            var result = caseBinder.BindValue((ExpressionSyntax)node.Expression, diagnostics, BindValueKind.RValue);
+            var result = caseBinder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             return new BoundSwitchExpressionCase(node, locals, pattern, guard, result, hasErrors);
         }
     }
