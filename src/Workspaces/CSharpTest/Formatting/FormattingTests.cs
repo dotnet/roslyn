@@ -8029,5 +8029,5 @@ class C
         {
             await Formatter.FormatAsync(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
         }
-}
+    }
 }
