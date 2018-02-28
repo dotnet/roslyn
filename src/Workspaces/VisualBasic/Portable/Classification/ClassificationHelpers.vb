@@ -139,6 +139,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 classification = If(localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword), ClassificationTypeNames.ConstantName, ClassificationTypeNames.FieldName)
                 Return True
             End If
+
+            Return False
         End Function
 
         Private Function ClassifyTypeDeclarationIdentifier(identifier As SyntaxToken) As String
