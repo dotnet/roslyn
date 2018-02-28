@@ -23256,7 +23256,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(new[] { source, tuplelib_cs },
+            var comp = CreateCompilation(new[] { source, tuplelib_cs },
                 references: new[] { SystemXmlRef }, options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics();

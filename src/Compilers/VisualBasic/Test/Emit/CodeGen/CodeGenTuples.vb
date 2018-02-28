@@ -21481,9 +21481,9 @@ End Module
         <Fact>
         <WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")>
         Public Sub FailedDecodingOfTupleNamesWhenMissingValueTupleType()
-            Dim vtLib = CreateCompilation(s_trivial2uple, references:={MscorlibRef}, assemblyName:="vt")
+            Dim vtLib = CreateEmptyCompilation(s_trivial2uple, references:={MscorlibRef}, assemblyName:="vt")
 
-            Dim libComp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim libComp = CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation>
                     <file name="a.vb">
 Imports System.Collections.Generic
@@ -21516,17 +21516,17 @@ End Class
                     </file>
                  </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference()}) ' missing reference to vt
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference()}) ' missing reference to vt
             comp.AssertNoDiagnostics()
             FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp, successfulDecoding:=False)
 
-            Dim compWithMetadataReference = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.ToMetadataReference()}) ' missing reference to vt
+            Dim compWithMetadataReference = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:={libComp.ToMetadataReference()}) ' missing reference to vt
 
             compWithMetadataReference.AssertNoDiagnostics()
             FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compWithMetadataReference, successfulDecoding:=True)
 
-            Dim fakeVtLib = CreateCompilation("", references:={MscorlibRef}, assemblyName:="vt")
-            Dim compWithFakeVt = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
+            Dim fakeVtLib = CreateEmptyCompilation("", references:={MscorlibRef}, assemblyName:="vt")
+            Dim compWithFakeVt = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
             compWithFakeVt.AssertNoDiagnostics()
             FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compWithFakeVt, successfulDecoding:=False)
 
@@ -21544,7 +21544,7 @@ End Class
                     </file>
                  </compilation>
 
-            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={libComp.EmitToImageReference()}) ' missing reference to vt
+            Dim comp2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, additionalRefs:={libComp.EmitToImageReference()}) ' missing reference to vt
             comp2.AssertTheseDiagnostics(<errors>
 BC30652: Reference required to assembly 'vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ValueTuple(Of ,)'. Add one to your project.
         Dim x = New ClassA().GetGenericEnumerator()
@@ -21552,7 +21552,7 @@ BC30652: Reference required to assembly 'vt, Version=0.0.0.0, Culture=neutral, P
                                          </errors>)
             FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp2, successfulDecoding:=False)
 
-            Dim comp2WithFakeVt = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
+            Dim comp2WithFakeVt = CreateCompilationWithMscorlib40AndVBRuntime(source2, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
             comp2WithFakeVt.AssertTheseDiagnostics(<errors>
 BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'vt.dll' failed.
         Dim x = New ClassA().GetGenericEnumerator()
@@ -21585,7 +21585,7 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'vt.dll' fail
         <Fact>
         <WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")>
         Public Sub FailedDecodingOfTupleNamesWhenMissingContainerType()
-            Dim containerLib = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim containerLib = CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation>
                     <file name="a.vb">
 Public Class Container(Of T)
@@ -21596,7 +21596,7 @@ End Class
                 </compilation>)
             containerLib.VerifyDiagnostics()
 
-            Dim libComp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim libComp = CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation>
                     <file name="a.vb">
 Imports System.Collections.Generic
@@ -21631,19 +21631,19 @@ End Class
                     </file>
                  </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source,
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source,
                 additionalRefs:={libComp.EmitToImageReference(), ValueTupleRef, SystemRuntimeFacadeRef}) ' missing reference to container
 
             comp.AssertNoDiagnostics()
             FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(comp, decodingSuccessful:=False)
 
-            Dim compWithMetadataReference = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef}) ' missing reference to container
+            Dim compWithMetadataReference = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:={libComp.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef}) ' missing reference to container
 
             compWithMetadataReference.AssertNoDiagnostics()
             FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compWithMetadataReference, decodingSuccessful:=True)
 
-            Dim fakeContainerLib = CreateCompilation("", references:={MscorlibRef}, assemblyName:="vt")
-            Dim compWithFakeVt = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference(), fakeContainerLib.EmitToImageReference(), ValueTupleRef, SystemRuntimeFacadeRef}) ' reference to fake container
+            Dim fakeContainerLib = CreateEmptyCompilation("", references:={MscorlibRef}, assemblyName:="vt")
+            Dim compWithFakeVt = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference(), fakeContainerLib.EmitToImageReference(), ValueTupleRef, SystemRuntimeFacadeRef}) ' reference to fake container
             compWithFakeVt.AssertNoDiagnostics()
             FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compWithFakeVt, decodingSuccessful:=False)
 
