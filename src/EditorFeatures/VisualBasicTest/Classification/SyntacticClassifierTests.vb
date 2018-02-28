@@ -4122,5 +4122,85 @@ End Class"
                 Keyword("Class"))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestSimpleEvent() As Task
+            Dim code = "
+Event E(x As Integer)
+
+Sub M()
+    RaiseEvent E(42)
+End Sub"
+
+            Await TestInClassAsync(code,
+                Keyword("Event"),
+                [Event]("E"),
+                Punctuation.OpenParen,
+                Parameter("x"),
+                Keyword("As"),
+                Keyword("Integer"),
+                Punctuation.CloseParen,
+                Keyword("Sub"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("RaiseEvent"),
+                Identifier("E"),
+                Punctuation.OpenParen,
+                Number("42"),
+                Punctuation.CloseParen,
+                Keyword("End"),
+                Keyword("Sub"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestOperators() As Task
+            Dim code = "
+Public Shared Operator Not(t As Test) As Test
+    Return New Test()
+End Operator
+Public Shared Operator +(t1 As Test, t2 As Test) As Integer
+    Return 1
+End Operator"
+
+            Await TestInClassAsync(code,
+                Keyword("Public"),
+                Keyword("Shared"),
+                Keyword("Operator"),
+                Keyword("Not"),
+                Punctuation.OpenParen,
+                Parameter("t"),
+                Keyword("As"),
+                Identifier("Test"),
+                Punctuation.CloseParen,
+                Keyword("As"),
+                Identifier("Test"),
+                Keyword("Return"),
+                Keyword("New"),
+                Identifier("Test"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("End"),
+                Keyword("Operator"),
+                Keyword("Public"),
+                Keyword("Shared"),
+                Keyword("Operator"),
+                Operators.Plus,
+                Punctuation.OpenParen,
+                Parameter("t1"),
+                Keyword("As"),
+                Identifier("Test"),
+                Punctuation.Comma,
+                Parameter("t2"),
+                Keyword("As"),
+                Identifier("Test"),
+                Punctuation.CloseParen,
+                Keyword("As"),
+                Keyword("Integer"),
+                Keyword("Return"),
+                Number("1"),
+                Keyword("End"),
+                Keyword("Operator"))
+        End Function
+
     End Class
 End Namespace

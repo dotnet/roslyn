@@ -630,5 +630,31 @@ End Class"
                 Local("x"))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestSimpleEvent() As Task
+            Dim code = "
+Event E(x As Integer)
+
+Sub M()
+    RaiseEvent E(42)
+End Sub"
+
+            Await TestInClassAsync(code,
+                [Event]("E"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestOperators() As Task
+            Dim code = "
+Public Shared Operator Not(t As Test) As Test
+    Return New Test()
+End Operator
+Public Shared Operator +(t1 As Test, t2 As Test) As Integer
+    Return 1
+End Operator"
+
+            Await TestInClassAsync(code)
+        End Function
+
     End Class
 End Namespace

@@ -164,18 +164,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
         End Function
 
         Private Function GetClassificationForMethod(node As NameSyntax, methodSymbol As IMethodSymbol) As String
-            If methodSymbol.MethodKind = MethodKind.Constructor Then
-                ' If node is member access or qualified name with explicit New on the right side, we should classify New as a keyword.
-                If node.IsNewOnRightSideOfDotOrBang() Then
-                    Return ClassificationTypeNames.Keyword
-                Else
-                    ' We bound to a constructor, but we weren't something like the 'New' in 'X.New'.
-                    ' This can happen when we're actually just binding the full node 'X.New'.  In this
-                    ' case, don't return anything for this full node.  We'll end up hitting the 
-                    ' 'New' node as the worker walks down, and we'll classify it then.
+            Select Case methodSymbol.MethodKind
+                Case MethodKind.Constructor
+                    ' If node is member access or qualified name with explicit New on the right side, we should classify New as a keyword.
+                    If node.IsNewOnRightSideOfDotOrBang() Then
+                        Return ClassificationTypeNames.Keyword
+                    Else
+                        ' We bound to a constructor, but we weren't something like the 'New' in 'X.New'.
+                        ' This can happen when we're actually just binding the full node 'X.New'.  In this
+                        ' case, don't return anything for this full node.  We'll end up hitting the 
+                        ' 'New' node as the worker walks down, and we'll classify it then.
+                        Return Nothing
+                    End If
+
+                Case MethodKind.BuiltinOperator,
+                     MethodKind.UserDefinedOperator
+                    ' Operators are already classified syntactically.
                     Return Nothing
-                End If
-            End If
+            End Select
 
             Return If(methodSymbol.IsReducedExtension(),
                       ClassificationTypeNames.ExtensionMethodName,
