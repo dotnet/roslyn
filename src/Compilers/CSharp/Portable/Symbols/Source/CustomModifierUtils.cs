@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 
             // Preserve nullable modifiers as well.
-            // PROTOTYPE(NullableReferenceTypes): Set unknown nullability otherwise? 
+            // PROTOTYPE(NullableReferenceTypes): Set unknown nullability otherwise.
             if (containingAssembly.Modules[0].UtilizesNullableReferenceTypes)
             {
                 var flagsBuilder = ArrayBuilder<bool>.GetInstance();
