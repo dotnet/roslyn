@@ -63,8 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public VisualStudioWorkspaceImpl(ExportProvider exportProvider)
             : base(
-                MefV1HostServices.Create(exportProvider),
-                backgroundWork: WorkspaceBackgroundWork.ParseAndCompile)
+                MefV1HostServices.Create(exportProvider))
         {
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
