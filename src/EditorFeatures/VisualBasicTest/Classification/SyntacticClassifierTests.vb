@@ -4059,9 +4059,10 @@ Module M
 End Module
 
 Class C
-    Sub M()
+    Sub Test()
         Dim x = 42
         x.Square()
+        M.Square(x)
     End Sub
 End Class"
 
@@ -4097,7 +4098,7 @@ End Class"
                 Keyword("Class"),
                 [Class]("C"),
                 Keyword("Sub"),
-                Method("M"),
+                Method("Test"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Keyword("Dim"),
@@ -4108,6 +4109,12 @@ End Class"
                 Operators.Dot,
                 Identifier("Square"),
                 Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Identifier("M"),
+                Operators.Dot,
+                Identifier("Square"),
+                Punctuation.OpenParen,
+                Identifier("x"),
                 Punctuation.CloseParen,
                 Keyword("End"),
                 Keyword("Sub"),

@@ -877,7 +877,7 @@ class Program : IReadOnlyCollection<int,string>
                 Punctuation.CloseCurly);
         }
 
-        [Fact(Skip = "Extension method usage doesn't seem to work."), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestExtensionMethodUsage()
         {
             await TestAsync(
@@ -892,10 +892,12 @@ class C
 {
     void Test()
     {
-        TestMethod(new C());
+        ExtMethod.TestMethod(new C());
+        new C().TestMethod();
     }
 }
 ",
+                ParseOptions(Options.Regular),
                 Keyword("static"),
                 Keyword("class"),
                 Class("ExtMethod"),
@@ -920,12 +922,23 @@ class C
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                ExtensionMethod("TestMethod"),
+                Class("ExtMethod"),
+                Operators.Dot,
+                Method("TestMethod"),
                 Punctuation.OpenParen,
                 Keyword("new"),
                 Class("C"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Keyword("new"),
+                Class("C"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Operators.Dot,
+                ExtensionMethod("TestMethod"),
+                Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,

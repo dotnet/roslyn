@@ -610,9 +610,10 @@ Module M
 End Module
 
 Class C
-    Sub M()
+    Sub Test()
         Dim x = 42
         x.Square()
+        M.Square(x)
     End Sub
 End Class"
 
@@ -623,7 +624,10 @@ End Class"
                 Parameter("x"),
                 Parameter("x"),
                 Local("x"),
-                ExtensionMethod("Square"))
+                ExtensionMethod("Square"),
+                [Module]("M"),
+                Method("Square"),
+                Local("x"))
         End Function
 
     End Class

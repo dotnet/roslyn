@@ -158,7 +158,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
         End Function
 
         Private Function GetClassificationForLocal(localSymbol As ILocalSymbol) As String
-            Return If(localSymbol.IsConst, ClassificationTypeNames.ConstantName, ClassificationTypeNames.LocalName)
+            Return If(localSymbol.IsConst,
+                      ClassificationTypeNames.ConstantName,
+                      ClassificationTypeNames.LocalName)
         End Function
 
         Private Function GetClassificationForMethod(node As NameSyntax, methodSymbol As IMethodSymbol) As String
@@ -173,9 +175,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                     ' 'New' node as the worker walks down, and we'll classify it then.
                     Return Nothing
                 End If
-            Else
-                Return If(methodSymbol.IsExtensionMethod(), ClassificationTypeNames.ExtensionMethodName, ClassificationTypeNames.MethodName)
             End If
+
+            Return If(methodSymbol.IsReducedExtension(),
+                      ClassificationTypeNames.ExtensionMethodName,
+                      ClassificationTypeNames.MethodName)
         End Function
 
         Private Sub ClassifyModifiedIdentifier(
@@ -228,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             ' by the syntactic classifier. However, there isn't away to determine whether a VB
             ' method declaration is an extension method syntactically.
             Dim methodSymbol = semanticModel.GetDeclaredSymbol(methodStatement)
-            If methodSymbol.IsExtensionMethod Then
+            If methodSymbol IsNot Nothing AndAlso methodSymbol.IsExtensionMethod Then
                 result.Add(New ClassifiedSpan(methodStatement.Identifier.Span, ClassificationTypeNames.ExtensionMethodName))
             End If
         End Sub
