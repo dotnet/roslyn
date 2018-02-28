@@ -26,7 +26,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -98,7 +98,7 @@ class Test
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -209,7 +209,7 @@ class Test
 }
 ";
             // Specifically note the sequence points at 0x0 in Test.Main, Test.M, and the lambda bodies.
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -282,7 +282,7 @@ class Test
 }
 ";
             // Specifically note the sequence points at 0x0 in Test.Main, Test.M, and the lambda bodies.
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -398,7 +398,7 @@ class C : B
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             c.VerifyPdb(@"
@@ -518,7 +518,7 @@ class C : B
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             c.VerifyPdb(@"
@@ -632,7 +632,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             c.VerifyPdb(@"
@@ -717,7 +717,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             c.VerifyPdb(@"
@@ -827,7 +827,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             // note that the two closures have a different syntax offset
@@ -906,7 +906,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             // note that the two closures have a different syntax offset
@@ -991,7 +991,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             // note that the two closures have a different syntax offset
@@ -1071,7 +1071,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             // note that the two closures have a different syntax offset
@@ -1147,7 +1147,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             // note that the two closures have a different syntax offset
@@ -1235,7 +1235,7 @@ class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             c.VerifyPdb("C.F", @"
@@ -1312,7 +1312,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             // note that the two closures have a different syntax offset

@@ -344,11 +344,11 @@ public class B
         var x = new A();
     }
 }";
-            var compilationA = CreateCompilationWithMscorlibAndSystemCore(sourceA, options: TestOptions.DebugDll);
+            var compilationA = CreateCompilationWithMscorlib40AndSystemCore(sourceA, options: TestOptions.DebugDll);
             var identityA = compilationA.Assembly.Identity;
             var moduleA = compilationA.ToModuleInstance();
 
-            var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.GetReference() });
+            var compilationB = CreateCompilationWithMscorlib40AndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.GetReference() });
             var moduleB = compilationB.ToModuleInstance();
 
             var runtime = CreateRuntimeInstance(new[] { MscorlibRef.ToModuleInstance(), SystemCoreRef.ToModuleInstance(), moduleA, moduleB });
@@ -462,12 +462,12 @@ class C
 @"public class B : A
 {
 }";
-            var moduleA = CreateCompilation(
+            var moduleA = CreateEmptyCompilation(
                 sourceA,
                 references: new[] { SystemRuntimePP7Ref },
                 options: TestOptions.DebugDll).ToModuleInstance();
 
-            var moduleB = CreateCompilation(
+            var moduleB = CreateEmptyCompilation(
                 sourceB,
                 references: new[] { SystemRuntimePP7Ref, moduleA.GetReference() },
                 options: TestOptions.DebugDll).ToModuleInstance();
@@ -547,9 +547,9 @@ IL_0005:  ret
         var o = (System.Collections.ObjectModel.ReadOnlyDictionary<object, object>)null;
     }
 }";
-            var systemConsoleComp = CreateStandardCompilation(sourceConsole, options: TestOptions.DebugDll, assemblyName: "System.Console");
+            var systemConsoleComp = CreateCompilation(sourceConsole, options: TestOptions.DebugDll, assemblyName: "System.Console");
             var systemConsoleRef = systemConsoleComp.EmitToImageReference();
-            var systemObjectModelComp = CreateStandardCompilation(sourceObjectModel, options: TestOptions.DebugDll, assemblyName: "System.ObjectModel");
+            var systemObjectModelComp = CreateCompilation(sourceObjectModel, options: TestOptions.DebugDll, assemblyName: "System.ObjectModel");
             var systemObjectModelRef = systemObjectModelComp.EmitToImageReference();
             var identityObjectModel = systemObjectModelRef.GetAssemblyIdentity();
 
@@ -563,7 +563,7 @@ IL_0005:  ret
             var runtimeReferences = ImmutableArray.Create(systemConsoleRef, MscorlibFacadeRef, SystemRuntimeFacadeRef, systemObjectModelRef);
 
             // Verify the compiler reports duplicate types with facade assemblies.
-            var compilation = CreateCompilation(
+            var compilation = CreateEmptyCompilation(
                 source,
                 references: runtimeReferences,
                 options: TestOptions.DebugDll,
@@ -579,7 +579,7 @@ IL_0005:  ret
             // EE should not report duplicate type when the original source
             // is compiled with contract assemblies and the EE expression
             // is compiled with facade assemblies.
-            compilation = CreateCompilation(
+            compilation = CreateEmptyCompilation(
                 source,
                 references: contractReferences,
                 options: TestOptions.DebugDll);
@@ -638,10 +638,10 @@ public class B
     {
     }
 }";
-            var compilationA = CreateCompilationWithMscorlibAndSystemCore(sourceA, options: TestOptions.DebugDll);
+            var compilationA = CreateCompilationWithMscorlib40AndSystemCore(sourceA, options: TestOptions.DebugDll);
             var moduleA = compilationA.ToModuleInstance();
 
-            var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.GetReference() });
+            var compilationB = CreateCompilationWithMscorlib40AndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.GetReference() });
             var moduleB = compilationB.ToModuleInstance();
 
             var runtime = CreateRuntimeInstance(new[]
@@ -733,7 +733,7 @@ IL_0030:  ret
 public class Private2
 {
 }";
-            var compLib = CreateStandardCompilation(sourceLib, assemblyName: "System.Private.Library");
+            var compLib = CreateCompilation(sourceLib, assemblyName: "System.Private.Library");
             compLib.VerifyDiagnostics();
             var refLib = compLib.EmitToImageReference();
 
@@ -752,7 +752,7 @@ namespace System
 }";
             // Create a custom corlib with a reference to compilation
             // above and a reference to the actual mscorlib.
-            var compCorLib = CreateCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
+            var compCorLib = CreateEmptyCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
             Assert.NotNull(objectType.BaseType());
@@ -788,7 +788,7 @@ namespace System
     {
     }
 }";
-                var comp = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
+                var comp = CreateEmptyCompilation(source, options: TestOptions.DebugDll, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
                 comp.VerifyDiagnostics();
 
                 using (var runtime = RuntimeInstance.Create(new[] { comp.ToModuleInstance(), moduleInstance }))
@@ -848,7 +848,7 @@ namespace System
 {
     public class Private { }
 }";
-            var compLib = CreateStandardCompilation(sourceLib, assemblyName: "System.Private.Library");
+            var compLib = CreateCompilation(sourceLib, assemblyName: "System.Private.Library");
             compLib.VerifyDiagnostics();
             var refLib = compLib.EmitToImageReference(aliases: ImmutableArray.Create("A"));
 
@@ -870,7 +870,7 @@ namespace System
 }";
             // Create a custom corlib with a reference to compilation
             // above and a reference to the actual mscorlib.
-            var compCorLib = CreateCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
+            var compCorLib = CreateEmptyCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
             Assert.NotNull(objectType.BaseType());
@@ -926,7 +926,7 @@ namespace System
 @"class Private
 {
 }";
-            var compLib = CreateStandardCompilation(sourceLib, assemblyName: CorLibAssemblyName);
+            var compLib = CreateCompilation(sourceLib, assemblyName: CorLibAssemblyName);
             compLib.VerifyDiagnostics();
             var refLib = compLib.EmitToImageReference();
 
@@ -937,7 +937,7 @@ namespace System
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
 
             using (var runtime = RuntimeInstance.Create(new[] { comp.ToModuleInstance(), refLib.ToModuleInstance(), MscorlibRef.ToModuleInstance() }))
