@@ -547,13 +547,83 @@ End Class"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestConst() As Task
+        Public Async Function TestConstField() As Task
             Dim code =
 "Const Number = 42
 Dim x As Integer = Number"
 
             Await TestInClassAsync(code,
                 Constant("Number"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestConstLocal() As Task
+            Dim code =
+"Const Number = 42
+Dim x As Integer = Number"
+
+            Await TestInMethodAsync(code,
+                Constant("Number"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestModifiedIdentifiersInLocals() As Task
+            Dim code =
+"Dim x$ = ""23""
+x$ = ""19"""
+
+            Await TestInMethodAsync(code,
+                Local("x$"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestModifiedIdentifiersInFields() As Task
+            Dim code =
+"Const x$ = ""23""
+Dim y$ = x$"
+
+            Await TestInClassAsync(code,
+                Constant("x$"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestFunctionNamesWithTypeCharacters() As Task
+            Dim code =
+"Function x%()
+    x% = 42
+End Function"
+
+            Await TestInClassAsync(code,
+                Local("x%"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestExtensionMethod() As Task
+            Dim code = "
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension>
+    Sub Square(ByRef x As Integer)
+        x = x * x
+    End Sub
+End Module
+
+Class C
+    Sub M()
+        Dim x = 42
+        x.Square()
+    End Sub
+End Class"
+
+            Await TestAsync(code,
+                [Class]("Extension"),
+                ExtensionMethod("Square"),
+                Parameter("x"),
+                Parameter("x"),
+                Parameter("x"),
+                Local("x"),
+                ExtensionMethod("Square"))
         End Function
 
     End Class

@@ -70,6 +70,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             'Note: parent might be Nothing, if we are classifying raw tokens.
             Dim parent = identifier.Parent
 
+            Dim classification As String = Nothing
+
             If TypeOf parent Is TypeStatementSyntax AndAlso DirectCast(parent, TypeStatementSyntax).Identifier = identifier Then
                 Return ClassifyTypeDeclarationIdentifier(identifier)
             ElseIf TypeOf parent Is EnumStatementSyntax AndAlso DirectCast(parent, EnumStatementSyntax).Identifier = identifier Then
@@ -90,17 +92,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Return ClassificationTypeNames.EventName
             ElseIf TypeOf parent Is EnumMemberDeclarationSyntax AndAlso DirectCast(parent, EnumMemberDeclarationSyntax).Identifier = identifier Then
                 Return ClassificationTypeNames.EnumMemberName
-            ElseIf TypeOf parent Is ModifiedIdentifierSyntax AndAlso DirectCast(parent, ModifiedIdentifierSyntax).Identifier = identifier Then
-                If TypeOf parent.Parent Is ParameterSyntax Then
-                    Return ClassificationTypeNames.ParameterName
-                ElseIf TypeOf parent.Parent Is VariableDeclaratorSyntax Then
-                    If TypeOf parent.Parent.Parent Is LocalDeclarationStatementSyntax Then
-                        Return ClassificationTypeNames.LocalName
-                    ElseIf TypeOf parent.Parent.Parent Is FieldDeclarationSyntax Then
-                        Dim fieldDeclaration = DirectCast(parent.Parent.Parent, FieldDeclarationSyntax)
-                        Return If(fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword), ClassificationTypeNames.ConstantName, ClassificationTypeNames.FieldName)
-                    End If
-                End If
+            ElseIf TryClassifyModifiedIdentifer(parent, identifier, classification) Then
+                Return classification
             ElseIf (identifier.ToString() = "IsTrue" OrElse identifier.ToString() = "IsFalse") AndAlso
                 TypeOf parent Is OperatorStatementSyntax AndAlso DirectCast(parent, OperatorStatementSyntax).OperatorToken = identifier Then
 
@@ -117,6 +110,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
             Return token.IsKind(SyntaxKind.DollarSignDoubleQuoteToken, SyntaxKind.DoubleQuoteToken) AndAlso
                    token.Parent.IsKind(SyntaxKind.InterpolatedStringExpression)
+        End Function
+
+        Private Function TryClassifyModifiedIdentifer(node As SyntaxNode, identifier As SyntaxToken, ByRef classification As String) As Boolean
+            classification = Nothing
+
+            If TypeOf node IsNot ModifiedIdentifierSyntax OrElse DirectCast(node, ModifiedIdentifierSyntax).Identifier <> identifier Then
+                Return False
+            End If
+
+            If TypeOf node.Parent Is ParameterSyntax Then
+                classification = ClassificationTypeNames.ParameterName
+                Return True
+            End If
+
+            If TypeOf node.Parent IsNot VariableDeclaratorSyntax Then
+                Return False
+            End If
+
+            If TypeOf node.Parent.Parent Is LocalDeclarationStatementSyntax Then
+                Dim localDeclaration = DirectCast(node.Parent.Parent, LocalDeclarationStatementSyntax)
+                classification = If(localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword), ClassificationTypeNames.ConstantName, ClassificationTypeNames.LocalName)
+                Return True
+            End If
+
+            If TypeOf node.Parent.Parent Is FieldDeclarationSyntax Then
+                Dim localDeclaration = DirectCast(node.Parent.Parent, FieldDeclarationSyntax)
+                classification = If(localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword), ClassificationTypeNames.ConstantName, ClassificationTypeNames.FieldName)
+                Return True
+            End If
         End Function
 
         Private Function ClassifyTypeDeclarationIdentifier(identifier As SyntaxToken) As String

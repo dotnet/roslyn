@@ -3973,7 +3973,7 @@ end interface"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestConstName() As Task
+        Public Async Function TestConstField() As Task
             Dim code = "Const Number = 42"
 
             Await TestInClassAsync(code,
@@ -3982,5 +3982,138 @@ end interface"
                 Operators.Equals,
                 Number("42"))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestLocalConst() As Task
+            Dim code = "Const Number = 42"
+
+            Await TestInMethodAsync(code,
+                Keyword("Const"),
+                Constant("Number"),
+                Operators.Equals,
+                Number("42"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestModifiedIdentifiersInLocals() As Task
+            Dim code =
+"Dim x$ = ""23""
+x$ = ""19"""
+
+            Await TestInMethodAsync(code,
+                Keyword("Dim"),
+                Local("x$"),
+                Operators.Equals,
+                [String]("""23"""),
+                Identifier("x$"),
+                Operators.Equals,
+                [String]("""19"""))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestModifiedIdentifiersInFields() As Task
+            Dim code =
+"Const x$ = ""23""
+Dim y$ = x$"
+
+            Await TestInClassAsync(code,
+                Keyword("Const"),
+                Constant("x$"),
+                Operators.Equals,
+                [String]("""23"""),
+                Keyword("Dim"),
+                Field("y$"),
+                Operators.Equals,
+                Identifier("x$"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestFunctionNamesWithTypeCharacters() As Task
+            Dim code =
+"Function x%()
+    x% = 42
+End Function"
+
+            Await TestInClassAsync(code,
+                Keyword("Function"),
+                Method("x%"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Identifier("x%"),
+                Operators.Equals,
+                Number("42"),
+                Keyword("End"),
+                Keyword("Function"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestExtensionMethod() As Task
+            Dim code = "
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension>
+    Sub Square(ByRef x As Integer)
+        x = x * x
+    End Sub
+End Module
+
+Class C
+    Sub M()
+        Dim x = 42
+        x.Square()
+    End Sub
+End Class"
+
+            Await TestAsync(code,
+                Keyword("Imports"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Runtime"),
+                Operators.Dot,
+                Identifier("CompilerServices"),
+                Keyword("Module"),
+                [Module]("M"),
+                Punctuation.OpenAngle,
+                Identifier("Extension"),
+                Punctuation.CloseAngle,
+                Keyword("Sub"),
+                Method("Square"),
+                Punctuation.OpenParen,
+                Keyword("ByRef"),
+                Parameter("x"),
+                Keyword("As"),
+                Keyword("Integer"),
+                Punctuation.CloseParen,
+                Identifier("x"),
+                Operators.Equals,
+                Identifier("x"),
+                Operators.Asterisk,
+                Identifier("x"),
+                Keyword("End"),
+                Keyword("Sub"),
+                Keyword("End"),
+                Keyword("Module"),
+                Keyword("Class"),
+                [Class]("C"),
+                Keyword("Sub"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("Dim"),
+                Local("x"),
+                Operators.Equals,
+                Number("42"),
+                Identifier("x"),
+                Operators.Dot,
+                Identifier("Square"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("End"),
+                Keyword("Sub"),
+                Keyword("End"),
+                Keyword("Class"))
+        End Function
+
     End Class
 End Namespace

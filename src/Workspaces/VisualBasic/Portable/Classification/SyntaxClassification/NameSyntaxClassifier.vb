@@ -11,7 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
     Friend Class NameSyntaxClassifier
         Inherits AbstractSyntaxClassifier
 
-        Public Overrides ReadOnly Property SyntaxNodeTypes As ImmutableArray(Of Type) = ImmutableArray.Create(GetType(NameSyntax), GetType(ModifiedIdentifierSyntax))
+        Public Overrides ReadOnly Property SyntaxNodeTypes As ImmutableArray(Of Type) = ImmutableArray.Create(
+            GetType(NameSyntax),
+            GetType(ModifiedIdentifierSyntax),
+            GetType(MethodStatementSyntax))
 
         Public Overrides Sub AddClassifications(
                 syntax As SyntaxNode,
@@ -28,6 +31,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Dim modifiedIdentifier = TryCast(syntax, ModifiedIdentifierSyntax)
             If modifiedIdentifier IsNot Nothing Then
                 ClassifyModifiedIdentifier(modifiedIdentifier, semanticModel, result, cancellationToken)
+                Return
+            End If
+
+            Dim methodStatement = TryCast(syntax, MethodStatementSyntax)
+            If methodStatement IsNot Nothing Then
+                ClassifyMethodStatement(methodStatement, semanticModel, result, cancellationToken)
                 Return
             End If
         End Sub
@@ -94,8 +103,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                         result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.ParameterName))
                         Return
                     Case SymbolKind.Local
-                        result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.LocalName))
-                        Return
+                        Dim classification = GetClassificationForLocal(DirectCast(symbol, ILocalSymbol))
+                        If classification IsNot Nothing Then
+                            result.Add(New ClassifiedSpan(GetNameToken(node).Span, classification))
+                            Return
+                        End If
                 End Select
 
                 Dim type = TryCast(symbol, ITypeSymbol)
@@ -143,6 +155,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End If
 
             Return ClassificationTypeNames.FieldName
+        End Function
+
+        Private Function GetClassificationForLocal(localSymbol As ILocalSymbol) As String
+            Return If(localSymbol.IsConst, ClassificationTypeNames.ConstantName, ClassificationTypeNames.LocalName)
         End Function
 
         Private Function GetClassificationForMethod(node As NameSyntax, methodSymbol As IMethodSymbol) As String
@@ -205,5 +221,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                     Throw New NotSupportedException()
             End Select
         End Function
+
+        Private Sub ClassifyMethodStatement(methodStatement As MethodStatementSyntax, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            ' Ensure that extension method declarations are classified properly.
+            ' Note that the method statement name is likely already classified as a method name
+            ' by the syntactic classifier. However, there isn't away to determine whether a VB
+            ' method declaration is an extension method syntactically.
+            Dim methodSymbol = semanticModel.GetDeclaredSymbol(methodStatement)
+            If methodSymbol.IsExtensionMethod Then
+                result.Add(New ClassifiedSpan(methodStatement.Identifier.Span, ClassificationTypeNames.ExtensionMethodName))
+            End If
+        End Sub
+
     End Class
 End Namespace
