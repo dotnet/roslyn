@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             CancellationToken cancellationToken)
         {
             var solution = invocationDocument.Project.Solution;
-            var argumentType = await GetArgumentTypeAsync(invocationDocument, argument, cancellationToken).ConfigureAwait(false);
+            var (argumentType, refKind) = await GetArgumentTypeAndRefKindAsync(invocationDocument, argument, cancellationToken).ConfigureAwait(false);
 
             // The argumentNameSuggestion is the base for the parameter name.
             // For each method declaration the name is made unique to avoid name collisions.
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 {
                     var methodNode = syntaxRoot.FindNode(methodDeclaration.Locations[0].SourceSpan);
                     var parameterSymbol = CreateParameterSymbol(
-                        methodDeclaration, argumentType, argumentNameSuggestion);
+                        methodDeclaration, argumentType, refKind, argumentNameSuggestion);
 
                     var parameterDeclaration = generator.ParameterDeclaration(parameterSymbol)
                                                         .WithAdditionalAnnotations(Formatter.Annotation);
@@ -359,13 +359,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return solution;
         }
 
-        private static async Task<ITypeSymbol> GetArgumentTypeAsync(Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
+        private static async Task<(ITypeSymbol, RefKind)> GetArgumentTypeAndRefKindAsync(Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
         {
             var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var argumentExpression = syntaxFacts.GetExpressionOfArgument(argument);
             var argumentType = semanticModel.GetTypeInfo(argumentExpression).Type ?? semanticModel.Compilation.ObjectType;
-            return argumentType;
+            var refKind = syntaxFacts.GetRefKindOfArgument(argument);
+            return (argumentType, refKind);
         }
 
         private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferences(
@@ -407,11 +408,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private IParameterSymbol CreateParameterSymbol(
             IMethodSymbol method,
             ITypeSymbol parameterType,
+            RefKind refKind,
             string argumentNameSuggestion)
         {
             var uniqueName = NameGenerator.EnsureUniqueness(argumentNameSuggestion, method.Parameters.Select(p => p.Name));
             var newParameterSymbol = CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    attributes: default, refKind: RefKind.None, isParams: false, type: parameterType, name: uniqueName);
+                    attributes: default, refKind: refKind, isParams: false, type: parameterType, name: uniqueName);
             return newParameterSymbol;
         }
 

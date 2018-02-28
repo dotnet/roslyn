@@ -2178,6 +2178,38 @@ class C
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_InvocationStyles_RefParameter()
+        {
+            // error CS1501: No overload for method 'M' takes 1 arguments            
+            var code =
+@"
+class C
+{
+    void M() { }
+    void Test()
+    {
+        int i = 0;
+        [|M|](ref i);
+    }
+}
+";
+            var fix0 =
+@"
+class C
+{
+    void M(ref int i) { }
+    void Test()
+    {
+        int i = 0;
+        M(ref i);
+    }
+}
+";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocation_Indexer_NotSupported()
         {
             // Could be fixed by allowing ElementAccessExpression next to InvocationExpression
