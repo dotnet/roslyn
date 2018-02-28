@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub NullArgsToFlowAnalysisMethods()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation name="TestEntryPoints01">
             <file name="a.b">
 class C 
@@ -4557,7 +4557,7 @@ End Class
         <WorkItem(543461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543461")>
         <Fact()>
         Public Sub CollectionInitSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -4579,7 +4579,7 @@ End Module
         <WorkItem(543461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543461")>
         <Fact()>
         Public Sub CollectionInitSyntax2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Imports System.Collections.Generic
@@ -4602,7 +4602,7 @@ End Module
         <WorkItem(543461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543461")>
         <Fact()>
         Public Sub CollectionInitSyntax3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Imports System.Collections.Generic
@@ -4625,7 +4625,7 @@ End Module
         <WorkItem(543509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543509")>
         <Fact()>
         Public Sub IfStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -4649,7 +4649,7 @@ End Module
 
         <Fact()>
         Public Sub ElseStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -4675,7 +4675,7 @@ End Module
 
         <Fact()>
         Public Sub WithStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -4698,7 +4698,7 @@ End Module
         <WorkItem(757796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/757796")>
         <Fact()>
         Public Sub Bug757796()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Imports System
@@ -4725,7 +4725,7 @@ End Module  </file>
 
         <Fact()>
         Public Sub TryStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -4749,7 +4749,7 @@ End Module
 
         <Fact()>
         Public Sub CatchStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -4773,7 +4773,7 @@ End Module
 
         <Fact()>
         Public Sub FinallyStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -4798,7 +4798,7 @@ End Module
         <WorkItem(543722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543722")>
         <Fact()>
         Public Sub SyncLockStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -4821,7 +4821,7 @@ End Module
         <WorkItem(543736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543736")>
         <Fact()>
         Public Sub WhileStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -4843,7 +4843,7 @@ End Module
 
         <Fact()>
         Public Sub UsingStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Imports System.IO
@@ -4867,7 +4867,7 @@ End Module
         <WorkItem(545449, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545449")>
         <Fact()>
         Public Sub LoopWhileStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Imports System.IO
@@ -4894,7 +4894,7 @@ End Module
 
         <Fact()>
         Public Sub SelectStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Class Frame
@@ -4918,7 +4918,7 @@ End Class
 
         <Fact()>
         Public Sub CaseStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Class Frame
@@ -4943,7 +4943,7 @@ End Class
 
         <Fact()>
         Public Sub DoStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Class Frame
@@ -4966,7 +4966,7 @@ End Class
 
         <Fact()>
         Public Sub ForStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Class Frame
@@ -4988,7 +4988,7 @@ End Class
 
         <Fact()>
         Public Sub ForEachStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Class Frame
@@ -6801,7 +6801,7 @@ End Class
         <WorkItem(545480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545480")>
         <Fact()>
         Public Sub ReturnStatementInElseInsideIncompleteFunction()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Public Class vbPartialCls002
@@ -6880,7 +6880,7 @@ End Module
 
         <Fact()>
         Public Sub ConstantUnevaluatedReceiver()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -6899,7 +6899,7 @@ End Class
 
         <Fact()>
         Public Sub CallUnevaluatedReceiver()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -6921,7 +6921,7 @@ End Class
         <WorkItem(546639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546639")>
         <Fact()>
         Public Sub AddressOfUnevaluatedReceiver()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -6942,7 +6942,7 @@ End Class
         <WorkItem(546629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546629")>
         <Fact()>
         Public Sub TypeExpressionUnevaluatedReceiver()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -7818,7 +7818,7 @@ End Module
 
         <Fact()>
         Public Sub XmlEmbeddedExpression()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
       <compilation>
           <file name="c.vb"><![CDATA[
 Option Strict On
@@ -7835,7 +7835,7 @@ Module M
     End Function
 End Module
     ]]></file>
-      </compilation>, additionalRefs:=XmlReferences)
+      </compilation>, references:=XmlReferences)
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
             Dim root = tree.GetCompilationUnitRoot()
@@ -7854,7 +7854,7 @@ End Module
 
         <Fact()>
         Public Sub XmlMemberAccess()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
       <compilation>
           <file name="c.vb"><![CDATA[
 Option Strict On
@@ -7866,7 +7866,7 @@ Module M
     End Function
 End Module
     ]]></file>
-      </compilation>, additionalRefs:=XmlReferences)
+      </compilation>, references:=XmlReferences)
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
             Dim root = tree.GetCompilationUnitRoot()
@@ -7898,7 +7898,7 @@ Module M
 End Module
     ]]></file>
                 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib40(source)
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
             Dim root = tree.GetCompilationUnitRoot()
@@ -9388,7 +9388,7 @@ End Module
         <WorkItem(543402, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543402")>
         <Fact()>
         Public Sub EndSelectStatement()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -9411,7 +9411,7 @@ End Module
         <WorkItem(543434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543434")>
         <Fact()>
         Public Sub SelectCaseStatement()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -9453,7 +9453,7 @@ Public Class MyClass : Inherits BaseClass
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
 

@@ -234,7 +234,7 @@ System.ValueTuple`2[System.Int32,System.String]
         <Fact>
         Public Sub TupleTypeBindingTypeCharErr()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -332,7 +332,7 @@ BC32017: Comma, ')', or a valid expression continuation expected.
 
         <Fact>
         Public Sub TupleTypeBindingNoTuple()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 
@@ -405,7 +405,7 @@ End Module
 
         <Fact()>
         Public Sub TupleDefaultType001err()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 
@@ -587,7 +587,7 @@ System.String
 
         <Fact()>
         Public Sub TupleDefaultType006err()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -653,7 +653,7 @@ VB$AnonymousDelegate_0
 
         <Fact()>
         Public Sub TupleDefaultType007err()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -715,7 +715,7 @@ BC36645: Data type(s) of the type parameter(s) in method 'Public Function Test2(
 
         <Fact()>
         Public Sub DataFlow()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 
@@ -1106,7 +1106,7 @@ False
         <Fact>
         Public Sub TupleNewLongErr()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 
@@ -1150,7 +1150,7 @@ BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression in
         <Fact>
         Public Sub TupleDisallowedWithNew()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 
@@ -1187,7 +1187,7 @@ BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression in
 
         <Fact>
         Public Sub ParseNewTuple()
-            Dim comp1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp1 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -1211,7 +1211,7 @@ BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression in
                     ~~~~~~~~~~~~~~~~~
                                          </errors>)
 
-            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp2 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -1387,7 +1387,7 @@ references:={ValueTupleRef, SystemRuntimeFacadeRef}, useLatestFramework:=True, o
 
         <Fact>
         Public Sub Overloading001()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 
@@ -1413,7 +1413,7 @@ BC37271: 'Public Sub Test(x As (a As Integer, b As Integer))' has multiple defin
 
         <Fact>
         Public Sub Overloading002()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 
@@ -1490,7 +1490,7 @@ End Module
         <Fact>
         Public Sub SimpleTupleTargetTyped001Err()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 
@@ -2759,7 +2759,7 @@ End Class
         <Fact>
         Public Sub NarrowingFromNumericConstant_01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -2786,7 +2786,7 @@ options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_val
         <Fact>
         Public Sub NarrowingFromNumericConstant_02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -2881,7 +2881,7 @@ Byte")
         <Fact>
         Public Sub NarrowingFromNumericConstant_03()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -2976,7 +2976,7 @@ Byte")
         <Fact>
         Public Sub NarrowingFromNumericConstant_04()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -3061,7 +3061,7 @@ Integer")
         <Fact>
         Public Sub NarrowingFromNumericConstant_05()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -3147,7 +3147,7 @@ Long")
         <WorkItem(14473, "https://github.com/dotnet/roslyn/issues/14473")>
         Public Sub NarrowingFromNumericConstant_06()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -3205,7 +3205,7 @@ Byte")
         <WorkItem(14473, "https://github.com/dotnet/roslyn/issues/14473")>
         Public Sub NarrowingFromNumericConstant_07()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -3276,7 +3276,7 @@ Byte")
         <Fact>
         Public Sub NarrowingFromNumericConstant_08()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -3383,7 +3383,7 @@ options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_val
         <Fact>
         Public Sub Narrowing_01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -3436,7 +3436,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte
         <Fact>
         Public Sub Narrowing_02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -3463,7 +3463,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub Narrowing_03()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -3488,7 +3488,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub Narrowing_04()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -3527,7 +3527,7 @@ BC30512: Option Strict On disallows implicit conversions from '(Integer, Integer
         <Fact>
         Public Sub OverloadResolution_01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -3595,7 +3595,7 @@ Short")
         <Fact>
         Public Sub FailedDueToNumericOverflow_01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -3743,7 +3743,7 @@ System.Object
 
         <Fact>
         Public Sub MethodTypeInference002Err()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 
@@ -3932,7 +3932,7 @@ System.ValueTuple`2[System.Object,System.String]
 
         <Fact>
         Public Sub MethodTypeInference004Err()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 
@@ -4093,7 +4093,7 @@ System.Int64
 
         <Fact>
         Public Sub MethodTypeInference008Err()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 
@@ -4550,7 +4550,7 @@ End Module
 
         <Fact>
         Public Sub TupleTypeMismatch_01()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4574,7 +4574,7 @@ BC30311: Value of type '(Integer, String, Integer)' cannot be converted to '(Int
         <Fact>
         Public Sub TupleTypeMismatch_02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4598,7 +4598,7 @@ BC30311: Value of type '(Integer, Object, Integer)' cannot be converted to '(Int
         <Fact>
         Public Sub LongTupleTypeMismatch()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4644,7 +4644,7 @@ BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
         <Fact>
         Public Sub TupleTypeWithLateDiscoveredName()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5282,7 +5282,7 @@ End Class
         <Fact>
         Public Sub TupleUsageWithoutTupleLibrary()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5311,7 +5311,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         <Fact>
         Public Sub TupleUsageWithMissingTupleMembers()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5341,7 +5341,7 @@ BC35000: Requested operation is not available because the runtime library functi
         <Fact>
         Public Sub TupleWithDuplicateNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5372,7 +5372,7 @@ BC37262: Tuple element names must be unique.
         <Fact>
         Public Sub TupleWithDuplicateReservedNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5407,7 +5407,7 @@ BC37261: Tuple element name 'Item2' is only allowed at position 2.
         <Fact>
         Public Sub TupleWithNonReservedNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5461,7 +5461,7 @@ null]]>)
         <Fact>
         Public Sub TupleWithDuplicateMemberNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5489,7 +5489,7 @@ BC37262: Tuple element names must be unique.
         <Fact>
         Public Sub TupleWithReservedMemberNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5530,7 +5530,7 @@ BC37260: Tuple element name 'Rest' is disallowed at any position.
         <Fact>
         Public Sub TupleWithExistingUnderlyingMemberNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5648,7 +5648,7 @@ End Class
             Next
             b.Append("1)")
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class C
@@ -5674,7 +5674,7 @@ End Class
             Next
             b.Append("Integer)")
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class C
@@ -5692,7 +5692,7 @@ End Class
         <WorkItem(13302, "https://github.com/dotnet/roslyn/issues/13302")>
         Public Sub GenericTupleWithoutTupleLibrary_01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -5776,7 +5776,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         <WorkItem(13300, "https://github.com/dotnet/roslyn/issues/13300")>
         Public Sub GenericTupleWithoutTupleLibrary_02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -5939,7 +5939,7 @@ End Class
         <Fact>
         Public Sub TupleInOptionalParam()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class C
@@ -6156,7 +6156,7 @@ End Class
 
         <Fact>
         Public Sub MissingMemberAccessWithVB15()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class C
@@ -6187,7 +6187,7 @@ BC30456: 'a' is not a member of '(Integer, Integer)'.
 
         <Fact>
         Public Sub UseSiteDiagnosticOnTupleField()
-            Dim missingComp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim missingComp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="UseSiteDiagnosticOnTupleField_missingComp">
     <file name="missing.vb">
 Public Class Missing
@@ -6196,7 +6196,7 @@ End Class
 </compilation>)
             missingComp.VerifyDiagnostics()
 
-            Dim libComp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim libComp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="lib.vb">
 Public Class C
@@ -6219,7 +6219,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim comp15 = CreateCompilationWithMscorlibAndVBRuntime(source,
+            Dim comp15 = CreateCompilationWithMscorlib40AndVBRuntime(source,
                 additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, libComp.ToMetadataReference()},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
@@ -6229,7 +6229,7 @@ BC30652: Reference required to assembly 'UseSiteDiagnosticOnTupleField_missingCo
                              ~~~~~~~~~~~~
                                           </errors>)
 
-            Dim comp15_3 = CreateCompilationWithMscorlibAndVBRuntime(source,
+            Dim comp15_3 = CreateCompilationWithMscorlib40AndVBRuntime(source,
                 additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, libComp.ToMetadataReference()},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
 
@@ -6261,7 +6261,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp15 = CreateCompilationWithMscorlibAndVBRuntime(source,
+            Dim comp15 = CreateCompilationWithMscorlib40AndVBRuntime(source,
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
             comp15.AssertTheseDiagnostics(<errors>
@@ -6270,7 +6270,7 @@ BC35000: Requested operation is not available because the runtime library functi
                              ~~~
                                           </errors>)
 
-            Dim comp15_3 = CreateCompilationWithMscorlibAndVBRuntime(source,
+            Dim comp15_3 = CreateCompilationWithMscorlib40AndVBRuntime(source,
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
 
             comp15_3.AssertTheseDiagnostics(<errors>
@@ -6282,7 +6282,7 @@ BC35000: Requested operation is not available because the runtime library functi
 
         <Fact>
         Public Sub MissingMemberAccessWithExtensionWithVB15()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -6320,7 +6320,7 @@ BC30456: 'a' is not a member of '(Integer, Integer)'.
 
         <Fact>
         Public Sub MissingMemberAccessWithVB15_3()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class C
@@ -6422,7 +6422,7 @@ End Module
                          </compilation>
             ' When VB 15 shipped, no tuple element would be found/inferred, so the extension method was called.
             ' The VB 15.3 compiler disallows that, even when LanguageVersion is 15.
-            Dim comp15 = CreateCompilationWithMscorlibAndVBRuntime(source,
+            Dim comp15 = CreateCompilationWithMscorlib40AndVBRuntime(source,
                 additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             comp15.AssertTheseDiagnostics(<errors>
@@ -6452,7 +6452,7 @@ Class C
 End Class
     </file>
                          </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source,
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source,
                 additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             comp.AssertTheseEmitDiagnostics(<errors/>)
@@ -6484,7 +6484,7 @@ End Class
         <Fact>
         Public Sub DuplicateTupleMethodsNotAllowed()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -6639,7 +6639,7 @@ End Class
 
         <Fact>
         Public Sub TupleUnsupportedInUsingStatement()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports VT2 = (Integer, Integer)
@@ -6664,7 +6664,7 @@ Imports VT2 = (Integer, Integer)
         <Fact>
         Public Sub MissingTypeInAlias()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -6721,9 +6721,9 @@ End Module
 <%= s_trivial2uple %></file>
 </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlibAndVBRuntime(source1, additionalRefs:={MscorlibRef_v46}, assemblyName:="comp1")
+            Dim comp1 = CreateCompilationWithMscorlib40AndVBRuntime(source1, additionalRefs:={MscorlibRef_v46}, assemblyName:="comp1")
             comp1.AssertNoDiagnostics()
-            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={MscorlibRef_v46}, assemblyName:="comp2")
+            Dim comp2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, additionalRefs:={MscorlibRef_v46}, assemblyName:="comp2")
             comp2.AssertNoDiagnostics()
 
             Dim source =
@@ -6741,7 +6741,7 @@ End Class
 </file>
 </compilation>
 
-            Dim comp3 = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={comp1.ToMetadataReference(), comp2.ToMetadataReference()})
+            Dim comp3 = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:={comp1.ToMetadataReference(), comp2.ToMetadataReference()})
             comp3.AssertTheseDiagnostics(
 <errors>
 BC30521: Overload resolution failed because no accessible 'Extension' is most specific for these arguments:
@@ -6754,7 +6754,7 @@ BC37305: Predefined type 'ValueTuple(Of ,)' is declared in multiple referenced a
                     ~~~~~~
 </errors>)
 
-            Dim comp4 = CreateCompilationWithMscorlibAndVBRuntime(source,
+            Dim comp4 = CreateCompilationWithMscorlib40AndVBRuntime(source,
                             additionalRefs:={comp1.ToMetadataReference()},
                             options:=TestOptions.DebugExe)
 
@@ -6860,7 +6860,7 @@ End Class
         <Fact>
         Public Sub CreateTupleTypeSymbol_WithValueTuple()
 
-            Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim tupleComp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><%= s_trivial2uple %></file>
 </compilation>)
@@ -6889,7 +6889,7 @@ End Class
         <Fact>
         Public Sub CreateTupleTypeSymbol_Locations()
 
-            Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim tupleComp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><%= s_trivial2uple %></file>
 </compilation>)
@@ -7122,7 +7122,7 @@ End Class
         <Fact>
         Public Sub CreateTupleTypeSymbol_ElementTypeIsError()
 
-            Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim tupleComp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><%= s_trivial2uple %></file>
 </compilation>)
@@ -7230,7 +7230,7 @@ End Class
         <Fact>
         Public Sub CreateTupleTypeSymbol2_WithValueTuple()
 
-            Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim tupleComp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><%= s_trivial2uple %></file>
 </compilation>)
@@ -7253,7 +7253,7 @@ End Class
         <Fact>
         Public Sub CreateTupleTypeSymbol2_Locations()
 
-            Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim tupleComp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><%= s_trivial2uple %></file>
 </compilation>)
@@ -7418,7 +7418,7 @@ End Class
         <Fact>
         Public Sub CreateTupleTypeSymbol2_ElementTypeIsError()
 
-            Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim tupleComp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><%= s_trivial2uple %></file>
 </compilation>)
@@ -7483,7 +7483,7 @@ End Class
         <Fact>
         Public Sub CreateTupleTypeSymbol_ComparingSymbols()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class C
@@ -7533,7 +7533,7 @@ additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub TupleTargetTypeAndConvert01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -7603,7 +7603,7 @@ End Class
         <Fact>
         Public Sub TupleImplicitConversionFail01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -7652,7 +7652,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
         <Fact>
         Public Sub TupleExplicitConversionFail01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -7698,7 +7698,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
         <Fact>
         Public Sub TupleImplicitConversionFail02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -7747,7 +7747,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
         <Fact>
         Public Sub TupleInferredLambdaStrictOn()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -7817,7 +7817,7 @@ System.ValueTuple`2[System.Int32,VB$AnonymousDelegate_1`2[System.Object,System.O
         <Fact>
         Public Sub TupleImplicitConversionFail03()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -7872,7 +7872,7 @@ BC36625: Lambda expression cannot be converted to 'String' because 'String' is n
         <Fact>
         Public Sub TupleImplicitConversionFail04()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -7921,7 +7921,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
         <Fact>
         Public Sub TupleImplicitConversionFail05()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -7995,7 +7995,7 @@ BC37267: Predefined type 'ValueTuple(Of ,,)' is not defined or imported.
 
         <Fact>
         Public Sub TupleImplicitConversionFail06()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8031,7 +8031,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Strin
 
         <Fact>
         Public Sub TupleExplicitConversionFail06()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8068,7 +8068,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Strin
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub TupleCTypeNullableConversionWithTypelessTuple()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8121,7 +8121,7 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
 
         <Fact>
         Public Sub TupleDirectCastNullableConversionWithTypelessTuple()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8153,7 +8153,7 @@ End Class
 
         <Fact>
         Public Sub TupleTryCastNullableConversionWithTypelessTuple()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8188,7 +8188,7 @@ BC30792: 'TryCast' operand must be reference type, but '(Integer, String)?' is a
 
         <Fact>
         Public Sub TupleTryCastNullableConversionWithTypelessTuple2()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8225,7 +8225,7 @@ BC30311: Value of type '(Integer, Object)' cannot be converted to 'C(Of Integer,
 
         <Fact>
         Public Sub TupleImplicitNullableConversionWithTypelessTuple()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8253,7 +8253,7 @@ End Class
 
         <Fact>
         Public Sub ImplicitConversionOnTypelessTupleWithUserConversion()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off
@@ -8293,7 +8293,7 @@ BC30311: Value of type '(Integer, Object)' cannot be converted to 'C?'.
 
         <Fact>
         Public Sub DirectCastOnTypelessTupleWithUserConversion()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off
@@ -8336,7 +8336,7 @@ BC30311: Value of type '(Integer, Object)' cannot be converted to 'C?'.
 
         <Fact>
         Public Sub TryCastOnTypelessTupleWithUserConversion()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off
@@ -8379,7 +8379,7 @@ BC30792: 'TryCast' operand must be reference type, but 'C?' is a value type.
 
         <Fact>
         Public Sub CTypeOnTypelessTupleWithUserConversion()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off
@@ -8420,7 +8420,7 @@ BC30311: Value of type '(Integer, Object)' cannot be converted to 'C?'.
         <Fact>
         Public Sub TupleTargetTypeLambda()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -8460,7 +8460,7 @@ BC30521: Overload resolution failed because no accessible 'Test' is most specifi
         <Fact>
         Public Sub TupleTargetTypeLambda1()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -8830,7 +8830,7 @@ End Class
  "
 
             Dim tree = Parse(source, options:=TestOptions.Regular)
-            Dim comp = CreateCompilationWithMscorlib(tree)
+            Dim comp = CreateCompilationWithMscorlib40(tree)
 
             Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
             Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
@@ -8856,7 +8856,7 @@ End Class
  "
 
             Dim tree = Parse(source, options:=TestOptions.Regular)
-            Dim comp = CreateCompilationWithMscorlib(tree)
+            Dim comp = CreateCompilationWithMscorlib40(tree)
 
             Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
             Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
@@ -8868,7 +8868,7 @@ End Class
 
         <Fact>
         Public Sub RetargetTupleErrorType()
-            Dim libComp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim libComp = CreateCompilationWithMscorlib40AndVBRuntime(
  <compilation>
      <file name="a.vb">
 Public Class A
@@ -8881,7 +8881,7 @@ End Class
             libComp.AssertNoDiagnostics()
 
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
  <compilation>
      <file name="a.vb">
 Public Class B
@@ -8933,7 +8933,7 @@ End Module
         <Fact>
         Public Sub CaseSensitivity002()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
         <![CDATA[
@@ -9924,7 +9924,7 @@ additionalReferences:=s_valueTupleRefs)
         <Fact>
         <WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
         Public Sub BadOverloadWithTupleLiteralWithNaturalType()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -9955,7 +9955,7 @@ End Module
         <Fact>
         <WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
         Public Sub BadOverloadWithTupleLiteralWithNothing()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -9986,7 +9986,7 @@ End Module
         <Fact>
         <WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
         Public Sub BadOverloadWithTupleLiteralWithAddressOf()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -10036,7 +10036,7 @@ End Module
         <Fact()>
         <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
         Public Sub TupleCoVariance()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface I(Of Out T)
@@ -10056,7 +10056,7 @@ BC36726: Type 'T' cannot be used for the 'T2' in 'System.ValueTuple(Of T1, T2)' 
         <Fact()>
         <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
         Public Sub TupleCoVariance2()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface I(Of Out T)
@@ -10076,7 +10076,7 @@ BC36726: Type 'T' cannot be used for the 'T2' in 'System.ValueTuple(Of T1, T2)' 
         <Fact()>
         <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
         Public Sub TupleContraVariance()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface I(Of In T)
@@ -11187,13 +11187,13 @@ False
 True
 False
 "
-            Dim [lib] = CreateCompilationWithMscorlibAndVBRuntime(tuple, options:=TestOptions.ReleaseDll)
+            Dim [lib] = CreateCompilationWithMscorlib40AndVBRuntime(tuple, options:=TestOptions.ReleaseDll)
             [lib].VerifyEmitDiagnostics()
 
-            Dim consumer1 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].ToMetadataReference()})
+            Dim consumer1 = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].ToMetadataReference()})
             CompileAndVerify(consumer1, expectedOutput:=expectedOutput).VerifyDiagnostics()
 
-            Dim consumer2 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].EmitToImageReference()})
+            Dim consumer2 = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].EmitToImageReference()})
             CompileAndVerify(consumer2, expectedOutput:=expectedOutput).VerifyDiagnostics()
         End Sub
 
@@ -11427,19 +11427,19 @@ False
 True
 False
 "
-            Dim [lib] = CreateCompilationWithMscorlibAndVBRuntime(tuple, options:=TestOptions.ReleaseDll)
+            Dim [lib] = CreateCompilationWithMscorlib40AndVBRuntime(tuple, options:=TestOptions.ReleaseDll)
             [lib].VerifyEmitDiagnostics()
 
-            Dim consumer1 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].ToMetadataReference()})
+            Dim consumer1 = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].ToMetadataReference()})
             CompileAndVerify(consumer1, expectedOutput:=expectedOutput).VerifyDiagnostics()
 
-            Dim consumer2 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].EmitToImageReference()})
+            Dim consumer2 = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].EmitToImageReference()})
             CompileAndVerify(consumer2, expectedOutput:=expectedOutput).VerifyDiagnostics()
         End Sub
 
         <Fact>
         Public Sub TupleConversion01()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 
@@ -11482,7 +11482,7 @@ BC41009: The tuple element name 'f' is ignored because a different name or no na
         <Fact>
         Public Sub TupleConversion01_StrictOn()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -11535,7 +11535,7 @@ BC41009: The tuple element name 'f' is ignored because a different name or no na
         <WorkItem(11288, "https://github.com/dotnet/roslyn/issues/11288")>
         Public Sub TupleConversion02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -11559,7 +11559,7 @@ BC30311: Value of type '(Integer, Object, Integer)' cannot be converted to '(c A
         <Fact>
         Public Sub TupleConvertedType01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -11604,7 +11604,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType01_StrictOn()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -11635,7 +11635,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType01insource()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -11677,7 +11677,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType01insourceImplicit()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -11708,7 +11708,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -11753,7 +11753,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType02insource00()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -11788,7 +11788,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType02insource00_StrictOn()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -11823,7 +11823,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType02insource01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -11857,7 +11857,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType02insource01_StrictOn()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -11892,7 +11892,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType02insource02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -11926,7 +11926,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType03()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -11956,7 +11956,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType03insource()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -11991,7 +11991,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType04()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -12025,7 +12025,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType05()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -12055,7 +12055,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType05insource()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -12085,7 +12085,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType05insource_StrictOn()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -12116,7 +12116,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType06()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -12160,7 +12160,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedType06insource()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -12202,7 +12202,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedTypeNull01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -12232,7 +12232,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedTypeNull01insource()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module C
@@ -12274,7 +12274,7 @@ End Module
         <Fact>
         Public Sub TupleConvertedTypeUDC01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class C
@@ -12318,7 +12318,7 @@ options:=TestOptions.DebugExe)
         <Fact>
         Public Sub TupleConvertedTypeUDC01_StrictOn()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -12360,7 +12360,7 @@ BC30512: Option Strict On disallows implicit conversions from 'C.C1' to 'String'
         <Fact>
         Public Sub TupleConvertedTypeUDC01insource()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class C
@@ -12409,7 +12409,7 @@ options:=TestOptions.DebugExe)
         <WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")>
         Public Sub TupleConvertedTypeUDC02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class C
@@ -12453,7 +12453,7 @@ options:=TestOptions.DebugExe)
         <Fact>
         Public Sub TupleConvertedTypeUDC03()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class C
@@ -12500,7 +12500,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub TupleConvertedTypeUDC03_StrictOn()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -12550,7 +12550,7 @@ BC30512: Option Strict On disallows implicit conversions from '(String, String)'
         <WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")>
         Public Sub TupleConvertedTypeUDC04()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -12616,7 +12616,7 @@ options:=TestOptions.DebugExe)
         <WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")>
         Public Sub TupleConvertedTypeUDC05()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -12688,7 +12688,7 @@ options:=TestOptions.DebugExe)
         <WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")>
         Public Sub TupleConvertedTypeUDC06()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -12759,7 +12759,7 @@ options:=TestOptions.DebugExe)
         <Fact>
         Public Sub TupleConvertedTypeUDC07_StrictOff_Narrowing()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -12801,7 +12801,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub TupleConvertedTypeUDC07()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -12844,7 +12844,7 @@ BC30512: Option Strict On disallows implicit conversions from '(Integer, String)
         <Fact>
         Public Sub Inference01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -12883,7 +12883,7 @@ third
         <Fact>
         Public Sub Inference02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -12942,7 +12942,7 @@ first")
         <Fact>
         Public Sub DelegateRelaxationLevel_01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -12989,7 +12989,7 @@ second")
         <Fact>
         Public Sub DelegateRelaxationLevel_02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -13044,7 +13044,7 @@ third")
         <Fact>
         Public Sub DelegateRelaxationLevel_03()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -13089,7 +13089,7 @@ options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_val
         <Fact>
         Public Sub DelegateRelaxationLevel_04()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -13146,7 +13146,7 @@ options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_val
         <Fact>
         Public Sub DelegateRelaxationLevel_05()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -13191,7 +13191,7 @@ options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_val
         <Fact>
         Public Sub DelegateRelaxationLevel_06()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -13229,7 +13229,7 @@ options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_val
         <Fact>
         Public Sub DelegateRelaxationLevel_07()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -13267,7 +13267,7 @@ options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_val
         <Fact>
         Public Sub DelegateRelaxationLevel_08()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -13305,7 +13305,7 @@ options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_val
         <Fact>
         Public Sub DelegateRelaxationLevel_09()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -13343,7 +13343,7 @@ options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_val
         <Fact>
         Public Sub AnonymousDelegate_01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -13388,7 +13388,7 @@ second")
         <WorkItem(14530, "https://github.com/dotnet/roslyn/issues/14530")>
         Public Sub AnonymousDelegate_02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -13438,7 +13438,7 @@ third")
         <Fact>
         Public Sub UserDefinedConversions_01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -13483,7 +13483,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub UserDefinedConversions_02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -13530,7 +13530,7 @@ False
         <WorkItem(14530, "https://github.com/dotnet/roslyn/issues/14530")>
         Public Sub UserDefinedConversions_03()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -13576,7 +13576,7 @@ System.Func`2[System.Int32,System.Int32]
         <Fact>
         Public Sub Inference02_Addressof()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -13615,7 +13615,7 @@ third
         <Fact>
         Public Sub Inference03_01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -13649,7 +13649,7 @@ BC30521: Overload resolution failed because no accessible 'Test' is most specifi
         <Fact>
         Public Sub Inference03_02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -13680,7 +13680,7 @@ third
         <Fact>
         Public Sub Inference03_03()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -13709,7 +13709,7 @@ second
         <Fact>
         Public Sub Inference05()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -13748,7 +13748,7 @@ second
         <Fact>
         Public Sub Inference08()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -13795,7 +13795,7 @@ test2_2
         <Fact>
         Public Sub Inference08t()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -13845,7 +13845,7 @@ test2_2
         <Fact>
         Public Sub Inference09()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -13869,7 +13869,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub Inference10()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -13899,7 +13899,7 @@ BC36651: Data type(s) of the type parameter(s) in method 'Public Shared Sub Test
         <Fact>
         Public Sub Inference11()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -13947,7 +13947,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub Inference12()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -13980,7 +13980,7 @@ System.ValueTuple`2[System.Int32,System.Int32]
         <WorkItem(14152, "https://github.com/dotnet/roslyn/issues/14152")>
         Public Sub Inference13()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -14019,7 +14019,7 @@ System.ValueTuple`2[System.Int32,System.Int32]
         <WorkItem(14152, "https://github.com/dotnet/roslyn/issues/14152")>
         Public Sub Inference13a()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -14056,7 +14056,7 @@ BC36645: Data type(s) of the type parameter(s) in method 'Public Shared Sub Test
         <Fact>
         Public Sub Inference14()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -14088,7 +14088,7 @@ System.ValueTuple`2[System.Int32,System.Int32]
         <Fact>
         Public Sub Inference15()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -14116,7 +14116,7 @@ w
         <Fact>
         Public Sub Inference16()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -14150,7 +14150,7 @@ System.Object
 
         <Fact()>
         Public Sub Constraints_01()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace System
@@ -14185,7 +14185,7 @@ BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for typ
 
         <Fact()>
         Public Sub Constraints_02()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -14226,7 +14226,7 @@ BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data t
 
         <Fact()>
         Public Sub Constraints_03()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
@@ -14260,7 +14260,7 @@ BC32106: Type argument 'U' does not satisfy the 'Class' constraint for type para
 
         <Fact()>
         Public Sub Constraints_04()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
@@ -14294,7 +14294,7 @@ BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for typ
 
         <Fact()>
         Public Sub Constraints_05()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
@@ -14340,7 +14340,7 @@ BC32105: Type argument 'Object' does not satisfy the 'Structure' constraint for 
 
         <Fact()>
         Public Sub Constraints_06()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace System
@@ -14387,7 +14387,7 @@ BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for typ
 
         <Fact()>
         Public Sub LongTupleConstraints()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -14447,7 +14447,7 @@ BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data t
         <Fact>
         Public Sub RestrictedTypes1()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -14489,7 +14489,7 @@ BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data t
         <Fact>
         Public Sub RestrictedTypes2()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -14517,7 +14517,7 @@ BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data t
         <Fact>
         Public Sub ImplementInterface()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -14554,7 +14554,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub TupleTypeArguments()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -14586,7 +14586,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub OverrideGenericInterfaceWithDifferentNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -14620,7 +14620,7 @@ BC31035: Interface 'I(Of (b As Integer, a As Integer), (a As Integer, b As Integ
         <Fact>
         Public Sub TupleWithoutFeatureFlag()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -14657,7 +14657,7 @@ BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
         <Fact>
         Public Sub DefaultAndFriendlyElementNames_01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -15087,7 +15087,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub DefaultAndFriendlyElementNames_02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -15220,7 +15220,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub DefaultAndFriendlyElementNames_03()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -15395,7 +15395,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub DefaultAndFriendlyElementNames_04()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -15460,7 +15460,7 @@ BC30456: 'i4' is not a member of '(Integer, Integer)'.
         <Fact>
         Public Sub DefaultAndFriendlyElementNames_05()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -15678,7 +15678,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub DefaultAndFriendlyElementNames_06()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -15790,7 +15790,7 @@ BC30456: 'Item16' is not a member of '(Integer, Integer)'.
         <Fact>
         Public Sub DefaultAndFriendlyElementNames_07()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -15872,7 +15872,7 @@ BC37261: Tuple element name 'Item8' is only allowed at position 8.
         <Fact>
         Public Sub DefaultAndFriendlyElementNames_08()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -15999,7 +15999,7 @@ BC37261: Tuple element name 'Item1' is only allowed at position 1.
         <Fact>
         Public Sub DefaultAndFriendlyElementNames_09()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -16217,7 +16217,7 @@ options:=TestOptions.DebugExe)
         <Fact>
         Public Sub OverriddenMethodWithDifferentTupleNamesInReturn()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Base
@@ -16287,7 +16287,7 @@ BC40001: 'Public Overrides Function M5() As (c As (notA As Integer, notB As Inte
         <Fact>
         Public Sub OverriddenMethodWithNoTupleNamesInReturn()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Base
@@ -16339,7 +16339,7 @@ BC30456: 'a' is not a member of '(Integer, Integer)'.
         <Fact>
         Public Sub OverriddenMethodWithDifferentTupleNamesInReturnUsingTypeArg()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Base
@@ -16404,7 +16404,7 @@ BC40001: 'Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), 
         <Fact>
         Public Sub OverridenMethodWithDifferentTupleNamesInParameters()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Base
@@ -16459,7 +16459,7 @@ BC40001: 'Public Overrides Sub M5(x As (c As (notA As Integer, notB As Integer),
         <Fact>
         Public Sub OverriddenMethodWithDifferentTupleNamesInParametersUsingTypeArg()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Base
@@ -16514,7 +16514,7 @@ BC40001: 'Public Overrides Sub M5(Of T)(x As (c As (notA As T, notB As T), d As 
         <Fact>
         Public Sub HiddenMethodsWithDifferentTupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Base
@@ -16582,7 +16582,7 @@ BC40005: function 'M5' shadows an overridable method in the base class 'Base'. T
         <Fact>
         Public Sub DuplicateMethodDetectionWithDifferentTupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -16639,7 +16639,7 @@ BC37271: 'Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Inte
         <Fact>
         Public Sub HiddenMethodParametersWithDifferentTupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Base
@@ -16697,7 +16697,7 @@ BC40005: sub 'M5' shadows an overridable method in the base class 'Base'. To ove
         <Fact>
         Public Sub ExplicitInterfaceImplementationWithDifferentTupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Interface I0
@@ -16746,7 +16746,7 @@ BC30402: 'MR2' cannot implement function 'MR2' on interface 'I0' because the tup
         <Fact>
         Public Sub InterfaceImplementationOfPropertyWithDifferentTupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Interface I0
@@ -16779,7 +16779,7 @@ BC30402: 'P2' cannot implement property 'P2' on interface 'I0' because the tuple
         <Fact>
         Public Sub InterfaceImplementationOfEventWithDifferentTupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -16813,7 +16813,7 @@ BC30402: 'E2' cannot implement event 'E2' on interface 'I0' because the tuple el
         <Fact>
         Public Sub InterfaceHidingAnotherInterfaceWithDifferentTupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Interface I0
@@ -16852,7 +16852,7 @@ BC40003: function 'MR1' shadows an overloadable member declared in the base inte
         <Fact>
         Public Sub DuplicateInterfaceDetectionWithDifferentTupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Interface I0(Of T)
@@ -16907,7 +16907,7 @@ BC31033: Interface 'I0(Of Integer)' can be implemented only once by this type.
         <Fact>
         Public Sub AccessCheckLooksInsideTuples()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -16934,7 +16934,7 @@ BC30389: 'C2.C3' is not accessible in this context because it is 'Private'.
         <Fact>
         Public Sub AccessCheckLooksInsideTuples2()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -16959,7 +16959,7 @@ BC30508: 'M' cannot expose type 'C.C2' in namespace '<Default>' through class 'C
         <Fact>
         Public Sub DuplicateInterfaceDetectionWithDifferentTupleNames2()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Interface I0(Of T)
@@ -16990,7 +16990,7 @@ BC31033: Interface 'I0(Of Integer)' can be implemented only once by this type.
         <Fact>
         Public Sub ImplicitAndExplicitInterfaceImplementationWithDifferentTupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -17040,7 +17040,7 @@ BC30402: 'Push' cannot implement sub 'Push' on interface 'I0(Of (a As Integer, b
         <Fact>
         Public Sub PartialMethodsWithDifferentTupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Partial Class C1
@@ -17079,7 +17079,7 @@ BC37271: 'Private Sub M2(x As (a As Integer, b As Integer))' has multiple defini
         <Fact>
         Public Sub PartialClassWithDifferentTupleNamesInBaseInterfaces()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Interface I0(Of T)
@@ -17120,7 +17120,7 @@ BC37272: Interface 'I0(Of (Integer, Integer))' can be implemented only once by t
         <Fact>
         Public Sub PartialClassWithDifferentTupleNamesInBaseTypes()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Base(Of T)
@@ -17164,7 +17164,7 @@ BC30928: Base class 'Base(Of (Integer, Integer))' specified for class 'C2' canno
         <Fact>
         Public Sub IndirectInterfaceBasesWithDifferentTupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Interface I0(Of T)
@@ -17244,7 +17244,7 @@ BC37279: Interface 'I0(Of (notA As Integer, notB As Integer))' (via 'I2') can be
         <Fact>
         Public Sub InterfaceUnification()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Interface I0(Of T1)
@@ -17296,7 +17296,7 @@ Public Class Derived(Of T)
 End Class
      ]]></file>
 </compilation>,
-additionalRefs:=s_valueTupleRefs)
+references:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -17339,7 +17339,7 @@ Public Class C
 End Class
      ]]></file>
 </compilation>,
-additionalRefs:=s_valueTupleRefs)
+references:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -17530,7 +17530,7 @@ Public Class C
 End Class
     </file>
 </compilation>,
-additionalRefs:=s_valueTupleRefs)
+references:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics()
 
@@ -17550,7 +17550,7 @@ additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub OverriddenPropertyWithDifferentTupleNamesInReturn()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Base
@@ -17595,7 +17595,7 @@ BC40001: 'Public Overrides Property P5 As (c As (notA As Integer, notB As Intege
         <Fact>
         Public Sub OverriddenPropertyWithNoTupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Base
@@ -17637,7 +17637,7 @@ additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub OverriddenPropertyWithNoTupleNamesWithValueTuple()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Base
@@ -17679,7 +17679,7 @@ additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub OverriddenEventWithDifferentTupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -17721,7 +17721,7 @@ Public Structure S
 End Structure
      ]]></file>
 </compilation>,
-additionalRefs:=s_valueTupleRefs)
+references:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -17736,7 +17736,7 @@ BC30294: Structure 'S' cannot contain an instance of itself:
         <Fact>
         Public Sub AssignNullWithMissingValueTuple()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class S
@@ -17757,7 +17757,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         <Fact>
         Public Sub MultipleImplementsWithDifferentTupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Interface I0
@@ -17805,7 +17805,7 @@ BC30402: 'MR' cannot implement function 'MR' on interface 'I1' because the tuple
         <Fact>
         Public Sub MethodSignatureComparerTest()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -17839,7 +17839,7 @@ additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub IsSameTypeTest()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -17906,7 +17906,7 @@ additionalRefs:=s_valueTupleRefs)
         <Fact>
         Public Sub PropertySignatureComparer_TupleNames()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -18010,7 +18010,7 @@ End Class
         <Fact>
         Public Sub EventSignatureComparerTest()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -18051,7 +18051,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, additionalRefs:=s_valueTupleRefs)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, additionalRefs:=s_valueTupleRefs)
             compilation.AssertTheseDiagnostics()
 
         End Sub
@@ -18059,7 +18059,7 @@ End Class
         <Fact>
         Public Sub Shadowing()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C0
@@ -18090,7 +18090,7 @@ BC40003: function 'M' shadows an overloadable member declared in the base class 
         <Fact>
         Public Sub UnifyDifferentTupleName()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Interface I0(Of T1)
@@ -18115,7 +18115,7 @@ BC32072: Cannot implement interface 'I0(Of (notA As T2, notB As T2))' because it
 
         <Fact>
         Public Sub BC31407ERR_MultipleEventImplMismatch3()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Interface I1
@@ -18144,7 +18144,7 @@ BC31407: Event 'Public Event evtTest3 As I1.evtTest1EventHandler' cannot impleme
 
         <Fact()>
         Public Sub ImplementingEventWithDifferentTupleNames()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -18171,7 +18171,7 @@ BC30402: 'evtTest3' cannot implement event 'evtTest2' on interface 'I1' because 
 
         <Fact()>
         Public Sub ImplementingEventWithNoTupleNames()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -18191,7 +18191,7 @@ End Class
 
         <Fact()>
         Public Sub ImplementingPropertyWithDifferentTupleNames()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -18220,7 +18220,7 @@ BC30402: 'P' cannot implement property 'P' on interface 'I1' because the tuple e
 
         <Fact()>
         Public Sub ImplementingPropertyWithNoTupleNames()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -18245,7 +18245,7 @@ End Class
 
         <Fact()>
         Public Sub ImplementingPropertyWithNoTupleNames2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -18264,7 +18264,7 @@ End Class
 
         <Fact()>
         Public Sub ImplementingMethodWithNoTupleNames()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -18290,7 +18290,7 @@ End Class
 
         <Fact>
         Public Sub BC31407ERR_MultipleEventImplMismatch3_2()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -18319,7 +18319,7 @@ BC30402: 'evtTest3' cannot implement event 'evtTest2' on interface 'I1' because 
         <Fact>
         Public Sub ValueTupleNotStruct0()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Tuples">
     <file name="a.vb">
 class C
@@ -18364,7 +18364,7 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
         <Fact>
         Public Sub ValueTupleNotStruct1()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
             <compilation name="Tuples">
                 <file name="a.vb">
 class C
@@ -18428,7 +18428,7 @@ BC37281: Predefined type 'ValueTuple`8' must be a structure.
 
         <Fact>
         Public Sub ConversionToBase()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class Base(Of T)
@@ -18463,7 +18463,7 @@ BC33030: Conversion operators cannot convert from a base type.
         <Fact>
         Public Sub ValueTupleNotStruct2()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Tuples">
     <file name="a.vb">
 class C
@@ -18502,7 +18502,7 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
         <Fact>
         Public Sub ValueTupleNotStruct2i()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Tuples">
     <file name="a.vb">
 class C
@@ -18535,7 +18535,7 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
         <Fact>
         Public Sub ValueTupleNotStruct3()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Tuples">
     <file name="a.vb">
 class C
@@ -18578,7 +18578,7 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
         <Fact>
         Public Sub ValueTupleNotStruct4()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Tuples">
     <file name="a.vb">
 class C
@@ -18618,7 +18618,7 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
 
         <Fact>
         Public Sub ValueTupleBaseError_NoSystemRuntime()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface I
@@ -18644,7 +18644,7 @@ BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Cultur
         <WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")>
         <Fact>
         Public Sub ValueTupleBaseError_MissingReference()
-            Dim comp0 = CreateCompilationWithMscorlib(
+            Dim comp0 = CreateCompilationWithMscorlib40(
 <compilation name="5a03232e-1a0f-4d1b-99ba-5d7b40ea931e">
     <file name="a.vb">
 Public Class A
@@ -18655,7 +18655,7 @@ End Class
 </compilation>)
             comp0.AssertNoDiagnostics()
             Dim ref0 = comp0.EmitToImageReference()
-            Dim comp1 = CreateCompilationWithMscorlib(
+            Dim comp1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Public Class C(Of T)
@@ -18676,7 +18676,7 @@ End Namespace
 </compilation>,
                 references:={ref0})
             Dim ref1 = comp1.EmitToImageReference()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface I
@@ -18697,7 +18697,7 @@ BC30652: Reference required to assembly '5a03232e-1a0f-4d1b-99ba-5d7b40ea931e, V
             Dim signedDllOptions = TestOptions.ReleaseDll.
                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
                 WithStrongNameProvider(s_defaultDesktopProvider)
-            Dim comp0v1 = CreateCompilationWithMscorlib(
+            Dim comp0v1 = CreateCompilationWithMscorlib40(
 <compilation name="A">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyVersion("1.0.0.0")>
@@ -18708,7 +18708,7 @@ End Class
                 options:=signedDllOptions)
             comp0v1.AssertNoDiagnostics()
             Dim ref0v1 = comp0v1.EmitToImageReference()
-            Dim comp0v2 = CreateCompilationWithMscorlib(
+            Dim comp0v2 = CreateCompilationWithMscorlib40(
 <compilation name="A">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyVersion("2.0.0.0")>
@@ -18719,7 +18719,7 @@ End Class
                 options:=signedDllOptions)
             comp0v2.AssertNoDiagnostics()
             Dim ref0v2 = comp0v2.EmitToImageReference()
-            Dim comp1 = CreateCompilationWithMscorlib(
+            Dim comp1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Public Class B
@@ -18730,7 +18730,7 @@ End Class
                 references:={ref0v1})
             comp1.AssertNoDiagnostics()
             Dim ref1 = comp1.EmitToImageReference()
-            Dim comp2 = CreateCompilationWithMscorlib(
+            Dim comp2 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Namespace System
@@ -18744,7 +18744,7 @@ End Namespace
 </compilation>,
                 references:={ref0v1, ref1})
             Dim ref2 = comp2.EmitToImageReference()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface I
@@ -18763,7 +18763,7 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
         Public Sub TernaryTypeInferenceWithDynamicAndTupleNames()
             ' No dynamic in VB
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Tuples">
         <file name="a.vb"><![CDATA[
 Class C
@@ -18801,7 +18801,7 @@ BC41009: The tuple element name 'c' is ignored because a different name or no na
         <WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")>
         Public Sub NullCoalesingOperatorWithTupleNames()
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Tuples">
         <file name="a.vb"><![CDATA[
 Class C
@@ -18880,7 +18880,7 @@ BC41009: The tuple element name 'c' is ignored because a different name or no na
         <Fact>
         Public Sub TernaryTypeInferenceWithNoNames()
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Tuples">
         <file name="a.vb"><![CDATA[
 Class C
@@ -18925,7 +18925,7 @@ BC41009: The tuple element name 'b' is ignored because a different name or no na
         <Fact>
         Public Sub TernaryTypeInferenceDropsCandidates()
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Tuples">
         <file name="a.vb"><![CDATA[
 Class C
@@ -18957,7 +18957,7 @@ BC41009: The tuple element name 'c' is ignored because a different name or no na
         <Fact>
         Public Sub LambdaTypeInferenceWithTupleNames()
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Tuples">
         <file name="a.vb"><![CDATA[
 Class C
@@ -19009,7 +19009,7 @@ BC41009: The tuple element name 'd' is ignored because a different name or no na
         <Fact>
         Public Sub LambdaTypeInferenceFallsBackToObject()
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Tuples">
         <file name="a.vb"><![CDATA[
 Class C
@@ -19184,7 +19184,7 @@ End Class
         <Fact>
         Public Sub WarnForDroppingNamesInConversion()
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Tuples">
         <file name="a.vb"><![CDATA[
 Class C
@@ -19211,7 +19211,7 @@ BC41009: The tuple element name 'b' is ignored because a different name or no na
         <Fact>
         Public Sub MethodTypeInferenceMergesTupleNames()
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Tuples">
         <file name="a.vb"><![CDATA[
 Class C
@@ -19273,7 +19273,7 @@ BC41009: The tuple element name 'd' is ignored because a different name or no na
         <Fact>
         Public Sub MethodTypeInferenceDropsCandidates()
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Tuples">
         <file name="a.vb"><![CDATA[
 Class C
@@ -19323,7 +19323,7 @@ BC41009: The tuple element name 'd' is ignored because a different name or no na
         <Fact()>
         <WorkItem(14267, "https://github.com/dotnet/roslyn/issues/14267")>
         Public Sub NoSystemRuntimeFacade()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -19351,7 +19351,7 @@ BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Cultur
         <WorkItem(14888, "https://github.com/dotnet/roslyn/issues/14888")>
         Public Sub Iterator_01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -19379,7 +19379,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <WorkItem(14888, "https://github.com/dotnet/roslyn/issues/14888")>
         Public Sub Iterator_02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -19408,7 +19408,7 @@ BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Cultur
         <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
         Public Sub UserDefinedConversionsAndNameMismatch_01()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -19447,7 +19447,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
         Public Sub UserDefinedConversionsAndNameMismatch_02()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -19486,7 +19486,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
         Public Sub UserDefinedConversionsAndNameMismatch_03()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -19529,7 +19529,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
         Public Sub UserDefinedConversionsAndNameMismatch_04()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -19558,7 +19558,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
         Public Sub UserDefinedConversionsAndNameMismatch_05()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -19587,7 +19587,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
         Public Sub UserDefinedConversionsAndNameMismatch_06()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -19632,7 +19632,7 @@ implicit operator AA
 
         <Fact>
         Public Sub GenericConstraintAttributes()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 
@@ -19849,7 +19849,7 @@ val:   -2
         <Fact>
         Public Sub UnusedTuple()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -19902,7 +19902,7 @@ BC42024: Unused local variable: 'x6'.
         <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
         Public Sub TuplePropertyArgs001()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -19932,7 +19932,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
         Public Sub TuplePropertyArgs002()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -19962,7 +19962,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
         Public Sub TuplePropertyArgs003()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -20022,14 +20022,14 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1, references:=s_valueTupleRefs)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1, references:=s_valueTupleRefs)
             AssertTheseDiagnostics(comp1)
 
-            Dim comp2 = CreateCompilationWithMscorlib(src2,
+            Dim comp2 = CreateCompilationWithMscorlib40(src2,
                 references:={SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference()})
             AssertTheseDiagnostics(comp2)
 
-            Dim comp3 = CreateCompilationWithMscorlib(src2,
+            Dim comp3 = CreateCompilationWithMscorlib40(src2,
                 references:={SystemRuntimeFacadeRef, ValueTupleRef, comp1.EmitToImageReference()})
             AssertTheseDiagnostics(comp3)
         End Sub
@@ -20038,7 +20038,7 @@ End Class
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Sub TupleElementVsLocal()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -20100,7 +20100,7 @@ End Module
         <Fact()>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub ImplementSameInterfaceViaBaseWithDifferentTupleNames()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -20135,7 +20135,7 @@ End Class
         <Fact()>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub ImplementSameInterfaceViaBase()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -20170,7 +20170,7 @@ End Class
         <Fact()>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub GenericImplementSameInterfaceViaBaseWithoutTuples()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -20228,7 +20228,7 @@ End Module
         <Fact()>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub GenericImplementSameInterfaceViaBase()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -20286,7 +20286,7 @@ End Module
         <Fact()>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub GenericExplicitIEnumerableImplementationUsedWithDifferentTypesAndTupleNames()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -20374,7 +20374,7 @@ BC32096: 'For Each' on type 'Derived(Of (notA As String, notB As String))' is am
         <Fact()>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub GenericExplicitIEnumerableImplementationUsedWithDifferentTupleNames()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -20459,7 +20459,7 @@ End Module
         <Fact()>
         <WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")>
         Public Sub TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface I1(Of T)
@@ -20481,7 +20481,7 @@ End Class
         <Fact()>
         <WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")>
         Public Sub TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface I1(Of T)
@@ -20507,7 +20507,7 @@ End Class
         <Fact()>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub CanReImplementInterfaceWithDifferentTupleNames()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface ITest(Of T)
@@ -20540,7 +20540,7 @@ End Class
         <Fact()>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface ITest(Of T)
@@ -20577,7 +20577,7 @@ BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB
         <Fact()>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub ReImplementationAndInference()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface ITest(Of T)
@@ -20630,7 +20630,7 @@ End Class
         <Fact()>
         <WorkItem(14091, "https://github.com/dotnet/roslyn/issues/14091")>
         Public Sub TupleTypeWithTooFewElements()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -20670,7 +20670,7 @@ BC37259: Tuple must contain at least two elements.
         <Fact()>
         <WorkItem(14091, "https://github.com/dotnet/roslyn/issues/14091")>
         Public Sub TupleExpressionWithTooFewElements()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -20738,15 +20738,15 @@ Namespace System
 End Namespace
 "
 
-            Dim corlibWithoutVT = CreateCompilation({String.Format(versionTemplate, "1") + corlib_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
+            Dim corlibWithoutVT = CreateEmptyCompilation({String.Format(versionTemplate, "1") + corlib_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
             corlibWithoutVT.AssertTheseDiagnostics()
             Dim corlibWithoutVTRef = corlibWithoutVT.EmitToImageReference()
 
-            Dim corlibWithVT = CreateCompilation({String.Format(versionTemplate, "2") + corlib_vb + valuetuple_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
+            Dim corlibWithVT = CreateEmptyCompilation({String.Format(versionTemplate, "2") + corlib_vb + valuetuple_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
             corlibWithVT.AssertTheseDiagnostics()
             Dim corlibWithVTRef = corlibWithVT.EmitToImageReference()
 
-            Dim libWithVT = CreateCompilation(valuetuple_vb, references:={corlibWithoutVTRef}, options:=TestOptions.DebugDll)
+            Dim libWithVT = CreateEmptyCompilation(valuetuple_vb, references:={corlibWithoutVTRef}, options:=TestOptions.DebugDll)
             libWithVT.VerifyDiagnostics()
             Dim libWithVTRef = libWithVT.EmitToImageReference()
 
@@ -20835,7 +20835,7 @@ End Class
         <WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")>
         Public Sub TypelessTupleWithNoImplicitConversion()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 option strict on
@@ -20871,7 +20871,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer?' to 'Int
         <WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")>
         Public Sub TypelessTupleWithNoImplicitConversion2()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 option strict on
@@ -20907,7 +20907,7 @@ BC30311: Value of type '(e As Integer?, Object)' cannot be converted to '(Intege
         <WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")>
         Public Sub TypedTupleWithNoImplicitConversion()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 option strict on
@@ -21255,7 +21255,7 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:=s_valueTupleRefs)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:=s_valueTupleRefs)
             comp.AssertTheseDiagnostics(
 <expected>
 BC36645: Data type(s) of the type parameter(s) in method 'Public Sub M1(Of T1, T2, T3, T4, T5, T6, T7, TRest As Structure)(a As ValueTuple(Of Func(Of T1), Func(Of T2), Func(Of T3), Func(Of T4), Func(Of T5), Func(Of T6), Func(Of T7), TRest))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
@@ -21354,7 +21354,7 @@ Module Module1
 End Module
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:=s_valueTupleRefs)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:=s_valueTupleRefs)
             comp.VerifyDiagnostics(
     Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "M1").WithArguments("M1", "
     'Public Sub M1(Of (Integer, Integer), Integer)(a As ((Integer, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer)))': Not most specific.
@@ -21366,7 +21366,7 @@ End Module
         <WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")>
         Public Sub TypelessTupleInArrayInitializer()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module Module1
@@ -21405,7 +21405,7 @@ End Module
         <WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")>
         Public Sub TypelessTupleInArrayInitializerWithInferenceFailure()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module Module1
@@ -21444,7 +21444,7 @@ BC30491: Expression does not produce a value.
         <WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")>
         Public Sub TypelessTupleInArrayInitializerWithInferenceSuccess()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module Module1

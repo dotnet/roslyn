@@ -17,7 +17,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib(source, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40(source, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
             comp.VerifyPdb("C.F",
 <symbols>
     <files>
@@ -74,7 +74,7 @@ Class C(Of T)
     End Sub
 End Class
 "
-            Dim c = CreateCompilationWithMscorlib(source, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib40(source, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
 
             Dim v = CompileAndVerify(c)
             v.VerifyIL("C(Of T).F()", "

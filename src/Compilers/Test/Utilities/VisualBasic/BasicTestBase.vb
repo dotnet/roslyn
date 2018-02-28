@@ -186,7 +186,7 @@ Public MustInherit Class BasicTestBase
 
         Dim assemblyName As String = Nothing
         Dim sourceTrees = ParseSourceXml(source, parseOptions, assemblyName)
-        Dim compilation = CreateCompilation(sourceTrees, allReferences, options, assemblyName)
+        Dim compilation = CreateEmptyCompilation(sourceTrees, allReferences, options, assemblyName)
 
         Return MyBase.CompileAndVerifyCommon(
             compilation,
@@ -225,7 +225,7 @@ Public MustInherit Class BasicTestBase
             options = If(expectedOutput Is Nothing, TestOptions.ReleaseDll, TestOptions.ReleaseExe)
         End If
 
-        Dim compilation = CreateCompilation(source, allReferences, options, assemblyName, parseOptions)
+        Dim compilation = CreateEmptyCompilation(source, allReferences, options, assemblyName, parseOptions)
 
         Return MyBase.CompileAndVerifyCommon(
             compilation,
@@ -375,7 +375,7 @@ Public MustInherit Class BasicTestBase
             reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
         End Using
 
-        Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef, MsvbRef, reference}, options)
+        Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef, MsvbRef, reference}, options)
 
         If compilationVerifier IsNot Nothing Then
             compilationVerifier(compilation)
@@ -466,7 +466,7 @@ Public MustInherit Class BasicTestBase
     End Function
 
     Public Shared Shadows Function GetPdbXml(source As XElement, Optional options As VisualBasicCompilationOptions = Nothing, Optional methodName As String = "") As XElement
-        Dim compilation = CreateCompilationWithMscorlib(source, options)
+        Dim compilation = CreateCompilationWithMscorlib40(source, options)
         compilation.VerifyDiagnostics()
         Return GetPdbXml(compilation, methodName)
     End Function
