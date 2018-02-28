@@ -1322,7 +1322,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // The well-formed cases:
             // var ($$, y) = e;
             // (var $$, var y) = e;
-            if (leftToken.Parent.IsKind(SyntaxKind.SingleVariableDesignation, SyntaxKind.ParenthesizedVariableDesignation))
+            if (leftToken.Parent.IsKind(SyntaxKind.ParenthesizedVariableDesignation) ||
+                leftToken.Parent.IsParentKind(SyntaxKind.ParenthesizedVariableDesignation))
             {
                 return true;
             }

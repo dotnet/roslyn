@@ -153,5 +153,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         {
             VerifyFalse(AddInsideMethod(@"var $$"));
         }
+
+        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084#issuecomment-369075537")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void FalseAfterPattern1()
+        {
+            VerifyFalse(AddInsideMethod(@"if (1 is int i $$"));
+        }
+
+        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084#issuecomment-369075537")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void FalseAfterPattern2()
+        {
+            VerifyFalse(AddInsideMethod(@"if (1 is int i $$);"));
+        }
+
+        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084#issuecomment-369075537")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void FalseAfterPattern3()
+        {
+            VerifyFalse(AddInsideMethod(@"switch (1) { case int i $$ }"));
+        }
     }
 }
