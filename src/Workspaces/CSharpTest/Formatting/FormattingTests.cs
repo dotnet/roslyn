@@ -8022,5 +8022,12 @@ class C
 }";
             await AssertFormatAsync(code, code);
         }
-    }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(25098, "https://github.com/dotnet/roslyn/issues/25098")]
+        public async Task FormatSingleStructDeclaration()
+        {
+            await Formatter.FormatAsync(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
+        }
+}
 }
