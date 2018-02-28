@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -14,12 +15,28 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
         {
             public Analyzer(SemanticModel semanticModel, CancellationToken cancellationToken) : base(semanticModel, cancellationToken) { }
 
-            protected static IInvocationOperation FindParentInvocationOperation(IOperation operation)
+            protected ImmutableArray<IAnonymousFunctionOperation> FindAnonymousFunctionsFromParentInvocationOperation(SyntaxNode node)
             {
-                operation = operation.Parent;
-                while (operation.Kind != OperationKind.Invocation)
+                var operation = FindParentInvocationOperation(node);
+
+                if (operation != null)
                 {
-                    operation = operation.Parent;
+                    return ImmutableArray
+                        .CreateRange(operation.Arguments.Where(a => a.Value.Kind == OperationKind.DelegateCreation)
+                        .Select(argumentOperation => (argumentOperation.Value as IDelegateCreationOperation).Target as IAnonymousFunctionOperation));
+                }
+                else
+                {
+                    return ImmutableArray.Create<IAnonymousFunctionOperation>();
+                }
+            }
+
+            private IInvocationOperation FindParentInvocationOperation(SyntaxNode node)
+            {
+                var operation = GetOperation(node)?.Parent;
+                while (operation?.Kind != OperationKind.Invocation)
+                {
+                    operation = operation?.Parent;
                     if (operation is null)
                     {
                         return null;

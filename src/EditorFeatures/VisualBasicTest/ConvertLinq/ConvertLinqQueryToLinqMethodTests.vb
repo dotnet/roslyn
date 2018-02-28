@@ -16,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
             Return New VisualBasicConvertLinqQueryToLinqMethodProvider()
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
         Public Async Function Conversion_WhereOrderByTrivialSelect() As Task
             Await Test(
@@ -42,60 +41,54 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
         Public Async Function Conversion_SelectWithType() As Task
-            Await Test("From x As String In New Object() {""1""} Select x", "New Object() {""1""}.Select(Function(x) TryCast(x, String))")
+            Await Test("From x As String In New Object() {""1""} Select x", "New Object() {""1""}.Cast(Of String)()")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
         Public Async Function Conversion_ReduceUnnecessarySelect() As Task
-            Await Test(
-"From a In New Integer() {1, 2, 3} Select a",
-"New Integer() {1, 2, 3}")
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
-        Public Async Function Conversion_Group() As Task
-            Await Test("From w In New String() { ""apples"", ""blueberries"", ""oranges"", ""bananas"", ""apricots"" }
-Group w By FirstLetter = w(0) Into fruitGroup = Group
-Where fruitGroup.Count >= 2
-Select Words = fruitGroup.Count(), FirstLetter", "")
+            Await Test("From a In New Integer() {1, 2, 3} Select a", "New Integer() {1, 2, 3}")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
         Public Async Function Conversion_DoubleFrom() As Task
             Await Test(
 "From w In ""aaa bbb ccc"".Split("" "") From c In w Select c",
-"""aaa bbb ccc"".Split("" "")Function(w, c) New With {w, c
-       }).Select(Function(")
+"""aaa bbb ccc"".Split("" "").SelectMany(Function(w) w, Function(w, c) c)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
-        Public Async Function Conversion_Join() As Task
-            Await Test(
-"From a In New Integer() {1, 2, 3} Join b In New Integer(){4} On a Equals b",
-"new String() { ""aa bb"", ""ee ff"", ""ii"" }
-")
+        Public Async Function NoDiagnostics_Group() As Task
+            Await TestNoDiagnostics("From w In New String() { ""apples"", ""blueberries"", ""oranges"", ""bananas"", ""apricots"" }
+Group w By FirstLetter = w(0) Into fruitGroup = Group
+Where fruitGroup.Count >= 2
+Select Words = fruitGroup.Count(), FirstLetter")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
-        Public Async Function Conversion_Let1() As Task
-            Await Test("From sentence In new String() { ""aa bb"", ""ee ff"", ""ii"" }
+        Public Async Function NoDiagnostics_Join() As Task
+            Await TestNoDiagnostics("From a In New Integer() {1, 2, 3} Join b In New Integer(){4} On a Equals b")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        Public Async Function NoDiagnostics_Let1() As Task
+            Await TestNoDiagnostics("From sentence In new String() { ""aa bb"", ""ee ff"", ""ii"" }
 let words = sentence.Split("" "")
 from word in words
 let w = word.ToLower()
 where w(0) = ""a""
-select word", "")
+select word")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
-        Public Async Function Conversion_Let2() As Task
-            Await Test("From x in ""123""
+        Public Async Function NoDiagnostics_Let2() As Task
+            Await TestNoDiagnostics("From x in ""123""
 Let z = x.ToString()
-Select Integer.Parse(z)", "")
+Select Integer.Parse(z)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
-        Public Async Function Conversion_GroupBy() As Task
-            Await Test("From x In New Integer() {1} Group By year = x * 2 Into g = Group, Count()", "")
+        Public Async Function NoDiagnostics_GroupBy() As Task
+            Await TestNoDiagnostics("From x In New Integer() {1} Group By year = x * 2 Into g = Group, Count()")
         End Function
 
 
@@ -11437,38 +11430,6 @@ Select Integer.Parse(z)", "")
 
         '                VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         '            End Sub
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
