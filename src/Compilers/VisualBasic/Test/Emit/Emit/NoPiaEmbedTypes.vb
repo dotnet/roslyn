@@ -4249,7 +4249,7 @@ BC35000: Requested operation is not available because the runtime library functi
 ]]></file>
                            </compilation>
             Dim reference1 = CompileIL(sources1, prependDefaultHeader:=False, embedInteropTypes:=True)
-            CompileAndVerify(sources2, additionalRefs:={reference1}, symbolValidator:=
+            CompileAndVerify(sources2, references:={reference1}, symbolValidator:=
                                                 Sub([module] As ModuleSymbol)
                                                     DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                     Dim ia = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("IA")
@@ -4320,7 +4320,7 @@ BC35000: Requested operation is not available because the runtime library functi
 ]]></file>
                            </compilation>
             Dim reference1 = CompileIL(sources1, prependDefaultHeader:=False, embedInteropTypes:=True)
-            CompileAndVerify(sources2, additionalRefs:={reference1}, symbolValidator:=
+            CompileAndVerify(sources2, references:={reference1}, symbolValidator:=
                                                 Sub([module] As ModuleSymbol)
                                                     DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                     Dim ia = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("IA")

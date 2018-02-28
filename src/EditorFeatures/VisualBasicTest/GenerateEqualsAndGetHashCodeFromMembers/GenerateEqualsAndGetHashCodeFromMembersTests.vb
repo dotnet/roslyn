@@ -4,16 +4,17 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 Imports Microsoft.CodeAnalysis.PickMembers
+Imports Microsoft.CodeAnalysis.VisualBasic.GenerateEqualsAndGetHashCodeFromMembers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructorFromMembers
     Public Class GenerateEqualsAndGetHashCodeFromMembersTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Private Const GenerateOperatorsId = GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId
-        Private Const ImplementIEquatableId = GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId
+        Private Const GenerateOperatorsId = AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId
+        Private Const ImplementIEquatableId = AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(
+            Return New VisualBasicGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(
                 DirectCast(parameters.fixProviderData, IPickMembersService))
         End Function
 
@@ -52,7 +53,9 @@ End Class",
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Return -1757793268 + a.GetHashCode()
+        Dim hashCode As Long = -468965076
+        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
+        Return hashCode
     End Function
 End Class",
 index:=1)
@@ -75,7 +78,9 @@ End Class",
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Return -1757793268 + a.GetHashCode()
+        Dim hashCode As Long = -468965076
+        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
+        Return hashCode
     End Function
 End Class",
 index:=1)
@@ -267,6 +272,157 @@ Class Program
 End Class",
 chosenSymbols:=Nothing,
 optionsCallback:=Sub(Options) EnableOption(Options, ImplementIEquatableId))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestGetHashCodeWithOverflowChecking() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Z
+    [|Private a As Integer
+    Private b As Integer|]
+End Class",
+"Option Strict On
+Class Z
+    Private a As Integer
+    Private b As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim z = TryCast(obj, Z)
+        Return z IsNot Nothing AndAlso
+               a = z.a AndAlso
+               b = z.b
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Dim hashCode As Long = 2118541809
+        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
+        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
+        Return CType(hashCode, Integer)
+    End Function
+End Class",
+index:=1, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, checkOverflow:=True))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestGetHashCodeWithoutOverflowChecking() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Z
+    [|Private a As Integer|]
+End Class",
+"Class Z
+    Private a As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim z = TryCast(obj, Z)
+        Return z IsNot Nothing AndAlso
+               a = z.a
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Return -1757793268 + a.GetHashCode()
+    End Function
+End Class",
+index:=1, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, checkOverflow:=False))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestMultipleValuesWithoutValueTuple() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Z
+    [|Private a As Integer
+    Private b As Integer|]
+End Class",
+"Class Z
+    Private a As Integer
+    Private b As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim z = TryCast(obj, Z)
+        Return z IsNot Nothing AndAlso
+               a = z.a AndAlso
+               b = z.b
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Dim hashCode As Long = 2118541809
+        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
+        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
+        Return hashCode
+    End Function
+End Class",
+index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestMultipleValuesWithValueTupleOneValue() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Namespace System
+    Public Structure ValueTuple
+    End Structure
+End Namespace
+Class Z
+    [|Private a As Integer|]
+    Private b As Integer
+End Class",
+"
+Namespace System
+    Public Structure ValueTuple
+    End Structure
+End Namespace
+Class Z
+    Private a As Integer
+    Private b As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim z = TryCast(obj, Z)
+        Return z IsNot Nothing AndAlso
+               a = z.a
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Dim hashCode As Long = -468965076
+        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
+        Return hashCode
+    End Function
+End Class",
+index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestMultipleValuesWithValueTupleTwoValues() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Namespace System
+    Public Structure ValueTuple
+    End Structure
+End Namespace
+Class Z
+    [|Private a As Integer
+    Private b As Integer|]
+End Class",
+"
+Namespace System
+    Public Structure ValueTuple
+    End Structure
+End Namespace
+Class Z
+    Private a As Integer
+    Private b As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim z = TryCast(obj, Z)
+        Return z IsNot Nothing AndAlso
+               a = z.a AndAlso
+               b = z.b
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Return (a, b).GetHashCode()
+    End Function
+End Class",
+index:=1)
         End Function
     End Class
 End Namespace

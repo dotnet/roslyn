@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -218,6 +219,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// is empty, the returned task waits for an element to be enqueued. If <see cref="Complete"/> 
         /// is called before an element becomes available, the returned task is cancelled.
         /// </summary>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         public Task<TElement> DequeueAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             return WithCancellation(DequeueAsyncCore(), cancellationToken);
@@ -227,6 +229,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// 
         /// Note: The early cancellation behavior is intentional.
         /// </summary>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         private static Task<T> WithCancellation<T>(Task<T> task, CancellationToken cancellationToken)
         {
             if (task.IsCompleted || !cancellationToken.CanBeCanceled)
@@ -242,6 +245,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return task.ContinueWith(t => t, cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default).Unwrap();
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         private Task<TElement> DequeueAsyncCore()
         {
             lock (SyncObject)

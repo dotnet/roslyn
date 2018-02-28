@@ -11,9 +11,12 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     {
         // NFW API let caller to customize watson report to make them better bucketed by
         // putting custom string in reserved slots. normally those 3 slots will be empty.
-        private const int Reserved1 = 8;
-        private const int Reserved2 = 7;
-        private const int Reserved3 = 9;
+        private const int Reserved1 = 7;
+        private const int Reserved2 = 6;
+
+        // replace exception slot for callstack since the exception (with empty callstack) 
+        // given is synthesized one that doesn't provide any meaningful data
+        private const int Reserved3 = 3;
 
         /// <summary>
         /// This sets extra watson bucket parameters to make bucketting better
@@ -23,9 +26,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             if (emptyCallstack)
             {
-                // if exception we got started with empty callstack, put runtime
-                // callstack in one of reserved slot for better bucketting
-                fault.SetBucketParameter(Reserved3, Environment.StackTrace);
+                // if exception we got started with empty callstack, put hash of runtime
+                // callstack in one of reserved slot for better bucketting.
+                // we put hash since NFW just takes certain length of callstack which
+                // makes the callstack useless
+                fault.SetBucketParameter(Reserved3, $"{Environment.StackTrace?.GetHashCode() ?? 0}");
             }
 
             switch (exception)

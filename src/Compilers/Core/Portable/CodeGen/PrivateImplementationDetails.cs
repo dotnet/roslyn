@@ -265,6 +265,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal static string GenerateDataFieldName(ImmutableArray<byte> data)
         {
+            // TODO: replace SAH1 with non-crypto alg: https://github.com/dotnet/roslyn/issues/24737
             var hash = CryptographicHashProvider.ComputeSha1(data);
             char[] c = new char[hash.Length * 2];
             int i = 0;

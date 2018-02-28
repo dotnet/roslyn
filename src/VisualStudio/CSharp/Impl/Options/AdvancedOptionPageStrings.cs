@@ -18,6 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Perform_editor_feature_analysis_in_external_process
             => ServicesVSResources.Perform_editor_feature_analysis_in_external_process;
 
+        public static string Option_Enable_navigation_to_decompiled_sources
+            => ServicesVSResources.Enable_navigation_to_decompiled_sources;
+
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
 

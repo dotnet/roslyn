@@ -284,7 +284,7 @@ End Class
 
             Dim verifier = CompileAndVerify(
                 allDelegates,
-                additionalRefs:={
+                references:={
                     winRtDelegateLibrary,
                     nonWinRtDelegateLibrary},
                 symbolValidator:=validator)

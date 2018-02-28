@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void RefReassignmentExpressions()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     ref readonly int M(ref int rx)
@@ -109,7 +109,7 @@ class C
         }
     }
 }", options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
             var m = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
             comp.VerifyOperationTree(m, @"
@@ -201,7 +201,7 @@ class RefEnumerable
         public bool MoveNext() => ++_current != _arr.Length;
     }
 }", options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
             var m = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
             comp.VerifyOperationTree(m, @"
@@ -256,7 +256,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (7,15): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         Test2(new object(), null);
@@ -309,7 +309,7 @@ public class C
         a = b = c = 1;
     }
 }";
-            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -340,7 +340,7 @@ public class C
         {
             var sourceCode = TestResource.AllInOneCSharpCode;
 
-            var compilation = CreateStandardCompilation(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
+            var compilation = CreateCompilationWithMscorlib40(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
 
@@ -356,7 +356,7 @@ public class C
 @"
 System.Console.WriteLine();
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
@@ -374,7 +374,7 @@ System.Console.WriteLine();
         {
             var sourceCode = TestResource.AllInOneCSharpCode;
             
-            var compilation = CreateStandardCompilation(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
+            var compilation = CreateCompilationWithMscorlib40(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
 
@@ -404,7 +404,7 @@ public class Test
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 

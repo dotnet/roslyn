@@ -6118,6 +6118,9 @@ End Class
 BC30573: Error in project-level import '<xmlns:p="p2">' at '<xmlns:p="p2">' : XML namespace prefix 'p' is already declared.
 BC30573: Error in project-level import '<xmlns="default2">' at '<xmlns="default2">' : XML namespace prefix '' is already declared.
 ]]></errors>)
+            Dim embedded = compilation.GetTypeByMetadataName("Microsoft.VisualBasic.Embedded")
+            Assert.IsType(Of EmbeddedSymbolManager.EmbeddedNamedTypeSymbol)(embedded)
+            Assert.False(DirectCast(embedded, INamedTypeSymbol).IsSerializable)
         End Sub
 
         <Fact>
@@ -23832,7 +23835,7 @@ End Namespace
 
             CompileAndVerify(
                 source:= code,
-                additionalRefs:= { ilReference },
+                references:= { ilReference },
                 expectedOutput:= "TEST VALUE")
         End Sub
         
@@ -24089,7 +24092,7 @@ End Namespace
 
             CompileAndVerify(
                 source:=codeA,
-                additionalRefs:={referenceB, referenceC},
+                references:={referenceB, referenceC},
                 expectedOutput:="obj is nothing")
 
             Dim codeC2 = "
@@ -24130,7 +24133,7 @@ End Namespace"
 
             CompileAndVerify(
                 source:=codeA,
-                additionalRefs:={referenceB, referenceC2, referenceD},
+                references:={referenceB, referenceC2, referenceD},
                 expectedOutput:="obj is nothing")
         End Sub
 

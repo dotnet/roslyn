@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class AssetService
     {
-        // PREVIEW: unfortunately, I need dummy workspace since workspace services can be workspace specific
-        private static readonly Serializer s_serializer = new Serializer(new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: "dummy"));
+        private static readonly Serializer s_serializer = new Serializer(SolutionService.PrimaryWorkspace);
 
         private readonly int _scopeId;
         private readonly AssetStorage _assetStorage;

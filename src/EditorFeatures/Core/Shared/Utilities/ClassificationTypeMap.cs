@@ -14,14 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         private readonly Dictionary<string, IClassificationType> _identityMap;
         private readonly IClassificationTypeRegistryService _registryService;
 
-        public IClassificationFormatMapService ClassificationFormatMapService { get; }
-
         [ImportingConstructor]
         internal ClassificationTypeMap(
-            IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService registryService)
         {
-            this.ClassificationFormatMapService = classificationFormatMapService;
             _registryService = registryService;
 
             // Prepopulate the identity map with the constant string values from ClassificationTypeNames

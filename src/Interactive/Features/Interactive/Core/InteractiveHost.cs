@@ -89,11 +89,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             get { return _serverChannel; }
         }
 
-        internal void Dispose(bool joinThreads)
-        {
-            Dispose(joinThreads, disposing: true);
-        }
-
         #endregion
 
         private static string GenerateUniqueChannelLocalName()
@@ -226,25 +221,21 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         ~InteractiveHost()
         {
-            Dispose(joinThreads: false, disposing: false);
+            DisposeRemoteService(disposing: false);
         }
 
         public void Dispose()
         {
-            Dispose(joinThreads: false, disposing: true);
+            DisposeChannel();
+            DisposeRemoteService(disposing: true);
+            GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool joinThreads, bool disposing)
+        private void DisposeRemoteService(bool disposing)
         {
-            if (disposing)
-            {
-                GC.SuppressFinalize(this);
-                DisposeChannel();
-            }
-
             if (_lazyRemoteService != null)
             {
-                _lazyRemoteService.Dispose(joinThreads);
+                _lazyRemoteService.Dispose(disposing);
                 _lazyRemoteService = null;
             }
         }

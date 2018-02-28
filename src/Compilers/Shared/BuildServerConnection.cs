@@ -416,7 +416,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 try
                 {
-                    Process.Start(expectedPath, processArguments);
+                    var startInfo = new ProcessStartInfo()
+                    {
+                        FileName = expectedPath,
+                        Arguments = processArguments,
+                        UseShellExecute = false,
+                        WorkingDirectory = clientDir,
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+
+                    Process.Start(startInfo);
                     return true;
                 }
                 catch
@@ -455,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             catch (Exception ex)
             {
-                Log("Exception checking pipe connection: {0}", ex.Message);
+                LogException(ex, "Checking pipe connection");
                 return false;
             }
         }
@@ -465,7 +477,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             // Identity verification is unavailable in the MSBuild task,
             // but verification is not needed client-side so that's okay.
-            // (unavailable due to lack of internal reflection capabilities in netstandard1.3)
             return true;
         }
 #else
@@ -494,14 +505,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream)
         {
-#if NETSTANDARD1_3
-            return (ObjectSecurity)typeof(PipeStream)
-                .GetTypeInfo()
-                .GetDeclaredMethod("GetAccessControl")
-                ?.Invoke(pipeStream, parameters: null);
-#else
             return pipeStream.GetAccessControl();
-#endif
         }
 
         private static string GetUserName() =>
@@ -532,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return null;
             }
 
-            return $"{userName}.{isAdmin}.{basePipeName}";
+            return $"{userName}.{(isAdmin ? 'T' : 'F')}.{basePipeName}";
         }
 
         internal static string GetBasePipeName(string compilerExeDirectory)
@@ -547,6 +551,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
                 basePipeName = Convert.ToBase64String(bytes)
+                    .Substring(0, 25) // We only have ~50 total characters on Mac, so strip this down
                     .Replace("/", "_")
                     .Replace("=", string.Empty);
             }

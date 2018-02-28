@@ -2348,7 +2348,7 @@ namespace Microsoft.CodeAnalysis
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {
-            options.ValidateOptions(diagnostics, this.MessageProvider);
+            options.ValidateOptions(diagnostics, MessageProvider, Options.Deterministic);
 
             if (debugEntryPoint != null)
             {
@@ -2443,12 +2443,14 @@ namespace Microsoft.CodeAnalysis
 
                 if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Pdb && pdbStreamProvider != null)
                 {
+                    // The algorithm must be specified for deterministic builds (checked earlier).
+                    Debug.Assert(!deterministic || moduleBeingBuilt.PdbChecksumAlgorithm.Name != null);
+
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is
                     // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
                     // only a Stream value.
-                    nativePdbWriter = new Cci.PdbWriter(pePdbFilePath, testSymWriterFactory, deterministic);
+                    nativePdbWriter = new Cci.PdbWriter(pePdbFilePath, testSymWriterFactory, deterministic ? moduleBeingBuilt.PdbChecksumAlgorithm : default);
                 }
-
 
                 Func<Stream> getPeStream = () =>
                 {
@@ -2700,7 +2702,7 @@ namespace Microsoft.CodeAnalysis
                 new Cci.PdbWriter(
                     pdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
                     testSymWriterFactory,
-                    deterministic: false);
+                    hashAlgorithmNameOpt: default);
 
             using (nativePdbWriterOpt)
             {
@@ -2822,6 +2824,12 @@ namespace Microsoft.CodeAnalysis
         /// Can be used to get a total ordering on declarations, for example.
         /// </summary>
         internal abstract int CompareSourceLocations(Location loc1, Location loc2);
+
+        /// <summary>
+        /// Compare two source locations, using their containing trees, and then by Span.First within a tree.
+        /// Can be used to get a total ordering on declarations, for example.
+        /// </summary>
+        internal abstract int CompareSourceLocations(SyntaxReference loc1, SyntaxReference loc2);
 
         /// <summary>
         /// Return the lexically first of two locations.
