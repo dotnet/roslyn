@@ -50,6 +50,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
         /// <summary>
         /// Indicates whether or not the property returns by reference
         /// </summary>

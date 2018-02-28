@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -124,6 +125,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return this.IsGlobalNamespace;
+            }
+        }
+
+        public override bool AreLocalsZeroed
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 

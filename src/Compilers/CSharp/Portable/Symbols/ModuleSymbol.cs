@@ -114,6 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
         /// <summary>
         /// Returns false because module can't be declared as 'static'.
         /// </summary>
