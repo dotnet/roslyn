@@ -240,7 +240,7 @@ namespace Roslyn.Test.Utilities.Desktop
             {
                 var emitData = GetEmitData();
                 emitData.RuntimeData.ExecuteRequested = true;
-                var resultCode = emitData.Manager.Execute(moduleName, args, expectedOutput?.Length, out var output);
+                var resultCode = emitData.Manager.Execute(moduleName, args, expectedOutputLength: expectedOutput?.Length, out var output);
 
                 if (expectedOutput != null && expectedOutput.Trim() != output.Trim())
                 {
@@ -293,7 +293,7 @@ namespace Roslyn.Test.Utilities.Desktop
         }
 
 #if NET461
-        private class Resolver : ILVerify.IResolver
+        private class Resolver : ILVerify.ResolverBase
         {
             private Dictionary<string, ImmutableArray<byte>> imagesByName = new Dictionary<string, ImmutableArray<byte>>();
 
@@ -311,7 +311,7 @@ namespace Roslyn.Test.Utilities.Desktop
                 }
             }
 
-            public PEReader Resolve(AssemblyName name)
+            protected override PEReader ResolveCore(AssemblyName name)
             {
                 if (imagesByName.TryGetValue(name.Name, out var image))
                 {
@@ -335,10 +335,10 @@ namespace Roslyn.Test.Utilities.Desktop
                 verifier.SetSystemModuleName(new AssemblyName("mscorlib"));
             }
 
-            var result = verifier.Verify(new AssemblyName(emitData.MainModule.FullName));
-            if (result.NumErrors > 0)
+            var result = verifier.Verify(resolver.Resolve(new AssemblyName(emitData.MainModule.FullName)));
+            if (result.Count() > 0)
             {
-                throw new IlVerifyException(result.Message, emitData.MainModule.SimpleName);
+                throw new IlVerifyException("ILVerify error PROTOTYPE(ILVerify)", emitData.MainModule.SimpleName);
             }
 #endif
         }
