@@ -162,7 +162,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     case ControlFlowGraph.RegionKind.Root:
                     case ControlFlowGraph.RegionKind.Filter:
                     case ControlFlowGraph.RegionKind.Try:
-                    case ControlFlowGraph.RegionKind.Handler:
+                    case ControlFlowGraph.RegionKind.Catch:
+                    case ControlFlowGraph.RegionKind.Finally:
                     case ControlFlowGraph.RegionKind.Locals:
 
                         if (region.Regions?.Count == 1)
@@ -173,37 +174,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                 Debug.Assert(region.Kind != ControlFlowGraph.RegionKind.Root);
 
                                 // Transfer all content of the sub-region into the current region
-#if DEBUG
-                                subRegion.AboutToFree();
-#endif 
-
                                 region.Locals = region.Locals.Concat(subRegion.Locals);
-                                region.Regions.Clear();
-
-                                int firstBlockToMove = subRegion.FirstBlock.Ordinal;
-
-                                if (subRegion.HasRegions)
-                                {
-                                    foreach (RegionBuilder r in subRegion.Regions)
-                                    {
-                                        for (int i = firstBlockToMove; i < r.FirstBlock.Ordinal; i++)
-                                        {
-                                            Debug.Assert(regionMap[blocks[i]] == subRegion);
-                                            regionMap[blocks[i]] = region;
-                                        }
-
-                                        region.Add(r);
-                                        firstBlockToMove = r.LastBlock.Ordinal + 1;
-                                    }
-                                }
-
-                                for (int i = firstBlockToMove; i <= subRegion.LastBlock.Ordinal; i++)
-                                {
-                                    Debug.Assert(regionMap[blocks[i]] == subRegion);
-                                    regionMap[blocks[i]] = region;
-                                }
-
-                                subRegion.Free();
+                                MergeSubRegionAndFree(subRegion, blocks, regionMap);
                                 result = true;
                                 break;
                             }
@@ -250,6 +222,49 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         /// <summary>
+        /// Merge content of <paramref name="subRegion"/> into its enclosing region and free it.
+        /// </summary>
+        private static void MergeSubRegionAndFree(RegionBuilder subRegion, ArrayBuilder<BasicBlock> blocks, PooledDictionary<BasicBlock, RegionBuilder> regionMap)
+        {
+            Debug.Assert(subRegion.Kind != ControlFlowGraph.RegionKind.Root);
+            RegionBuilder enclosing = subRegion.Enclosing;
+
+#if DEBUG
+            subRegion.AboutToFree();
+#endif
+
+            int firstBlockToMove = subRegion.FirstBlock.Ordinal;
+
+            if (subRegion.HasRegions)
+            {
+                foreach (RegionBuilder r in subRegion.Regions)
+                {
+                    for (int i = firstBlockToMove; i < r.FirstBlock.Ordinal; i++)
+                    {
+                        Debug.Assert(regionMap[blocks[i]] == subRegion);
+                        regionMap[blocks[i]] = enclosing;
+                    }
+
+                    firstBlockToMove = r.LastBlock.Ordinal + 1;
+                }
+
+                enclosing.ReplaceRegion(subRegion, subRegion.Regions);
+            }
+            else
+            {
+                enclosing.Remove(subRegion);
+            }
+
+            for (int i = firstBlockToMove; i <= subRegion.LastBlock.Ordinal; i++)
+            {
+                Debug.Assert(regionMap[blocks[i]] == subRegion);
+                regionMap[blocks[i]] = enclosing;
+            }
+
+            subRegion.Free();
+        }
+
+        /// <summary>
         /// Do a pass to eliminate blocks without statements that can be merged with predecessor(s).
         /// Returns true if any blocks were eliminated
         /// </summary>
@@ -285,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     RegionBuilder currentRegion = regionMap[block];
                     Debug.Assert(currentRegion.Kind == ControlFlowGraph.RegionKind.Filter ||
-                                 (currentRegion.Kind == ControlFlowGraph.RegionKind.Handler && currentRegion.Enclosing.Kind == ControlFlowGraph.RegionKind.TryAndFinally));
+                                 currentRegion.Kind == ControlFlowGraph.RegionKind.Finally);
                     Debug.Assert(block == currentRegion.LastBlock);
                 }
 #endif
@@ -303,6 +318,49 @@ namespace Microsoft.CodeAnalysis.Operations
                     if (currentRegion.FirstBlock == currentRegion.LastBlock)
                     {
                         Debug.Assert(currentRegion.FirstBlock == block);
+                        Debug.Assert(!currentRegion.HasRegions);
+
+                        // Remove Try/Finally if Finally is empty
+                        if (currentRegion.Kind == ControlFlowGraph.RegionKind.Finally &&
+                            block.Statements.IsEmpty && block.InternalConditional.Condition == null &&
+                            block.InternalNext.Destination == null && block.InternalNext.Flags == BasicBlock.BranchFlags.StructuredExceptionHandling &&
+                            block.Predecessors.IsEmpty)
+                        {
+                            // Nothing useful is happening in this finally, let's remove it
+                            RegionBuilder tryAndFinally = currentRegion.Enclosing;
+                            Debug.Assert(tryAndFinally.Kind == ControlFlowGraph.RegionKind.TryAndFinally);
+                            Debug.Assert(tryAndFinally.Regions.Count == 2);
+
+                            RegionBuilder @try = tryAndFinally.Regions.First();
+                            Debug.Assert(@try.Kind == ControlFlowGraph.RegionKind.Try);
+                            Debug.Assert(tryAndFinally.Regions.Last() == currentRegion);
+
+                            // If .try region has locals, let's convert it to .locals, otherwise drop it
+                            if (@try.Locals.IsEmpty)
+                            {
+                                i = @try.FirstBlock.Ordinal - 1; // restart at the first block of removed .try region
+                                MergeSubRegionAndFree(@try, blocks, regionMap);
+                            }
+                            else
+                            {
+                                // PROTOTYPE(dataflow): this code path is unreachable at the moment because we get here before we add locals
+                                //                      to the .try region. But I think we can hit this code path when there is an explicit 
+                                //                      goto at the end of .try once we have handling for gotos. 
+                                @try.Kind = ControlFlowGraph.RegionKind.Locals;
+                                i--; // restart at the block that was following the tryAndFinally
+                            }
+
+                            MergeSubRegionAndFree(currentRegion, blocks, regionMap);
+
+                            RegionBuilder tryAndFinallyEnclosing = tryAndFinally.Enclosing;
+                            MergeSubRegionAndFree(tryAndFinally, blocks, regionMap);
+
+                            count--;
+                            Debug.Assert(regionMap[block] == tryAndFinallyEnclosing);
+                            removeBlock(block, tryAndFinallyEnclosing);
+                            anyRemoved = true;
+                        }
+
                         continue;
                     }
 
@@ -1458,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         Debug.Assert(filterRegion.FirstBlock.Predecessors.IsEmpty);
                     }
 
-                    var handlerRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Handler, catchClause.ExceptionType,
+                    var handlerRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Catch, catchClause.ExceptionType,
                                                           haveFilter ? default : catchClause.Locals);
                     EnterRegion(handlerRegion);
 
@@ -1497,7 +1555,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.Try);
                 LeaveRegion();
 
-                var finallyRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Handler);
+                var finallyRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Finally);
                 EnterRegion(finallyRegion);
                 AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
                 VisitStatement(operation.Finally);
@@ -1781,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitSwitch(ISwitchOperation operation, int? captureIdForResult)
         {
-            return new SwitchStatement(Visit(operation.Value), VisitArray(operation.Cases), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new SwitchStatement(Visit(operation.Value), VisitArray(operation.Cases), operation.ExitLabel, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, int? captureIdForResult)
@@ -1811,18 +1869,18 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitForLoop(IForLoopOperation operation, int? captureIdForResult)
         {
-            return new ForLoopStatement(VisitArray(operation.Before), Visit(operation.Condition), VisitArray(operation.AtLoopBottom), operation.Locals, Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ForLoopStatement(VisitArray(operation.Before), Visit(operation.Condition), VisitArray(operation.AtLoopBottom), operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForToLoop(IForToLoopOperation operation, int? captureIdForResult)
         {
-            return new ForToLoopStatement(operation.Locals, Visit(operation.LoopControlVariable), Visit(operation.InitialValue), Visit(operation.LimitValue), Visit(operation.StepValue), Visit(operation.Body), VisitArray(operation.NextVariables), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ForToLoopStatement(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable), Visit(operation.InitialValue), Visit(operation.LimitValue), Visit(operation.StepValue), Visit(operation.Body), VisitArray(operation.NextVariables), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForEachLoop(IForEachLoopOperation operation, int? captureIdForResult)
         {
             // PROTOTYPE(dataflow): note that the loop control variable can be an IVariableDeclarator directly, and this function is expected to handle it without calling Visit(IVariableDeclarator)
-            return new ForEachLoopStatement(operation.Locals, Visit(operation.LoopControlVariable), Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ForEachLoopStatement(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable), Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitLabeled(ILabeledOperation operation, int? captureIdForResult)

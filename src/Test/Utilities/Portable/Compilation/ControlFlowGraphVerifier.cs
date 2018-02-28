@@ -244,7 +244,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         enterRegion(".catch {R" + regionMap[region] + "}" + $" ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
                         break;
 
-                    case ControlFlowGraph.RegionKind.Handler:
+                    case ControlFlowGraph.RegionKind.Finally:
+                        Assert.Null(region.ExceptionType);
+                        enterRegion(".finally {R" + regionMap[region] + "}");
+                        break;
+
+                    case ControlFlowGraph.RegionKind.Catch:
                         switch (region.Enclosing.Kind)
                         {
                             case ControlFlowGraph.RegionKind.FilterAndHandler:
@@ -254,11 +259,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             case ControlFlowGraph.RegionKind.TryAndCatch:
                                 enterRegion(".catch {R" + regionMap[region] + "}" + $" ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
                                 break;
-                            case ControlFlowGraph.RegionKind.TryAndFinally:
-                                Assert.Null(region.ExceptionType);
-                                enterRegion(".finally {R" + regionMap[region] + "}");
-                                break;
-
                             default:
                                 Assert.False(true, $"Unexpected region kind {region.Enclosing.Kind}");
                                 break;
@@ -305,16 +305,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     case ControlFlowGraph.RegionKind.Locals:
                     case ControlFlowGraph.RegionKind.Filter:
                     case ControlFlowGraph.RegionKind.Try:
+                    case ControlFlowGraph.RegionKind.Finally:
                     case ControlFlowGraph.RegionKind.FilterAndHandler:
                         indent -= 4;
                         appendLine("}");
                         break;
-                    case ControlFlowGraph.RegionKind.Handler:
+                    case ControlFlowGraph.RegionKind.Catch:
                         switch (region.Enclosing.Kind)
                         {
                             case ControlFlowGraph.RegionKind.FilterAndHandler:
                             case ControlFlowGraph.RegionKind.TryAndCatch:
-                            case ControlFlowGraph.RegionKind.TryAndFinally:
                                 goto endRegion;
 
                             default:
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                         break;
 
-                        endRegion:
+endRegion:
                         goto case ControlFlowGraph.RegionKind.Filter;
 
                     case ControlFlowGraph.RegionKind.TryAndCatch:

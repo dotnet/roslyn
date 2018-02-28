@@ -290,7 +290,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For i = 0 T ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For i = 0 T ... Next')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')

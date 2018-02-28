@@ -36,24 +36,29 @@ namespace Microsoft.CodeAnalysis.Operations
             Filter,
 
             /// <summary>
-            /// Region representing either <see cref="ITryOperation.Finally"/>, or <see cref="ICatchClauseOperation.Handler"/>
+            /// Region representing <see cref="ICatchClauseOperation.Handler"/>
             /// </summary>
-            Handler,
+            Catch,
 
             /// <summary>
-            /// Region representing a union of a <see cref="Filter"/> and the corresponding catch <see cref="Handler"/> regions. 
+            /// Region representing a union of a <see cref="Filter"/> and the corresponding catch <see cref="Catch"/> regions. 
             /// Doesn't contain any <see cref="BasicBlock"/>s directly.
             /// </summary>
             FilterAndHandler,
 
             /// <summary>
-            /// Region representing a union of a <see cref="Try"/> and all corresponding catch <see cref="Handler"/>
+            /// Region representing a union of a <see cref="Try"/> and all corresponding catch <see cref="Catch"/>
             /// and <see cref="FilterAndHandler"/> regions. Doesn't contain any <see cref="BasicBlock"/>s directly.
             /// </summary>
             TryAndCatch,
 
             /// <summary>
-            /// Region representing a union of a <see cref="Try"/> and corresponding finally <see cref="Handler"/>
+            /// Region representing <see cref="ITryOperation.Finally"/>
+            /// </summary>
+            Finally,
+
+            /// <summary>
+            /// Region representing a union of a <see cref="Try"/> and corresponding finally <see cref="Finally"/>
             /// region. Doesn't contain any <see cref="BasicBlock"/>s directly.
             /// 
             /// An <see cref="ITryOperation"/> that has a set of <see cref="ITryOperation.Catches"/> and a <see cref="ITryOperation.Finally"/> 
@@ -79,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Operations
             public Region Enclosing { get; private set; }
 
             /// <summary>
-            /// Target exception type for <see cref="RegionKind.Filter"/>, <see cref="RegionKind.Handler"/>, 
+            /// Target exception type for <see cref="RegionKind.Filter"/>, <see cref="RegionKind.Catch"/>, 
             /// <see cref="RegionKind.FilterAndHandler "/>
             /// </summary>
             public ITypeSymbol ExceptionType { get; }
@@ -132,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     case RegionKind.FilterAndHandler:
                         Debug.Assert(Regions.Length == 2);
                         Debug.Assert(Regions[0].Kind == (kind == RegionKind.TryAndFinally ? RegionKind.Try : RegionKind.Filter));
-                        Debug.Assert(Regions[1].Kind == RegionKind.Handler);
+                        Debug.Assert(Regions[1].Kind == (kind == RegionKind.TryAndFinally ? RegionKind.Finally : RegionKind.Catch));
                         Debug.Assert(Regions[0].FirstBlockOrdinal == firstBlockOrdinal);
                         Debug.Assert(Regions[1].LastBlockOrdinal == lastBlockOrdinal);
                         Debug.Assert(Regions[0].LastBlockOrdinal + 1 == Regions[1].FirstBlockOrdinal);
@@ -150,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Operations
                             Debug.Assert(previousLast + 1 == r.FirstBlockOrdinal);
                             previousLast = r.LastBlockOrdinal;
 
-                            Debug.Assert(r.Kind == RegionKind.FilterAndHandler || r.Kind == RegionKind.Handler);
+                            Debug.Assert(r.Kind == RegionKind.FilterAndHandler || r.Kind == RegionKind.Catch);
                         }
 
                         Debug.Assert(previousLast == lastBlockOrdinal);
@@ -160,7 +165,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     case RegionKind.Locals:
                     case RegionKind.Try:
                     case RegionKind.Filter:
-                    case RegionKind.Handler:
+                    case RegionKind.Catch:
+                    case RegionKind.Finally:
                         previousLast = firstBlockOrdinal - 1;
 
                         foreach (Region r in Regions)

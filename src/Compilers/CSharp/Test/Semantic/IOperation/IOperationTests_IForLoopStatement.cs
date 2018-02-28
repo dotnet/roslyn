@@ -29,7 +29,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 3')
@@ -97,7 +97,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (j = 0; ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (j = 0; ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Before:
@@ -133,7 +133,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+      IBranchOperation (BranchKind.Break, Label Id: 1) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -159,7 +159,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (j = 0; ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (j = 0; ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
   Before:
@@ -195,7 +195,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+      IBranchOperation (BranchKind.Break, Label Id: 1) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -221,7 +221,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (i = 0, ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (i = 0, ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
@@ -265,7 +265,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
         WhenTrue: 
-          IBranchOperation (BranchKind.Continue) (OperationKind.Branch, Type: null) (Syntax: 'continue;')
+          IBranchOperation (BranchKind.Continue, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'continue;')
         WhenFalse: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = j + 1;')
@@ -304,7 +304,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (i = 0, ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (i = 0, ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
@@ -348,7 +348,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
         WhenTrue: 
-          IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+          IBranchOperation (BranchKind.Break, Label Id: 1) (OperationKind.Branch, Type: null) (Syntax: 'break;')
         WhenFalse: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = j + 1;')
@@ -386,7 +386,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (;;) ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (;;) ... }')
   Condition: 
     null
   Before(0)
@@ -401,7 +401,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
         WhenTrue: 
-          IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+          IBranchOperation (BranchKind.Break, Label Id: 1) (OperationKind.Branch, Type: null) (Syntax: 'break;')
         WhenFalse: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = i + 2;')
@@ -438,7 +438,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (i = i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (i = i  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 2')
       Left: 
@@ -515,7 +515,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (; i <  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (; i <  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
@@ -558,7 +558,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int k  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int k  ... }')
   Locals: Local_1: System.Int32 k
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'k > 100')
@@ -615,7 +615,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (Initia ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (Initia ... }')
   Condition: 
     IInvocationOperation (System.Boolean C.Conditional()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'Conditional()')
       Instance Receiver: 
@@ -655,7 +655,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ...  = i + 1) ;')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ...  = i + 1) ;')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 100')
@@ -710,7 +710,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 100')
@@ -742,7 +742,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
+      IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
@@ -799,7 +799,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
@@ -831,7 +831,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
+      IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
@@ -894,7 +894,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
@@ -926,7 +926,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
+      IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < j')
@@ -988,7 +988,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
@@ -1020,7 +1020,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
+      IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
@@ -1060,7 +1060,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
               WhenTrue: 
-                IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+                IBranchOperation (BranchKind.Break, Label Id: 3) (OperationKind.Branch, Type: null) (Syntax: 'break;')
               WhenFalse: 
                 null
 ";
@@ -1090,7 +1090,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
@@ -1122,7 +1122,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
+      IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
@@ -1166,7 +1166,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
               WhenTrue: 
-                IBranchOperation (BranchKind.Continue) (OperationKind.Branch, Type: null) (Syntax: 'continue;')
+                IBranchOperation (BranchKind.Continue, Label Id: 2) (OperationKind.Branch, Type: null) (Syntax: 'continue;')
               WhenFalse: 
                 null
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = i + 1;')
@@ -1217,7 +1217,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
@@ -1249,7 +1249,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
+      IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
@@ -1320,7 +1320,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
@@ -1352,7 +1352,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
+      IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
@@ -1403,7 +1403,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
@@ -1424,7 +1424,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
   AtLoopBottom(0)
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
+      IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 5')
@@ -1470,7 +1470,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
     Local_2: System.Int32 j
   Condition: 
@@ -1538,7 +1538,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 50 - x')
@@ -1617,7 +1617,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (; fals ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (; fals ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
   Before(0)
@@ -1660,7 +1660,7 @@ public class F
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (F f =  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (F f =  ... }')
   Locals: Local_1: F f
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'f.i < 5')
@@ -1762,7 +1762,7 @@ public class myFor
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (d.Init ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (d.Init ... }')
   Condition: 
     IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'd.Done')
       Operand: 
@@ -1817,7 +1817,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (var i  ...  = i + 1) ;')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (var i  ...  = i + 1) ;')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
@@ -1879,7 +1879,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (IEnume ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (IEnume ... }')
   Locals: Local_1: System.Collections.Generic.IEnumerable<System.String> str
   Condition: 
     null
@@ -1968,7 +1968,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
   AtLoopBottom(0)
   Body: 
     IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-      IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
+      IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
         Locals: Local_1: System.String item
         LoopControlVariable: 
           IVariableDeclaratorOperation (Symbol: System.String item) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
@@ -2031,7 +2031,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
@@ -2152,7 +2152,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (e = x  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (e = x  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
@@ -2240,7 +2240,7 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
@@ -2345,7 +2345,7 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (C1 i = ... l; i++) { }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (C1 i = ... l; i++) { }')
   Locals: Local_1: C1 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i == null')
@@ -2402,7 +2402,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
   Locals: Local_1: System.Int32 j
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 5')
@@ -2463,7 +2463,7 @@ class Program
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
   Locals: Local_1: System.Int32 j
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 5')
@@ -2522,7 +2522,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '++i < 5')
@@ -2581,7 +2581,7 @@ class Program
 
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'foo(i--) > -5')
@@ -2644,7 +2644,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (; true ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (; true ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Before(0)
@@ -2681,7 +2681,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'for (int k  ... 100, j > 5;')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'for (int k  ... 100, j > 5;')
   Locals: Local_1: System.Int32 k
     Local_2: System.Int32 j
   Condition: 
@@ -2740,7 +2740,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (var j  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (var j  ... }')
   Locals: Local_1: System.Int32 j
     Local_2: System.Int32 i
   Condition: 
@@ -2838,7 +2838,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')

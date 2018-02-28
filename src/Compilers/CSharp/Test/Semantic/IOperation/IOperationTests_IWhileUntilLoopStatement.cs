@@ -33,7 +33,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'do ... le (i < 4);')
+IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'do ... le (i < 4);')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 4')
       Left: 
@@ -90,7 +90,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (i <  ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (i <  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
@@ -144,7 +144,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (cond ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (cond ... }')
   Condition: 
     ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
   Body: 
@@ -211,7 +211,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Body: 
@@ -247,7 +247,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""While-loop break"") (Syntax: '""While-loop break""')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+            IBranchOperation (BranchKind.Break, Label Id: 1) (OperationKind.Branch, Type: null) (Syntax: 'break;')
         WhenFalse: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... tatement"");')
@@ -291,7 +291,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Body: 
@@ -366,7 +366,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while ((i = ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while ((i = ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(i = value) >= 0')
       Left: 
@@ -431,7 +431,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'while (numb ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'while (numb ... }')
   Condition: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'number')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -472,7 +472,7 @@ class Program
 ";
 
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Body: 
@@ -533,7 +533,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Body: 
@@ -593,7 +593,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'while () ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'while () ... }')
   Condition: 
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
@@ -653,7 +653,7 @@ class ContinueTest
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while(i <=  ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while(i <=  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i <= 10')
       Left: 
@@ -691,7 +691,7 @@ class ContinueTest
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while(i <=  ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while(i <=  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i <= 10')
       Left: 
@@ -714,7 +714,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 9) (Syntax: '9')
         WhenTrue: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-            IBranchOperation (BranchKind.Continue) (OperationKind.Branch, Type: null) (Syntax: 'continue;')
+            IBranchOperation (BranchKind.Continue, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'continue;')
         WhenFalse: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... iteLine(i);')
@@ -758,7 +758,7 @@ class Test
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while(i<10) ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while(i<10) ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i<10')
       Left: 
@@ -782,7 +782,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           Initializer: 
             null
-      IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (j <  ... }')
+      IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'while (j <  ... }')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
@@ -850,7 +850,7 @@ class Test
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while(i<10) ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while(i<10) ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i<10')
       Left: 
@@ -874,7 +874,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           Initializer: 
             null
-      IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (j <  ... }')
+      IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'while (j <  ... }')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
@@ -971,7 +971,7 @@ public class MyWhile
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (d.Do ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (d.Do ... }')
   Condition: 
     IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'd.Done')
       Operand: 
@@ -1017,7 +1017,7 @@ class Program
 
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while ( ++i ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while ( ++i ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '++i < 5')
       Left: 
@@ -1061,7 +1061,7 @@ class C
     }
 }";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (i >  ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (i >  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0')
       Left: 
@@ -1099,7 +1099,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (b == ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (b == ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: True) (Syntax: 'b == b')
       Left: 
@@ -1143,7 +1143,7 @@ public class TryCatchFinally
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (x--  ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (x--  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x-- > 0')
       Left: 
@@ -1223,7 +1223,7 @@ public class X
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (Dumm ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (Dumm ... }')
   Locals: Local_1: System.Int32 x1
   Condition: 
     IInvocationOperation (System.Boolean X.Dummy(System.Boolean x, System.Object y, System.Object z)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'Dummy(f, Ta ... ar x1), x1)')
@@ -1322,7 +1322,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'do ...  x1), x1));')
+IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'do ...  x1), x1));')
   Locals: Local_1: System.Int32 x1
   Condition: 
     IInvocationOperation (System.Boolean X.Dummy(System.Boolean x, System.Object y, System.Object z)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'Dummy(f, Ta ... ar x1), x1)')
