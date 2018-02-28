@@ -158,6 +158,84 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestForSwitchCase_NotInEmptySwitchStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { $$ }"));
-        }  
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterPredefinedType()
+        {
+            await VerifyAbsenceAsync(@"
+class SyntaxNode { }
+class Color { }
+class C
+{
+    const Color Color = null;
+    void M() { switch (new object()) { case int $$ } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterGenericType()
+        {
+            await VerifyAbsenceAsync(@"
+class SyntaxNode { }
+class Color { }
+class C
+{
+    const Color Color = null;
+    void M() { switch (new object()) { case Dictionary<string, int> $$ } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterCustomType()
+        {
+            await VerifyAbsenceAsync(@"
+class SyntaxNode { }
+class Color { }
+class C
+{
+    const Color Color = null;
+    void M() { switch (new object()) { case SyntaxNode $$ } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_AfterColorColor()
+        {
+            await VerifyKeywordAsync(@"
+class SyntaxNode { }
+class Color { }
+class C
+{
+    const Color Color = null;
+    void M() { switch (new object()) { case Color $$ } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstant()
+        {
+            await VerifyKeywordAsync(@"
+class SyntaxNode { }
+class Color { }
+class C
+{
+    const Color Color = null;
+    void M() { const object local = null; switch (new object()) { case local $$ } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_AfterUnknownName()
+        {
+            await VerifyKeywordAsync(@"
+class SyntaxNode { }
+class Color { }
+class C
+{
+    const Color Color = null;
+    void M() { switch (new object()) { case unknown $$ } }
+}");
+        }
     }
 }

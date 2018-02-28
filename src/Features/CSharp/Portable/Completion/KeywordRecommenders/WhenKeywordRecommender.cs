@@ -15,12 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        protected override bool IsValidContext(int position, CSharpSyntaxContext context,
+            CancellationToken cancellationToken)
         {
-            return context.IsCatchFilterContext || IsAfterCompleteExpressionOrPatternInCaseLabel(context);
+            return context.IsCatchFilterContext || IsAfterCompleteExpressionOrPatternInCaseLabel(context, cancellationToken);
         }
 
-        private static bool IsAfterCompleteExpressionOrPatternInCaseLabel(CSharpSyntaxContext context)
+        private static bool IsAfterCompleteExpressionOrPatternInCaseLabel(CSharpSyntaxContext context,
+            CancellationToken cancellationToken)
         {
             var switchLabel = GetAncestorUntilStatement<SwitchLabelSyntax>(context.TargetToken);
             if (switchLabel == null)
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             var expressionOrPattern = switchLabel.ChildNodes().FirstOrDefault();
-            if (expressionOrPattern == null)
+            if (expressionOrPattern == null) // Oh well. It must have been a default label.
             {
                 return false;
             }
@@ -45,11 +47,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // case (1 + ) |
 
             var lastToken = expressionOrPattern.GetLastToken(includeZeroWidth: true);
+            if (lastToken.IsMissing)
+            {
+                return false;
+            }
 
             // Only offer if we're at the last token of the expression/pattern, not inside it.
-            // Notice that when lastToken is missing, it will never compare equal to context.TargetToken
-            // since TargetToken skips missing tokens. So if this passes, we're all good!
-            return context.TargetToken == lastToken;
+
+            if (lastToken == context.TargetToken)
+            {
+                return NotATypeName(expressionOrPattern);
+            }
+            else if (lastToken == context.LeftToken && expressionOrPattern is DeclarationPatternSyntax declarationPattern)
+            {
+                // case constant w|
+
+                // We might have a partially written 'when' keyword, which causes this to be parsed as a pattern.
+                // lastToken will be 'w' (LeftToken) as opposed to 'constant' (TargetToken). We handle this as a special case.
+
+                return NotATypeName(declarationPattern.Type);
+            }
+
+            return false;
+
+            bool NotATypeName(SyntaxNode node)
+            {
+                // Syntactically, everything works out. We're in a pretty good spot to show 'when' now.
+                // But let's not do it just yet... Consider these cases:
+                // case SyntaxNode |
+                // case SyntaxNode w|
+                // If what we have here is known to be a type, we don't want to clutter the variable name suggestion list
+                // with 'when' since we know that the resulting code would be semantically invalid.
+
+                if (node is TypeSyntax typeSyntax)
+                {
+                    return !typeSyntax.IsPotentialTypeName(context.SemanticModel, cancellationToken);
+                }
+
+                return true;
+            }
         }
 
         private static T GetAncestorUntilStatement<T>(SyntaxToken token) where T : SyntaxNode
