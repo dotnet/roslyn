@@ -2025,6 +2025,33 @@ class C
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
 
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_InvocationStyles_Named_WithOptionalParam()
+        {
+            // error CS1739: The best overload for 'M' does not have a parameter named 'i3'
+            var code =
+@"
+class C
+{
+    void M(int i1, int i2 = 1) { }
+    void Test()
+    {
+        M(1, i2: 2, [|i3|]: 3);
+    }
+}";
+            var fix0 =
+@"
+class C
+{
+    void M(int i1, int i2 = 1, int i3 = 0) { }
+    void Test()
+    {
+        M(1, i2: 2, i3: 3);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
