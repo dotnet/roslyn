@@ -3206,7 +3206,7 @@ public class C
         [WorkItem(24776, "https://github.com/dotnet/roslyn/issues/24776")]
         public void PointerElementAccess_RefStructPointer()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public ref struct TestStruct
 {
     public void M() { }
@@ -3233,7 +3233,7 @@ public class C
         [WorkItem(24776, "https://github.com/dotnet/roslyn/issues/24776")]
         public void PointerIndirectionOperator_RefStructPointer()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public ref struct TestStruct
 {
     public void M() { }
