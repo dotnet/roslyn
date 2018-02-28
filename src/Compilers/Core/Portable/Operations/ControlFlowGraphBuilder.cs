@@ -1755,11 +1755,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InvocationExpression(operation.TargetMethod, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitArgument(IArgumentOperation operation, int? captureIdForResult)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
         internal override IOperation VisitNoneOperation(IOperation operation, int? captureIdForResult)
         {
             if (_currentStatement == operation)
@@ -1830,6 +1825,14 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             // clone the array
             return nodes.SelectAsArray(n => Visit(n));
+        }
+
+        public override IOperation VisitArgument(IArgumentOperation operation, int? captureIdForResult)
+        {
+            // PROTOTYPE(DATAFLOW): All usages of this should be removed the following line uncommented when support is added for object creation, property reference, and raise events.
+            // throw ExceptionUtilities.Unreachable;
+            var baseArgument = (BaseArgument)operation;
+            return new ArgumentOperation(Visit(operation.Value), operation.ArgumentKind, operation.Parameter, baseArgument.InConversionConvertibleOpt, baseArgument.OutConversionConvertibleOpt, semanticModel: null, operation.Syntax, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)
