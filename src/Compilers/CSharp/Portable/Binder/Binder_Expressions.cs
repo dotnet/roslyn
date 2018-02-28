@@ -3127,7 +3127,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (inLegalPosition && !node.IsVariableDeclarationInitialization())
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
-                GetWellKnownTypeMember(Compilation, WellKnownMember.System_Span_T__ctor, diagnostics, syntax: node);
 
                 var spanType = GetWellKnownType(WellKnownType.System_Span_T, diagnostics, node);
                 if (!spanType.IsErrorType())
