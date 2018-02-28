@@ -220,7 +220,7 @@ namespace System
             Span<int> a = stackalloc int [10];
         }
     }
-}").VerifyDiagnostics(
+}").VerifyEmitDiagnostics(
                 // (11,27): error CS0656: Missing compiler required member 'System.Span`1..ctor'
                 //             Span<int> a = stackalloc int [10];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "stackalloc int [10]").WithArguments("System.Span`1", ".ctor").WithLocation(11, 27));
@@ -347,7 +347,7 @@ class Test
         }
 
         [Fact]
-        public void NewStackAllocSpanSyntaxProducesErrorsOnEarlierVersions()
+        public void NewStackAllocSpanSyntaxProducesErrorsOnEarlierVersions_Statements()
         {
             var parseOptions = new CSharpParseOptions().WithLanguageVersion(LanguageVersion.CSharp7);
 
@@ -363,6 +363,29 @@ class Test
                 // (7,23): error CS8107: Feature 'ref structs' is not available in C# 7. Please use language version 7.2 or greater.
                 //         Span<int> x = stackalloc int[10];
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc int[10]").WithArguments("ref structs", "7.2").WithLocation(7, 23));
+        }
+
+        [Fact]
+        public void NewStackAllocSpanSyntaxProducesErrorsOnEarlierVersions_Expressions()
+        {
+            var parseOptions = new CSharpParseOptions().WithLanguageVersion(LanguageVersion.CSharp7);
+
+            CreateCompilationWithMscorlibAndSpan(@"
+class Test
+{
+    void M(bool condition)
+    {
+        var x = condition
+            ? stackalloc int[10]
+            : stackalloc int[100];
+    }
+}", options: TestOptions.UnsafeReleaseDll, parseOptions: parseOptions).VerifyDiagnostics(
+                // (7,15): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
+                //             ? stackalloc int[10]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc int[10]").WithArguments("ref structs", "7.2").WithLocation(7, 15),
+                // (8,15): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
+                //             : stackalloc int[100];
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc int[100]").WithArguments("ref structs", "7.2").WithLocation(8, 15));
         }
 
         [Fact]
