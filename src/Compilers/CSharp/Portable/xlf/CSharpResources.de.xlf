@@ -4392,7 +4392,7 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
         <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, or query expression</source>
-        <target state="needs-review-translation">Der ref- oder out-Parameter "{0}" kann nicht in einer anonymen Methode, einem Lambdaausdruck oder einem Abfrageausdruck verwendet werden.</target>
+        <target state="translated">Der ref-, out-, oder in-Parameter "{0}" kann nicht in einer anonymen Methode, einem Lambdaausdruck oder einem Abfrageausdruck verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalInnerUnsafe">
@@ -8597,7 +8597,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
+        <target state="translated">"{0}" kann das Schnittstellenelement "{1}" in Typ "{2}" nicht implementieren, weil es einen __arglist-Parameter umfasst.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">

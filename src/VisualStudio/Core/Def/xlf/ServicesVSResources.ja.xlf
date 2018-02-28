@@ -1394,7 +1394,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
-        <target state="translated">匿名関数よりローカル関数を優先します</target>
+        <target state="translated">匿名関数よりローカル関数を優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_deconstructed_variable_declaration">
@@ -1505,12 +1505,12 @@ I agree to all of the foregoing:</source>
       </trans-unit>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
-        <target state="new">Live code analysis</target>
+        <target state="translated">ライブ コード分析</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
         <source>Analyzing '{0}'</source>
-        <target state="new">Analyzing '{0}'</target>
+        <target state="translated">'{0}' の分析</target>
         <note />
       </trans-unit>
     </body>

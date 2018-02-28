@@ -1394,7 +1394,7 @@ O 'Carregamento da solução leve' está habilitado para a solução atual. Desa
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
-        <target state="translated">Preferir usar função anônima em vez de local</target>
+        <target state="translated">Preferir usar função local em vez de anônima</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_deconstructed_variable_declaration">
@@ -1505,12 +1505,12 @@ Eu concordo com todo o conteúdo supracitado:</target>
       </trans-unit>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
-        <target state="new">Live code analysis</target>
+        <target state="translated">Análise de código ao vivo</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
         <source>Analyzing '{0}'</source>
-        <target state="new">Analyzing '{0}'</target>
+        <target state="translated">Analisando '{0}'</target>
         <note />
       </trans-unit>
     </body>
