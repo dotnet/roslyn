@@ -3981,7 +3981,7 @@ void M()
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task  TestConflictMarkers1()
+        public async Task TestConflictMarkers1()
         {
             await TestAsync(
 @"class C

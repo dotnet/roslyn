@@ -944,5 +944,24 @@ class C
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestConstLocals()
+        {
+            await TestInMethodAsync(
+@"const int Number = 42;
+var x = Number;",
+                Keyword("const"),
+                Keyword("int"),
+                Constant("Number"),
+                Operators.Equals,
+                Number("42"),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("x"),
+                Operators.Equals,
+                Constant("Number"),
+                Punctuation.Semicolon);
+        }
     }
 }

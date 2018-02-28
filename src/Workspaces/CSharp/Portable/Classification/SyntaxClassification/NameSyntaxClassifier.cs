@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     return true;
                 case ILocalSymbol localSymbol:
                     token = name.GetNameToken();
-                    classifiedSpan = new ClassifiedSpan(token.Span, localSymbol.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName);
+                    classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForLocal(localSymbol));
                     return true;
             }
 
@@ -203,6 +203,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             }
 
             return ClassificationTypeNames.FieldName;
+        }
+
+        private static string GetClassificationForLocal(ILocalSymbol localSymbol)
+        {
+            return localSymbol.IsConst
+                ? ClassificationTypeNames.ConstantName
+                : ClassificationTypeNames.LocalName;
         }
 
         private static string GetClassificationForMethod(IMethodSymbol methodSymbol)
