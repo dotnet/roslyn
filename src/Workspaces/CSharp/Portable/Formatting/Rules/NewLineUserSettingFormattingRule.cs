@@ -19,10 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 return true;
             }
+            if (node.Parent == null)
+            {
+                return false;
+            }
 
             var parentKind = node.Parent.Kind();
 
-            switch (parentKind.GetValueOrDefault())
+            switch (parentKind)
             {
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.ElseClause:
