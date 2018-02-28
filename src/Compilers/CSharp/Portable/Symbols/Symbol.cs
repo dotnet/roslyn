@@ -371,6 +371,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract bool IsExtern { get; }
 
         /// <summary>
+        /// Returns true if locals are to be initialized
+        /// </summary>
+        public abstract bool AreLocalsZeroed { get; }
+
+        /// <summary>
         /// Returns true if this symbol was automatically created by the compiler, and does not
         /// have an explicit corresponding source code declaration.  
         /// 

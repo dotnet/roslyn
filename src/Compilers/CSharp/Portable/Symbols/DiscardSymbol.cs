@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsSealed => false;
         public override bool IsStatic => false;
         public override bool IsVirtual => false;
+        public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
         public override SymbolKind Kind => SymbolKind.Discard;
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         internal override ObsoleteAttributeData ObsoleteAttributeData => null;

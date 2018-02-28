@@ -188,6 +188,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitField(this);
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
         /// <summary>
         /// Returns false because field can't be abstract.
         /// </summary>

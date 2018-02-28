@@ -253,6 +253,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool MustCallMethodsDirectly { get; }
 
+        public override bool AreLocalsZeroed
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
         #region Use-Site Diagnostics
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()

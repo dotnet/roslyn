@@ -524,6 +524,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
+        public override bool AreLocalsZeroed
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
         /// <summary>
         /// Is this a symbol for an anonymous type (including delegate).
         /// </summary>
