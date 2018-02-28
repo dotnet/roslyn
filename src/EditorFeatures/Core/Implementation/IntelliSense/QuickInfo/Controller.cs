@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -11,10 +14,12 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Roslyn.Utilities;
 
+using CodeAnalysisQuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
 using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
@@ -97,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     var item = await service.GetQuickInfoAsync(document, triggerPoint, cancellationToken).ConfigureAwait(false);
                     if (item != null)
                     {
-                        return await sessionOpt.PresenterSession.BuildIntellisenseQuickInfoItemAsync(triggerPoint, item).ConfigureAwait(false);
+                        return BuildIntellisenseQuickInfoItemAsync(triggerPoint, snapshot, item);
                     }
 
                     return null;
@@ -123,5 +128,109 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             return _service;
         }
+
+        private IntellisenseQuickInfoItem BuildIntellisenseQuickInfoItemAsync(SnapshotPoint triggerPoint,
+            ITextSnapshot snapshot, CodeAnalysisQuickInfoItem quickInfoItem)
+        {
+            var line = triggerPoint.GetContainingLine();
+            var lineSpan = snapshot.CreateTrackingSpan(
+                line.Extent,
+                SpanTrackingMode.EdgeInclusive);
+
+            var glyphs = quickInfoItem.Tags.GetGlyphs();
+            
+            //var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
+            //var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);
+            //var documentSpan = quickInfoItem.RelatedSpans.Length > 0 ?
+            //CreateDocumentSpanPresentation(quickInfoItem, snapshot) : null;
+
+            //var content = new QuickInfoDisplayPanel(
+            //    symbolGlyph: symbolGlyph != default ? CreateSymbolPresentation(symbolGlyph) : null,
+            //    warningGlyph: warningGlyph != default ? CreateSymbolPresentation(warningGlyph) : null,
+            //    textBlocks: quickInfoItem.Sections.Select(section =>
+            //        new TextBlockElement(section.Kind, CreateTextPresentation(section))).ToImmutableArray(),
+            //    documentSpan: documentSpan);
+
+
+            var textLines = new List<ClassifiedTextElement>();
+            foreach(var section in quickInfoItem.Sections)
+            {
+                textLines.Add(new ClassifiedTextElement(section.TaggedParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text))));
+            }
+
+            var content = new ContainerElement(
+                        ContainerElementStyle.Stacked,
+                        textLines);
+
+            return new IntellisenseQuickInfoItem(lineSpan, content);
+        }
+
+        //private FrameworkElement CreateSymbolPresentation(Glyph glyph)
+        //{
+        //    var image = new CrispImage
+        //    {
+        //        Moniker = glyph.GetImageMoniker()
+        //    };
+
+        //    // Inform the ImageService of the background color so that images have the correct background.
+        //    var binding = new Binding("Background")
+        //    {
+        //        Converter = new BrushToColorConverter(),
+        //        RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(QuickInfoDisplayPanel), 1)
+        //    };
+
+        //    image.SetBinding(ImageThemingUtilities.ImageBackgroundColorProperty, binding);
+        //    return image;
+        //}
+
+        //private TextBlock CreateTextPresentation(QuickInfoSection section)
+        //{
+        //    if (section.Kind == QuickInfoSectionKinds.DocumentationComments)
+        //    {
+        //        return CreateDocumentationCommentPresentation(section.TaggedParts);
+        //    }
+        //    else
+        //    {
+        //        return CreateTextPresentation(section.TaggedParts);
+        //    }
+        //}
+
+        //private TextBlock CreateTextPresentation(ImmutableArray<TaggedText> text)
+        //{
+        //    var formatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
+        //    var classifiedTextBlock = text.ToTextBlock(formatMap, _classificationTypeMap);
+
+        //    if (classifiedTextBlock.Inlines.Count == 0)
+        //    {
+        //        classifiedTextBlock.Visibility = Visibility.Collapsed;
+        //    }
+
+        //    return classifiedTextBlock;
+        //}
+
+        //private TextBlock CreateDocumentationCommentPresentation(ImmutableArray<TaggedText> text)
+        //{
+        //    var formatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
+        //    var documentationTextBlock = text.ToTextBlock(formatMap, _classificationTypeMap);
+
+        //    documentationTextBlock.TextWrapping = TextWrapping.Wrap;
+
+        //    // If we have already computed the symbol documentation by now, update
+        //    if (documentationTextBlock.Inlines.Count == 0)
+        //    {
+        //        documentationTextBlock.Visibility = Visibility.Collapsed;
+        //    }
+
+        //    return documentationTextBlock;
+        //}
+
+        //private FrameworkElement CreateDocumentSpanPresentation(Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem info, ITextSnapshot snapshot)
+        //{
+        //    return ProjectionBufferContent.Create(
+        //        info.RelatedSpans.Select(s => new SnapshotSpan(snapshot, new Span(s.Start, s.Length))).ToImmutableArray(),
+        //        _projectionBufferFactoryService,
+        //        _editorOptionsFactoryService,
+        //        _textEditorFactoryService);
+        //}
     }
 }
