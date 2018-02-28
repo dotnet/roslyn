@@ -24254,7 +24254,7 @@ namespace System
         [WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")]
         public void FailedDecodingOfTupleNamesWhenMissingValueTupleType()
         {
-            var vtLib = CreateCompilation(trivial2uple + tupleattributes_cs, references: new[] { MscorlibRef }, assemblyName: "vt");
+            var vtLib = CreateEmptyCompilation(trivial2uple + tupleattributes_cs, references: new[] { MscorlibRef }, assemblyName: "vt");
 
             var lib_cs = @"
 using System.Collections;
@@ -24266,7 +24266,7 @@ public class ClassA : IEnumerable<(int alice, int bob)>
     public IEnumerator<(int alice, int bob)> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }";
-            var lib = CreateCompilation(lib_cs, references: new[] { MscorlibRef, vtLib.EmitToImageReference() });
+            var lib = CreateEmptyCompilation(lib_cs, references: new[] { MscorlibRef, vtLib.EmitToImageReference() });
             lib.VerifyDiagnostics();
 
             var client_cs = @"
@@ -24277,16 +24277,16 @@ public class ClassB
         new ClassA { { 42, 10 } };
     }
 }";
-            var comp = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() }); // missing reference to vt
+            var comp = CreateEmptyCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() }); // missing reference to vt
             comp.VerifyDiagnostics();
             verifyTupleTypeWithErrorUnderlyingType(comp, decodingSuccessful: false);
 
-            var compWithMetadataReference = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.ToMetadataReference() }); // missing reference to vt
+            var compWithMetadataReference = CreateEmptyCompilation(client_cs, references: new[] { MscorlibRef, lib.ToMetadataReference() }); // missing reference to vt
             compWithMetadataReference.VerifyDiagnostics();
             verifyTupleTypeWithErrorUnderlyingType(compWithMetadataReference, decodingSuccessful: true);
 
-            var fakeVtLib = CreateCompilation("", references: new[] { MscorlibRef }, assemblyName: "vt");
-            var compWithFakeVt = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeVtLib.EmitToImageReference() }); // reference to fake vt
+            var fakeVtLib = CreateEmptyCompilation("", references: new[] { MscorlibRef }, assemblyName: "vt");
+            var compWithFakeVt = CreateEmptyCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeVtLib.EmitToImageReference() }); // reference to fake vt
             compWithFakeVt.VerifyDiagnostics();
             verifyTupleTypeWithErrorUnderlyingType(compWithFakeVt, decodingSuccessful: false);
 
@@ -24301,7 +24301,7 @@ public class ClassB
         }
     }
 }";
-            var comp2 = CreateCompilation(client2_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() }); // missing reference to vt
+            var comp2 = CreateEmptyCompilation(client2_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() }); // missing reference to vt
             comp2.VerifyDiagnostics(
                 // (7,27): error CS0012: The type 'ValueTuple<,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         foreach (var i in collectionA)
@@ -24312,7 +24312,7 @@ public class ClassB
                 );
             verifyTupleTypeWithErrorUnderlyingType(comp2, decodingSuccessful: false);
 
-            var comp2WithFakeVt = CreateCompilation(client2_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeVtLib.EmitToImageReference() }); // reference to fake vt
+            var comp2WithFakeVt = CreateEmptyCompilation(client2_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeVtLib.EmitToImageReference() }); // reference to fake vt
             comp2WithFakeVt.VerifyDiagnostics(
                 // (7,27): error CS7069: Reference to type 'ValueTuple<,>' claims it is defined in 'vt', but it could not be found
                 //         foreach (var i in collectionA)
