@@ -1314,7 +1314,7 @@ MODIFIER MyType
             void validateLangVer(string modifier, string type, string value, string equal, string semanticType, CSharpParseOptions parseOptions, params DiagnosticDescription[] diagnostics)
             {
                 var source = template.Replace("MODIFIER", modifier).Replace("TYPE", type).Replace("VALUE", value).Replace("EQUAL", equal);
-                var comp = CreateCompilation(source, parseOptions: parseOptions, options: TestOptions.DebugExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef } );
+                var comp = CreateCompilation(source, parseOptions: parseOptions, options: TestOptions.DebugExe);
                 if (diagnostics.Length == 0)
                 {
                     comp.VerifyDiagnostics();
@@ -1385,7 +1385,7 @@ struct MyType
             void validate(string type, string value, string equal, string semanticType, params DiagnosticDescription[] diagnostics)
             {
                 var source = template.Replace("TYPE", type).Replace("VALUE", value).Replace("EQUAL", equal);
-                var comp = CreateCompilation(source, parseOptions: TestOptions.Regular, options: TestOptions.DebugExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+                var comp = CreateCompilation(source, parseOptions: TestOptions.Regular, options: TestOptions.DebugExe);
                 if (diagnostics.Length == 0)
                 {
                     comp.VerifyDiagnostics();
