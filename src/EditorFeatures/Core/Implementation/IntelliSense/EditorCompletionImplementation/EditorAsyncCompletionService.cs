@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             ITextView view, 
             CancellationToken token)
         {
-            // TODO: We know that sessions start sort is invoked, but this could be cleaner
             _broker.GetSession(view).ItemCommitted += ItemCommitted;
             _broker.GetSession(view).Dismissed += SessionDismissed;
             return Task.FromResult(initialList.OrderBy(i => i.DisplayText).ToImmutableArray());
@@ -74,16 +73,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         {
             var filterText = applicableToSpan.GetText(snapshot);
 
-            // Check if the user is typing a number.  If so, only proceed if it's a number
-            // directly after a <dot>.  That's because it is actually reasonable for completion
+            // Check if the user is typing a number. If so, only proceed if it's a number
+            // directly after a <dot>. That's because it is actually reasonable for completion
             // to be brought up after a <dot> and for the user to want to filter completion
-            // items based on a number that exists in the name of the item.  However, when 
+            // items based on a number that exists in the name of the item. However, when
             // we are not after a dot (i.e. we're being brought up after <space> is typed)
-            // then we don't want to filter things.  Consider the user writing:
+            // then we don't want to filter things. Consider the user writing:
             //
             //      dim i =<space>
             //
-            // We'll bring up the completion list here (as VB has completion on <space>). 
+            // We'll bring up the completion list here (as VB has completion on <space>).
             // If the user then types '3', we don't want to match against Int32.
             if (filterText.Length > 0 && char.IsNumber(filterText[0]))
             {
