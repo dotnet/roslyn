@@ -5273,7 +5273,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, additionalRefs:={LinqAssemblyRef},
+            CompileAndVerify(compilationDef, references:={LinqAssemblyRef},
                                 expectedOutput:=
             <![CDATA[
 { s = 1, t = 2 }
@@ -5562,7 +5562,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, additionalRefs:={LinqAssemblyRef},
+            CompileAndVerify(compilationDef, references:={LinqAssemblyRef},
                                 expectedOutput:=
             <![CDATA[
 { s1 = 1, s2 = 2 }
@@ -6515,7 +6515,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, additionalRefs:={LinqAssemblyRef},
+            CompileAndVerify(compilationDef, references:={LinqAssemblyRef},
                                 expectedOutput:=
             <![CDATA[
 { s1 = 1, s2 = 2 }
@@ -7310,7 +7310,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, additionalRefs:={LinqAssemblyRef},
+            CompileAndVerify(compilationDef, references:={LinqAssemblyRef},
                                 expectedOutput:=
             <![CDATA[
 { s1 = 3, s2 = 3 }
@@ -8617,7 +8617,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, additionalRefs:={LinqAssemblyRef},
+            CompileAndVerify(compilationDef, references:={LinqAssemblyRef},
                                 expectedOutput:=
             <![CDATA[
 { s1 = 1, Group = System.Int32[] }
@@ -9672,7 +9672,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, additionalRefs:={LinqAssemblyRef},
+            CompileAndVerify(compilationDef, references:={LinqAssemblyRef},
                                 expectedOutput:=
             <![CDATA[
 { s1 = 1, Group = System.Int32[] }
@@ -11220,7 +11220,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, additionalRefs:={LinqAssemblyRef},
+            CompileAndVerify(compilationDef, references:={LinqAssemblyRef},
                                 expectedOutput:=
             <![CDATA[
 2
@@ -13547,7 +13547,7 @@ Class CI003
 End Class
     </file>
     </compilation>,
-            expectedOutput:="CI003.Count", additionalRefs:={TestReferences.NetFx.v4_0_30319.System_Core})
+            expectedOutput:="CI003.Count", references:={TestReferences.NetFx.v4_0_30319.System_Core})
 
             verifier.VerifyDiagnostics()
         End Sub
@@ -13914,7 +13914,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, additionalRefs:={SystemCoreRef},
+            Dim verifier = CompileAndVerify(compilationDef, references:={SystemCoreRef},
                              expectedOutput:=
             <![CDATA[
 0

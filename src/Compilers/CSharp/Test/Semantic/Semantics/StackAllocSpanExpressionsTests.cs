@@ -188,7 +188,7 @@ class Test
         [Fact]
         public void MissingSpanType()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M()
@@ -207,7 +207,7 @@ class Test
         [Fact]
         public void MissingSpanConstructor()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 namespace System
 {
     ref struct Span<T>
@@ -368,7 +368,7 @@ class Test
         [Fact]
         public void StackAllocSyntaxProducesUnsafeErrorInSafeCode()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M()
@@ -433,7 +433,7 @@ unsafe public class Test
     }
 }
 ";
-            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
                 // (6,15): error CS0283: The type 'int*' cannot be declared const
                 //         const int* p = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15));
@@ -551,7 +551,7 @@ unsafe public class Test
         [Fact]
         public void StackAllocWithDynamic()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Program
 {
     static void Main()
@@ -584,7 +584,7 @@ class Program
         [Fact]
         public void StackAllocAsArgument()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Program
 {
     static void N(object p) { }
@@ -602,7 +602,7 @@ class Program
         [Fact]
         public void StackAllocInParenthesis()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Program
 {
     static void Main()
@@ -618,7 +618,7 @@ class Program
         [Fact]
         public void StackAllocInNullConditionalOperator()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Program
 {
     static void Main()

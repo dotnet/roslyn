@@ -29,7 +29,7 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -74,7 +74,7 @@ class Program
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -119,7 +119,7 @@ class Program
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -324,7 +324,7 @@ class Test<T>
         yield return val;
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -417,7 +417,7 @@ class C
 ";
             using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
             {
-                var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe);
+                var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.ReleaseExe);
                 c.VerifyPdb(@"
 <symbols>
   <files>
@@ -532,7 +532,7 @@ public class Test
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugExe);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -1326,7 +1326,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1410,7 +1410,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1472,7 +1472,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1539,7 +1539,7 @@ class C
         yield break;
     }
 }";
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb("C+<F>d__1.MoveNext", @"
 <symbols>
   <files>
@@ -1572,7 +1572,7 @@ public class C
 {
     IEnumerable<int> M() { yield return 1; }
 }";
-            var compilation = CreateStandardCompilation(src, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(src, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
 
             var peStream = new MemoryStream();

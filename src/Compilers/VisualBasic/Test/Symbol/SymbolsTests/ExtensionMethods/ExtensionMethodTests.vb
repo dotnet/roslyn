@@ -1498,7 +1498,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(1, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1529,7 +1529,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(1, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1562,7 +1562,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(1, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1594,7 +1594,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(1, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1624,7 +1624,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(0, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1653,7 +1653,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(0, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
