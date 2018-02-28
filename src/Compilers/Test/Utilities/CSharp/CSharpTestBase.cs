@@ -522,6 +522,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             var compilation = createCompilationLambda();
             // 'skipUsesIsNullable' may need to be set for some tests, particularly those that want to verify
             // symbols are created lazily, since 'UsesIsNullableVisitor' will eagerly visit all members.
+            // PROTOTYPE(NullableReferenceTypes): Remove skipUsesIsNullable and call VerifyNoNullability
+            // on a separate Compilation instance created with createCompilationLambda.
             if (!skipUsesIsNullable && !IsNullableEnabled(compilation))
             {
                 VerifyNoNullability(compilation.SourceModule.GlobalNamespace);

@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // reuse types to avoid reporting duplicate errors if missing:
             var voidType = TypeSymbolWithAnnotations.Create(compilation, binder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
+            // PROTOTYPE(NullableReferenceTypes): Should the 'object' parameter be considered nullable?
             var objectType = TypeSymbolWithAnnotations.Create(compilation, binder.GetSpecialType(SpecialType.System_Object, diagnostics, syntax));
             var intPtrType = TypeSymbolWithAnnotations.Create(compilation, binder.GetSpecialType(SpecialType.System_IntPtr, diagnostics, syntax));
 

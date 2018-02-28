@@ -1070,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments()
         {
-            return this.TypeParameters.SelectAsArray(tp => TypeSymbolWithAnnotations.Create(tp.ContainingModule, tp));
+            return this.TypeParameters.SelectAsArray((typeParameter, module) => TypeSymbolWithAnnotations.Create(module, typeParameter), ContainingModule);
         }
 
         /// <summary>

@@ -15,15 +15,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class AttributeTests_Nullable : CSharpTestBase
     {
         // An empty project should not require System.Attribute.
-        // PROTOTYPE(NullableReferenceTypes): Do not emit [module: NullablAttribute] if no nullable types.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void EmptyProject_MissingAttribute()
         {
             var source = "";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Do not emit [module: NullableAttribute] if no nullable types,
+            // or change the missing System.Attribute error to a warning in this case.
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1));
         }
 
         [Fact]

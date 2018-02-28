@@ -29888,7 +29888,7 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.GetDeclarationDiagnostics().Verify(
                 // (3,24): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -29926,6 +29926,8 @@ class H
     }
 }
 ";
+            // `skipUsesIsNullable: true` is necessary to avoid visiting symbols eagerly in CreateCompilation,
+            // which would result in `ERR_RecursivelyTypedVariable` reported on the other local (field).
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
 
             var tree = compilation.SyntaxTrees.Single();
@@ -29964,6 +29966,8 @@ class H
     }
 }
 ";
+            // `skipUsesIsNullable: true` is necessary to avoid visiting symbols eagerly in CreateCompilation,
+            // which would result in `ERR_RecursivelyTypedVariable` reported on the other local (field).
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
 
             var tree = compilation.SyntaxTrees.Single();
@@ -30002,6 +30006,8 @@ class H
     }
 }
 ";
+            // `skipUsesIsNullable: true` is necessary to avoid visiting symbols eagerly in CreateCompilation,
+            // which would result in `ERR_RecursivelyTypedVariable` reported on the other local (field).
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
 
             var tree = compilation.SyntaxTrees.Single();
@@ -30055,6 +30061,8 @@ class H
     }
 }
 ";
+            // `skipUsesIsNullable: true` is necessary to avoid visiting symbols eagerly in CreateCompilation,
+            // which would result in `ERR_RecursivelyTypedVariable` reported on the other local (field).
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
 
             var tree = compilation.SyntaxTrees.Single();
@@ -30109,7 +30117,7 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // (2,24): error CS8197: Cannot infer the type of implicitly-typed out variable 'x1'.
@@ -30149,7 +30157,7 @@ class H
     public static void M(object a) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics(
                 // (2,10): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // H.M((var x1, int x2));

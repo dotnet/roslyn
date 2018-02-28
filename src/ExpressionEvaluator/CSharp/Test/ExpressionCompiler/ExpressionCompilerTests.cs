@@ -6435,9 +6435,10 @@ public class Test
             });
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Use C#8 to compile expressions.
-        // (Expression below currently reports "CS0453: The type 'object' must be a non-nullable
-        // value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'".)
+        // PROTOTYPE(NullableReferenceTypes): Expression below currently reports
+        // "CS0453: The type 'object' must be a non-nullable value type ... 'Nullable<T>'"
+        // because CSharpCompilationExtensions.IsFeatureEnabled() fails when there
+        // the Compilation contains no syntax trees.
         [Fact(Skip = "TODO")]
         public void EmitNullableAttribute_LambdaParameters()
         {

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool? isNullable = type.IsNullable;
             if (typeSymbol.TypeKind == TypeKind.Array && isNullable.HasValue)
             {
-                visitor.VisitArrayType((IArrayTypeSymbol)typeSymbol, isNullable: type.IsNullable);
+                visitor.VisitArrayType((IArrayTypeSymbol)typeSymbol, isNullable: isNullable);
             }
             else
             {

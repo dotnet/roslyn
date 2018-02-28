@@ -199,9 +199,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 refKind = isByRef ? RefKind.Ref : RefKind.None;
 
                 TupleTypeSymbol tuple;
-                _type = TupleTypeSymbol.TryTransformToTuple(type.TypeSymbol, out tuple) ?
+                type = TupleTypeSymbol.TryTransformToTuple(type.TypeSymbol, out tuple) ?
                     TypeSymbolWithAnnotations.Create(tuple) :
                     type;
+                type = type.SetUnknownNullabilityForReferenceTypesIfNecessary(moduleSymbol);
 
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
                 _lazyHiddenAttributes = ImmutableArray<CSharpAttributeData>.Empty;
@@ -242,8 +243,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, handle, moduleSymbol);
                 type = type.Update(typeSymbol, type.CustomModifiers);
                 type = NullableTypeDecoder.TransformOrEraseNullability(type, _handle, moduleSymbol);
-                _type = type;
             }
+
+            _type = type;
 
             bool hasNameInMetadata = !string.IsNullOrEmpty(_name);
             if (!hasNameInMetadata)
@@ -278,11 +280,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             out bool isBad)
         {
             var typeWithModifiers = TypeSymbolWithAnnotations.Create(type, CSharpCustomModifier.Convert(customModifiers));
-            // PROTOTYPE(NullableReferenceTypes): Avoid setting IsNullable in TypeSymbolWithAnnotations.Create
-            // only to undo that in SetUnknownNullabilityForReferenceTypesIfNecessary. Same comment applies
-            // to other uses of SetUnknownNullabilityForReferenceTypesIfNecessary.
-            typeWithModifiers = typeWithModifiers.SetUnknownNullabilityForReferenceTypesIfNecessary(moduleSymbol);
-
             if (customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty)
             {
                 return new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, typeWithModifiers, handle, 0, out isBad);

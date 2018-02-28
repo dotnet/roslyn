@@ -311,6 +311,56 @@ public class C
         [Fact]
         public void UnannotatedAssemblies_03()
         {
+            var source0 =
+@"#pragma warning disable 67
+public class C
+{
+    public (object, object) F;
+    public (object, object) P => (null, null);
+    public (object, object) M((object, object) o) => o;
+}";
+            var source1 =
+@"class P
+{
+    static void F(C c)
+    {
+        (object, object) t;
+        t = c.F;
+        t = c.P;
+        t = c.M((null, null));
+    }
+}";
+
+            var comp0 = CreateStandardCompilation(source0, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+
+            void verifyTuple(TypeSymbolWithAnnotations type)
+            {
+                var tuple = (TupleTypeSymbol)type.TypeSymbol;
+                Assert.Equal(null, tuple.TupleElements[0].Type.IsNullable);
+                Assert.Equal(null, tuple.TupleElements[1].Type.IsNullable);
+            }
+
+            void verify(Compilation c)
+            {
+                c.VerifyDiagnostics();
+                verifyTuple(c.GetMember<FieldSymbol>("C.F").Type);
+                verifyTuple(c.GetMember<PropertySymbol>("C.P").Type);
+                var method = c.GetMember<MethodSymbol>("C.M");
+                verifyTuple(method.ReturnType);
+                verifyTuple(method.Parameters[0].Type);
+            }
+
+            var comp1A = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
+            verify(comp1A);
+
+            var comp1B = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            verify(comp1B);
+        }
+
+        [Fact]
+        public void UnannotatedAssemblies_04()
+        {
             var source =
 @"class A { }
 class B : A { }
@@ -338,7 +388,7 @@ class D : C<B>, I<B>
         }
 
         [Fact]
-        public void UnannotatedAssemblies_04()
+        public void UnannotatedAssemblies_05()
         {
             var source =
 @"interface I<T>
@@ -366,7 +416,7 @@ class C : I<string>
         }
 
         [Fact]
-        public void UnannotatedAssemblies_05()
+        public void UnannotatedAssemblies_06()
         {
             var source0 =
 @"public class C<T>
@@ -397,7 +447,7 @@ public class C
         }
 
         [Fact]
-        public void UnannotatedAssemblies_06()
+        public void UnannotatedAssemblies_07()
         {
             var source0 =
 @"public interface I
@@ -495,7 +545,7 @@ class P
         }
 
         [Fact]
-        public void UnannotatedAssemblies_07()
+        public void UnannotatedAssemblies_08()
         {
             var source0 =
 @"public interface I
@@ -579,7 +629,7 @@ public class D : C
         }
 
         [Fact]
-        public void UnannotatedAssemblies_08()
+        public void UnannotatedAssemblies_09()
         {
             var source0 =
 @"public abstract class A
@@ -661,7 +711,7 @@ class P
         // PROTOTYPE(NullableReferenceTypes): Should call NullableTypeDecoder.TransformOrEraseNullability
         // in PENamedTypeSymbol.MakeDeclaredBaseType.
         [Fact(Skip = "TODO")]
-        public void UnannotatedAssemblies_09()
+        public void UnannotatedAssemblies_10()
         {
             var source0 =
 @"public abstract class A<T>

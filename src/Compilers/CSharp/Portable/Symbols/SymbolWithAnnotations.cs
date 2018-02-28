@@ -184,7 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Create(typeSymbol, ImmutableArray<CustomModifier>.Empty, isNullableIfReferenceType: isNullableIfReferenceType);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Remove this overload.
+        // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
+        // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol)
         {
             return Create(typeSymbol, ImmutableArray<CustomModifier>.Empty);
