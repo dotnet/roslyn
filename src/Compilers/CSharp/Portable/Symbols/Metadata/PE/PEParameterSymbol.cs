@@ -278,6 +278,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             out bool isBad)
         {
             var typeWithModifiers = TypeSymbolWithAnnotations.Create(type, CSharpCustomModifier.Convert(customModifiers));
+            // PROTOTYPE(NullableReferenceTypes): Avoid setting IsNullable in TypeSymbolWithAnnotations.Create
+            // only to undo that in SetUnknownNullabilityForReferenceTypesIfNecessary. Same comment applies
+            // to other uses of SetUnknownNullabilityForReferenceTypesIfNecessary.
             typeWithModifiers = typeWithModifiers.SetUnknownNullabilityForReferenceTypesIfNecessary(moduleSymbol);
 
             if (customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty)

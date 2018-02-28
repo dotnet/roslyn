@@ -8,6 +8,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
+    /// <summary>
+    /// Returns the set of members that contain reference types with IsNullable set.
+    /// </summary>
     internal sealed class UsesIsNullableVisitor : CSharpSymbolVisitor<bool>
     {
         private readonly ArrayBuilder<Symbol> _builder;
@@ -108,8 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 UsesIsNullable(type.TypeSymbol);
         }
 
-        // Should use TypeSymbolExtensions.VisitType if/when that
-        // method supports TypeSymbolWithAnnotations.
         private bool UsesIsNullable(TypeSymbol type)
         {
             if (type is null)
