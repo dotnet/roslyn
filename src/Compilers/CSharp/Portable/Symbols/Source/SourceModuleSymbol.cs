@@ -611,6 +611,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (UtilizesNullableReferenceTypes)
             {
+                // PROTOTYPE(NullableReferenceTypes): Where do we ensure
+                //Compilation.NeedsGeneratedNullableAttribute is set?
                 AddSynthesizedAttribute(
                     ref attributes,
                     moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor, ImmutableArray<TypedConstant>.Empty));

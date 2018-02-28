@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     return true;
                 }
+                // PROTOTYPE(NullableReferenceTypes): The call to `SourceModule.UtilizesNullableReferenceTypes`
+                // seems incorrect. `Compilation.NeedsGeneratedNullableAttribute` should be sufficient.
                 if (SourceModule.UtilizesNullableReferenceTypes)
                 {
                     // Don't report any errors. They should be reported during binding.
