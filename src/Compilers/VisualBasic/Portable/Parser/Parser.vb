@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Public ReadOnly Property Options() As VisualBasicParseOptions
+        Public ReadOnly Property Options As VisualBasicParseOptions
             Get
                 Return _scanner.Options
             End Get

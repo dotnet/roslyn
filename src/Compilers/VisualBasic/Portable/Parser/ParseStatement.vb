@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures.CheckFeatureAvailability
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Partial Friend Class Parser
