@@ -304,15 +304,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)sourceExpression.Type == null);
                 Debug.Assert(sourceExpression.ElementType != null);
 
-                var pointerConversion = default(Conversion);
                 var sourceAsPointer = new PointerTypeSymbol(sourceExpression.ElementType);
-                pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
+                var pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
 
                 if (pointerConversion.IsValid)
                 {
-                    // Report unsafe errors
-                    _binder.ReportUnsafeIfNotAllowed(sourceExpression.Syntax.Location, ref useSiteDiagnostics);
-
                     return Conversion.MakeStackAllocToPointerType(pointerConversion);
                 }
                 else
@@ -325,11 +321,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (spanConversion.Exists)
                         {
-                            // Report errors if Span ctor is missing, or using an older C# version
-                            Binder.CheckFeatureAvailability(sourceExpression.Syntax, MessageID.IDS_FeatureRefStructs, ref useSiteDiagnostics);
-                            Binder.GetWellKnownTypeMember(_binder.Compilation, WellKnownMember.System_Span_T__ctor, out DiagnosticInfo memberDiagnosticInfo);
-                            HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, memberDiagnosticInfo);
-
                             return Conversion.MakeStackAllocToSpanType(spanConversion);
                         }
                     }
