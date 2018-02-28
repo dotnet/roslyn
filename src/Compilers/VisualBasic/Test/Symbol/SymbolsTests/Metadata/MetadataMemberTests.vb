@@ -1033,7 +1033,7 @@ BC2014: the value '255' is invalid for option 'MetadataImportOptions'
             Assert.Equal(CType(Byte.MaxValue, MetadataImportOptions), options.MetadataImportOptions)
             AssertTheseDiagnostics(options.Errors, expectedDiagnostics)
 
-            Dim compilation0 = CreateCompilationWithMscorlib(
+            Dim compilation0 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -1044,7 +1044,7 @@ End Class
     </file>
 </compilation>, options:=TestOptions.DebugDll)
 
-            Dim compilation = CreateCompilationWithMscorlib("", options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions:=MetadataImportOptions.Internal), references:={compilation0.EmitToImageReference()})
+            Dim compilation = CreateCompilationWithMscorlib40("", options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions:=MetadataImportOptions.Internal), references:={compilation0.EmitToImageReference()})
             Dim c = compilation.GetTypeByMetadataName("C")
             Assert.NotEmpty(c.GetMembers("P1"))
             Assert.NotEmpty(c.GetMembers("P2"))
