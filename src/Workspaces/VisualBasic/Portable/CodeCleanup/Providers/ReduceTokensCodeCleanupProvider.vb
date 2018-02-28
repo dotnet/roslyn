@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         End If
 
                         Dim base = literal.GetBase()
-                        If Not base.HasValue OrElse idText.Contains(digitSeperator) Then
+                        If Not base.HasValue Then
                             Return newNode
                         End If
 
@@ -101,7 +101,6 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         If Not CaseInsensitiveComparison.Equals(valueText, idText) Then
                             Return newNode.ReplaceToken(literal, CreateLiteralToken(literal, valueText, value))
                         End If
-
                 End Select
 
                 Return newNode
