@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084")]
         public async Task TestForSwitchCase_AfterLiteral()
         {
             await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case 1 $$ }"));

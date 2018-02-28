@@ -8698,6 +8698,25 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExceptionFilter1_NotBeforeOpenParen()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void M(bool x)
+    {
+        try
+        {
+        }
+        catch when $$
+";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExceptionFilter2()
         {
             var markup = @"
@@ -8711,6 +8730,59 @@ class C
         {
         }
         catch (Exception ex) when ($$
+";
+
+            await VerifyItemExistsAsync(markup, "x");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExceptionFilter2_NotBeforeOpenParen()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void M(bool x)
+    {
+        try
+        {
+        }
+        catch (Exception ex) when $$
+";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SwitchCaseWhenClause()
+        {
+            var markup = @"
+class C
+{
+    void M(bool x)
+    {
+        switch (1)
+        {
+            case 1 when $$
+";
+
+            await VerifyItemExistsAsync(markup, "x");
+        }
+
+        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SwitchPatternCaseWhenClause()
+        {
+            var markup = @"
+class C
+{
+    void M(bool x)
+    {
+        switch (1)
+        {
+            case int i when $$
 ";
 
             await VerifyItemExistsAsync(markup, "x");

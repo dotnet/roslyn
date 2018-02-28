@@ -2410,6 +2410,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // case ... when |
+            if (token.IsKind(SyntaxKind.WhenKeyword) && token.Parent.IsKind(SyntaxKind.WhenClause))
+            {
+                return true;
+            }
+
             // (SomeType) |
             if (token.IsAfterPossibleCast())
             {
