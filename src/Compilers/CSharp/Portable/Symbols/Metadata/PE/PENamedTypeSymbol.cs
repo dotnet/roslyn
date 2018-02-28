@@ -458,7 +458,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         TypeSymbol decodedType = new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
                         var result = (NamedTypeSymbol)DynamicTypeDecoder.TransformType(decodedType, 0, _handle, moduleSymbol);
                         result = (NamedTypeSymbol)TupleTypeDecoder.DecodeTupleTypesIfApplicable(result, _handle, moduleSymbol);
-                        result = (NamedTypeSymbol)NullableTypeDecoder.TransformOrEraseNullability(TypeSymbolWithAnnotations.Create(result), _handle, moduleSymbol).TypeSymbol;
+
+                        // PROTOTYPE(NullableReferenceTypes): Should call NullableTypeDecoder.TransformOrEraseNullability
+                        // here (see StaticNullChecking.UnannotatedAssemblies_09) but TransformOrEraseNullability results in
+                        // a StackOverflowException when building Roslyn.sln.
+                        if (moduleSymbol.UtilizesNullableReferenceTypes)
+                        {
+                            result = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(result), _handle, moduleSymbol).TypeSymbol;
+                        }
                         return result;
                     }
                 }

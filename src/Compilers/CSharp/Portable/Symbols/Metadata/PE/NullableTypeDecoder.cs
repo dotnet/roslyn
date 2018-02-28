@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// returns the type transformed to have IsNullable set to true or false
         /// (but not null) for each reference type in the type.
         /// </summary>
-        private static TypeSymbolWithAnnotations TransformType(
+        internal static TypeSymbolWithAnnotations TransformType(
             TypeSymbolWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
             PEModuleSymbol containingModule)
