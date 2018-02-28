@@ -400,6 +400,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // write out the actual results as method calls (copy/paste this to update baseline)
             assertText.AppendLine("Actual:");
             var actualText = new StringBuilder();
+            var actualFull = new StringBuilder();
             var e = actual.GetEnumerator();
             for (i = 0; e.MoveNext(); i++)
             {
@@ -412,21 +413,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (i > 0)
                 {
-                    assertText.AppendLine(",");
+                    actualFull.AppendLine(",");
                     actualText.AppendLine(",");
                 }
 
                 if (includeDiagnosticMessagesAsComments)
                 {
-                    Indent(assertText, indentDepth);
-                    assertText.Append("// ");
-                    assertText.AppendLine(d.ToString());
+                    Indent(actualFull, indentDepth);
+                    actualFull.Append("// ");
+                    actualFull.AppendLine(d.ToString());
                     var l = d.Location;
                     if (l.IsInSource)
                     {
-                        Indent(assertText, indentDepth);
-                        assertText.Append("// ");
-                        assertText.AppendLine(l.SourceTree.GetText().Lines.GetLineFromPosition(l.SourceSpan.Start).ToString());
+                        Indent(actualFull, indentDepth);
+                        actualFull.Append("// ");
+                        actualFull.AppendLine(l.SourceTree.GetText().Lines.GetLineFromPosition(l.SourceSpan.Start).ToString());
                     }
                 }
 
@@ -437,9 +438,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     diffDescription = expected[idx];
                 }
-                AppendDiagnosticDescription(assertText, description, indentDepth);
+                AppendDiagnosticDescription(actualFull, description, indentDepth);
                 AppendDiagnosticDescription(actualText, diffDescription, indentDepth);
             }
+
+            var actualFullString = actualFull.ToString();
+            SingleUseClipboard.Copy(actualFullString);
+            assertText.Append(actualFullString);
+
             if (i > 0)
             {
                 assertText.AppendLine();
@@ -461,6 +467,42 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static void Indent(StringBuilder sb, int count)
         {
             sb.Append(' ', 4 * count);
+        }
+
+        internal static class SingleUseClipboard
+        {
+            static bool consumed = false;
+            internal static void Copy(string val)
+            {
+                if (!consumed && System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+                {
+                    Clip(val);
+                    consumed = true;
+                }
+            }
+
+            internal static void Clip(string content)
+            {
+                var process = new System.Diagnostics.Process()
+                {
+                    StartInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = "/c clip",
+                        UseShellExecute = false,
+                        CreateNoWindow = false,
+                        RedirectStandardInput = true,
+                    }
+                };
+                process.Start();
+
+                var writer = process.StandardInput;
+                writer.Write(content);
+                writer.Flush();
+                writer.Dispose();
+
+                process.WaitForExit();
+            }
         }
     }
 }
