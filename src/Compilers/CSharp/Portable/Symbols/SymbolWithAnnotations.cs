@@ -175,8 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal static TypeSymbolWithAnnotations Create(CSharpCompilation compilation, TypeSymbol typeSymbol)
         {
-            bool? isNullableIfReferenceType = compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) ? (bool?)false : null;
-            return Create(typeSymbol, ImmutableArray<CustomModifier>.Empty, isNullableIfReferenceType: isNullableIfReferenceType);
+            return Create(compilation.SourceModule, typeSymbol);
         }
 
         internal static TypeSymbolWithAnnotations Create(ModuleSymbol module, TypeSymbol typeSymbol)

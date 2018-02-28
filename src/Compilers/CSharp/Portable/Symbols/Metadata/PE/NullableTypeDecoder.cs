@@ -8,7 +8,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
     internal static class NullableTypeDecoder
     {
-        internal static TypeSymbolWithAnnotations TransformType(
+        /// <summary>
+        /// If the type reference has an associated NullableAttribute, this method
+        /// returns the type transformed to have IsNullable set to true or false
+        /// (but not null) for each reference type in the type.
+        /// </summary>
+        private static TypeSymbolWithAnnotations TransformType(
             TypeSymbolWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
             PEModuleSymbol containingModule)

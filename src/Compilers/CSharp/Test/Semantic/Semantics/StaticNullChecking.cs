@@ -659,6 +659,36 @@ class P
         }
 
         [Fact]
+        public void UnannotatedAssemblies_09()
+        {
+            var source0 =
+@"public abstract class A<T>
+{
+    public T F;
+}
+public sealed class B : A<object>
+{
+}";
+            var source1 =
+@"class C
+{
+    static void Main()
+    {
+        B b = new B();
+        b.F = null;
+    }
+}";
+            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+
+            var comp1 = CreateStandardCompilation(source1, references: new MetadataReference[] { new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
+            comp1.VerifyDiagnostics();
+
+            comp1 = CreateStandardCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp1.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void InheritedValueConstraintForNullable1_01()
         {
             var source = @"

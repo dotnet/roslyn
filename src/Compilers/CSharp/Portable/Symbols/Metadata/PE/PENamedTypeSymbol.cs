@@ -458,12 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         TypeSymbol decodedType = new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
                         var result = (NamedTypeSymbol)DynamicTypeDecoder.TransformType(decodedType, 0, _handle, moduleSymbol);
                         result = (NamedTypeSymbol)TupleTypeDecoder.DecodeTupleTypesIfApplicable(result, _handle, moduleSymbol);
-
-                        if (moduleSymbol.UtilizesNullableReferenceTypes)
-                        {
-                            result = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(result), _handle, moduleSymbol).TypeSymbol;
-                        }
-
+                        result = (NamedTypeSymbol)NullableTypeDecoder.TransformOrEraseNullability(TypeSymbolWithAnnotations.Create(result), _handle, moduleSymbol).TypeSymbol;
                         return result;
                     }
                 }
