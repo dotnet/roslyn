@@ -29,5 +29,17 @@ namespace Roslyn.Utilities
 
             return default;
         }
+
+        public static void MultiAdd<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
+            where TCollection : ICollection<TValue>, new()
+        {
+            if (!dictionary.TryGetValue(key, out var collection))
+            {
+                collection = new TCollection();
+                dictionary.Add(key, collection);
+            }
+
+            collection.Add(value);
+        }
     }
 }
