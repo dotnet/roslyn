@@ -80,13 +80,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Return ClassificationTypeNames.DelegateName
             ElseIf TypeOf parent Is TypeParameterSyntax AndAlso DirectCast(parent, TypeParameterSyntax).Identifier = identifier Then
                 Return ClassificationTypeNames.TypeParameterName
+            ElseIf TypeOf parent Is MethodStatementSyntax AndAlso DirectCast(parent, MethodStatementSyntax).Identifier = identifier Then
+                Return ClassificationTypeNames.MethodName
+            ElseIf TypeOf parent Is DeclareStatementSyntax AndAlso DirectCast(parent, DeclareStatementSyntax).Identifier = identifier Then
+                Return ClassificationTypeNames.MethodName
+            ElseIf TypeOf parent Is PropertyStatementSyntax AndAlso DirectCast(parent, PropertyStatementSyntax).Identifier = identifier Then
+                Return ClassificationTypeNames.PropertyName
+            ElseIf TypeOf parent Is EventStatementSyntax AndAlso DirectCast(parent, EventStatementSyntax).Identifier = identifier Then
+                Return ClassificationTypeNames.EventName
+            ElseIf TypeOf parent Is EnumMemberDeclarationSyntax AndAlso DirectCast(parent, EnumMemberDeclarationSyntax).Identifier = identifier Then
+                Return ClassificationTypeNames.EnumMemberName
+            ElseIf TypeOf parent Is ModifiedIdentifierSyntax AndAlso DirectCast(parent, ModifiedIdentifierSyntax).Identifier = identifier Then
+                If TypeOf parent.Parent Is ParameterSyntax Then
+                    Return ClassificationTypeNames.ParameterName
+                ElseIf TypeOf parent.Parent Is VariableDeclaratorSyntax Then
+                    If TypeOf parent.Parent.Parent Is LocalDeclarationStatementSyntax Then
+                        Return ClassificationTypeNames.LocalName
+                    ElseIf TypeOf parent.Parent.Parent Is FieldDeclarationSyntax Then
+                        Dim fieldDeclaration = DirectCast(parent.Parent.Parent, FieldDeclarationSyntax)
+                        Return If(fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword), ClassificationTypeNames.ConstantName, ClassificationTypeNames.FieldName)
+                    End If
+                End If
             ElseIf (identifier.ToString() = "IsTrue" OrElse identifier.ToString() = "IsFalse") AndAlso
                 TypeOf parent Is OperatorStatementSyntax AndAlso DirectCast(parent, OperatorStatementSyntax).OperatorToken = identifier Then
 
                 Return ClassificationTypeNames.Keyword
-            Else
-                Return ClassificationTypeNames.Identifier
             End If
+
+            Return ClassificationTypeNames.Identifier
         End Function
 
         Private Function IsStringToken(token As SyntaxToken) As Boolean

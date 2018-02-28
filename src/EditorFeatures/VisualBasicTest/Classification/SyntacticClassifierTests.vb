@@ -27,612 +27,607 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlStartElementName1() As Task
             Await TestInExpressionAsync("<goo></goo>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlDelimiter(">"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("goo"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlDelimiter(">"),
+                VBXmlDelimiter("</"),
+                VBXmlName("goo"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlStartElementName2() As Task
             Await TestInExpressionAsync("<goo",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlStartElementName3() As Task
             Await TestInExpressionAsync("<goo>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlStartElementName4() As Task
             Await TestInExpressionAsync("<goo.",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo."))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo."))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlStartElementName5() As Task
             Await TestInExpressionAsync("<goo.b",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo.b"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo.b"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlStartElementName6() As Task
             Await TestInExpressionAsync("<goo.b>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo.b"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo.b"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlStartElementName7() As Task
             Await TestInExpressionAsync("<goo:",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlName(":"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlName(":"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlStartElementName8() As Task
             Await TestInExpressionAsync("<goo:b",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlName(":"),
-                             VBXmlName("b"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlName(":"),
+                VBXmlName("b"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlStartElementName9() As Task
             Await TestInExpressionAsync("<goo:b>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlName(":"),
-                             VBXmlName("b"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlName(":"),
+                VBXmlName("b"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmptyElementName1() As Task
             Await TestInExpressionAsync("<goo/>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlDelimiter("/>"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlDelimiter("/>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmptyElementName2() As Task
             Await TestInExpressionAsync("<goo. />",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo."),
-                             VBXmlDelimiter("/>"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo."),
+                VBXmlDelimiter("/>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmptyElementName3() As Task
             Await TestInExpressionAsync("<goo.bar />",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo.bar"),
-                             VBXmlDelimiter("/>"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo.bar"),
+                VBXmlDelimiter("/>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmptyElementName4() As Task
             Await TestInExpressionAsync("<goo: />",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlName(":"),
-                             VBXmlDelimiter("/>"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlName(":"),
+                VBXmlDelimiter("/>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmptyElementName5() As Task
             Await TestInExpressionAsync("<goo:bar />",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlName(":"),
-                             VBXmlName("bar"),
-                             VBXmlDelimiter("/>"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlName(":"),
+                VBXmlName("bar"),
+                VBXmlDelimiter("/>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlAttributeName1() As Task
             Await TestInExpressionAsync("<goo b",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("b"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("b"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlAttributeName2() As Task
             Await TestInExpressionAsync("<goo ba",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("ba"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("ba"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlAttributeName3() As Task
             Await TestInExpressionAsync("<goo bar=",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("bar"),
-                             VBXmlDelimiter("="))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("bar"),
+                VBXmlDelimiter("="))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlAttributeValue1() As Task
             Await TestInExpressionAsync("<goo bar=""",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("bar"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("bar"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlAttributeValue2() As Task
             Await TestInExpressionAsync("<goo bar=""b",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("bar"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeValue("b" & vbCrLf))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("bar"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("b" & vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlAttributeValue3() As Task
             Await TestInExpressionAsync("<goo bar=""ba",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("bar"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeValue("ba" & vbCrLf))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("bar"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("ba" & vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlAttributeValue4() As Task
             Await TestInExpressionAsync("<goo bar=""ba""",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("bar"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeValue("ba"),
-                             VBXmlAttributeQuotes(""""))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("bar"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("ba"),
+                VBXmlAttributeQuotes(""""))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlAttributeValue5() As Task
             Await TestInExpressionAsync("<goo bar=""""",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("bar"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeQuotes(""""))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("bar"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeQuotes(""""))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlAttributeValue6() As Task
             Await TestInExpressionAsync("<goo bar=""b""",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("bar"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeValue("b"),
-                             VBXmlAttributeQuotes(""""))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("bar"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("b"),
+                VBXmlAttributeQuotes(""""))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlAttributeValue7() As Task
             Await TestInExpressionAsync("<goo bar=""ba""",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("bar"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeValue("ba"),
-                             VBXmlAttributeQuotes(""""))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("bar"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("ba"),
+                VBXmlAttributeQuotes(""""))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlAttributeValueMultiple1() As Task
             Await TestInExpressionAsync("<goo bar=""ba"" baz="""" ",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("bar"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeValue("ba"),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeName("baz"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeQuotes(""""))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("bar"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("ba"),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeName("baz"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeQuotes(""""))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlAttributeValueMultiple2() As Task
             Await TestInExpressionAsync("<goo bar=""ba"" baz=""a"" ",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("bar"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeValue("ba"),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeName("baz"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeValue("a"),
-                             VBXmlAttributeQuotes(""""))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("bar"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("ba"),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeName("baz"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("a"),
+                VBXmlAttributeQuotes(""""))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlElementContent1() As Task
             Await TestInExpressionAsync("<f>&l</f>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"),
-                             VBXmlEntityReference("&"),
-                             VBXmlText("l"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"),
+                VBXmlEntityReference("&"),
+                VBXmlText("l"),
+                VBXmlDelimiter("</"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlElementContent2() As Task
             Await TestInExpressionAsync("<f>goo</f>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"),
-                             VBXmlText("goo"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"),
+                VBXmlText("goo"),
+                VBXmlDelimiter("</"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlElementContent3() As Task
             Await TestInExpressionAsync("<f>&#x03C0;</f>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"),
-                             VBXmlEntityReference("&#x03C0;"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"),
+                VBXmlEntityReference("&#x03C0;"),
+                VBXmlDelimiter("</"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlElementContent4() As Task
             Await TestInExpressionAsync("<f>goo &#x03C0;</f>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"),
-                             VBXmlText("goo "),
-                             VBXmlEntityReference("&#x03C0;"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"),
+                VBXmlText("goo "),
+                VBXmlEntityReference("&#x03C0;"),
+                VBXmlDelimiter("</"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlElementContent5() As Task
             Await TestInExpressionAsync("<f>goo &lt;</f>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"),
-                             VBXmlText("goo "),
-                             VBXmlEntityReference("&lt;"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"),
+                VBXmlText("goo "),
+                VBXmlEntityReference("&lt;"),
+                VBXmlDelimiter("</"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlElementContent6() As Task
             Await TestInExpressionAsync("<f>goo &lt; bar</f>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"),
-                             VBXmlText("goo "),
-                             VBXmlEntityReference("&lt;"),
-                             VBXmlText(" bar"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"),
+                VBXmlText("goo "),
+                VBXmlEntityReference("&lt;"),
+                VBXmlText(" bar"),
+                VBXmlDelimiter("</"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlElementContent7() As Task
             Await TestInExpressionAsync("<f>goo &lt;",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"),
-                             VBXmlText("goo "),
-                             VBXmlEntityReference("&lt;"))
+                VBXmlDelimiter("<"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"),
+                VBXmlText("goo "),
+                VBXmlEntityReference("&lt;"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlCData1() As Task
             Await TestInExpressionAsync("<f><![CDATA[bar]]></f>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"),
-                             VBXmlDelimiter("<![CDATA["),
-                             VBXmlCDataSection("bar"),
-                             VBXmlDelimiter("]]>"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"))
-
+                VBXmlDelimiter("<"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"),
+                VBXmlDelimiter("<![CDATA["),
+                VBXmlCDataSection("bar"),
+                VBXmlDelimiter("]]>"),
+                VBXmlDelimiter("</"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlCData4() As Task
             Await TestInExpressionAsync("<f><![CDATA[bar]]>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"),
-                             VBXmlDelimiter("<![CDATA["),
-                             VBXmlCDataSection("bar"),
-                             VBXmlDelimiter("]]>"))
+                VBXmlDelimiter("<"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"),
+                VBXmlDelimiter("<![CDATA["),
+                VBXmlCDataSection("bar"),
+                VBXmlDelimiter("]]>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlCData5() As Task
             Await TestInExpressionAsync("<f><![CDATA[<>/]]>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"),
-                             VBXmlDelimiter("<![CDATA["),
-                             VBXmlCDataSection("<>/"),
-                             VBXmlDelimiter("]]>"))
+                VBXmlDelimiter("<"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"),
+                VBXmlDelimiter("<![CDATA["),
+                VBXmlCDataSection("<>/"),
+                VBXmlDelimiter("]]>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlCData6() As Task
-            Dim expr = StringFromLines(
-                "<f><![CDATA[goo",
-                "baz]]></f>")
-            Await TestInExpressionAsync(expr,
-                             VBXmlDelimiter("<"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"),
-                             VBXmlDelimiter("<![CDATA["),
-                             VBXmlCDataSection("goo" & vbCrLf),
-                             VBXmlCDataSection("baz"),
-                             VBXmlDelimiter("]]>"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"))
+            Dim code =
+"<f><![CDATA[goo
+baz]]></f>"
+
+            Await TestInExpressionAsync(code,
+                VBXmlDelimiter("<"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"),
+                VBXmlDelimiter("<![CDATA["),
+                VBXmlCDataSection("goo" & vbCrLf),
+                VBXmlCDataSection("baz"),
+                VBXmlDelimiter("]]>"),
+                VBXmlDelimiter("</"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAtElementName1() As Task
             Await TestInExpressionAsync("<<%= ",
-                             VBXmlDelimiter("<"),
-                             VBXmlEmbeddedExpression("<%="))
+                VBXmlDelimiter("<"),
+                VBXmlEmbeddedExpression("<%="))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAtElementName2() As Task
             Await TestInExpressionAsync("<<%= %>",
-                             VBXmlDelimiter("<"),
-                             VBXmlEmbeddedExpression("<%="),
-                             VBXmlEmbeddedExpression("%>"))
+                VBXmlDelimiter("<"),
+                VBXmlEmbeddedExpression("<%="),
+                VBXmlEmbeddedExpression("%>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAtElementName3() As Task
             Await TestInExpressionAsync("<<%= bar %>",
-                             VBXmlDelimiter("<"),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             VBXmlEmbeddedExpression("%>"))
+                VBXmlDelimiter("<"),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                VBXmlEmbeddedExpression("%>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAtElementName4() As Task
             Await TestInExpressionAsync("<<%= bar.Baz() %>",
-                             VBXmlDelimiter("<"),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             Operators.Dot,
-                             Identifier("Baz"),
-                             Punctuation.OpenParen,
-                             Punctuation.CloseParen,
-                             VBXmlEmbeddedExpression("%>"))
+                VBXmlDelimiter("<"),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                Operators.Dot,
+                Identifier("Baz"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                VBXmlEmbeddedExpression("%>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAtElementName5() As Task
             Await TestInExpressionAsync("<<%= bar.Baz() %> />",
-                             VBXmlDelimiter("<"),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             Operators.Dot,
-                             Identifier("Baz"),
-                             Punctuation.OpenParen,
-                             Punctuation.CloseParen,
-                             VBXmlEmbeddedExpression("%>"),
-                             VBXmlDelimiter("/>"))
+                VBXmlDelimiter("<"),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                Operators.Dot,
+                Identifier("Baz"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlDelimiter("/>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAtElementName6() As Task
             Await TestInExpressionAsync("<<%= bar %> />",
-                             VBXmlDelimiter("<"),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             VBXmlEmbeddedExpression("%>"),
-                             VBXmlDelimiter("/>"))
+                VBXmlDelimiter("<"),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlDelimiter("/>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAsAttribute1() As Task
             Await TestInExpressionAsync("<goo <%= bar %>>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             VBXmlEmbeddedExpression("%>"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAsAttribute2() As Task
             Await TestInExpressionAsync("<goo <%= bar %>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             VBXmlEmbeddedExpression("%>"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                VBXmlEmbeddedExpression("%>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAsAttribute3() As Task
             Await TestInExpressionAsync("<goo <%= bar %>></goo>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             VBXmlEmbeddedExpression("%>"),
-                             VBXmlDelimiter(">"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("goo"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlDelimiter(">"),
+                VBXmlDelimiter("</"),
+                VBXmlName("goo"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAsAttribute4() As Task
             Await TestInExpressionAsync("<goo <%= bar %> />",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             VBXmlEmbeddedExpression("%>"),
-                             VBXmlDelimiter("/>"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlDelimiter("/>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAsAttributeValue1() As Task
-            Dim exprText = "<goo bar=<%=baz >"
-            Await TestInExpressionAsync(exprText,
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("bar"),
-                             VBXmlDelimiter("="),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("baz"),
-                             Operators.GreaterThan)
+            Await TestInExpressionAsync("<goo bar=<%=baz >",
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("bar"),
+                VBXmlDelimiter("="),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("baz"),
+                Operators.GreaterThan)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAsAttributeValue2() As Task
-            Dim exprText = "<goo bar=<%=baz %> >"
-            Await TestInExpressionAsync(exprText,
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("bar"),
-                             VBXmlDelimiter("="),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("baz"),
-                             VBXmlEmbeddedExpression("%>"),
-                             VBXmlDelimiter(">"))
+            Await TestInExpressionAsync("<goo bar=<%=baz %> >",
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("bar"),
+                VBXmlDelimiter("="),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("baz"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAsAttributeValue3() As Task
-            Dim exprText = "<goo bar=<%=baz.Goo %> >"
-            Await TestInExpressionAsync(exprText,
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("bar"),
-                             VBXmlDelimiter("="),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("baz"),
-                             Operators.Dot,
-                             Identifier("Goo"),
-                             VBXmlEmbeddedExpression("%>"),
-                             VBXmlDelimiter(">"))
+            Await TestInExpressionAsync("<goo bar=<%=baz.Goo %> >",
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("bar"),
+                VBXmlDelimiter("="),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("baz"),
+                Operators.Dot,
+                Identifier("Goo"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAsElementContent1() As Task
-            Dim exprText = "<f><%= bar %></f>"
-            Await TestInExpressionAsync(exprText,
-                             VBXmlDelimiter("<"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             VBXmlEmbeddedExpression("%>"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"))
+            Await TestInExpressionAsync("<f><%= bar %></f>",
+                VBXmlDelimiter("<"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlDelimiter("</"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAsElementContent2() As Task
-            Dim exprText = "<f><%= bar.Goo %></f>"
-            Await TestInExpressionAsync(exprText,
-                             VBXmlDelimiter("<"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             Operators.Dot,
-                             Identifier("Goo"),
-                             VBXmlEmbeddedExpression("%>"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"))
+            Await TestInExpressionAsync("<f><%= bar.Goo %></f>",
+                VBXmlDelimiter("<"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                Operators.Dot,
+                Identifier("Goo"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlDelimiter("</"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAsElementContent3() As Task
-            Dim exprText = "<f><%= bar.Goo %> jaz</f>"
-            Await TestInExpressionAsync(exprText,
-                             VBXmlDelimiter("<"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             Operators.Dot,
-                             Identifier("Goo"),
-                             VBXmlEmbeddedExpression("%>"),
-                             VBXmlText(" jaz"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("f"),
-                             VBXmlDelimiter(">"))
+            Await TestInExpressionAsync("<f><%= bar.Goo %> jaz</f>",
+                VBXmlDelimiter("<"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                Operators.Dot,
+                Identifier("Goo"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlText(" jaz"),
+                VBXmlDelimiter("</"),
+                VBXmlName("f"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbeddedExpressionAsElementContentNested() As Task
-            Dim text = StringFromLines(
-                "Dim doc = _",
-                "    <goo>",
-                "        <%= <bug141>",
-                "                <a>hello</a>",
-                "            </bug141> %>",
-                "    </goo>")
-            Await TestInMethodAsync(text,
+            Dim code =
+"Dim doc = _
+    <goo>
+        <%= <bug141>
+                <a>hello</a>
+            </bug141> %>
+    </goo>"
+
+            Await TestInMethodAsync(code,
                 Keyword("Dim"),
-                Identifier("doc"),
+                Local("doc"),
                 Operators.Equals,
                 LineContinuation,
                 VBXmlDelimiter("<"),
@@ -660,13 +655,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlLiteralsInLambdas() As Task
-            Dim text = StringFromLines(
-                "Dim x = Function() _",
-                "                    <element val=""something""/>",
-                "        Dim y = Function() <element val=""something""/>")
-            Await TestAsync(text,
+            Dim code =
+"Dim x = Function() _
+                    <element val=""something""/>
+Dim y = Function() <element val=""something""/>"
+
+            Await TestAsync(code,
                 Keyword("Dim"),
-                Identifier("x"),
+                Field("x"),
                 Operators.Equals,
                 Keyword("Function"),
                 Punctuation.OpenParen,
@@ -681,7 +677,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlAttributeQuotes(""""),
                 VBXmlDelimiter("/>"),
                 Keyword("Dim"),
-                Identifier("y"),
+                Field("y"),
                 Operators.Equals,
                 Keyword("Function"),
                 Punctuation.OpenParen,
@@ -698,44 +694,44 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlDocumentPrologue() As Task
-            Dim exprText = "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>"
-            Await TestInExpressionAsync(exprText,
-                             VBXmlDelimiter("<?"),
-                             VBXmlName("xml"),
-                             VBXmlAttributeName("version"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeValue("1.0"),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeName("encoding"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeValue("UTF-8"),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeName("standalone"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeValue("yes"),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlDelimiter("?>"))
+            Await TestInExpressionAsync("<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>",
+                VBXmlDelimiter("<?"),
+                VBXmlName("xml"),
+                VBXmlAttributeName("version"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("1.0"),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeName("encoding"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("UTF-8"),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeName("standalone"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("yes"),
+                VBXmlAttributeQuotes(""""),
+                VBXmlDelimiter("?>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlLiterals1() As Task
-            Dim text = StringFromLines(
-                "Dim a = <Customer id1=""1"" id2=""2"" id3=<%= n2 %> id4="""">",
-                "                    <!-- This is a simple Xml element with all of the node types -->",
-                "                    <Name>Me</Name>",
-                "                    <NameUsingExpression><%= n1 %></NameUsingExpression>",
-                "                    <Street>10802 177th CT NE</Street>",
-                "                    <Misc><![CDATA[Let's add some CDATA",
-                " for fun. ]]>",
-                "                    </Misc>",
-                "                    <Empty><%= Nothing %></Empty>",
-                "                </Customer>")
-            Await TestInMethodAsync(text,
+            Dim code =
+"Dim a = <Customer id1=""1"" id2=""2"" id3=<%= n2 %> id4="""">
+                    <!-- This is a simple Xml element with all of the node types -->
+                    <Name>Me</Name>
+                    <NameUsingExpression><%= n1 %></NameUsingExpression>
+                    <Street>10802 177th CT NE</Street>
+                    <Misc><![CDATA[Let's add some CDATA
+ for fun. ]]>
+                    </Misc>
+                    <Empty><%= Nothing %></Empty>
+                </Customer>"
+
+            Await TestInMethodAsync(code,
                 Keyword("Dim"),
-                Identifier("a"),
+                Local("a"),
                 Operators.Equals,
                 VBXmlDelimiter("<"),
                 VBXmlName("Customer"),
@@ -811,23 +807,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlLiterals2() As Task
-            Dim text = StringFromLines(
-                "Dim b = <?xml version=""1.0""?>",
-                "                <!-- comment before the root -->",
-                "                <?my-PI PI before the root ?>",
-                "                <p:Customer id1=""1"" id2=""2"" id3=<%= n2 %> id4="""">",
-                "                    <!-- This is a simple Xml element with all of the node types -->",
-                "                    <q:Name>Me</q:Name>",
-                "                    <s:NameUsingExpression><%= n1 %></s:NameUsingExpression>",
-                "                    <t:Street>10802 177th CT NE</t:Street>",
-                "                    <p:Misc><![CDATA[Let's add some CDATA  for fun. ]]>",
-                "                    </p:Misc>",
-                "                    <Empty><%= Nothing %></Empty>",
-                "                    <entity>hello&#x7b;world</entity>",
-                "                </p:Customer>")
-            Await TestInMethodAsync(text,
+            Dim code =
+"Dim b = <?xml version=""1.0""?>
+         <!-- comment before the root -->
+         <?my-PI PI before the root ?>
+         <p:Customer id1=""1"" id2=""2"" id3=<%= n2 %> id4="""">
+             <!-- This is a simple Xml element with all of the node types -->
+             <q:Name>Me</q:Name>
+             <s:NameUsingExpression><%= n1 %></s:NameUsingExpression>
+             <t:Street>10802 177th CT NE</t:Street>
+             <p:Misc><![CDATA[Let's add some CDATA  for fun. ]]>
+             </p:Misc>
+             <Empty><%= Nothing %></Empty>
+             <entity>hello&#x7b;world</entity>
+         </p:Customer>"
+
+            Await TestInMethodAsync(code,
                 Keyword("Dim"),
-                Identifier("b"),
+                Local("b"),
                 Operators.Equals,
                 VBXmlDelimiter("<?"),
                 VBXmlName("xml"),
@@ -946,12 +943,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlLiterals3() As Task
-            Dim text = StringFromLines(
-                "Dim c = <p:x xmlns:p=""abc",
-                "123""/>")
-            Await TestInMethodAsync(text,
+            Dim code =
+"Dim c = <p:x xmlns:p=""abc
+123""/>"
+
+            Await TestInMethodAsync(code,
                 Keyword("Dim"),
-                Identifier("c"),
+                Local("c"),
                 Operators.Equals,
                 VBXmlDelimiter("<"),
                 VBXmlName("p"),
@@ -970,13 +968,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlLiterals4() As Task
-            Dim text = StringFromLines(
-                "Dim d = _",
-                "        <?xml version=""1.0""?>",
-                "        <a/>")
-            Await TestInMethodAsync(text,
+            Dim code =
+"Dim d = _
+        <?xml version=""1.0""?>
+        <a/>"
+
+            Await TestInMethodAsync(code,
                 Keyword("Dim"),
-                Identifier("d"),
+                Local("d"),
                 Operators.Equals,
                 LineContinuation,
                 VBXmlDelimiter("<?"),
@@ -994,14 +993,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlLiterals5() As Task
-            Dim text = StringFromLines(
-                "Dim i = 100",
-                "        Process( _",
-                "                <Customer ID=<%= i + 1000 %> a="""">",
-                "                </Customer>)")
-            Await TestInMethodAsync(text,
+            Dim code =
+"Dim i = 100
+        Process( _
+                <Customer ID=<%= i + 1000 %> a="""">
+                </Customer>)"
+
+            Await TestInMethodAsync(code,
                 Keyword("Dim"),
-                Identifier("i"),
+                Local("i"),
                 Operators.Equals,
                 Number("100"),
                 Identifier("Process"),
@@ -1029,21 +1029,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlLiterals6() As Task
-            Dim text = StringFromLines(
-                "Dim xmlwithkeywords = <MODULE>",
-                "                                  <CLASS>",
-                "                                      <FUNCTION>",
-                "                                          <DIM i=""1""/>",
-                "                                          <FOR j=""1"" to=""i"">",
-                "                                              <NEXT/>",
-                "                                          </FOR>",
-                "                                          <END/>",
-                "                                      </FUNCTION>",
-                "                                  </CLASS>",
-                "                              </MODULE>")
-            Await TestInMethodAsync(text,
+            Dim code =
+"Dim xmlwithkeywords = <MODULE>
+                           <CLASS>
+                               <FUNCTION>
+                                   <DIM i=""1""/>
+                                   <FOR j=""1"" to=""i"">
+                                       <NEXT/>
+                                   </FOR>
+                                   <END/>
+                               </FUNCTION>
+                           </CLASS>
+                       </MODULE>"
+
+            Await TestInMethodAsync(code,
                 Keyword("Dim"),
-                Identifier("xmlwithkeywords"),
+                Local("xmlwithkeywords"),
                 Operators.Equals,
                 VBXmlDelimiter("<"),
                 VBXmlName("MODULE"),
@@ -1097,12 +1098,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlLiterals7() As Task
-            Dim text = StringFromLines(
-                "Dim spacetest = <a b=""1"" c=""2"">",
-                "                        </a>")
-            Await TestInMethodAsync(text,
+            Dim code =
+"Dim spacetest = <a b=""1"" c=""2"">
+                 </a>"
+
+            Await TestInMethodAsync(code,
                 Keyword("Dim"),
-                Identifier("spacetest"),
+                Local("spacetest"),
                 Operators.Equals,
                 VBXmlDelimiter("<"),
                 VBXmlName("a"),
@@ -1124,42 +1126,44 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestOptionKeywordsInClassContext() As Task
-            Dim text = StringFromLines(
-                "Class OptionNoContext",
-                "    Dim Infer",
-                "    Dim Explicit",
-                "    Dim Strict",
-                "    Dim Off",
-                "    Dim Compare",
-                "    Dim Text",
-                "    Dim Binary",
-                "End Class")
-            Await TestAsync(text,
+            Dim code =
+"Class OptionNoContext
+    Dim Infer
+    Dim Explicit
+    Dim Strict
+    Dim Off
+    Dim Compare
+    Dim Text
+    Dim Binary
+End Class"
+
+            Await TestAsync(code,
                 Keyword("Class"),
                 [Class]("OptionNoContext"),
                 Keyword("Dim"),
-                Identifier("Infer"),
+                Field("Infer"),
                 Keyword("Dim"),
-                Identifier("Explicit"),
+                Field("Explicit"),
                 Keyword("Dim"),
-                Identifier("Strict"),
+                Field("Strict"),
                 Keyword("Dim"),
-                Identifier("Off"),
+                Field("Off"),
                 Keyword("Dim"),
-                Identifier("Compare"),
+                Field("Compare"),
                 Keyword("Dim"),
-                Identifier("Text"),
+                Field("Text"),
                 Keyword("Dim"),
-                Identifier("Binary"),
+                Field("Binary"),
                 Keyword("End"),
                 Keyword("Class"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestOptionInferAndExplicit() As Task
-            Dim text = StringFromLines(
-                "Option Infer On",
-                "Option Explicit Off")
+            Dim text =
+"Option Infer On
+Option Explicit Off"
+
             Await TestAsync(text,
                 Keyword("Option"),
                 Keyword("Infer"),
@@ -1171,10 +1175,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestOptionCompareTextBinary() As Task
-            Dim text = StringFromLines(
-                "Option Compare Text ' comment",
-                "Option Compare Binary ")
-            Await TestAsync(text,
+            Dim code =
+"Option Compare Text ' comment
+Option Compare Binary "
+
+            Await TestAsync(code,
                 Keyword("Option"),
                 Keyword("Compare"),
                 Keyword("Text"),
@@ -1187,96 +1192,97 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestOptionInfer1() As Task
             Await TestAsync("Option Infer",
-                 Keyword("Option"),
-                 Keyword("Infer"))
+                Keyword("Option"),
+                Keyword("Infer"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestOptionExplicit1() As Task
             Await TestAsync("Option Explicit",
-                 Keyword("Option"),
-                 Keyword("Explicit"))
+                Keyword("Option"),
+                Keyword("Explicit"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestOptionStrict1() As Task
             Await TestAsync("Option Strict",
-                 Keyword("Option"),
-                 Keyword("Strict"))
+                Keyword("Option"),
+                Keyword("Strict"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestLinqContextualKeywords() As Task
-            Dim text = StringFromLines(
-                "Dim from = 0",
-                "Dim aggregate = 0",
-                "Dim ascending = 0",
-                "Dim descending = 0",
-                "Dim distinct = 0",
-                "Dim by = 0",
-                "Shadows equals = 0",
-                "Dim group = 0",
-                "Dim into = 0",
-                "Dim join = 0",
-                "Dim skip = 0",
-                "Dim take = 0",
-                "Dim where = 0",
-                "Dim order = 0")
-            Await TestInClassAsync(text,
+            Dim code =
+"Dim from = 0
+Dim aggregate = 0
+Dim ascending = 0
+Dim descending = 0
+Dim distinct = 0
+Dim by = 0
+Shadows equals = 0
+Dim group = 0
+Dim into = 0
+Dim join = 0
+Dim skip = 0
+Dim take = 0
+Dim where = 0
+Dim order = 0"
+
+            Await TestInClassAsync(code,
                 Keyword("Dim"),
-                Identifier("from"),
+                Field("from"),
                 Operators.Equals,
                 Number("0"),
                 Keyword("Dim"),
-                Identifier("aggregate"),
+                Field("aggregate"),
                 Operators.Equals,
                 Number("0"),
                 Keyword("Dim"),
-                Identifier("ascending"),
+                Field("ascending"),
                 Operators.Equals,
                 Number("0"),
                 Keyword("Dim"),
-                Identifier("descending"),
+                Field("descending"),
                 Operators.Equals,
                 Number("0"),
                 Keyword("Dim"),
-                Identifier("distinct"),
+                Field("distinct"),
                 Operators.Equals,
                 Number("0"),
                 Keyword("Dim"),
-                Identifier("by"),
+                Field("by"),
                 Operators.Equals,
                 Number("0"),
                 Keyword("Shadows"),
-                Identifier("equals"),
+                Field("equals"),
                 Operators.Equals,
                 Number("0"),
                 Keyword("Dim"),
-                Identifier("group"),
+                Field("group"),
                 Operators.Equals,
                 Number("0"),
                 Keyword("Dim"),
-                Identifier("into"),
+                Field("into"),
                 Operators.Equals,
                 Number("0"),
                 Keyword("Dim"),
-                Identifier("join"),
+                Field("join"),
                 Operators.Equals,
                 Number("0"),
                 Keyword("Dim"),
-                Identifier("skip"),
+                Field("skip"),
                 Operators.Equals,
                 Number("0"),
                 Keyword("Dim"),
-                Identifier("take"),
+                Field("take"),
                 Operators.Equals,
                 Number("0"),
                 Keyword("Dim"),
-                Identifier("where"),
+                Field("where"),
                 Operators.Equals,
                 Number("0"),
                 Keyword("Dim"),
-                Identifier("order"),
+                Field("order"),
                 Operators.Equals,
                 Number("0"))
         End Function
@@ -1284,82 +1290,82 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestFromLinqExpression1() As Task
             Await TestInExpressionAsync("From it in goo",
-                 Keyword("From"),
-                 Identifier("it"),
-                 Keyword("in"),
-                 Identifier("goo"))
+                Keyword("From"),
+                Identifier("it"),
+                Keyword("in"),
+                Identifier("goo"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestFromLinqExpression2() As Task
             Await TestInExpressionAsync("From it in goofooo.Goo",
-                 Keyword("From"),
-                 Identifier("it"),
-                 Keyword("in"),
-                 Identifier("goofooo"),
-                 Operators.Dot,
-                 Identifier("Goo"))
+                Keyword("From"),
+                Identifier("it"),
+                Keyword("in"),
+                Identifier("goofooo"),
+                Operators.Dot,
+                Identifier("Goo"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestFromLinqExpression3() As Task
             Await TestInExpressionAsync("From it ",
-                 Keyword("From"),
-                 Identifier("it"))
+                Keyword("From"),
+                Identifier("it"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestFromNotInContext1() As Task
-            Dim code = StringFromLines(
-                "Class From",
-                "End Class")
+            Dim code =
+"Class From
+End Class"
+
             Await TestAsync(code,
-                 Keyword("Class"),
-                 [Class]("From"),
-                 Keyword("End"),
-                 Keyword("Class"))
+                Keyword("Class"),
+                [Class]("From"),
+                Keyword("End"),
+                Keyword("Class"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestFromNotInContext2() As Task
-            Dim val = "Dim from = 42"
-            Await TestInMethodAsync(val,
-                         Keyword("Dim"),
-                         Identifier("from"),
-                         Operators.Equals,
-                         Number("42"))
+            Await TestInMethodAsync("Dim from = 42",
+                Keyword("Dim"),
+                Local("from"),
+                Operators.Equals,
+                Number("42"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestWhereLinqExpression1() As Task
-            Dim exprTest = "From it in goo Where it <> 4"
-            Await TestInExpressionAsync(exprTest,
-                 Keyword("From"),
-                 Identifier("it"),
-                 Keyword("in"),
-                 Identifier("goo"),
-                 Keyword("Where"),
-                 Identifier("it"),
-                 Operators.LessThanGreaterThan,
-                 Number("4"))
+            Await TestInExpressionAsync("From it in goo Where it <> 4",
+                Keyword("From"),
+                Identifier("it"),
+                Keyword("in"),
+                Identifier("goo"),
+                Keyword("Where"),
+                Identifier("it"),
+                Operators.LessThanGreaterThan,
+                Number("4"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestLinqQuery1() As Task
-            Dim text = StringFromLines(
-                "            Dim src = New List(Of Boolean)",
-                "            Dim var3 = 1",
-                "            Dim q = From var1 In src Where var1 And True _",
-                "                    Order By var1 Ascending Order By var1 Descending _",
-                "                    Select var1 Distinct _",
-                "                    Join var2 In src On var1 Equals var2 _",
-                "                    Skip var3 Skip While var3 Take var3 Take While var3 _",
-                "                    Aggregate var4 In src _",
-                "                    Group var4 By var4 Into var5 = Count() _",
-                "                    Group Join var6 In src On var6 Equals var5 Into var7 Into var8 = Count()")
-            Await TestInMethodAsync(text,
+            Dim code =
+"Dim src = New List(Of Boolean)
+Dim var3 = 1
+Dim q = From var1 In src Where var1 And True _
+        Order By var1 Ascending Order By var1 Descending _
+        Select var1 Distinct _
+        Join var2 In src On var1 Equals var2 _
+        Skip var3 Skip While var3 Take var3 Take While var3 _
+        Aggregate var4 In src _
+        Group var4 By var4 Into var5 = Count() _
+        Group Join var6 In src On var6 Equals var5 Into var7 Into var8 = Count()"
+
+            Await TestInMethodAsync(code,
                 Keyword("Dim"),
-                Identifier("src"),
+                Local("src"),
                 Operators.Equals,
                 Keyword("New"),
                 Identifier("List"),
@@ -1368,11 +1374,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Boolean"),
                 Punctuation.CloseParen,
                 Keyword("Dim"),
-                Identifier("var3"),
+                Local("var3"),
                 Operators.Equals,
                 Number("1"),
                 Keyword("Dim"),
-                Identifier("q"),
+                Local("q"),
                 Operators.Equals,
                 Keyword("From"),
                 Identifier("var1"),
@@ -1454,12 +1460,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <WorkItem(542387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542387")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestFromInQuery() As Task
-            Dim text = StringFromLines(
-                "Dim From = New List(Of Integer)",
-                "Dim result = From s In From Select s")
-            Await TestInMethodAsync(text,
+            Dim code =
+"Dim From = New List(Of Integer)
+Dim result = From s In From Select s"
+
+            Await TestInMethodAsync(code,
                 Keyword("Dim"),
-                Identifier("From"),
+                Local("From"),
                 Operators.Equals,
                 Keyword("New"),
                 Identifier("List"),
@@ -1468,7 +1475,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Integer"),
                 Punctuation.CloseParen,
                 Keyword("Dim"),
-                Identifier("result"),
+                Local("result"),
                 Operators.Equals,
                 Keyword("From"),
                 Identifier("s"),
@@ -1480,29 +1487,30 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestKeyKeyword1() As Task
-            Dim text = StringFromLines(
-                "Dim Value = ""Test""",
-                "            Dim Key As String = Key.Length & (Key.Length)",
-                "            Dim Array As String() = { Key, Key.Length }",
-                "            Dim o = New With {Key Key.Length, Key .Id = 1, Key Key, Key Value, Key.Empty}",
-                "            o = New With {Key _",
-                "                          Key.Length, _",
-                "                          Key _",
-                "                          .Id = 1, _",
-                "                          Key _",
-                "                          Key, _",
-                "                          Key _",
-                "                          Value, _",
-                "                          Key Key. _",
-                "                          Empty _",
-                "                          }")
-            Await TestInMethodAsync(text,
+            Dim code =
+"Dim Value = ""Test""
+Dim Key As String = Key.Length & (Key.Length)
+Dim Array As String() = { Key, Key.Length }
+Dim o = New With {Key Key.Length, Key .Id = 1, Key Key, Key Value, Key.Empty}
+o = New With {Key _
+                Key.Length, _
+                Key _
+                .Id = 1, _
+                Key _
+                Key, _
+                Key _
+                Value, _
+                Key Key. _
+                Empty _
+                }"
+
+            Await TestInMethodAsync(code,
                 Keyword("Dim"),
-                Identifier("Value"),
+                Local("Value"),
                 Operators.Equals,
                 [String]("""Test"""),
                 Keyword("Dim"),
-                Identifier("Key"),
+                Local("Key"),
                 Keyword("As"),
                 Keyword("String"),
                 Operators.Equals,
@@ -1516,7 +1524,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Identifier("Length"),
                 Punctuation.CloseParen,
                 Keyword("Dim"),
-                Identifier("Array"),
+                Local("Array"),
                 Keyword("As"),
                 Keyword("String"),
                 Punctuation.OpenParen,
@@ -1530,7 +1538,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Identifier("Length"),
                 Punctuation.CloseCurly,
                 Keyword("Dim"),
-                Identifier("o"),
+                Local("o"),
                 Operators.Equals,
                 Keyword("New"),
                 Keyword("With"),
@@ -1597,25 +1605,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestKeyKeyword2() As Task
-            Dim text = StringFromLines(
-                "Dim k = 10",
-                "Dim x = New With {Key If(k > 3, 2, -2).GetTypeCode}",
-                "Dim y = New With {Key DirectCast(New Object(), Integer).GetTypeCode}",
-                "Dim z1 = New With {Key If(True, 1,2).GetTypeCode()}",
-                "Dim z2 = New With {Key CType(Nothing, Integer).GetTypeCode()}",
-                "Dim Key As Integer",
-                "If Key Or True Or Key = 1 Then Console.WriteLine()",
-                "Dim z3() = { Key Or True, Key = 1 }",
-                "Dim z4 = New List(Of Integer) From {1, 2, 3}",
-                "Dim z5 As New List(Of Integer) From {1, 2, 3}",
-                "Dim z6 = New List(Of Integer) With {.Capacity = 2}")
-            Await TestInMethodAsync(text,
+            Dim code =
+"Dim k = 10
+Dim x = New With {Key If(k > 3, 2, -2).GetTypeCode}
+Dim y = New With {Key DirectCast(New Object(), Integer).GetTypeCode}
+Dim z1 = New With {Key If(True, 1,2).GetTypeCode()}
+Dim z2 = New With {Key CType(Nothing, Integer).GetTypeCode()}
+Dim Key As Integer
+If Key Or True Or Key = 1 Then Console.WriteLine()
+Dim z3() = { Key Or True, Key = 1 }
+Dim z4 = New List(Of Integer) From {1, 2, 3}
+Dim z5 As New List(Of Integer) From {1, 2, 3}
+Dim z6 = New List(Of Integer) With {.Capacity = 2}"
+
+            Await TestInMethodAsync(code,
                 Keyword("Dim"),
-                Identifier("k"),
+                Local("k"),
                 Operators.Equals,
                 Number("10"),
                 Keyword("Dim"),
-                Identifier("x"),
+                Local("x"),
                 Operators.Equals,
                 Keyword("New"),
                 Keyword("With"),
@@ -1636,7 +1645,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Identifier("GetTypeCode"),
                 Punctuation.CloseCurly,
                 Keyword("Dim"),
-                Identifier("y"),
+                Local("y"),
                 Operators.Equals,
                 Keyword("New"),
                 Keyword("With"),
@@ -1655,7 +1664,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Identifier("GetTypeCode"),
                 Punctuation.CloseCurly,
                 Keyword("Dim"),
-                Identifier("z1"),
+                Local("z1"),
                 Operators.Equals,
                 Keyword("New"),
                 Keyword("With"),
@@ -1675,7 +1684,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Punctuation.CloseParen,
                 Punctuation.CloseCurly,
                 Keyword("Dim"),
-                Identifier("z2"),
+                Local("z2"),
                 Operators.Equals,
                 Keyword("New"),
                 Keyword("With"),
@@ -1693,7 +1702,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Punctuation.CloseParen,
                 Punctuation.CloseCurly,
                 Keyword("Dim"),
-                Identifier("Key"),
+                Local("Key"),
                 Keyword("As"),
                 Keyword("Integer"),
                 Keyword("If"),
@@ -1711,7 +1720,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Keyword("Dim"),
-                Identifier("z3"),
+                Local("z3"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Operators.Equals,
@@ -1725,7 +1734,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Number("1"),
                 Punctuation.CloseCurly,
                 Keyword("Dim"),
-                Identifier("z4"),
+                Local("z4"),
                 Operators.Equals,
                 Keyword("New"),
                 Identifier("List"),
@@ -1742,7 +1751,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Number("3"),
                 Punctuation.CloseCurly,
                 Keyword("Dim"),
-                Identifier("z5"),
+                Local("z5"),
                 Keyword("As"),
                 Keyword("New"),
                 Identifier("List"),
@@ -1759,7 +1768,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Number("3"),
                 Punctuation.CloseCurly,
                 Keyword("Dim"),
-                Identifier("z6"),
+                Local("z6"),
                 Operators.Equals,
                 Keyword("New"),
                 Identifier("List"),
@@ -1778,152 +1787,166 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestClassDeclaration1() As Task
-            Dim val = "Class C1"
-            Await TestAsync(val,
-                 Keyword("Class"),
-                 [Class]("C1"))
+            Dim code = "Class C1"
+
+            Await TestAsync(code,
+                Keyword("Class"),
+                [Class]("C1"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestClassDeclaration2() As Task
-            Dim val = StringFromLines(
-                "Class C1",
-                "End Class")
-            Await TestAsync(val,
-                 Keyword("Class"),
-                 [Class]("C1"),
-                 Keyword("End"),
-                 Keyword("Class"))
+            Dim code =
+"Class C1
+End Class"
+
+            Await TestAsync(code,
+                Keyword("Class"),
+                [Class]("C1"),
+                Keyword("End"),
+                Keyword("Class"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestClassDeclaration3() As Task
-            Dim val = "Class C1 : End Class"
-            Await TestAsync(val,
-                 Keyword("Class"),
-                 [Class]("C1"),
-                 Punctuation.Colon,
-                 Keyword("End"),
-                 Keyword("Class"))
+            Dim code = "Class C1 : End Class"
+
+            Await TestAsync(code,
+                Keyword("Class"),
+                [Class]("C1"),
+                Punctuation.Colon,
+                Keyword("End"),
+                Keyword("Class"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestStructDeclaration1() As Task
-            Dim val = "Structure S1"
-            Await TestAsync(val,
-                 Keyword("Structure"),
-                 Struct("S1"))
+            Dim code = "Structure S1"
+
+            Await TestAsync(code,
+                Keyword("Structure"),
+                Struct("S1"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestStructDeclaration2() As Task
-            Dim val = "Structure S1 : End Structure"
-            Await TestAsync(val,
-                 Keyword("Structure"),
-                 Struct("S1"),
-                 Punctuation.Colon,
-                 Keyword("End"),
-                 Keyword("Structure"))
+            Dim code = "Structure S1 : End Structure"
+
+            Await TestAsync(code,
+                Keyword("Structure"),
+                Struct("S1"),
+                Punctuation.Colon,
+                Keyword("End"),
+                Keyword("Structure"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestStructDeclaration3() As Task
-            Dim val = StringFromLines(
-                "Structure S1",
-                "End Structure")
-            Await TestAsync(val,
-                 Keyword("Structure"),
-                 Struct("S1"),
-                 Keyword("End"),
-                 Keyword("Structure"))
+            Dim code =
+"Structure S1
+End Structure"
+
+            Await TestAsync(code,
+                Keyword("Structure"),
+                Struct("S1"),
+                Keyword("End"),
+                Keyword("Structure"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestInterfaceDeclaration1() As Task
-            Dim val = "Interface I1"
-            Await TestAsync(val,
-                 Keyword("Interface"),
-                 [Interface]("I1"))
+            Dim code = "Interface I1"
+
+            Await TestAsync(code,
+                Keyword("Interface"),
+                [Interface]("I1"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestInterfaceDeclaration2() As Task
-            Dim val = "Interface I1 : End Interface"
-            Await TestAsync(val,
-                 Keyword("Interface"),
-                 [Interface]("I1"),
-                 Punctuation.Colon,
-                 Keyword("End"),
-                 Keyword("Interface"))
+            Dim code = "Interface I1 : End Interface"
+
+            Await TestAsync(code,
+                Keyword("Interface"),
+                [Interface]("I1"),
+                Punctuation.Colon,
+                Keyword("End"),
+                Keyword("Interface"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestInterfaceDeclaration3() As Task
-            Dim val = StringFromLines(
-                "Interface I1",
-                "End Interface")
-            Await TestAsync(val,
-                 Keyword("Interface"),
-                 [Interface]("I1"),
-                 Keyword("End"),
-                 Keyword("Interface"))
+            Dim code =
+"Interface I1
+End Interface"
+
+            Await TestAsync(code,
+                Keyword("Interface"),
+                [Interface]("I1"),
+                Keyword("End"),
+                Keyword("Interface"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestEnumDeclaration1() As Task
-            Dim val = "Enum E1"
-            Await TestAsync(val,
-                 Keyword("Enum"),
-                 [Enum]("E1"))
+            Dim code = "Enum E1"
+
+            Await TestAsync(code,
+                Keyword("Enum"),
+                [Enum]("E1"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestEnumDeclaration2() As Task
-            Dim val = "Enum E1 : End Enum"
-            Await TestAsync(val,
-                 Keyword("Enum"),
-                 [Enum]("E1"),
-                 Punctuation.Colon,
-                 Keyword("End"),
-                 Keyword("Enum"))
+            Dim code = "Enum E1 : End Enum"
+
+            Await TestAsync(code,
+                Keyword("Enum"),
+                [Enum]("E1"),
+                Punctuation.Colon,
+                Keyword("End"),
+                Keyword("Enum"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestEnumDeclaration3() As Task
-            Dim val = StringFromLines(
-                "Enum E1",
-                "End Enum")
-            Await TestAsync(val,
-                 Keyword("Enum"),
-                 [Enum]("E1"),
-                 Keyword("End"),
-                 Keyword("Enum"))
+            Dim code =
+"Enum E1
+End Enum"
+
+            Await TestAsync(code,
+                Keyword("Enum"),
+                [Enum]("E1"),
+                Keyword("End"),
+                Keyword("Enum"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDelegateSubDeclaration1() As Task
-            Dim val = StringFromLines("Public Delegate Sub Goo()")
-            Await TestAsync(val,
-                 Keyword("Public"),
-                 Keyword("Delegate"),
-                 Keyword("Sub"),
-                 [Delegate]("Goo"),
-                 Punctuation.OpenParen,
-                 Punctuation.CloseParen)
+            Dim code = "Public Delegate Sub Goo()"
+
+            Await TestAsync(code,
+                Keyword("Public"),
+                Keyword("Delegate"),
+                Keyword("Sub"),
+                [Delegate]("Goo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDelegateFunctionDeclaration1() As Task
-            Dim val = StringFromLines("Public Delegate Function Goo() As Integer")
-            Await TestAsync(val,
-                 Keyword("Public"),
-                 Keyword("Delegate"),
-                 Keyword("Function"),
-                 [Delegate]("Goo"),
-                 Punctuation.OpenParen,
-                 Punctuation.CloseParen,
-                 Keyword("As"),
-                 Keyword("Integer"))
+            Dim code = "Public Delegate Function Goo() As Integer"
+
+            Await TestAsync(code,
+                Keyword("Public"),
+                Keyword("Delegate"),
+                Keyword("Function"),
+                [Delegate]("Goo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("As"),
+                Keyword("Integer"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -1946,249 +1969,256 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestStringLiterals1() As Task
-            Dim exprText = """goo"""
-            Await TestInExpressionAsync(exprText,
-                             [String]("""goo"""))
+            Await TestInExpressionAsync("""goo""",
+                [String]("""goo"""))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestCharacterLiteral() As Task
-            Dim exprText = """f""c"
-            Await TestInExpressionAsync(exprText,
-                             [String]("""f""c"))
+            Await TestInExpressionAsync("""f""c",
+                [String]("""f""c"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestRegression_DoUntil1() As Task
-            Dim val = "Do Until True"
-            Await TestInMethodAsync(val,
-                         Keyword("Do"),
-                         Keyword("Until"),
-                         Keyword("True"))
+            Dim code = "Do Until True"
+            Await TestInMethodAsync(code,
+                Keyword("Do"),
+                Keyword("Until"),
+                Keyword("True"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestComment1() As Task
             Dim code = "'goo"
+
             Await TestAsync(code,
-                 Comment("'goo"))
+               Comment("'goo"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestComment2() As Task
-            Dim val = StringFromLines(
-                "Class C1",
-                "'hello")
-            Await TestAsync(val,
-                 Keyword("Class"),
-                 [Class]("C1"),
-                 Comment("'hello"))
+            Dim code =
+"Class C1
+'hello"
+
+            Await TestAsync(code,
+                Keyword("Class"),
+                [Class]("C1"),
+                Comment("'hello"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlDocComment_SingleLine() As Task
-            Dim val = StringFromLines(
-                "'''<summary>something</summary>",
-                "Class Bar",
-                "End Class")
-            Await TestAsync(val,
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Delimiter("<"),
-                 XmlDoc.Name("summary"),
-                 XmlDoc.Delimiter(">"),
-                 XmlDoc.Text("something"),
-                 XmlDoc.Delimiter("</"),
-                 XmlDoc.Name("summary"),
-                 XmlDoc.Delimiter(">"),
-                 Keyword("Class"),
-                 [Class]("Bar"),
-                 Keyword("End"),
-                 Keyword("Class"))
+            Dim code =
+"'''<summary>something</summary>
+Class Bar
+End Class"
+
+            Await TestAsync(code,
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Delimiter("<"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                XmlDoc.Text("something"),
+                XmlDoc.Delimiter("</"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                Keyword("Class"),
+                [Class]("Bar"),
+                Keyword("End"),
+                Keyword("Class"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlDocComment_ExteriorTrivia() As Task
-            Dim val = StringFromLines(
-                "''' <summary>",
-                "''' something",
-                "''' </summary>",
-                "Class Bar",
-                "End Class")
-            Await TestAsync(val,
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Text(" "),
-                 XmlDoc.Delimiter("<"),
-                 XmlDoc.Name("summary"),
-                 XmlDoc.Delimiter(">"),
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Text(" something"),
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Text(" "),
-                 XmlDoc.Delimiter("</"),
-                 XmlDoc.Name("summary"),
-                 XmlDoc.Delimiter(">"),
-                 Keyword("Class"),
-                 [Class]("Bar"),
-                 Keyword("End"),
-                 Keyword("Class"))
+            Dim code =
+"''' <summary>
+''' something
+''' </summary>
+Class Bar
+End Class"
+
+            Await TestAsync(code,
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Text(" "),
+                XmlDoc.Delimiter("<"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Text(" something"),
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Text(" "),
+                XmlDoc.Delimiter("</"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                Keyword("Class"),
+                [Class]("Bar"),
+                Keyword("End"),
+                Keyword("Class"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlDocComment_ExteriorTriviaInsideEndTag() As Task
-            Dim val = StringFromLines(
-                "''' <summary></",
-                "''' summary>",
-                "Class Bar",
-                "End Class")
-            Await TestAsync(val,
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Text(" "),
-                 XmlDoc.Delimiter("<"),
-                 XmlDoc.Name("summary"),
-                 XmlDoc.Delimiter(">"),
-                 XmlDoc.Delimiter("</"),
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Name(" "),
-                 XmlDoc.Name("summary"),
-                 XmlDoc.Delimiter(">"),
-                 Keyword("Class"),
-                 [Class]("Bar"),
-                 Keyword("End"),
-                 Keyword("Class"))
+            Dim code =
+"''' <summary></
+''' summary>
+Class Bar
+End Class"
+
+            Await TestAsync(code,
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Text(" "),
+                XmlDoc.Delimiter("<"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                XmlDoc.Delimiter("</"),
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Name(" "),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                Keyword("Class"),
+                [Class]("Bar"),
+                Keyword("End"),
+                Keyword("Class"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlDocComment_AttributesWithExteriorTrivia() As Task
-            Dim val = StringFromLines(
-                "''' <summary att1=""value1""",
-                "''' att2=""value2"">",
-                "''' something",
-                "''' </summary>",
-                "Class Bar",
-                "End Class")
-            Await TestAsync(val,
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Text(" "),
-                 XmlDoc.Delimiter("<"),
-                 XmlDoc.Name("summary"),
-                 XmlDoc.Name(" "),
-                 XmlDoc.AttributeName("att1"),
-                 XmlDoc.Delimiter("="),
-                 XmlDoc.AttributeQuotes(""""),
-                 XmlDoc.AttributeValue("value1"),
-                 XmlDoc.AttributeQuotes(""""),
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.AttributeName(" "),
-                 XmlDoc.AttributeName("att2"),
-                 XmlDoc.Delimiter("="),
-                 XmlDoc.AttributeQuotes(""""),
-                 XmlDoc.AttributeValue("value2"),
-                 XmlDoc.AttributeQuotes(""""),
-                 XmlDoc.Delimiter(">"),
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Text(" something"),
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Text(" "),
-                 XmlDoc.Delimiter("</"),
-                 XmlDoc.Name("summary"),
-                 XmlDoc.Delimiter(">"),
-                 Keyword("Class"),
-                 [Class]("Bar"),
-                 Keyword("End"),
-                 Keyword("Class"))
+            Dim code =
+"''' <summary att1=""value1""
+''' att2=""value2"">
+''' something
+''' </summary>
+Class Bar
+End Class"
+
+            Await TestAsync(code,
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Text(" "),
+                XmlDoc.Delimiter("<"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Name(" "),
+                XmlDoc.AttributeName("att1"),
+                XmlDoc.Delimiter("="),
+                XmlDoc.AttributeQuotes(""""),
+                XmlDoc.AttributeValue("value1"),
+                XmlDoc.AttributeQuotes(""""),
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.AttributeName(" "),
+                XmlDoc.AttributeName("att2"),
+                XmlDoc.Delimiter("="),
+                XmlDoc.AttributeQuotes(""""),
+                XmlDoc.AttributeValue("value2"),
+                XmlDoc.AttributeQuotes(""""),
+                XmlDoc.Delimiter(">"),
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Text(" something"),
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Text(" "),
+                XmlDoc.Delimiter("</"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                Keyword("Class"),
+                [Class]("Bar"),
+                Keyword("End"),
+                Keyword("Class"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlDocComment_EmptyElementAttributesWithExteriorTrivia() As Task
-            Dim val = StringFromLines(
-                "''' <summary att1=""value1""",
-                "''' att2=""value2"" />",
-                "Class Bar",
-                "End Class")
-            Await TestAsync(val,
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Text(" "),
-                 XmlDoc.Delimiter("<"),
-                 XmlDoc.Name("summary"),
-                 XmlDoc.Name(" "),
-                 XmlDoc.AttributeName("att1"),
-                 XmlDoc.Delimiter("="),
-                 XmlDoc.AttributeQuotes(""""),
-                 XmlDoc.AttributeValue("value1"),
-                 XmlDoc.AttributeQuotes(""""),
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.AttributeName(" "),
-                 XmlDoc.AttributeName("att2"),
-                 XmlDoc.Delimiter("="),
-                 XmlDoc.AttributeQuotes(""""),
-                 XmlDoc.AttributeValue("value2"),
-                 XmlDoc.AttributeQuotes(""""),
-                 XmlDoc.AttributeQuotes(" "),
-                 XmlDoc.Delimiter("/>"),
-                 Keyword("Class"),
-                 [Class]("Bar"),
-                 Keyword("End"),
-                 Keyword("Class"))
+            Dim code =
+"''' <summary att1=""value1""
+''' att2=""value2"" />
+Class Bar
+End Class"
+
+            Await TestAsync(code,
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Text(" "),
+                XmlDoc.Delimiter("<"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Name(" "),
+                XmlDoc.AttributeName("att1"),
+                XmlDoc.Delimiter("="),
+                XmlDoc.AttributeQuotes(""""),
+                XmlDoc.AttributeValue("value1"),
+                XmlDoc.AttributeQuotes(""""),
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.AttributeName(" "),
+                XmlDoc.AttributeName("att2"),
+                XmlDoc.Delimiter("="),
+                XmlDoc.AttributeQuotes(""""),
+                XmlDoc.AttributeValue("value2"),
+                XmlDoc.AttributeQuotes(""""),
+                XmlDoc.AttributeQuotes(" "),
+                XmlDoc.Delimiter("/>"),
+                Keyword("Class"),
+                [Class]("Bar"),
+                Keyword("End"),
+                Keyword("Class"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlDocComment_XmlCommentWithExteriorTrivia() As Task
-            Dim val = StringFromLines(
-                "'''<summary>",
-                "'''<!--first",
-                "'''second-->",
-                "'''</summary>",
-                "Class Bar",
-                "End Class")
-            Await TestAsync(val,
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Delimiter("<"),
-                 XmlDoc.Name("summary"),
-                 XmlDoc.Delimiter(">"),
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Delimiter("<!--"),
-                 XmlDoc.Comment("first" & vbCrLf),
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Comment("second"),
-                 XmlDoc.Delimiter("-->"),
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Delimiter("</"),
-                 XmlDoc.Name("summary"),
-                 XmlDoc.Delimiter(">"),
-                 Keyword("Class"),
-                 [Class]("Bar"),
-                 Keyword("End"),
-                 Keyword("Class"))
+            Dim code =
+"'''<summary>
+'''<!--first
+'''second-->
+'''</summary>
+Class Bar
+End Class"
+
+            Await TestAsync(code,
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Delimiter("<"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Delimiter("<!--"),
+                XmlDoc.Comment("first" & vbCrLf),
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Comment("second"),
+                XmlDoc.Delimiter("-->"),
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Delimiter("</"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                Keyword("Class"),
+                [Class]("Bar"),
+                Keyword("End"),
+                Keyword("Class"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlDocComment_CDataWithExteriorTrivia() As Task
-            Dim val = StringFromLines(
-                "'''<summary>",
-                "'''<![CDATA[first",
-                "'''second]]>",
-                "'''</summary>",
-                "Class Bar",
-                "End Class")
-            Await TestAsync(val,
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Delimiter("<"),
-                 XmlDoc.Name("summary"),
-                 XmlDoc.Delimiter(">"),
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Delimiter("<![CDATA["),
-                 XmlDoc.CDataSection("first" & vbCrLf),
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.CDataSection("second"),
-                 XmlDoc.Delimiter("]]>"),
-                 XmlDoc.Delimiter("'''"),
-                 XmlDoc.Delimiter("</"),
-                 XmlDoc.Name("summary"),
-                 XmlDoc.Delimiter(">"),
-                 Keyword("Class"),
-                 [Class]("Bar"),
-                 Keyword("End"),
-                 Keyword("Class"))
+            Dim code =
+"'''<summary>
+'''<![CDATA[first
+'''second]]>
+'''</summary>
+Class Bar
+End Class"
+
+            Await TestAsync(code,
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Delimiter("<"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Delimiter("<![CDATA["),
+                XmlDoc.CDataSection("first" & vbCrLf),
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.CDataSection("second"),
+                XmlDoc.Delimiter("]]>"),
+                XmlDoc.Delimiter("'''"),
+                XmlDoc.Delimiter("</"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                Keyword("Class"),
+                [Class]("Bar"),
+                Keyword("End"),
+                Keyword("Class"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -2254,55 +2284,56 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIsTrue() As Task
             Await TestInClassAsync("    Public Shared Operator IsTrue(c As C) As Boolean",
-                        Keyword("Public"),
-                        Keyword("Shared"),
-                        Keyword("Operator"),
-                        Keyword("IsTrue"),
-                        Punctuation.OpenParen,
-                        Identifier("c"),
-                        Keyword("As"),
-                        Identifier("C"),
-                        Punctuation.CloseParen,
-                        Keyword("As"),
-                        Keyword("Boolean"))
+                Keyword("Public"),
+                Keyword("Shared"),
+                Keyword("Operator"),
+                Keyword("IsTrue"),
+                Punctuation.OpenParen,
+                Parameter("c"),
+                Keyword("As"),
+                Identifier("C"),
+                Punctuation.CloseParen,
+                Keyword("As"),
+                Keyword("Boolean"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIsFalse() As Task
             Await TestInClassAsync("    Public Shared Operator IsFalse(c As C) As Boolean",
-                        Keyword("Public"),
-                        Keyword("Shared"),
-                        Keyword("Operator"),
-                        Keyword("IsFalse"),
-                        Punctuation.OpenParen,
-                        Identifier("c"),
-                        Keyword("As"),
-                        Identifier("C"),
-                        Punctuation.CloseParen,
-                        Keyword("As"),
-                        Keyword("Boolean"))
+                Keyword("Public"),
+                Keyword("Shared"),
+                Keyword("Operator"),
+                Keyword("IsFalse"),
+                Punctuation.OpenParen,
+                Parameter("c"),
+                Keyword("As"),
+                Identifier("C"),
+                Punctuation.CloseParen,
+                Keyword("As"),
+                Keyword("Boolean"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDelegate1() As Task
             Await TestAsync("Delegate Sub Goo()",
-                 Keyword("Delegate"),
-                 Keyword("Sub"),
-                 [Delegate]("Goo"),
-                 Punctuation.OpenParen,
-                 Punctuation.CloseParen)
+                Keyword("Delegate"),
+                Keyword("Sub"),
+                [Delegate]("Goo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestImports1() As Task
-            Dim code = StringFromLines(
-            "Imports Goo",
-            "Imports Bar")
+            Dim code =
+"Imports Goo
+Imports Bar"
+
             Await TestAsync(code,
-                 Keyword("Imports"),
-                 Identifier("Goo"),
-                 Keyword("Imports"),
-                 Identifier("Bar"))
+                Keyword("Imports"),
+                Identifier("Goo"),
+                Keyword("Imports"),
+                Identifier("Bar"))
         End Function
 
         ''' <summary>
@@ -2310,50 +2341,53 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         ''' </summary>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestImports2() As Task
-            Dim code = StringFromLines(
-            "Imports",
-            "Imports Bar")
+            Dim code =
+"Imports
+Imports Bar"
+
             Await TestAsync(code,
-                 Keyword("Imports"),
-                 Keyword("Imports"),
-                 Identifier("Bar"))
+                Keyword("Imports"),
+                Keyword("Imports"),
+                Identifier("Bar"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestImports3() As Task
-            Dim code = StringFromLines(
-            "Imports Goo=Baz",
-            "Imports Bar=Quux")
+            Dim code =
+"Imports Goo=Baz
+Imports Bar=Quux"
+
             Await TestAsync(code,
-                 Keyword("Imports"),
-                 Identifier("Goo"),
-                 Operators.Equals,
-                 Identifier("Baz"),
-                 Keyword("Imports"),
-                 Identifier("Bar"),
-                 Operators.Equals,
-                 Identifier("Quux"))
+                Keyword("Imports"),
+                Identifier("Goo"),
+                Operators.Equals,
+                Identifier("Baz"),
+                Keyword("Imports"),
+                Identifier("Bar"),
+                Operators.Equals,
+                Identifier("Quux"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestImports4() As Task
             Dim code = "Imports System.Text"
+
             Await TestAsync(code,
-                 Keyword("Imports"),
-                 Identifier("System"),
-                 Operators.Dot,
-                 Identifier("Text"))
+                Keyword("Imports"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Text"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlElement1() As Task
             Await TestInExpressionAsync("<goo></goo>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlDelimiter(">"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("goo"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlDelimiter(">"),
+                VBXmlDelimiter("</"),
+                VBXmlName("goo"),
+                VBXmlDelimiter(">"))
         End Function
 
         '''<summary>
@@ -2362,9 +2396,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlElement3() As Task
             Await TestInExpressionAsync("<goo>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlDelimiter(">"))
         End Function
 
         '''<summary>
@@ -2373,358 +2407,362 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlElement4() As Task
             Await TestInExpressionAsync("</goo>",
-                             VBXmlDelimiter("</"),
-                             VBXmlName("goo"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("</"),
+                VBXmlName("goo"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlElement5() As Task
             Await TestInExpressionAsync("<goo.bar></goo.bar>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo.bar"),
-                             VBXmlDelimiter(">"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("goo.bar"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo.bar"),
+                VBXmlDelimiter(">"),
+                VBXmlDelimiter("</"),
+                VBXmlName("goo.bar"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlElement6() As Task
             Await TestInExpressionAsync("<goo:bar>hello</goo:bar>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlName(":"),
-                             VBXmlName("bar"),
-                             VBXmlDelimiter(">"),
-                             VBXmlText("hello"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("goo"),
-                             VBXmlName(":"),
-                             VBXmlName("bar"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlName(":"),
+                VBXmlName("bar"),
+                VBXmlDelimiter(">"),
+                VBXmlText("hello"),
+                VBXmlDelimiter("</"),
+                VBXmlName("goo"),
+                VBXmlName(":"),
+                VBXmlName("bar"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlElement7() As Task
             Await TestInExpressionAsync("<goo.bar />",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo.bar"),
-                             VBXmlDelimiter("/>"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo.bar"),
+                VBXmlDelimiter("/>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbedded1() As Task
             Await TestInExpressionAsync("<goo><%= bar %></goo>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlDelimiter(">"),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             VBXmlEmbeddedExpression("%>"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("goo"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlDelimiter(">"),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlDelimiter("</"),
+                VBXmlName("goo"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbedded3() As Task
             Await TestInExpressionAsync("<<%= bar %>/>",
-                             VBXmlDelimiter("<"),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             VBXmlEmbeddedExpression("%>"),
-                             VBXmlDelimiter("/>"))
+                VBXmlDelimiter("<"),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlDelimiter("/>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbedded4() As Task
             Await TestInExpressionAsync("<goo <%= bar %>=""42""/>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             VBXmlEmbeddedExpression("%>"),
-                             VBXmlDelimiter("="),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlAttributeValue("42"),
-                             VBXmlAttributeQuotes(""""),
-                             VBXmlDelimiter("/>"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("42"),
+                VBXmlAttributeQuotes(""""),
+                VBXmlDelimiter("/>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlEmbedded5() As Task
             Await TestInExpressionAsync("<goo a1=<%= bar %>/>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlAttributeName("a1"),
-                             VBXmlDelimiter("="),
-                             VBXmlEmbeddedExpression("<%="),
-                             Identifier("bar"),
-                             VBXmlEmbeddedExpression("%>"),
-                             VBXmlDelimiter("/>"))
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlAttributeName("a1"),
+                VBXmlDelimiter("="),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("bar"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlDelimiter("/>"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlComment1() As Task
             Await TestInExpressionAsync("<!---->",
-                             VBXmlDelimiter("<!--"),
-                             VBXmlDelimiter("-->"))
+                VBXmlDelimiter("<!--"),
+                VBXmlDelimiter("-->"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlComment2() As Task
             Await TestInExpressionAsync("<!--goo-->",
-                             VBXmlDelimiter("<!--"),
-                             VBXmlComment("goo"),
-                             VBXmlDelimiter("-->"))
+                VBXmlDelimiter("<!--"),
+                VBXmlComment("goo"),
+                VBXmlDelimiter("-->"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlComment3() As Task
-            Dim tree = ParseExpression("<a><!--goo--></a>")
             Await TestInExpressionAsync("<a><!--goo--></a>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("a"),
-                             VBXmlDelimiter(">"),
-                             VBXmlDelimiter("<!--"),
-                             VBXmlComment("goo"),
-                             VBXmlDelimiter("-->"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("a"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("a"),
+                VBXmlDelimiter(">"),
+                VBXmlDelimiter("<!--"),
+                VBXmlComment("goo"),
+                VBXmlDelimiter("-->"),
+                VBXmlDelimiter("</"),
+                VBXmlName("a"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlPreprocessingInstruction2() As Task
             Await TestInExpressionAsync("<a><?pi value=2?></a>",
-                             VBXmlDelimiter("<"),
-                             VBXmlName("a"),
-                             VBXmlDelimiter(">"),
-                             VBXmlDelimiter("<?"),
-                             VBXmlName("pi"),
-                             VBXmlProcessingInstruction("value=2"),
-                             VBXmlDelimiter("?>"),
-                             VBXmlDelimiter("</"),
-                             VBXmlName("a"),
-                             VBXmlDelimiter(">"))
+                VBXmlDelimiter("<"),
+                VBXmlName("a"),
+                VBXmlDelimiter(">"),
+                VBXmlDelimiter("<?"),
+                VBXmlName("pi"),
+                VBXmlProcessingInstruction("value=2"),
+                VBXmlDelimiter("?>"),
+                VBXmlDelimiter("</"),
+                VBXmlName("a"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlDescendantsMemberAccess1() As Task
             Await TestInExpressionAsync("x...<goo>",
-                             Identifier("x"),
-                             VBXmlDelimiter("."),
-                             VBXmlDelimiter("."),
-                             VBXmlDelimiter("."),
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlDelimiter(">"))
+                Identifier("x"),
+                VBXmlDelimiter("."),
+                VBXmlDelimiter("."),
+                VBXmlDelimiter("."),
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlElementMemberAccess1() As Task
             Await TestInExpressionAsync("x.<goo>",
-                             Identifier("x"),
-                             VBXmlDelimiter("."),
-                             VBXmlDelimiter("<"),
-                             VBXmlName("goo"),
-                             VBXmlDelimiter(">"))
+                Identifier("x"),
+                VBXmlDelimiter("."),
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlAttributeMemberAccess1() As Task
             Await TestInExpressionAsync("x.@goo",
-                             Identifier("x"),
-                             VBXmlDelimiter("."),
-                             VBXmlDelimiter("@"),
-                             VBXmlAttributeName("goo"))
+                Identifier("x"),
+                VBXmlDelimiter("."),
+                VBXmlDelimiter("@"),
+                VBXmlAttributeName("goo"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlAttributeMemberAccess2() As Task
             Await TestInExpressionAsync("x.@goo:bar",
-                             Identifier("x"),
-                             VBXmlDelimiter("."),
-                             VBXmlDelimiter("@"),
-                             VBXmlAttributeName("goo"),
-                             VBXmlAttributeName(":"),
-                             VBXmlAttributeName("bar"))
+                Identifier("x"),
+                VBXmlDelimiter("."),
+                VBXmlDelimiter("@"),
+                VBXmlAttributeName("goo"),
+                VBXmlAttributeName(":"),
+                VBXmlAttributeName("bar"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreprocessorReference() As Task
             Await TestInNamespaceAsync("#R ""Ref""",
-                                       PPKeyword("#"),
-                                       PPKeyword("R"),
-                                       [String]("""Ref"""))
+                PPKeyword("#"),
+                PPKeyword("R"),
+                [String]("""Ref"""))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreprocessorConst1() As Task
             Await TestInNamespaceAsync("#Const Goo = 1",
-                            PPKeyword("#"),
-                            PPKeyword("Const"),
-                            Identifier("Goo"),
-                            Operators.Equals,
-                            Number("1"))
+                PPKeyword("#"),
+                PPKeyword("Const"),
+                Identifier("Goo"),
+                Operators.Equals,
+                Number("1"))
         End Function
 
         Public Async Function TestPreprocessorConst2() As Task
             Await TestInNamespaceAsync("#Const DebugCode = True",
-                            PPKeyword("#"),
-                            PPKeyword("Const"),
-                            Identifier("DebugCode"),
-                            Operators.Equals,
-                            Keyword("True"))
+                PPKeyword("#"),
+                PPKeyword("Const"),
+                Identifier("DebugCode"),
+                Operators.Equals,
+                Keyword("True"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreprocessorIfThen1() As Task
             Await TestInNamespaceAsync("#If Goo Then",
-                            PPKeyword("#"),
-                            PPKeyword("If"),
-                            Identifier("Goo"),
-                            PPKeyword("Then"))
+                PPKeyword("#"),
+                PPKeyword("If"),
+                Identifier("Goo"),
+                PPKeyword("Then"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreprocessorElseIf1() As Task
             Await TestInNamespaceAsync("#ElseIf Goo Then",
-                            PPKeyword("#"),
-                            PPKeyword("ElseIf"),
-                            Identifier("Goo"),
-                            PPKeyword("Then"))
+                PPKeyword("#"),
+                PPKeyword("ElseIf"),
+                Identifier("Goo"),
+                PPKeyword("Then"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreprocessorElse1() As Task
             Await TestInNamespaceAsync("#Else",
-                            PPKeyword("#"),
-                            PPKeyword("Else"))
+                PPKeyword("#"),
+                PPKeyword("Else"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreprocessorEndIf1() As Task
             Await TestInNamespaceAsync("#End If",
-                            PPKeyword("#"),
-                            PPKeyword("End"),
-                            PPKeyword("If"))
+                PPKeyword("#"),
+                PPKeyword("End"),
+                PPKeyword("If"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreprocessorExternalSource1() As Task
             Await TestInNamespaceAsync("#ExternalSource(""c:\wwwroot\inetpub\test.aspx"", 30)",
-                            PPKeyword("#"),
-                            PPKeyword("ExternalSource"),
-                            Punctuation.OpenParen,
-                            [String]("""c:\wwwroot\inetpub\test.aspx"""),
-                            Punctuation.Comma,
-                            Number("30"),
-                            Punctuation.CloseParen)
+                PPKeyword("#"),
+                PPKeyword("ExternalSource"),
+                Punctuation.OpenParen,
+                [String]("""c:\wwwroot\inetpub\test.aspx"""),
+                Punctuation.Comma,
+                Number("30"),
+                Punctuation.CloseParen)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreprocessorExternalChecksum1() As Task
-            Dim val = StringFromLines("#ExternalChecksum(""c:\wwwroot\inetpub\test.aspx"", _",
-                                      """{12345678-1234-1234-1234-123456789abc}"", _",
-                                      """1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"")")
-            Await TestInNamespaceAsync(val,
-                            PPKeyword("#"),
-                            PPKeyword("ExternalChecksum"),
-                            Punctuation.OpenParen,
-                            [String]("""c:\wwwroot\inetpub\test.aspx"""),
-                            Punctuation.Comma,
-                            LineContinuation,
-                            [String]("""{12345678-1234-1234-1234-123456789abc}"""),
-                            Punctuation.Comma,
-                            LineContinuation,
-                            [String]("""1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"""),
-                            Punctuation.CloseParen)
+            Dim code =
+"#ExternalChecksum(""c:\wwwroot\inetpub\test.aspx"", _
+""{12345678-1234-1234-1234-123456789abc}"", _
+""1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"")"
+
+            Await TestInNamespaceAsync(code,
+                PPKeyword("#"),
+                PPKeyword("ExternalChecksum"),
+                Punctuation.OpenParen,
+                [String]("""c:\wwwroot\inetpub\test.aspx"""),
+                Punctuation.Comma,
+                LineContinuation,
+                [String]("""{12345678-1234-1234-1234-123456789abc}"""),
+                Punctuation.Comma,
+                LineContinuation,
+                [String]("""1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"""),
+                Punctuation.CloseParen)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreprocessorExternalChecksum2() As Task
-            Dim val = StringFromLines("#ExternalChecksum(""c:\wwwroot\inetpub\test.aspx"", _",
-                                      """{12345678-1234-1234-1234-123456789abc}"", _",
-                                      """1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"")",
-                                      "Module Test",
-                                      "    Sub Main()",
-                                      "#ExternalSource(""c:\wwwroot\inetpub\test.aspx"", 30)",
-                                      "        Console.WriteLine(""In test.aspx"")",
-                                      "#End ExternalSource",
-                                      "    End Sub",
-                                      "End Module")
-            Await TestInNamespaceAsync(val,
-                            PPKeyword("#"),
-                            PPKeyword("ExternalChecksum"),
-                            Punctuation.OpenParen,
-                            [String]("""c:\wwwroot\inetpub\test.aspx"""),
-                            Punctuation.Comma,
-                            LineContinuation,
-                            [String]("""{12345678-1234-1234-1234-123456789abc}"""),
-                            Punctuation.Comma,
-                            LineContinuation,
-                            [String]("""1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"""),
-                            Punctuation.CloseParen,
-                            Keyword("Module"),
-                            [Module]("Test"),
-                            Keyword("Sub"),
-                            Identifier("Main"),
-                            Punctuation.OpenParen,
-                            Punctuation.CloseParen,
-                            PPKeyword("#"),
-                            PPKeyword("ExternalSource"),
-                            Punctuation.OpenParen,
-                            [String]("""c:\wwwroot\inetpub\test.aspx"""),
-                            Punctuation.Comma,
-                            Number("30"),
-                            Punctuation.CloseParen,
-                            Identifier("Console"),
-                            Operators.Dot,
-                            Identifier("WriteLine"),
-                            Punctuation.OpenParen,
-                            [String]("""In test.aspx"""),
-                            Punctuation.CloseParen,
-                            PPKeyword("#"),
-                            PPKeyword("End"),
-                            PPKeyword("ExternalSource"),
-                            Keyword("End"),
-                            Keyword("Sub"),
-                            Keyword("End"),
-                            Keyword("Module"))
+            Dim code =
+"#ExternalChecksum(""c:\wwwroot\inetpub\test.aspx"", _
+""{12345678-1234-1234-1234-123456789abc}"", _
+""1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"")
+Module Test
+    Sub Main()
+#ExternalSource(""c:\wwwroot\inetpub\test.aspx"", 30)
+        Console.WriteLine(""In test.aspx"")
+#End ExternalSource
+    End Sub
+End Module"
+
+            Await TestInNamespaceAsync(code,
+                PPKeyword("#"),
+                PPKeyword("ExternalChecksum"),
+                Punctuation.OpenParen,
+                [String]("""c:\wwwroot\inetpub\test.aspx"""),
+                Punctuation.Comma,
+                LineContinuation,
+                [String]("""{12345678-1234-1234-1234-123456789abc}"""),
+                Punctuation.Comma,
+                LineContinuation,
+                [String]("""1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"""),
+                Punctuation.CloseParen,
+                Keyword("Module"),
+                [Module]("Test"),
+                Keyword("Sub"),
+                Method("Main"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                PPKeyword("#"),
+                PPKeyword("ExternalSource"),
+                Punctuation.OpenParen,
+                [String]("""c:\wwwroot\inetpub\test.aspx"""),
+                Punctuation.Comma,
+                Number("30"),
+                Punctuation.CloseParen,
+                Identifier("Console"),
+                Operators.Dot,
+                Identifier("WriteLine"),
+                Punctuation.OpenParen,
+                [String]("""In test.aspx"""),
+                Punctuation.CloseParen,
+                PPKeyword("#"),
+                PPKeyword("End"),
+                PPKeyword("ExternalSource"),
+                Keyword("End"),
+                Keyword("Sub"),
+                Keyword("End"),
+                Keyword("Module"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestBug2641_1() As Task
-            Dim text = StringFromLines(
-                "Class PreprocessorNoContext",
-                "Dim Region",
-                "Dim ExternalSource",
-                "End Class",
-                "#Region ""Test""",
-                "#End Region",
-                "#Region ""Test"" ' comment",
-                "#End Region ' comment",
-                "#Region ""Test"" REM comment",
-                "#End Region REM comment",
-                "# _",
-                "Region ""Test""",
-                "# _",
-                "End Region",
-                "# _",
-                "Region _",
-                """Test""",
-                "# _",
-                "End _",
-                "Region")
-            Await TestAsync(text,
+            Dim code =
+"Class PreprocessorNoContext
+Dim Region
+Dim ExternalSource
+End Class
+#Region ""Test""
+#End Region
+#Region ""Test"" ' comment
+#End Region ' comment
+#Region ""Test"" REM comment
+#End Region REM comment
+# _
+Region ""Test""
+# _
+End Region
+# _
+Region _
+""Test""
+# _
+End _
+Region"
+
+            Await TestAsync(code,
                 Keyword("Class"),
                 [Class]("PreprocessorNoContext"),
                 Keyword("Dim"),
-                Identifier("Region"),
+                Field("Region"),
                 Keyword("Dim"),
-                Identifier("ExternalSource"),
+                Field("ExternalSource"),
                 Keyword("End"),
                 Keyword("Class"),
                 PPKeyword("#"),
@@ -2771,21 +2809,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestBug2641_2() As Task
-            Dim text = StringFromLines(
-                "#ExternalSource(""Test.vb"", 123)",
-                "#End ExternalSource",
-                "#ExternalSource(""Test.vb"", 123) ' comment",
-                "#End ExternalSource REM comment",
-                "# _",
-                "ExternalSource _",
-                "( _",
-                """Test.vb"" _",
-                ", _",
-                "123)",
-                "# _",
-                "End _",
-                "ExternalSource")
-            Await TestAsync(text,
+            Dim code =
+"#ExternalSource(""Test.vb"", 123)
+#End ExternalSource
+#ExternalSource(""Test.vb"", 123) ' comment
+#End ExternalSource REM comment
+# _
+ExternalSource _
+( _
+""Test.vb"" _
+, _
+123)
+# _
+End _
+ExternalSource"
+
+            Await TestAsync(code,
                 PPKeyword("#"),
                 PPKeyword("ExternalSource"),
                 Punctuation.OpenParen,
@@ -2829,18 +2868,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestBug2640() As Task
-            Dim text = StringFromLines(
-                "# _",
-                "Region ""Test""",
-                "# _",
-                "End Region",
-                "# _",
-                "Region _",
-                """Test""",
-                "# _",
-                "End _",
-                "Region")
-            Await TestAsync(text,
+            Dim code =
+"# _
+Region ""Test""
+# _
+End Region
+# _
+Region _
+""Test""
+# _
+End _
+Region"
+
+            Await TestAsync(code,
                 PPKeyword("#"),
                 LineContinuation,
                 PPKeyword("Region"),
@@ -2863,21 +2903,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestBug2638() As Task
-            Dim text = StringFromLines(
-                "Module M",
-                "    Sub Main()",
-                "        Dim dt = #1/1/2000#",
-                "    End Sub",
-                "End Module")
-            Await TestAsync(text,
+            Dim code =
+"Module M
+    Sub Main()
+        Dim dt = #1/1/2000#
+    End Sub
+End Module"
+
+            Await TestAsync(code,
                 Keyword("Module"),
                 [Module]("M"),
                 Keyword("Sub"),
-                Identifier("Main"),
+                Method("Main"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Keyword("Dim"),
-                Identifier("dt"),
+                Local("dt"),
                 Operators.Equals,
                 Number("#1/1/2000#"),
                 Keyword("End"),
@@ -2888,20 +2929,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestBug2562() As Task
-            Dim text = StringFromLines(
-                "Module Program",
-                "  Sub Main(args As String())",
-                "    #region ""Goo""",
-                "    #End region REM dfkjslfkdsjf",
-                "  End Sub",
-                "End Module")
-            Await TestAsync(text,
+            Dim code =
+"Module Program
+  Sub Main(args As String())
+    #region ""Goo""
+    #End region REM dfkjslfkdsjf
+  End Sub
+End Module"
+
+            Await TestAsync(code,
                 Keyword("Module"),
                 [Module]("Program"),
                 Keyword("Sub"),
-                Identifier("Main"),
+                Method("Main"),
                 Punctuation.OpenParen,
-                Identifier("args"),
+                Parameter("args"),
                 Keyword("As"),
                 Keyword("String"),
                 Punctuation.OpenParen,
@@ -2922,13 +2964,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestBug3004() As Task
-            Dim text = StringFromLines(
-                "''' <summary>",
-                "''' &#65;",
-                "''' </summary>",
-                "Module M",
-                "End Module")
-            Await TestAsync(text,
+            Dim code =
+"''' <summary>
+''' &#65;
+''' </summary>
+Module M
+End Module"
+
+            Await TestAsync(code,
                 XmlDoc.Delimiter("'''"),
                 XmlDoc.Text(" "),
                 XmlDoc.Delimiter("<"),
@@ -2950,10 +2993,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestBug3006() As Task
-            Dim text = StringFromLines(
-                "#If True Then ' comment",
-                "#End If")
-            Await TestAsync(text,
+            Dim code =
+"#If True Then ' comment
+#End If"
+
+            Await TestAsync(code,
                 PPKeyword("#"),
                 PPKeyword("If"),
                 Keyword("True"),
@@ -2966,10 +3010,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestBug3008() As Task
-            Dim text = StringFromLines(
-                "#If #12/2/2010# = #12/2/2010# Then",
-                "#End If")
-            Await TestAsync(text,
+            Dim code =
+"#If #12/2/2010# = #12/2/2010# Then
+#End If"
+
+            Await TestAsync(code,
                 PPKeyword("#"),
                 PPKeyword("If"),
                 Number("#12/2/2010#"),
@@ -2983,12 +3028,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestBug927678() As Task
-            Dim val = StringFromLines(
-                "'This is not usually a ",
-                "'collapsible comment block",
-                "x = 2")
+            Dim code =
+"'This is not usually a 
+'collapsible comment block
+x = 2"
 
-            Await TestInMethodAsync(val,
+            Await TestInMethodAsync(code,
                          Comment("'This is not usually a "),
                          Comment("'collapsible comment block"),
                          Identifier("x"),
@@ -2999,6 +3044,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAttribute() As Task
             Dim code = "<Assembly: Goo()>"
+
             Await TestAsync(code,
                  Punctuation.OpenAngle,
                  Keyword("Assembly"),
@@ -3011,8 +3057,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAngleBracketsOnGenericConstraints_Bug932262() As Task
-            Await TestAsync(StringFromLines("Class C(Of T As A(Of T))",
-                                 "End Class"),
+            Dim code =
+"Class C(Of T As A(Of T))
+End Class"
+
+            Await TestAsync(code,
                 Keyword("Class"),
                 [Class]("C"),
                 Punctuation.OpenParen,
@@ -3031,20 +3080,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIntegerAsContextualKeyword() As Task
-            Dim text = StringFromLines(
-                "    Sub CallMeInteger(ByVal [Integer] As Integer)",
-                "        CallMeInteger(Integer:=1)",
-                "        CallMeInteger(Integer _",
-                "                      := _",
-                "                      1)",
-                "    End Sub",
-                "    Dim [Class] As Integer")
-            Await TestInClassAsync(text,
+            Dim code =
+"Sub CallMeInteger(ByVal [Integer] As Integer)
+    CallMeInteger(Integer:=1)
+    CallMeInteger(Integer _
+                    := _
+                    1)
+End Sub
+Dim [Class] As Integer"
+
+            Await TestInClassAsync(code,
                 Keyword("Sub"),
-                Identifier("CallMeInteger"),
+                Method("CallMeInteger"),
                 Punctuation.OpenParen,
                 Keyword("ByVal"),
-                Identifier("[Integer]"),
+                Parameter("[Integer]"),
                 Keyword("As"),
                 Keyword("Integer"),
                 Punctuation.CloseParen,
@@ -3065,34 +3115,35 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("End"),
                 Keyword("Sub"),
                 Keyword("Dim"),
-                Identifier("[Class]"),
+                Field("[Class]"),
                 Keyword("As"),
                 Keyword("Integer"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIndexStrings() As Task
-            Dim text = StringFromLines(
-                "Default ReadOnly Property IndexMe(ByVal arg As String) As Integer",
-                "        Get",
-                "            With Me",
-                "                Dim t = !String",
-                "                t = ! _",
-                "                    String",
-                "                t = .Class",
-                "                t = . _",
-                "                    Class",
-                "            End With",
-                "        End Get",
-                "    End Property")
-            Await TestAsync(text,
+            Dim code =
+"Default ReadOnly Property IndexMe(ByVal arg As String) As Integer
+    Get
+        With Me
+            Dim t = !String
+            t = ! _
+                String
+            t = .Class
+            t = . _
+                Class
+        End With
+    End Get
+End Property"
+
+            Await TestAsync(code,
                 Keyword("Default"),
                 Keyword("ReadOnly"),
                 Keyword("Property"),
-                Identifier("IndexMe"),
+                [Property]("IndexMe"),
                 Punctuation.OpenParen,
                 Keyword("ByVal"),
-                Identifier("arg"),
+                Parameter("arg"),
                 Keyword("As"),
                 Keyword("String"),
                 Punctuation.CloseParen,
@@ -3102,7 +3153,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("With"),
                 Keyword("Me"),
                 Keyword("Dim"),
-                Identifier("t"),
+                Local("t"),
                 Operators.Equals,
                 Operators.Exclamation,
                 Identifier("String"),
@@ -3130,37 +3181,38 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestMyIsIdentifierOnSyntaxLevel() As Task
-            Dim text = StringFromLines(
-                "Dim My",
-                "    Dim var = My.Application.GetEnvironmentVariable(""test"")",
-                "    Sub CallMeMy(ByVal My As Integer)",
-                "        CallMeMy(My:=1)",
-                "        CallMeMy(My _",
-                "                 := _",
-                "                 1)",
-                "        My.ToString()",
-                "        With Me",
-                "            .My = 1",
-                "            . _",
-                "            My _",
-                "            = 1",
-                "            !My = Nothing",
-                "            ! _",
-                "            My _",
-                "            = Nothing",
-                "        End With",
-                "        Me.My.ToString()",
-                "        Me. _",
-                "        My.ToString()",
-                "        Me.My = 1",
-                "        Me. _",
-                "        My = 1",
-                "    End Sub")
-            Await TestInClassAsync(text,
+            Dim code =
+"Dim My
+Dim var = My.Application.GetEnvironmentVariable(""test"")
+Sub CallMeMy(ByVal My As Integer)
+    CallMeMy(My:=1)
+    CallMeMy(My _
+                := _
+                1)
+    My.ToString()
+    With Me
+        .My = 1
+        . _
+        My _
+        = 1
+        !My = Nothing
+        ! _
+        My _
+        = Nothing
+    End With
+    Me.My.ToString()
+    Me. _
+    My.ToString()
+    Me.My = 1
+    Me. _
+    My = 1
+End Sub"
+
+            Await TestInClassAsync(code,
                 Keyword("Dim"),
-                Identifier("My"),
+                Field("My"),
                 Keyword("Dim"),
-                Identifier("var"),
+                Field("var"),
                 Operators.Equals,
                 Identifier("My"),
                 Operators.Dot,
@@ -3171,10 +3223,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 [String]("""test"""),
                 Punctuation.CloseParen,
                 Keyword("Sub"),
-                Identifier("CallMeMy"),
+                Method("CallMeMy"),
                 Punctuation.OpenParen,
                 Keyword("ByVal"),
-                Identifier("My"),
+                Parameter("My"),
                 Keyword("As"),
                 Keyword("Integer"),
                 Punctuation.CloseParen,
@@ -3253,28 +3305,29 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIsTrueIsFalse() As Task
-            Dim text = StringFromLines(
-                "Class IsTrueIsFalseTests",
-                "    Dim IsTrue",
-                "    Dim IsFalse",
-                "    Shared Operator IsTrue(ByVal x As IsTrueIsFalseTests) As Boolean",
-                "    End Operator",
-                "    Shared Operator IsFalse(ByVal x As IsTrueIsFalseTests) As Boolean",
-                "    End Operator",
-                "End Class")
-            Await TestInClassAsync(text,
+            Dim code =
+"Class IsTrueIsFalseTests
+    Dim IsTrue
+    Dim IsFalse
+    Shared Operator IsTrue(ByVal x As IsTrueIsFalseTests) As Boolean
+    End Operator
+    Shared Operator IsFalse(ByVal x As IsTrueIsFalseTests) As Boolean
+    End Operator
+End Class"
+
+            Await TestInClassAsync(code,
                 Keyword("Class"),
                 [Class]("IsTrueIsFalseTests"),
                 Keyword("Dim"),
-                Identifier("IsTrue"),
+                Field("IsTrue"),
                 Keyword("Dim"),
-                Identifier("IsFalse"),
+                Field("IsFalse"),
                 Keyword("Shared"),
                 Keyword("Operator"),
                 Keyword("IsTrue"),
                 Punctuation.OpenParen,
                 Keyword("ByVal"),
-                Identifier("x"),
+                Parameter("x"),
                 Keyword("As"),
                 Identifier("IsTrueIsFalseTests"),
                 Punctuation.CloseParen,
@@ -3287,7 +3340,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("IsFalse"),
                 Punctuation.OpenParen,
                 Keyword("ByVal"),
-                Identifier("x"),
+                Parameter("x"),
                 Keyword("As"),
                 Identifier("IsTrueIsFalseTests"),
                 Punctuation.CloseParen,
@@ -3301,30 +3354,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDeclareAnsiAutoUnicode() As Task
-            Dim text = StringFromLines(
-                "    Dim Ansi",
-                "    Dim Unicode",
-                "    Dim Auto",
-                "    Declare Ansi Sub AnsiTest Lib ""Test.dll"" ()",
-                "    Declare Auto Sub AutoTest Lib ""Test.dll"" ()",
-                "    Declare Unicode Sub UnicodeTest Lib ""Test.dll"" ()",
-                "    Declare _",
-                "        Ansi Sub AnsiTest2 Lib ""Test.dll"" ()",
-                "    Declare _",
-                "        Auto Sub AutoTest2 Lib ""Test.dll"" ()",
-                "    Declare _",
-                "        Unicode Sub UnicodeTest2 Lib ""Test.dll"" ()")
-            Await TestInClassAsync(text,
+            Dim code =
+"    Dim Ansi
+    Dim Unicode
+    Dim Auto
+    Declare Ansi Sub AnsiTest Lib ""Test.dll"" ()
+    Declare Auto Sub AutoTest Lib ""Test.dll"" ()
+    Declare Unicode Sub UnicodeTest Lib ""Test.dll"" ()
+    Declare _
+        Ansi Sub AnsiTest2 Lib ""Test.dll"" ()
+    Declare _
+        Auto Sub AutoTest2 Lib ""Test.dll"" ()
+    Declare _
+        Unicode Sub UnicodeTest2 Lib ""Test.dll"" ()"
+
+            Await TestInClassAsync(code,
                 Keyword("Dim"),
-                Identifier("Ansi"),
+                Field("Ansi"),
                 Keyword("Dim"),
-                Identifier("Unicode"),
+                Field("Unicode"),
                 Keyword("Dim"),
-                Identifier("Auto"),
+                Field("Auto"),
                 Keyword("Declare"),
                 Keyword("Ansi"),
                 Keyword("Sub"),
-                Identifier("AnsiTest"),
+                Method("AnsiTest"),
                 Keyword("Lib"),
                 [String]("""Test.dll"""),
                 Punctuation.OpenParen,
@@ -3332,7 +3386,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Declare"),
                 Keyword("Auto"),
                 Keyword("Sub"),
-                Identifier("AutoTest"),
+                Method("AutoTest"),
                 Keyword("Lib"),
                 [String]("""Test.dll"""),
                 Punctuation.OpenParen,
@@ -3340,7 +3394,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Declare"),
                 Keyword("Unicode"),
                 Keyword("Sub"),
-                Identifier("UnicodeTest"),
+                Method("UnicodeTest"),
                 Keyword("Lib"),
                 [String]("""Test.dll"""),
                 Punctuation.OpenParen,
@@ -3349,7 +3403,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 LineContinuation,
                 Keyword("Ansi"),
                 Keyword("Sub"),
-                Identifier("AnsiTest2"),
+                Method("AnsiTest2"),
                 Keyword("Lib"),
                 [String]("""Test.dll"""),
                 Punctuation.OpenParen,
@@ -3358,7 +3412,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 LineContinuation,
                 Keyword("Auto"),
                 Keyword("Sub"),
-                Identifier("AutoTest2"),
+                Method("AutoTest2"),
                 Keyword("Lib"),
                 [String]("""Test.dll"""),
                 Punctuation.OpenParen,
@@ -3367,7 +3421,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 LineContinuation,
                 Keyword("Unicode"),
                 Keyword("Sub"),
-                Identifier("UnicodeTest2"),
+                Method("UnicodeTest2"),
                 Keyword("Lib"),
                 [String]("""Test.dll"""),
                 Punctuation.OpenParen,
@@ -3376,25 +3430,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestUntil() As Task
-            Dim text = StringFromLines(
-                "    Dim Until",
-                "    Sub TestSub()",
-                "        Do",
-                "        Loop Until True",
-                "        Do",
-                "        Loop _",
-                "        Until True",
-                "        Do Until True",
-                "        Loop",
-                "        Do _",
-                "        Until True",
-                "        Loop",
-                "    End Sub")
-            Await TestInClassAsync(text,
+            Dim code =
+"    Dim Until
+    Sub TestSub()
+        Do
+        Loop Until True
+        Do
+        Loop _
+        Until True
+        Do Until True
+        Loop
+        Do _
+        Until True
+        Loop
+    End Sub"
+
+            Await TestInClassAsync(code,
                 Keyword("Dim"),
-                Identifier("Until"),
+                Field("Until"),
                 Keyword("Sub"),
-                Identifier("TestSub"),
+                Method("TestSub"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Keyword("Do"),
@@ -3421,23 +3476,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreserve() As Task
-            Dim text = StringFromLines(
-                "    Dim Preserve",
-                "    Sub TestSub()",
-                "        Dim arr As Integer() = Nothing",
-                "        ReDim Preserve arr(0)",
-                "        ReDim _",
-                "        Preserve arr(0)",
-                "    End Sub")
-            Await TestInClassAsync(text,
+            Dim code =
+"    Dim Preserve
+    Sub TestSub()
+        Dim arr As Integer() = Nothing
+        ReDim Preserve arr(0)
+        ReDim _
+        Preserve arr(0)
+    End Sub"
+
+            Await TestInClassAsync(code,
                 Keyword("Dim"),
-                Identifier("Preserve"),
+                Field("Preserve"),
                 Keyword("Sub"),
-                Identifier("TestSub"),
+                Method("TestSub"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Keyword("Dim"),
-                Identifier("arr"),
+                Local("arr"),
                 Keyword("As"),
                 Keyword("Integer"),
                 Punctuation.OpenParen,
@@ -3463,20 +3519,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestSkippedTextAsTokens() As Task
-            Dim text = StringFromLines(
-                "Module Program",
-                "    Sub Test(ByVal readOnly As Boolean)",
-                "    End Sub",
-                "End Module")
-            Await TestAsync(text,
+            Dim code =
+"Module Program
+    Sub Test(ByVal readOnly As Boolean)
+    End Sub
+End Module"
+
+            Await TestAsync(code,
                 Keyword("Module"),
                 [Module]("Program"),
                 Keyword("Sub"),
-                Identifier("Test"),
+                Method("Test"),
                 Punctuation.OpenParen,
                 Keyword("ByVal"),
                 Keyword("readOnly"),
-                Identifier("As"),
+                Parameter("As"),
                 Keyword("Boolean"),
                 Punctuation.CloseParen,
                 Keyword("End"),
@@ -3488,21 +3545,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(538647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538647")>
         Public Async Function TestRegression4315_VariableNamesClassifiedAsType() As Task
-            Dim text = StringFromLines(
-                "Module M",
-                "    Sub S()",
-                "        Dim goo",
-                "    End Sub",
-                "End Module")
-            Await TestAsync(text,
+            Dim code =
+"Module M
+    Sub S()
+        Dim goo
+    End Sub
+End Module"
+
+            Await TestAsync(code,
                 Keyword("Module"),
                 [Module]("M"),
                 Keyword("Sub"),
-                Identifier("S"),
+                Method("S"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Keyword("Dim"),
-                Identifier("goo"),
+                Local("goo"),
                 Keyword("End"),
                 Keyword("Sub"),
                 Keyword("End"),
@@ -3513,131 +3571,131 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <WorkItem(539203, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539203")>
         Public Async Function TestColonTrivia() As Task
             Await TestInMethodAsync("    : Console.WriteLine()",
-                         Punctuation.Colon,
-                         Identifier("Console"),
-                         Operators.Dot,
-                         Identifier("WriteLine"),
-                         Punctuation.OpenParen,
-                         Punctuation.CloseParen)
+                Punctuation.Colon,
+                Identifier("Console"),
+                Operators.Dot,
+                Identifier("WriteLine"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539642")>
         Public Async Function TestFromInCollectionInitializer1() As Task
             Await TestInMethodAsync("Dim y = New Goo() From",
-                         Keyword("Dim"),
-                         Identifier("y"),
-                         Operators.Equals,
-                         Keyword("New"),
-                         Identifier("Goo"),
-                         Punctuation.OpenParen,
-                         Punctuation.CloseParen,
-                         Keyword("From"))
+                Keyword("Dim"),
+                Local("y"),
+                Operators.Equals,
+                Keyword("New"),
+                Identifier("Goo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("From"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539642")>
         Public Async Function TestFromInCollectionInitializer2() As Task
             Await TestInMethodAsync("Dim y As New Goo() From",
-                         Keyword("Dim"),
-                         Identifier("y"),
-                         Keyword("As"),
-                         Keyword("New"),
-                         Identifier("Goo"),
-                         Punctuation.OpenParen,
-                         Punctuation.CloseParen,
-                         Keyword("From"))
+                Keyword("Dim"),
+                Local("y"),
+                Keyword("As"),
+                Keyword("New"),
+                Identifier("Goo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("From"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport1() As Task
             Await TestAsync("Imports <x",
-                 Keyword("Imports"),
-                 VBXmlDelimiter("<"),
-                 VBXmlName("x"))
+                Keyword("Imports"),
+                VBXmlDelimiter("<"),
+                VBXmlName("x"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport2() As Task
             Await TestAsync("Imports <xml",
-                 Keyword("Imports"),
-                 VBXmlDelimiter("<"),
-                 VBXmlName("xml"))
+                Keyword("Imports"),
+                VBXmlDelimiter("<"),
+                VBXmlName("xml"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport3() As Task
             Await TestAsync("Imports <xmlns",
-                 Keyword("Imports"),
-                 VBXmlDelimiter("<"),
-                 VBXmlAttributeName("xmlns"))
+                Keyword("Imports"),
+                VBXmlDelimiter("<"),
+                VBXmlAttributeName("xmlns"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport4() As Task
             Await TestAsync("Imports <xmlns:",
-                 Keyword("Imports"),
-                 VBXmlDelimiter("<"),
-                 VBXmlAttributeName("xmlns"),
-                 VBXmlAttributeName(":"))
+                Keyword("Imports"),
+                VBXmlDelimiter("<"),
+                VBXmlAttributeName("xmlns"),
+                VBXmlAttributeName(":"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport5() As Task
             Await TestAsync("Imports <xmlns:ns",
-                 Keyword("Imports"),
-                 VBXmlDelimiter("<"),
-                 VBXmlAttributeName("xmlns"),
-                 VBXmlAttributeName(":"),
-                 VBXmlAttributeName("ns"))
+                Keyword("Imports"),
+                VBXmlDelimiter("<"),
+                VBXmlAttributeName("xmlns"),
+                VBXmlAttributeName(":"),
+                VBXmlAttributeName("ns"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport6() As Task
             Await TestAsync("Imports <xmlns:ns=",
-                 Keyword("Imports"),
-                 VBXmlDelimiter("<"),
-                 VBXmlAttributeName("xmlns"),
-                 VBXmlAttributeName(":"),
-                 VBXmlAttributeName("ns"),
-                 VBXmlDelimiter("="))
+                Keyword("Imports"),
+                VBXmlDelimiter("<"),
+                VBXmlAttributeName("xmlns"),
+                VBXmlAttributeName(":"),
+                VBXmlAttributeName("ns"),
+                VBXmlDelimiter("="))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport7() As Task
             Await TestAsync("Imports <xmlns:ns=""http://goo""",
-                 Keyword("Imports"),
-                 VBXmlDelimiter("<"),
-                 VBXmlAttributeName("xmlns"),
-                 VBXmlAttributeName(":"),
-                 VBXmlAttributeName("ns"),
-                 VBXmlDelimiter("="),
-                 VBXmlAttributeQuotes(""""),
-                 VBXmlAttributeValue("http://goo"),
-                 VBXmlAttributeQuotes(""""))
+                Keyword("Imports"),
+                VBXmlDelimiter("<"),
+                VBXmlAttributeName("xmlns"),
+                VBXmlAttributeName(":"),
+                VBXmlAttributeName("ns"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("http://goo"),
+                VBXmlAttributeQuotes(""""))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestFullyTypedXmlNamespaceImport() As Task
             Await TestAsync("Imports <xmlns:ns=""http://goo"">",
-                 Keyword("Imports"),
-                 VBXmlDelimiter("<"),
-                 VBXmlAttributeName("xmlns"),
-                 VBXmlAttributeName(":"),
-                 VBXmlAttributeName("ns"),
-                 VBXmlDelimiter("="),
-                 VBXmlAttributeQuotes(""""),
-                 VBXmlAttributeValue("http://goo"),
-                 VBXmlAttributeQuotes(""""),
-                 VBXmlDelimiter(">"))
+                Keyword("Imports"),
+                VBXmlDelimiter("<"),
+                VBXmlAttributeName("xmlns"),
+                VBXmlAttributeName(":"),
+                VBXmlAttributeName("ns"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("http://goo"),
+                VBXmlAttributeQuotes(""""),
+                VBXmlDelimiter(">"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -3689,154 +3747,159 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestEnableWarningDirective() As Task
-            Dim text = StringFromLines(
-                "Module Program",
-                "    Sub Main",
-                "#Enable Warning BC123, [bc456], SomeId",
-                "    End Sub",
-                "End Module")
-            Await TestAsync(text,
-                 Keyword("Module"),
-                 [Module]("Program"),
-                 Keyword("Sub"),
-                 Identifier("Main"),
-                 PPKeyword("#"),
-                 PPKeyword("Enable"),
-                 PPKeyword("Warning"),
-                 Identifier("BC123"),
-                 Punctuation.Comma,
-                 Identifier("[bc456]"),
-                 Punctuation.Comma,
-                 Identifier("SomeId"),
-                 Keyword("End"),
-                 Keyword("Sub"),
-                 Keyword("End"),
-                 Keyword("Module"))
+            Dim code =
+"Module Program
+    Sub Main
+#Enable Warning BC123, [bc456], SomeId
+    End Sub
+End Module"
+
+            Await TestAsync(code,
+                Keyword("Module"),
+                [Module]("Program"),
+                Keyword("Sub"),
+                Method("Main"),
+                PPKeyword("#"),
+                PPKeyword("Enable"),
+                PPKeyword("Warning"),
+                Identifier("BC123"),
+                Punctuation.Comma,
+                Identifier("[bc456]"),
+                Punctuation.Comma,
+                Identifier("SomeId"),
+                Keyword("End"),
+                Keyword("Sub"),
+                Keyword("End"),
+                Keyword("Module"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDisableWarningDirective() As Task
-            Dim text = StringFromLines(
-                "Module Program",
-                "    Sub Main",
-                "#Disable Warning",
-                "    End Sub",
-                "End Module")
-            Await TestAsync(text,
-                 Keyword("Module"),
-                 [Module]("Program"),
-                 Keyword("Sub"),
-                 Identifier("Main"),
-                 PPKeyword("#"),
-                 PPKeyword("Disable"),
-                 PPKeyword("Warning"),
-                 Keyword("End"),
-                 Keyword("Sub"),
-                 Keyword("End"),
-                 Keyword("Module"))
+            Dim code =
+"Module Program
+    Sub Main
+#Disable Warning
+    End Sub
+End Module"
+
+            Await TestAsync(code,
+                Keyword("Module"),
+                [Module]("Program"),
+                Keyword("Sub"),
+                Method("Main"),
+                PPKeyword("#"),
+                PPKeyword("Disable"),
+                PPKeyword("Warning"),
+                Keyword("End"),
+                Keyword("Sub"),
+                Keyword("End"),
+                Keyword("Module"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestBadWarningDirectives() As Task
-            Dim text = StringFromLines(
-                "Module Program",
-                "    Sub Main",
-                "#warning",
-                "    End Sub",
-                "#Enable blah Warning",
-                "End Module",
-                "#Disable bc123 Warning",
-                "#Enable",
-                "#Disable Warning blah")
-            Await TestAsync(text,
-                 Keyword("Module"),
-                 [Module]("Program"),
-                 Keyword("Sub"),
-                 Identifier("Main"),
-                 PPKeyword("#"),
-                 Identifier("warning"),
-                 Keyword("End"),
-                 Keyword("Sub"),
-                 PPKeyword("#"),
-                 PPKeyword("Enable"),
-                 Identifier("blah"),
-                 Identifier("Warning"),
-                 Keyword("End"),
-                 Keyword("Module"),
-                 PPKeyword("#"),
-                 PPKeyword("Disable"),
-                 Identifier("bc123"),
-                 Identifier("Warning"),
-                 PPKeyword("#"),
-                 PPKeyword("Enable"),
-                 PPKeyword("#"),
-                 PPKeyword("Disable"),
-                 PPKeyword("Warning"),
-                 Identifier("blah"))
+            Dim code =
+"Module Program
+    Sub Main
+#warning
+    End Sub
+#Enable blah Warning
+End Module
+#Disable bc123 Warning
+#Enable
+#Disable Warning blah"
+
+            Await TestAsync(code,
+                Keyword("Module"),
+                [Module]("Program"),
+                Keyword("Sub"),
+                Method("Main"),
+                PPKeyword("#"),
+                Identifier("warning"),
+                Keyword("End"),
+                Keyword("Sub"),
+                PPKeyword("#"),
+                PPKeyword("Enable"),
+                Identifier("blah"),
+                Identifier("Warning"),
+                Keyword("End"),
+                Keyword("Module"),
+                PPKeyword("#"),
+                PPKeyword("Disable"),
+                Identifier("bc123"),
+                Identifier("Warning"),
+                PPKeyword("#"),
+                PPKeyword("Enable"),
+                PPKeyword("#"),
+                PPKeyword("Disable"),
+                PPKeyword("Warning"),
+                Identifier("blah"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestInterpolatedString1() As Task
-            Dim text = StringFromLines(
-                "Module Program",
-                "    Sub Main",
-                "        Dim s = $""Hello, {name,10:F}.""",
-                "    End Sub",
-                "End Module")
-            Await TestAsync(text,
-                 Keyword("Module"),
-                 [Module]("Program"),
-                 Keyword("Sub"),
-                 Identifier("Main"),
-                 Keyword("Dim"),
-                 Identifier("s"),
-                 Operators.Equals,
-                 [String]("$"""),
-                 [String]("Hello, "),
-                 Punctuation.OpenCurly,
-                 Identifier("name"),
-                 Punctuation.Comma,
-                 Number("10"),
-                 Punctuation.Colon,
-                 [String]("F"),
-                 Punctuation.CloseCurly,
-                 [String]("."),
-                 [String](""""),
-                 Keyword("End"),
-                 Keyword("Sub"),
-                 Keyword("End"),
-                 Keyword("Module"))
+            Dim code =
+"Module Program
+    Sub Main
+        Dim s = $""Hello, {name,10:F}.""
+    End Sub
+End Module"
+
+            Await TestAsync(code,
+                Keyword("Module"),
+                [Module]("Program"),
+                Keyword("Sub"),
+                Method("Main"),
+                Keyword("Dim"),
+                Local("s"),
+                Operators.Equals,
+                [String]("$"""),
+                [String]("Hello, "),
+                Punctuation.OpenCurly,
+                Identifier("name"),
+                Punctuation.Comma,
+                Number("10"),
+                Punctuation.Colon,
+                [String]("F"),
+                Punctuation.CloseCurly,
+                [String]("."),
+                [String](""""),
+                Keyword("End"),
+                Keyword("Sub"),
+                Keyword("End"),
+                Keyword("Module"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestInterpolatedString2() As Task
-            Dim text = StringFromLines(
-                "Module Program",
-                "    Sub Main",
-                "        Dim s = $""{x}, {y}""",
-                "    End Sub",
-                "End Module")
-            Await TestAsync(text,
-                 Keyword("Module"),
-                 [Module]("Program"),
-                 Keyword("Sub"),
-                 Identifier("Main"),
-                 Keyword("Dim"),
-                 Identifier("s"),
-                 Operators.Equals,
-                 [String]("$"""),
-                 Punctuation.OpenCurly,
-                 Identifier("x"),
-                 Punctuation.CloseCurly,
-                 [String](", "),
-                 Punctuation.OpenCurly,
-                 Identifier("y"),
-                 Punctuation.CloseCurly,
-                 [String](""""),
-                 Keyword("End"),
-                 Keyword("Sub"),
-                 Keyword("End"),
-                 Keyword("Module"))
+            Dim code =
+"Module Program
+    Sub Main
+        Dim s = $""{x}, {y}""
+    End Sub
+End Module"
+
+            Await TestAsync(code,
+                Keyword("Module"),
+                [Module]("Program"),
+                Keyword("Sub"),
+                Method("Main"),
+                Keyword("Dim"),
+                Local("s"),
+                Operators.Equals,
+                [String]("$"""),
+                Punctuation.OpenCurly,
+                Identifier("x"),
+                Punctuation.CloseCurly,
+                [String](", "),
+                Punctuation.OpenCurly,
+                Identifier("y"),
+                Punctuation.CloseCurly,
+                [String](""""),
+                Keyword("End"),
+                Keyword("Sub"),
+                Keyword("End"),
+                Keyword("Module"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -3881,19 +3944,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestConflictMarkers1() As Task
-            Await TestAsync(
+            Dim code =
 "interface I
 <<<<<<< Start
     sub Goo()
 =======
     sub Bar()
 >>>>>>> End
-end interface",
+end interface"
+
+            Await TestAsync(
+                code,
                 Keyword("interface"),
                 [Interface]("I"),
                 Comment("<<<<<<< Start"),
                 Keyword("sub"),
-                Identifier("Goo"),
+                Method("Goo"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Comment("======="),
@@ -3904,6 +3970,17 @@ end interface",
                 Comment(">>>>>>> End"),
                 Keyword("end"),
                 Keyword("interface"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestConstName() As Task
+            Dim code = "Const Number = 42"
+
+            Await TestInClassAsync(code,
+                Keyword("Const"),
+                Constant("Number"),
+                Operators.Equals,
+                Number("42"))
         End Function
     End Class
 End Namespace

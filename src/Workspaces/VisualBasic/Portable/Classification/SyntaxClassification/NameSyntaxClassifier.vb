@@ -71,23 +71,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End If
 
             If symbol IsNot Nothing Then
-                If symbol.Kind = SymbolKind.Method Then
-                    Dim method = DirectCast(symbol, IMethodSymbol)
-                    If method.MethodKind = MethodKind.Constructor Then
-                        ' If node is member access or qualified name with explicit New on the right side, we should classify New as a keyword.
-                        If node.IsNewOnRightSideOfDotOrBang() Then
-                            Dim token = GetNameToken(node)
-                            result.Add(New ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword))
-                            Return
-                        Else
-                            ' We bound to a constructor, but we weren't something like the 'New' in 'X.New'.
-                            ' This can happen when we're actually just binding the full node 'X.New'.  In this
-                            ' case, don't return anything for this full node.  We'll end up hitting the 
-                            ' 'New' node as the worker walks down, and we'll classify it then.
+                Select Case symbol.Kind
+                    Case SymbolKind.Method
+                        Dim classification = GetClassificationForMethod(node, DirectCast(symbol, IMethodSymbol))
+                        If classification IsNot Nothing Then
+                            result.Add(New ClassifiedSpan(GetNameToken(node).Span, classification))
                             Return
                         End If
-                    End If
-                End If
+                    Case SymbolKind.Event
+                        result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.EventName))
+                        Return
+                    Case SymbolKind.Property
+                        result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.PropertyName))
+                        Return
+                    Case SymbolKind.Field
+                        Dim classification = GetClassificationForField(DirectCast(symbol, IFieldSymbol))
+                        If classification IsNot Nothing Then
+                            result.Add(New ClassifiedSpan(GetNameToken(node).Span, classification))
+                            Return
+                        End If
+                    Case SymbolKind.Parameter
+                        result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.ParameterName))
+                        Return
+                    Case SymbolKind.Local
+                        result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.LocalName))
+                        Return
+                End Select
 
                 Dim type = TryCast(symbol, ITypeSymbol)
                 If type IsNot Nothing Then
@@ -128,6 +137,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End If
         End Sub
 
+        Private Function GetClassificationForField(fieldSymbol As IFieldSymbol) As String
+            If fieldSymbol.IsConst Then
+                Return If(fieldSymbol.ContainingType.IsEnumType(), ClassificationTypeNames.EnumMemberName, ClassificationTypeNames.ConstantName)
+            End If
+
+            Return ClassificationTypeNames.FieldName
+        End Function
+
+        Private Function GetClassificationForMethod(node As NameSyntax, methodSymbol As IMethodSymbol) As String
+            If methodSymbol.MethodKind = MethodKind.Constructor Then
+                ' If node is member access or qualified name with explicit New on the right side, we should classify New as a keyword.
+                If node.IsNewOnRightSideOfDotOrBang() Then
+                    Return ClassificationTypeNames.Keyword
+                Else
+                    ' We bound to a constructor, but we weren't something like the 'New' in 'X.New'.
+                    ' This can happen when we're actually just binding the full node 'X.New'.  In this
+                    ' case, don't return anything for this full node.  We'll end up hitting the 
+                    ' 'New' node as the worker walks down, and we'll classify it then.
+                    Return Nothing
+                End If
+            Else
+                Return If(methodSymbol.IsExtensionMethod(), ClassificationTypeNames.ExtensionMethodName, ClassificationTypeNames.MethodName)
+            End If
+        End Function
+
         Private Sub ClassifyModifiedIdentifier(
                 modifiedIdentifier As ModifiedIdentifierSyntax,
                 semanticModel As SemanticModel,
@@ -149,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
                     Dim token = modifiedIdentifier.Identifier
                     If token.HasMatchingText(SyntaxKind.AsyncKeyword) OrElse
-                   token.HasMatchingText(SyntaxKind.IteratorKeyword) Then
+                       token.HasMatchingText(SyntaxKind.IteratorKeyword) Then
 
                         ' Optimistically classify "Async" or "Iterator" as a keyword
                         result.Add(New ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword))

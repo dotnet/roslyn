@@ -3,7 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Extensions
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -46,27 +45,29 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestImportsType() As Task
             Await TestAsync("Imports System.Console",
-                [Class]("Console"))
+            [Class]("Console"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestImportsAlias() As Task
             Await TestAsync("Imports M = System.Math",
-                 [Class]("M"),
-                 [Class]("Math"))
+                [Class]("M"),
+                [Class]("Math"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestMSCorlibTypes() As Task
-            Dim text = StringFromLines(
-                "Imports System",
-                "Module Program",
-                "    Sub Main(args As String())",
-                "        Console.WriteLine()",
-                "    End Sub",
-                "End Module")
-            Await TestAsync(text,
-                [Class]("Console"))
+            Dim code =
+"Imports System
+Module Program
+    Sub Main(args As String())
+        Console.WriteLine()
+    End Sub
+End Module"
+
+            Await TestAsync(code,
+                [Class]("Console"),
+                Method("WriteLine"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -90,36 +91,39 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(538647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538647")>
         Public Async Function TestRegression4315_VariableNamesClassifiedAsType() As Task
-            Dim text = StringFromLines(
-                "Module M",
-                "    Sub S()",
-                "        Dim goo",
-                "    End Sub",
-                "End Module")
-            Await TestAsync(text)
+            Dim code =
+"Module M
+    Sub S()
+        Dim goo
+    End Sub
+End Module"
+
+            Await TestAsync(code)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(541267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541267")>
         Public Async Function TestRegression7925_TypeParameterCantCastToMethod() As Task
-            Dim text = StringFromLines(
-                "Class C",
-                "    Sub GenericMethod(Of T1)(i As T1)",
-                "    End Sub",
-                "End Class")
-            Await TestAsync(text,
+            Dim code =
+"Class C
+    Sub GenericMethod(Of T1)(i As T1)
+    End Sub
+End Class"
+
+            Await TestAsync(code,
                 TypeParameter("T1"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(541610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541610")>
         Public Async Function TestRegression8394_AliasesShouldBeClassified1() As Task
-            Dim text = StringFromLines(
-                "Imports S = System.String",
-                "Class T",
-                "    Dim x As S = ""hello""",
-                "End Class")
-            Await TestAsync(text,
+            Dim code =
+"Imports S = System.String
+Class T
+    Dim x As S = ""hello""
+End Class"
+
+            Await TestAsync(code,
                 [Class]("S"),
                 [Class]("String"),
                 [Class]("S"))
@@ -128,12 +132,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(541610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541610")>
         Public Async Function TestRegression8394_AliasesShouldBeClassified2() As Task
-            Dim text = StringFromLines(
-                "Imports D = System.IDisposable",
-                "Class T",
-                "    Dim x As D = Nothing",
-                "End Class")
-            Await TestAsync(text,
+            Dim code =
+"Imports D = System.IDisposable
+Class T
+    Dim x As D = Nothing
+End Class"
+
+            Await TestAsync(code,
                 [Interface]("D"),
                 [Interface]("IDisposable"),
                 [Interface]("D"))
@@ -141,80 +146,85 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestConstructorNew1() As Task
-            Dim text = StringFromLines(
-                "Class C",
-                "    Sub New",
-                "    End Sub",
-                "    Sub [New]",
-                "    End Sub",
-                "    Sub New(x)",
-                "        Me.New",
-                "    End Sub",
-                "End Class")
-            Await TestAsync(text,
-                 Keyword("New"))
+            Dim code =
+"Class C
+    Sub New
+    End Sub
+    Sub [New]
+    End Sub
+    Sub New(x)
+        Me.New
+    End Sub
+End Class"
+
+            Await TestAsync(code,
+                Keyword("New"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestConstructorNew2() As Task
-            Dim text = StringFromLines(
-                "Class B",
-                "    Sub New()",
-                "    End Sub",
-                "End Class",
-                "Class C",
-                "    Inherits B",
-                "    Sub New(x As Integer)",
-                "        MyBase.New",
-                "    End Sub",
-                "End Class")
-            Await TestAsync(text,
-                 [Class]("B"),
-                 Keyword("New"))
+            Dim code =
+"Class B
+    Sub New()
+    End Sub
+End Class
+Class C
+    Inherits B
+    Sub New(x As Integer)
+        MyBase.New
+    End Sub
+End Class"
+
+            Await TestAsync(code,
+                [Class]("B"),
+                Keyword("New"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestConstructorNew3() As Task
-            Dim text = StringFromLines(
-                "Class C",
-                "    Sub New",
-                "    End Sub",
-                "    Sub [New]",
-                "    End Sub",
-                "    Sub New(x)",
-                "        MyClass.New",
-                "    End Sub",
-                "End Class")
-            Await TestAsync(text,
-                 Keyword("New"))
+            Dim code =
+"Class C
+    Sub New
+    End Sub
+    Sub [New]
+    End Sub
+    Sub New(x)
+        MyClass.New
+    End Sub
+End Class"
+
+            Await TestAsync(code,
+                Keyword("New"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestConstructorNew4() As Task
-            Dim text = StringFromLines(
-                "Class C",
-                "    Sub New",
-                "    End Sub",
-                "    Sub [New]",
-                "    End Sub",
-                "    Sub New(x)",
-                "        With Me",
-                "            .New",
-                "        End With",
-                "    End Sub",
-                "End Class")
-            Await TestAsync(text,
-                 Keyword("New"))
+            Dim code =
+"Class C
+    Sub New
+    End Sub
+    Sub [New]
+    End Sub
+    Sub New(x)
+        With Me
+            .New
+        End With
+    End Sub
+End Class"
+
+            Await TestAsync(code,
+                Keyword("New"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAlias() As Task
-            Dim text = StringFromLines(
-                "Imports E = System.Exception",
-                "Class C",
-                "    Inherits E",
-                "End Class")
-            Await TestAsync(text,
+            Dim code =
+"Imports E = System.Exception
+Class C
+    Inherits E
+End Class"
+
+            Await TestAsync(code,
                 [Class]("E"),
                 [Class]("Exception"),
                 [Class]("E"))
@@ -223,16 +233,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestOptimisticallyColorFromInDeclaration() As Task
-            Await TestInExpressionAsync("From ", Keyword("From"))
+            Await TestInExpressionAsync("From ",
+                Keyword("From"))
         End Function
 
         <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestOptimisticallyColorFromInAssignment() As Task
-            Await TestInMethodAsync(<text><![CDATA[
-                            Dim q = 3
-                            q = From 
-                            ]]></text>.NormalizedValue, Keyword("From"))
+            Dim code =
+"Dim q = 3
+q = From"
+
+            Await TestInMethodAsync(code,
+                Local("q"),
+                Keyword("From"))
         End Function
 
         <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
@@ -244,317 +258,302 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDontColorThingsOtherThanFromInAssignment() As Task
-            Await TestInMethodAsync(<text><![CDATA[
-                            Dim q = 3
-                            q = Fro 
-                            ]]></text>.Value)
+            Dim code =
+"Dim q = 3
+q = Fro "
+
+            Await TestInMethodAsync(code,
+                Local("q"))
         End Function
 
         <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDontColorFromWhenBoundInDeclaration() As Task
-            Await TestInMethodAsync(<text><![CDATA[
-                            Dim From = 3
-                            Dim q = From
-                            ]]></text>.Value)
+            Dim code =
+"Dim From = 3
+Dim q = From"
+
+            Await TestInMethodAsync(code,
+                Local("From"))
         End Function
 
         <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDontColorFromWhenBoundInAssignment() As Task
-            Await TestInMethodAsync(<text><![CDATA[
-                            Dim From = 3
-                            Dim q = 3
-                            q = From
-                            ]]></text>.Value)
+            Dim code =
+"Dim From = 3
+Dim q = 3
+q = From"
+
+            Await TestInMethodAsync(code,
+                Local("q"),
+                Local("From"))
         End Function
 
         <Fact, WorkItem(10507, "DevDiv_Projects/Roslyn"), Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestArraysInGetType() As Task
             Await TestInMethodAsync("GetType(System.Exception()",
-                         [Class]("Exception"))
+                [Class]("Exception"))
             Await TestInMethodAsync("GetType(System.Exception(,)",
-                         [Class]("Exception"))
+                [Class]("Exception"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestNewOfInterface() As Task
             Await TestInMethodAsync("Dim a = New System.IDisposable()",
-                         [Interface]("IDisposable"))
+                [Interface]("IDisposable"))
         End Function
 
         <WorkItem(543404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543404")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestNewOfClassWithNoPublicConstructors() As Task
-            Dim text = StringFromLines(
-                "Public Class C1",
-                "    Private Sub New()",
-                "    End Sub",
-                "End Class",
-                "Module Program",
-                "    Sub Main()",
-                "        Dim f As New C1()",
-                "    End Sub",
-                "End Module")
+            Dim code =
+"Public Class C1
+    Private Sub New()
+    End Sub
+End Class
+Module Program
+    Sub Main()
+        Dim f As New C1()
+    End Sub
+End Module"
 
-            Await TestAsync(text,
+            Await TestAsync(code,
                 [Class]("C1"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword1() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Sub M()
         Dim x = Async
     End Sub
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text,
+            Await TestAsync(code,
                 Keyword("Async"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword2() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Sub M()
         Dim x = Async S
     End Sub
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text,
+            Await TestAsync(code,
                 Keyword("Async"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword3() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Sub M()
         Dim x = Async Su
     End Sub
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text,
+            Await TestAsync(code,
                 Keyword("Async"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword4() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Async
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text,
+            Await TestAsync(code,
                 Keyword("Async"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword5() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Private Async
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text,
+            Await TestAsync(code,
                 Keyword("Async"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword6() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Private Async As
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text)
+            Await TestAsync(code)
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword7() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Private Async =
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text)
+            Await TestAsync(code)
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword1() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Sub M()
         Dim x = Iterator
     End Sub
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text,
+            Await TestAsync(code,
                 Keyword("Iterator"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword2() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Sub M()
         Dim x = Iterator F
     End Sub
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text,
+            Await TestAsync(code,
                 Keyword("Iterator"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword3() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Sub M()
         Dim x = Iterator Functio
     End Sub
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text,
+            Await TestAsync(code,
                 Keyword("Iterator"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword4() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Iterator
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text,
+            Await TestAsync(code,
                 Keyword("Iterator"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword5() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Private Iterator
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text,
+            Await TestAsync(code,
                 Keyword("Iterator"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword6() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Private Iterator As
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text)
+            Await TestAsync(code)
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword7() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Private Iterator =
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text)
+            Await TestAsync(code)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestMyNamespace() As Task
-            Dim text =
-<code>
-Class C
+            Dim code =
+"Class C
     Sub M()
         Dim m = My.Goo
     End Sub
-End Class
-</code>.NormalizedValue()
+End Class"
 
-            Await TestAsync(text,
-                 Keyword("My"))
+            Await TestAsync(code,
+                Keyword("My"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAwaitInNonAsyncFunction1() As Task
-            Dim text =
-<code>
-dim m = Await
-</code>.NormalizedValue()
+            Dim code = "dim m = Await"
 
-            Await TestInMethodAsync(text,
-                 Keyword("Await"))
+            Await TestInMethodAsync(code,
+                Keyword("Await"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAwaitInNonAsyncFunction2() As Task
-            Dim text =
-<code>
-sub await()
+            Dim code =
+"sub await()
 end sub
 
 sub test()
     dim m = Await
-end sub
-</code>.NormalizedValue()
+end sub"
 
-            Await TestInClassAsync(text)
+            Await TestInClassAsync(code)
         End Function
 
         <WorkItem(21524, "https://github.com/dotnet/roslyn/issues/21524")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAttribute() As Task
-            Await TestAsync("Imports System
+            Dim code =
+"Imports System
 
 <AttributeUsage()>
 Class Program
-End Class",
+End Class"
+
+            Await TestAsync(code,
                 [Class]("AttributeUsage"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestConst() As Task
+            Dim code =
+"Const Number = 42
+Dim x As Integer = Number"
+
+            Await TestInClassAsync(code,
+                Constant("Number"))
         End Function
 
     End Class
