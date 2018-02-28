@@ -306,9 +306,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
             var service = new MyDiagnosticAnalyzerService(new DiagnosticAnalyzer[] {
-                new LeakProjectFrontAnalyzer(),
                 new LeakDocumentAnalyzer(),
-                new LeakProjectEndAnalyzer()
+                new LeakProjectAnalyzer()
             }, listener, project.Language);
 
             var called = false;
@@ -526,16 +525,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        private class LeakProjectFrontAnalyzer : ProjectDiagnosticAnalyzer
+        private class LeakProjectAnalyzer : ProjectDiagnosticAnalyzer
         {
-            private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor("projectFront", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_rule);
-            public override Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken) => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
-        }
-
-        private class LeakProjectEndAnalyzer : ProjectDiagnosticAnalyzer
-        {
-            private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor("projectEnd", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+            private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor("project", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_rule);
             public override Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken) => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
         }
