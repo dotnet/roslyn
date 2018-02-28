@@ -2001,8 +2001,6 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocation_InvocationStyles_Positional_WithOptionalParam()
         {
-            // The fix places new parameter after optional parameters (which is not allowed)
-            // I don't see what we can do about it without also changing the call site.
             // error CS1501: No overload for method 'M' takes 2 arguments
             var code =
 @"
@@ -2014,12 +2012,11 @@ class C
         [|M|](1, 2);
     }
 }";
-            // error CS1737: Optional parameters must appear after all required parameters
             var fix0 =
 @"
 class C
 {
-    void M(int i = 1, int v) { }
+    void M(int i = 1, int v = 0) { }
     void Test()
     {
         M(1, 2);

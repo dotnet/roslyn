@@ -326,10 +326,21 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 foreach (var methodDeclaration in documentLookup)
                 {
                     var methodNode = syntaxRoot.FindNode(methodDeclaration.Locations[0].SourceSpan);
-                    var parameterSymbol = CreateParameterSymbol(
-                        methodDeclaration, argumentType, refKind, argumentNameSuggestion);
+                    var existingParameters = generator.GetParameters(methodNode);
+                    var insertionIndex = isNamedArgument
+                        ? existingParameters.Count
+                        : argumentList.IndexOf(argument);
 
-                    var parameterDeclaration = generator.ParameterDeclaration(parameterSymbol)
+                    // if the preceding parameter is optional, the new parameter must also be optional 
+                    // see also BC30202 and CS1737
+                    var parameterMustBeOptional = insertionIndex > 0 &&
+                        syntaxFacts.GetDefaultOfParameter(existingParameters[insertionIndex - 1]) != null;
+
+                    var parameterSymbol = CreateParameterSymbol(
+                        methodDeclaration, argumentType, refKind, parameterMustBeOptional, argumentNameSuggestion);
+
+                    var argumentInitializer = parameterMustBeOptional ? generator.DefaultExpression(argumentType) : null;
+                    var parameterDeclaration = generator.ParameterDeclaration(parameterSymbol, argumentInitializer)
                                                         .WithAdditionalAnnotations(Formatter.Annotation);
                     if (anySymbolReferencesNotInSource && methodDeclaration == method)
                     {
@@ -337,10 +348,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
                             ConflictAnnotation.Create(FeaturesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
                     }
 
-                    var existingParameters = generator.GetParameters(methodNode);
-                    var insertionIndex = isNamedArgument
-                        ? existingParameters.Count
-                        : argumentList.IndexOf(argument);
 
                     if (method.MethodKind == MethodKind.ReducedExtension)
                     {
@@ -409,11 +416,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
             IMethodSymbol method,
             ITypeSymbol parameterType,
             RefKind refKind,
+            bool isOptional,
             string argumentNameSuggestion)
         {
             var uniqueName = NameGenerator.EnsureUniqueness(argumentNameSuggestion, method.Parameters.Select(p => p.Name));
             var newParameterSymbol = CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    attributes: default, refKind: refKind, isParams: false, type: parameterType, name: uniqueName);
+                    attributes: default, refKind: refKind, isOptional: isOptional, isParams: false, type: parameterType, name: uniqueName);
             return newParameterSymbol;
         }
 
