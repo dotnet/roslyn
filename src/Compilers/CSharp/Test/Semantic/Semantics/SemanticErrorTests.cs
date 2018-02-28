@@ -15417,23 +15417,73 @@ unsafe struct S
 
 unsafe class Test
 {
+    public static void Main()
+    {
+        var inst = new Test();
+        System.Console.Write(inst.example1());
+        System.Console.Write(inst.field.buffer[0]);
+        System.Console.Write(inst.example2());
+        System.Console.Write(inst.field.buffer[0]);
+    }
+
     S field = new S();
 
-    private bool example1()
+    private int example1()
     {
-        return (field.buffer[0] == 0);   // CS1666 error
+        return (field.buffer[0] = 7);   // OK
     }
-    private bool example2()
+
+    private int example2()
     {
         fixed (int* p = field.buffer)
         {
-            return (p[0] == 0);   // OK
+            return (p[0] = 8);   // OK
         }
     }
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                );
+
+            var c = CompileAndVerify(text, expectedOutput: "7788", verify: Verification.Fails, options:TestOptions.UnsafeReleaseExe);
+
+            c.VerifyIL("Test.example1()", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""S Test.field""
+  IL_0006:  ldflda     ""int* S.buffer""
+  IL_000b:  ldflda     ""int S.<buffer>e__FixedBuffer.FixedElementField""
+  IL_0010:  ldc.i4.7
+  IL_0011:  dup
+  IL_0012:  stloc.0
+  IL_0013:  stind.i4
+  IL_0014:  ldloc.0
+  IL_0015:  ret
+}
+");
+
+            c.VerifyIL("Test.example2()", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  .locals init (pinned int*& V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""S Test.field""
+  IL_0006:  ldflda     ""int* S.buffer""
+  IL_000b:  ldflda     ""int S.<buffer>e__FixedBuffer.FixedElementField""
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  conv.u
+  IL_0013:  ldc.i4.8
+  IL_0014:  dup
+  IL_0015:  stloc.1
+  IL_0016:  stind.i4
+  IL_0017:  ldloc.1
+  IL_0018:  ret
+}
+");
         }
 
         [Fact]
@@ -15846,8 +15896,8 @@ public unsafe class C
     {
         C myC = new C();
         myC.UnsafeMethod().name[3] = 'a';  // CS1708
-        C._s1.name[3] = 'a';  // CS1708
-        myC._s2.name[3] = 'a';  // CS1708
+        C._s1.name[3] = 'a';  // CS1648
+        myC._s2.name[3] = 'a';  // CS1648
     }
 
     static readonly S _s1;
@@ -15858,10 +15908,10 @@ public unsafe class C
                 //         myC.UnsafeMethod().name[3] = 'a';  // CS1708
                 Diagnostic(ErrorCode.ERR_FixedNeedsLvalue, "myC.UnsafeMethod().name").WithLocation(18, 9),
                 // (19,9): error CS1650: Fields of static readonly field 'C._s1' cannot be assigned to (except in a static constructor or a variable initializer)
-                //         C._s1.name[3] = 'a';  // CS1708
+                //         C._s1.name[3] = 'a';  // CS1648
                 Diagnostic(ErrorCode.ERR_AssgReadonlyStatic2, "C._s1.name[3]").WithArguments("C._s1").WithLocation(19, 9),
                 // (20,9): error CS1648: Members of readonly field 'C._s2' cannot be modified (except in a constructor or a variable initializer)
-                //         myC._s2.name[3] = 'a';  // CS1708
+                //         myC._s2.name[3] = 'a';  // CS1648
                 Diagnostic(ErrorCode.ERR_AssgReadonly2, "myC._s2.name[3]").WithArguments("C._s2").WithLocation(20, 9)
                 );
         }

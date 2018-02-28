@@ -172,7 +172,7 @@ class Program
 }");
         }
 
-        //PROTOTYPE: I have verified that this passes with the fix in https://github.com/dotnet/roslyn/pull/24909 that has not yet merged
+        //PROTOTYPE(indexing movable fixed buffers): I have verified that this passes with the fix in https://github.com/dotnet/roslyn/pull/24909 that has not yet merged
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24776")]
         public void SimpleFixedBufferOfRefStructErr()
         {
