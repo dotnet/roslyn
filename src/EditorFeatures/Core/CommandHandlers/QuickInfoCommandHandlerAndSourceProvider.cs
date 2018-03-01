@@ -27,27 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         ForegroundThreadAffinitizedObject,
         IAsyncQuickInfoSourceProvider
     {
-        private readonly IAsynchronousOperationListener _listener;
-        private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> _presenter;
-
-        [ImportingConstructor]
-        public QuickInfoCommandHandlerAndSourceProvider(
-            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession>, OrderableMetadata>> presenters,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : this(ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                   listenerProvider)
-        {
-        }
-
-        // For testing purposes.
-        public QuickInfoCommandHandlerAndSourceProvider(
-            IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> presenter,
-            IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _presenter = presenter;
-            _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
-        }
-
         private bool TryGetController(EditorCommandArgs args, out Controller controller)
         {
             // check whether this feature is on.
@@ -57,17 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return false;
             }
 
-            // If we don't have a presenter, then there's no point in us even being involved.  Just
-            // defer to the next handler in the chain.
-            if (_presenter == null)
-            {
-                controller = null;
-                return false;
-            }
-
-            // TODO(cyrusn): If there are no presenters then we should not create a controller.
-            // Otherwise we'll be affecting the user's typing and they'll have no idea why :)
-            controller = Controller.GetInstance(args, _presenter, _listener);
+            controller = Controller.GetInstance(args);
             return true;
         }
 

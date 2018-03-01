@@ -33,10 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         public Controller(
             ITextView textView,
             ITextBuffer subjectBuffer,
-            IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> presenter,
-            IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider)
-            : base(textView, subjectBuffer, presenter, asyncListener, documentProvider, "QuickInfo")
+            : base(textView, subjectBuffer, null, null, documentProvider, "QuickInfo")
         {
         }
 
@@ -44,27 +42,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         internal Controller(
             ITextView textView,
             ITextBuffer subjectBuffer,
-            IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> presenter,
-            IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
             QuickInfoService service)
-            : base(textView, subjectBuffer, presenter, asyncListener, documentProvider, "QuickInfo")
+            : base(textView, subjectBuffer, null, null, documentProvider, "QuickInfo")
         {
             _service = service;
         }
 
         internal static Controller GetInstance(
-            EditorCommandArgs args,
-            IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> presenter,
-            IAsynchronousOperationListener asyncListener)
+            EditorCommandArgs args)
         {
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
             return textView.GetOrCreatePerSubjectBufferProperty(subjectBuffer, s_quickInfoPropertyKey,
-                (v, b) => new Controller(v, b,
-                    presenter,
-                    asyncListener,
-                    new DocumentProvider()));
+                (v, b) => new Controller(v, b, new DocumentProvider()));
         }
 
         internal override void OnModelUpdated(Model modelOpt)
@@ -74,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         public async Task<IntellisenseQuickInfoItem> GetQuickInfoItemAsync(
             SnapshotPoint triggerPoint,
-            IAsyncQuickInfoSession augmentSession,
             CancellationToken cancellationToken)
         {
             var service = GetService();
@@ -84,8 +74,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
 
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
-            this.sessionOpt = new Session<Controller, Model, IQuickInfoPresenterSession>(this, new ModelComputation<Model>(this, TaskScheduler.Default),
-                this.Presenter.CreateSession(this.TextView, this.SubjectBuffer, augmentSession));
 
             try
             {
@@ -138,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 SpanTrackingMode.EdgeInclusive);
 
             var glyphs = quickInfoItem.Tags.GetGlyphs();
-            
+
             //var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
             //var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);
             //var documentSpan = quickInfoItem.RelatedSpans.Length > 0 ?
@@ -155,7 +143,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             var textLines = new List<ClassifiedTextElement>();
             foreach(var section in quickInfoItem.Sections)
             {
-                textLines.Add(new ClassifiedTextElement(section.TaggedParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text))));
+                textLines.Add(new ClassifiedTextElement(section.TaggedParts.Select(
+                    part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text))));
             }
 
             var content = new ContainerElement(
