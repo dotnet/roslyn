@@ -11,6 +11,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         internal void VerifyNavigateToResultItem(
-            NavigateToItem result, string name, string displayMarkup,
+            NavigateToItem result, string name, string displayMarkup, 
             PatternMatchKind matchKind, string navigateToItemKind,
             Glyph glyph, string additionalInfo = null)
         {

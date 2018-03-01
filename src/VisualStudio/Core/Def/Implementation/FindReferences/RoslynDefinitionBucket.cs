@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;

@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
