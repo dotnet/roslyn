@@ -1,6 +1,6 @@
 # Samples
 
-The samples below are available in the Git sources, under the [Samples folder](https://github.com/dotnet/roslyn/tree/master/src/Samples): 
+The samples below are available in the Git sources, under the [Samples folder](https://github.com/dotnet/roslyn-sdk/tree/master/samples/) in the `roslyn-sdk` repository: 
 * **APISampleUnitTests** - A collection of unit tests that show how various APIs can be used. Many of these methods are referenced in the [FAQ](https://github.com/dotnet/roslyn/wiki/FAQ). 
 * **AsyncPackage** - A set of diagnostics and code fixes that help you use the await/async keywords correctly. 
 * **ConsoleClassifier** - A simple console application that prints colored source code to the console. 
