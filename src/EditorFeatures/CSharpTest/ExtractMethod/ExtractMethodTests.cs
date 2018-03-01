@@ -10900,5 +10900,50 @@ namespace ConsoleApp1
 
             await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestLocalFunctionParameters()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        public void Bar(int value)
+        {
+            void Local(int value2)
+            {
+                [|Bar(value, value2);|]
+            }
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        public void Bar(int value)
+        {
+            void Local(int value2)
+            {
+                NewMethod(value, value2);
+            }
+        }
+
+        private void NewMethod(int value, int value2)
+        {
+            Bar(value, value2);
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
     }
 }
