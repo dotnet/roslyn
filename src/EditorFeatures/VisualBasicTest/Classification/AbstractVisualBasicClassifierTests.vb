@@ -42,59 +42,5 @@ $"Namespace N
 End Namespace"
         End Function
 
-        Protected ReadOnly Property LineContinuation As FormattedClassification
-            Get
-                Return ClassificationBuilder.LineContinuation
-            End Get
-        End Property
-
-        Protected Function [Module](value As String) As FormattedClassification
-            Return ClassificationBuilder.Module(value)
-        End Function
-
-        Protected Function VBXmlName(value As String) As FormattedClassification
-            Return ClassificationBuilder.VBXmlName(value)
-        End Function
-
-        Protected Function VBXmlText(value As String) As FormattedClassification
-            Return ClassificationBuilder.VBXmlText(value)
-        End Function
-
-        Protected Function VBXmlProcessingInstruction(value As String) As FormattedClassification
-            Return ClassificationBuilder.VBXmlProcessingInstruction(value)
-        End Function
-
-        Protected Function VBXmlEmbeddedExpression(value As String) As FormattedClassification
-            Return ClassificationBuilder.VBXmlEmbeddedExpression(value)
-        End Function
-
-        Protected Function VBXmlDelimiter(value As String) As FormattedClassification
-            Return ClassificationBuilder.VBXmlDelimiter(value)
-        End Function
-
-        Protected Function VBXmlComment(value As String) As FormattedClassification
-            Return ClassificationBuilder.VBXmlComment(value)
-        End Function
-
-        Protected Function VBXmlCDataSection(value As String) As FormattedClassification
-            Return ClassificationBuilder.VBXmlCDataSection(value)
-        End Function
-
-        Protected Function VBXmlAttributeValue(value As String) As FormattedClassification
-            Return ClassificationBuilder.VBXmlAttributeValue(value)
-        End Function
-
-        Protected Function VBXmlAttributeQuotes(value As String) As FormattedClassification
-            Return ClassificationBuilder.VBXmlAttributeQuotes(value)
-        End Function
-
-        Protected Function VBXmlAttributeName(value As String) As FormattedClassification
-            Return ClassificationBuilder.VBXmlAttributeName(value)
-        End Function
-
-        Protected Function VBXmlEntityReference(value As String) As FormattedClassification
-            Return ClassificationBuilder.VBXmlEntityReference(value)
-        End Function
-
     End Class
 End Namespace

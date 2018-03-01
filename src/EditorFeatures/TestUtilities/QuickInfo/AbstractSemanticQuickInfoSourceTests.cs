@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
@@ -12,70 +11,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 {
     public abstract class AbstractSemanticQuickInfoSourceTests
     {
-        protected readonly ClassificationBuilder ClassificationBuilder;
+        protected AbstractSemanticQuickInfoSourceTests() { }
 
-        protected AbstractSemanticQuickInfoSourceTests()
-        {
-            this.ClassificationBuilder = new ClassificationBuilder();
-        }
-
-        protected ClassificationBuilder.PunctuationClassificationTypes Punctuation => ClassificationBuilder.Punctuation;
-        protected ClassificationBuilder.OperatorClassificationTypes Operators => ClassificationBuilder.Operator;
-        protected ClassificationBuilder.XmlDocClassificationTypes XmlDoc => ClassificationBuilder.XmlDoc;
-
-        [DebuggerStepThrough]
-        protected FormattedClassification Struct(string text) => ClassificationBuilder.Struct(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification Enum(string text) => ClassificationBuilder.Enum(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification Interface(string text) => ClassificationBuilder.Interface(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification Class(string text) => ClassificationBuilder.Class(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification Delegate(string text) => ClassificationBuilder.Delegate(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification TypeParameter(string text) => ClassificationBuilder.TypeParameter(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification String(string text) => ClassificationBuilder.String(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification Verbatim(string text) => ClassificationBuilder.Verbatim(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification Keyword(string text) => ClassificationBuilder.Keyword(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification WhiteSpace(string text) => ClassificationBuilder.WhiteSpace(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification Text(string text) => ClassificationBuilder.Text(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification NumericLiteral(string text) => ClassificationBuilder.NumericLiteral(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification PPKeyword(string text) => ClassificationBuilder.PPKeyword(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification PPText(string text) => ClassificationBuilder.PPText(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification Identifier(string text) => ClassificationBuilder.Identifier(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification Inactive(string text) => ClassificationBuilder.Inactive(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification Comment(string text) => ClassificationBuilder.Comment(text);
-
-        [DebuggerStepThrough]
-        protected FormattedClassification Number(string text) => ClassificationBuilder.Number(text);
+        protected FormattedClassification Text(string text)
+            => FormattedClassifications.Text(text);
 
         protected string Lines(params string[] lines)
         {

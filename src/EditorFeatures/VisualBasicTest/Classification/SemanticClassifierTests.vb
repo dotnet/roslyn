@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Extensions
 Imports Microsoft.CodeAnalysis.PooledObjects

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
