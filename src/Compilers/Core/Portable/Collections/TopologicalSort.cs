@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis
             toCount.AddRange(nodes);
             while (toCount.Count != 0)
             {
-                
                 var n = toCount.Pop();
                 if (!counted.Add(n))
                 {
