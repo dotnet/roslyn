@@ -84,8 +84,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
 
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
-            this.sessionOpt = new Session<Controller, Model, IQuickInfoPresenterSession>(this, new ModelComputation<Model>(this, TaskScheduler.Default),
-                this.Presenter.CreateSession(this.TextView, this.SubjectBuffer, augmentSession));
 
             try
             {
@@ -138,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 SpanTrackingMode.EdgeInclusive);
 
             var glyphs = quickInfoItem.Tags.GetGlyphs();
-            
+
             //var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
             //var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);
             //var documentSpan = quickInfoItem.RelatedSpans.Length > 0 ?
@@ -155,7 +153,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             var textLines = new List<ClassifiedTextElement>();
             foreach(var section in quickInfoItem.Sections)
             {
-                textLines.Add(new ClassifiedTextElement(section.TaggedParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text))));
+                textLines.Add(new ClassifiedTextElement(section.TaggedParts.Select(
+                    part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text))));
             }
 
             var content = new ContainerElement(
