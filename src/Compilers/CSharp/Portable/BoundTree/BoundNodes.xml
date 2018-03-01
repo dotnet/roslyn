@@ -318,7 +318,7 @@
     <Field Name="Left" Type="BoundExpression"/>
     <Field Name="Right" Type="BoundExpression"/>
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
-    <Field Name="Operators" Type="TupleBinaryOperatorInfo"/>
+    <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>
 
   <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundExpression">

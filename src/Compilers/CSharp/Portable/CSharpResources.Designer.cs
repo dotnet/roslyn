@@ -5588,7 +5588,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement interface member &apos;{1}&apos; in type &apos;{2}&apos; because it has an __arglist parameter..
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement interface member &apos;{1}&apos; in type &apos;{2}&apos; because it has an __arglist parameter.
         /// </summary>
         internal static string ERR_InterfaceImplementedImplicitlyByVariadic {
             get {
@@ -9440,7 +9440,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Tuple types used as operands of a binary operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right..
+        ///   Looks up a localized string similar to Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right..
         /// </summary>
         internal static string ERR_TupleSizesMismatchForBinOps {
             get {

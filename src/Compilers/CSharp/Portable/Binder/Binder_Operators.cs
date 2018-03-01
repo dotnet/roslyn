@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorSignature signature;
 
             bool foundOperator = BindSimpleBinaryOperatorParts(node, diagnostics, left, right, kind,
-                out resultKind, out originalUserDefinedOperators, out signature);
+                out resultKind, out originalUserDefinedOperators, out signature, out _);
 
             BinaryOperatorKind resultOperatorKind = signature.Kind;
             bool hasErrors = false;
@@ -574,12 +574,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors);
         }
 
+        // PROTOTYPE(tuple-equality) I do not love returning both a signature and an analysis result
         private bool BindSimpleBinaryOperatorParts(BinaryExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression left, BoundExpression right, BinaryOperatorKind kind,
             out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators,
-            out BinaryOperatorSignature resultSignature)
+            out BinaryOperatorSignature resultSignature, out BinaryOperatorAnalysisResult best)
         {
             bool foundOperator;
-            BinaryOperatorAnalysisResult best = this.BinaryOperatorOverloadResolution(kind, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            best = this.BinaryOperatorOverloadResolution(kind, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
 
             // However, as an implementation detail, we never "fail to find an applicable 
             // operator" during overload resolution if we have x == null, etc. We always

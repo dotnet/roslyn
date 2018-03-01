@@ -1059,7 +1059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTupleBinaryOperator : BoundExpression
     {
-        public BoundTupleBinaryOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo operators, TypeSymbol type, bool hasErrors = false)
+        public BoundTupleBinaryOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.TupleBinaryOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
@@ -1081,14 +1081,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BinaryOperatorKind OperatorKind { get; }
 
-        public TupleBinaryOperatorInfo Operators { get; }
+        public TupleBinaryOperatorInfo.Multiple Operators { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitTupleBinaryOperator(this);
         }
 
-        public BoundTupleBinaryOperator Update(BoundExpression left, BoundExpression right, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo operators, TypeSymbol type)
+        public BoundTupleBinaryOperator Update(BoundExpression left, BoundExpression right, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type)
         {
             if (left != this.Left || right != this.Right || operatorKind != this.OperatorKind || operators != this.Operators || type != this.Type)
             {

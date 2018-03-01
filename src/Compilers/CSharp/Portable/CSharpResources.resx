@@ -5260,6 +5260,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</value>
   </data>
   <data name="ERR_TupleSizesMismatchForBinOps" xml:space="preserve">
-    <value>Tuple types used as operands of a binary operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</value>
+    <value>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</value>
   </data>
 </root>
