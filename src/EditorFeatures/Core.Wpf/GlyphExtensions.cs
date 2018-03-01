@@ -1,6 +1,4 @@
-﻿using System;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.VisualStudio.Imaging;
+﻿using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.CodeAnalysis.Editor.Wpf
