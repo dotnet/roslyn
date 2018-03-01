@@ -1665,7 +1665,7 @@ class Program
         // b
         [|System.Console.WriteLine();|]
     }
-}", 
+}",
 @"class C
 {
     void M()
@@ -10758,6 +10758,143 @@ namespace ClassLibrary9
 }";
 
             await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestUnreachableCodeModifiedInside()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();
+            return enumerable;|]
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            return NewMethod(ref enumerable);
+        }
+
+        private static IEnumerable<object> NewMethod(ref IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();
+            return enumerable;
+        }
+    }
+}";
+            await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestUnreachableCodeModifiedOutside()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            var i = enumerable.Any();|]
+            enumerable = null;
+            return enumerable;
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            NewMethod(enumerable);
+            enumerable = null;
+            return enumerable;
+        }
+
+        private static void NewMethod(IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            var i = enumerable.Any();
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestUnreachableCodeModifiedBoth()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();|]
+            enumerable = null;
+            return enumerable;
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            enumerable = NewMethod(enumerable);
+            enumerable = null;
+            return enumerable;
+        }
+
+        private static IEnumerable<object> NewMethod(IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();
+            return enumerable;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
         }
     }
 }
