@@ -170,11 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             originalPropertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(originalPropertyType, handle, moduleSymbol);
 
             var propertyType = TypeSymbolWithAnnotations.Create(originalPropertyType, typeCustomModifiers);
-
-            if (moduleSymbol.UtilizesNullableReferenceTypes)
-            {
-                propertyType = NullableTypeDecoder.TransformType(propertyType, handle, moduleSymbol);
-            }
+            propertyType = NullableTypeDecoder.TransformOrEraseNullability(propertyType, handle, moduleSymbol);
 
             _propertyType = propertyType;
 

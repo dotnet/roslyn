@@ -364,11 +364,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
         {
             get
             {
-                return TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
+                return GetTypeParametersAsTypeArguments();
             }
         }
 

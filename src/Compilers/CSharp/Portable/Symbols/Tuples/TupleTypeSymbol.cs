@@ -1400,6 +1400,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
+        {
+            var underlyingType = (NamedTypeSymbol)_underlyingType.SetUnknownNullabilityForReferenceTypes();
+            if ((object)underlyingType == _underlyingType)
+            {
+                return this;
+            }
+            return this.WithUnderlyingType(underlyingType);
+        }
+
         #region Use-Site Diagnostics
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Metadata.Tools;
@@ -267,7 +268,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             IEnumerable<SyntaxTree> source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
-            string assemblyName = "")
+            string assemblyName = "",
+            bool skipUsesIsNullable = false)
         {
             var refs = new List<MetadataReference>();
             if (references != null)
@@ -275,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 refs.AddRange(references);
             }
             refs.Add(MscorlibRef_v4_0_30316_17626);
-            return CreateCompilation(source, refs, options, assemblyName);
+            return CreateCompilation(source, refs, options, assemblyName, skipUsesIsNullable);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlib46(
@@ -331,13 +333,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             string sourceFileName = "",
-            string assemblyName = "")
+            string assemblyName = "",
+            bool skipUsesIsNullable = false)
         {
             return CreateCompilationWithMscorlib45(
                 new SyntaxTree[] { Parse(source, sourceFileName, parseOptions) },
                 references,
                 options,
-                assemblyName);
+                assemblyName,
+                skipUsesIsNullable: skipUsesIsNullable);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlib45(
@@ -361,13 +365,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
-            string sourceFileName = "")
+            string sourceFileName = "",
+            bool skipUsesIsNullable = false)
         {
             return CreateStandardCompilation(
                 new[] { Parse(text, sourceFileName, parseOptions) },
                 references: references,
                 options: options,
-                assemblyName: assemblyName);
+                assemblyName: assemblyName,
+                skipUsesIsNullable: skipUsesIsNullable);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlib45AndCSruntime(
@@ -418,13 +424,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             IEnumerable<SyntaxTree> trees,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
-            string assemblyName = "")
+            string assemblyName = "",
+            bool skipUsesIsNullable = false)
         {
             if (CoreClrShim.IsRunningOnCoreClr)
             {
                 references = references?.Except(s_desktopRefsToRemove);
             }
-            return CreateCompilation(trees, (references != null) ? s_stdRefs.Concat(references) : s_stdRefs, options, assemblyName);
+            return CreateCompilation(trees, (references != null) ? s_stdRefs.Concat(references) : s_stdRefs, options, assemblyName, skipUsesIsNullable: skipUsesIsNullable);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlibAndSystemCore(
@@ -472,9 +479,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            string assemblyName = "")
+            string assemblyName = "",
+            bool skipUsesIsNullable = false)
         {
-            return CreateCompilation(new[] { Parse(source, options: parseOptions) }, references, options, assemblyName);
+            return CreateCompilation(new[] { Parse(source, options: parseOptions) }, references, options, assemblyName, skipUsesIsNullable: skipUsesIsNullable);
         }
 
         public static CSharpCompilation CreateCompilation(
@@ -491,7 +499,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             IEnumerable<SyntaxTree> trees,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
-            string assemblyName = "")
+            string assemblyName = "",
+            bool skipUsesIsNullable = false)
         {
             if (options == null)
             {
@@ -510,7 +519,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 references,
                 options);
             CompilationExtensions.ValidateIOperations(createCompilationLambda);
-            return createCompilationLambda();
+            var compilation = createCompilationLambda();
+            // 'skipUsesIsNullable' may need to be set for some tests, particularly those that want to verify
+            // symbols are created lazily, since 'UsesIsNullableVisitor' will eagerly visit all members.
+            // PROTOTYPE(NullableReferenceTypes): Remove skipUsesIsNullable and call VerifyNoNullability
+            // on a separate Compilation instance created with createCompilationLambda.
+            if (!skipUsesIsNullable && !IsNullableEnabled(compilation))
+            {
+                VerifyNoNullability(compilation.SourceModule.GlobalNamespace);
+            }
+            return compilation;
+        }
+
+        internal static bool IsNullableEnabled(CSharpCompilation compilation)
+        {
+            var trees = compilation.SyntaxTrees;
+            if (trees.IsDefaultOrEmpty)
+            {
+                return false;
+            }
+            var options = (CSharpParseOptions)trees[0].Options;
+            return options.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
+        }
+
+        internal static void VerifyNoNullability(Symbol symbol)
+        {
+            var builder = ArrayBuilder<Symbol>.GetInstance();
+            UsesIsNullableVisitor.GetUses(builder, symbol);
+            var symbols = builder.ToImmutableAndFree();
+            // Use AssertEx.Equal(Empty, symbols) rather than Assert.True(symbols.IsEmpty)
+            // so  the exception message includes the list of symbols.
+            AssertEx.Equal(ImmutableArray<Symbol>.Empty, symbols);
         }
 
         public static CSharpCompilation CreateCompilation(

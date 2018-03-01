@@ -459,11 +459,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         var result = (NamedTypeSymbol)DynamicTypeDecoder.TransformType(decodedType, 0, _handle, moduleSymbol);
                         result = (NamedTypeSymbol)TupleTypeDecoder.DecodeTupleTypesIfApplicable(result, _handle, moduleSymbol);
 
+                        // PROTOTYPE(NullableReferenceTypes): Should call NullableTypeDecoder.TransformOrEraseNullability
+                        // here (see StaticNullChecking.UnannotatedAssemblies_09) but TransformOrEraseNullability results in
+                        // a StackOverflowException when building Roslyn.sln.
                         if (moduleSymbol.UtilizesNullableReferenceTypes)
                         {
                             result = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(result), _handle, moduleSymbol).TypeSymbol;
                         }
-
                         return result;
                     }
                 }
@@ -2360,7 +2362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 get
                 {
                     // This is always the instance type, so the type arguments are the same as the type parameters.
-                    return this.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
+                    return GetTypeParametersAsTypeArguments();
                 }
             }
 

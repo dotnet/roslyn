@@ -137,13 +137,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Nullable
             var source =
 @"class C
 {
-    static void F()
+    static void F(string s)
     {
         var a = new[] { new object(), (string)null };
         a[0].ToString();
-        var b = new[] { (object)null, string.Empty };
+        var b = new[] { (object)null, s };
         b[0].ToString();
-        var c = new[] { string.Empty, (object)null };
+        var c = new[] { s, (object)null };
         c[0].ToString();
         var d = new[] { (string)null, new object() };
         d[0].ToString();

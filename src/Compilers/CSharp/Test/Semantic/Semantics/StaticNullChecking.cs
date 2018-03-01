@@ -176,17 +176,22 @@ class C
         }
 
         [Fact]
-        public void ReferenceTypesFromUnannotatedAssembliesAreNotNullable()
+        public void UnannotatedAssemblies_00()
+        {
+            var comp = CreateStandardCompilation("", parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+            var systemNamespace = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingNamespace;
+            VerifyNoNullability(systemNamespace);
+        }
+
+        [Fact]
+        public void UnannotatedAssemblies_01()
         {
             var source0 =
 @"public class A
 {
     public static void F(string s) { }
 }";
-            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
-            comp0.VerifyDiagnostics();
-            var ref0 = comp0.EmitToImageReference();
-
             var source1 =
 @"class B
 {
@@ -196,11 +201,543 @@ class C
         A.F(null);
     }
 }";
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            TypeSymbolWithAnnotations getParameterType(Compilation c) => c.GetMember<MethodSymbol>("A.F").Parameters[0].Type;
+
+            // 7.0 library
+            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var compRefs0 = new MetadataReference[] { new CSharpCompilationReference(comp0) };
+            var metadataRefs0 = new[] { comp0.EmitToImageReference() };
+            Assert.Equal(null, getParameterType(comp0).IsNullable);
+
+            // ... used in 7.0.
+            var comp1 = CreateStandardCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular7);
+            comp1.VerifyDiagnostics();
+            Assert.Equal(null, getParameterType(comp1).IsNullable);
+            comp1 = CreateStandardCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular7);
+            comp1.VerifyDiagnostics();
+            Assert.Equal(null, getParameterType(comp1).IsNullable);
+
+            // ... used in 8.0.
+            comp1 = CreateStandardCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular8);
+            comp1.VerifyDiagnostics();
+            Assert.Equal(null, getParameterType(comp1).IsNullable);
+            comp1 = CreateStandardCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular8);
+            comp1.VerifyDiagnostics();
+            Assert.Equal(null, getParameterType(comp1).IsNullable);
+
+            // 8.0 library
+            comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular8);
+            comp0.VerifyDiagnostics();
+            compRefs0 = new MetadataReference[] { new CSharpCompilationReference(comp0) };
+            metadataRefs0 = new[] { comp0.EmitToImageReference() };
+            Assert.Equal(false, getParameterType(comp0).IsNullable);
+
+            // ... used in 7.0.
+            comp1 = CreateStandardCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular7);
+            comp1.VerifyDiagnostics();
+            Assert.Equal(false, getParameterType(comp1).IsNullable);
+            comp1 = CreateStandardCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular7);
+            comp1.VerifyDiagnostics();
+            Assert.Equal(false, getParameterType(comp1).IsNullable);
+
+            // ... used in 8.0.
+            comp1 = CreateStandardCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics(
                 // (6,13): warning CS8600: Cannot convert null to non-nullable reference.
                 //         A.F(null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
+            Assert.Equal(false, getParameterType(comp1).IsNullable);
+            comp1 = CreateStandardCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular8);
+            comp1.VerifyDiagnostics(
+                // (6,13): warning CS8600: Cannot convert null to non-nullable reference.
+                //         A.F(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
+            Assert.Equal(false, getParameterType(comp1).IsNullable);
+        }
+
+        [Fact]
+        public void UnannotatedAssemblies_02()
+        {
+            var source0 =
+@"#pragma warning disable 67
+public delegate void D();
+public class C
+{
+    public object F;
+    public event D E;
+    public object P => null;
+    public object this[object o] => null;
+    public object M(object o) => null;
+}";
+            var source1 =
+@"class P
+{
+    static void F(C c)
+    {
+        object o;
+        o = c.F;
+        c.E += null;
+        o = c.P;
+        o = c[null];
+        o = c.M(null);
+    }
+}";
+
+            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+
+            void verify(Compilation c)
+            {
+                c.VerifyDiagnostics();
+                Assert.Equal(null, c.GetMember<FieldSymbol>("C.F").Type.IsNullable);
+                Assert.Equal(null, c.GetMember<EventSymbol>("C.E").Type.IsNullable);
+                Assert.Equal(null, c.GetMember<PropertySymbol>("C.P").Type.IsNullable);
+                var indexer = c.GetMember<PropertySymbol>("C.this[]");
+                Assert.Equal(null, indexer.Type.IsNullable);
+                Assert.Equal(null, indexer.Parameters[0].Type.IsNullable);
+                var method = c.GetMember<MethodSymbol>("C.M");
+                Assert.Equal(null, method.ReturnType.IsNullable);
+                Assert.Equal(null, method.Parameters[0].Type.IsNullable);
+            }
+
+            var comp1A = CreateStandardCompilation(source1, references: new MetadataReference[] { new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
+            verify(comp1A);
+
+            var comp1B = CreateStandardCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            verify(comp1B);
+        }
+
+        [Fact]
+        public void UnannotatedAssemblies_03()
+        {
+            var source0 =
+@"#pragma warning disable 67
+public class C
+{
+    public (object, object) F;
+    public (object, object) P => (null, null);
+    public (object, object) M((object, object) o) => o;
+}";
+            var source1 =
+@"class P
+{
+    static void F(C c)
+    {
+        (object, object) t;
+        t = c.F;
+        t = c.P;
+        t = c.M((null, null));
+    }
+}";
+
+            var comp0 = CreateStandardCompilation(source0, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+
+            void verifyTuple(TypeSymbolWithAnnotations type)
+            {
+                var tuple = (TupleTypeSymbol)type.TypeSymbol;
+                Assert.Equal(null, tuple.TupleElements[0].Type.IsNullable);
+                Assert.Equal(null, tuple.TupleElements[1].Type.IsNullable);
+            }
+
+            void verify(Compilation c)
+            {
+                c.VerifyDiagnostics();
+                verifyTuple(c.GetMember<FieldSymbol>("C.F").Type);
+                verifyTuple(c.GetMember<PropertySymbol>("C.P").Type);
+                var method = c.GetMember<MethodSymbol>("C.M");
+                verifyTuple(method.ReturnType);
+                verifyTuple(method.Parameters[0].Type);
+            }
+
+            var comp1A = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
+            verify(comp1A);
+
+            var comp1B = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            verify(comp1B);
+        }
+
+        [Fact]
+        public void UnannotatedAssemblies_04()
+        {
+            var source =
+@"class A { }
+class B : A { }
+interface I<T> where T : A { }
+abstract class C<T> where T : A
+{
+    internal abstract void M<U>() where U : T;
+}
+class D : C<B>, I<B>
+{
+    internal override void M<T>() { }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics();
+            var derivedType = comp.GetMember<NamedTypeSymbol>("D");
+            var baseType = derivedType.BaseTypeNoUseSiteDiagnostics;
+            var constraintType = baseType.TypeParameters.Single().ConstraintTypesNoUseSiteDiagnostics.Single();
+            Assert.Equal(null, constraintType.IsNullable);
+            var interfaceType = derivedType.Interfaces().Single();
+            constraintType = interfaceType.TypeParameters.Single().ConstraintTypesNoUseSiteDiagnostics.Single();
+            Assert.Equal(null, constraintType.IsNullable);
+            var method = baseType.GetMember<MethodSymbol>("M");
+            constraintType = method.TypeParameters.Single().ConstraintTypesNoUseSiteDiagnostics.Single();
+            Assert.Equal(null, constraintType.IsNullable);
+        }
+
+        [Fact]
+        public void UnannotatedAssemblies_05()
+        {
+            var source =
+@"interface I<T>
+{
+    I<object[]> F(I<T> t);
+}
+class C : I<string>
+{
+    I<object[]> I<string>.F(I<string> s) => null;
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics();
+            var type = comp.GetMember<NamedTypeSymbol>("C");
+            var interfaceType = type.Interfaces().Single();
+            var typeArg = interfaceType.TypeArgumentsNoUseSiteDiagnostics.Single();
+            Assert.Equal(null, typeArg.IsNullable);
+            var method = type.GetMember<MethodSymbol>("I<System.String>.F");
+            Assert.Equal(null, method.ReturnType.IsNullable);
+            typeArg = ((NamedTypeSymbol)method.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single();
+            Assert.Equal(null, typeArg.IsNullable);
+            var parameter = method.Parameters.Single();
+            Assert.Equal(null, parameter.Type.IsNullable);
+            typeArg = ((NamedTypeSymbol)parameter.Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single();
+            Assert.Equal(null, typeArg.IsNullable);
+        }
+
+        [Fact]
+        public void UnannotatedAssemblies_06()
+        {
+            var source0 =
+@"public class C<T>
+{
+    public T F;
+}
+public class C
+{
+    public static C<T> Create<T>(T t) => new C<T>();
+}";
+            var source1 =
+@"class P
+{
+    static void F(object x, object? y)
+    {
+        object z;
+        z = C.Create(x).F;
+        z = C.Create(y).F;
+    }
+}";
+            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var comp1 = CreateStandardCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp1.VerifyDiagnostics(
+                // (7,13): warning CS8601: Possible null reference assignment.
+                //         z = C.Create(y).F;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "C.Create(y).F").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void UnannotatedAssemblies_07()
+        {
+            var source0 =
+@"public interface I
+{
+    object F(object o);
+}";
+            var source1 =
+@"class A1 : I
+{
+    object I.F(object? o) => new object();
+}
+class A2 : I
+{
+    object? I.F(object o) => o;
+}
+class B1 : I
+{
+    public object F(object? o) => new object();
+}
+class B2 : I
+{
+    public object? F(object o) => o;
+}
+class C1
+{
+    public object F(object? o) => new object();
+}
+class C2
+{
+    public object? F(object o) => o;
+}
+class D1 : C1, I
+{
+}
+class D2 : C2, I
+{
+}
+class P
+{
+    static void F(object? x, A1 a1, A2 a2)
+    {
+        object y;
+        y = ((I)a1).F(x);
+        y = ((I)a2).F(x);
+    }
+    static void F(object? x, B1 b1, B2 b2)
+    {
+        object y;
+        y = b1.F(x);
+        y = b2.F(x);
+        y = ((I)b1).F(x);
+        y = ((I)b2).F(x);
+    }
+    static void F(object? x, D1 d1, D2 d2)
+    {
+        object y;
+        y = d1.F(x);
+        y = d2.F(x);
+        y = ((I)d1).F(x);
+        y = ((I)d2).F(x);
+    }
+}";
+            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+
+            var comp1 = CreateStandardCompilation(source1, references: new MetadataReference[] { new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
+            comp1.VerifyDiagnostics(
+                // (43,18): warning CS8604: Possible null reference argument for parameter 'o' in 'object? B2.F(object o)'.
+                //         y = b2.F(x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("o", "object? B2.F(object o)").WithLocation(43, 18),
+                // (43,13): warning CS8601: Possible null reference assignment.
+                //         y = b2.F(x);
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b2.F(x)").WithLocation(43, 13),
+                // (51,18): warning CS8604: Possible null reference argument for parameter 'o' in 'object? C2.F(object o)'.
+                //         y = d2.F(x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("o", "object? C2.F(object o)").WithLocation(51, 18),
+                // (51,13): warning CS8601: Possible null reference assignment.
+                //         y = d2.F(x);
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "d2.F(x)").WithLocation(51, 13));
+
+            comp1 = CreateStandardCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp1.VerifyDiagnostics(
+                // (43,18): warning CS8604: Possible null reference argument for parameter 'o' in 'object? B2.F(object o)'.
+                //         y = b2.F(x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("o", "object? B2.F(object o)").WithLocation(43, 18),
+                // (43,13): warning CS8601: Possible null reference assignment.
+                //         y = b2.F(x);
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b2.F(x)").WithLocation(43, 13),
+                // (51,18): warning CS8604: Possible null reference argument for parameter 'o' in 'object? C2.F(object o)'.
+                //         y = d2.F(x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("o", "object? C2.F(object o)").WithLocation(51, 18),
+                // (51,13): warning CS8601: Possible null reference assignment.
+                //         y = d2.F(x);
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "d2.F(x)").WithLocation(51, 13));
+        }
+
+        [Fact]
+        public void UnannotatedAssemblies_08()
+        {
+            var source0 =
+@"public interface I
+{
+    object? F(object? o);
+    object G(object o);
+}";
+            var source1 =
+@"public class A : I
+{
+    object I.F(object o) => null;
+    object I.G(object o) => null;
+}
+public class B : I
+{
+    public object F(object o) => null;
+    public object G(object o) => null;
+}
+public class C
+{
+    public object F(object o) => null;
+    public object G(object o) => null;
+}
+public class D : C
+{
+}";
+            var source2 =
+@"class P
+{
+    static void F(object o, A a)
+    {
+        ((I)a).F(o).ToString();
+        ((I)a).G(null).ToString();
+    }
+    static void F(object o, B b)
+    {
+        b.F(o).ToString();
+        b.G(null).ToString();
+        ((I)b).F(o).ToString();
+        ((I)b).G(null).ToString();
+    }
+    static void F(object o, D d)
+    {
+        d.F(o).ToString();
+        d.G(null).ToString();
+        ((I)d).F(o).ToString();
+        ((I)d).G(null).ToString();
+    }
+}";
+            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular8);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var comp1 = CreateStandardCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular7);
+            comp1.VerifyDiagnostics();
+            var ref1 = comp1.EmitToImageReference();
+
+            var comp2A = CreateStandardCompilation(source2, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular7);
+            comp2A.VerifyDiagnostics();
+
+            var comp2B = CreateStandardCompilation(source2, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular8);
+            comp2B.VerifyDiagnostics(
+                // (5,9): warning CS8602: Possible dereference of a null reference.
+                //         ((I)a).F(o).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((I)a).F(o)").WithLocation(5, 9),
+                // (6,18): warning CS8600: Cannot convert null to non-nullable reference.
+                //         ((I)a).G(null).ToString();
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 18),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         ((I)b).F(o).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((I)b).F(o)").WithLocation(12, 9),
+                // (13,18): warning CS8600: Cannot convert null to non-nullable reference.
+                //         ((I)b).G(null).ToString();
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 18),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         ((I)d).F(o).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((I)d).F(o)").WithLocation(19, 9),
+                // (20,18): warning CS8600: Cannot convert null to non-nullable reference.
+                //         ((I)d).G(null).ToString();
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(20, 18));
+        }
+
+        [Fact]
+        public void UnannotatedAssemblies_09()
+        {
+            var source0 =
+@"public abstract class A
+{
+    public abstract object? F(object x, object? y);
+}";
+            var source1 =
+@"public abstract class B : A
+{
+    public abstract override object F(object x, object y);
+    public abstract object G(object x, object y);
+}";
+            var source2 =
+@"class C1 : B
+{
+    public override object F(object x, object y) => x;
+    public override object G(object x, object y) => x;
+}
+class C2 : B
+{
+    public override object? F(object? x, object? y) => x;
+    public override object? G(object? x, object? y) => x;
+}
+class P
+{
+    static void F(object? x, object y, C1 c)
+    {
+        c.F(x, y).ToString();
+        c.G(x, y).ToString();
+        ((B)c).F(x, y).ToString();
+        ((B)c).G(x, y).ToString();
+        ((A)c).F(x, y).ToString();
+    }
+    static void F(object? x, object y, C2 c)
+    {
+        c.F(x, y).ToString();
+        c.G(x, y).ToString();
+        ((B)c).F(x, y).ToString();
+        ((B)c).G(x, y).ToString();
+        ((A)c).F(x, y).ToString();
+    }
+}";
+            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular8);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var comp1 = CreateStandardCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular7);
+            comp1.VerifyDiagnostics();
+            var ref1 = comp1.EmitToImageReference();
+
+            var comp2 = CreateStandardCompilation(source2, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular8);
+            comp2.VerifyDiagnostics(
+                // (15,13): warning CS8604: Possible null reference argument for parameter 'x' in 'object C1.F(object x, object y)'.
+                //         c.F(x, y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "object C1.F(object x, object y)").WithLocation(15, 13),
+                // (16,13): warning CS8604: Possible null reference argument for parameter 'x' in 'object C1.G(object x, object y)'.
+                //         c.G(x, y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "object C1.G(object x, object y)").WithLocation(16, 13),
+                // (19,18): warning CS8604: Possible null reference argument for parameter 'x' in 'object? A.F(object x, object? y)'.
+                //         ((A)c).F(x, y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "object? A.F(object x, object? y)").WithLocation(19, 18),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         ((A)c).F(x, y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((A)c).F(x, y)").WithLocation(19, 9),
+                // (23,9): warning CS8602: Possible dereference of a null reference.
+                //         c.F(x, y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.F(x, y)").WithLocation(23, 9),
+                // (24,9): warning CS8602: Possible dereference of a null reference.
+                //         c.G(x, y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.G(x, y)").WithLocation(24, 9),
+                // (27,18): warning CS8604: Possible null reference argument for parameter 'x' in 'object? A.F(object x, object? y)'.
+                //         ((A)c).F(x, y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "object? A.F(object x, object? y)").WithLocation(27, 18),
+                // (27,9): warning CS8602: Possible dereference of a null reference.
+                //         ((A)c).F(x, y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((A)c).F(x, y)").WithLocation(27, 9));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Should call NullableTypeDecoder.TransformOrEraseNullability
+        // in PENamedTypeSymbol.MakeDeclaredBaseType.
+        [Fact(Skip = "TODO")]
+        public void UnannotatedAssemblies_10()
+        {
+            var source0 =
+@"public abstract class A<T>
+{
+    public T F;
+}
+public sealed class B : A<object>
+{
+}";
+            var source1 =
+@"class C
+{
+    static void Main()
+    {
+        B b = new B();
+        b.F = null;
+    }
+}";
+            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+
+            var comp1 = CreateStandardCompilation(source1, references: new MetadataReference[] { new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
+            comp1.VerifyDiagnostics();
+
+            comp1 = CreateStandardCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp1.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3918,71 +4455,7 @@ public struct S2
 }
 ", parseOptions: TestOptions.Regular8, references: new[] { c0.EmitToImageReference() });
 
-            c.VerifyDiagnostics(
-                // (10,30): warning CS8604: Possible null reference argument for parameter 'a' in 'bool string.Equals(string a, string b)'.
-                //         return string.Equals(x1, y1);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("a", "bool string.Equals(string a, string b)").WithLocation(10, 30),
-                // (15,51): warning CS8604: Possible null reference argument for parameter 'location1' in 'object Interlocked.Exchange(ref object location1, object value)'.
-                //         System.Threading.Interlocked.Exchange(ref x2, y2);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("location1", "object Interlocked.Exchange(ref object location1, object value)").WithLocation(15, 51),
-                // (15,55): warning CS8604: Possible null reference argument for parameter 'value' in 'object Interlocked.Exchange(ref object location1, object value)'.
-                //         System.Threading.Interlocked.Exchange(ref x2, y2);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y2").WithArguments("value", "object Interlocked.Exchange(ref object location1, object value)").WithLocation(15, 55),
-                // (21,58): warning CS8604: Possible null reference argument for parameter 'location1' in 'object Interlocked.Exchange(ref object location1, object value)'.
-                //         return System.Threading.Interlocked.Exchange(ref x3, y3) ?? new object(); 
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x3").WithArguments("location1", "object Interlocked.Exchange(ref object location1, object value)").WithLocation(21, 58),
-                // (21,62): warning CS8604: Possible null reference argument for parameter 'value' in 'object Interlocked.Exchange(ref object location1, object value)'.
-                //         return System.Threading.Interlocked.Exchange(ref x3, y3) ?? new object(); 
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y3").WithArguments("value", "object Interlocked.Exchange(ref object location1, object value)").WithLocation(21, 62),
-                // (21,16): hidden CS8607: Expression is probably never null.
-                //         return System.Threading.Interlocked.Exchange(ref x3, y3) ?? new object(); 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "System.Threading.Interlocked.Exchange(ref x3, y3)").WithLocation(21, 16),
-                // (26,16): hidden CS8607: Expression is probably never null.
-                //         return x4.Target ?? new object(); 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4.Target").WithLocation(26, 16),
-                // (31,16): hidden CS8607: Expression is probably never null.
-                //         return x5.F1 ?? new object(); 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x5.F1").WithLocation(31, 16),
-                // (36,17): warning CS8601: Possible null reference assignment.
-                //         x6.F1 = y6;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y6").WithLocation(36, 17),
-                // (41,17): warning CS8601: Possible null reference assignment.
-                //         x7.P1 = y7;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y7").WithLocation(41, 17),
-                // (46,12): warning CS8604: Possible null reference argument for parameter 'x' in 'object CL0.this[object x].get'.
-                //         x8[y8] = z8;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y8").WithArguments("x", "object CL0.this[object x].get").WithLocation(46, 12),
-                // (46,18): warning CS8601: Possible null reference assignment.
-                //         x8[y8] = z8;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z8").WithLocation(46, 18),
-                // (51,16): hidden CS8607: Expression is probably never null.
-                //         return x9[1] ?? new object(); 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x9[1]").WithLocation(51, 16),
-                // (56,16): hidden CS8607: Expression is probably never null.
-                //         return x10.M1().F1 ?? new object(); 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x10.M1().F1").WithLocation(56, 16),
-                // (62,18): warning CS8601: Possible null reference assignment.
-                //         y11.F1 = z11;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z11").WithLocation(62, 18),
-                // (70,16): hidden CS8607: Expression is probably never null.
-                //         return y12.F1 ?? new object(); 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y12.F1").WithLocation(70, 16),
-                // (77,15): hidden CS8607: Expression is probably never null.
-                //         z13 = y13 ?? new object();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y13").WithLocation(77, 15),
-                // (84,15): hidden CS8607: Expression is probably never null.
-                //         z14 = y14 ?? new object();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y14").WithLocation(84, 15),
-                // (92,15): hidden CS8607: Expression is probably never null.
-                //         z15 = y15.F2 ?? new object();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y15.F2").WithLocation(92, 15),
-                // (103,19): hidden CS8607: Expression is probably never null.
-                //             z16 = y16 ?? new object();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y16").WithLocation(103, 19),
-                // (111,15): hidden CS8607: Expression is probably never null.
-                //         z17 = y17.F2 ?? new object();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y17.F2").WithLocation(111, 15)
-                );
+            c.VerifyDiagnostics();
         }
 
         // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
@@ -4333,15 +4806,9 @@ class C
                 // (16,21): warning CS8601: Possible null reference assignment.
                 //         object y1 = x1;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(16, 21),
-                // (24,21): hidden CS8607: Expression is probably never null.
-                //         object z2 = x2 ?? new object();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(24, 21),
                 // (31,21): warning CS8601: Possible null reference assignment.
                 //         object y3 = x3;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(31, 21),
-                // (39,21): hidden CS8607: Expression is probably never null.
-                //         object z4 = x4 ?? new object();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(39, 21),
                 // (46,21): warning CS8601: Possible null reference assignment.
                 //         object y5 = x5;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x5").WithLocation(46, 21),
@@ -4530,71 +4997,7 @@ class B3 : IA2
 }
 ", parseOptions: TestOptions.Regular8, references: new[] { c0.EmitToImageReference() });
 
-            c.VerifyDiagnostics(
-                // (8,29): warning CS8608: Nullability of reference types in type doesn't match overridden member.
-                //     public override string? P2 { get; set; }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "P2").WithLocation(8, 29),
-                // (9,42): warning CS8608: Nullability of reference types in type doesn't match overridden member.
-                //     public override event System.Action? E1;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E1").WithLocation(9, 42),
-                // (10,29): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override string? M3(string? x)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M3").WithLocation(10, 29),
-                // (10,29): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override string? M3(string? x)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("x").WithLocation(10, 29),
-                // (15,42): warning CS8608: Nullability of reference types in type doesn't match overridden member.
-                //     public override event System.Action? E4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E4").WithLocation(15, 42),
-                // (21,29): warning CS8608: Nullability of reference types in type doesn't match overridden member.
-                //     public override string? this[string? x]
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "this").WithLocation(21, 29),
-                // (21,29): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override string? this[string? x]
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "this").WithArguments("x").WithLocation(21, 29),
-                // (39,33): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'event Action IA2.E8'.
-                //     public event System.Action? E8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E8").WithArguments("event Action IA2.E8").WithLocation(39, 33),
-                // (45,20): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'string IA2.M7(string x)'.
-                //     public string? M7(string? x)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "M7").WithArguments("string IA2.M7(string x)").WithLocation(45, 20),
-                // (45,20): warning CS8614: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'string IA2.M7(string x)'.
-                //     public string? M7(string? x)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "M7").WithArguments("x", "string IA2.M7(string x)").WithLocation(45, 20),
-                // (37,20): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'string IA2.P6'.
-                //     public string? P6 { get; set; }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "P6").WithArguments("string IA2.P6").WithLocation(37, 20),
-                // (51,20): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'string IA2.this[string x]'.
-                //     public string? this[string? x]
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "this").WithArguments("string IA2.this[string x]").WithLocation(51, 20),
-                // (51,20): warning CS8614: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'string IA2.this[string x]'.
-                //     public string? this[string? x]
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "this").WithArguments("x", "string IA2.this[string x]").WithLocation(51, 20),
-                // (38,33): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'event Action IA2.E5'.
-                //     public event System.Action? E5;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E5").WithArguments("event Action IA2.E5").WithLocation(38, 33),
-                // (67,17): warning CS8615: Nullability of reference types in type doesn't match implemented member 'string IA2.P6'.
-                //     string? IA2.P6 { get; set; }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "P6").WithArguments("string IA2.P6").WithLocation(67, 17),
-                // (69,30): warning CS8615: Nullability of reference types in type doesn't match implemented member 'event Action IA2.E5'.
-                //     event System.Action? IA2.E5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "E5").WithArguments("event Action IA2.E5").WithLocation(69, 30),
-                // (75,30): warning CS8615: Nullability of reference types in type doesn't match implemented member 'event Action IA2.E8'.
-                //     event System.Action? IA2.E8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "E8").WithArguments("event Action IA2.E8").WithLocation(75, 30),
-                // (86,17): warning CS8615: Nullability of reference types in type doesn't match implemented member 'string IA2.this[string x]'.
-                //     string? IA2.this[string? x]
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "this").WithArguments("string IA2.this[string x]").WithLocation(86, 17),
-                // (86,17): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'string IA2.this[string x]'.
-                //     string? IA2.this[string? x]
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "this").WithArguments("x", "string IA2.this[string x]").WithLocation(86, 17),
-                // (81,17): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string IA2.M7(string x)'.
-                //     string? IA2.M7(string? x)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M7").WithArguments("string IA2.M7(string x)").WithLocation(81, 17),
-                // (81,17): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'string IA2.M7(string x)'.
-                //     string? IA2.M7(string? x)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "M7").WithArguments("x", "string IA2.M7(string x)").WithLocation(81, 17)
-                );
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -7909,15 +8312,6 @@ class C
 ", parseOptions: TestOptions.Regular8, references: new[] { notAnnotated.EmitToImageReference() });
 
             c.VerifyDiagnostics(
-                // (10,29): warning CS8600: Cannot convert null to non-nullable reference.
-                //                     p1.F1 = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 29),
-                // (11,26): warning CS8600: Cannot convert null to non-nullable reference.
-                //                     p1 = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 26),
-                // (12,28): warning CS8600: Cannot convert null to non-nullable reference.
-                //                     return null; // 1
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 28),
                 // (20,29): warning CS8600: Cannot convert null to non-nullable reference.
                 //                     p2.F1 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(20, 29),
@@ -17323,6 +17717,32 @@ class C
                 // (17,11): warning CS8602: Possible dereference of a null reference.
                 //         w?.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".F").WithLocation(17, 11));
+        }
+
+        [Fact]
+        public void ConstrainedToTypeParameter_01()
+        {
+            var source =
+@"class C<T, U> where U : T
+{
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics();
+            comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ConstrainedToTypeParameter_02()
+        {
+            var source =
+@"class C<T> where T : C<T>
+{
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics();
+            comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
         }
     }
 }

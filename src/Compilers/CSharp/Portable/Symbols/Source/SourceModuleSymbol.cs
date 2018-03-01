@@ -608,6 +608,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         WellKnownMember.System_Security_UnverifiableCodeAttribute__ctor));
                 }
             }
+
+            if (UtilizesNullableReferenceTypes)
+            {
+                // PROTOTYPE(NullableReferenceTypes): Ensure Compilation.NeedsGeneratedNullableAttribute is set.
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor, ImmutableArray<TypedConstant>.Empty));
+            }
         }
 
         internal override bool UtilizesNullableReferenceTypes

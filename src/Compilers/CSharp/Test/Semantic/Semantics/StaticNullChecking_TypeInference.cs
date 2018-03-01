@@ -299,9 +299,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var source =
 @"class C
 {
-    static void Main()
+    static void F(string str)
     {
-        var s = string.Empty;
+        var s = str;
         s.ToString();
         s = null;
         s.ToString();
@@ -676,11 +676,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var source =
 @"class C
 {
-    static void Main()
+    static void F(string str)
     {
-        var s = new[] { string.Empty };
+        var s = new[] { str };
         s[0].ToString();
-        var t = new[] { string.Empty, null };
+        var t = new[] { str, null };
         t[0].ToString();
         var u = new[] { 1, null };
         u[0].ToString();
@@ -1564,9 +1564,6 @@ static class E
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,9): warning CS8602: Possible dereference of a null reference.
-                //         t.y.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.y").WithLocation(10, 9),
                 // (11,15): warning CS8600: Cannot convert null to non-nullable reference.
                 //         t.x = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 15));

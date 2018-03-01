@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override TypeSymbolWithAnnotations ReturnType
         {
-            get { return TypeSymbolWithAnnotations.Create(ContainingAssembly.GetSpecialType(SpecialType.System_Void)); }
+            get { return TypeSymbolWithAnnotations.Create(ContainingModule, ContainingAssembly.GetSpecialType(SpecialType.System_Void)); }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers

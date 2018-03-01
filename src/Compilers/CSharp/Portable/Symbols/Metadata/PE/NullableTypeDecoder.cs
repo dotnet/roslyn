@@ -8,6 +8,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
     internal static class NullableTypeDecoder
     {
+        /// <summary>
+        /// If the type reference has an associated NullableAttribute, this method
+        /// returns the type transformed to have IsNullable set to true or false
+        /// (but not null) for each reference type in the type.
+        /// </summary>
         internal static TypeSymbolWithAnnotations TransformType(
             TypeSymbolWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
@@ -29,6 +34,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // No NullableAttribute applied to the target symbol, or flags do not line-up, return unchanged metadataType.
             return metadataType;
+        }
+
+        internal static TypeSymbolWithAnnotations TransformOrEraseNullability(
+            TypeSymbolWithAnnotations metadataType,
+            EntityHandle targetSymbolToken,
+            PEModuleSymbol containingModule)
+        {
+            if (containingModule.UtilizesNullableReferenceTypes)
+            {
+                return NullableTypeDecoder.TransformType(metadataType, targetSymbolToken, containingModule);
+            }
+            return metadataType.SetUnknownNullabilityForReferenceTypes();
         }
     }
 }

@@ -2205,6 +2205,7 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = tru
     null
 ";
 
+            // PROTOTYPE(NullableReferenceTypes): Why are two errors reported for missing System.Nullable`1.
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class P
@@ -2212,12 +2213,15 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = tru
                 // (4,12): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     static P M1()
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(4, 12),
-                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                //     P(bool? x = true)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
                 // (9,7): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     P(bool? x = true)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 7),
+                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     P(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
+                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     P(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
                 // (9,5): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     P(bool? x = true)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"P(bool? x = true)
@@ -2406,6 +2410,7 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = nul
     null
 ";
 
+            // PROTOTYPE(NullableReferenceTypes): Why are two errors reported for missing System.Nullable`1.
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class P
@@ -2413,12 +2418,15 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = nul
                 // (4,12): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     static P M1()
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(4, 12),
-                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                //     P(bool? x = null)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
                 // (9,7): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     P(bool? x = null)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 7),
+                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     P(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
+                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     P(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
                 // (9,5): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     P(bool? x = null)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"P(bool? x = null)
