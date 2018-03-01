@@ -31,35 +31,37 @@ namespace Microsoft.Cci
     {
         private static byte ReadByteFromBlobBuilder(BlobBuilder blobBuilder, int offset)
         {
-            Blobs blobs = blobBuilder.GetBlobs();
+            BlobBuilder.Blobs blobs = blobBuilder.GetBlobs();
             int startOffsetOfBlob = 0;
             foreach (Blob b in blobs)
             {
                 ArraySegment<byte> bytesInBlob = b.GetBytes();
                 int offsetInBlob = offset - startOffsetOfBlob;
 
-                if (offsetInBlob < bytesInBlob.Length)
-                    return bytesInBlob[offsetInBlob];
+                if (offsetInBlob < bytesInBlob.Count)
+                    return ((IList<Byte>)bytesInBlob)[offsetInBlob];
 
-                startOffsetOfBlob += bytesInBlob.Length;
+                startOffsetOfBlob += bytesInBlob.Count;
             }
+            throw new IndexOutOfRangeException();
         }
 
-        private static void WriteByteToBlobBuilder(BlobBuilder blobBuilder, int offset, byte b)
+        private static void WriteByteToBlobBuilder(BlobBuilder blobBuilder, int offset, byte data)
         {
-            Blobs blobs = blobBuilder.GetBlobs();
+            BlobBuilder.Blobs blobs = blobBuilder.GetBlobs();
             int startOffsetOfBlob = 0;
             foreach (Blob b in blobs)
             {
                 ArraySegment<byte> bytesInBlob = b.GetBytes();
                 int offsetInBlob = offset - startOffsetOfBlob;
 
-                if (offsetInBlob < bytesInBlob.Length)
+                if (offsetInBlob < bytesInBlob.Count)
                 {
-                    bytesInBlob[offsetInBlob] = b;
+                    ((IList<Byte>)bytesInBlob)[offsetInBlob] = data;
+                    return;
                 }
 
-                startOffsetOfBlob += bytesInBlob.Length;
+                startOffsetOfBlob += bytesInBlob.Count;
             }
         }
 
@@ -296,15 +298,39 @@ namespace Microsoft.Cci
                 // 128 bytes (dos header)
                 // 4 bytes (PE Signature)
                 // 2 bytes (Machine)
-                Debug.Assert(ReadByteFromBlobBuilder(peBlob, 128+4) == (byte)(Machine.Amd64);
-                Debug.Assert(ReadByteFromBlobBuilder(peBlob, 128+4 + 1) == (byte)(Machine.Amd64 >> 1);
+                // 4 bytes (TimeStamp)
+                ushort amd64MachineType = (ushort)Machine.Amd64;
+                Debug.Assert(ReadByteFromBlobBuilder(peBlob, 128+4) == (byte)(amd64MachineType));
+                Debug.Assert(ReadByteFromBlobBuilder(peBlob, 128+4 + 1) == (byte)(amd64MachineType >> 8));
+
+                ushort realMachineType = (ushort)properties.Machine;
+                byte lsbMachineType = (byte)realMachineType;
+                byte msbMachineType = (byte)(realMachineType >> 8);
 
                 // This code path is currently only expected to be used for ARM64
-                Debug.Assert((byte)(properties.Machine) == 0x64);
-                Debug.Assert((byte)(properties.Machine >> 1) == 0xAA);
+                Debug.Assert(lsbMachineType == 0x64);
+                Debug.Assert(msbMachineType == 0xAA);
 
-                WriteByteToBlobBuilder(peBlob, 128+4, (byte)(properties.Machine));
-                WriteByteToBlobBuilder(peBlob, 128+4 + 1, (byte)(properties.Machine >> 1));
+                WriteByteToBlobBuilder(peBlob, 128+4, lsbMachineType);
+                WriteByteToBlobBuilder(peBlob, 128+4 + 1, msbMachineType);
+
+                if (peIdProvider != null)
+                {
+                    // Patch timestamp in COFF Header to all zeroes
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2, 0);
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2 + 1, 0);
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2 + 2, 0);
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2 + 3, 0);
+
+                    peContentId = peIdProvider(peBlob.GetBlobs());
+
+                    // patch timestamp in COFF header:
+                    uint newTimestamp = peContentId.Stamp;
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2, (byte)newTimestamp);
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2 + 1, (byte)(newTimestamp >> 8));
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2 + 2, (byte)(newTimestamp >> 16));
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2 + 3, (byte)(newTimestamp >> 24));
+                }
             }
 
             PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
