@@ -16,24 +16,23 @@ using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     [Export]
     [Order(After = PredefinedQuickInfoPresenterNames.RoslynQuickInfoPresenter)]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [Export(typeof(IQuickInfoSourceProvider))]
+    [Export(typeof(IAsyncQuickInfoSourceProvider))]
     [Name("RoslynQuickInfoProvider")]
     internal partial class QuickInfoCommandHandlerAndSourceProvider :
         ForegroundThreadAffinitizedObject,
-        IQuickInfoSourceProvider
+        IAsyncQuickInfoSourceProvider
     {
         private readonly IAsynchronousOperationListener _listener;
-        private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> _presenter;
+        private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> _presenter;
 
         [ImportingConstructor]
         public QuickInfoCommandHandlerAndSourceProvider(
-            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>, OrderableMetadata>> presenters,
+            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession>, OrderableMetadata>> presenters,
             IAsynchronousOperationListenerProvider listenerProvider)
             : this(ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).FirstOrDefault(),
                    listenerProvider)
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         // For testing purposes.
         public QuickInfoCommandHandlerAndSourceProvider(
-            IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
+            IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> presenter,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _presenter = presenter;
@@ -51,8 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         private bool TryGetController(EditorCommandArgs args, out Controller controller)
         {
-            AssertIsForeground();
-
             // check whether this feature is on.
             if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.QuickInfo))
             {
@@ -74,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             return true;
         }
 
-        public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
+        public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
             return new QuickInfoSource(this, textBuffer);
         }
@@ -90,4 +87,3 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
     }
 }
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094

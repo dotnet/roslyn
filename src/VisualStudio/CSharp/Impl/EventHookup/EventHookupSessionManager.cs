@@ -6,9 +6,7 @@ using System.Threading;
 using System.Windows;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -16,22 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
     internal sealed partial class EventHookupSessionManager : ForegroundThreadAffinitizedObject
     {
-        private readonly IHACK_EventHookupDismissalOnBufferChangePreventerService _prematureDismissalPreventer;
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
-        private readonly IQuickInfoBroker _quickInfoBroker;
-
         internal EventHookupSession CurrentSession { get; set; }
-        internal IQuickInfoSession QuickInfoSession { get; set; }
 
         // For test purposes only!
         internal FrameworkElement TEST_MostRecentQuickInfoContent { get; set; }
 
-        internal EventHookupSessionManager(IHACK_EventHookupDismissalOnBufferChangePreventerService prematureDismissalPreventer, IQuickInfoBroker quickInfoBroker)
+        internal EventHookupSessionManager()
         {
-            _prematureDismissalPreventer = prematureDismissalPreventer;
-            _quickInfoBroker = quickInfoBroker;
         }
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 
         internal void EventHookupFoundInSession(EventHookupSession analyzedSession)
         {
@@ -42,36 +32,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             // Ensure the analyzed session matches the current session and that the caret is still
             // in the session's tracking span.
             if (CurrentSession == analyzedSession &&
-                QuickInfoSession == null &&
                 caretPoint.HasValue &&
                 analyzedSession.TrackingSpan.GetSpan(CurrentSession.TextView.TextSnapshot).Contains(caretPoint.Value))
             {
-                QuickInfoSession = _quickInfoBroker.CreateQuickInfoSession(analyzedSession.TextView,
-                    analyzedSession.TrackingPoint,
-                    trackMouse: false);
-
-                // Special indicator that this quick info session was created by event hookup,
-                // which is used when deciding whether and how to display the session
-                QuickInfoSession.Properties.AddProperty(typeof(EventHookupSessionManager), this);
-                QuickInfoSession.Properties.AddProperty(QuickInfoUtilities.EventHookupKey, "EventHookup");
-
-                // Watch all text buffer changes & caret moves while this quick info session is 
+                // Watch all text buffer changes & caret moves while this quick info session is
                 // active
                 analyzedSession.TextView.TextSnapshot.TextBuffer.Changed += TextBuffer_Changed;
                 CurrentSession.Dismissed += () => { analyzedSession.TextView.TextSnapshot.TextBuffer.Changed -= TextBuffer_Changed; };
 
                 analyzedSession.TextView.Caret.PositionChanged += Caret_PositionChanged;
                 CurrentSession.Dismissed += () => { analyzedSession.TextView.Caret.PositionChanged -= Caret_PositionChanged; };
-
-                QuickInfoSession.Start();
-
-                // HACK! Workaround for VS dismissing quick info sessions on buffer changed events. 
-                // This must happen after the QuickInfoSession is started.
-                if (_prematureDismissalPreventer != null)
-                {
-                    _prematureDismissalPreventer.HACK_EnsureQuickInfoSessionNotDismissedPrematurely(analyzedSession.TextView);
-                    QuickInfoSession.Dismissed += (s, e) => { _prematureDismissalPreventer.HACK_OnQuickInfoSessionDismissed(analyzedSession.TextView); };
-                }
             }
         }
 
@@ -93,13 +63,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             {
                 CurrentSession.Cancel();
                 CurrentSession = null;
-            }
-
-            if (QuickInfoSession != null)
-            {
-                QuickInfoSession.Dismiss();
-                QuickInfoSession = null;
-                TEST_MostRecentQuickInfoContent = null;
             }
         }
 
@@ -149,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         internal bool IsTrackingSession()
         {
-            return CurrentSession != null && QuickInfoSession != null;
+            return CurrentSession != null;
         }
     }
 }

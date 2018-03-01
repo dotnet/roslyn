@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -11,15 +14,18 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Roslyn.Utilities;
 
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
+using CodeAnalysisQuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
+using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
+
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal partial class Controller :
-        AbstractController<Session<Controller, Model, IQuickInfoPresenterSession>, Model, IQuickInfoPresenterSession, IQuickInfoSession>
+        AbstractController<Session<Controller, Model, IQuickInfoPresenterSession>, Model, IQuickInfoPresenterSession, IAsyncQuickInfoSession>
     {
         private static readonly object s_quickInfoPropertyKey = new object();
         private QuickInfoService _service;
@@ -27,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         public Controller(
             ITextView textView,
             ITextBuffer subjectBuffer,
-            IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
+            IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider)
             : base(textView, subjectBuffer, presenter, asyncListener, documentProvider, "QuickInfo")
@@ -38,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         internal Controller(
             ITextView textView,
             ITextBuffer subjectBuffer,
-            IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
+            IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
             QuickInfoService service)
@@ -49,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         internal static Controller GetInstance(
             EditorCommandArgs args,
-            IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
+            IIntelliSensePresenter<IQuickInfoPresenterSession, IAsyncQuickInfoSession> presenter,
             IAsynchronousOperationListener asyncListener)
         {
             var textView = args.TextView;
@@ -63,49 +69,51 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         internal override void OnModelUpdated(Model modelOpt)
         {
-            AssertIsForeground();
-            if (modelOpt == null || modelOpt.TextVersion != this.SubjectBuffer.CurrentSnapshot.Version)
-            {
-                this.StopModelComputation();
-            }
-            else
-            {
-                var quickInfoItem = modelOpt.Item;
-
-                // We want the span to actually only go up to the caret.  So get the expected span
-                // and then update its end point accordingly.
-                var triggerSpan = modelOpt.GetCurrentSpanInSnapshot(quickInfoItem.Span, this.SubjectBuffer.CurrentSnapshot);
-                var trackingSpan = triggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
-
-                sessionOpt.PresenterSession.PresentItem(trackingSpan, quickInfoItem, modelOpt.TrackMouse);
-            }
+            // do nothing
         }
 
-        public void StartSession(
-            int position,
-            bool trackMouse,
-            IQuickInfoSession augmentSession = null)
+        public async Task<IntellisenseQuickInfoItem> GetQuickInfoItemAsync(
+            SnapshotPoint triggerPoint,
+            IAsyncQuickInfoSession augmentSession,
+            CancellationToken cancellationToken)
         {
-            AssertIsForeground();
-
             var service = GetService();
             if (service == null)
             {
-                return;
+                return null;
             }
 
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
-            this.sessionOpt = new Session<Controller, Model, IQuickInfoPresenterSession>(this, new ModelComputation<Model>(this, TaskScheduler.Default),
-                this.Presenter.CreateSession(this.TextView, this.SubjectBuffer, augmentSession));
 
-            this.sessionOpt.Computation.ChainTaskAndNotifyControllerWhenFinished(
-                (model, cancellationToken) => ComputeModelInBackgroundAsync(position, snapshot, service, trackMouse, cancellationToken));
+            try
+            {
+                using (Logger.LogBlock(FunctionId.QuickInfo_ModelComputation_ComputeModelInBackground, cancellationToken))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var document = await DocumentProvider.GetDocumentAsync(snapshot, cancellationToken).ConfigureAwait(false);
+                    if (document == null)
+                    {
+                        return null;
+                    }
+
+                    var item = await service.GetQuickInfoAsync(document, triggerPoint, cancellationToken).ConfigureAwait(false);
+                    if (item != null)
+                    {
+                        return BuildIntellisenseQuickInfoItemAsync(triggerPoint, snapshot, item);
+                    }
+
+                    return null;
+                }
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         public QuickInfoService GetService()
         {
-            this.AssertIsForeground();
-
             if (_service == null)
             {
                 var snapshot = this.SubjectBuffer.CurrentSnapshot;
@@ -119,41 +127,109 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return _service;
         }
 
-        private async Task<Model> ComputeModelInBackgroundAsync(
-               int position,
-               ITextSnapshot snapshot,
-               QuickInfoService service,
-               bool trackMouse,
-               CancellationToken cancellationToken)
+        private IntellisenseQuickInfoItem BuildIntellisenseQuickInfoItemAsync(SnapshotPoint triggerPoint,
+            ITextSnapshot snapshot, CodeAnalysisQuickInfoItem quickInfoItem)
         {
-            try
+            var line = triggerPoint.GetContainingLine();
+            var lineSpan = snapshot.CreateTrackingSpan(
+                line.Extent,
+                SpanTrackingMode.EdgeInclusive);
+
+            var glyphs = quickInfoItem.Tags.GetGlyphs();
+
+            //var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
+            //var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);
+            //var documentSpan = quickInfoItem.RelatedSpans.Length > 0 ?
+            //CreateDocumentSpanPresentation(quickInfoItem, snapshot) : null;
+
+            //var content = new QuickInfoDisplayPanel(
+            //    symbolGlyph: symbolGlyph != default ? CreateSymbolPresentation(symbolGlyph) : null,
+            //    warningGlyph: warningGlyph != default ? CreateSymbolPresentation(warningGlyph) : null,
+            //    textBlocks: quickInfoItem.Sections.Select(section =>
+            //        new TextBlockElement(section.Kind, CreateTextPresentation(section))).ToImmutableArray(),
+            //    documentSpan: documentSpan);
+
+
+            var textLines = new List<ClassifiedTextElement>();
+            foreach(var section in quickInfoItem.Sections)
             {
-                AssertIsBackground();
-
-                using (Logger.LogBlock(FunctionId.QuickInfo_ModelComputation_ComputeModelInBackground, cancellationToken))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var document = await DocumentProvider.GetDocumentAsync(snapshot, cancellationToken).ConfigureAwait(false);
-                    if (document == null)
-                    {
-                        return null;
-                    }
-
-                    var item = await service.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-                    if (item != null)
-                    {
-                        return new Model(snapshot.Version, item, trackMouse);
-                    }
-
-                    return null;
-                }
+                textLines.Add(new ClassifiedTextElement(section.TaggedParts.Select(
+                    part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text))));
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
+
+            var content = new ContainerElement(
+                        ContainerElementStyle.Stacked,
+                        textLines);
+
+            return new IntellisenseQuickInfoItem(lineSpan, content);
         }
+
+        //private FrameworkElement CreateSymbolPresentation(Glyph glyph)
+        //{
+        //    var image = new CrispImage
+        //    {
+        //        Moniker = glyph.GetImageMoniker()
+        //    };
+
+        //    // Inform the ImageService of the background color so that images have the correct background.
+        //    var binding = new Binding("Background")
+        //    {
+        //        Converter = new BrushToColorConverter(),
+        //        RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(QuickInfoDisplayPanel), 1)
+        //    };
+
+        //    image.SetBinding(ImageThemingUtilities.ImageBackgroundColorProperty, binding);
+        //    return image;
+        //}
+
+        //private TextBlock CreateTextPresentation(QuickInfoSection section)
+        //{
+        //    if (section.Kind == QuickInfoSectionKinds.DocumentationComments)
+        //    {
+        //        return CreateDocumentationCommentPresentation(section.TaggedParts);
+        //    }
+        //    else
+        //    {
+        //        return CreateTextPresentation(section.TaggedParts);
+        //    }
+        //}
+
+        //private TextBlock CreateTextPresentation(ImmutableArray<TaggedText> text)
+        //{
+        //    var formatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
+        //    var classifiedTextBlock = text.ToTextBlock(formatMap, _classificationTypeMap);
+
+        //    if (classifiedTextBlock.Inlines.Count == 0)
+        //    {
+        //        classifiedTextBlock.Visibility = Visibility.Collapsed;
+        //    }
+
+        //    return classifiedTextBlock;
+        //}
+
+        //private TextBlock CreateDocumentationCommentPresentation(ImmutableArray<TaggedText> text)
+        //{
+        //    var formatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
+        //    var documentationTextBlock = text.ToTextBlock(formatMap, _classificationTypeMap);
+
+        //    documentationTextBlock.TextWrapping = TextWrapping.Wrap;
+
+        //    // If we have already computed the symbol documentation by now, update
+        //    if (documentationTextBlock.Inlines.Count == 0)
+        //    {
+        //        documentationTextBlock.Visibility = Visibility.Collapsed;
+        //    }
+
+        //    return documentationTextBlock;
+        //}
+
+        //private FrameworkElement CreateDocumentSpanPresentation(Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem info, ITextSnapshot snapshot)
+        //{
+        //    return ProjectionBufferContent.Create(
+        //        info.RelatedSpans.Select(s => new SnapshotSpan(snapshot, new Span(s.Start, s.Length))).ToImmutableArray(),
+        //        _projectionBufferFactoryService,
+        //        _editorOptionsFactoryService,
+        //        _textEditorFactoryService);
+        //}
     }
 }
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
