@@ -147,8 +147,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 int length = data.Length;
                 for (int t = 0; t < length - 1; t++)
                 {
-                    var tmp = data[t];
                     int r = random.Next(t, length);
+                    if (t != r)
+                    {
+                        var tmp = data[t];
+                        data[t] = data[r];
+                        data[r] = tmp;
+                    }
                 }
             }
 
