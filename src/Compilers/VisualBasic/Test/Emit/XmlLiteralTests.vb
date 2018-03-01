@@ -24,7 +24,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <!-- comment -->
 ]]>)
             compilation.VerifyIL("M..cctor", <![CDATA[
@@ -63,7 +63,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <!-- A -->
 <?p?>
 <x>
@@ -166,7 +166,7 @@ Partial Class C
 End Class
 ]]>
     </file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x a="0" />
 x, a
 <x a="1" xmlns="http://roslyn/default1" />
@@ -221,7 +221,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 1
 4
 
@@ -387,7 +387,7 @@ Partial Class C
     Private Shared F4 As XElement = <p1:x a="a2" p2:b="b2"/>
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <p:x xmlns="http://roslyn/p" a="a1" p:b="b1" xmlns:p="http://roslyn/p" />
 a1
 [none]
@@ -436,7 +436,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 0
 
 http://roslyn/default
@@ -480,7 +480,7 @@ Partial Class C
     Private Shared F2 As XElement = <x xmlns="http://roslyn/2" xmlns:q="http://roslyn/q"/>
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x xmlns="http://roslyn/1" xmlns:p="http://roslyn/p" />
 http://roslyn/1
 [none]
@@ -525,7 +525,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 1
 1
 <c>1</c>
@@ -609,7 +609,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <c>1</c>
 <c>4</c>
 <p3:c xmlns:p3="http://roslyn/p">3</p3:c>
@@ -799,7 +799,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <y />
 <y />
 1
@@ -860,7 +860,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <y />
 <y />
 1
@@ -956,7 +956,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <pb:b xmlns:pb="http://roslyn" />
 <pa:c xmlns:pa="http://roslyn" />
 <pa:d xmlns:pa="http://roslyn" />
@@ -1029,7 +1029,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x a="1">
   <y />
   <y />
@@ -1057,7 +1057,7 @@ Module M
 End Module
 ]]>
     </file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x a="12" b="3" />
 ]]>)
         End Sub
@@ -1075,7 +1075,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 b
 c
 ]]>)
@@ -1101,7 +1101,7 @@ Module M
 End Module
 ]]>
     </file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x a="2" />
 ]]>)
         End Sub
@@ -1121,7 +1121,7 @@ Module M
 End Module
 ]]>
     </file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:="b")
+</compilation>, references:=XmlReferences, expectedOutput:="b")
         End Sub
 
         ' Project-level imports should be used if file-level
@@ -1154,7 +1154,7 @@ Class C
     End Sub
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, options:=options, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, options:=options, expectedOutput:=<![CDATA[
 default1
 p1
 q2
@@ -1252,7 +1252,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, options:=options, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, options:=options, expectedOutput:=<![CDATA[
 <x xmlns:p="http://roslyn/p" xmlns="http://roslyn">
   <p:y />
 </x>
@@ -1287,7 +1287,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <p:x xmlns="http://roslyn/default" xmlns:p="http://roslyn/p">
   <y />
   <z xmlns="" />
@@ -1359,7 +1359,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x xmlns="http://roslyn/default" xmlns:p="http://roslyn/p" xmlns:q="http://roslyn/q">
   <p:y1 />
   <p:y2 />
@@ -1435,7 +1435,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <a xmlns:p1="http://roslyn/1" xmlns:p2="http://roslyn/2">
   <b>
     <c>
@@ -1526,7 +1526,7 @@ Partial Class C
     End Function
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x>
   <y />
   <y xmlns="http://roslyn/2" />
@@ -1576,7 +1576,7 @@ Module N
     Public F As Object = <p:z q:a="b" s:c="d"/>
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x xmlns:r="http://roslyn/r" xmlns:q="http://roslyn/q1" xmlns:p="http://roslyn/p" xmlns:s="http://roslyn/r">
   <y>
     <p:z q:a="b" s:c="d" />
@@ -1607,7 +1607,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x xmlns:p="http://roslyn/">
   <p:y />
 </x>
@@ -1644,7 +1644,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x xmlns:q="http://roslyn/q" xmlns:p="http://roslyn/p">
   <p:y q:a="b" />
   <p:z />
@@ -1679,7 +1679,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <p:x xmlns:p="http://roslyn/p" xmlns:q="http://roslyn/q">
   <q:y />
 </p:x>
@@ -1705,7 +1705,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x x="..." />
 ]]>)
             compilation.VerifyIL("M..cctor", <![CDATA[
@@ -1751,7 +1751,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x x="..." />
 <y p1:y="..." xmlns:p1="http://roslyn" xmlns="http://roslyn" />
 <z z="...">z</z>
@@ -1827,7 +1827,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 [1] <x a1="b1" />
 [1] <x a2="b2" />
 [1] <x a3="3" />
@@ -1915,7 +1915,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <w w="f" />
 <x>f</x>
 <y>
@@ -1957,7 +1957,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x1>s</x1>
 <x2>s</x2>
 <y1>n</y1>
@@ -2034,7 +2034,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x0>
   <c1 />
   <c2 />
@@ -2311,7 +2311,7 @@ Module M
     End Function
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.VerifyIL("M.F", <![CDATA[
 {
   // Code size      114 (0x72)
@@ -2413,7 +2413,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x />
 <x a="b">c</x>
 <x1 a1="b1" a2="b2">c1c2</x1>
@@ -2629,7 +2629,7 @@ Class C
     End Sub
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <f />
 <g />
 ]]>)
@@ -2677,7 +2677,7 @@ Class C
     End Sub
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 &'><"XYZ
 &'><"XYZ
 ]]>)
@@ -2748,7 +2748,7 @@ Module M
     End Sub
 End Module
 </file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:="System.Xml.Linq.XCData: <![CDATA[value]]>")
+</compilation>, references:=XmlReferences, expectedOutput:="System.Xml.Linq.XCData: <![CDATA[value]]>")
             compilation.VerifyIL("M.Main", <![CDATA[
 {
   // Code size       29 (0x1d)
@@ -2785,7 +2785,7 @@ Module M
     End Sub
 End Module
 </file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:="<b>" & vbLf & "  <c/>" & vbLf & "</>")
+</compilation>, references:=XmlReferences, expectedOutput:="<b>" & vbLf & "  <c/>" & vbLf & "</>")
         End Sub
 
         <Fact()>
@@ -2809,7 +2809,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 http://www.w3.org/XML/1998/namespace
 http://www.w3.org/2000/xmlns/
 
@@ -2883,7 +2883,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 [x,    ]: <x xmlns="   " />
 [y, http://roslyn]: <y xmlns="http://roslyn" />
 ]]>)
@@ -2905,7 +2905,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 [x, http://roslyn/2]: <x xmlns="http://roslyn/2" />
 ]]>)
         End Sub
@@ -2965,7 +2965,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.VerifyIL("M.M(Of T)", <![CDATA[
 {
   // Code size      166 (0xa6)
@@ -3177,7 +3177,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x>
   <y>content2</y>
   <z>3</z>
@@ -3446,7 +3446,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <y>
   <z> nested </z>
 </y>
@@ -3595,7 +3595,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 {N0}x1: <x1 a="b" xmlns="N0" />
   a
   xmlns
@@ -3640,7 +3640,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 [Nothing]
 ]]>)
             compilation.Compilation.AssertTheseDiagnostics(<errors><![CDATA[
@@ -3700,7 +3700,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x0 a="b" xmlns:p="http://roslyn/" />
 <x1 p:a="b" xmlns:p="http://roslyn/" />
 <x2 xmlns:p="http://roslyn/">
@@ -3770,7 +3770,7 @@ Partial Class C
     End Sub
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x xmlns:p="http://roslyn/" />
 <x xmlns:p="http://roslyn/" />
 ]]>)
@@ -3852,7 +3852,7 @@ Partial Class C
     End Function
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x xmlns:p="http://roslyn/p">
   <p:y />
 </x>
@@ -3891,7 +3891,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x a="1" />
 <x a="1" xmlns="" />
 <x xmlns="">
@@ -3927,7 +3927,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x a="1" p:b="2" xmlns:p="ns" xmlns="default" />
 <x a="1" p:b="2" xmlns:p="ns" xmlns="" />
 <p:x a="1" b="2" xmlns:p="ns" />
@@ -4062,7 +4062,7 @@ Class C(Of T)
     End Function
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             Assert.True(CallsRemoveNamespaceAttributes(verifier.VisualizeIL("C(Of T).F1()")))
             Assert.False(CallsRemoveNamespaceAttributes(verifier.VisualizeIL("C(Of T).F2()")))
             Assert.False(CallsRemoveNamespaceAttributes(verifier.VisualizeIL("C(Of T).F3()")))
@@ -4110,7 +4110,7 @@ Module M
     End Function
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             Assert.False(CallsRemoveNamespaceAttributes(verifier.VisualizeIL("M.F1()")))
 
             ' xmlns attribute.
@@ -4127,7 +4127,7 @@ Module M
     End Function
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             Assert.False(CallsRemoveNamespaceAttributes(verifier.VisualizeIL("M.F1()")))
 
             ' Imports <...> in file.
@@ -4145,7 +4145,7 @@ Module M
     End Function
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             Assert.True(CallsRemoveNamespaceAttributes(verifier.VisualizeIL("M.F1()")))
 
             ' Imports <...> at project scope.
@@ -4163,7 +4163,7 @@ Module M
     End Function
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, options:=options)
+</compilation>, references:=XmlReferences, options:=options)
             Assert.True(CallsRemoveNamespaceAttributes(verifier.VisualizeIL("M.F1()")))
         End Sub
 
@@ -4196,7 +4196,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 [0] <x />
 [0] <x></x>
 [0] <x></x>
@@ -4307,7 +4307,7 @@ Class scen1(Of T As XElement)
     End Sub
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, options:=TestOptions.ReleaseDll).
+</compilation>, references:=XmlReferences, options:=TestOptions.ReleaseDll).
             VerifyIL("scen1(Of T).goo(T)",
             <![CDATA[
 {
@@ -4363,7 +4363,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, options:=options, expectedOutput:=expectedOutput)
+</compilation>, references:=XmlReferences, options:=options, expectedOutput:=expectedOutput)
         End Sub
 
         <WorkItem(623035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623035")>
@@ -4423,7 +4423,7 @@ Module Program
 End Module
 ]]>
     </file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[True]]>)
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[True]]>)
         End Sub
 
         <WorkItem(814075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/814075")>
@@ -4447,7 +4447,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 x => get_Value(x.Elements(Get("y", "")))
 content
 ]]>)
@@ -4585,7 +4585,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x xmlns:p="http://roslyn/">
   <y>
     <p:z />
@@ -4707,7 +4707,7 @@ Class C
     End Sub
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x xmlns:r="http://roslyn/r" xmlns:q="http://roslyn/q" xmlns:p="http://roslyn/p">
   <y>
     <a>
@@ -4896,7 +4896,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <x xmlns:q="http://roslyn/q" xmlns:p="http://roslyn/p">
   <y>
     <p:z />
@@ -4933,7 +4933,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 <q:y xmlns:q="http://roslyn/q" />
 <p:x xmlns:p="http://roslyn/p" xmlns:r="http://roslyn/r">
   <r:z />

@@ -8,6 +8,7 @@ Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
+Imports System.Security.Cryptography
 Imports System.Text
 Imports System.Text.RegularExpressions
 Imports System.Threading
@@ -120,7 +121,7 @@ End Module
             Assert.Equal("", output.ToString().Trim())
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/pull/23529")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/pull/23529")>
         Public Sub CreateCompilationWithKeyFile()
             Dim source = "
 Public Class C
@@ -1539,21 +1540,24 @@ End Module").Path
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("codepage", ":<number>"))
         End Sub
 
-        <Fact>
+        <Fact, WorkItem(24735, "https://github.com/dotnet/roslyn/issues/24735")>
         Public Sub ChecksumAlgorithm()
             Dim parsedArgs As VisualBasicCommandLineArguments
 
             parsedArgs = DefaultParse({"/checksumAlgorithm:sHa1", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             parsedArgs = DefaultParse({"/checksumAlgorithm:sha256", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             parsedArgs = DefaultParse({"a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             ' error
             parsedArgs = DefaultParse({"/checksumAlgorithm:256", "a.cs"}, _baseDirectory)
@@ -2131,6 +2135,66 @@ End Module").Path
 
             parsedArgs = DefaultParse({"/reference-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/reference-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
+        End Sub
+
+        Private Class SimpleMetadataResolver
+            Inherits MetadataReferenceResolver
+
+            Private ReadOnly _pathResolver As RelativePathResolver
+
+            Public Sub New(baseDirectory As String)
+                _pathResolver = New RelativePathResolver(ImmutableArray(Of String).Empty, baseDirectory)
+            End Sub
+
+            Public Overrides Function ResolveReference(reference As String, baseFilePath As String, properties As MetadataReferenceProperties) As ImmutableArray(Of PortableExecutableReference)
+                Dim resolvedPath = _pathResolver.ResolvePath(reference, baseFilePath)
+
+                If resolvedPath Is Nothing OrElse Not File.Exists(reference) Then
+                    Return Nothing
+                End If
+
+                Return ImmutableArray.Create(MetadataReference.CreateFromFile(resolvedPath, properties))
+            End Function
+
+            Public Overrides Function Equals(other As Object) As Boolean
+                Return True
+            End Function
+
+            Public Overrides Function GetHashCode() As Integer
+                Return 1
+            End Function
+        End Class
+
+        <Fact>
+        Public Sub Reference_CorLibraryAddedWhenThereAreUnresolvedReferences()
+            Dim parsedArgs = DefaultParse({"/r:unresolved", "a.vb"}, _baseDirectory)
+
+            Dim metadataResolver = New SimpleMetadataResolver(_baseDirectory)
+            Dim references = parsedArgs.ResolveMetadataReferences(metadataResolver).ToImmutableArray()
+
+            Assert.Equal(4, references.Length)
+            Assert.Contains(references, Function(r) r.IsUnresolved)
+            Assert.Contains(references, Function(r)
+                                            Dim peRef = TryCast(r, PortableExecutableReference)
+                                            Return peRef IsNot Nothing AndAlso
+                                                   peRef.FilePath.EndsWith("mscorlib.dll", StringComparison.Ordinal)
+                                        End Function)
+        End Sub
+
+        <Fact>
+        Public Sub Reference_CorLibraryAddedWhenThereAreNoUnresolvedReferences()
+            Dim parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+
+            Dim metadataResolver = New SimpleMetadataResolver(_baseDirectory)
+            Dim references = parsedArgs.ResolveMetadataReferences(metadataResolver).ToImmutableArray()
+
+            Assert.Equal(3, references.Length)
+            Assert.DoesNotContain(references, Function(r) r.IsUnresolved)
+            Assert.Contains(references, Function(r)
+                                            Dim peRef = TryCast(r, PortableExecutableReference)
+                                            Return peRef IsNot Nothing AndAlso
+                                                   peRef.FilePath.EndsWith("mscorlib.dll", StringComparison.Ordinal)
+                                        End Function)
         End Sub
 
         <Fact>
@@ -3112,7 +3176,7 @@ End Module
                     Assert.True(File.Exists(pdbPath))
 
                     Using peStream = File.OpenRead(exePath)
-                        PdbValidation.ValidateDebugDirectory(peStream, Nothing, pePdbPath, isDeterministic)
+                        PdbValidation.ValidateDebugDirectory(peStream, Nothing, pePdbPath, hashAlgorithm:=Nothing, hasEmbeddedPdb:=False, isDeterministic)
                     End Using
                 End Sub
 
@@ -8499,7 +8563,7 @@ End Class")
 
             MetadataReaderUtils.VerifyPEMetadata(exe,
                 {"TypeDefinition:<Module>", "TypeDefinition:C"},
-                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()", "MethodDefinition:Void PrivateMethod()"},
+                {"MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()", "MethodDefinition:Void C.PrivateMethod()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
                 )
 
@@ -8536,7 +8600,7 @@ a
             ' See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 {"TypeDefinition:<Module>", "TypeDefinition:C"},
-                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
+                {"MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute", "ReferenceAssemblyAttribute"}
                 )
 
@@ -8619,7 +8683,7 @@ End Class")
             ' See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 {"TypeDefinition:<Module>", "TypeDefinition:C", "TypeDefinition:S"},
-                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
+                {"MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute", "ReferenceAssemblyAttribute"}
                 )
 

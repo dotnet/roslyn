@@ -192,7 +192,7 @@ End Module
 ]]></file>
 </compilation>
             CompileAndVerify(source,
-                             additionalRefs:={_classLibrary},
+                             references:={_classLibrary},
                              expectedOutput:=<![CDATA[
 i = 1
 Member: OptionalArg
@@ -228,7 +228,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={_classLibrary},
+                             references:={_classLibrary},
                              expectedOutput:=<![CDATA[
 Member: OptionalArg
 Parameter: Type=System.Int32, Name=i, Optional=True, DefaultValue=System.Reflection.Missing
@@ -265,7 +265,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={_classLibrary},
+                             references:={_classLibrary},
                              expectedOutput:=<![CDATA[
 i = hello world
 Member: OptionalArg
@@ -303,7 +303,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={_classLibrary},
+                             references:={_classLibrary},
                              expectedOutput:=<![CDATA[
 i = 1/26/2012 12:00:00 AM
 Member: OptionalArg
@@ -342,7 +342,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={_classLibrary},
+                             references:={_classLibrary},
                              expectedOutput:=<![CDATA[
 i = 999.99
 Member: OptionalArg
@@ -387,7 +387,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={_classLibrary},
+                             references:={_classLibrary},
                              expectedOutput:="Nothing;Nothing;C1;")
         End Sub
 
@@ -421,7 +421,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={_classLibrary},
+                             references:={_classLibrary},
                              expectedOutput:=<![CDATA[
 Member: OptionalArg
 Parameter: Type=System.DateTime, Name=i, Optional=False, DefaultValue=1/26/2012 12:00:00 AM
@@ -458,7 +458,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={_classLibrary},
+                             references:={_classLibrary},
                              expectedOutput:=<![CDATA[
 Member: OptionalArg
 Parameter: Type=System.DateTime, Name=i, Optional=True, DefaultValue=1/26/2012 12:00:00 AM
@@ -507,7 +507,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={_classLibrary},
+                             references:={_classLibrary},
                              expectedOutput:=<![CDATA[
    1/26/2012 12:00:00 AM
 ]]>)
@@ -538,7 +538,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={_classLibrary},
+                             references:={_classLibrary},
                              expectedOutput:=<![CDATA[
    999.99
 ]]>)
@@ -566,7 +566,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={_classLibrary},
+                             references:={_classLibrary},
                              expectedOutput:=<![CDATA[
 1/1/0001 12:00:00 AM
 ]]>)
@@ -651,7 +651,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={_classLibrary},
+                             references:={_classLibrary},
                              expectedOutput:=<![CDATA[
 True
 True
@@ -1195,7 +1195,7 @@ End Module
 </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             CompileAndVerify(source,
-                 additionalRefs:={_classLibrary},
+                 references:={_classLibrary},
                  expectedOutput:=<![CDATA[
    0
 False
@@ -1222,7 +1222,7 @@ End Module
 ]]></file>
 </compilation>
             CompileAndVerify(source,
-                             additionalRefs:={_classLibrary},
+                             references:={_classLibrary},
                              expectedOutput:=<![CDATA[
 Member: get_PropertyIntegerOptionalDouble
 Parameter: Type=System.Int32, Name=i, Optional=False, DefaultValue=
@@ -1308,7 +1308,7 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             comp.VerifyDiagnostics()
             CompileAndVerify(source,
-                 additionalRefs:={_classLibrary},
+                 references:={_classLibrary},
                  expectedOutput:=<![CDATA[
 ]]>)
         End Sub
@@ -1332,7 +1332,7 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             comp.VerifyDiagnostics()
             CompileAndVerify(source,
-                 additionalRefs:={_classLibrary},
+                 references:={_classLibrary},
                  expectedOutput:=<![CDATA[
 Member: TestWithMultipleOptionalEnumValues
 Parameter: Type=Library+Animal, Name=e1, Optional=True, DefaultValue=Dog

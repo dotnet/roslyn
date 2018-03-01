@@ -86,11 +86,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return RunCompilationResult.Failed;
             }
 
-            if (!TryEnableMulticoreJitting(out errorMessageOpt))
-            {
-                textWriter.WriteLine(errorMessageOpt);
-            }
-
             if (hasShared)
             {
                 sessionKeyOpt = sessionKeyOpt ?? GetSessionKey(buildPaths);

@@ -192,11 +192,6 @@
         <target state="translated">Não foi possível encontrar o local da pasta no disco</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">Erro ao ler '{0}': {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
         <target state="translated">Assembly </target>
@@ -1398,8 +1393,8 @@ O 'Carregamento da solução leve' está habilitado para a solução atual. Desa
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
-        <target state="translated">Preferir usar função anônima em vez de local</target>
+        <source>Prefer local function over anonymous function</source>
+        <target state="translated">Preferir usar função local em vez de anônima</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_deconstructed_variable_declaration">
@@ -1433,8 +1428,8 @@ O 'Carregamento da solução leve' está habilitado para a solução atual. Desa
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">Erro durante a leitura de um arquivo</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="needs-review-translation">Erro durante a leitura de um arquivo</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1490,22 +1485,32 @@ Eu concordo com todo o conteúdo supracitado:</target>
       </trans-unit>
       <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
         <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
-        <target state="new">Disabling the extension '{0}' unbound your keyboard bindings.</target>
+        <target state="translated">A desabilitação da extensão '{0}' desvinculou as associações do teclado.</target>
         <note>0 is an extension name</note>
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="new">The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</target>
+        <target state="translated">As configurações definidas aqui se aplicam somente a seu computador. Para definir essas configurações para viajar com sua solução, use arquivos .editorconfig.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Snippet_Command_Handler">
-        <source>Snippet Command Handler</source>
-        <target state="new">Snippet Command Handler</target>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="new">Sync Class View</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sync_Class_View_Command_Handler">
-        <source>Sync Class View Command Handler</source>
-        <target state="new">Sync Class View Command Handler</target>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="translated">Análise de código ao vivo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">Analisando '{0}'</target>
         <note />
       </trans-unit>
     </body>
