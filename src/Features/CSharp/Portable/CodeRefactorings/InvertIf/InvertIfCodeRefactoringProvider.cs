@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 {
-    // [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf)]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
     internal partial class InvertIfCodeRefactoringProvider : CodeRefactoringProvider
     {
         private static readonly Dictionary<SyntaxKind, Tuple<SyntaxKind, SyntaxKind>> s_binaryMap =
