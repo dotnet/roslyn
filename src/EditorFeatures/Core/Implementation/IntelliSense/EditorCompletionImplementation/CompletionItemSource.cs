@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             var completionList = await completionService.GetCompletionsAsync(
                 document,
-                applicableSpan.Span.Start,
+                applicableSpan.Span.End,
                 roslynTrigger).ConfigureAwait(false);
 
             if (completionList == null)
