@@ -39,15 +39,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Enum
 
     Friend Module FeatureExtensions
+
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
-            Select Case feature
-                'Case feature.IOperation
-                '    Return "IOperation"
-
-                Case Else
-                    Return Nothing
-            End Select
+            Return Nothing
         End Function
 
         <Extension>
