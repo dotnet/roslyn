@@ -1,12 +1,201 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Tags;
+using Microsoft.VisualStudio.Core.Imaging;
+using Microsoft.VisualStudio.Imaging;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class GlyphExtensions
     {
+        public static ImageId GetImageId(this Glyph glyph)
+        {
+            // VS for mac cannot refer to ImageMoniker
+            // so we need to expose ImageId instead of ImageMoniker here
+            // and expose ImageMoniker in the EditorFeatures.wpf.dll
+            switch (glyph)
+            {
+                case Glyph.None:
+                    return default;
+
+                case Glyph.Assembly:
+                    return new ImageId(KnownMonikers.Assembly.Guid, KnownMonikers.Assembly.Id);
+
+                case Glyph.BasicFile:
+                    return new ImageId(KnownMonikers.VBFileNode.Guid, KnownMonikers.VBFileNode.Id);
+                case Glyph.BasicProject:
+                    return new ImageId(KnownMonikers.VBProjectNode.Guid, KnownMonikers.VBProjectNode.Id);
+
+                case Glyph.ClassPublic:
+                    return new ImageId(KnownMonikers.ClassPublic.Guid, KnownMonikers.ClassPublic.Id);
+                case Glyph.ClassProtected:
+                    return new ImageId(KnownMonikers.ClassProtected.Guid, KnownMonikers.ClassProtected.Id);
+                case Glyph.ClassPrivate:
+                    return new ImageId(KnownMonikers.ClassPrivate.Guid, KnownMonikers.ClassPrivate.Id);
+                case Glyph.ClassInternal:
+                    return new ImageId(KnownMonikers.ClassInternal.Guid, KnownMonikers.ClassInternal.Id);
+
+                case Glyph.CSharpFile:
+                    return new ImageId(KnownMonikers.CSFileNode.Guid, KnownMonikers.CSFileNode.Id);
+                case Glyph.CSharpProject:
+                    return new ImageId(KnownMonikers.CSProjectNode.Guid, KnownMonikers.CSProjectNode.Id);
+
+                case Glyph.ConstantPublic:
+                    return new ImageId(KnownMonikers.ConstantPublic.Guid, KnownMonikers.ConstantPublic.Id);
+                case Glyph.ConstantProtected:
+                    return new ImageId(KnownMonikers.ConstantProtected.Guid, KnownMonikers.ConstantProtected.Id);
+                case Glyph.ConstantPrivate:
+                    return new ImageId(KnownMonikers.ConstantPrivate.Guid, KnownMonikers.ConstantPrivate.Id);
+                case Glyph.ConstantInternal:
+                    return new ImageId(KnownMonikers.ConstantInternal.Guid, KnownMonikers.ConstantInternal.Id);
+
+                case Glyph.DelegatePublic:
+                    return new ImageId(KnownMonikers.DelegatePublic.Guid, KnownMonikers.DelegatePublic.Id);
+                case Glyph.DelegateProtected:
+                    return new ImageId(KnownMonikers.DelegateProtected.Guid, KnownMonikers.DelegateProtected.Id);
+                case Glyph.DelegatePrivate:
+                    return new ImageId(KnownMonikers.DelegatePrivate.Guid, KnownMonikers.DelegatePrivate.Id);
+                case Glyph.DelegateInternal:
+                    return new ImageId(KnownMonikers.DelegateInternal.Guid, KnownMonikers.DelegateInternal.Id);
+
+                case Glyph.EnumPublic:
+                    return new ImageId(KnownMonikers.EnumerationPublic.Guid, KnownMonikers.EnumerationPublic.Id);
+                case Glyph.EnumProtected:
+                    return new ImageId(KnownMonikers.EnumerationProtected.Guid, KnownMonikers.EnumerationProtected.Id);
+                case Glyph.EnumPrivate:
+                    return new ImageId(KnownMonikers.EnumerationPrivate.Guid, KnownMonikers.EnumerationPrivate.Id);
+                case Glyph.EnumInternal:
+                    return new ImageId(KnownMonikers.EnumerationInternal.Guid, KnownMonikers.EnumerationInternal.Id);
+
+                case Glyph.EnumMemberPublic:
+                case Glyph.EnumMemberProtected:
+                case Glyph.EnumMemberPrivate:
+                case Glyph.EnumMemberInternal:
+                    return new ImageId(KnownMonikers.EnumerationItemPublic.Guid, KnownMonikers.EnumerationItemPublic.Id);
+
+                case Glyph.Error:
+                    return new ImageId(KnownMonikers.StatusError.Guid, KnownMonikers.StatusError.Id);
+
+                case Glyph.EventPublic:
+                    return new ImageId(KnownMonikers.EventPublic.Guid, KnownMonikers.EventPublic.Id);
+                case Glyph.EventProtected:
+                    return new ImageId(KnownMonikers.EventProtected.Guid, KnownMonikers.EventProtected.Id);
+                case Glyph.EventPrivate:
+                    return new ImageId(KnownMonikers.EventPrivate.Guid, KnownMonikers.EventPrivate.Id);
+                case Glyph.EventInternal:
+                    return new ImageId(KnownMonikers.EventInternal.Guid, KnownMonikers.EventInternal.Id);
+
+                // Extension methods have the same glyph regardless of accessibility.
+                case Glyph.ExtensionMethodPublic:
+                case Glyph.ExtensionMethodProtected:
+                case Glyph.ExtensionMethodPrivate:
+                case Glyph.ExtensionMethodInternal:
+                    return new ImageId(KnownMonikers.ExtensionMethod.Guid, KnownMonikers.ExtensionMethod.Id);
+
+                case Glyph.FieldPublic:
+                    return new ImageId(KnownMonikers.FieldPublic.Guid, KnownMonikers.FieldPublic.Id);
+                case Glyph.FieldProtected:
+                    return new ImageId(KnownMonikers.FieldProtected.Guid, KnownMonikers.FieldProtected.Id);
+                case Glyph.FieldPrivate:
+                    return new ImageId(KnownMonikers.FieldPrivate.Guid, KnownMonikers.FieldPrivate.Id);
+                case Glyph.FieldInternal:
+                    return new ImageId(KnownMonikers.FieldInternal.Guid, KnownMonikers.FieldInternal.Id);
+
+                case Glyph.InterfacePublic:
+                    return new ImageId(KnownMonikers.InterfacePublic.Guid, KnownMonikers.InterfacePublic.Id);
+                case Glyph.InterfaceProtected:
+                    return new ImageId(KnownMonikers.InterfaceProtected.Guid, KnownMonikers.InterfaceProtected.Id);
+                case Glyph.InterfacePrivate:
+                    return new ImageId(KnownMonikers.InterfacePrivate.Guid, KnownMonikers.InterfacePrivate.Id);
+                case Glyph.InterfaceInternal:
+                    return new ImageId(KnownMonikers.InterfaceInternal.Guid, KnownMonikers.InterfaceInternal.Id);
+
+                // TODO: Figure out the right thing to return here.
+                case Glyph.Intrinsic:
+                    return new ImageId(KnownMonikers.Type.Guid, KnownMonikers.Type.Id);
+
+                case Glyph.Keyword:
+                    return new ImageId(KnownMonikers.IntellisenseKeyword.Guid, KnownMonikers.IntellisenseKeyword.Id);
+
+                case Glyph.Label:
+                    return new ImageId(KnownMonikers.Label.Guid, KnownMonikers.Label.Id);
+
+                case Glyph.Parameter:
+                case Glyph.Local:
+                    return new ImageId(KnownMonikers.LocalVariable.Guid, KnownMonikers.LocalVariable.Id);
+
+                case Glyph.Namespace:
+                    return new ImageId(KnownMonikers.Namespace.Guid, KnownMonikers.Namespace.Id);
+
+                case Glyph.MethodPublic:
+                    return new ImageId(KnownMonikers.MethodPublic.Guid, KnownMonikers.MethodPublic.Id);
+                case Glyph.MethodProtected:
+                    return new ImageId(KnownMonikers.MethodProtected.Guid, KnownMonikers.MethodProtected.Id);
+                case Glyph.MethodPrivate:
+                    return new ImageId(KnownMonikers.MethodPrivate.Guid, KnownMonikers.MethodPrivate.Id);
+                case Glyph.MethodInternal:
+                    return new ImageId(KnownMonikers.MethodInternal.Guid, KnownMonikers.MethodInternal.Id);
+
+                case Glyph.ModulePublic:
+                    return new ImageId(KnownMonikers.ModulePublic.Guid, KnownMonikers.ModulePublic.Id);
+                case Glyph.ModuleProtected:
+                    return new ImageId(KnownMonikers.ModuleProtected.Guid, KnownMonikers.ModuleProtected.Id);
+                case Glyph.ModulePrivate:
+                    return new ImageId(KnownMonikers.ModulePrivate.Guid, KnownMonikers.ModulePrivate.Id);
+                case Glyph.ModuleInternal:
+                    return new ImageId(KnownMonikers.ModuleInternal.Guid, KnownMonikers.ModuleInternal.Id);
+
+                case Glyph.OpenFolder:
+                    return new ImageId(KnownMonikers.OpenFolder.Guid, KnownMonikers.OpenFolder.Id);
+
+                case Glyph.Operator:
+                    return new ImageId(KnownMonikers.Operator.Guid, KnownMonikers.Operator.Id);
+
+                case Glyph.PropertyPublic:
+                    return new ImageId(KnownMonikers.PropertyPublic.Guid, KnownMonikers.PropertyPublic.Id);
+                case Glyph.PropertyProtected:
+                    return new ImageId(KnownMonikers.PropertyProtected.Guid, KnownMonikers.PropertyProtected.Id);
+                case Glyph.PropertyPrivate:
+                    return new ImageId(KnownMonikers.PropertyPrivate.Guid, KnownMonikers.PropertyPrivate.Id);
+                case Glyph.PropertyInternal:
+                    return new ImageId(KnownMonikers.PropertyInternal.Guid, KnownMonikers.PropertyInternal.Id);
+
+                case Glyph.RangeVariable:
+                    return new ImageId(KnownMonikers.FieldPublic.Guid, KnownMonikers.FieldPublic.Id);
+
+                case Glyph.Reference:
+                    return new ImageId(KnownMonikers.Reference.Guid, KnownMonikers.Reference.Id);
+
+                case Glyph.StructurePublic:
+                    return new ImageId(KnownMonikers.ValueTypePublic.Guid, KnownMonikers.ValueTypePublic.Id);
+                case Glyph.StructureProtected:
+                    return new ImageId(KnownMonikers.ValueTypeProtected.Guid, KnownMonikers.ValueTypeProtected.Id);
+                case Glyph.StructurePrivate:
+                    return new ImageId(KnownMonikers.ValueTypePrivate.Guid, KnownMonikers.ValueTypePrivate.Id);
+                case Glyph.StructureInternal:
+                    return new ImageId(KnownMonikers.ValueTypeInternal.Guid, KnownMonikers.ValueTypeInternal.Id);
+
+                case Glyph.TypeParameter:
+                    return new ImageId(KnownMonikers.Type.Guid, KnownMonikers.Type.Id);
+
+                case Glyph.Snippet:
+                    return new ImageId(KnownMonikers.Snippet.Guid, KnownMonikers.Snippet.Id);
+
+                case Glyph.CompletionWarning:
+                    return new ImageId(KnownMonikers.IntellisenseWarning.Guid, KnownMonikers.IntellisenseWarning.Id);
+
+                case Glyph.StatusInformation:
+                    return new ImageId(KnownMonikers.StatusInformation.Guid, KnownMonikers.StatusInformation.Id);
+
+                case Glyph.NuGet:
+                    return new ImageId(KnownMonikers.NuGet.Guid, KnownMonikers.NuGet.Id);
+
+                default:
+                    throw new ArgumentException("glyph");
+            }
+        }
         public static Glyph GetGlyph(this ImmutableArray<string> tags)
         {
             foreach (var tag in tags)
