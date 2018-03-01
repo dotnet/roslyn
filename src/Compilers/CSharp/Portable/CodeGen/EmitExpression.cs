@@ -122,6 +122,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitDupExpression((BoundDup)expression, used);
                     break;
 
+                case BoundKind.PassByCopy:
+                    EmitExpression(((BoundPassByCopy)expression).Expression, used);
+                    break;
+
                 case BoundKind.Parameter:
                     if (used)  // unused parameter has no side-effects
                     {

@@ -2058,7 +2058,7 @@ class C
         }
     }
 }";
-            var v = CompileAndVerify(src, LatestVbReferences, options: TestOptions.DebugDll);
+            var v = CreateCompilationWithMscorlib40(src, LatestVbReferences, options: TestOptions.DebugDll);
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>

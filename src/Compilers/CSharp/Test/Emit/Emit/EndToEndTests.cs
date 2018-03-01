@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 var thread = new System.Threading.Thread(() =>
                 {
                     var options = new CSharpCompilationOptions(outputKind: OutputKind.DynamicallyLinkedLibrary, concurrentBuild: false);
-                    var compilation = CreateStandardCompilation(source, options: options);
+                    var compilation = CreateCompilation(source, options: options);
                     compilation.VerifyDiagnostics();
                     compilation.EmitToArray();
                 }, 0);

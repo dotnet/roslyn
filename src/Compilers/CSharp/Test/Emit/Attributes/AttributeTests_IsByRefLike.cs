@@ -124,7 +124,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 class Test
@@ -133,7 +133,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(codeB, verify: Verification.Passes, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            CompileAndVerify(codeB, verify: Verification.Passes, references: new[] { referenceA }, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
 
@@ -151,7 +151,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -160,7 +160,7 @@ using System.Runtime.CompilerServices;
 public delegate ref readonly int D([IsByRefLike]in int x);
 ";
 
-            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (4,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 // [IsByRefLike]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(4, 2),
@@ -178,7 +178,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -189,7 +189,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (4,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 // [IsByRefLike]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(4, 2));
@@ -204,7 +204,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -218,7 +218,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (6,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     [IsByRefLike]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(6, 6));
@@ -233,7 +233,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -247,7 +247,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (8,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     [IsByRefLike]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(8, 6));
@@ -262,7 +262,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -278,7 +278,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (6,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     [IsByRefLike]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(6, 6),
@@ -299,7 +299,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -311,7 +311,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (6,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     [IsByRefLike]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(6, 6),
@@ -330,7 +330,7 @@ public class Test
 	ref struct S1{}
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (2,2): error CS0246: The type or namespace name 'IsByRefLikeAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 // [IsByRefLike]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IsByRefLike").WithArguments("IsByRefLikeAttribute").WithLocation(2, 2),
@@ -345,13 +345,13 @@ public class Test
         {
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var code1 = CreateStandardCompilation(@"
+            var code1 = CreateCompilation(@"
 namespace System.Runtime.CompilerServices
 {
     public class IsByRefLikeAttribute : System.Attribute { }
 }");
 
-            var code2 = CreateStandardCompilation(@"
+            var code2 = CreateCompilation(@"
 public class Test1
 {
 	public ref struct S1{}
@@ -364,7 +364,7 @@ public class Test1
                 Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(isByRefLikeAttributeName));
             });
 
-            var code3 = CreateStandardCompilation(@"
+            var code3 = CreateCompilation(@"
 public class Test2
 {
 	public ref struct S1{}
@@ -385,7 +385,7 @@ public class Test2
 public ref struct S1{}
 ";
 
-            CreateStandardCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
+            CreateCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
                 // (2,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsByRefLikeAttribute' is not defined or imported
                 // public ref struct S1{}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "S1").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(2, 19)
@@ -402,7 +402,7 @@ public class Test
     public ref struct S2{}
 }";
 
-            CreateStandardCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
+            CreateCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
                 // (5,23): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsByRefLikeAttribute' is not defined or imported
                 //     public ref struct S2{}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "S2").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(5, 23),
@@ -415,7 +415,7 @@ public class Test
         [Fact]
         public void BuildingAModuleRequiresIsByRefLikeAttributeToBeThere_InAReference()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 namespace System.Runtime.CompilerServices
 {
     public class IsByRefLikeAttribute : System.Attribute { }
@@ -427,7 +427,7 @@ public class Test
     public ref struct S1{}
 }";
 
-            CompileAndVerify(code, verify: Verification.Fails, additionalRefs: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
 
@@ -460,7 +460,7 @@ public class Test2
 	public ref struct S1{}
 }";
 
-            CompileAndVerify(code2, options: options.WithModuleName("Assembly2"), additionalRefs: new[] { comp1.Compilation.ToMetadataReference() }, symbolValidator: module =>
+            CompileAndVerify(code2, options: options.WithModuleName("Assembly2"), references: new[] { comp1.Compilation.ToMetadataReference() }, symbolValidator: module =>
             {
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.IsByRefLikeAttribute.FullName);
@@ -503,7 +503,7 @@ class Test
     public ref struct S1{}
 }";
 
-            CreateStandardCompilation(text, options: TestOptions.ReleaseModule).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.ReleaseModule).VerifyDiagnostics(
                 // (11,23): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsByRefLikeAttribute..ctor'
                 //     public ref struct S1{}
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "S1").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute", ".ctor").WithLocation(11, 23)
@@ -526,7 +526,7 @@ class Test
    public ref struct S1{}
 }";
 
-            CreateStandardCompilation(text).VerifyEmitDiagnostics(
+            CreateCompilation(text).VerifyEmitDiagnostics(
                 // (11,22): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsByRefLikeAttribute..ctor'
                 //    public ref struct S1{}
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "S1").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute", ".ctor").WithLocation(11, 22)
@@ -549,7 +549,7 @@ class Test
     public ref struct S1{}
 }";
 
-            CreateStandardCompilation(text).VerifyEmitDiagnostics(
+            CreateCompilation(text).VerifyEmitDiagnostics(
                 // (11,23): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsByRefLikeAttribute..ctor'
                 //     public ref struct S1{}
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "S1").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute", ".ctor").WithLocation(11, 23)
@@ -559,7 +559,7 @@ class Test
         [Fact]
         public void IsByRefLikeAttributesInNoPia()
         {
-            var comAssembly = CreateStandardCompilation(@"
+            var comAssembly = CreateCompilation(@"
 using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""test.dll"")]
@@ -596,10 +596,10 @@ class User
 
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var compilation_CompilationReference = CreateStandardCompilation(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });
+            var compilation_CompilationReference = CreateCompilation(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });
             CompileAndVerify(compilation_CompilationReference, symbolValidator: symbolValidator);
 
-            var compilation_BinaryReference = CreateStandardCompilation(code, options: options, references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) });
+            var compilation_BinaryReference = CreateCompilation(code, options: options, references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) });
             CompileAndVerify(compilation_BinaryReference, symbolValidator: symbolValidator);
 
             void symbolValidator(ModuleSymbol module)
@@ -631,7 +631,7 @@ public class Test
     public ref struct S1{}
 }";
 
-            CreateStandardCompilation(text).VerifyEmitDiagnostics(
+            CreateCompilation(text).VerifyEmitDiagnostics(
                 // (11,23): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsByRefLikeAttribute..ctor'
                 //     public ref struct S1{}
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "S1").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute", ".ctor").WithLocation(11, 23)
@@ -825,7 +825,7 @@ class Test
 }
 ";
 
-            CreateStandardCompilation(text).VerifyEmitDiagnostics(
+            CreateCompilation(text).VerifyEmitDiagnostics(
                 // (7,9): error CS0619: 'Test.S1' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'
                 //         Test.S1 v1 = default;
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Test.S1").WithArguments("Test.S1", "Types with embedded references are not supported in this version of your compiler.").WithLocation(7, 9),
@@ -871,7 +871,7 @@ public class Test
 }
 ";
 
-            var libComp = CreateStandardCompilation(libSrc);
+            var libComp = CreateCompilation(libSrc);
 
             var text = @"
 class C1
@@ -890,7 +890,7 @@ class C1
 }
 ";
 
-            CreateStandardCompilation(text, new[] { libComp.EmitToImageReference() }).VerifyEmitDiagnostics(
+            CreateCompilation(text, new[] { libComp.EmitToImageReference() }).VerifyEmitDiagnostics(
                 // (10,9): error CS0619: 'Test.S2' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'
                 //         Test.S2 v2 = default;
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Test.S2").WithArguments("Test.S2", "Types with embedded references are not supported in this version of your compiler.").WithLocation(10, 9),
@@ -905,7 +905,7 @@ class C1
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v2").WithArguments("v2").WithLocation(10, 17)
             );
 
-            CreateStandardCompilation(text, new[] { libComp.ToMetadataReference() }).VerifyEmitDiagnostics(
+            CreateCompilation(text, new[] { libComp.ToMetadataReference() }).VerifyEmitDiagnostics(
                 // (7,9): error CS0619: 'Test.S1' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'
                 //         Test.S1 v1 = default;
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Test.S1").WithArguments("Test.S1", "Types with embedded references are not supported in this version of your compiler.").WithLocation(7, 9),
@@ -951,7 +951,7 @@ namespace System
 
     public ref struct NotTypedReference { }
 }";
-            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
 
             CompileAndVerify(compilation1, verify: Verification.Fails, symbolValidator: module =>
             {

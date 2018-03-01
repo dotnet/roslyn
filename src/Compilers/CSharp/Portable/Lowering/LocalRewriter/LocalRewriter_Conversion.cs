@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If this is not an identity conversion of a float with unknown precision, strip away the identity conversion.
                     if (!IsFloatingPointExpressionOfUnknownPrecision(rewrittenOperand))
                     {
-                        return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenOperand);
+                        return rewrittenOperand;
                     }
 
                     break;
