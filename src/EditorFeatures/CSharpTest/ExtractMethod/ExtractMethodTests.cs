@@ -10801,6 +10801,10 @@ namespace ConsoleApp1
         }
     }
 }";
+
+            // allowMovingDeclaration: false is default behavior on VS. 
+            // it doesn't affect result mostly but it does affect for symbols in unreachable code since
+            // data flow in and out for the symbol is always set to false
             await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
         }
 
