@@ -187,7 +187,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol)
         {
-            return Create(typeSymbol, ImmutableArray<CustomModifier>.Empty);
+            if (typeSymbol is null)
+            {
+                return null;
+            }
+
+            // PROTOTYPE(NullableReferenceTypes): Consider if it makes
+            // sense to cache and reuse instances, at least for definitions.
+            return new WithoutCustomModifiers(typeSymbol);
         }
 
         // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
@@ -648,6 +655,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             public override TypeSymbol AsTypeSymbolOnly() => _typeSymbol;
+
+            // PROTOTYPE(NullableReferenceTypes): Use WithCustomModifiers.Is() => false
+            // and set IsNullable=null always for GetTypeParametersAsTypeArguments.
             public override bool Is(TypeSymbol other) => _typeSymbol.Equals(other, TypeCompareKind.CompareNullableModifiersForReferenceTypes);
 
             protected sealed override TypeSymbolWithAnnotations DoUpdate(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)

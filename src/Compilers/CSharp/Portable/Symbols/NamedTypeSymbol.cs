@@ -1070,6 +1070,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments()
         {
+            // PROTOTYPE(NullableReferenceTypes): Set IsNullable=null always, even in C#8,
+            // and set TypeSymbolWithAnnotations.WithCustomModifiers.Is() => false.
             return this.TypeParameters.SelectAsArray((typeParameter, module) => TypeSymbolWithAnnotations.Create(module, typeParameter), ContainingModule);
         }
 
