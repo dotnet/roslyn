@@ -5,7 +5,6 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;

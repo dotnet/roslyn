@@ -13,7 +13,6 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.CodeAnalysis.Editor.Wpf;
 
 namespace Microsoft.VisualStudio.LanguageServices.Shared
 {
@@ -69,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
         }
 
         private ImageCompositionLayer CreateLayer(
-            ImageMoniker imageMoniker, 
+            ImageMoniker imageMoniker,
             int virtualWidth = 16,
             int virtualYOffset = 0,
             int virtualXOffset = 0)
