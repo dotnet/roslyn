@@ -1,15 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -20,42 +15,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class TotalClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, ParseOptions options)
+        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code, options))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-                var syntaxTree = await document.GetSyntaxTreeAsync();
-
-                var service = document.GetLanguageService<ISyntaxClassificationService>();
-                var classifiers = service.GetDefaultSyntaxClassifiers();
-                var extensionManager = workspace.Services.GetService<IExtensionManager>();
-
-                var semanticClassifications = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                var syntacticClassifications = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                await service.AddSemanticClassificationsAsync(document, textSpan,
-                    extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
-                    extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
-                    semanticClassifications, CancellationToken.None);
-                service.AddSyntacticClassifications(syntaxTree, textSpan, syntacticClassifications, CancellationToken.None);
-
-                var classificationsSpans = new HashSet<TextSpan>();
-
-                // Add all the semantic classifications in.
-                var allClassifications = new List<ClassifiedSpan>(semanticClassifications);
-                classificationsSpans.AddRange(allClassifications.Select(t => t.TextSpan));
-
-                // Add the syntactic classifications.  But only if they don't conflict with a semantic
-                // classification.
-                allClassifications.AddRange(
-                    from t in syntacticClassifications
-                    where !classificationsSpans.Contains(t.TextSpan)
-                    select t);
-
-                syntacticClassifications.Free();
-                semanticClassifications.Free();
-                return allClassifications.ToImmutableArray();
+                return GetAllClassificationsAsync(document, span);
             }
         }
 

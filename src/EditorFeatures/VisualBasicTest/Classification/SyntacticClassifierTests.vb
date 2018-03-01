@@ -1,27 +1,20 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SyntacticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Protected Overrides Async Function GetClassificationSpansAsync(code As String, textSpan As TextSpan, parseOptions As ParseOptions) As Task(Of ImmutableArray(Of ClassifiedSpan))
+        Protected Overrides Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions) As Task(Of ImmutableArray(Of ClassifiedSpan))
             Using Workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = Workspace.CurrentSolution.Projects.First().Documents.First()
-                Dim tree = Await document.GetSyntaxTreeAsync()
 
-                Dim service = document.GetLanguageService(Of ISyntaxClassificationService)()
-                Dim result = ArrayBuilder(Of ClassifiedSpan).GetInstance
-                service.AddSyntacticClassifications(tree, textSpan, result, CancellationToken.None)
-
-                Return result.ToImmutableAndFree()
+                Return GetSyntacticClassificationsAsync(document, span)
             End Using
         End Function
 

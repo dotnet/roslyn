@@ -2,13 +2,10 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -18,19 +15,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, ParseOptions options)
+        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: options))
             {
-                var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
-                var tree = await document.GetSyntaxTreeAsync();
 
-                var service = document.GetLanguageService<ISyntaxClassificationService>();
-                var result = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                service.AddSyntacticClassifications(tree, textSpan, result, CancellationToken.None);
-
-                return result.ToImmutableAndFree();
+                return GetSyntacticClassificationsAsync(document, span);
             }
         }
 

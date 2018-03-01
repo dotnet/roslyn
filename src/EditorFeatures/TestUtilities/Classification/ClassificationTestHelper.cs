@@ -12,16 +12,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
     public static class ClassificationTestHelper
     {
         private static string GetText(FormattedClassification formattedClassification)
-        {
-            return "(" + formattedClassification.Text + ", " + formattedClassification.ClassificationName + ")";
-        }
+            => $"({formattedClassification.Text}, {formattedClassification.ClassificationName})";
 
         private static string GetText(ClassifiedSpan tuple)
-        {
-            return "(" + tuple.TextSpan + ", " + tuple.ClassificationType + ")";
-        }
+            => $"({tuple.TextSpan}, {tuple.ClassificationType})";
 
-        internal static void VerifyTextAndClassifications(
+        public static void VerifyTextAndClassifications(
             string expectedText,
             IEnumerable<FormattedClassification> expectedClassifications,
             string actualText,
@@ -58,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             }
         }
 
-        internal static void VerifyTextAndClassifications(
+        public static void VerifyTextAndClassifications(
             string expectedText,
             IEnumerable<FormattedClassification> expectedClassifications,
             IList<TaggedText> actualContent)

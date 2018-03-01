@@ -11,9 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -30,25 +28,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, ParseOptions options)
+        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code, options))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-                var syntaxTree = await document.GetSyntaxTreeAsync();
-
-                var service = document.GetLanguageService<ISyntaxClassificationService>();
-                var classifiers = service.GetDefaultSyntaxClassifiers();
-                var extensionManager = workspace.Services.GetService<IExtensionManager>();
-
-                var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                await service.AddSemanticClassificationsAsync(document, textSpan,
-                    extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
-                    extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
-                    results, CancellationToken.None);
-
-                return results.ToImmutableAndFree();
+                return GetSemanticClassificationsAsync(document, span);
             }
         }
 

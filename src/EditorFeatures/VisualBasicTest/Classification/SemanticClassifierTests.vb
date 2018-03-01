@@ -1,36 +1,20 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Extensions
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SemanticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Protected Overrides Async Function GetClassificationSpansAsync(code As String, textSpan As TextSpan, parseOptions As ParseOptions) As Task(Of ImmutableArray(Of ClassifiedSpan))
+        Protected Overrides Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions) As Task(Of ImmutableArray(Of ClassifiedSpan))
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
-                Dim service = document.GetLanguageService(Of ISyntaxClassificationService)()
-
-                Dim tree = Await document.GetSyntaxTreeAsync()
-
-                Dim result = ArrayBuilder(Of ClassifiedSpan).GetInstance()
-                Dim classifiers = service.GetDefaultSyntaxClassifiers()
-                Dim extensionManager = workspace.Services.GetService(Of IExtensionManager)
-
-                Await service.AddSemanticClassificationsAsync(document, textSpan,
-                    extensionManager.CreateNodeExtensionGetter(classifiers, Function(c) c.SyntaxNodeTypes),
-                    extensionManager.CreateTokenExtensionGetter(classifiers, Function(c) c.SyntaxTokenKinds),
-                    result, CancellationToken.None)
-
-                Return result.ToImmutableAndFree()
+                Return GetSemanticClassificationsAsync(document, span)
             End Using
         End Function
 

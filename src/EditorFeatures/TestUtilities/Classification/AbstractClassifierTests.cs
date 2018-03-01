@@ -1,13 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 {
@@ -213,5 +219,56 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
         [DebuggerStepThrough]
         protected static ParseOptions[] ParseOptions(params ParseOptions[] options) => options;
+
+        protected static async Task<ImmutableArray<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)
+        {
+            var tree = await document.GetSyntaxTreeAsync();
+
+            var service = document.GetLanguageService<ISyntaxClassificationService>();
+            var classifiers = service.GetDefaultSyntaxClassifiers();
+            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+
+            var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
+
+            await service.AddSemanticClassificationsAsync(document, span,
+                extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
+                extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
+                results,
+                CancellationToken.None);
+
+            return results.ToImmutableAndFree();
+        }
+
+        protected static async Task<ImmutableArray<ClassifiedSpan>> GetSyntacticClassificationsAsync(Document document, TextSpan span)
+        {
+            var tree = await document.GetSyntaxTreeAsync();
+
+            var service = document.GetLanguageService<ISyntaxClassificationService>();
+            var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
+
+            service.AddSyntacticClassifications(tree, span, results, CancellationToken.None);
+
+            return results.ToImmutableAndFree();
+        }
+
+        protected static async Task<ImmutableArray<ClassifiedSpan>> GetAllClassificationsAsync(Document document, TextSpan span)
+        {
+            var semanticClassifications = await GetSemanticClassificationsAsync(document, span);
+            var syntacticClassifications = await GetSyntacticClassificationsAsync(document, span);
+
+            var classificationsSpans = new HashSet<TextSpan>();
+
+            // Add all the semantic classifications in.
+            var allClassifications = new List<ClassifiedSpan>(semanticClassifications);
+            classificationsSpans.AddRange(allClassifications.Select(t => t.TextSpan));
+
+            // Add the syntactic classifications.  But only if they don't conflict with a semantic classification.
+            allClassifications.AddRange(
+                from t in syntacticClassifications
+                where !classificationsSpans.Contains(t.TextSpan)
+                select t);
+
+            return allClassifications.ToImmutableArray();
+        }
     }
 }
