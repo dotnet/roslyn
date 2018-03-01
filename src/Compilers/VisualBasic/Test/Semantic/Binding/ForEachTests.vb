@@ -3238,7 +3238,7 @@ BC30105: Number of indices is less than the number of dimensions of the indexed 
 1
 2
 3
-]]>, additionalRefs:={SystemCoreRef})
+]]>, references:={SystemCoreRef})
         End Sub
 
         <Fact()>

@@ -4022,7 +4022,7 @@ End Module
 
    ]]>
     </file>
-</compilation>, expectedOutput:="HELLO", additionalRefs:=XmlReferences)
+</compilation>, expectedOutput:="HELLO", references:=XmlReferences)
 
         End Sub
 

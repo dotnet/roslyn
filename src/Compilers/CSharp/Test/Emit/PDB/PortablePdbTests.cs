@@ -37,7 +37,7 @@ class C
     public static bool F() => false;
 }
 ";
-            var c = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
 
             var pdbStream = new MemoryStream();
             var peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
@@ -161,7 +161,7 @@ class C
     }
 }
 ";
-            var c = CreateStandardCompilation(Parse(source, "goo.cs"), options: TestOptions.DebugDll);
+            var c = CreateCompilation(Parse(source, "goo.cs"), options: TestOptions.DebugDll);
 
             var peBlob = c.EmitToArray(EmitOptions.Default.
                 WithDebugInformationFormat(DebugInformationFormat.Embedded).
@@ -221,7 +221,7 @@ class C
     }
 }
 ";
-            var c = CreateStandardCompilation(Parse(source, "goo.cs"), options: TestOptions.DebugDll.WithDeterministic(true));
+            var c = CreateCompilation(Parse(source, "goo.cs"), options: TestOptions.DebugDll.WithDeterministic(true));
 
             var peBlob = c.EmitToArray(EmitOptions.Default.
                 WithDebugInformationFormat(DebugInformationFormat.Embedded).
@@ -296,7 +296,7 @@ class C
 }
 ");
 
-            var c = CreateStandardCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
+            var c = CreateCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
 
             var pdbStream = new MemoryStream();
             c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream, sourceLinkStream: new MemoryStream(sourceLinkBlob));
@@ -337,7 +337,7 @@ class C
   }
 }
 ");
-            var c = CreateStandardCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
+            var c = CreateCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
 
             var peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded), sourceLinkStream: new MemoryStream(sourceLinkBlob));
 
@@ -376,7 +376,7 @@ class C
 ";
             var sourceLinkStream = new TestStream(canRead: true, readFunc: (_, __, ___) => { throw new Exception("Error!"); });
 
-            var c = CreateStandardCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
+            var c = CreateCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
             var result = c.Emit(new MemoryStream(), new MemoryStream(), options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), sourceLinkStream: sourceLinkStream);
             result.Diagnostics.Verify(
                 // error CS0041: Unexpected error writing debug information -- 'Error!'

@@ -1553,7 +1553,7 @@ Imports System
             </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                                            additionalRefs:={TestReferences.SymbolsTests.DifferByCase.CsharpDifferCaseOverloads},
+                                            references:={TestReferences.SymbolsTests.DifferByCase.CsharpDifferCaseOverloads},
                                  expectedOutput:=<![CDATA[
 Keep calm and carry on.
 The authorities have been called.]]>)
@@ -3379,7 +3379,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
             Dim metadataRef = comp.EmitToImageReference()
-            CompileAndVerify(source2, additionalRefs:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.Fails)
+            CompileAndVerify(source2, references:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.Fails)
         End Sub
 
         <Fact>

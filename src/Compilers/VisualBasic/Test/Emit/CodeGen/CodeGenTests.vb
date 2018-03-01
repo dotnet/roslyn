@@ -645,7 +645,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 0.0000000000000000000000000031
 0.0000000000000000000000000030
 
@@ -703,7 +703,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 00000000000000000000000000000000
 00000000000000000000000000010000
 00000000000000000000000000020000
@@ -5941,7 +5941,7 @@ Module Program1
 
 End Module
     </file>
-</compilation>, additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef})
+</compilation>, references:={TestReferences.SymbolsTests.PropertiesWithByRef})
 
             verifier.VerifyIL("Module1.M",
             <![CDATA[
@@ -13160,7 +13160,7 @@ End Module
 </compilation>
 
             Dim testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference()
-            Dim compilation = CompileAndVerify(source, additionalRefs:=New MetadataReference() {testReference})
+            Dim compilation = CompileAndVerify(source, references:=New MetadataReference() {testReference})
             compilation.VerifyIL("C.Main",
             <![CDATA[
 {

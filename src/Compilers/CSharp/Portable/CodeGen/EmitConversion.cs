@@ -21,9 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     _builder.EmitOpCode(ILOpCode.Conv_u);
                     EmitPopIfUnused(used);
                     return;
-                case ConversionKind.IdentityValue:
-                    EmitExpressionCore(conversion.Operand, used);
-                    return;
             }
 
             if (!used && !conversion.ConversionHasSideEffects())

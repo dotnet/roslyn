@@ -2067,7 +2067,7 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,18): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 //         int (x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x1, x2)").WithLocation(6, 13)
@@ -2097,7 +2097,7 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,9): error CS8183: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int x1, x2)").WithLocation(7, 9),
@@ -2128,7 +2128,7 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 );
         }
 
@@ -2161,7 +2161,7 @@ class C
         var(x, y) += e;            // error 1
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         var(x, y) += e;            // error 1
                 Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 9),
@@ -2188,7 +2188,7 @@ class C
         var(x, y)++;               // error 2
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         var(x, y)++;               // error 2
                 Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 9),
@@ -2215,7 +2215,7 @@ class C
         ++var(x, y);               // error 3
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,11): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         ++var(x, y);               // error 3
                 Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 11),
@@ -2244,7 +2244,7 @@ class C
 
     void X(out object x) { x = null; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0103: The name 'var' does not exist in the current context
                 //         X(out var(x, y));          // error 4
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 15),
@@ -2273,7 +2273,7 @@ class C
 
     void X(ref object x) { x = null; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0103: The name 'var' does not exist in the current context
                 //         X(ref var(x, y));          // error 5
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 15),
@@ -2300,7 +2300,7 @@ class C
         return ref var(x, y);      // error 6
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,20): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         return ref var(x, y);      // error 6
                 Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 20),
@@ -2327,7 +2327,7 @@ class C
         ref int x = ref var(x, y); // error 7
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,25): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         ref int x = ref var(x, y); // error 7
                 Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 25),
@@ -2354,7 +2354,7 @@ class C
         var (x, 1) = e;            // error 8
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,10): error CS1519: Invalid token 'object' in class, struct, or interface member declaration
                 //     void object M(string e)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "object").WithArguments("object").WithLocation(4, 10),
