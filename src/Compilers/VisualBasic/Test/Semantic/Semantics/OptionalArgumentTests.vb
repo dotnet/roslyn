@@ -704,7 +704,7 @@ End Module
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
-            CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=<![CDATA[
+            CompileAndVerify(source, references:={metadataRef}, expectedOutput:=<![CDATA[
 1
 System.Reflection.Missing
 3
@@ -765,7 +765,7 @@ End Module
 
             Dim libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
-            CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
+            CompileAndVerify(source, references:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
 1
 2
 ]]>).VerifyDiagnostics()
@@ -854,7 +854,7 @@ System.Runtime.InteropServices.DispatchWrapper
 ]]>
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
-            Dim verifier = CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=expected).VerifyDiagnostics()
+            Dim verifier = CompileAndVerify(source, references:={metadataRef}, expectedOutput:=expected).VerifyDiagnostics()
             Dim compilation = verifier.Compilation
 
             Dim tree = compilation.SyntaxTrees.Single()
@@ -946,7 +946,7 @@ End Module
 
             libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
-            CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
+            CompileAndVerify(source, references:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
 System.Reflection.Missing
 nothing
 0
@@ -1010,7 +1010,7 @@ End Module
 </compilation>
             Dim libRef As MetadataReference = libComp.ToMetadataReference()
 
-            CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
+            CompileAndVerify(source, references:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
 True
 5
 a
@@ -1019,7 +1019,7 @@ a
 
             libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
-            CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
+            CompileAndVerify(source, references:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
 False
 0
 0
@@ -1027,7 +1027,7 @@ False
 ]]>).VerifyDiagnostics()
 
             CompileAndVerify(source,
-                             additionalRefs:=New MetadataReference() {libRef},
+                             references:=New MetadataReference() {libRef},
                              options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optionCompareText:=True),
                              expectedOutput:=<![CDATA[
 True

@@ -1685,6 +1685,55 @@ End Module
             CompileAndVerify(comp3, expectedOutput:="Y").Diagnostics.Verify()
         End Sub
 
+        <Fact>
+        <WorkItem(24964, "https://github.com/dotnet/roslyn/issues/24964")>
+        Public Sub UnificationAcrossDistinctCoreLibs()
+            Dim pia = "
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+
+<Assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")>
+<Assembly: ImportedFromTypeLib(""Pia.dll"")>
+
+Public Structure Test
+End Structure
+"
+            Dim piaCompilation = CreateCompilationWithMscorlib45(pia, options:=TestOptions.ReleaseDll, assemblyName:="Pia")
+
+            Dim consumer1 = "
+Public Class UsePia1 
+    Public Shared Function M1() As Test
+        Return Nothing
+    End Function
+End Class
+"
+
+            Dim consumer2 = "
+Public Class Program
+    Public Sub Main()
+        UsePia1.M1()
+    End Sub
+End Class
+"
+            For Each piaRef As MetadataReference In {piaCompilation.EmitToImageReference(), piaCompilation.ToMetadataReference()}
+                Dim compilation1 = CreateCompilationWithMscorlib45(consumer1, references:={piaRef.WithEmbedInteropTypes(True)}, options:=TestOptions.ReleaseDll)
+
+                For Each consumer1Ref As MetadataReference In {compilation1.EmitToImageReference(), compilation1.ToMetadataReference()}
+                    Dim compilation2 = CreateCompilation(consumer2, references:={MscorlibRef_v46, piaRef, consumer1Ref})
+
+                    compilation2.VerifyDiagnostics()
+
+                    Assert.NotSame(compilation1.SourceAssembly.CorLibrary, compilation2.SourceAssembly.CorLibrary)
+
+                    Dim test = compilation2.GetTypeByMetadataName("Test")
+                    Assert.Equal("Pia.dll", test.ContainingModule.Name)
+
+                    Dim usePia1 = compilation2.GetTypeByMetadataName("UsePia1")
+                    Assert.Same(test, usePia1.GetMember(Of MethodSymbol)("M1").ReturnType)
+                Next
+            Next
+        End Sub
+
     End Class
 
 End Namespace

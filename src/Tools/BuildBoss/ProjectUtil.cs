@@ -60,7 +60,7 @@ namespace BuildBoss
 
         internal bool TryGetRoslynProjectData(out RoslynProjectData data, out string error)
         {
-            data = default(RoslynProjectData);
+            data = default;
             error = null;
 
             var typeElement = FindSingleProperty("RoslynProjectType");

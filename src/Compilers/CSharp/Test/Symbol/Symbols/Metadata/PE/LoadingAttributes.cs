@@ -1289,7 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
         public void Bug530209_DecimalConstant()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Class1
 {
@@ -1316,8 +1316,9 @@ public class Class1
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
         [WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
+        [WorkItem(23760, "https://github.com/dotnet/roslyn/issues/23760")] // reason for skipping Mono
         public void Bug530209_DecimalConstant_FromIL()
         {
             var ilSource = @"
@@ -1422,9 +1423,9 @@ class Class2 : Class1
 {
 }";
 
-            CompileAndVerify(CreateCompilationWithCustomILSource(csSource, ilSource), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithILAndMscorlib40(csSource, ilSource), symbolValidator: module =>
             {
-                var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType;
+                var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType();
                 Assert.Equal("Class1", class1.ToTestDisplayString());
 
                 var field1 = class1.GetField("d1");
@@ -1449,9 +1450,9 @@ class Class2 : Class1
 
             // Switch order of API calls
 
-            CompileAndVerify(CreateCompilationWithCustomILSource(csSource, ilSource), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithILAndMscorlib40(csSource, ilSource), symbolValidator: module =>
             {
-                var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType;
+                var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType();
                 Assert.Equal("Class1", class1.ToTestDisplayString());
 
                 var field1 = class1.GetField("d1");
@@ -1503,7 +1504,7 @@ class Class2 : Class1
 } // end of class MyAttribute
 ";
 
-            var c = CreateCompilationWithCustomILSource(@"
+            var c = CreateCompilationWithILAndMscorlib40(@"
 [MyAttribute(typeof(MyAttribute))]
 public class Test
 {

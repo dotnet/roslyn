@@ -16,6 +16,7 @@ usage()
     echo "  --restore             Restore projects required to build"
     echo "  --build               Build all projects"
     echo "  --test                Run unit tests"
+    echo "  --mono                Run unit tests with mono"
     echo "  --build-bootstrap     Build the bootstrap compilers"
     echo "  --use-bootstrap       Use the built bootstrap compilers when running main build"
     echo "  --bootstrap           Implies --build-bootstrap and --use-bootstrap"
@@ -26,10 +27,13 @@ binaries_path="${root_path}"/Binaries
 bootstrap_path="${binaries_path}"/Bootstrap
 bootstrap_framework=netcoreapp2.0
 
+args=
+build_in_docker=false
 build_configuration=Debug
 restore=false
 build=false
 test_=false
+use_mono=false
 build_bootstrap=false
 use_bootstrap=false
 stop_vbcscompiler=false
@@ -51,52 +55,61 @@ do
     opt="$(echo "$1" | awk '{print tolower($0)}')"
     case "$opt" in
         -h|--help)
-        usage
-        exit 1
-        ;;
+            usage
+            exit 1
+            ;;
+        --docker)
+            build_in_docker=true
+            shift
+            continue
+            ;;
         --debug)
-        build_configuration=Debug
-        shift 1
-        ;;
+            build_configuration=Debug
+            ;;
         --release)
-        build_configuration=Release
-        shift 1
-        ;;
+            build_configuration=Release
+            ;;
         --restore|-r)
-        restore=true
-        shift 1
-        ;;
+            restore=true
+            ;;
         --build|-b)
-        build=true
-        shift 1
-        ;;
+            build=true
+            ;;
         --test|-t)
-        test_=true
-        shift 1
-        ;;
+            test_=true
+            ;;
+        --mono)
+            use_mono=true
+            ;;
         --build-bootstrap)
-        build_bootstrap=true
-        shift 1
-        ;;
+            build_bootstrap=true
+            ;;
         --use-bootstrap)
-        use_bootstrap=true
-        shift 1
-        ;;
+            use_bootstrap=true
+            ;;
         --bootstrap)
-        build_bootstrap=true
-        use_bootstrap=true
-        shift 1
-        ;;
+            build_bootstrap=true
+            use_bootstrap=true
+            ;;
         --stop-vbcscompiler)
-        stop_vbcscompiler=true
-        shift 1
-        ;;
+            stop_vbcscompiler=true
+            ;;
         *)
-        usage
-        exit 1
+            echo "$1"
+            usage
+            exit 1
         ;;
     esac
+    args="$args $1"
+    shift
 done
+
+if [[ "$build_in_docker" = true ]]
+then
+    echo "Docker exec: $args"
+    BUILD_COMMAND=/opt/code/build.sh "$root_path"/build/scripts/dockerrun.sh $args
+    exit
+fi
 
 source "${root_path}"/build/scripts/obtain_dotnet.sh
 
@@ -122,6 +135,13 @@ then
     build_args+=" /p:BootstrapBuildPath=${bootstrap_path}"
 fi
 
+# https://github.com/dotnet/roslyn/issues/23736
+UNAME="$(uname)"
+if [[ "$UNAME" == "Darwin" ]]
+then
+    build_args+=" /p:UseRoslynAnalyzers=false"
+fi
+
 if [[ "${build}" == true ]]
 then
     echo "Building Compilers.sln"
@@ -142,5 +162,11 @@ fi
 
 if [[ "${test_}" == true ]]
 then
-    "${root_path}"/build/scripts/tests.sh "${build_configuration}"
+    if [[ "${use_mono}" == true ]]
+    then
+        test_runtime=mono
+    else
+        test_runtime=dotnet
+    fi
+    "${root_path}"/build/scripts/tests.sh "${build_configuration}" "${test_runtime}"
 fi

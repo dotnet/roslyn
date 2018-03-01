@@ -4,637 +4,627 @@
     <body>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
-        <target state="new">Inline temporary variable</target>
+        <target state="translated">Variable temporal en línea</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
-        <target state="new">Conflict(s) detected.</target>
+        <target state="translated">Conflicto(s) detectado(s).</target>
         <note />
       </trans-unit>
       <trans-unit id="Invert_if_statement">
         <source>Invert if statement</source>
-        <target state="new">Invert if statement</target>
+        <target state="translated">Invertir instrucción if</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>
-        <target state="new">Simplify lambda expression</target>
+        <target state="translated">Simplificar expresión lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_all_occurrences">
         <source>Simplify all occurrences</source>
-        <target state="new">Simplify all occurrences</target>
+        <target state="translated">Simplificar todas las repeticiones</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">
         <source>Remove Unnecessary Usings</source>
-        <target state="new">Remove Unnecessary Usings</target>
+        <target state="translated">Eliminar instrucciones Using innecesarias</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
-        <target state="new">&lt;lambda expression&gt;</target>
+        <target state="translated">&lt;expresión lambda&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_lambda_declaration">
         <source>Autoselect disabled due to potential lambda declaration.</source>
-        <target state="new">Autoselect disabled due to potential lambda declaration.</target>
+        <target state="translated">La selección automática se ha deshabilitado debido posiblemente a una declaración lambda.</target>
         <note />
       </trans-unit>
       <trans-unit id="member_name">
         <source>&lt;member name&gt; = </source>
-        <target state="new">&lt;member name&gt; = </target>
+        <target state="translated">&lt;nombre de miembro&gt; = </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation">
         <source>Autoselect disabled due to possible explicitly named anonymous type member creation.</source>
-        <target state="new">Autoselect disabled due to possible explicitly named anonymous type member creation.</target>
+        <target state="translated">La selección automática se ha deshabilitado debido a la creación de un miembro de tipo anónimo nombrado explícitamente.</target>
         <note />
       </trans-unit>
       <trans-unit id="element_name">
         <source>&lt;element name&gt; : </source>
-        <target state="new">&lt;element name&gt; : </target>
+        <target state="translated">&lt;nombre de elemento&gt;: </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
         <source>Autoselect disabled due to possible tuple type element creation.</source>
-        <target state="new">Autoselect disabled due to possible tuple type element creation.</target>
+        <target state="translated">La selección automática se deshabilitó debido a la posible creación de elementos de tipo de tupla.</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
         <source>&lt;range variable&gt;</source>
-        <target state="new">&lt;range variable&gt;</target>
+        <target state="translated">&lt;variable de rango&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_range_variable_declaration">
         <source>Autoselect disabled due to potential range variable declaration.</source>
-        <target state="new">Autoselect disabled due to potential range variable declaration.</target>
+        <target state="translated">La selección automática se ha deshabilitado debido posiblemente a una declaración de variable de rango.</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Cast">
         <source>Remove Unnecessary Cast</source>
-        <target state="new">Remove Unnecessary Cast</target>
+        <target state="translated">Quitar conversión innecesaria</target>
         <note />
       </trans-unit>
       <trans-unit id="Cast_is_redundant">
         <source>Cast is redundant</source>
-        <target state="new">Cast is redundant</target>
+        <target state="translated">Cast es redundante</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
-        <target state="new">Simplify name '{0}'</target>
+        <target state="translated">Simplificar nombre '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_member_access_0">
         <source>Simplify member access '{0}'</source>
-        <target state="new">Simplify member access '{0}'</target>
+        <target state="translated">Simplificar acceso a miembros '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_this_qualification">
         <source>Remove 'this' qualification</source>
-        <target state="new">Remove 'this' qualification</target>
+        <target state="translated">Quitar calificación 'this'</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified</source>
-        <target state="new">Name can be simplified</target>
+        <target state="translated">El nombre se puede simplificar</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
         <source>Can't determine valid range of statements to extract</source>
-        <target state="new">Can't determine valid range of statements to extract</target>
+        <target state="translated">No se puede determinar el intervalo válido de instrucciones para extraer.</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
-        <target state="new">Not all code paths return</target>
+        <target state="translated">No todas las rutas de acceso de código vuelven</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_node">
         <source>Selection does not contain a valid node</source>
-        <target state="new">Selection does not contain a valid node</target>
+        <target state="translated">La selección no contiene un nodo válido</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
-        <target state="new">Invalid selection.</target>
+        <target state="translated">Selección no válida.</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
         <source>Selection does not contain a valid token.</source>
-        <target state="new">Selection does not contain a valid token.</target>
+        <target state="translated">La selección no contiene un token válido</target>
         <note />
       </trans-unit>
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
-        <target state="new">No valid selection to perform extraction.</target>
+        <target state="translated">Selección no válida para efectuar extracción.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction.</source>
-        <target state="new">No common root node for extraction.</target>
+        <target state="translated">No hay nodo raíz común para la extracción.</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
         <source>Contains invalid selection.</source>
-        <target state="new">Contains invalid selection.</target>
+        <target state="translated">Contiene una selección no válida.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_syntactic_errors">
         <source>The selection contains syntactic errors</source>
-        <target state="new">The selection contains syntactic errors</target>
+        <target state="translated">La selección contiene errores sintácticos</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_can_not_cross_over_preprocessor_directives">
         <source>Selection can not cross over preprocessor directives.</source>
-        <target state="new">Selection can not cross over preprocessor directives.</target>
+        <target state="translated">La selección no puede cruzar directivas de preprocesador.</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_can_not_contain_a_yield_statement">
         <source>Selection can not contain a yield statement.</source>
-        <target state="new">Selection can not contain a yield statement.</target>
+        <target state="translated">La selección no puede contener una instrucción yield.</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_can_not_contain_throw_statement">
         <source>Selection can not contain throw statement.</source>
-        <target state="new">Selection can not contain throw statement.</target>
+        <target state="translated">La selección no puede contener una instrucción throw.</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_can_not_be_part_of_constant_initializer_expression">
         <source>Selection can not be part of constant initializer expression.</source>
-        <target state="new">Selection can not be part of constant initializer expression.</target>
+        <target state="translated">La selección no puede formar parte de una expresión de inicializador constante.</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_can_not_contain_a_pattern_expression">
         <source>Selection can not contain a pattern expression.</source>
-        <target state="new">Selection can not contain a pattern expression.</target>
+        <target state="translated">La selección no puede contener una expresión de patrón.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selected_code_is_inside_an_unsafe_context">
         <source>The selected code is inside an unsafe context.</source>
-        <target state="new">The selected code is inside an unsafe context.</target>
+        <target state="translated">El código seleccionado se encuentra dentro de un contexto no seguro.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_valid_statement_range_to_extract">
         <source>No valid statement range to extract</source>
-        <target state="new">No valid statement range to extract</target>
+        <target state="translated">No hay un intervalo válido de instrucciones para extraer.</target>
         <note />
       </trans-unit>
       <trans-unit id="deprecated">
         <source>deprecated</source>
-        <target state="new">deprecated</target>
+        <target state="translated">en desuso</target>
         <note />
       </trans-unit>
       <trans-unit id="extension">
         <source>extension</source>
-        <target state="new">extension</target>
+        <target state="translated">extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="awaitable">
         <source>awaitable</source>
-        <target state="new">awaitable</target>
+        <target state="translated">admite await</target>
         <note />
       </trans-unit>
       <trans-unit id="awaitable_extension">
         <source>awaitable, extension</source>
-        <target state="new">awaitable, extension</target>
+        <target state="translated">admite await, extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
-        <target state="new">Organize Usings</target>
+        <target state="translated">Organizar instrucciones Using</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
         <source>R&amp;emove and Sort Usings</source>
-        <target state="new">R&amp;emove and Sort Usings</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_potential_implicit_array_creation">
-        <source>Autoselect disabled due to potential implicit array creation.</source>
-        <target state="new">Autoselect disabled due to potential implicit array creation.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="implicit_array_creation">
-        <source>&lt;implicit array creation&gt;</source>
-        <target state="new">&lt;implicit array creation&gt;</target>
+        <target state="translated">Eliminar y ord&amp;enar instrucciones Using</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_await">
         <source>Insert 'await'.</source>
-        <target state="new">Insert 'await'.</target>
+        <target state="translated">Insertar 'await'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_return_Task_instead_of_void">
         <source>Make {0} return Task instead of void.</source>
-        <target state="new">Make {0} return Task instead of void.</target>
+        <target state="translated">Hacer que {0} devuelva Tarea en lugar de void.</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_return_type_from_0_to_1">
         <source>Change return type from {0} to {1}</source>
-        <target state="new">Change return type from {0} to {1}</target>
+        <target state="translated">Cambiar el tipo de valor devuelto de {0} a {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_return_with_yield_return">
         <source>Replace return with yield return</source>
-        <target state="new">Replace return with yield return</target>
+        <target state="translated">Reemplazar return por yield return</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
         <source>Generate explicit conversion operator in '{0}'</source>
-        <target state="new">Generate explicit conversion operator in '{0}'</target>
+        <target state="translated">Generar operador de conversión explícito en '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_implicit_conversion_operator_in_0">
         <source>Generate implicit conversion operator in '{0}'</source>
-        <target state="new">Generate implicit conversion operator in '{0}'</target>
+        <target state="translated">Generar operador de conversión implícito en '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above">
         <source>Do not change this code. Put cleanup code in Dispose(bool disposing) above.</source>
-        <target state="new">Do not change this code. Put cleanup code in Dispose(bool disposing) above.</target>
+        <target state="translated">No cambie este código. Coloque el código de limpieza en el anterior Dispose(colocación de bool).</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below">
         <source>TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.</source>
-        <target state="new">TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.</target>
+        <target state="translated">TODO: libere los recursos no administrados (objetos no administrados) y reemplace el siguiente finalizador.</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources">
         <source>TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.</source>
-        <target state="new">TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.</target>
+        <target state="translated">TODO: reemplace un finalizador solo si el anterior Dispose(bool disposing) tiene código para liberar los recursos no administrados.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_code_added_to_correctly_implement_the_disposable_pattern">
         <source>This code added to correctly implement the disposable pattern.</source>
-        <target state="new">This code added to correctly implement the disposable pattern.</target>
+        <target state="translated">Este código se agrega para implementar correctamente el patrón descartable.</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above">
         <source>TODO: uncomment the following line if the finalizer is overridden above.</source>
-        <target state="new">TODO: uncomment the following line if the finalizer is overridden above.</target>
+        <target state="translated">TODO: quite la marca de comentario de la siguiente línea si el finalizador se ha reemplazado antes.</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directive_is_unnecessary">
         <source>Using directive is unnecessary.</source>
-        <target state="new">Using directive is unnecessary.</target>
+        <target state="translated">El uso de la directiva no es necesario.</target>
         <note />
       </trans-unit>
       <trans-unit id="try_block">
         <source>try block</source>
-        <target state="new">try block</target>
+        <target state="translated">bloque try</target>
         <note>{Locked="try"} "try" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="catch_clause">
         <source>catch clause</source>
-        <target state="new">catch clause</target>
+        <target state="translated">cláusula catch</target>
         <note>{Locked="catch"} "catch" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="filter_clause">
         <source>filter clause</source>
-        <target state="new">filter clause</target>
+        <target state="translated">cláusula de filtro</target>
         <note />
       </trans-unit>
       <trans-unit id="finally_clause">
         <source>finally clause</source>
-        <target state="new">finally clause</target>
+        <target state="translated">cláusula finally</target>
         <note>{Locked="finally"} "finally" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="fixed_statement">
         <source>fixed statement</source>
-        <target state="new">fixed statement</target>
+        <target state="translated">instrucción fija</target>
         <note>{Locked="fixed"} "fixed" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="using_statement">
         <source>using statement</source>
-        <target state="new">using statement</target>
+        <target state="translated">instrucción using</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="lock_statement">
         <source>lock statement</source>
-        <target state="new">lock statement</target>
+        <target state="translated">instrucción lock</target>
         <note>{Locked="lock"} "lock" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="foreach_statement">
         <source>foreach statement</source>
-        <target state="new">foreach statement</target>
+        <target state="translated">instrucción foreach</target>
         <note>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="checked_statement">
         <source>checked statement</source>
-        <target state="new">checked statement</target>
+        <target state="translated">instrucción comprobada</target>
         <note>{Locked="checked"} "checked" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="unchecked_statement">
         <source>unchecked statement</source>
-        <target state="new">unchecked statement</target>
+        <target state="translated">instrucción sin activar</target>
         <note>{Locked="unchecked"} "unchecked" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="yield_statement">
         <source>yield statement</source>
-        <target state="new">yield statement</target>
+        <target state="translated">instrucción yield</target>
         <note>{Locked="yield"} "yield" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="await_expression">
         <source>await expression</source>
-        <target state="new">await expression</target>
+        <target state="translated">expresión await</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="lambda">
         <source>lambda</source>
-        <target state="new">lambda</target>
+        <target state="translated">lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="anonymous_method">
         <source>anonymous method</source>
-        <target state="new">anonymous method</target>
+        <target state="translated">método anónimo</target>
         <note />
       </trans-unit>
       <trans-unit id="from_clause">
         <source>from clause</source>
-        <target state="new">from clause</target>
+        <target state="translated">cláusula from</target>
         <note />
       </trans-unit>
       <trans-unit id="join_clause">
         <source>join clause</source>
-        <target state="new">join clause</target>
+        <target state="translated">cláusula join</target>
         <note>{Locked="join"} "join" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="let_clause">
         <source>let clause</source>
-        <target state="new">let clause</target>
+        <target state="translated">cláusula let</target>
         <note>{Locked="let"} "let" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="where_clause">
         <source>where clause</source>
-        <target state="new">where clause</target>
+        <target state="translated">cláusula where</target>
         <note>{Locked="where"} "where" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="orderby_clause">
         <source>orderby clause</source>
-        <target state="new">orderby clause</target>
+        <target state="translated">cláusula orderby</target>
         <note>{Locked="orderby"} "orderby" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="select_clause">
         <source>select clause</source>
-        <target state="new">select clause</target>
+        <target state="translated">cláusula select</target>
         <note>{Locked="select"} "select" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="groupby_clause">
         <source>groupby clause</source>
-        <target state="new">groupby clause</target>
+        <target state="translated">cláusula groupby</target>
         <note>{Locked="groupby"} "groupby" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="query_body">
         <source>query body</source>
-        <target state="new">query body</target>
+        <target state="translated">cuerpo de consulta</target>
         <note />
       </trans-unit>
       <trans-unit id="into_clause">
         <source>into clause</source>
-        <target state="new">into clause</target>
+        <target state="translated">cláusula into</target>
         <note>{Locked="into"} "into" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="is_pattern">
         <source>is pattern</source>
-        <target state="new">is pattern</target>
+        <target state="translated">patrón</target>
         <note>{Locked="is"} "is" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="deconstruction">
         <source>deconstruction</source>
-        <target state="new">deconstruction</target>
+        <target state="translated">desconstrucción</target>
         <note />
       </trans-unit>
       <trans-unit id="tuple">
         <source>tuple</source>
-        <target state="new">tuple</target>
+        <target state="translated">tupla</target>
         <note />
       </trans-unit>
       <trans-unit id="local_function">
         <source>local function</source>
-        <target state="new">local function</target>
+        <target state="translated">función local</target>
         <note />
       </trans-unit>
       <trans-unit id="out_var">
         <source>out variable</source>
-        <target state="new">out variable</target>
+        <target state="translated">variable out</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="ref_local_or_expression">
         <source>ref local or expression</source>
-        <target state="new">ref local or expression</target>
+        <target state="translated">ref local o expresión</target>
         <note>{Locked="ref"} "ref" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="v7_switch">
         <source>C# 7 enhanced switch statement</source>
-        <target state="new">C# 7 enhanced switch statement</target>
+        <target state="translated">Instrucción switch de C# 7 mejorada</target>
         <note />
       </trans-unit>
       <trans-unit id="global_statement">
         <source>global statement</source>
-        <target state="new">global statement</target>
+        <target state="translated">declaración global</target>
         <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="using_namespace">
         <source>using namespace</source>
-        <target state="new">using namespace</target>
+        <target state="translated">uso de espacio de nombres</target>
         <note />
       </trans-unit>
       <trans-unit id="using_directive">
         <source>using directive</source>
-        <target state="new">using directive</target>
+        <target state="translated">uso de directiva</target>
         <note />
       </trans-unit>
       <trans-unit id="event_field">
         <source>event field</source>
-        <target state="new">event field</target>
+        <target state="translated">campo de evento</target>
         <note />
       </trans-unit>
       <trans-unit id="conversion_operator">
         <source>conversion operator</source>
-        <target state="new">conversion operator</target>
+        <target state="translated">operador de conversión</target>
         <note />
       </trans-unit>
       <trans-unit id="destructor">
         <source>destructor</source>
-        <target state="new">destructor</target>
+        <target state="translated">destructor</target>
         <note />
       </trans-unit>
       <trans-unit id="indexer">
         <source>indexer</source>
-        <target state="new">indexer</target>
+        <target state="translated">indizador</target>
         <note />
       </trans-unit>
       <trans-unit id="property_getter">
         <source>property getter</source>
-        <target state="new">property getter</target>
+        <target state="translated">captador de propiedad</target>
         <note />
       </trans-unit>
       <trans-unit id="indexer_getter">
         <source>indexer getter</source>
-        <target state="new">indexer getter</target>
+        <target state="translated">captador de indizador</target>
         <note />
       </trans-unit>
       <trans-unit id="property_setter">
         <source>property setter</source>
-        <target state="new">property setter</target>
+        <target state="translated">configurador de propiedad</target>
         <note />
       </trans-unit>
       <trans-unit id="indexer_setter">
         <source>indexer setter</source>
-        <target state="new">indexer setter</target>
+        <target state="translated">configurador de indizador</target>
         <note />
       </trans-unit>
       <trans-unit id="attribute_target">
         <source>attribute target</source>
-        <target state="new">attribute target</target>
+        <target state="translated">destino de atributo</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_does_not_contain_a_constructor_that_takes_that_many_arguments">
         <source>'{0}' does not contain a constructor that takes that many arguments.</source>
-        <target state="new">'{0}' does not contain a constructor that takes that many arguments.</target>
+        <target state="translated">'{0}' no contiene un constructor que tome tantos argumentos.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_name_0_does_not_exist_in_the_current_context">
         <source>The name '{0}' does not exist in the current context.</source>
-        <target state="new">The name '{0}' does not exist in the current context.</target>
+        <target state="translated">El nombre '{0}' no existe en el contexto actual.</target>
         <note />
       </trans-unit>
       <trans-unit id="Hide_base_member">
         <source>Hide base member</source>
-        <target state="new">Hide base member</target>
+        <target state="translated">Ocultar miembro base</target>
         <note />
       </trans-unit>
       <trans-unit id="Delegate_invocation_can_be_simplified">
         <source>Delegate invocation can be simplified.</source>
-        <target state="new">Delegate invocation can be simplified.</target>
+        <target state="translated">La invocación del delegado se puede simplificar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Properties">
         <source>Properties</source>
-        <target state="new">Properties</target>
+        <target state="translated">Propiedades</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_explicit_type_instead_of_var">
         <source>Use explicit type instead of 'var'</source>
-        <target state="new">Use explicit type instead of 'var'</target>
+        <target state="translated">Usar un tipo explícito en lugar de 'var'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_explicit_type">
         <source>Use explicit type</source>
-        <target state="new">Use explicit type</target>
+        <target state="translated">Usar un tipo explícito</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">
         <source>use 'var' instead of explicit type</source>
-        <target state="new">use 'var' instead of explicit type</target>
+        <target state="translated">Usar 'var' en lugar de un tipo explícito</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_implicit_type">
         <source>Use implicit type</source>
-        <target state="new">Use implicit type</target>
+        <target state="translated">Usar un tipo implícito</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_namespace_declaration">
         <source>Autoselect disabled due to namespace declaration.</source>
-        <target state="new">Autoselect disabled due to namespace declaration.</target>
+        <target state="translated">Se ha deshabilitado la selección automática durante la declaración del espacio de nombres.</target>
         <note />
       </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
-        <target state="new">&lt;namespace name&gt;</target>
+        <target state="translated">&lt;nombre del espacio de nombres&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_type_declaration">
         <source>Autoselect disabled due to type declaration.</source>
-        <target state="new">Autoselect disabled due to type declaration.</target>
+        <target state="translated">Selección automática deshabilitada debido a la declaración de tipos.</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_deconstruction_declaration">
         <source>Autoselect disabled due to possible deconstruction declaration.</source>
-        <target state="new">Autoselect disabled due to possible deconstruction declaration.</target>
+        <target state="translated">Selección automática deshabilitada debido a una posible declaración de desconstrucción.</target>
         <note />
       </trans-unit>
       <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
         <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="new">Upgrade this project to C# language version '{0}'</target>
+        <target state="translated">Actualizar este proyecto a la versión del lenguaje de C# "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
         <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="new">Upgrade all C# projects to language version '{0}'</target>
+        <target state="translated">Actualizar todos los proyectos de C# a la versión del lenguaje "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="new">&lt;class name&gt;</target>
+        <target state="translated">&lt;nombre de clase&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="new">&lt;interface name&gt;</target>
+        <target state="translated">&lt;nombre de interfaz&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="designation_name">
         <source>&lt;designation name&gt;</source>
-        <target state="new">&lt;designation name&gt;</target>
+        <target state="translated">&lt;nombre de designación&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="struct_name">
         <source>&lt;struct name&gt;</source>
-        <target state="new">&lt;struct name&gt;</target>
+        <target state="translated">&lt;nombre del struct&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_async">
         <source>Make method async</source>
-        <target state="new">Make method async</target>
+        <target state="translated">Convertir el método en asincrónico</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_async_remain_void">
         <source>Make method async (stay void)</source>
-        <target state="new">Make method async (stay void)</target>
+        <target state="translated">Convertir método en asincónico (permanecer nulo)</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_this">
         <source>Add 'this.'</source>
-        <target state="new">Add 'this.'</target>
+        <target state="translated">Agregar "this."</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_if_to_switch">
         <source>Convert 'if' to 'switch'</source>
-        <target state="new">Convert 'if' to 'switch'</target>
+        <target state="translated">Convertir "if" en "switch"</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Extracting_a_local_function_reference_may_produce_invalid_code">
         <source>Warning: Extracting a local function reference may produce invalid code</source>
-        <target state="new">Warning: Extracting a local function reference may produce invalid code</target>
+        <target state="translated">Advertencia: Extraer una referencia a una función local puede generar código no válido.</target>
         <note />
       </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
-        <target state="new">&lt;Name&gt;</target>
+        <target state="translated">&lt;Nombre&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_member_declaration">
         <source>Autoselect disabled due to member declaration</source>
-        <target state="new">Autoselect disabled due to member declaration</target>
+        <target state="translated">Selección automática deshabilitada debido a una declaración de miembro</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggested_name">
         <source>(Suggested name)</source>
-        <target state="new">(Suggested name)</target>
+        <target state="translated">(Nombre sugerido)</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_function">
         <source>Remove unused function</source>
-        <target state="new">Remove unused function</target>
+        <target state="translated">Quitar función no utilizada</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_is_null_check">
         <source>Use 'is null' check</source>
-        <target state="new">Use 'is null' check</target>
+        <target state="translated">Usar comprobación "is null"</target>
         <note />
       </trans-unit>
     </body>

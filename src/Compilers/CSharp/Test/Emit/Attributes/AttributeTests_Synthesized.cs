@@ -116,9 +116,9 @@ class C
     int[] a = new[] { 1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9, };
 }
 ";
-            var reference = CreateStandardCompilation(source).EmitToImageReference();
+            var reference = CreateCompilation(source).EmitToImageReference();
 
-            var comp = CreateCompilation("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var comp = CreateEmptyCompilation("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var pid = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers().Where(s => s.Name.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal)).Single();
 
@@ -138,8 +138,8 @@ unsafe struct S
     public fixed char C[5];
 }
 ";
-            var reference = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
-            var comp = CreateCompilation("", new[] { reference }, options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var reference = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+            var comp = CreateEmptyCompilation("", new[] { reference }, options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var s = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("S").Single();
             var bufferType = (NamedTypeSymbol)s.GetMembers().Where(t => t.Name == "<C>e__FixedBuffer").Single();
@@ -258,7 +258,7 @@ class C
                 .WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateStandardCompilation(source, options: options), symbolValidator: m =>
+            CompileAndVerify(CreateCompilation(source, options: options), symbolValidator: m =>
             {
                 var displayClass = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>c__DisplayClass0_0");
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(displayClass.GetAttributes()));
@@ -287,7 +287,7 @@ class C
                 .WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateStandardCompilation(source, options: options), symbolValidator: m =>
+            CompileAndVerify(CreateCompilation(source, options: options), symbolValidator: m =>
             {
                 var anon = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousType0`2");
 
@@ -368,7 +368,7 @@ public class C
    }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             CompileAndVerify(comp, symbolValidator: m =>
             {
@@ -426,7 +426,7 @@ public class C
                 .WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateStandardCompilation(source, options: options), symbolValidator: module =>
+            CompileAndVerify(CreateCompilation(source, options: options), symbolValidator: module =>
             {
                 var iter = module.ContainingAssembly.GetTypeByMetadataName("C+<Iterator>d__0");
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(iter.GetAttributes()));
@@ -840,7 +840,7 @@ public class Test
         public void MissingWellKnownAttributesNoDiagnosticsAndNoSynthesizedAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
         {
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            var compilation = CreateCompilation("", options: options);
+            var compilation = CreateEmptyCompilation("", options: options);
 
             if (outputKind.IsApplication())
             {
@@ -878,7 +878,7 @@ public class Test
 }";
 
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            var compilation = CreateStandardCompilation(code, options: options);
+            var compilation = CreateCompilation(code, options: options);
 
             CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
@@ -927,7 +927,7 @@ public class Test
 }";
 
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            var compilation = CreateStandardCompilation(code, options: options);
+            var compilation = CreateCompilation(code, options: options);
 
             CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
@@ -974,7 +974,7 @@ public class Test
 }";
 
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            var compilation = CreateStandardCompilation(code, options: options);
+            var compilation = CreateCompilation(code, options: options);
 
             CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
@@ -1018,7 +1018,7 @@ public class Test
 }";
 
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            var compilation = CreateStandardCompilation(code, options: options);
+            var compilation = CreateCompilation(code, options: options);
 
             CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
@@ -1061,7 +1061,7 @@ public class Test
     }
 }";
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            var compilation = CreateStandardCompilation(source, options: options);
+            var compilation = CreateCompilation(source, options: options);
 
             if (outputKind.IsNetModule())
             {
@@ -1087,7 +1087,7 @@ public class Test
         [MemberData(nameof(FullMatrixTheoryData))]
         public void AppliedCompilationRelaxationsOnModuleSupressesAssemblyAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
         {
-            var referenceComp = CreateStandardCompilation(@"
+            var referenceComp = CreateCompilation(@"
 using System.Runtime.CompilerServices;
 
 [assembly: CompilationRelaxationsAttribute(0)]
@@ -1105,7 +1105,7 @@ public class Test
 }";
 
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            CompileAndVerify(source, additionalRefs: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, references: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
 
@@ -1128,7 +1128,7 @@ public class Test
         [MemberData(nameof(FullMatrixTheoryData))]
         public void AppliedRuntimeCompatibilityOnModuleSupressesAssemblyAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
         {
-            var referenceComp = CreateStandardCompilation(@"
+            var referenceComp = CreateCompilation(@"
 using System.Runtime.CompilerServices;
 
 [assembly: RuntimeCompatibilityAttribute()]
@@ -1146,7 +1146,7 @@ public class Test
 }";
 
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            CompileAndVerify(source, additionalRefs: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, references: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
 
@@ -1180,12 +1180,13 @@ unsafe class C
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(
+            var compilation = CreateCompilation(source, options: new CSharpCompilationOptions(
                 outputKind: outputKind,
                 optimizationLevel: OptimizationLevel.Release,
                 allowUnsafe: true));
 
-            CompileAndVerify(compilation, symbolValidator: module =>
+            //Skipped because PeVerify fails to run with "The module  was expected to contain an assembly manifest."
+            CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: module =>
             {
                 var unverifiableCode = module.GetAttributes().Single();
 
@@ -1198,7 +1199,7 @@ unsafe class C
                 {
                     // Modules security attributes are copied to assemblies they're included in
                     var moduleReference = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).GetReference();
-                    CompileAndVerify("", additionalRefs: new[] { moduleReference }, symbolValidator: validateSecurity);
+                    CompileAndVerify("", references: new[] { moduleReference }, symbolValidator: validateSecurity, verify: Verification.Skipped);
                 }
                 else
                 {
@@ -1513,11 +1514,11 @@ namespace System
             #endregion
 
             // Build an mscorlib including String
-            var mslibComp = CreateCompilation(new string[] { mslib }).VerifyDiagnostics();
+            var mslibComp = CreateEmptyCompilation(new string[] { mslib }).VerifyDiagnostics();
             var mslibRef = mslibComp.EmitToImageReference();
 
             // Build an mscorlib without String
-            var mslibNoStringComp = CreateCompilation(new string[] { mslibNoString }).VerifyDiagnostics();
+            var mslibNoStringComp = CreateEmptyCompilation(new string[] { mslibNoString }).VerifyDiagnostics();
             var mslibNoStringRef = mslibNoStringComp.EmitToImageReference();
 
             var diagLibSource = @"
@@ -1534,11 +1535,11 @@ namespace System.Runtime.CompilerServices
     public class CompilerGeneratedAttribute { } 
 }";
             // Build Diagnostics referencing mscorlib with String
-            var diagLibComp = CreateCompilation(new string[] { diagLibSource }, references: new[] { mslibRef }).VerifyDiagnostics();
+            var diagLibComp = CreateEmptyCompilation(new string[] { diagLibSource }, references: new[] { mslibRef }).VerifyDiagnostics();
             var diagLibRef = diagLibComp.EmitToImageReference();
 
             // Create compilation using Diagnostics but referencing mscorlib without String
-            var comp = CreateCompilation(new SyntaxTree[] { Parse("") }, references: new[] { diagLibRef, mslibNoStringRef });
+            var comp = CreateEmptyCompilation(new SyntaxTree[] { Parse("") }, references: new[] { diagLibRef, mslibNoStringRef });
 
             // Attribute cannot be synthesized because ctor has a use-site error (String type missing)
             var attribute = comp.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor);

@@ -8,9 +8,122 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctions : FlowTestBase
     {
         [Fact]
+        [WorkItem(17829, "https://github.com/dotnet/roslyn/issues/17829")]
+        public void UncalledLambdaInLocalFunction()
+        {
+            var comp = CreateCompilation(@"
+using System;
+class C
+{
+    void M()
+    {
+        void L()
+        {
+            Action a = () =>
+            {
+                int x;
+                x++;
+            };
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (12,17): error CS0165: Use of unassigned local variable 'x'
+                //                 x++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 17),
+                // (7,14): warning CS8321: The local function 'L' is declared but never used
+                //         void L()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "L").WithArguments("L").WithLocation(7, 14));
+        }
+
+        [Fact]
+        [WorkItem(17829, "https://github.com/dotnet/roslyn/issues/17829")]
+        public void LambdaInNestedUncalledLocalFunctions()
+        {
+            var comp = CreateCompilation(@"
+using System;
+class C
+{
+    void M()
+    {
+        void L1()
+        {
+            void L2()
+            {
+                Action a = () =>
+                {
+                    int x;
+                    x++;
+                };
+            }
+            L2();
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (14,21): error CS0165: Use of unassigned local variable 'x'
+                //                     x++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(14, 21),
+                // (7,14): warning CS8321: The local function 'L1' is declared but never used
+                //         void L1()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "L1").WithArguments("L1").WithLocation(7, 14));
+        }
+
+        [Fact]
+        [WorkItem(17829, "https://github.com/dotnet/roslyn/issues/17829")]
+        public void CapturedInLambdaInUncalledLocalFunction()
+        {
+            var comp = CreateCompilation(@"
+using System;
+class C
+{
+    void M()
+    {
+        void L()
+        {
+            int x;
+            Action f = () => x++;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (10,30): error CS0165: Use of unassigned local variable 'x'
+                //             Action f = () => x++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(10, 30),
+                // (7,14): warning CS8321: The local function 'L' is declared but never used
+                //         void L()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "L").WithArguments("L").WithLocation(7, 14));
+        }
+
+        [Fact]
+        [WorkItem(17829, "https://github.com/dotnet/roslyn/issues/17829")]
+        public void CapturedInNestedUncalledLocalFunctions()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        void L1()
+        {
+            int x;
+            void L2() => x++;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,18): warning CS8321: The local function 'L2' is declared but never used
+                //             void L2() => x++;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "L2").WithArguments("L2").WithLocation(9, 18),
+                // (6,14): warning CS8321: The local function 'L1' is declared but never used
+                //         void L1()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "L1").WithArguments("L1").WithLocation(6, 14));
+        }
+
+        [Fact]
         public void ConstUnassigned()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -33,7 +146,7 @@ class C
         [Fact]
         public void ConstUnassigned2()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -52,7 +165,7 @@ class C
         [Fact]
         public void ConstUnassigned3()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -72,7 +185,7 @@ class C
         [WorkItem(14243, "https://github.com/dotnet/roslyn/issues/14243")]
         public void AssignInsideCallToLocalFunc()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public void M()
@@ -104,7 +217,7 @@ class C
         [WorkItem(14046, "https://github.com/dotnet/roslyn/issues/14046")]
         public void UnreachableAfterThrow()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
   public void M3()
@@ -132,7 +245,7 @@ class C
         [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
         public void UnreachableRecursion()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public void M()
@@ -154,7 +267,7 @@ class C
         [Fact]
         public void ReadBeforeUnreachable()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public void M()
@@ -179,7 +292,7 @@ class C
         [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
         public void MutualRecursiveUnreachable()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public static void M()
@@ -211,7 +324,7 @@ class C
         [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
         public void AssignedInDeadBranch()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 
 class Program
@@ -242,7 +355,7 @@ class Program
         [Fact]
         public void InvalidBranchOutOfLocalFunc()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public static void M()
@@ -371,7 +484,7 @@ class C
         [Fact]
         public void SimpleForwardCall()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public static void Main()
@@ -386,7 +499,7 @@ class C
         [Fact]
         public void DefinedWhenCalled()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public static void Main()
@@ -403,7 +516,7 @@ class C
         [Fact]
         public void NotDefinedWhenCalled()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public static void Main()
@@ -423,7 +536,7 @@ class C
         [Fact]
         public void ChainedDef()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public static void Main()
@@ -444,7 +557,7 @@ class C
         [Fact]
         public void SetInLocalFunc()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public static void Main()
@@ -466,7 +579,7 @@ class C
         [Fact]
         public void SetInLocalFuncMutual()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public static void Main()
@@ -492,7 +605,7 @@ class C
         [Fact]
         public void LongWriteChain()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public void M()
@@ -526,7 +639,7 @@ class C
         [Fact]
         public void ConvertBeforeDefined()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public static void Main()
@@ -547,7 +660,7 @@ class C
         [Fact]
         public void NestedCapture()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public static void Main()
@@ -570,7 +683,7 @@ class C
         [Fact]
         public void UnusedLocalFunc()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public static void Main()
@@ -588,7 +701,7 @@ class C
         [Fact]
         public void UnassignedInStruct()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 struct S
 {
     int _x;
@@ -620,7 +733,7 @@ struct S
         [Fact]
         public void AssignWithStruct()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 struct S
 {
     public int x;
@@ -690,7 +803,7 @@ class C
         [Fact]
         public void NestedStructProperty()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 struct A
 {
     public int x;
@@ -783,7 +896,7 @@ class C
         [Fact]
         public void WriteAndReadInLocalFunc()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public void M()
@@ -808,7 +921,7 @@ class C
         [Fact]
         public void EventReadAndWrite()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 
 struct S
@@ -880,7 +993,7 @@ class C
         [Fact]
         public void CaptureForeachVar()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -905,7 +1018,7 @@ class C
         [Fact]
         public void CapturePattern()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -943,7 +1056,7 @@ class C
         [Fact]
         public void NotAssignedControlFlow()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void FullyAssigned()
@@ -992,7 +1105,7 @@ class C
         [Fact]
         public void UseConsts()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 struct S
 {
     public const int z = 0;
@@ -1019,7 +1132,7 @@ class C
         [Fact]
         public void NotAssignedAtAllReturns()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -1049,7 +1162,7 @@ class C
         [Fact]
         public void NotAssignedAtThrow()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -1087,7 +1200,7 @@ class C
         [Fact]
         public void DeadCode()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -1124,7 +1237,7 @@ class C
         [Fact]
         public void LocalFunctionFromOtherSwitch()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -1160,7 +1273,7 @@ class C
         [WorkItem(15298, "https://github.com/dotnet/roslyn/issues/15298")]
         public void UnassignedUndefinedVariable()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -1190,7 +1303,7 @@ class C
         [WorkItem(15322, "https://github.com/dotnet/roslyn/issues/15322")]
         public void UseBeforeDeclarationInSwitch()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class Program
 {
     static void Main(object[] args)
@@ -1216,7 +1329,7 @@ class Program
         [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssign()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 struct S { public int X, Y; }
 
 class C
@@ -1240,7 +1353,7 @@ class C
         [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssign2()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 struct S
 {
     public int X;
@@ -1266,7 +1379,7 @@ struct S
         [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssign3()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 struct S { }
 struct S2
 { 
@@ -1322,7 +1435,7 @@ class C
         [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssignmentInConstructor()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 struct S
 {
     public int _x;
@@ -1354,7 +1467,7 @@ struct S
         [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssignmentInConstructor2()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 struct S
 {
     public int _x;
@@ -1384,7 +1497,7 @@ struct S
         [WorkItem(18813, "https://github.com/dotnet/roslyn/issues/18813")]
         public void LocalIEnumerableFunctionWithOutParameter1()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class c
 {
     static void Main(string[] args)
@@ -1412,7 +1525,7 @@ class c
         [WorkItem(18813, "https://github.com/dotnet/roslyn/issues/18813")]
         public void LocalIEnumerableFunctionWithOutParameter2()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class c
 {
     static void Main(string[] args)

@@ -31,7 +31,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="5")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="5")
         End Sub
 
         <Fact>
@@ -58,7 +58,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="5")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="5")
         End Sub
 
         <Fact>
@@ -88,7 +88,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="5")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="5")
         End Sub
 
         <Fact>
@@ -113,7 +113,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="4")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="4")
         End Sub
 
         <Fact>
@@ -702,6 +702,184 @@ BC30657: 'EndInvoke' has a return type that is not supported or parameter types 
         End Sub
 
         <Fact>
+        Public Sub InOperatorsAreNotSupported_Binary()
+            Dim reference = CreateCSharpCompilation("
+public class Test
+{
+    public int Value { get; set; }
+
+    public static int operator +(in Test a, in Test b)
+    {
+        return a.Value + b.Value;
+    }
+}", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source =
+                <compilation>
+                    <file>
+Class Program
+    Shared Sub Main() 
+        Dim a = New Test With { .Value = 3 }
+        Dim b = New Test With { .Value = 6 }
+        
+        System.Console.WriteLine(a + b)
+    End Sub
+End Class
+    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+
+            AssertTheseDiagnostics(compilation, <expected>
+BC30452: Operator '+' is not defined for types 'Test' and 'Test'.
+        System.Console.WriteLine(a + b)
+                                 ~~~~~
+                                                </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub InOperatorsAreNotSupported_Binary_Left()
+            Dim reference = CreateCSharpCompilation("
+public class Test
+{
+    public int Value { get; set; }
+
+    public static int operator +(in Test a, Test b)
+    {
+        return a.Value + b.Value;
+    }
+}", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source =
+                <compilation>
+                    <file>
+Class Program
+    Shared Sub Main() 
+        Dim a = New Test With { .Value = 3 }
+        Dim b = New Test With { .Value = 6 }
+        
+        System.Console.WriteLine(a + b)
+    End Sub
+End Class
+    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+
+            AssertTheseDiagnostics(compilation, <expected>
+BC30452: Operator '+' is not defined for types 'Test' and 'Test'.
+        System.Console.WriteLine(a + b)
+                                 ~~~~~
+                                                </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub InOperatorsAreNotSupported_Binary_Right()
+            Dim reference = CreateCSharpCompilation("
+public class Test
+{
+    public int Value { get; set; }
+
+    public static int operator +(Test a, in Test b)
+    {
+        return a.Value + b.Value;
+    }
+}", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source =
+                <compilation>
+                    <file>
+Class Program
+    Shared Sub Main() 
+        Dim a = New Test With { .Value = 3 }
+        Dim b = New Test With { .Value = 6 }
+        
+        System.Console.WriteLine(a + b)
+    End Sub
+End Class
+    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+
+            AssertTheseDiagnostics(compilation, <expected>
+BC30452: Operator '+' is not defined for types 'Test' and 'Test'.
+        System.Console.WriteLine(a + b)
+                                 ~~~~~
+                                                </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub InOperatorsAreNotSupported_Unary()
+            Dim reference = CreateCSharpCompilation("
+public class Test
+{
+    public bool Value { get; set; }
+
+    public static bool operator !(in Test a)
+    {
+        return !a.Value;
+    }
+}", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source =
+                <compilation>
+                    <file>
+Class Program
+    Shared Sub Main() 
+        Dim a = New Test With { .Value = True }
+        
+        System.Console.WriteLine(Not a)
+    End Sub
+End Class
+    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+
+            AssertTheseDiagnostics(compilation, <expected>
+BC30487: Operator 'Not' is not defined for type 'Test'.
+        System.Console.WriteLine(Not a)
+                                 ~~~~~
+                                                </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub InOperatorsAreNotSupported_Conversion()
+            Dim reference = CreateCSharpCompilation("
+public class Test
+{
+    public bool Value { get; set; }
+
+    public static explicit operator int(in Test a)
+    {
+        return a.Value ? 3 : 5;
+    }
+}", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source =
+                <compilation>
+                    <file>
+Class Program
+    Shared Sub Main() 
+        Dim a = New Test With { .Value = True }
+        
+        System.Console.WriteLine(CType(a, Integer))
+    End Sub
+End Class
+    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+
+            AssertTheseDiagnostics(compilation, <expected>
+BC30311: Value of type 'Test' cannot be converted to 'Integer'.
+        System.Console.WriteLine(CType(a, Integer))
+                                       ~
+                                                </expected>)
+        End Sub
+
+        <Fact>
         Public Sub OverloadResolutionShouldBeAbleToPickOverloadsWithNoModreqsOverOnesWithModreq_Methods_Parameters()
             Dim reference = CreateCSharpCompilation("
 public class TestRef
@@ -729,7 +907,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="20")
         End Sub
 
         <Fact>
@@ -763,7 +941,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="20")
         End Sub
 
         <Fact>
@@ -800,7 +978,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="20")
         End Sub
 
         <Fact>
@@ -839,7 +1017,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="20")
         End Sub
     End Class
 

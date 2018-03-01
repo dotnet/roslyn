@@ -6,8 +6,9 @@ using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+
+using static System.Linq.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -119,6 +120,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Dup:
                     EmitDupExpression((BoundDup)expression, used);
+                    break;
+
+                case BoundKind.PassByCopy:
+                    EmitExpression(((BoundPassByCopy)expression).Expression, used);
                     break;
 
                 case BoundKind.Parameter:
@@ -813,32 +818,42 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> refKindsOpt)
+        private void EmitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> argRefKindsOpt)
         {
             // We might have an extra argument for the __arglist() of a varargs method.
             Debug.Assert(arguments.Length == parameters.Length || arguments.Length == parameters.Length + 1, "argument count must match parameter count");
+            Debug.Assert(parameters.All(p => p.RefKind == RefKind.None) || !argRefKindsOpt.IsDefault, "there are nontrivial parameters, so we must have argRefKinds");
+            Debug.Assert(argRefKindsOpt.IsDefault || argRefKindsOpt.Length == arguments.Length, "if we have argRefKinds, we should have one for each argument");
+
             for (int i = 0; i < arguments.Length; i++)
             {
-                RefKind refKind;
+                RefKind argRefKind;
 
-                if (!refKindsOpt.IsDefault && i < refKindsOpt.Length)
+                if (i < parameters.Length)
                 {
-                    // if we have an explicit refKind for the given argument, use that
-                    refKind = refKindsOpt[i];
-                }
-                else if (i < parameters.Length)
-                {
-                    // otherwise check the parameter
-                    refKind = parameters[i].RefKind;
+                    if (!argRefKindsOpt.IsDefault && i < argRefKindsOpt.Length)
+                    {
+                        // if we have an explicit refKind for the given argument, use that
+                        argRefKind = argRefKindsOpt[i];
+
+                        Debug.Assert(argRefKind == parameters[i].RefKind ||
+                                argRefKind == RefKindExtensions.StrictIn && parameters[i].RefKind == RefKind.In,
+                                "in Emit the argument RefKind must be compatible with the corresponding parameter");
+                    }
+                    else
+                    {
+                        // otherwise fallback to the refKind of the parameter
+                        argRefKind = parameters[i].RefKind;
+                    }
                 }
                 else
                 {
                     // vararg case
                     Debug.Assert(arguments[i].Kind == BoundKind.ArgListOperator);
-                    refKind = RefKind.None;
+                    argRefKind = RefKind.None;
                 }
 
-                EmitArgument(arguments[i], refKind);
+                EmitArgument(arguments[i], argRefKind);
             }
         }
 

@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Return the nearest enclosing node being bound as a nameof(...) argument, if any, or null if none.
         protected virtual SyntaxNode EnclosingNameofArgument => null;
 
+        private bool IsInsideNameof => this.EnclosingNameofArgument != null;
+
         /// <summary>
         /// Get the next binder in which to look up a name, if not found by this binder.
         /// </summary>
@@ -305,14 +307,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Get <see cref="QuickTypeIdentifierAttributeChecker"/> that can be used to quickly
-        /// check for TypeIdentifier attribute applications in context of this binder.
+        /// Get <see cref="QuickAttributeChecker"/> that can be used to quickly
+        /// check for certain attribute applications in context of this binder.
         /// </summary>
-        internal virtual QuickTypeIdentifierAttributeChecker QuickTypeIdentifierAttributeChecker
+        internal virtual QuickAttributeChecker QuickAttributeChecker
         {
             get
             {
-                return _next.QuickTypeIdentifierAttributeChecker;
+                return _next.QuickAttributeChecker;
             }
         }
 

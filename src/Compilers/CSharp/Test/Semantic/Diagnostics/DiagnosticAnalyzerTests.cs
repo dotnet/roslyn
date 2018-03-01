@@ -888,6 +888,36 @@ public class B
                      .WithLocation(1, 1));
         }
 
+        [Fact, WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")]
+        public void TestReportingDiagnosticWithCSharpCompilerId()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithCSharpCompilerDiagnosticId() };
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.CompilerDiagnosticIdReported, AnalyzerWithCSharpCompilerDiagnosticId.Descriptor.Id), "diagnostic").Message;
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithCSharpCompilerDiagnosticId", "System.ArgumentException", message)
+                     .WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")]
+        public void TestReportingDiagnosticWithBasicCompilerId()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithBasicCompilerDiagnosticId() };
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.CompilerDiagnosticIdReported, AnalyzerWithBasicCompilerDiagnosticId.Descriptor.Id), "diagnostic").Message;
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithBasicCompilerDiagnosticId", "System.ArgumentException", message)
+                     .WithLocation(1, 1));
+        }
+
         [Fact, WorkItem(7173, "https://github.com/dotnet/roslyn/issues/7173")]
         public void TestReportingDiagnosticWithInvalidLocation()
         {
@@ -1634,8 +1664,8 @@ class C
         {
             var source = @"namespace N1.N2 { }";
 
-            var metadataReference = CreateStandardCompilation(source).ToMetadataReference();
-            var compilation = CreateStandardCompilation(source, new[] { metadataReference });
+            var metadataReference = CreateCompilation(source).ToMetadataReference();
+            var compilation = CreateCompilation(source, new[] { metadataReference });
             compilation.VerifyDiagnostics();
 
             // Analyzer reports a diagnostic if it receives a merged namespace symbol across assemblies in compilation.

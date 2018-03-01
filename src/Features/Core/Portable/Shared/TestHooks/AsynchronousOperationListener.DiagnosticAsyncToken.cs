@@ -6,13 +6,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
-    internal partial class AsynchronousOperationListener
+    internal sealed partial class AsynchronousOperationListener
     {
         /// <summary>
         /// Stores the source information for an <see cref="IAsyncToken"/> value.  Helpful when 
         /// tracking down tokens which aren't properly disposed.
         /// </summary>
-        protected internal sealed class DiagnosticAsyncToken : AsyncToken
+        internal sealed class DiagnosticAsyncToken : AsyncToken
         {
             public string Name { get; }
             public string FilePath { get; }

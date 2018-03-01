@@ -928,6 +928,145 @@ End Class
             Next
         End Sub
 
+        <Fact>
+        Public Sub TestMetadataImportOptions_01()
+            Dim expectedDiagnostics =
+<expected>
+BC2014: the value '255' is invalid for option 'MetadataImportOptions'
+</expected>
+
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+
+            Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions)
+            options.Errors.Verify()
+            options = options.WithMetadataImportOptions(MetadataImportOptions.Internal)
+            Assert.Equal(MetadataImportOptions.Internal, options.MetadataImportOptions)
+            options.Errors.Verify()
+            options = options.WithMetadataImportOptions(MetadataImportOptions.All)
+            Assert.Equal(MetadataImportOptions.All, options.MetadataImportOptions)
+            options.Errors.Verify()
+            options = options.WithMetadataImportOptions(MetadataImportOptions.Public)
+            Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions)
+            options.Errors.Verify()
+            options = options.WithMetadataImportOptions(CType(Byte.MaxValue, MetadataImportOptions))
+            Assert.Equal(CType(Byte.MaxValue, MetadataImportOptions), options.MetadataImportOptions)
+            AssertTheseDiagnostics(options.Errors, expectedDiagnostics)
+
+            Dim commonOptions = DirectCast(options, CompilationOptions)
+
+            commonOptions = commonOptions.WithMetadataImportOptions(MetadataImportOptions.Internal)
+            Assert.Equal(MetadataImportOptions.Internal, DirectCast(commonOptions, VisualBasicCompilationOptions).MetadataImportOptions)
+            commonOptions.Errors.Verify()
+            commonOptions = commonOptions.WithMetadataImportOptions(MetadataImportOptions.All)
+            Assert.Equal(MetadataImportOptions.All, DirectCast(commonOptions, VisualBasicCompilationOptions).MetadataImportOptions)
+            commonOptions.Errors.Verify()
+            commonOptions = commonOptions.WithMetadataImportOptions(MetadataImportOptions.Public)
+            Assert.Equal(MetadataImportOptions.Public, DirectCast(commonOptions, VisualBasicCompilationOptions).MetadataImportOptions)
+            commonOptions.Errors.Verify()
+            commonOptions = commonOptions.WithMetadataImportOptions(CType(Byte.MaxValue, MetadataImportOptions))
+            Assert.Equal(CType(Byte.MaxValue, MetadataImportOptions), DirectCast(commonOptions, VisualBasicCompilationOptions).MetadataImportOptions)
+            AssertTheseDiagnostics(commonOptions.Errors, expectedDiagnostics)
+
+            Dim compilation0 = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Public Property P1 As Integer
+    Friend Property P2 As Integer
+    Private Property P3 As Integer
+End Class
+    </file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            Dim compilation = CreateCompilationWithMscorlib("", options:=options, references:={compilation0.EmitToImageReference()})
+            Dim c = compilation.GetTypeByMetadataName("C")
+            Assert.NotEmpty(c.GetMembers("P1"))
+            Assert.Empty(c.GetMembers("P2"))
+            Assert.Empty(c.GetMembers("P3"))
+            CompileAndVerify(compilation)
+
+            compilation = compilation.WithOptions(options.WithMetadataImportOptions(MetadataImportOptions.Internal))
+            c = compilation.GetTypeByMetadataName("C")
+            Assert.NotEmpty(c.GetMembers("P1"))
+            Assert.NotEmpty(c.GetMembers("P2"))
+            Assert.Empty(c.GetMembers("P3"))
+            CompileAndVerify(compilation)
+
+            compilation = compilation.WithOptions(options.WithMetadataImportOptions(MetadataImportOptions.All))
+            c = compilation.GetTypeByMetadataName("C")
+            Assert.NotEmpty(c.GetMembers("P1"))
+            Assert.NotEmpty(c.GetMembers("P2"))
+            Assert.NotEmpty(c.GetMembers("P3"))
+            CompileAndVerify(compilation)
+
+            compilation = compilation.WithOptions(options.WithMetadataImportOptions(CType(Byte.MaxValue, MetadataImportOptions)))
+            c = compilation.GetTypeByMetadataName("C")
+            Assert.NotEmpty(c.GetMembers("P1"))
+            Assert.NotEmpty(c.GetMembers("P2"))
+            Assert.Empty(c.GetMembers("P3"))
+            compilation.AssertTheseEmitDiagnostics(expectedDiagnostics)
+            compilation.AssertTheseDiagnostics(expectedDiagnostics)
+        End Sub
+
+        <Fact>
+        Public Sub TestMetadataImportOptions_02()
+            Dim expectedDiagnostics =
+<expected>
+BC2014: the value '255' is invalid for option 'MetadataImportOptions'
+</expected>
+
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+
+            Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions)
+            options.Errors.Verify()
+            options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions:=MetadataImportOptions.Internal)
+            Assert.Equal(MetadataImportOptions.Internal, options.MetadataImportOptions)
+            options.Errors.Verify()
+            options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions:=MetadataImportOptions.All)
+            Assert.Equal(MetadataImportOptions.All, options.MetadataImportOptions)
+            options.Errors.Verify()
+            options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions:=MetadataImportOptions.Public)
+            Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions)
+            options.Errors.Verify()
+            options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions:=CType(Byte.MaxValue, MetadataImportOptions))
+            Assert.Equal(CType(Byte.MaxValue, MetadataImportOptions), options.MetadataImportOptions)
+            AssertTheseDiagnostics(options.Errors, expectedDiagnostics)
+
+            Dim compilation0 = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Public Property P1 As Integer
+    Friend Property P2 As Integer
+    Private Property P3 As Integer
+End Class
+    </file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            Dim compilation = CreateCompilationWithMscorlib("", options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions:=MetadataImportOptions.Internal), references:={compilation0.EmitToImageReference()})
+            Dim c = compilation.GetTypeByMetadataName("C")
+            Assert.NotEmpty(c.GetMembers("P1"))
+            Assert.NotEmpty(c.GetMembers("P2"))
+            Assert.Empty(c.GetMembers("P3"))
+            CompileAndVerify(compilation)
+
+            compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions:=MetadataImportOptions.All))
+            c = compilation.GetTypeByMetadataName("C")
+            Assert.NotEmpty(c.GetMembers("P1"))
+            Assert.NotEmpty(c.GetMembers("P2"))
+            Assert.NotEmpty(c.GetMembers("P3"))
+            CompileAndVerify(compilation)
+
+            compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions:=CType(Byte.MaxValue, MetadataImportOptions)))
+            c = compilation.GetTypeByMetadataName("C")
+            Assert.NotEmpty(c.GetMembers("P1"))
+            Assert.NotEmpty(c.GetMembers("P2"))
+            Assert.Empty(c.GetMembers("P3"))
+            compilation.AssertTheseEmitDiagnostics(expectedDiagnostics)
+            compilation.AssertTheseDiagnostics(expectedDiagnostics)
+        End Sub
+
     End Class
 
 End Namespace

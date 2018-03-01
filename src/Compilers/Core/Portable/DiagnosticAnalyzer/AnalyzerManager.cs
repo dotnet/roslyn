@@ -171,6 +171,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
+            if (IsCompilerReservedDiagnostic(diagnostic.Id))
+            {
+                throw new ArgumentException(string.Format(CodeAnalysisResources.CompilerDiagnosticIdReported, diagnostic.Id), nameof(diagnostic));
+            }
+
             // Get all the supported diagnostics and scan them linearly to see if the reported diagnostic is supported by the analyzer.
             // The linear scan is okay, given that this runs only if a diagnostic is being reported and a given analyzer is quite unlikely to have hundreds of thousands of supported diagnostics.
             var supportedDescriptors = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
@@ -180,6 +185,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        private static bool IsCompilerReservedDiagnostic(string id)
+        {
+            // Only the compiler analyzer should produce diagnostics with CS or BC prefixes (followed by digit)
+            if (id.Length >= 3 && (id.StartsWith("CS", StringComparison.Ordinal) || id.StartsWith("BC", StringComparison.Ordinal)))
+            {
+                char thirdChar = id[2];
+                return thirdChar >= '0' && thirdChar <= '9';
             }
 
             return false;

@@ -694,32 +694,25 @@ namespace Microsoft.CodeAnalysis
             return treeAndVersion.Version;
         }
 
-        private static readonly ReaderWriterLockSlim s_syntaxTreeToIdMapLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =
             new ConditionalWeakTable<SyntaxTree, DocumentId>();
 
         private static void BindSyntaxTreeToId(SyntaxTree tree, DocumentId id)
         {
-            using (s_syntaxTreeToIdMapLock.DisposableWrite())
+            if (!s_syntaxTreeToIdMap.TryGetValue(tree, out var existingId))
             {
-                if (s_syntaxTreeToIdMap.TryGetValue(tree, out var existingId))
-                {
-                    Contract.ThrowIfFalse(existingId == id);
-                }
-                else
-                {
-                    s_syntaxTreeToIdMap.Add(tree, id);
-                }
+                // Avoid closing over parameter 'id' on the method's fast path
+                var localId = id;
+                existingId = s_syntaxTreeToIdMap.GetValue(tree, t => localId);
             }
+
+            Contract.ThrowIfFalse(existingId == id);
         }
 
         public static DocumentId GetDocumentIdForTree(SyntaxTree tree)
         {
-            using (s_syntaxTreeToIdMapLock.DisposableRead())
-            {
-                s_syntaxTreeToIdMap.TryGetValue(tree, out var id);
-                return id;
-            }
+            s_syntaxTreeToIdMap.TryGetValue(tree, out var id);
+            return id;
         }
     }
 }

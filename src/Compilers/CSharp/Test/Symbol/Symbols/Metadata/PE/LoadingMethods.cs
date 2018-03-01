@@ -151,8 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var basicC1_M11 = (MethodSymbol)basicC1.GetMembers("M11").Single();
             Assert.Equal("T3 C1.M11<T2, T3>(T2 x)", basicC1_M11.ToTestDisplayString());
-            Assert.Equal(0, basicC1_M11.TypeParameters[0].ConstraintTypes.Length);
-            Assert.Same(basicC1, basicC1_M11.TypeParameters[1].ConstraintTypes.Single());
+            Assert.Equal(0, basicC1_M11.TypeParameters[0].ConstraintTypes().Length);
+            Assert.Same(basicC1, basicC1_M11.TypeParameters[1].ConstraintTypes().Single());
 
             var basicC1_M12 = (MethodSymbol)basicC1.GetMembers("M12").Single();
             Assert.Equal(0, basicC1_M12.TypeArguments.Length);
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("Class").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.True(@class.Interfaces.Contains(@interface));
+            Assert.True(@class.Interfaces().Contains(@interface));
 
             var classMethod = (MethodSymbol)@class.GetMembers("Interface.Method").Single();
             Assert.Equal(MethodKind.ExplicitInterfaceImplementation, classMethod.MethodKind);
@@ -416,8 +416,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("C").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.True(@class.Interfaces.Contains(interface1));
-            Assert.True(@class.Interfaces.Contains(interface2));
+            Assert.True(@class.Interfaces().Contains(interface1));
+            Assert.True(@class.Interfaces().Contains(interface2));
 
             var classMethod = (MethodSymbol)@class.GetMembers("Method").Single();   //  the method is considered to be Ordinary 
             Assert.Equal(MethodKind.Ordinary, classMethod.MethodKind);              //  because it has name without '.'
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("Generic").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
 
-            var substitutedInterface = @class.Interfaces.Single();
+            var substitutedInterface = @class.Interfaces().Single();
             Assert.Equal(@interface, substitutedInterface.ConstructedFrom);
 
             var substitutedInterfaceMethod = (MethodSymbol)substitutedInterface.GetMembers("Method").Last(); //this assumes decl order
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("Constructed").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
 
-            var substitutedInterface = @class.Interfaces.Single();
+            var substitutedInterface = @class.Interfaces().Single();
             Assert.Equal(@interface, substitutedInterface.ConstructedFrom);
 
             var substitutedInterfaceMethod = (MethodSymbol)substitutedInterface.GetMembers("Method").Last(); //this assumes decl order
@@ -518,8 +518,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("InterfaceCycleSuccess").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.True(@class.Interfaces.Contains(cyclicInterface));
-            Assert.True(@class.Interfaces.Contains(implementedInterface));
+            Assert.True(@class.Interfaces().Contains(cyclicInterface));
+            Assert.True(@class.Interfaces().Contains(implementedInterface));
 
             var classMethod = (MethodSymbol)@class.GetMembers("Method").Single();   //  the method is considered to be Ordinary 
             Assert.Equal(MethodKind.Ordinary, classMethod.MethodKind);              //  because it has name without '.'
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("InterfaceCycleFailure").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.True(@class.Interfaces.Contains(cyclicInterface));
+            Assert.True(@class.Interfaces().Contains(cyclicInterface));
 
             var classMethod = (MethodSymbol)@class.GetMembers("Method").Single();
             //we couldn't find an interface method that's explicitly implemented, so we have no reason to believe the method isn't ordinary
@@ -574,12 +574,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var refInterface = (NamedTypeSymbol)globalNamespace.GetTypeMembers("IGenericInterface").Single();
             Assert.Equal(TypeKind.Interface, defInterface.TypeKind);
-            Assert.True(refInterface.Interfaces.Contains(defInterface));
+            Assert.True(refInterface.Interfaces().Contains(defInterface));
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("IndirectImplementation").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
 
-            var classInterfacesConstructedFrom = @class.Interfaces.Select(i => i.ConstructedFrom);
+            var classInterfacesConstructedFrom = @class.Interfaces().Select(i => i.ConstructedFrom);
             Assert.Equal(2, classInterfacesConstructedFrom.Count());
             Assert.Contains(defInterface, classInterfacesConstructedFrom);
             Assert.Contains(refInterface, classInterfacesConstructedFrom);
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var derivedClass = (NamedTypeSymbol)globalNamespace.GetTypeMembers("ExplicitlyImplementsAClass").Single();
             Assert.Equal(TypeKind.Class, derivedClass.TypeKind);
-            Assert.Equal(baseClass, derivedClass.BaseType);
+            Assert.Equal(baseClass, derivedClass.BaseType());
 
             var derivedClassMethod = (MethodSymbol)derivedClass.GetMembers("Method").Single();
             Assert.Equal(MethodKind.Ordinary, derivedClassMethod.MethodKind);
@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("ExplicitlyImplementsUnrelatedInterfaceMethods").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.Equal(0, @class.AllInterfaces.Length);
+            Assert.Equal(0, @class.AllInterfaces().Length);
 
             var classMethod = (MethodSymbol)@class.GetMembers("Method1").Single();
             Assert.Equal(MethodKind.Ordinary, classMethod.MethodKind);
@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("ExplicitlyImplementsUnrelatedInterfaceMethods").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.Equal(0, @class.AllInterfaces.Length);
+            Assert.Equal(0, @class.AllInterfaces().Length);
 
             var classMethod = (MethodSymbol)@class.GetMembers("Method2").Single();
             Assert.Equal(MethodKind.Ordinary, classMethod.MethodKind);
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(1, innerClass.Arity);
             Assert.Equal(TypeKind.Class, innerClass.TypeKind);
-            Assert.Equal(@interface, innerClass.Interfaces.Single().ConstructedFrom);
+            Assert.Equal(@interface, innerClass.Interfaces().Single().ConstructedFrom);
 
             var innerClassMethod = (MethodSymbol)innerClass.GetMembers(methodName).Single();
             var innerClassImplementingMethod = innerClassMethod.ExplicitInterfaceImplementations.Single();
@@ -764,7 +764,7 @@ class Invoke
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
+            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
             compilation.VerifyDiagnostics(); // No errors, as in Dev10
         }
 
@@ -777,7 +777,7 @@ class Abstract : MetadataModifiers
     //CS0534 for methods 2, 5, 8, 9, 11, 12, 14, 15
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
+            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
             compilation.VerifyDiagnostics(
                 // (2,7): error CS0534: 'Abstract' does not implement inherited abstract member 'MetadataModifiers.M02()'
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Abstract").WithArguments("Abstract", "MetadataModifiers.M02()"),
@@ -821,7 +821,7 @@ class Override : MetadataModifiers
     public override void M15() { }
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
+            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
             compilation.VerifyDiagnostics(
                 // (4,26): error CS0506: 'Override.M00()': cannot override inherited member 'MetadataModifiers.M00()' because it is not marked virtual, abstract, or override
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M00").WithArguments("Override.M00()", "MetadataModifiers.M00()"),
@@ -1170,7 +1170,7 @@ class Override : MetadataModifiers
 } 
 ";
 
-            var compilation = CreateCompilationWithCustomILSource("", ilSource);
+            var compilation = CreateCompilationWithILAndMscorlib40("", ilSource);
 
             foreach (var m in compilation.GetTypeByMetadataName("cls1").GetMembers())
             {
@@ -1232,7 +1232,7 @@ class Override : MetadataModifiers
 } // end of class Microsoft.FSharp.Control.IDelegateEvent`1
 ";
 
-            var compilation = CreateCompilationWithCustomILSource("", ilSource);
+            var compilation = CreateCompilationWithILAndMscorlib40("", ilSource);
 
             foreach (var m in compilation.GetTypeByMetadataName("Microsoft.FSharp.Control.IDelegateEvent`1").GetMembers())
             {
@@ -1257,7 +1257,7 @@ public class D
 ";
             var longFormRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.LongTypeFormInSignature);
 
-            var c = CreateStandardCompilation(source, new[] { longFormRef });
+            var c = CreateCompilation(source, new[] { longFormRef });
 
             c.VerifyDiagnostics(
                 // (6,20): error CS0570: 'C.RT()' is not supported by the language
@@ -1281,7 +1281,7 @@ class P
 ";
             var lib = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.Signatures.SignatureCycle2);
 
-            var c = CreateStandardCompilation(source, new[] { lib });
+            var c = CreateCompilation(source, new[] { lib });
 
             c.VerifyDiagnostics();
         }
@@ -1301,7 +1301,7 @@ class P
 ";
             var lib = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.Signatures.TypeSpecInWrongPlace);
 
-            var c = CreateStandardCompilation(source, new[] { lib });
+            var c = CreateCompilation(source, new[] { lib });
 
             c.VerifyDiagnostics(
                 // (6,14): error CS0570: 'User.X(?)' is not supported by the language
@@ -1340,7 +1340,7 @@ class P
 ";
 
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation("", new[] { ilRef });
+            var comp = CreateEmptyCompilation("", new[] { ilRef });
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
             var method = type.GetMember<MethodSymbol>("M");
@@ -1364,7 +1364,7 @@ public class D
 ";
             var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.PublicAndPrivateFlags) };
 
-            var comp = CreateStandardCompilation(source, references: references);
+            var comp = CreateCompilation(source, references: references);
 
             // The method, field and nested type with public and private accessibility flags get loaded as private.
             comp.VerifyDiagnostics(

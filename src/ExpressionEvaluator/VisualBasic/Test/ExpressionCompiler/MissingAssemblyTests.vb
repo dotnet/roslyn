@@ -539,7 +539,7 @@ End Class
                         errorMessage)
 
                     Assert.Equal(2, numRetries) ' Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
-                    Assert.Equal($"error BC30652: Reference required to assembly '{missingIdentity}' containing the type 'MissingType'. Add one to your project.", errorMessage)
+                    Assert.Equal($"error BC30652: { String.Format(VBResources.ERR_UnreferencedAssembly3, missingIdentity, "MissingType")}", errorMessage)
                 End Sub)
         End Sub
 

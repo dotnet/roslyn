@@ -966,7 +966,7 @@ Additional information: {1}</value>
     <value>Changes are not allowed while code is running.</value>
   </data>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
-    <value>Prefere local function over anonymous function</value>
+    <value>Prefer local function over anonymous function</value>
   </data>
   <data name="ModuleHasBeenUnloaded" xml:space="preserve">
     <value>Module has been unloaded.</value>
@@ -986,6 +986,12 @@ Additional information: {1}</value>
   <data name="Search_found_no_results" xml:space="preserve">
     <value>Search found no results</value>
   </data>
+  <data name="Restore_Visual_Studio_keybindings" xml:space="preserve">
+    <value>Restore Visual Studio keybindings</value>
+  </data>
+  <data name="Use_Keybindings_for_extensions" xml:space="preserve">
+    <value>Use keybindings for ReSharper/IntelliJ/Vim/etc.</value>
+  </data>
   <data name="Enable_navigation_to_decompiled_sources" xml:space="preserve">
     <value>Enable navigation to decompiled sources (experimental)</value>
   </data>
@@ -1002,5 +1008,12 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Decompiler_Legal_Notice_Title" xml:space="preserve">
     <value>Decompiler Legal Notice</value>
+  </data>
+  <data name="Disabling_the_extension_0_unbound_your_keyboard_bindings" xml:space="preserve">
+    <value>Disabling the extension '{0}' unbound your keyboard bindings.</value>
+    <comment>0 is an extension name</comment>
+  </data>
+  <data name="Code_style_header_use_editor_config" xml:space="preserve">
+    <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
   </data>
 </root>

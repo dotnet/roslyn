@@ -585,14 +585,14 @@ class Customer
         // {ServicesVSResources.Prefer_colon}
         int fibonacci(int n)
         {{
-            return n <= 1 ? 1 : fibonacci(n - 1) + fibonacci(n - 2);
+            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
         }}
 
         // {ServicesVSResources.Over_colon}
         Func<int, int> fibonacci = null;
         fibonacci = (int n) =>
         {{
-            return n <= 1 ? 1 : fibonacci(n - 1) + fibonacci(n - 2);
+            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
         }};
 //]
     }}

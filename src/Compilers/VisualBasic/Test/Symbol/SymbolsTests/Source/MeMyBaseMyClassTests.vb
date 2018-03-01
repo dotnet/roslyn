@@ -618,7 +618,7 @@ Module Module1
     End Class
 End Module
     </file>
-</compilation>, additionalRefs:={SystemCoreRef}).VerifyIL("Module1.Class2.TEST", <![CDATA[
+</compilation>, references:={SystemCoreRef}).VerifyIL("Module1.Class2.TEST", <![CDATA[
 {
   // Code size       26 (0x1a)
   .maxstack  3
@@ -1125,7 +1125,7 @@ Module Module1
     End Class
 End Module
     </file>
-</compilation>, additionalRefs:={SystemCoreRef}).VerifyIL("Module1.Class2.TEST", <![CDATA[
+</compilation>, references:={SystemCoreRef}).VerifyIL("Module1.Class2.TEST", <![CDATA[
 {
   // Code size       50 (0x32)
   .maxstack  3
@@ -1436,7 +1436,7 @@ Module MyExtensionModule
     End Function
 End Module
     </file>
-</compilation>, additionalRefs:={SystemCoreRef}).VerifyIL("C1.Goo", <![CDATA[
+</compilation>, references:={SystemCoreRef}).VerifyIL("C1.Goo", <![CDATA[
 {
   // Code size       12 (0xc)
   .maxstack  1
