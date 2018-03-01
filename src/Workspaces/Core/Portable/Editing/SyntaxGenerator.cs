@@ -788,11 +788,19 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Creates a alias import declaration.
+        /// Creates an alias import declaration.
         /// </summary>
         /// <param name="aliasIdentifierName">The name of the alias.</param>
         /// <param name="symbol">The namespace or type to be aliased.</param>
-        public abstract SyntaxNode AliasImportDeclaration(string aliasIdentifierName, INamespaceOrTypeSymbol symbol);
+        public SyntaxNode AliasImportDeclaration(string aliasIdentifierName, INamespaceOrTypeSymbol symbol)
+            => AliasImportDeclaration(aliasIdentifierName, NameExpression(symbol));
+
+        /// <summary>
+        /// Creates an alias import declaration.
+        /// </summary>
+        /// <param name="aliasIdentifierName">The name of the alias.</param>
+        /// <param name="name">The namespace or type to be aliased.</param>
+        public abstract SyntaxNode AliasImportDeclaration(string aliasIdentifierName, SyntaxNode name);
 
         /// <summary>
         /// Creates an attribute.
@@ -1695,6 +1703,13 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         private static readonly char[] s_dotSeparator = new char[] { '.' };
+
+        /// <summary>
+        /// Creates a name that denotes a type or namespace.
+        /// </summary>
+        /// <param name="namespaceOrTypeSymbol">The symbol to create a name for.</param>
+        /// <returns></returns>
+        public abstract SyntaxNode NameExpression(INamespaceOrTypeSymbol namespaceOrTypeSymbol);
 
         /// <summary>
         /// Creates an expression that denotes a type.

@@ -341,6 +341,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Throw New NotSupportedException("ThrowExpressions are not supported in Visual Basic")
         End Function
 
+        Public Overrides Function NameExpression(namespaceOrTypeSymbol As INamespaceOrTypeSymbol) As SyntaxNode
+            Return namespaceOrTypeSymbol.GenerateTypeSyntax()
+        End Function
+
         Public Overrides Function TypeExpression(typeSymbol As ITypeSymbol) As SyntaxNode
             Return typeSymbol.GenerateTypeSyntax()
         End Function
@@ -1500,16 +1504,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(SyntaxFactory.SimpleImportsClause(DirectCast(name, NameSyntax))))
         End Function
 
-        Public Overrides Function AliasImportDeclaration(aliasIdentifierName As String, symbol As INamespaceOrTypeSymbol) As SyntaxNode
-            Dim typeSyntax = symbol.GenerateTypeSyntax()
-            If TypeOf typeSyntax Is NameSyntax Then
+        Public Overrides Function AliasImportDeclaration(aliasIdentifierName As String, name As SyntaxNode) As SyntaxNode
+            If TypeOf name Is NameSyntax Then
                 Return SyntaxFactory.ImportsStatement(SyntaxFactory.SeparatedList(Of ImportsClauseSyntax).Add(
                                                       SyntaxFactory.SimpleImportsClause(
                                                       SyntaxFactory.ImportAliasClause(aliasIdentifierName),
-                                                      CType(typeSyntax, NameSyntax))))
+                                                      CType(name, NameSyntax))))
 
             End If
-            Throw New ArgumentException("Symbol can not be named.", NameOf(symbol))
+            Throw New ArgumentException("name is not a NameSyntax.", NameOf(name))
         End Function
 
         Public Overrides Function NamespaceDeclaration(name As SyntaxNode, nestedDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
