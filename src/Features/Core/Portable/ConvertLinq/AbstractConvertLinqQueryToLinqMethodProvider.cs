@@ -31,6 +31,21 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                 }
             }
 
+            protected IAnonymousFunctionOperation FindParentAnonymousFunction(SyntaxNode node)
+            {
+                var operation = GetOperation(node);
+                while (operation?.Parent != null)
+                {
+                    operation = operation.Parent;
+                    if (operation?.Kind == OperationKind.AnonymousFunction)
+                    {
+                        return operation as IAnonymousFunctionOperation;
+                    }
+                }
+
+                return null;
+            }
+
             private IInvocationOperation FindParentInvocationOperation(SyntaxNode node)
             {
                 var operation = GetOperation(node)?.Parent;
