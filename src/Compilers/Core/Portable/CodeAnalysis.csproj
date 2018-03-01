@@ -38,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" />
+    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="System.Collections" Version="$(SystemCollectionsVersion)" />
     <PackageReference Include="System.Collections.Concurrent" Version="$(SystemCollectionsConcurrentVersion)" />
     <PackageReference Include="System.Diagnostics.Tools" Version="$(SystemDiagnosticsToolsVersion)" />
