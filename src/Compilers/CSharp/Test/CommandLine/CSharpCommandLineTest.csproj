@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -15,12 +14,14 @@
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
-    <ProjectReference Include="..\..\..\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
-    <ProjectReference Include="..\..\csc\csc.csproj" />
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\csc\csc.csproj" >
+      <Aliases>CscExe</Aliases>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Server\VBCSCompiler\VBCSCompiler.csproj" />
+    <ProjectReference Include="..\..\..\Server\VBCSCompiler\VBCSCompiler.csproj">
+      <Aliases>VBCSCompiler</Aliases>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
     <ProjectReference Include="..\..\Portable\CSharpCodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
@@ -37,6 +38,7 @@
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="CommandLineTestResources.Designer.cs">
@@ -59,5 +61,4 @@
       <LastGenOutput>CommandLineTestResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

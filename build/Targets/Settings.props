@@ -3,8 +3,13 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
     <RepositoryUrl>https://github.com/dotnet/roslyn</RepositoryUrl>
+    <RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</RepositoryRawUrl>
   </PropertyGroup>
 
   <Import Project="Packages.props" />
@@ -30,7 +35,7 @@
     <VSIXExpInstallerPackageVersion>0.2.1-beta</VSIXExpInstallerPackageVersion>
     <RoslynDiagnosticsNugetPackageVersion>$(MicrosoftNetRoslynDiagnosticsVersion)</RoslynDiagnosticsNugetPackageVersion>
     <!-- Disable analyzers if NuGet deviated from the expected restore location (e.g. by changing case on a case-sensitive file system) -->
-    <UseRoslynAnalyzers Condition="!Exists('$(NuGetPackageRoot)\Microsoft.CodeQuality.Analyzers\$(RoslynDiagnosticsNugetPackageVersion)\analyzers\dotnet\cs\Analyzer.Utilities.dll')">False</UseRoslynAnalyzers>
+    <UseRoslynAnalyzers Condition="!Exists('$(NuGetPackageRoot)\Microsoft.CodeQuality.Analyzers\$(RoslynDiagnosticsNugetPackageVersion)\analyzers\dotnet\cs\Microsoft.CodeQuality.Analyzers.dll')">False</UseRoslynAnalyzers>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)/microsoft.net.roslyndiagnostics/$(RoslynDiagnosticsNugetPackageVersion)/build/Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynPortableTargetFrameworks>net461;netcoreapp2.0</RoslynPortableTargetFrameworks>
     <RoslynPortableTargetFrameworks46>net46;netcoreapp2.0</RoslynPortableTargetFrameworks46>
@@ -44,6 +49,7 @@
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <SignAssembly>true</SignAssembly>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- The new SDK introduced a GenerateAssemblyInfo target, which is disabled by GenerateAssemblyInfo=false.
          Otherwise, it writes to the same file (GeneratedAssemblyInfoFile) as our GenerateAssemblyInfoFile target.
          Follow-up issue to reconcile the two: https://github.com/dotnet/roslyn/issues/19645 -->
@@ -55,9 +61,6 @@
     <BaseIntermediateOutputPath>$(BaseIntermediateOutputPath)$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)</IntermediateOutputPath>
     <ArtifactsSymStoreDirectory Condition="'$(DeveloperBuild)' != 'true' and '$(OS)' == 'Windows_NT'">$(BaseOutputPath)$(Configuration)\SymStore\</ArtifactsSymStoreDirectory>
-
-    <NetStandard20RefPath>$(NuGetPackageRoot)/netstandard.library/$(NETStandardLibraryFixedVersion)/build/netstandard2.0/ref/</NetStandard20RefPath>
-    <MicrosoftCSharpRefPath>$(NuGetPackageRoot)/microsoft.csharp/$(MicrosoftCSharpVersion)/ref/netstandard1.0/</MicrosoftCSharpRefPath>
 
     <ToolsetPackagesSemaphore>$(ToolsetPackagesDir)toolsetpackages.semaphore</ToolsetPackagesSemaphore>
     <ToolsetCompilerPackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</ToolsetCompilerPackageName>
@@ -72,11 +75,6 @@
     <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
     <VisualStudioCodename>Dev$(VisualStudioReferenceMajorVersion)</VisualStudioCodename>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-
-    <!-- When building WPF / VSIX projects MSBuild will create a temporary project with an extension of
-         tmp_proj.  In that case the SDK is unable to determine the target language and cannot pick
-         the correct import.  Need to set it explicitly here. -->
-    <LanguageTargets Condition="'$(ProjectLanguage)' != ''">$(MSBuildToolsPath)\Microsoft.$(ProjectLanguage).targets</LanguageTargets>
 
     <!-- Disable AppX packaging for the Roslyn source. Not setting this to false has the side effect
          that any builds of portable projects end up in a sub folder of $(OutputPath). Search for this flag in
@@ -123,7 +121,7 @@
        - Embed PDBs to be consistent with Jenkins builds.
     -->
     <RoslynDebugType Condition="'$(OfficialBuild)' == 'true'">portable</RoslynDebugType>
-    <RoslynDebugType Condition="'$(OfficialBuild)' != 'true'">embedded</RoslynDebugType>
+    <RoslynDebugType Condition="'$(OfficialBuild)' != 'true'">full</RoslynDebugType>
 
     <!-- 
       The source root path used for deterministic normalization of source paths.
@@ -140,6 +138,32 @@
     <DeterministicSourceRoot Condition="'$(DeveloperBuild)' != 'true'">/_/</DeterministicSourceRoot>
 
     <EnableSourceLink Condition="'$(DeveloperBuild)' != 'true'">true</EnableSourceLink>
+
+    <ChecksumAlgorithm>SHA256</ChecksumAlgorithm>
+
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+
+    <!-- 
+      Goal is to remove these in a future change and make it simpler to adopt new SDK 
+      drops
+
+      https://github.com/dotnet/roslyn/issues/23547
+    -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+    <!-- It is only intended to automatically run update during dev cycle. However, It will fail the build on CI if the XLF file is not updated.
+         XLF file should be checked in and loc team will update the XLF it with translated version.
+    -->
+    <UpdateXlfOnBuild Condition="'$(DeveloperBuild)' == 'true'">true</UpdateXlfOnBuild>
+
+    <!-- Even when we're using the "desktop" version of MSBuild we always want to use the "Core" approach for generating satellite assemblies.
+         This avoids a couple of issues in al.exe (see https://github.com/dotnet/roslyn/issues/23190 and https://github.com/dotnet/roslyn/issues/23191
+         for details on those issues). -->
+    <GenerateSatelliteAssembliesForCore>true</GenerateSatelliteAssembliesForCore>
+
+    <CustomBeforeMicrosoftCommonTargets>$(MSBuildThisFileDirectory)\BeforeCommonTargets.targets</CustomBeforeMicrosoftCommonTargets>
+    <CustomAfterMicrosoftCommonTargets>$(MSBuildThisFileDirectory)\AfterCommonTargets.targets</CustomAfterMicrosoftCommonTargets>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
@@ -154,20 +178,6 @@
 
     <!-- For the moment our Dev14 VSI suites must continue to use the Dev14 SDK. -->
     <VisualStudioBuildToolsVersion Condition="'$(IsDev14VsiBuild)' == 'true'">14.3.25420</VisualStudioBuildToolsVersion>
-  </PropertyGroup>
-
-  <!--
-    If TargetNetFX20 is true the project targets Framework 2.0 reference assemblies provided by Microsoft.NetFX20 nuget package.
-    Use the latest Framework toolset to build, but set msbuild properties below
-    so to avoid 4.5 specific artifacts to be added to the compilation (references, attributes).
-  -->
-  <PropertyGroup Condition="'$(TargetNetFX20)' == 'true'">
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
-    <NoStdLib>true</NoStdLib>
-    <FrameworkPathOverride>$(NuGetPackageRoot)\Microsoft.NetFX20\$(MicrosoftNetFX20Version)\lib\net20</FrameworkPathOverride>
-    <ExecuteAsTool>false</ExecuteAsTool>
-    <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DevEnvDir)' == ''">
@@ -202,12 +212,6 @@
              AssemblyFile="$(NuGetPackageRoot)\Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\net46\Roslyn.MSBuild.Util.dll"
              Condition="'$(OS)' == 'Windows_NT'" />
 
-  <!-- This file is imported by all projects at the beginning of the project files -->
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
-          Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(RoslynSdkProject)' != 'true'" />
-
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" Condition="'$(RoslynSdkProject)' == 'true'" />
-
   <Import Project="$(RoslynDiagnosticsPropsFilePath)" Condition="'$(UseRoslynAnalyzers)' == 'true' AND Exists('$(RoslynDiagnosticsPropsFilePath)')" />
 
   <ImportGroup Label="WindowsImports" Condition="'$(OS)' == 'Windows_NT'">
@@ -216,12 +220,32 @@
       Condition="Exists('$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props')" />
   </ImportGroup>
 
-  <!-- 
-    Temporarirly disable Toolset builds on Unix 
+  <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == ''"  />
 
-    https://github.com/dotnet/roslyn/issues/21725
-   -->
-  <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == '' AND '$(OS)' == 'Windows_NT'" />
+  <!--
+      When building WPF projects MSBuild will create a temporary project with an extension of
+      tmp_proj.  In that case the SDK is unable to determine the target language and cannot pick
+      the correct import. Need to set it explicitly here.
+      See https://github.com/dotnet/project-system/issues/1467
+    -->
+  <Choose>
+    <When Condition="'$(MSBuildProjectExtension)' != '.csproj' and '$(MSBuildProjectExtension)' != '.vbproj' and '$(MSBuildProjectExtension)' != '.shproj'">
+      <Choose>
+        <When Condition="$(AssemblyName.Contains('Basic'))">
+          <PropertyGroup>
+            <Language>VB</Language>
+            <LanguageTargets>$(MSBuildToolsPath)\Microsoft.VisualBasic.targets</LanguageTargets>
+          </PropertyGroup>
+        </When>
+        <Otherwise>
+          <PropertyGroup>
+            <Language>C#</Language>
+            <LanguageTargets>$(MSBuildToolsPath)\Microsoft.CSharp.targets</LanguageTargets>
+          </PropertyGroup>
+        </Otherwise>
+      </Choose>
+    </When>
+  </Choose>
 
   <!-- 
     Language specifc settings 

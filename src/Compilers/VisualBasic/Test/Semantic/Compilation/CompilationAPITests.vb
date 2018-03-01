@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
+Imports System.Security.Cryptography
 Imports System.Text
 Imports System.Threading
 Imports System.Xml.Linq
@@ -27,6 +28,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub PublicSignWithRelativeKeyPath()
             Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
                     WithPublicSign(True).WithCryptoKeyFile("test.snk")
+            AssertTheseDiagnostics(VisualBasicCompilation.Create("test", options:=options),
+<errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+BC37257: Option 'CryptoKeyFile' must be an absolute path.
+</errors>)
+        End Sub
+
+        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        <Fact>
+        Public Sub PublicSignWithEmptyKeyPath()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                    WithPublicSign(True).WithCryptoKeyFile("")
+            AssertTheseDiagnostics(VisualBasicCompilation.Create("test", options:=options),
+<errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+</errors>)
+        End Sub
+
+        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        <Fact>
+        Public Sub PublicSignWithEmptyKeyPath2()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                    WithPublicSign(True).WithCryptoKeyFile("""""")
             AssertTheseDiagnostics(VisualBasicCompilation.Create("test", options:=options),
 <errors>
 BC37254: Public sign was specified and requires a public key, but no public key was specified
@@ -321,7 +345,8 @@ End Namespace
                 debugInformationFormat:=CType(-1, DebugInformationFormat),
                 outputNameOverride:=" ",
                 fileAlignment:=513,
-                subsystemVersion:=SubsystemVersion.Create(1000000, -1000000))
+                subsystemVersion:=SubsystemVersion.Create(1000000, -1000000),
+                pdbChecksumAlgorithm:=New HashAlgorithmName("invalid hash algorithm name"))
 
             Dim result = c.Emit(stream, options:=options)
 
@@ -329,9 +354,25 @@ End Namespace
                 Diagnostic(ERRID.ERR_InvalidDebugInformationFormat).WithArguments("-1"),
                 Diagnostic(ERRID.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameCannotStartWithWhitespace),
                 Diagnostic(ERRID.ERR_InvalidFileAlignment).WithArguments("513"),
-                Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("1000000.-1000000"))
+                Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("1000000.-1000000"),
+                Diagnostic(ERRID.ERR_InvalidHashAlgorithmName).WithArguments("invalid hash algorithm name"))
 
             Assert.False(result.Success)
+        End Sub
+
+        <Fact>
+        Sub EmitOptions_PdbChecksumAndDeterminism()
+            Dim options = New EmitOptions(pdbChecksumAlgorithm:=New HashAlgorithmName())
+            Dim diagnosticBag = New DiagnosticBag()
+
+            options.ValidateOptions(diagnosticBag, MessageProvider.Instance, isDeterministic:=True)
+            diagnosticBag.Verify(
+                Diagnostic(ERRID.ERR_InvalidHashAlgorithmName).WithArguments(""))
+
+            diagnosticBag.Clear()
+
+            options.ValidateOptions(diagnosticBag, MessageProvider.Instance, isDeterministic:=False)
+            diagnosticBag.Verify()
         End Sub
 
         <Fact>
@@ -1337,7 +1378,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact>
-        Public sub CreateAnonymousType_IncorrectLengths_Locations()
+        Public Sub CreateAnonymousType_IncorrectLengths_Locations()
             Dim Compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of ArgumentException)(
                 Sub()
@@ -1861,7 +1902,7 @@ End Class
             End Function
         End Class
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MetadataConsistencyWhileEvolvingCompilation()
             Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class C : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
             Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class D : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())

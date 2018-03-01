@@ -394,7 +394,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var syntaxTree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
@@ -410,7 +410,7 @@ class Program
             Assert.Same(variableTreeLambdaOperation, lambdaOperation);
 
             var variableDeclarationGroupOperationSecondRequest = (IVariableDeclarationGroupOperation)semanticModel.GetOperation(variableDeclaration);
-            var variableTreeLambdaOperationSecondRequest = (IAnonymousFunctionOperation)variableDeclarationGroupOperation.Declarations.Single().Declarators.Single(). Initializer.Value;
+            var variableTreeLambdaOperationSecondRequest = (IAnonymousFunctionOperation)variableDeclarationGroupOperation.Declarations.Single().Declarators.Single().Initializer.Value;
             var lambdaOperationSecondRequest = (IAnonymousFunctionOperation)semanticModel.GetOperation(lambdaSyntax);
 
             // Assert that, when request the variable declaration or the lambda for a second time, there is no rebinding of the

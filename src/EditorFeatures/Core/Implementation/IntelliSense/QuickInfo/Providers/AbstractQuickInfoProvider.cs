@@ -9,31 +9,12 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal abstract partial class AbstractQuickInfoProvider : IQuickInfoProvider
     {
-        private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
-        private readonly ITextEditorFactoryService _textEditorFactoryService;
-        private readonly IGlyphService _glyphService;
-        private readonly ClassificationTypeMap _typeMap;
-
-        protected AbstractQuickInfoProvider(
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
-            ITextEditorFactoryService textEditorFactoryService,
-            IGlyphService glyphService,
-            ClassificationTypeMap typeMap)
-        {
-            _projectionBufferFactoryService = projectionBufferFactoryService;
-            _editorOptionsFactoryService = editorOptionsFactoryService;
-            _textEditorFactoryService = textEditorFactoryService;
-            _glyphService = glyphService;
-            _typeMap = typeMap;
-        }
-
         public async Task<QuickInfoItem> GetItemAsync(
             Document document,
             int position,
@@ -96,7 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             IList<TaggedText> typeParameterMap,
             IList<TaggedText> anonymousTypes,
             IList<TaggedText> usageText,
-            IList<TaggedText> exceptionText)
+            IList<TaggedText> exceptionText,
+            IList<TaggedText> capturesText)
         {
             return new QuickInfoDisplayDeferredContent(
                 symbolGlyph: showSymbolGlyph ? CreateGlyphDeferredContent(symbol) : null,
@@ -106,12 +88,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 typeParameterMap: CreateClassifiableDeferredContent(typeParameterMap),
                 anonymousTypes: CreateClassifiableDeferredContent(anonymousTypes),
                 usageText: CreateClassifiableDeferredContent(usageText),
-                exceptionText: CreateClassifiableDeferredContent(exceptionText));
+                exceptionText: CreateClassifiableDeferredContent(exceptionText),
+                capturesText: CreateClassifiableDeferredContent(capturesText));
         }
 
         private IDeferredQuickInfoContent CreateWarningGlyph()
         {
-            return new SymbolGlyphDeferredContent(Glyph.CompletionWarning, _glyphService);
+            return new SymbolGlyphDeferredContent(Glyph.CompletionWarning);
         }
 
         protected IDeferredQuickInfoContent CreateQuickInfoDisplayDeferredContent(
@@ -124,37 +107,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             IList<TaggedText> exceptionText)
         {
             return new QuickInfoDisplayDeferredContent(
-                symbolGlyph: new SymbolGlyphDeferredContent(glyph, _glyphService),
+                symbolGlyph: new SymbolGlyphDeferredContent(glyph),
                 warningGlyph: null,
                 mainDescription: CreateClassifiableDeferredContent(mainDescription),
                 documentation: documentation,
                 typeParameterMap: CreateClassifiableDeferredContent(typeParameterMap),
                 anonymousTypes: CreateClassifiableDeferredContent(anonymousTypes),
                 usageText: CreateClassifiableDeferredContent(usageText),
-                exceptionText: CreateClassifiableDeferredContent(exceptionText));
+                exceptionText: CreateClassifiableDeferredContent(exceptionText),
+                capturesText: null);
         }
 
         protected IDeferredQuickInfoContent CreateGlyphDeferredContent(ISymbol symbol)
         {
-            return new SymbolGlyphDeferredContent(symbol.GetGlyph(), _glyphService);
+            return new SymbolGlyphDeferredContent(symbol.GetGlyph());
         }
 
         protected IDeferredQuickInfoContent CreateClassifiableDeferredContent(
             IList<TaggedText> content)
         {
-            return new ClassifiableDeferredContent(content, _typeMap);
+            return new ClassifiableDeferredContent(content);
         }
 
         protected IDeferredQuickInfoContent CreateDocumentationCommentDeferredContent(
             string documentationComment)
         {
-            return new DocumentationCommentDeferredContent(documentationComment, _typeMap);
+            return new DocumentationCommentDeferredContent(documentationComment);
         }
 
         protected IDeferredQuickInfoContent CreateProjectionBufferDeferredContent(SnapshotSpan span)
         {
-            return new ProjectionBufferDeferredContent(
-                span, _projectionBufferFactoryService, _editorOptionsFactoryService, _textEditorFactoryService);
+            return new ProjectionBufferDeferredContent(span);
         }
     }
 }

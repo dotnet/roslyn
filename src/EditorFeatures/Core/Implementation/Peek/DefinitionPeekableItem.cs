@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 if (!sourceLocations.Any())
                 {
                     // It's a symbol from metadata, so we want to go produce it from metadata
-                    var declarationFile = _peekableItem._metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var declarationFile = _peekableItem._metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation: false, cancellationToken).WaitAndGetResult(cancellationToken);
                     var peekDisplayInfo = new PeekResultDisplayInfo(declarationFile.DocumentTitle, declarationFile.DocumentTitle, declarationFile.DocumentTitle, declarationFile.DocumentTitle);
                     var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                     var entityOfInterestSpan = PeekHelpers.GetEntityOfInterestSpan(symbol, workspace, declarationFile.IdentifierLocation, cancellationToken);

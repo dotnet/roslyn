@@ -242,6 +242,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                                 Dim methodName = GetNextMethodName(methodBuilder)
                                 Dim syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken))
                                 Dim local = PlaceholderLocalSymbol.Create(typeNameDecoder, _currentFrame, [alias])
+                                ' Skip pseudo-variables with errors.
+                                If local.GetUseSiteErrorInfo()?.Severity = DiagnosticSeverity.Error Then
+                                    Continue For
+                                End If
                                 Dim aliasMethod = Me.CreateMethod(
                                     container,
                                     methodName,
@@ -1394,7 +1398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     If IsViableSourceMethod(candidateMethod, desiredMethodName, desiredTypeParameters, sourceMethodMustBeInstance) Then
                         Return If(desiredTypeParameters.Length = 0,
                             candidateMethod,
-                            candidateMethod.Construct(candidateSubstitutedSourceType.TypeArguments))
+                            candidateMethod.Construct(candidateSubstitutedSourceType.TypeArgumentsNoUseSiteDiagnostics))
                     End If
                 Next
 

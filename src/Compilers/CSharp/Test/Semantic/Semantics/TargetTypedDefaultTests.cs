@@ -24,7 +24,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (6,17): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         int x = default;
@@ -66,7 +66,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
 
@@ -96,7 +96,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (5,19): error CS1604: Cannot assign to 'this' because it is read-only
                 //     public C() => this = default;
@@ -118,7 +118,7 @@ public struct S
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -148,7 +148,7 @@ public class CustomAttribute : System.Attribute
     public CustomAttribute(int x, string y, byte z = 0) { }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -165,7 +165,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "() ()");
 
@@ -205,7 +205,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "ok");
 
@@ -240,7 +240,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,9): error CS4001: Cannot await 'default'
                 //         await default;
@@ -294,7 +294,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (8,9): error CS0411: The type arguments for method 'C.F<T>(Task<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(async () => await default);
@@ -315,7 +315,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8150: By-value returns may only be used in methods that return by value
                 //         return default;
@@ -338,7 +338,7 @@ class C<T>
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0815: Cannot assign default to an implicitly-typed variable
                 //         var x4 = default;
@@ -361,7 +361,7 @@ class C<T>
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = +default;
@@ -396,7 +396,7 @@ class C<T> where T : class
 }
 interface ITest { }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -413,7 +413,7 @@ struct S
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -441,7 +441,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -470,7 +470,7 @@ class C
     static void M(string x) { }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(int)' and 'C.M(string)'
                 //         M(default);
@@ -491,7 +491,7 @@ class C
     static void M(string x) { System.Console.Write(x == null ? ""null"" : ""bad""); }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "null");
         }
@@ -509,7 +509,7 @@ class C
     static void M(int? x) { System.Console.Write(x.HasValue ? ""bad"" : ""null""); }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "null");
         }
@@ -527,7 +527,7 @@ class C
     static void M<T>(T x) { }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0411: The type arguments for method 'C.M<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(default);
@@ -548,7 +548,7 @@ class C
     static void M<T>(T x, T y) where T : class { }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0411: The type arguments for method 'C.M<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(default, null);
@@ -571,7 +571,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,16): error CS0023: Operator '.' cannot be applied to operand of type 'default'
                 //         default.ToString();
@@ -601,7 +601,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
         }
@@ -621,7 +621,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0283: The type 'T' cannot be declared const
                 //         const T x = default(T);
@@ -651,7 +651,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (7,15): error CS0283: The type 'S' cannot be declared const
                 //         const S x = default(S);
@@ -678,7 +678,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
 
@@ -707,7 +707,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 0");
         }
@@ -736,7 +736,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (14,17): error CS1031: Type expected
                 //         default();
@@ -772,7 +772,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
         }
@@ -790,7 +790,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,25): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         int j = checked(default + 4);
@@ -835,7 +835,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = default + default;
@@ -928,7 +928,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = default + 1;
@@ -1024,7 +1024,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = 1 + default;
@@ -1101,7 +1101,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True True True");
         }
@@ -1122,7 +1122,7 @@ struct S
     public static S operator +(S left, S right) => new S(left.field + right.field);
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (8,9): error CS8310: Operator '+=' cannot be applied to operand 'default'
                 //         s += default;
@@ -1157,7 +1157,7 @@ struct S
     public override int GetHashCode() => throw null;
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "operator reached. branch reached.");
 
@@ -1192,7 +1192,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123: True");
         }
@@ -1221,7 +1221,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (9,13): error CS8310: Operator '+=' cannot be applied to operand 'default'
                 //             i += default;
@@ -1260,7 +1260,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (10,40): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
                 //         catch (System.Exception) when (false)
@@ -1306,7 +1306,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (26,40): warning CS8360: Filter expression is a constant, consider removing the filter
                 //         catch (System.Exception) when (default)
@@ -1332,7 +1332,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,13): error CS8310: Operator '!' cannot be applied to operand 'default'
                 //         if (!default)
@@ -1361,7 +1361,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0023: Operator '!' cannot be applied to operand of type 'method group'
                 //         if (!Main || !null)
@@ -1397,7 +1397,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (8,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("if");
@@ -1430,7 +1430,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (12,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("NEVER");
@@ -1456,7 +1456,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             comp.VerifyDiagnostics(
                 // (6,26): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (byte* p = default)
@@ -1480,7 +1480,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,17): error CS0193: The * or -> operator must be applied to a pointer
                 //         var p = *default;
@@ -1503,7 +1503,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,17): error CS0826: No best type found for implicitly-typed array
                 //         var t = new[] { default, default };
@@ -1523,7 +1523,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -1540,7 +1540,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe,
+            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe,
                         references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
 
             comp.VerifyEmitDiagnostics();
@@ -1560,7 +1560,7 @@ class C
     static void M<T>(T x, T y) { System.Console.Write(x); }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
         }
@@ -1579,7 +1579,7 @@ class C
     static void M(params object[] x) { }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -1612,7 +1612,7 @@ class C
     static void M(params int[] x) { }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyEmitDiagnostics(
                 // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params object[])' and 'C.M(params int[])'
                 //         M(default);
@@ -1634,7 +1634,7 @@ class C
     static void M(int x) { }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyEmitDiagnostics(
                 // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params object[])' and 'C.M(int)'
                 //         M(default);
@@ -1660,7 +1660,7 @@ struct S
     static void M<T>(T x, params T[] y) { }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -1698,7 +1698,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 2");
 
@@ -1725,7 +1725,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -1751,7 +1751,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -1772,7 +1772,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (5,16): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //     OneEntry = default + 1
@@ -1797,7 +1797,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (5,16): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //     OneEntry = default + 1
@@ -1823,7 +1823,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -1839,7 +1839,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -1857,7 +1857,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0-0");
         }
@@ -1876,7 +1876,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (7,14): error CS8310: Cannot use a default literal as an argument to a dynamically dispatched operation.
                 //         d.M2(default);
@@ -1901,7 +1901,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
         }
@@ -1919,7 +1919,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write($"{default == default} {default != default}");
@@ -1945,7 +1945,7 @@ class Program
 }
 ";
             // Confusing, but matches Dev10.
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_1)
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_1)
                 .VerifyDiagnostics(
                 // (6,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* p = default)
@@ -1966,7 +1966,7 @@ class C
     }
 }";
 
-            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,27): error CS8311: Use of default literal is not valid in this context
                 //         foreach (int x in default) { }
@@ -1991,7 +1991,7 @@ static class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 // (6,35): error CS8311: Use of default literal is not valid in this context
                 //         var q = from x in default select x;
@@ -2015,7 +2015,7 @@ static class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "5");
         }
@@ -2033,7 +2033,7 @@ static class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular7_1);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 // (5,30): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         System.Console.Write((int?)1 == default);
@@ -2056,7 +2056,7 @@ class C
     }
 }";
 
-            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0155: The type caught or thrown must be derived from System.Exception
                 //         throw default;
@@ -2078,7 +2078,7 @@ class C
     }
 }";
 
-            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0077: The as operator must be used with a reference type or nullable type ('long' is a non-nullable value type)
                 //         System.Console.Write(default as long);
@@ -2103,7 +2103,7 @@ class C
         System.Console.Write($""{default as C == null} {default as string == null}"");
     }
 }";
-            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,33): warning CS0458: The result of the expression is always 'null' of type 'C'
                 //         System.Console.Write($"{default as C == null} {default as string == null}");
@@ -2127,7 +2127,7 @@ static class C
     }
 }";
 
-            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
                 //         System.Console.Write(default is C);
@@ -2150,7 +2150,7 @@ class C
     }
 }";
 
-            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
                 //         System.Console.Write(default is long);
@@ -2161,6 +2161,9 @@ class C
                 // (8,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
                 //         System.Console.Write(default is default);
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is default").WithArguments("is", "default").WithLocation(8, 30),
+                // (8,41): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write(default is default);
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(8, 41),
                 // (8,41): error CS0150: A constant value is expected
                 //         System.Console.Write(default is default);
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "default").WithLocation(8, 41),
@@ -2186,9 +2189,21 @@ class C
     }
 }";
 
-            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "False True False True");
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (10,42): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(10, 42),
+                // (10,66): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(10, 66),
+                // (10,83): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(10, 83),
+                // (10,101): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(10, 101)
+                );
         }
 
         [Fact]
@@ -2224,7 +2239,7 @@ class B<T1, T2, T3, T4, T5, T6, T7>
     static T6 F6() { return default; }
     static T7 F7() { return default; }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -2240,7 +2255,7 @@ class Program
     Expression<Func<object>> testExpr = () => default ?? ""hello"";
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,47): error CS8310: Operator '??' cannot be applied to operand 'default'
                 //     Expression<Func<object>> testExpr = () => default ?? "hello";
@@ -2261,7 +2276,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "False");
 
@@ -2289,7 +2304,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1");
         }
@@ -2311,7 +2326,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
         }
@@ -2340,13 +2355,12 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (12,18): warning CS8312: Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.
+                // (12,18): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
                 //             case default:
-                Diagnostic(ErrorCode.WRN_DefaultInSwitch, "default").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 18)
                 );
-            CompileAndVerify(comp, expectedOutput: "default");
         }
 
         [Fact]
@@ -2373,13 +2387,12 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (12,18): warning CS8312: Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.
+                // (12,18): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
                 //             case default:
-                Diagnostic(ErrorCode.WRN_DefaultInSwitch, "default").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 18)
                 );
-            CompileAndVerify(comp, expectedOutput: "default");
         }
 
         [Fact]
@@ -2406,9 +2419,12 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "default");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (12,19): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                //             case (default):
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 19)
+                );
         }
 
         [Fact]
@@ -2435,9 +2451,12 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "default");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (12,19): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                //             case (default):
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 19)
+                );
         }
 
         [Fact]
@@ -2461,7 +2480,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "01");
         }
@@ -2483,7 +2502,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
         }
@@ -2505,7 +2524,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "ran");
         }
@@ -2524,7 +2543,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
         }
@@ -2544,7 +2563,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 System.Int32");
         }
@@ -2564,7 +2583,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "null");
         }
@@ -2583,7 +2602,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
 
@@ -2623,7 +2642,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,17): error CS0118: 'System' is a namespace but is used like a type
                 //         default(System).ToString();
@@ -2644,7 +2663,7 @@ class C
     static void D(int? x = default(byte?)) => System.Console.Write($""{x.HasValue} "");
     static void E(int? x = default(byte)) => System.Console.Write($""{x.HasValue}:{x.Value}"");
 }";
-            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "False False False True:0");
 
@@ -2698,7 +2717,7 @@ class C<T> where T : struct
     const T? z2 = default(T?);
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (5,5): error CS0283: The type 'int?' cannot be declared const
                 //     const int? x1 = default;
@@ -2780,7 +2799,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "False False False False False False False");
 
@@ -2818,7 +2837,7 @@ class C
 {
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (14,2): error CS0181: Attribute constructor parameter 'x1' has type 'int?', which is not a valid attribute parameter type
                 // [A]

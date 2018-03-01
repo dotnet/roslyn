@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// a maximum number of local functions, and a maximum scope depth to decide the
         /// limits of the combinations.
         /// </summary>
-        [Fact]
+        [NoIOperationValidationFact]
         public void AllCaptureTests()
         {
             var methods = MakeAllMethods().ToList();
@@ -456,7 +456,7 @@ public class C
                 }
 
                 methodsText.AppendLine("\r\n}");
-                CreateStandardCompilation(methodsText.ToString()).VerifyEmitDiagnostics();
+                CreateCompilation(methodsText.ToString()).VerifyEmitDiagnostics();
             });
         }
     }

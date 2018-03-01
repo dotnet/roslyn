@@ -1209,7 +1209,7 @@ class A
 -
 5";
 
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -1253,7 +1253,7 @@ class A
 -
 3";
 
-            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1307,7 +1307,7 @@ class A
 -
 5";
 
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -1347,7 +1347,7 @@ struct A
 2
 3";
 
-            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      194 (0xc2)
@@ -1485,7 +1485,7 @@ get
 get
 3";
 
-            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      222 (0xde)
@@ -1645,7 +1645,7 @@ get
 get
 3";
 
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -1815,7 +1815,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1871,7 +1871,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1927,7 +1927,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
@@ -3362,7 +3362,7 @@ unsafe class C
         X = x;
     }
 }";
-            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: "1");
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: "1", verify: Verification.Fails);
         }
 
         [Fact, WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
@@ -3404,7 +3404,7 @@ unsafe class C
         X = x;
     }
 }";
-            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput:
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput:
 @"get_Index
 2
 3");

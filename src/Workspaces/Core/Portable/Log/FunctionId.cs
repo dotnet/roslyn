@@ -400,5 +400,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         AssetStorage_ForceGC,
         RemoteHost_Bitness,
         Intellisense_Completion,
+        MetadataOnlyImage_EmitFailure,
+        LiveTableDataSource_OnDiagnosticsUpdated,
+        Experiment_KeybindingsReset,
+        
+        AbstractProject_SetIntelliSenseBuild,
+        AbstractProject_Created,
+        AbstractProject_PushedToWorkspace,
+        ExternalErrorDiagnosticUpdateSource_AddError,
+        DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync,
     }
 }

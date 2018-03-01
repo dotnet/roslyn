@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -36,115 +37,119 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
-            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-            Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments:=True)
+            Try
+                Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+                Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments:=True)
 
-            Dim parent = token.GetAncestor(Of DocumentationCommentTriviaSyntax)()
+                Dim parent = token.GetAncestor(Of DocumentationCommentTriviaSyntax)()
 
-            If parent Is Nothing Then
-                Return Nothing
-            End If
-
-            ' If the user is typing in xml text, don't trigger on backspace.
-            If token.IsKind(SyntaxKind.XmlTextLiteralToken) AndAlso
-                trigger.Kind = CompletionTriggerKind.Deletion Then
-                Return Nothing
-            End If
-
-            ' Never provide any items inside a cref
-            If token.Parent.IsKind(SyntaxKind.XmlString) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlAttribute) Then
-                Dim attribute = DirectCast(token.Parent.Parent, XmlAttributeSyntax)
-                Dim name = TryCast(attribute.Name, XmlNameSyntax)
-                Dim value = TryCast(attribute.Value, XmlStringSyntax)
-                If name?.LocalName.ValueText = CrefAttributeName AndAlso Not token = value?.EndQuoteToken Then
+                If parent Is Nothing Then
                     Return Nothing
                 End If
-            End If
 
-            If token.Parent.GetAncestor(Of XmlCrefAttributeSyntax)() IsNot Nothing Then
-                Return Nothing
-            End If
+                ' If the user is typing in xml text, don't trigger on backspace.
+                If token.IsKind(SyntaxKind.XmlTextLiteralToken) AndAlso
+                    trigger.Kind = CompletionTriggerKind.Deletion Then
+                    Return Nothing
+                End If
 
-            Dim items = New List(Of CompletionItem)()
+                ' Never provide any items inside a cref
+                If token.Parent.IsKind(SyntaxKind.XmlString) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlAttribute) Then
+                    Dim attribute = DirectCast(token.Parent.Parent, XmlAttributeSyntax)
+                    Dim name = TryCast(attribute.Name, XmlNameSyntax)
+                    Dim value = TryCast(attribute.Value, XmlStringSyntax)
+                    If name?.LocalName.ValueText = CrefAttributeName AndAlso Not token = value?.EndQuoteToken Then
+                        Return Nothing
+                    End If
+                End If
 
-            Dim attachedToken = parent.ParentTrivia.Token
-            If attachedToken.Kind = SyntaxKind.None Then
-                Return items
-            End If
+                If token.Parent.GetAncestor(Of XmlCrefAttributeSyntax)() IsNot Nothing Then
+                    Return Nothing
+                End If
 
-            Dim declaration = attachedToken.GetAncestor(Of DeclarationStatementSyntax)()
+                Dim items = New List(Of CompletionItem)()
 
-            ' Maybe we're going to suggest the close tag
-            If token.Kind = SyntaxKind.LessThanSlashToken Then
-                Return GetCloseTagItem(token)
-            ElseIf token.IsKind(SyntaxKind.XmlNameToken) AndAlso token.GetPreviousToken().IsKind(SyntaxKind.LessThanSlashToken) Then
-                Return GetCloseTagItem(token.GetPreviousToken())
-            End If
-
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(False)
-            Dim symbol As ISymbol = Nothing
-
-            If declaration IsNot Nothing Then
-                symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken)
-            End If
-
-            If symbol IsNot Nothing Then
-                ' Maybe we're going to do attribute completion
-                TryGetAttributes(token, position, items, symbol)
-                If items.Any() Then
+                Dim attachedToken = parent.ParentTrivia.Token
+                If attachedToken.Kind = SyntaxKind.None Then
                     Return items
                 End If
-            End If
 
-            If trigger.Kind = CompletionTriggerKind.Insertion AndAlso
-                Not trigger.Character = """"c AndAlso
-                Not trigger.Character = "<"c Then
-                ' With the use of IsTriggerAfterSpaceOrStartOfWordCharacter, the code below is much
-                ' too aggressive at suggesting tags, so exit early before degrading the experience
+                Dim declaration = attachedToken.GetAncestor(Of DeclarationStatementSyntax)()
+
+                ' Maybe we're going to suggest the close tag
+                If token.Kind = SyntaxKind.LessThanSlashToken Then
+                    Return GetCloseTagItem(token)
+                ElseIf token.IsKind(SyntaxKind.XmlNameToken) AndAlso token.GetPreviousToken().IsKind(SyntaxKind.LessThanSlashToken) Then
+                    Return GetCloseTagItem(token.GetPreviousToken())
+                End If
+
+                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(False)
+                Dim symbol As ISymbol = Nothing
+
+                If declaration IsNot Nothing Then
+                    symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken)
+                End If
+
+                If symbol IsNot Nothing Then
+                    ' Maybe we're going to do attribute completion
+                    TryGetAttributes(token, position, items, symbol)
+                    If items.Any() Then
+                        Return items
+                    End If
+                End If
+
+                If trigger.Kind = CompletionTriggerKind.Insertion AndAlso
+                    Not trigger.Character = """"c AndAlso
+                    Not trigger.Character = "<"c Then
+                    ' With the use of IsTriggerAfterSpaceOrStartOfWordCharacter, the code below is much
+                    ' too aggressive at suggesting tags, so exit early before degrading the experience
+                    Return items
+                End If
+
+                items.AddRange(GetAlwaysVisibleItems())
+
+                Dim parentElement = token.GetAncestor(Of XmlElementSyntax)()
+                Dim grandParent = parentElement?.Parent
+
+                If grandParent.IsKind(SyntaxKind.XmlElement) Then
+                    ' Avoid including language keywords when following < Or <text, since these cases should only be
+                    ' attempting to complete the XML name (which for language keywords Is 'see'). The VB parser treats
+                    ' spaces after a < character as trailing whitespace, even if an identifier follows it on the same line.
+                    ' Therefore, the consistent VB experience says we never show keywords for < followed by spaces.
+                    Dim xmlNameOnly = token.IsKind(SyntaxKind.LessThanToken) OrElse token.Parent.IsKind(SyntaxKind.XmlName)
+                    Dim includeKeywords = Not xmlNameOnly
+
+                    items.AddRange(GetNestedItems(symbol, includeKeywords))
+                    AddXmlElementItems(items, grandParent)
+                ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso
+                       token.Parent.IsParentKind(SyntaxKind.DocumentationCommentTrivia) Then
+
+                    ' Top level, without tag:
+                    '     ''' $$
+                    items.AddRange(GetTopLevelItems(symbol, parent))
+                ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso
+                       token.Parent.Parent.IsKind(SyntaxKind.XmlElement) Then
+                    items.AddRange(GetNestedItems(symbol, includeKeywords:=True))
+                    Dim xmlElement = token.Parent.Parent
+
+                    AddXmlElementItems(items, xmlElement)
+                ElseIf grandParent.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
+                    ' Top level, with tag:
+                    '     ''' <$$
+                    '     ''' <tag$$
+                    items.AddRange(GetTopLevelItems(symbol, parent))
+                End If
+
+                If token.Parent.IsKind(SyntaxKind.XmlElementStartTag, SyntaxKind.XmlName) AndAlso
+                   parentElement.IsParentKind(SyntaxKind.XmlElement) Then
+
+                    AddXmlElementItems(items, parentElement.Parent)
+                End If
+
                 Return items
-            End If
-
-            items.AddRange(GetAlwaysVisibleItems())
-
-            Dim parentElement = token.GetAncestor(Of XmlElementSyntax)()
-            Dim grandParent = parentElement?.Parent
-
-            If grandParent.IsKind(SyntaxKind.XmlElement) Then
-                ' Avoid including language keywords when following < Or <text, since these cases should only be
-                ' attempting to complete the XML name (which for language keywords Is 'see'). The VB parser treats
-                ' spaces after a < character as trailing whitespace, even if an identifier follows it on the same line.
-                ' Therefore, the consistent VB experience says we never show keywords for < followed by spaces.
-                Dim xmlNameOnly = token.IsKind(SyntaxKind.LessThanToken) OrElse token.Parent.IsKind(SyntaxKind.XmlName)
-                Dim includeKeywords = Not xmlNameOnly
-
-                items.AddRange(GetNestedItems(symbol, includeKeywords))
-                AddXmlElementItems(items, grandParent)
-            ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso
-                   token.Parent.IsParentKind(SyntaxKind.DocumentationCommentTrivia) Then
-
-                ' Top level, without tag:
-                '     ''' $$
-                items.AddRange(GetTopLevelItems(symbol, parent))
-            ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso
-                   token.Parent.Parent.IsKind(SyntaxKind.XmlElement) Then
-                items.AddRange(GetNestedItems(symbol, includeKeywords:=True))
-                Dim xmlElement = token.Parent.Parent
-
-                AddXmlElementItems(items, xmlElement)
-            ElseIf grandParent.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
-                ' Top level, with tag:
-                '     ''' <$$
-                '     ''' <tag$$
-                items.AddRange(GetTopLevelItems(symbol, parent))
-            End If
-
-            If token.Parent.IsKind(SyntaxKind.XmlElementStartTag, SyntaxKind.XmlName) AndAlso
-               parentElement.IsParentKind(SyntaxKind.XmlElement) Then
-
-                AddXmlElementItems(items, parentElement.Parent)
-            End If
-
-            Return items
+            Catch e As Exception When FatalError.ReportWithoutCrashUnlessCanceled(e)
+                Return SpecializedCollections.EmptyEnumerable(Of CompletionItem)
+            End Try
         End Function
 
         Private Sub AddXmlElementItems(items As List(Of CompletionItem), xmlElement As SyntaxNode)

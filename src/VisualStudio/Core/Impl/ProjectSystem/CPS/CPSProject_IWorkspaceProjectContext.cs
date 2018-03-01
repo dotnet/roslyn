@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             set
             {
-                ExecuteForegroundAction(() => SetIntellisenseBuildResultAndNotifyWorkspaceHosts(value));
+                ExecuteForegroundAction(() => SetIntellisenseBuildResultAndNotifyWorkspace(value));
             }
         }
 

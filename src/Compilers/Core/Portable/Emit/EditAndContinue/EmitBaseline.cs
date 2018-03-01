@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <exception cref="IOException">Error reading module metadata.</exception>
         /// <exception cref="BadImageFormatException">Module metadata is invalid.</exception>
         /// <exception cref="ObjectDisposedException">Module has been disposed.</exception>
-        internal static EmitBaseline CreateInitialBaseline(
+        public static EmitBaseline CreateInitialBaseline(
             ModuleMetadata module, 
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
