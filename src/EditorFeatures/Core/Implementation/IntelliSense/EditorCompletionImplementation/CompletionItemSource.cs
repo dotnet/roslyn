@@ -33,15 +33,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         public async Task<EditorCompletion.CompletionContext> GetCompletionContextAsync(
             EditorCompletion.CompletionTrigger trigger, 
-            SnapshotPoint triggerLocation,
-            CancellationToken cancellationToken)
+            SnapshotSpan applicableSpan, 
+            CancellationToken token)
         {
-            var snapshot = triggerLocation.Snapshot;
+            var snapshot = applicableSpan.Snapshot;
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                // TODO: return default;
-                return new EditorCompletion.CompletionContext(ImmutableArray<EditorCompletion.CompletionItem>.Empty, new SnapshotSpan(triggerLocation.Snapshot, new Span(0, 0)));
+                return new EditorCompletion.CompletionContext(ImmutableArray<EditorCompletion.CompletionItem>.Empty);
             }
 
             var completionService = document.GetLanguageService<CompletionService>();
@@ -64,37 +63,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             var completionList = await completionService.GetCompletionsAsync(
-                document, 
-                triggerLocation.Position,
+                document,
+                applicableSpan.Span.Start,
                 roslynTrigger).ConfigureAwait(false);
 
             if (completionList == null)
             {
-                // TODO: return default;
-                return new EditorCompletion.CompletionContext(ImmutableArray<EditorCompletion.CompletionItem>.Empty, new SnapshotSpan(triggerLocation.Snapshot, new Span(0, 0)));
+                return new EditorCompletion.CompletionContext(ImmutableArray<EditorCompletion.CompletionItem>.Empty);
             }
-
-            var text = await document.GetTextAsync().ConfigureAwait(false);
-            var applicableSpan = completionService.GetDefaultCompletionListSpan(text, triggerLocation.Position).ToSnapshotSpan(triggerLocation.Snapshot);
 
             var imageIdService = document.Project.Solution.Workspace.Services.GetService<IImageIdService>();
 
             Dictionary<string, CompletionFilter> filterCache = new Dictionary<string, CompletionFilter>();
 
-            var service = GetCompletionService(triggerLocation.Snapshot.TextBuffer.CurrentSnapshot) as CompletionServiceWithProviders;
+            var service = GetCompletionService(applicableSpan.Snapshot.TextBuffer.CurrentSnapshot) as CompletionServiceWithProviders;
 
             var items = completionList.Items.SelectAsArray(roslynItem =>
             {
                 var needsCustomCommit = service.GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider;
 
                 var item = Convert(document, roslynItem, imageIdService, completionService, filterCache, needsCustomCommit);
-                item.Properties.AddProperty(TriggerSnapshot, triggerLocation.Snapshot);
+                item.Properties.AddProperty(TriggerSnapshot, applicableSpan.Snapshot);
                 return item;
             });
 
             return new EditorCompletion.CompletionContext(
                 items,
-                applicableSpan, 
                 useSoftSelection: false, 
                 useSuggestionMode: completionList.SuggestionModeItem != null,
                 suggestionModeDescription: completionList.SuggestionModeItem?.DisplayText);
@@ -188,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             return new ClassifiedTextElement(description.TaggedParts.Select(p => new ClassifiedTextRun(p.Tag.ToClassificationTypeName(), p.Text)));
         }
 
-        public void CustomCommit(
+        public CustomCommitBehavior CustomCommit(
             ITextView view, 
             ITextBuffer buffer, 
             EditorCompletion.CompletionItem item, 
@@ -219,6 +213,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                     view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(buffer.CurrentSnapshot, change.NewPosition.Value));
                 }
             }
+
+            return CustomCommitBehavior.SurpressFurtherCommandHandlers;
         }
 
         public ImmutableArray<char> GetPotentialCommitCharacters()
@@ -231,11 +227,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             return CommitChars.Contains(typedChar);
         }
 
-        public bool ShouldTriggerCompletion(char edit, SnapshotPoint location)
+        public SnapshotSpan? ShouldTriggerCompletion(char edit, SnapshotPoint location)
         {
             var text = SourceText.From(location.Snapshot.GetText());
             var service = GetCompletionService(location.Snapshot);
-            return service?.ShouldTriggerCompletion(text, location.Position, RoslynTrigger.CreateInsertionTrigger(edit)) ?? false;
+            if (service == null)
+            {
+                return null;
+            }
+
+            if (!service.ShouldTriggerCompletion(text, location.Position, RoslynTrigger.CreateInsertionTrigger(edit)))
+            {
+                return null;
+            }
+
+            return new SnapshotSpan(location.Snapshot, service.GetDefaultCompletionListSpan(text, location.Position).ToSpan());
         }
 
         private CompletionService GetCompletionService(ITextSnapshot snapshot)
