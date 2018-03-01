@@ -725,6 +725,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((AttributeSyntax)node).Name;
         }
 
+        public bool IsParenthesizedExpression(SyntaxNode node)
+        {
+            return node.Kind() == SyntaxKind.ParenthesizedExpression;
+        }
+
+        public SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node)
+        {
+            return ((ParenthesizedExpressionSyntax)node).Expression;
+        }
+
+        public bool IsIfStatement(SyntaxNode node)
+        {
+            return (node.Kind() == SyntaxKind.IfStatement);
+        }
+
         public bool IsAttribute(SyntaxNode node)
         {
             return node is AttributeSyntax;
@@ -1603,12 +1618,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsBinaryExpression(SyntaxNode node)
             => node is BinaryExpressionSyntax;
 
-        public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right)
+        public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken token, out SyntaxNode right)
         {
             var binaryExpression = (BinaryExpressionSyntax)node;
             left = binaryExpression.Left;
             right = binaryExpression.Right;
+            token = binaryExpression.OperatorToken;
         }
+
+        public SyntaxToken GetOperatorTokenOfBinaryExpression(SyntaxNode node)
+            => ((BinaryExpressionSyntax)node).OperatorToken;
 
         public void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse)
         {
@@ -1624,11 +1643,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsLogicalAndExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalAndExpression;
 
+        public bool IsLogicalOrExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.LogicalOrExpression;
+
         public bool IsLogicalNotExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalNotExpression;
 
+        public bool IsConditionalAnd(SyntaxNode node)
+            => node.Kind() == SyntaxKind.LogicalAndExpression;
+
+        public bool IsConditionalOr(SyntaxNode node)
+            => node.Kind() == SyntaxKind.LogicalOrExpression;
+
         public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
             => ((PrefixUnaryExpressionSyntax)node).Operand;
+
+        public SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node)
+            => ((PrefixUnaryExpressionSyntax)node).OperatorToken;
 
         public SyntaxNode GetNextExecutableStatement(SyntaxNode statement)
             => ((StatementSyntax)statement).GetNextStatement();
@@ -1804,6 +1835,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsLiteralExpression(SyntaxNode node)
             => node is LiteralExpressionSyntax;
+
+        public bool IsFalseLiteralExpression(SyntaxNode expression)
+            => expression.IsKind(SyntaxKind.FalseLiteralExpression);
+
+        public bool IsTrueLiteralExpression(SyntaxNode expression)
+            => expression.IsKind(SyntaxKind.TrueLiteralExpression);
 
         public SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node)
             => ((LocalDeclarationStatementSyntax)node).Declaration.Variables;
