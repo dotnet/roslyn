@@ -196,6 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     throw new ArgumentException("glyph");
             }
         }
+
         public static Glyph GetGlyph(this ImmutableArray<string> tags)
         {
             foreach (var tag in tags)
