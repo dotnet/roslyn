@@ -12766,7 +12766,7 @@ public class Test
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        public void UnifyUnderlyingWithTuple_05k()
+        public void UnifyUnderlyingWithTuple_05()
         {
             var source = @"
 using System;
@@ -21316,6 +21316,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "92872377-08d1-4723-8906-a43b03e56ed3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
+        // https://github.com/dotnet/roslyn/issues/25141
 #if NET461
         [Fact]
         public void ValueTupleBase_AssemblyUnification()
