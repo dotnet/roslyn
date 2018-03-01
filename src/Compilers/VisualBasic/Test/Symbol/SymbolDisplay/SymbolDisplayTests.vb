@@ -2932,7 +2932,7 @@ End Class
                 Thread.CurrentThread.CurrentCulture.NumberFormat.NegativeSign = "~"
                 Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator = ","
 
-                Dim Compilation = CreateCompilationWithMscorlib(text)
+                Dim Compilation = CreateCompilationWithMscorlib40(text)
                 Compilation.VerifyDiagnostics()
 
                 Dim methodSymbol = Compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("M")
@@ -2974,7 +2974,7 @@ End Class
                 Thread.CurrentThread.CurrentCulture.NumberFormat.NegativeSign = "~"
                 Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator = ","
 
-                Dim Compilation = CreateCompilationWithMscorlib(text)
+                Dim Compilation = CreateCompilationWithMscorlib40(text)
                 Compilation.VerifyDiagnostics()
 
                 Dim methodSymbol = Compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("M")
@@ -3806,7 +3806,7 @@ End Namespace
     </file>
         </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             Assert.Equal("[Global]", comp.SourceModule.GlobalNamespace.GetMembers().Single().ToDisplayString())
 
             Dim format = New SymbolDisplayFormat(
@@ -3829,7 +3829,7 @@ End Namespace
     </file>
         </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             Dim m_DelegateSignatureFormat As New SymbolDisplayFormat(
                                                             globalNamespaceStyle:=SymbolDisplayFormat.VisualBasicErrorMessageFormat.GlobalNamespaceStyle,
                                                             typeQualificationStyle:=SymbolDisplayFormat.VisualBasicErrorMessageFormat.TypeQualificationStyle,
@@ -4389,14 +4389,14 @@ End Class
           </file>
       </compilation>
 
-            Dim complib = CreateCompilationWithMscorlib(src1)
+            Dim complib = CreateCompilationWithMscorlib40(src1)
             Dim compref = New VisualBasicCompilationReference(complib)
 
-            Dim comp1 = CreateCompilationWithMscorlibAndReferences(src2, references:={compref})
+            Dim comp1 = CreateCompilationWithMscorlib40AndReferences(src2, references:={compref})
 
             Dim mtdata = comp1.EmitToArray()
             Dim mtref = MetadataReference.CreateFromImage(mtdata)
-            Dim comp2 = CreateCompilationWithMscorlibAndReferences(dummy, references:={mtref})
+            Dim comp2 = CreateCompilationWithMscorlib40AndReferences(dummy, references:={mtref})
 
             Dim tsym1 = comp1.SourceModule.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Gen")
             Assert.NotNull(tsym1)
@@ -4848,7 +4848,7 @@ End Class"
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions:=SymbolDisplayMemberOptions.IncludeType,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source, references:={SystemRuntimeFacadeRef, ValueTupleRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(source, references:={SystemRuntimeFacadeRef, ValueTupleRef})
             comp.VerifyDiagnostics()
             Dim symbol = comp.GetMember("C.f")
 
@@ -4949,7 +4949,7 @@ public class C
             <file name="b.vb">
             </file>
         </compilation>
-            Dim compB = CompilationUtils.CreateCompilationWithMscorlib(sourceB, references:={refA})
+            Dim compB = CompilationUtils.CreateCompilationWithMscorlib40(sourceB, references:={refA})
             compB.VerifyDiagnostics()
             ' From VB symbols.
             RefReturnInternal(compB)
@@ -5088,7 +5088,7 @@ Class C
 End Class
                 </file>
         </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             Dim tree = comp.SyntaxTrees.First()
             Dim model = comp.GetSemanticModel(tree)
             Dim methodDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().First()
@@ -5120,7 +5120,7 @@ End Class")
             Optional useSpeculativeSemanticModel As Boolean = False,
             Optional references As IEnumerable(Of MetadataReference) = Nothing)
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
 
             If references IsNot Nothing Then
                 comp = comp.AddReferences(references.ToArray())
@@ -5160,7 +5160,7 @@ End Class")
             expectedText As String,
             ParamArray kinds As SymbolDisplayPartKind())
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(text, additionalRefs:={SystemCoreRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(text, references:={SystemCoreRef})
 
             ' symbol:
             Dim symbol = findSymbol(comp.GlobalNamespace)

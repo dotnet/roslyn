@@ -76,7 +76,7 @@ Class C
   End Sub
 End Class
 "
-            Dim c = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
 
             Dim f = c.GetMember(Of MethodSymbol)("C.F")
             c.VerifyPdb(
@@ -106,7 +106,7 @@ Class C
   End Sub
 End Class
 "
-            Dim c = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugExe)
+            Dim c = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugExe)
 
             Dim f = c.GetMember(Of MethodSymbol)("C.F")
             c.VerifyPdb(
@@ -146,8 +146,8 @@ Class C
   End Sub
 End Class
 "
-            Dim c1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll)
-            Dim c2 = CreateCompilationWithMscorlib({source2}, options:=TestOptions.DebugDll)
+            Dim c1 = CreateCompilationWithMscorlib40({source1}, options:=TestOptions.DebugDll)
+            Dim c2 = CreateCompilationWithMscorlib40({source2}, options:=TestOptions.DebugDll)
 
             Dim f1 = c1.GetMember(Of MethodSymbol)("C.F")
             Dim f2 = c2.GetMember(Of MethodSymbol)("C.F")
@@ -198,7 +198,7 @@ End Class
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
 
             compilation.VerifyPdb(
 <symbols>
@@ -455,7 +455,7 @@ Class C
 End Class
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
             compilation.VerifyPdb("C..ctor",
 <symbols>
     <files>
@@ -514,7 +514,7 @@ Class C
 End Class
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
             compilation.VerifyPdb("C..ctor",
 <symbols>
     <files>
@@ -593,7 +593,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("M1.Main",
 <symbols>
@@ -693,7 +693,7 @@ End Module
 </file>
 </compilation>
 
-            Dim v = CompileAndVerify(CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe))
+            Dim v = CompileAndVerify(CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe))
 
             v.VerifyIL("M1.Main", "
 {
@@ -866,7 +866,7 @@ End Module
 </file>
 </compilation>
 
-            Dim v = CompileAndVerify(CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe))
+            Dim v = CompileAndVerify(CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe))
 
             v.VerifyIL("M1.Main", "
 {
@@ -951,7 +951,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
@@ -1006,7 +1006,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb("C1..ctor",
 <symbols>
@@ -1045,7 +1045,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb("C1..ctor",
 <symbols>
@@ -1094,7 +1094,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             Dim v = CompileAndVerify(compilation)
 
@@ -1181,7 +1181,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             Dim v = CompileAndVerify(compilation)
 
@@ -1258,7 +1258,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             Dim v = CompileAndVerify(compilation)
 
@@ -1334,7 +1334,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             Dim v = CompileAndVerify(compilation)
 
@@ -1554,7 +1554,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             Dim v = CompileAndVerify(compilation)
 
@@ -1672,7 +1672,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -1807,7 +1807,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -1916,7 +1916,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
@@ -2013,7 +2013,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -2072,7 +2072,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
@@ -2138,7 +2138,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             CompileAndVerify(compilation).VerifyIL("MyMod.Main", "
 {
@@ -2238,7 +2238,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
@@ -2333,7 +2333,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
@@ -2442,7 +2442,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                                 source,
                                 TestOptions.DebugExe)
 
@@ -2514,7 +2514,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
@@ -2572,7 +2572,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -2627,7 +2627,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -2685,7 +2685,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             CompileAndVerify(compilation).VerifyIL("Module1.Main", "
 {
@@ -2801,7 +2801,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -2866,7 +2866,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -2932,7 +2932,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -3001,7 +3001,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -3070,7 +3070,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -3134,7 +3134,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -3195,7 +3195,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -3253,7 +3253,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb(
 <symbols>
@@ -3294,7 +3294,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb(
 <symbols>
@@ -3365,7 +3365,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
@@ -3435,7 +3435,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
@@ -3487,7 +3487,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb(
 <symbols>
@@ -3548,7 +3548,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb(
 <symbols>
@@ -3635,7 +3635,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb("CLAZZ..ctor",
 <symbols>
@@ -3680,7 +3680,7 @@ End Module
 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             Dim exebits = New IO.MemoryStream()
             Dim pdbbits = New IO.MemoryStream()
@@ -3721,7 +3721,7 @@ Public Class C
 End Class
     </file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithEmbedVbCoreRuntime(True))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll.WithEmbedVbCoreRuntime(True))
 
             ' Dev11 generates debug info for embedded symbols. There is no reason to do so since the source code is not available to the user.
 
@@ -3772,7 +3772,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb("Module1.MakeIncrementer",
 <symbols>
@@ -3825,7 +3825,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb("C..ctor",
 <symbols>
@@ -3866,7 +3866,7 @@ Module M
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb(
 <symbols>
@@ -3989,7 +3989,7 @@ End Class
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
 
             CompileAndVerify(compilation).VerifyIL("IntervalUpdate.Update", "
 {
@@ -4310,7 +4310,7 @@ End Class
                 optimizationLevel:=OptimizationLevel.Debug,
                 parseOptions:=parseOptions,
                 mainTypeName:="My.MyApplication")
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemWindowsFormsRef}, compOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemWindowsFormsRef}, compOptions)
             comp.VerifyDiagnostics()
 
             ' Just care that there's at least one non-hidden sequence point.
@@ -4360,7 +4360,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.DebugDll)
             c.VerifyDiagnostics()
             c.VerifyPdb("C.F",
 <symbols>
@@ -4453,7 +4453,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.DebugDll.WithEmbedVbCoreRuntime(True))
+            Dim c = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.DebugDll.WithEmbedVbCoreRuntime(True))
 
             c.VerifyPdb("C`1.F",
 <symbols>

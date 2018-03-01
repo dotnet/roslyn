@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub UnassignedFieldsInParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="NestedStructs_NotAllFieldsReported">
           <file name="a.b">
 Public Structure S
@@ -37,7 +37,7 @@ End Structure
 
         <Fact>
         Public Sub NestedStructs_NotAllFieldsReported()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="NestedStructs_NotAllFieldsReported">
           <file name="a.b">
 Public Structure S
@@ -72,7 +72,7 @@ BC42109: Variable 'ret' is used before it has been assigned a value. A null refe
 
         <Fact>
         Public Sub NestedStructs_AllFieldsReported()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="NestedStructs_AllFieldsReported">
           <file name="a.b">
 Public Structure S
@@ -108,7 +108,7 @@ BC42104: Variable 's3' is used before it has been assigned a value. A null refer
 
         <Fact>
         Public Sub BigStruct()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="BigStruct">
           <file name="a.b">
 Public Structure S(Of T)
@@ -134,7 +134,7 @@ End Structure
 
         <Fact>
         Public Sub SimpleStructsWithGenerics()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="SimpleStructsWithGenerics">
           <file name="a.b">
 Public Structure XXX
@@ -177,7 +177,7 @@ BC42109: Variable 's' is used before it has been assigned a value. A null refere
 
         <Fact>
         Public Sub CallingMethodsOnUninitializedStructs()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="CallingMethodsOnUninitializedStructs">
           <file name="a.b">
 Public Structure XXX
@@ -216,7 +216,7 @@ BC42109: Variable 's' is used before it has been assigned a value. A null refere
 
         <Fact>
         Public Sub CallingMethodsOnUninitializedStructs2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="CallingMethodsOnUninitializedStructs2">
           <file name="a.b">
 Public Structure XXX
@@ -253,7 +253,7 @@ BC42109: Variable 's' is used before it has been assigned a value. A null refere
 
         <Fact>
         Public Sub ReferencingCycledStructures()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="Compilation">
     <file name="a.vb">
 Class C
@@ -276,7 +276,7 @@ End Class
         <WorkItem(530076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530076")>
         <Fact>
         Public Sub Bug530076a()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="Compilation">
     <file name="a.vb">
 Imports System
@@ -303,7 +303,7 @@ End class
         <WorkItem(530076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530076")>
         <Fact>
         Public Sub Bug530076b()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="Compilation">
     <file name="a.vb">
 Imports System
@@ -331,7 +331,7 @@ End class
         <WorkItem(807595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/807595")>
         <Fact>
         Public Sub Bug807595()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="Compilation">
     <file name="a.vb">
 Imports System
@@ -366,7 +366,7 @@ End class
 
         <Fact>
         Public Sub AllPiecesAssigned()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="AllPiecesAssigned">
           <file name="a.b">
         Public Structure S
@@ -390,7 +390,7 @@ End class
         <WorkItem(542579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542579")>
         <Fact>
         Public Sub AllPiecesAssigned2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
       <compilation name="AllPiecesAssigned2">
           <file name="a.b">
             Structure S
@@ -411,7 +411,7 @@ End class
         <WorkItem(542579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542579")>
         <Fact>
         Public Sub AllPiecesAssigned3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
       <compilation name="AllPiecesAssigned3">
           <file name="a.b">
             Structure S
@@ -435,7 +435,7 @@ End class
 
         <Fact>
         Public Sub AllPiecesAssigned_Int()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="AllPiecesAssigned_Int">
           <file name="a.b">
 Public Structure S
@@ -458,7 +458,7 @@ End Class
 
         <Fact>
         Public Sub AllPiecesAssigned_Obj()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="AllPiecesAssigned_Obj">
           <file name="a.b">
 Public Structure S
@@ -481,7 +481,7 @@ End Class
 
         <Fact>
         Public Sub AllPiecesAssigned_Prop_Obj()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="AllPiecesAssigned_Prop_Obj">
           <file name="a.b">
 Public Structure S
@@ -509,7 +509,7 @@ BC42109: Variable 's' is used before it has been assigned a value. A null refere
 
         <Fact>
         Public Sub OnePieceMissing_Int()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="OnePieceMissing_Int">
           <file name="a.b">
 Public Structure S
@@ -531,7 +531,7 @@ End Class
 
         <Fact>
         Public Sub OnePieceMissing_Obj()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="OnePieceMissing_Obj">
           <file name="a.b">
 Public Structure S
@@ -558,7 +558,7 @@ BC42109: Variable 's' is used before it has been assigned a value. A null refere
 
         <Fact>
         Public Sub OnePieceMissing_Prop_Obj()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="OnePieceMissing_Prop_Obj">
           <file name="a.b">
 Public Structure S
@@ -585,7 +585,7 @@ BC42109: Variable 's' is used before it has been assigned a value. A null refere
 
         <Fact>
         Public Sub OnePieceOnOnePath_Int()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="OnePieceOnOnePath_Int">
           <file name="a.b">
 Public Structure S
@@ -611,7 +611,7 @@ End Class
 
         <Fact>
         Public Sub OnePieceOnOnePath_Obj()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="OnePieceOnOnePath_Obj">
           <file name="a.b">
 Public Structure S
@@ -637,7 +637,7 @@ End Class
 
         <Fact>
         Public Sub OnePieceOnOnePath_Prop_Obj()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="OnePieceOnOnePath_Prop_Obj">
           <file name="a.b">
 Public Structure S
@@ -668,7 +668,7 @@ BC42109: Variable 's2' is used before it has been assigned a value. A null refer
 
         <Fact>
         Public Sub FullInitializationInConstructor_Int()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="FullInitializationInConstructor_Int">
           <file name="a.b">
 Public Structure S
@@ -686,7 +686,7 @@ End Structure
 
         <Fact>
         Public Sub FullInitializationInConstructor_Prop_Obj()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="FullInitializationInConstructor_Prop_Obj">
           <file name="a.b">
 Public Structure S
@@ -704,7 +704,7 @@ End Structure
 
         <Fact>
         Public Sub PartialInitializationInConstructor_Obj()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="PartialInitializationInConstructor_Obj">
           <file name="a.b">
 Public Structure S
@@ -721,7 +721,7 @@ End Structure
 
         <Fact>
         Public Sub PartialInitializationInConstructor_Prop_Obj()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="PartialInitializationInConstructor_Prop_Obj">
           <file name="a.b">
 Public Structure S
@@ -738,7 +738,7 @@ End Structure
 
         <Fact>
         Public Sub DefaultConstructor_Int()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="DefaultConstructor_Int">
           <file name="a.b">
 Public Structure S
@@ -759,7 +759,7 @@ End Class
 
         <Fact>
         Public Sub DefaultConstructor_Prop_And_Obj()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="DefaultConstructor_Prop_And_Obj">
           <file name="a.b">
 Public Structure S
@@ -780,7 +780,7 @@ End Class
 
         <Fact>
         Public Sub AutoPropInitialization_Obj()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="AutoPropInitialization_Obj">
           <file name="a.b">
 Public Structure S
@@ -795,7 +795,7 @@ End Structure
 
         <Fact>
         Public Sub EmptyStructAlwaysAssigned_Obj()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="EmptyStructAlwaysAssigned_Obj">
           <file name="a.b">
 Public Structure S
@@ -815,7 +815,7 @@ End Structure
 
         <Fact>
         Public Sub Struct_WithStructProperty_Auto_Obj()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="Struct_WithStructProperty_Auto_Obj">
           <file name="a.b">
 Public Structure S
@@ -841,7 +841,7 @@ BC42109: Variable 's' is used before it has been assigned a value. A null refere
 
         <Fact>
         Public Sub Struct_WithStructProperty_Obj()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="Struct_WithStructProperty_Obj">
           <file name="a.b">
 Public Structure S
@@ -871,7 +871,7 @@ End Structure
         <WorkItem(874526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/874526")>
         <Fact()>
         Public Sub GenericStructWithPropertyUsingStruct()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation>
           <file name="a.b">
 Structure S(Of T)

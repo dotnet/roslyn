@@ -601,7 +601,7 @@ a.vb
         Public Sub Win32ResourceArguments()
             Dim args As String() = {"/win32manifest:..\here\there\everywhere\nonexistent"}
             Dim parsedArgs = DefaultParse(args, _baseDirectory)
-            Dim compilation = CreateCompilationWithMscorlib(New VisualBasicSyntaxTree() {})
+            Dim compilation = CreateCompilationWithMscorlib40(New VisualBasicSyntaxTree() {})
             Dim errors As IEnumerable(Of DiagnosticInfo) = Nothing
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
@@ -644,7 +644,7 @@ a.vb
         Public Sub Win32IconContainsGarbage()
             Dim tmpFileName As String = Temp.CreateFile().WriteAllBytes(New Byte() {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}).Path
             Dim parsedArgs = DefaultParse({"/win32icon:" + tmpFileName}, _baseDirectory)
-            Dim compilation = CreateCompilationWithMscorlib(New VisualBasicSyntaxTree() {})
+            Dim compilation = CreateCompilationWithMscorlib40(New VisualBasicSyntaxTree() {})
             Dim errors As IEnumerable(Of DiagnosticInfo) = Nothing
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
@@ -4654,12 +4654,12 @@ Dim b = Loc
             opt = opt.WithEmbedVbCoreRuntime(True)
             opt.Errors.Verify(Diagnostic(ERRID.ERR_VBCoreNetModuleConflict))
 
-            CreateCompilationWithMscorlibAndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify(Diagnostic(ERRID.ERR_VBCoreNetModuleConflict))
+            CreateCompilationWithMscorlib40AndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify(Diagnostic(ERRID.ERR_VBCoreNetModuleConflict))
 
             opt = opt.WithOutputKind(OutputKind.DynamicallyLinkedLibrary)
             opt.Errors.Verify()
 
-            CreateCompilationWithMscorlibAndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify()
+            CreateCompilationWithMscorlib40AndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify()
         End Sub
 
         <Fact()>

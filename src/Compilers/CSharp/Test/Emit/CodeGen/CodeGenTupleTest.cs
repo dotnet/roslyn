@@ -23256,7 +23256,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib40(new[] { source, tuplelib_cs }, 
+            var comp = CreateCompilationWithMscorlib40(new[] { source, tuplelib_cs },
                 references: new[] { SystemXmlRef }, options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics();
@@ -23477,7 +23477,7 @@ class P
         var x1 = (1, 1) is System.Nullable<(int, int a)>;
     }
 }";
-            var comp = CreateCompilationWithMscorlib40( source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,18): warning CS0183: The given expression is always of the provided ('(int, int a)?') type
                 //         var x1 = (1, 1) is System.Nullable<(int, int a)>;

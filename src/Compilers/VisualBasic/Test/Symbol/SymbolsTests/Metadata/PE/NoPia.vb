@@ -1162,7 +1162,7 @@ End Interface
     </file>
 </compilation>
 
-            Dim i3Compilation = CreateCompilationWithMscorlib(i3Def, TestOptions.ReleaseDll)
+            Dim i3Compilation = CreateCompilationWithMscorlib40(i3Def, TestOptions.ReleaseDll)
 
             Dim ilSource =
             <![CDATA[
