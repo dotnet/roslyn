@@ -2082,7 +2082,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // However, to avoid a breaking change for existing operation block analyzers,
                     // we have decided to retain the current behavior of making operation block callbacks with the contained
                     // method body and/or constructor initialer operation nodes.
-                    // Hence we detect here if the operation block is parented by IMethodBodyOperation or IConstructorBodyOperation ands
+                    // Hence we detect here if the operation block is parented by IMethodBodyOperation or IConstructorBodyOperation and
                     // add them to 'operationsToAnalyze' so that analyzers that explicitly register for these operation kinds
                     // can get callbacks for these nodes.
                     if (operationBlock.Parent != null)
