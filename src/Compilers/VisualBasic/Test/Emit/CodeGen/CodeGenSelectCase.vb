@@ -4588,7 +4588,7 @@ End Module
 
         <Fact()>
         Public Sub MissingReferenceToVBRuntime()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System        
@@ -4616,7 +4616,7 @@ End Class
         <WorkItem(529047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529047")>
         <Fact>
         Public Sub SelectOutOfMethod()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class m1
@@ -4632,7 +4632,7 @@ End Class
         <WorkItem(529047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529047")>
         <Fact>
         Public Sub SelectOutOfMethod_1()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
     Select ""
@@ -4672,7 +4672,7 @@ End Module
         <WorkItem(913556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")>
         <Fact()>
         Public Sub MissingCharsProperty()
-            CompilationUtils.CreateCompilationWithReferences(
+            CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class M1

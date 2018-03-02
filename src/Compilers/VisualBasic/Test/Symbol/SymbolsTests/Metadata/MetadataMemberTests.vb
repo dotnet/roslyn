@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
         <WorkItem(527152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527152")>
         <Fact>
         Public Sub MetadataMethodSymbolCtor01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -184,7 +184,7 @@ End Class
         <WorkItem(537334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537334")>
         <Fact>
         Public Sub MetadataMethodSymbol01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -240,7 +240,7 @@ End Class
         <WorkItem(537337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537337")>
         <Fact>
         Public Sub MetadataParameterSymbol01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -303,7 +303,7 @@ End Class
 
         <Fact>
         Public Sub MetadataMethodSymbolGen02()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -356,7 +356,7 @@ End Class
         <WorkItem(537335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537335")>
         <Fact>
         Public Sub MetadataParameterSymbolGen02()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -674,7 +674,7 @@ MyConstC2=nullref
 
         <Fact>
         Public Sub AccessorWithImportedGenericType()
-            Dim comp0 = CreateCompilationWithMscorlib(
+            Dim comp0 = CreateCompilationWithMscorlib40(
 <compilation name="GT">
     <file name="a.vb">
 Public Class MC(Of T)
@@ -683,7 +683,7 @@ public delegate Sub MD(Of T)(T t)
     </file>
 </compilation>)
 
-            Dim comp1 = CreateCompilationWithMscorlibAndReferences(
+            Dim comp1 = CreateCompilationWithMscorlib40AndReferences(
     <compilation name="MT">
         <file name="b.vb">
 Public Class G(Of T)
@@ -713,7 +713,7 @@ End Class
 
             Dim mtdata = DirectCast(comp1, Compilation).EmitToArray(options:=New EmitOptions(metadataOnly:=True))
             Dim mtref = MetadataReference.CreateFromImage(mtdata)
-            Dim comp2 = CreateCompilationWithMscorlibAndReferences(
+            Dim comp2 = CreateCompilationWithMscorlib40AndReferences(
     <compilation name="App">
         <file name="c.vb">
         </file>
@@ -871,7 +871,7 @@ End Class
 
             Dim members = {"F", "P", "E", "M"}
 
-            Dim comp1 = CreateCompilationWithMscorlib(source1, options:=TestOptions.ReleaseDll)
+            Dim comp1 = CreateCompilationWithMscorlib40(source1, options:=TestOptions.ReleaseDll)
 
             Dim test1 = comp1.GetTypeByMetadataName("Test")
             Dim memberNames1 = New HashSet(Of String)(test1.MemberNames)
@@ -880,7 +880,7 @@ End Class
                 Assert.True(memberNames1.Contains(m), m)
             Next
 
-            Dim comp2 = CreateCompilationWithMscorlibAndReferences(<compilation><file name="a.vb"/></compilation>, {comp1.EmitToImageReference()})
+            Dim comp2 = CreateCompilationWithMscorlib40AndReferences(<compilation><file name="a.vb"/></compilation>, {comp1.EmitToImageReference()})
 
             Dim test2 = comp2.GetTypeByMetadataName("Test")
             Dim memberNames2 = New HashSet(Of String)(test2.MemberNames)
@@ -907,7 +907,7 @@ End Class
 
             Dim members = {"F", "P", "E", "M"}
 
-            Dim comp1 = CreateCompilationWithMscorlib(source1, options:=TestOptions.ReleaseDll)
+            Dim comp1 = CreateCompilationWithMscorlib40(source1, options:=TestOptions.ReleaseDll)
 
             Dim test1 = comp1.GetTypeByMetadataName("Test")
             test1.GetMembers()
@@ -917,7 +917,7 @@ End Class
                 Assert.True(memberNames1.Contains(m), m)
             Next
 
-            Dim comp2 = CreateCompilationWithMscorlibAndReferences(<compilation><file name="a.vb"/></compilation>, {comp1.EmitToImageReference()})
+            Dim comp2 = CreateCompilationWithMscorlib40AndReferences(<compilation><file name="a.vb"/></compilation>, {comp1.EmitToImageReference()})
 
             Dim test2 = comp2.GetTypeByMetadataName("Test")
             test2.GetMembers()
@@ -967,7 +967,7 @@ BC2014: the value '255' is invalid for option 'MetadataImportOptions'
             Assert.Equal(CType(Byte.MaxValue, MetadataImportOptions), DirectCast(commonOptions, VisualBasicCompilationOptions).MetadataImportOptions)
             AssertTheseDiagnostics(commonOptions.Errors, expectedDiagnostics)
 
-            Dim compilation0 = CreateCompilationWithMscorlib(
+            Dim compilation0 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -979,7 +979,7 @@ End Class
 </compilation>, options:=TestOptions.DebugDll)
 
             options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-            Dim compilation = CreateCompilationWithMscorlib("", options:=options, references:={compilation0.EmitToImageReference()})
+            Dim compilation = CreateCompilationWithMscorlib40("", options:=options, references:={compilation0.EmitToImageReference()})
             Dim c = compilation.GetTypeByMetadataName("C")
             Assert.NotEmpty(c.GetMembers("P1"))
             Assert.Empty(c.GetMembers("P2"))
@@ -1033,7 +1033,7 @@ BC2014: the value '255' is invalid for option 'MetadataImportOptions'
             Assert.Equal(CType(Byte.MaxValue, MetadataImportOptions), options.MetadataImportOptions)
             AssertTheseDiagnostics(options.Errors, expectedDiagnostics)
 
-            Dim compilation0 = CreateCompilationWithMscorlib(
+            Dim compilation0 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -1044,7 +1044,7 @@ End Class
     </file>
 </compilation>, options:=TestOptions.DebugDll)
 
-            Dim compilation = CreateCompilationWithMscorlib("", options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions:=MetadataImportOptions.Internal), references:={compilation0.EmitToImageReference()})
+            Dim compilation = CreateCompilationWithMscorlib40("", options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions:=MetadataImportOptions.Internal), references:={compilation0.EmitToImageReference()})
             Dim c = compilation.GetTypeByMetadataName("C")
             Assert.NotEmpty(c.GetMembers("P1"))
             Assert.NotEmpty(c.GetMembers("P2"))

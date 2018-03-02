@@ -435,7 +435,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(source)
             Dim tree = compilation.SyntaxTrees(0)
 
             Dim typeSymbol = DirectCast(compilation.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single(), SourceNamedTypeSymbol)
@@ -494,7 +494,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(source)
             Dim tree = compilation.SyntaxTrees(0)
 
             Dim typeSymbol = DirectCast(compilation.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single(), SourceNamedTypeSymbol)
@@ -559,7 +559,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(source)
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
@@ -609,7 +609,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(source)
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
@@ -625,7 +625,7 @@ End Class
         <WorkItem(542375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542375")>
         <Fact>
         Public Sub ConstFieldNonConstValueAsArrayBoundary()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
             <![CDATA[ 
@@ -687,7 +687,7 @@ End Module
 
         <Fact>
         Public Sub VbConstantFields_Error()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation>
        <file name="a.vb">
 Interface I : End Interface
@@ -854,7 +854,7 @@ BC30060: Conversion from 'String' to 'Object' cannot occur in a constant express
 
         <Fact>
         Public Sub VbConstantFields_NoError()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation>
        <file name="a.vb">
 Interface I : End Interface
@@ -921,7 +921,7 @@ End Class
 
         <Fact>
         Public Sub VbConstantFields_NoError_DateDecimal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation>
        <file name="a.vb">
 Class ClazzDateTimeDecimal
@@ -939,7 +939,7 @@ End Class
 
         <Fact>
         Public Sub VbConstantFields_Enum()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation>
        <file name="a.vb">
 Enum EI : AI : BI : End Enum
@@ -1076,7 +1076,7 @@ End Class
 
         <Fact>
         Public Sub VbParameterDefaults_Error()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation>
        <file name="a.vb">
 Interface I : End Interface
@@ -1207,7 +1207,7 @@ BC30060: Conversion from 'EI?' to 'Object' cannot occur in a constant expression
 
         <Fact>
         Public Sub VbParameterDefaults_NoError()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
    <compilation>
        <file name="a.vb">
 Interface I : End Interface
@@ -1395,7 +1395,7 @@ End Module
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseDll)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -1426,8 +1426,8 @@ End Class
                              </file>
                          </compilation>
 
-            Dim standardCompilation = CompilationUtils.CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
-            Dim strictCompilation = CompilationUtils.CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll,
+            Dim standardCompilation = CompilationUtils.CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll)
+            Dim strictCompilation = CompilationUtils.CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll,
                                                                                    parseOptions:=TestOptions.Regular.WithStrictFeature())
 
             CompilationUtils.AssertTheseDiagnostics(standardCompilation, <expected>
@@ -1485,13 +1485,13 @@ String
 
 #Region "Helpers"
         Private Shared Function CompileAndExtractTypeSymbol(sources As Xml.Linq.XElement, Optional typeName As String = "C") As SourceNamedTypeSymbol
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(sources)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(sources)
             Dim typeSymbol = DirectCast(compilation.SourceModule.GlobalNamespace.GetTypeMembers(typeName).Single(), SourceNamedTypeSymbol)
             Return typeSymbol
         End Function
 
         Private Shared Function GetMember(sources As Xml.Linq.XElement, fieldName As String, Optional typeName As String = "C") As Symbol
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(sources)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(sources)
             Dim symbol = DirectCast(compilation.SourceModule.GlobalNamespace.GetTypeMembers(typeName).Single.GetMembers(fieldName).Single(), Symbol)
             Return symbol
         End Function
@@ -1515,7 +1515,7 @@ String
 
         Private Shared Sub CompileAndCheckInitializers(sources As Xml.Linq.XElement, expectedInstanceInitializers As IEnumerable(Of ExpectedInitializer), expectedStaticInitializers As IEnumerable(Of ExpectedInitializer))
             '
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(sources)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(sources)
             Dim typeSymbol = DirectCast(compilation.SourceModule.GlobalNamespace.GetTypeMembers("C").Single(), SourceNamedTypeSymbol)
             Dim syntaxTree = compilation.SyntaxTrees.First()
             Dim boundInstanceInitializers = BindInitializersWithoutDiagnostics(typeSymbol, typeSymbol.InstanceInitializers)
