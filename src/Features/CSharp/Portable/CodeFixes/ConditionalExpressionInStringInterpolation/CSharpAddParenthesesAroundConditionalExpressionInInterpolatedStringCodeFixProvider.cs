@@ -19,8 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
     {
         private const string CS8361 = nameof(CS8361); //A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation.Parenthesize the conditional expression.
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS8361);
+        // CS8361 is a syntax error and it is unlikely that there is more than one CS8361 at a time.
+        public override FixAllProvider GetFixAllProvider() => null;
 
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS8361);
+        
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
