@@ -333,41 +333,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterPredefinedType()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-    void M() { switch (new object()) { case int $$ } }
-}");
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (new object()) { case int $$ }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterPredefinedType_BeforeWhen()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-    void M() { switch (new object()) { case int $$ when } }
-}");
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (new object()) { case int $$ when }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterGenericType()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-    void M() { switch (new object()) { case Dictionary<string, int> $$ } }
-}");
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (new object()) { case Dictionary<string, int> $$ }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterGenericType_BeforeWhen()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-    void M() { switch (new object()) { case Dictionary<string, int> $$ when } }
-}");
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (new object()) { case Dictionary<string, int> $$ when }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -419,41 +403,25 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstant()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-    void M() { const object local = null; switch (new object()) { case local $$ } }
-}");
+            await VerifyKeywordAsync(AddInsideMethod(@"const object c = null; switch (new object()) { case c $$ }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstant_BeforeWhen()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-    void M() { const object local = null; switch (new object()) { case local $$ when } }
-}");
+            await VerifyKeywordAsync(AddInsideMethod(@"const object c = null; switch (new object()) { case c $$ when }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_AfterUnknownName()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-    void M() { switch (new object()) { case unknown $$ } }
-}");
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (new object()) { case unknown $$ }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_AfterUnknownName_BeforeWhen()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-    void M() { switch (new object()) { case unknown $$ when } }
-}");
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (new object()) { case unknown $$ when }"));
         }
     }
 }
