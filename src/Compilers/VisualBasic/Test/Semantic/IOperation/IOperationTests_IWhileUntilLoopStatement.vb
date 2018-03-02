@@ -1575,13 +1575,9 @@ Block[B2] - Block
     Next (Regular) Block[B1]
 Block[B3] - Block
     Predecessors: [B1]
-    Statements (2)
+    Statements (1)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B4]
@@ -1625,13 +1621,9 @@ Block[B1] - Block
     Next (Regular) Block[B1]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (2)
+    Statements (1)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B3]
@@ -1674,13 +1666,9 @@ Block[B1] - Block
     Next (Regular) Block[B1]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (2)
+    Statements (1)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B3]
@@ -1732,13 +1720,9 @@ Block[B2] - Block
     Next (Regular) Block[B1]
 Block[B3] - Block
     Predecessors: [B1]
-    Statements (2)
+    Statements (1)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B4]
@@ -1781,13 +1765,9 @@ Block[B1] - Block
     Next (Regular) Block[B1]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (2)
+    Statements (1)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B3]
@@ -1830,13 +1810,9 @@ Block[B1] - Block
     Next (Regular) Block[B1]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (2)
+    Statements (1)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B3]
@@ -1884,13 +1860,9 @@ Block[B1] - Block
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (2)
+    Statements (1)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B3]
@@ -1938,13 +1910,9 @@ Block[B1] - Block
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (2)
+    Statements (1)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B3]

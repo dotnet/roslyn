@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly ImmutableArray<IOperation>.Builder _statements;
         private readonly ImmutableHashSet<BasicBlock>.Builder _predecessors;
-        internal Branch InternalNext;
+        internal (IOperation ReturnValue, Branch Branch) InternalNext;
         internal (IOperation Condition, bool JumpIfTrue, Branch Branch) InternalConditional;
 
         public BasicBlock(BasicBlockKind kind)
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// PROTOTYPE(dataflow): During CR there was a suggestion to use different name - "Successor".
         /// </summary>
-        public Branch Next => InternalNext;
+        public (IOperation ReturnValue, Branch Branch) Next => InternalNext;
 
         public ImmutableHashSet<BasicBlock> Predecessors => _predecessors.ToImmutable();
 
@@ -62,6 +62,16 @@ namespace Microsoft.CodeAnalysis.Operations
         internal void AddStatement(IOperation statement)
         {
             _statements.Add(statement);
+        }
+
+        internal void AddStatements(ImmutableArray<IOperation> statements)
+        {
+            _statements.AddRange(statements);
+        }
+
+        internal void RemoveStatements()
+        {
+            _statements.Clear();
         }
 
         internal void AddPredecessor(BasicBlock block)
@@ -142,8 +152,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     return _lazyFinallyRegions;
                 }
             }
-
-
         }
     }
 }

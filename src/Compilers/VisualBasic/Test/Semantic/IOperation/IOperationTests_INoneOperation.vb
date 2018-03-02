@@ -25,7 +25,7 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Mid(str, 1, 1) = ""')
           Expression: 
             IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, 1, 1) = ""')
@@ -42,10 +42,6 @@ Block[B1] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B2]
@@ -116,7 +112,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Mid(str, 1, ... str1, str2)')
           Expression: 
             IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, 1, ... str1, str2)')
@@ -131,10 +127,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -191,7 +183,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'Mid(If(b, s ... 1, 1) = str')
           Expression: 
             IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'Mid(If(b, s ... 1, 1) = str')
@@ -211,10 +203,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
