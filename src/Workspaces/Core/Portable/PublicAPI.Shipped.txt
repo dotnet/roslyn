@@ -210,6 +210,15 @@ const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.XmlLiteralEn
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.XmlLiteralName = "xml literal - name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.XmlLiteralProcessingInstruction = "xml literal - processing instruction" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.XmlLiteralText = "xml literal - text" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.FieldName = "field name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.EnumFieldName = "enum field name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ConstantName = "constant name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.LocalName = "local name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ParameterName = "parameter name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.MethodName = "method name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ExtensionMethodName = "extension method name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.PropertyName = "property name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.EventName = "event name" -> string
 const Microsoft.CodeAnalysis.CodeActions.ConflictAnnotation.Kind = "CodeAction_Conflict" -> string
 const Microsoft.CodeAnalysis.CodeActions.RenameAnnotation.Kind = "CodeAction_Rename" -> string
 const Microsoft.CodeAnalysis.CodeActions.WarningAnnotation.Kind = "CodeAction_Warning" -> string

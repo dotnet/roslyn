@@ -1574,7 +1574,7 @@ Public Class Program
     End Function
 End Class]]></file>
                          </compilation>
-            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626}, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626}, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim verifier = Me.CompileAndVerify(comp)
             Dim il = verifier.VisualizeIL("Program.VB$StateMachine_1_Goo.GetEnumerator()")
             Assert.Contains("System.Environment.get_CurrentManagedThreadId()", il, StringComparison.Ordinal)
@@ -1688,7 +1688,7 @@ Class C
 End Class
 "
             ' The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
-            Dim compilation = CompilationUtils.CreateCompilation({Parse(source), Parse(corlib)})
+            Dim compilation = CompilationUtils.CreateEmptyCompilation({Parse(source), Parse(corlib)})
             Dim verifier = CompileAndVerify(compilation, verify:=Verification.Fails)
             verifier.VerifyDiagnostics()
         End Sub
@@ -1738,7 +1738,7 @@ Class C
     End Function
 End Class
 "
-            Dim compilation = CreateCompilation({Parse(source)})
+            Dim compilation = CreateEmptyCompilation({Parse(source)})
 
             compilation.AssertTheseEmitDiagnostics(<expected>
 BC30002: Type 'System.Collections.Generic.IEnumerable' is not defined.
@@ -1808,7 +1808,7 @@ Class C
     End Function
 End Class
 "
-            Dim compilation = CreateCompilation({Parse(source)})
+            Dim compilation = CreateEmptyCompilation({Parse(source)})
 
             ' No error about IEnumerable
             compilation.AssertTheseEmitDiagnostics(<expected>

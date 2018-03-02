@@ -26,7 +26,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb("C.M",
 <symbols>
@@ -94,7 +94,7 @@ Imports System
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C1.Main",
 <symbols>
     <files>
@@ -160,7 +160,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C1.Main",
 <symbols>
     <files>
@@ -239,7 +239,7 @@ End Structure
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C.Main",
 <symbols>
     <files>
@@ -310,7 +310,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C.Main",
 <symbols>
     <files>
@@ -379,7 +379,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C.Main",
 <symbols>
     <files>
@@ -442,7 +442,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             ' Note: the scope of the loop variable is intentionally different from Dev11. 
             ' It's now the scope of the complete loop and not just the body
@@ -499,7 +499,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             ' Note: the scope of the loop variable is intentionally different from Dev11. 
             ' It 's now the scope of the complete loop and not just the body            

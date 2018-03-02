@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -41,14 +42,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
                 stackAllocNode = new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, spanType);
 
-                var spanCtor = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor).SymbolAsMember(spanType);
-                var ctorCall = _factory.New(spanCtor, stackAllocNode, countTemp);
+                BoundExpression constructorCall;
+                if (TryGetWellKnownTypeMember(stackAllocNode.Syntax, WellKnownMember.System_Span_T__ctor, out MethodSymbol spanConstructor))
+                {
+                    constructorCall = _factory.New((MethodSymbol)spanConstructor.SymbolAsMember(spanType), stackAllocNode, countTemp);
+                }
+                else
+                {
+                    constructorCall = new BoundBadExpression(
+                        syntax: stackAllocNode.Syntax,
+                        resultKind: LookupResultKind.NotInvocable,
+                        symbols: ImmutableArray<Symbol>.Empty,
+                        childBoundNodes: ImmutableArray<BoundExpression>.Empty,
+                        type: ErrorTypeSymbol.UnknownResultType);
+                }
 
                 return new BoundSequence(
                     syntax: stackAllocNode.Syntax,
                     locals: locals.ToImmutableAndFree(),
                     sideEffects: sideEffects.ToImmutableAndFree(),
-                    value: ctorCall,
+                    value: constructorCall,
                     type: spanType);
             }
             else
