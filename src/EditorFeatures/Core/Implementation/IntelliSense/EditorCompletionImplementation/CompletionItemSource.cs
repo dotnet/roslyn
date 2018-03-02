@@ -237,7 +237,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 return null;
             }
 
-            if (!service.ShouldTriggerCompletion(text, location.Position, RoslynTrigger.CreateInsertionTrigger(edit)))
+            // TODO: Edit of 0 means Invoke or InvokeAndCommitIfUnique
+            if (edit != 0 && !service.ShouldTriggerCompletion(text, location.Position, RoslynTrigger.CreateInsertionTrigger(edit)))
             {
                 return null;
             }
