@@ -357,7 +357,7 @@ class C
             //Assert.Equal("System.Int32", ySymbol.ConvertedType.ToTestDisplayString());
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality) CRASH")]
+        [Fact(Skip = "PROTOTYPE(tuple-equality)")]
         public void TestILForNullableElementsEqualsToNull()
         {
             var source = @"
@@ -940,7 +940,7 @@ public class C
     }
 }";
             var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics( );
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueFalse");
         }
 
@@ -2013,6 +2013,23 @@ class C
         }
 
         [Fact]
+        public void TestEqualOnNullableVsNullableTuples_NeverNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(((int, int)?) (1, 2) == ((int, int)?) (1, 2));
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "True");
+        }
+
+        [Fact]
         public void TestNotEqualOnNullableVsNullableTuples()
         {
             var source = @"
@@ -2936,6 +2953,110 @@ public class NotBool
         }
 
         [Fact]
+        public void TestNonBoolComparisonResult_WithTrueFalseOperatorsOnBase()
+        {
+            var source = @"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        Write($""{REPLACE}"");
+    }
+}
+public class Base
+{
+    public int I;
+    public Base(int i) { I = i; }
+}
+public class A : Base
+{
+    public A(int i) : base(i)
+    {
+        Write($""A:{i}, "");
+    }
+    public static NotBool operator ==(A a, Y y)
+    {
+        Write(""A == Y, "");
+        return new NotBool(a.I == y.I);
+    }
+    public static NotBool operator !=(A a, Y y)
+    {
+        Write(""A != Y, "");
+        return new NotBool(a.I != y.I);
+    }
+    public override bool Equals(object o)
+        => throw null;
+    public override int GetHashCode()
+        => throw null;
+}
+public class X : Base
+{
+    public X(int i) : base(i)
+    {
+        Write($""X:{i}, "");
+    }
+}
+public class Y : Base
+{
+    public Y(int i) : base(i)
+    {
+        Write($""Y:{i}, "");
+    }
+    public static implicit operator Y(X x)
+    {
+        Write(""X -> "");
+        return new Y(x.I);
+    }
+}
+public class NotBoolBase
+{
+    public bool B;
+    public NotBoolBase(bool value)
+    {
+        B = value;
+    }
+    public static bool operator true(NotBoolBase b)
+    {
+        Write($""NotBoolBase.true -> {b.B}, "");
+        return b.B;
+    }
+    public static bool operator false(NotBoolBase b)
+    {
+        Write($""NotBoolBase.false -> {!b.B}, "");
+        return !b.B;
+    }
+}
+public class NotBool : NotBoolBase
+{
+    public NotBool(bool value) : base(value) { }
+}
+";
+
+            // This tests the case where the custom operators false/true need an input conversion that's not just an identity conversion (in this case, it's an implicit reference conversion)
+            validate("(new A(1), new A(2)) == (new X(1), new Y(2))", "A:1, A:2, X:1, Y:2, X -> Y:1, A == Y, NotBoolBase.false -> False, A == Y, NotBoolBase.false -> False, True");
+            validate("(new A(1), new A(2)) == (new X(1), new Y(20))", "A:1, A:2, X:1, Y:20, X -> Y:1, A == Y, NotBoolBase.false -> False, A == Y, NotBoolBase.false -> True, False");
+
+            validate("(new A(1), new A(2)) != (new X(1), new Y(2))", "A:1, A:2, X:1, Y:2, X -> Y:1, A != Y, NotBoolBase.true -> False, A != Y, NotBoolBase.true -> False, False");
+            validate("(new A(1), new A(2)) != (new X(1), new Y(20))", "A:1, A:2, X:1, Y:20, X -> Y:1, A != Y, NotBoolBase.true -> False, A != Y, NotBoolBase.true -> True, True");
+
+            validate("((dynamic)new A(1), new A(2)) == (new X(1), (dynamic)new Y(2))", "A:1, A:2, X:1, Y:2, X -> Y:1, A == Y, NotBoolBase.false -> False, A == Y, NotBoolBase.false -> False, True");
+            validate("((dynamic)new A(1), new A(2)) == (new X(1), (dynamic)new Y(20))", "A:1, A:2, X:1, Y:20, X -> Y:1, A == Y, NotBoolBase.false -> False, A == Y, NotBoolBase.false -> True, False");
+
+            validate("((dynamic)new A(1), new A(2)) != (new X(1), (dynamic)new Y(2))", "A:1, A:2, X:1, Y:2, X -> Y:1, A != Y, NotBoolBase.true -> False, A != Y, NotBoolBase.true -> False, False");
+            validate("((dynamic)new A(1), new A(2)) != (new X(1), (dynamic)new Y(20))", "A:1, A:2, X:1, Y:20, X -> Y:1, A != Y, NotBoolBase.true -> False, A != Y, NotBoolBase.true -> True, True");
+
+            void validate(string expression, string expected)
+            {
+                var comp = CreateStandardCompilation(source.Replace("REPLACE", expression),
+                    references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+
+                comp.VerifyDiagnostics();
+                CompileAndVerify(comp, expectedOutput: expected);
+            }
+        }
+
+        [Fact]
         public void TestNonBoolComparisonResult_WithImplicitBoolConversion()
         {
             var source = @"
@@ -3152,6 +3273,50 @@ public class NotBool
                 // (7,18): error CS0029: Cannot implicitly convert type 'NotBool' to 'bool'
                 //         Write($"{(new A(1), new A(2)) == (new X(1), new Y(2))}");
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(new A(1), new A(2)) == (new X(1), new Y(2))").WithArguments("NotBool", "bool").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
+        public void TestNullableBoolComparisonResult_WithTrueFalseOperators()
+        {
+            var source = @"
+public class C
+{
+    public static void M(A a)
+    {
+        _ = (a, a) == (a, a);
+        if (a == a) { }
+    }
+}
+public class A
+{
+    public A(int i)
+        => throw null;
+    public static bool? operator ==(A a1, A a2)
+        => throw null;
+    public static bool? operator !=(A a1, A a2)
+        => throw null;
+    public override bool Equals(object o)
+        => throw null;
+    public override int GetHashCode()
+        => throw null;
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0029: Cannot implicitly convert type 'bool?' to 'bool'
+                //         _ = (a, a) == (a, a);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(a, a) == (a, a)").WithArguments("bool?", "bool").WithLocation(6, 13),
+                // (6,13): error CS0029: Cannot implicitly convert type 'bool?' to 'bool'
+                //         _ = (a, a) == (a, a);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(a, a) == (a, a)").WithArguments("bool?", "bool").WithLocation(6, 13),
+                // (7,13): error CS0266: Cannot implicitly convert type 'bool?' to 'bool'. An explicit conversion exists (are you missing a cast?)
+                //         if (a == a) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a == a").WithArguments("bool?", "bool").WithLocation(7, 13),
+                // (7,13): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+                //         if (a == a) { }
+                Diagnostic(ErrorCode.WRN_ComparisonToSelf, "a == a").WithLocation(7, 13)
                 );
         }
 

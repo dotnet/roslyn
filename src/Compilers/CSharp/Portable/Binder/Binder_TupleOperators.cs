@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //BoundExpression convertedLeft = GenerateConversionForAssignment(operators.LeftConvertedType, left, diagnostics);
             //BoundExpression convertedRight = GenerateConversionForAssignment(operators.RightConvertedType, right, diagnostics);
 
-            BoundExpression convertedLeft = FixTypelessElements(left, operators, diagnostics, isRight: false);
-            BoundExpression convertedRight = FixTypelessElements(right, operators, diagnostics, isRight: true);
+            BoundExpression fixedLeft = FixTypelessElements(left, operators, diagnostics, isRight: false);
+            BoundExpression fixedRight = FixTypelessElements(right, operators, diagnostics, isRight: true);
 
             TypeSymbol resultType = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
-            return new BoundTupleBinaryOperator(node, convertedLeft, convertedRight, kind, operators, resultType);
+            return new BoundTupleBinaryOperator(node, fixedLeft, fixedRight, kind, operators, resultType);
         }
 
         /// <summary>
@@ -57,7 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var multiple = (TupleBinaryOperatorInfo.Multiple)op;
-            var operators = multiple.Operators;
+            ImmutableArray<TupleBinaryOperatorInfo> operators = multiple.Operators;
+
             if (expr.Kind == BoundKind.TupleLiteral)
             {
                 var tuple = (BoundTupleLiteral)expr;
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (builder != null)
                 {
-                    var newArguments = builder.ToImmutableAndFree();
+                    ImmutableArray<BoundExpression> newArguments = builder.ToImmutableAndFree();
 
                     var newTupleType = TupleTypeSymbol.Create(locationOpt: null, newArguments.SelectAsArray(a => a.Type),
                         elementLocations: default, elementNames: default, Compilation, shouldCheckConstraints: false, errorPositions: default);
@@ -161,21 +162,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// If a element-wise binary operator returns a non-bool type, we will either:
         /// - prepare a conversion to bool if one exists
-        /// - prepare a truth operator: op_false in the case of an equality (`a == b` will be lowered to `!((a == b).op_false)) or op_true in the case of inequality
+        /// - prepare a truth operator: op_false in the case of an equality (`a == b` will be lowered to `!((a == b).op_false)) or op_true in the case of inequality,
+        ///     with the conversion being used for its input.
         /// </summary>
         private void PrepareBoolConversionAndTruthOperator(TypeSymbol type, BinaryExpressionSyntax node, BinaryOperatorKind binaryOperator, DiagnosticBag diagnostics,
-            out Conversion boolConversion, out UnaryOperatorSignature boolOperator)
+            out Conversion conversionForBool, out UnaryOperatorSignature boolOperator)
         {
             // Is the operand implicitly convertible to bool?
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var boolean = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
-            var conversion = this.Conversions.ClassifyImplicitConversionFromType(type, boolean, ref useSiteDiagnostics);
+            TypeSymbol boolean = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
+            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromType(type, boolean, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if (conversion.IsImplicit)
             {
-                boolConversion = conversion;
+                conversionForBool = conversion;
                 boolOperator = default;
                 return;
             }
@@ -201,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnaryOperatorAnalysisResult best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, node, diagnostics, out resultKind, out originalUserDefinedOperators);
             if (best.HasValue)
             {
-                boolConversion = best.Conversion;
+                conversionForBool = best.Conversion;
                 boolOperator = best.Signature;
                 return;
             }
@@ -209,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // It did not. Give a "not convertible to bool" error.
 
             GenerateImplicitConversionError(diagnostics, node, conversion, comparisonResult, boolean);
-            boolConversion = Conversion.NoConversion;
+            conversionForBool = Conversion.NoConversion;
             boolOperator = default;
             return;
         }
@@ -236,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TupleBinaryOperatorInfo.Single(dynamicType, dynamicType, elementOperatorKind,
                 leftConversion: Conversion.NoConversion, rightConversion: Conversion.NoConversion,
                 methodSymbolOpt: null, typelessLeft: left.Type is null, typelessRight: right.Type is null,
-                boolConversion: Conversion.Identity, boolOperator: default);
+                conversionForBool: Conversion.Identity, boolOperator: default);
         }
 
         private TupleBinaryOperatorInfo.Multiple BindTupleBinaryOperatorNestedInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
@@ -259,8 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool leftNullable = leftType?.IsNullableType() == true;
             bool rightNullable = rightType?.IsNullableType() == true;
 
-            var leftParts = GetTupleArgumentsOrPlaceholders(left);
-            var rightParts = GetTupleArgumentsOrPlaceholders(right);
+            ImmutableArray<BoundExpression> leftParts = GetTupleArgumentsOrPlaceholders(left);
+            ImmutableArray<BoundExpression> rightParts = GetTupleArgumentsOrPlaceholders(right);
 
             int length = leftParts.Length;
             Debug.Assert(length == rightParts.Length);

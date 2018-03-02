@@ -115,8 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression leftHasValue;
             BoundExpression leftValue;
 
-            // PROTOTYPE(tuple-equality) Re-use NullableNeverHasValue/NullableAlwaysHasValue
-
+            // Note: left and right are either temps or `null`, so we don't have detailed information to tell us a nullable always has a value
             var isLeftNullable = left.Kind != BoundKind.TupleLiteral && left.Type.IsNullableType();
             if (isLeftNullable)
             {
@@ -295,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, convertedLeft, convertedRight, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt);
             UnaryOperatorSignature boolOperator = single.BoolOperator;
-            Conversion boolConversion = single.ConversionForBoolOperator;
+            Conversion boolConversion = single.ConversionForBool;
 
             BoundExpression result;
             if (boolOperator.Kind != UnaryOperatorKind.Error)
