@@ -452,7 +452,7 @@ Public Class BobAttribute
 End Class
     ]]></file>
 </compilation>
-            Dim lib_comp = CreateCompilationWithMscorlibAndVBRuntime(lib_vb)
+            Dim lib_comp = CreateCompilationWithMscorlib40AndVBRuntime(lib_vb)
 
             Dim typeC As INamedTypeSymbol = lib_comp.GetTypeByMetadataName("C")
             AssertEx.SetEqual({"System.SerializableAttribute", "BobAttribute"}, typeC.GetAttributes().Select(Function(a) a.ToString()))
@@ -466,7 +466,7 @@ End Class
     <file name="attr.vb"></file>
 </compilation>
 
-            Dim client1 = CreateCompilationWithMscorlibAndVBRuntime(empty_vb, additionalRefs:={lib_comp.ToMetadataReference()})
+            Dim client1 = CreateCompilationWithMscorlib40AndVBRuntime(empty_vb, additionalRefs:={lib_comp.ToMetadataReference()})
 
             Dim typeC1 As INamedTypeSymbol = client1.GetTypeByMetadataName("C")
             AssertEx.SetEqual({"System.SerializableAttribute", "BobAttribute"}, typeC1.GetAttributes().Select(Function(a) a.ToString()))
@@ -475,7 +475,7 @@ End Class
             Dim typeBobAttribute1 As INamedTypeSymbol = client1.GetTypeByMetadataName("BobAttribute")
             Assert.False(typeBobAttribute1.IsSerializable)
 
-            Dim client2 = CreateCompilationWithMscorlibAndVBRuntime(empty_vb, additionalRefs:={lib_comp.EmitToImageReference()})
+            Dim client2 = CreateCompilationWithMscorlib40AndVBRuntime(empty_vb, additionalRefs:={lib_comp.EmitToImageReference()})
 
             Dim typeC2 As INamedTypeSymbol = client2.GetTypeByMetadataName("C")
             AssertEx.SetEqual({"BobAttribute"}, typeC2.GetAttributes().Select(Function(a) a.ToString()))
@@ -509,7 +509,7 @@ Public Class D2
 End Class
             ]]></file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(lib_vb)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(lib_vb)
 
             Dim cOfInt = comp.GetTypeByMetadataName("C2").BaseType()
             Assert.IsType(GetType(SubstitutedNamedType.ConstructedInstanceType), cOfInt)
@@ -3181,9 +3181,9 @@ End Class
 </compilation>
             Dim lib1 = CreateCompilationWithMscorlib45AndVBRuntime(missing)
             lib1.VerifyDiagnostics()
-            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source, additionalRefs:={lib1.EmitToImageReference()})
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source, references:={lib1.EmitToImageReference()})
             comp.VerifyDiagnostics()
-            Dim comp2 = CreateCompilationWithMscorlib45AndVBRuntime(errors, additionalRefs:={comp.EmitToImageReference()})
+            Dim comp2 = CreateCompilationWithMscorlib45AndVBRuntime(errors, references:={comp.EmitToImageReference()})
 
             Dim substitutedNested = comp.GetTypeByMetadataName("SubstitutedNested").BaseType()
             Assert.IsType(Of SubstitutedNamedType.SpecializedNonGenericType)(substitutedNested)
@@ -3249,7 +3249,7 @@ End Class
             Assert.IsType(Of SubstitutedErrorType)(nestedSubstitutedError)
             Assert.False(DirectCast(nestedSubstitutedError, INamedTypeSymbol).IsSerializable)
 
-            Dim script = CreateCompilation("", parseOptions:=TestOptions.Script)
+            Dim script = CreateCompilationWithMscorlib40("", parseOptions:=TestOptions.Script)
             Dim scriptClass = script.GetTypeByMetadataName("Script")
             Assert.IsType(Of ImplicitNamedTypeSymbol)(scriptClass)
             Assert.False(DirectCast(scriptClass, INamedTypeSymbol).IsSerializable)
@@ -3303,7 +3303,7 @@ End Module
 ]]>
             </file>
         </compilation>
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(source, {SystemRef, MsvbRef, classLibrary})
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(source, {SystemRef, MsvbRef, classLibrary})
             compilation2.VerifyDiagnostics()
 
             Dim gt = compilation2.GetTypeByMetadataName("Module1").GetAttributes().First().CommonConstructorArguments.First()

@@ -4938,7 +4938,7 @@ Class A
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(Text)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(Text)
             comp.VerifyDiagnostics()
 
             Dim tree = comp.SyntaxTrees.Single()
