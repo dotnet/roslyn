@@ -961,7 +961,6 @@ namespace Microsoft.CodeAnalysis
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class MethodOrConstructorBodyOperationAnalyzer : DiagnosticAnalyzer
         {
-            private readonly bool _doOperationBlockAnalysis;
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
                 "ID",
                 "Title",
