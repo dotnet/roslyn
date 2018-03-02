@@ -28,6 +28,7 @@ param (
     [switch]$sign = $false,
     [switch]$pack = $false,
     [switch]$binaryLog = $false,
+    [switch]$noAnalyzers = $false,
     [string]$signType = "",
 
     # Test options 
@@ -134,7 +135,12 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
     if ($parallel) {
         $args += " /m"
     }
-    
+
+    if ($noAnalyzers -or ($cibuild -and $testVsi)) {
+        # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
+        $args += " /p:UseRoslynAnalyzers=false"
+    }
+
     if ($binaryLog) {
         if ($logFileName -eq "") { 
             $logFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
@@ -588,6 +594,7 @@ function Ensure-ProcDump() {
 function Redirect-Temp() {
     $temp = Join-Path $binariesDir "Temp"
     Create-Directory $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\.editorconfig") $temp
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.props") $temp
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.targets") $temp
     ${env:TEMP} = $temp
