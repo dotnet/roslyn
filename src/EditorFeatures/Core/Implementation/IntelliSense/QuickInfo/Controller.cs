@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     var item = await service.GetQuickInfoAsync(document, triggerPoint, cancellationToken).ConfigureAwait(false);
                     if (item != null)
                     {
-                        return BuildIntellisenseQuickInfoItemAsync(triggerPoint, snapshot, item);
+                        return BuildIntellisenseQuickInfoItem(triggerPoint, snapshot, item);
                     }
 
                     return null;
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return _service;
         }
 
-        private IntellisenseQuickInfoItem BuildIntellisenseQuickInfoItemAsync(SnapshotPoint triggerPoint,
+        private IntellisenseQuickInfoItem BuildIntellisenseQuickInfoItem(SnapshotPoint triggerPoint,
             ITextSnapshot snapshot, CodeAnalysisQuickInfoItem quickInfoItem)
         {
             var line = triggerPoint.GetContainingLine();
