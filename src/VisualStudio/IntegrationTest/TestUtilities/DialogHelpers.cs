@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 new PropertyCondition(nameProperty, propertyValue),
                 new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
 
-            return vsAutomationElement.FindFirst(TreeScope.Descendants, elementCondition);
+            return vsAutomationElement.FindFirst(TreeScope.Children, elementCondition);
         }
 
         private static T Retry<T>(Func<T> action, Func<T, bool> stoppingCondition, TimeSpan delay)
