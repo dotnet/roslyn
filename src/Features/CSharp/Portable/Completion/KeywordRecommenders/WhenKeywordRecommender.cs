@@ -57,7 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             if (lastToken == context.TargetToken)
             {
-                return NotATypeName(expressionOrPattern);
+                var expression = expressionOrPattern as ExpressionSyntax
+                    ?? (expressionOrPattern as ConstantPatternSyntax)?.Expression;
+
+                return NotATypeName(expression);
             }
             else if (lastToken == context.LeftToken && expressionOrPattern is DeclarationPatternSyntax declarationPattern)
             {
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             return false;
 
-            bool NotATypeName(SyntaxNode node)
+            bool NotATypeName(ExpressionSyntax expression)
             {
                 // Syntactically, everything works out. We're in a pretty good spot to show 'when' now.
                 // But let's not do it just yet... Consider these cases:
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 // If what we have here is known to be a type, we don't want to clutter the variable name suggestion list
                 // with 'when' since we know that the resulting code would be semantically invalid.
 
-                if (node is TypeSyntax typeSyntax)
+                if (expression is TypeSyntax typeSyntax)
                 {
                     return !typeSyntax.IsPotentialTypeName(context.SemanticModel, cancellationToken);
                 }

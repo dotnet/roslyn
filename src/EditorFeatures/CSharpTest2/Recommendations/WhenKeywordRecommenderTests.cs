@@ -203,12 +203,32 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterPredefinedType_BeforeWhen()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    void M() { switch (new object()) { case int $$ when } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterGenericType()
         {
             await VerifyAbsenceAsync(@"
 class C
 {
     void M() { switch (new object()) { case Dictionary<string, int> $$ } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterGenericType_BeforeWhen()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    void M() { switch (new object()) { case Dictionary<string, int> $$ when } }
 }");
         }
 
@@ -220,6 +240,17 @@ class SyntaxNode { }
 class C
 {
     void M() { switch (new object()) { case SyntaxNode $$ } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterCustomType_BeforeWhen()
+        {
+            await VerifyAbsenceAsync(@"
+class SyntaxNode { }
+class C
+{
+    void M() { switch (new object()) { case SyntaxNode $$ when } }
 }");
         }
 
@@ -236,6 +267,18 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_AfterColorColor_BeforeWhen()
+        {
+            await VerifyKeywordAsync(@"
+class Color { }
+class C
+{
+    const Color Color = null;
+    void M() { switch (new object()) { case Color $$ when } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstant()
         {
             await VerifyKeywordAsync(@"
@@ -246,12 +289,32 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstant_BeforeWhen()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    void M() { const object local = null; switch (new object()) { case local $$ when } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_AfterUnknownName()
         {
             await VerifyKeywordAsync(@"
 class C
 {
     void M() { switch (new object()) { case unknown $$ } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_AfterUnknownName_BeforeWhen()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    void M() { switch (new object()) { case unknown $$ when } }
 }");
         }
     }
