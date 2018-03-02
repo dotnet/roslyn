@@ -19,19 +19,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         protected override bool IsValidContext(int position, CSharpSyntaxContext context,
             CancellationToken cancellationToken)
         {
-            return context.IsCatchFilterContext || IsAfterCompleteExpressionOrPatternInCaseLabel(context, cancellationToken);
+            return context.IsCatchFilterContext ||
+                (IsAfterCompleteExpressionOrPatternInCaseLabel(context, out var expressionOrPattern) &&
+                !IsTypeName(expressionOrPattern, context.SemanticModel, cancellationToken));
         }
 
         private static bool IsAfterCompleteExpressionOrPatternInCaseLabel(CSharpSyntaxContext context,
-            CancellationToken cancellationToken)
+            out SyntaxNode expressionOrPattern)
         {
             var switchLabel = context.TargetToken.GetAncestor<SwitchLabelSyntax>();
             if (switchLabel == null)
             {
+                expressionOrPattern = null;
                 return false;
             }
 
-            var expressionOrPattern = switchLabel.ChildNodes().FirstOrDefault();
+            expressionOrPattern = switchLabel.ChildNodes().FirstOrDefault();
             if (expressionOrPattern == null) // Oh well. It must have been a default label.
             {
                 return false;
@@ -53,43 +56,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return false;
             }
 
-            // Only offer if we're at the last token of the expression/pattern, not inside it.
-
-            if (lastToken == context.TargetToken)
-            {
-                var expression = expressionOrPattern as ExpressionSyntax
-                    ?? (expressionOrPattern as ConstantPatternSyntax)?.Expression;
-
-                return NotATypeName(expression);
-            }
-            else if (lastToken == context.LeftToken && expressionOrPattern is DeclarationPatternSyntax declarationPattern)
+            if (lastToken == context.LeftToken && context.LeftToken != context.TargetToken &&
+                expressionOrPattern is DeclarationPatternSyntax declarationPattern)
             {
                 // case constant w|
 
-                // We might have a partially written 'when' keyword, which causes this to be parsed as a declaration pattern.
-                // lastToken will be 'w' (LeftToken) as opposed to 'constant' (TargetToken). We handle this as a special case.
+                // The user is typing a new word (might be a partially written 'when' keyword), which causes this to be parsed
+                // as a declaration pattern. lastToken will be 'w' (LeftToken) as opposed to 'constant' (TargetToken).
+                // However we'd like to pretend that this is not the case and that we just a have single expression
+                // with 'constant' as if the new word didn't exist. So let's do that by adjusting our variables.
 
-                return NotATypeName(declarationPattern.Type);
+                lastToken = context.TargetToken;
+                expressionOrPattern = declarationPattern.Type;
             }
 
-            return false;
+            // Only offer if we're at the last token of the expression/pattern, not inside it.
+            return lastToken == context.TargetToken;
+        }
 
-            bool NotATypeName(ExpressionSyntax expression)
-            {
-                // Syntactically, everything works out. We're in a pretty good spot to show 'when' now.
-                // But let's not do it just yet... Consider these cases:
-                // case SyntaxNode |
-                // case SyntaxNode w|
-                // If what we have here is known to be a type, we don't want to clutter the variable name suggestion list
-                // with 'when' since we know that the resulting code would be semantically invalid.
+        private static bool IsTypeName(SyntaxNode expressionOrPattern, SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            // Syntactically, everything works out. We're in a pretty good spot to show 'when' now.
+            // But let's not do it just yet... Consider these cases:
+            // case SyntaxNode |
+            // case SyntaxNode w|
+            // If what we have here is known to be a type, we don't want to clutter the variable name suggestion list
+            // with 'when' since we know that the resulting code would be semantically invalid.
 
-                if (expression is TypeSyntax typeSyntax)
-                {
-                    return !typeSyntax.IsPotentialTypeName(context.SemanticModel, cancellationToken);
-                }
+            var expression = expressionOrPattern as ExpressionSyntax
+                ?? (expressionOrPattern as ConstantPatternSyntax)?.Expression;
 
-                return true;
-            }
+            return (expression as TypeSyntax)?.IsPotentialTypeName(semanticModel, cancellationToken) ?? false;
         }
     }
 }
