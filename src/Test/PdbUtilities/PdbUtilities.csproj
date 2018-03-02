@@ -57,13 +57,4 @@
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\Utilities\Portable\TestUtilities.csproj" />
   </ItemGroup>
-
-  <!-- Workaround for https://github.com/NuGet/Home/issues/4989 -->
-  <Target Name="_SetAlias" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
-    <ItemGroup>
-      <ReferencePath Condition="'%(FileName)' == 'Microsoft.DiaSymReader'">
-        <Aliases>DSR</Aliases>
-      </ReferencePath>
-    </ItemGroup>
-  </Target>
 </Project>
