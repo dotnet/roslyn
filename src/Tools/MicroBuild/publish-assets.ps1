@@ -1,11 +1,11 @@
 # Publishes our build assets to nuget, myget, dotnet/versions, etc ..
 #
-# The publish operation is best visioned as an optional yet repeatable post build operation. It can be
-# run anytime after build or automatically as a post build step. But it is an operation that focuses on
+# The publish operation is best visioned as an optional yet repeatable post build operation. It can be 
+# run anytime after build or automatically as a post build step. But it is an operation that focuses on 
 # build outputs and hence can't rely on source code from the build being available
 #
-# Repeatable is important here because we have to assume that publishes can and will fail with some
-# degree of regularity.
+# Repeatable is important here because we have to assume that publishes can and will fail with some 
+# degree of regularity. 
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     # Standard options
@@ -14,7 +14,7 @@ Param(
     [string]$releaseName = "",
     [switch]$test,
 
-    # Credentials
+    # Credentials 
     [string]$gitHubUserName = "",
     [string]$gitHubToken = "",
     [string]$gitHubEmail = "",
@@ -48,10 +48,10 @@ function Publish-NuGet([string]$packageDir, [string]$uploadUrl) {
             }
 
             if (-not $test) {
-                # Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --apiKey $apiKey -v q"
+                Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --apiKey $apiKey -v q"
             }
         }
-    }
+    } 
     finally {
         Pop-Location
     }
@@ -59,7 +59,7 @@ function Publish-NuGet([string]$packageDir, [string]$uploadUrl) {
 
 function Publish-Vsix([string]$uploadUrl) {
     Push-Location $configDir
-    try {
+    try { 
         Write-Host "Publishing VSIX to $uploadUrl"
         $apiKey = Get-PublishKey $uploadUrl
         $extensions = [xml](Get-Content (Join-Path $configDir "myget_org-extensions.config"))
@@ -70,7 +70,7 @@ function Publish-Vsix([string]$uploadUrl) {
             }
 
             Write-Host "  Publishing '$vsix'"
-            if (-not $test) {
+            if (-not $test) { 
                 $response = Invoke-WebRequest -Uri $uploadUrl -Headers @{"X-NuGet-ApiKey"=$apiKey} -ContentType 'multipart/form-data' -InFile $vsix -Method Post -UseBasicParsing
                 if ($response.StatusCode -ne 201) {
                     throw "Failed to upload VSIX extension: $vsix. Upload failed with Status code: $response.StatusCode"
@@ -87,15 +87,15 @@ function Publish-Channel([string]$packageDir, [string]$name) {
     $publish = Join-Path $configDir "Exes\RoslynPublish\RoslynPublish.exe"
     $args = "-nugetDir $packageDir -channel $name -gu $gitHubUserName -gt $gitHubToken -ge $githubEmail"
     Write-Host "Publishing $packageDir to channel $name"
-    if (-not $test) {
+    if (-not $test) { 
         Exec-Console $publish $args
     }
 }
 
 # Do basic verification on the values provided in the publish configuration
-function Test-Entry($publishData, [switch]$isBranch) {
-    if ($isBranch) {
-        if ($publishData.nuget -ne $null) {
+function Test-Entry($publishData, [switch]$isBranch) { 
+    if ($isBranch) { 
+        if ($publishData.nuget -ne $null) { 
             $kind = $publishData.nugetKind;
             if ($kind -ne "PerBuildPreRelease") {
                 throw "Branches are only allowed to publish PerBuildPreRelease"
@@ -104,20 +104,20 @@ function Test-Entry($publishData, [switch]$isBranch) {
     }
 }
 
-# Publish a given entry: branch or release.
-function Publish-Entry($publishData, [switch]$isBranch) {
+# Publish a given entry: branch or release. 
+function Publish-Entry($publishData, [switch]$isBranch) { 
     Test-Entry $publishData -isBranch:$isBranch
     $packageDir = Join-Path $nugetDir $publishData.nugetKind
 
 
     # First publish the NuGet packages to the specified feeds
-    foreach ($url in $publishData.nuget) {
+    foreach ($url in $publishData.nuget) { 
         Publish-NuGet $packageDir $url
     }
 
     # Next publish the VSIX to the specified feeds
     $vsixData = $publishData.vsix
-    if ($vsixData -ne $null) {
+    if ($vsixData -ne $null) { 
         Publish-Vsix $vsixData
     }
 
@@ -129,8 +129,8 @@ function Publish-Entry($publishData, [switch]$isBranch) {
     exit 0
 }
 
-function Test-Member($obj, [string]$name) {
-    $value = Get-Member -Name $name -InputObject $obj
+function Test-Member($obj, [string]$name) { 
+    $value = Get-Member -Name $name -InputObject $obj 
     return $value -ne $null
 }
 
@@ -138,7 +138,7 @@ function Test-Member($obj, [string]$name) {
 # of our publish operations specify fully branch names like /refs/heads/master. Normalizing
 # those out to the short branch name here.
 function Normalize-BranchName([string]$branchName) {
-    switch -regex ($branchName) {
+    switch -regex ($branchName) { 
         "refs/heads/(.*)" { return $matches[1] }
         "refs/pull/\d*/(.*)" { return $matches[1] }
         default { return $branchName }
@@ -165,15 +165,15 @@ try {
     }
     elseif ($branchName -ne "") {
         $branchName = Normalize-BranchName $branchName
-        if (-not (Test-Member $data.branches $branchName)) {
+        if (-not (Test-Member $data.branches $branchName)) { 
             Write-Host "$branchName is not listed for publishing"
             exit 0
         }
 
         Publish-Entry $data.branches.$branchName -isBranch:$true
     }
-    elseif ($releaseName -ne "") {
-        if (-not (Test-Member $data.releases $releaseName)) {
+    elseif ($releaseName -ne "") { 
+        if (-not (Test-Member $data.releases $releaseName)) { 
            Write-Host "$releaseName is not a valid release"
            exit 1
         }
