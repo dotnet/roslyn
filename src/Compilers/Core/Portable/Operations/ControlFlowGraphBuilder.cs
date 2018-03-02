@@ -865,9 +865,10 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        private ImmutableArray<T> PopArray<T>(int numElements, Func<IOperation, int, T> wrapper = null) where T : IOperation
+        private ImmutableArray<T> PopArray<T>(ImmutableArray<T> originalArray, Func<IOperation, int, ImmutableArray<T>, T> wrapper = null) where T : IOperation
         {
             Debug.Assert(wrapper != null || typeof(T) == typeof(IOperation));
+            int numElements = originalArray.Length;
             if (numElements == 0)
             {
                 return ImmutableArray<T>.Empty;
@@ -881,7 +882,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     IOperation visitedElement = _evalStack.Pop();
                     if (wrapper != null)
                     {
-                        builder.Add(wrapper(visitedElement, i));
+                        builder.Add(wrapper(visitedElement, i, originalArray));
                     }
                     else
                     {
@@ -1763,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             ImmutableArray<IArgumentOperation> arguments = operation.Arguments;
             PushArray(arguments, arg => arg.Value);
-            ImmutableArray<IArgumentOperation> visitedArguments = PopArray(arguments.Length, RewriteArgumentFromArray(arguments));
+            ImmutableArray<IArgumentOperation> visitedArguments = PopArray(arguments, RewriteArgumentFromArray);
             IOperation visitedInstance = operation.Instance == null ? null : _evalStack.Pop();
 
             return new InvocationExpression(operation.TargetMethod, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -1773,7 +1774,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             ImmutableArray<IArgumentOperation> arguments = operation.Arguments;
             PushArray(arguments, arg => arg.Value);
-            ImmutableArray<IArgumentOperation> visitedArgs = PopArray(arguments.Length, RewriteArgumentFromArray(arguments));
+            ImmutableArray<IArgumentOperation> visitedArgs = PopArray(arguments, RewriteArgumentFromArray);
 
             // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
             var objectCreation = new ObjectCreationExpression(operation.Constructor, initializer: null, visitedArgs, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -1783,16 +1784,13 @@ namespace Microsoft.CodeAnalysis.Operations
             return objectCreation;
         }
 
-        private Func<IOperation, int, IArgumentOperation> RewriteArgumentFromArray(ImmutableArray<IArgumentOperation> arguments)
+        private IArgumentOperation RewriteArgumentFromArray(IOperation visitedArgument, int index, ImmutableArray<IArgumentOperation> arguments)
         {
-            return (visitedArgument, index) =>
-            {
-                Debug.Assert(index >= 0 && index < arguments.Length);
-                var originalArgument = (BaseArgument)arguments[index];
-                return new ArgumentOperation(visitedArgument, originalArgument.ArgumentKind, originalArgument.Parameter,
-                                             originalArgument.InConversionConvertibleOpt, originalArgument.OutConversionConvertibleOpt,
-                                             semanticModel: null, originalArgument.Syntax, originalArgument.ConstantValue, originalArgument.IsImplicit);
-            };
+            Debug.Assert(index >= 0 && index < arguments.Length);
+            var originalArgument = (BaseArgument)arguments[index];
+            return new ArgumentOperation(visitedArgument, originalArgument.ArgumentKind, originalArgument.Parameter,
+                                         originalArgument.InConversionConvertibleOpt, originalArgument.OutConversionConvertibleOpt,
+                                         semanticModel: null, originalArgument.Syntax, originalArgument.ConstantValue, originalArgument.IsImplicit);
         }
 
         internal override IOperation VisitNoneOperation(IOperation operation, int? captureIdForResult)
