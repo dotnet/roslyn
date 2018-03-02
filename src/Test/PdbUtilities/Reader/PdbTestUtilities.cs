@@ -1,5 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-extern alias DSR;
 
 using System;
 using System.Collections.Immutable;
@@ -11,7 +10,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using DSR::Microsoft.DiaSymReader;
+using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
 
 namespace Roslyn.Test.Utilities
