@@ -127,30 +127,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 SpanTrackingMode.EdgeInclusive);
 
             var glyphs = quickInfoItem.Tags.GetGlyphs();
+            var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
+            var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);
 
-            //var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
-            //var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);
-            //var documentSpan = quickInfoItem.RelatedSpans.Length > 0 ?
-            //CreateDocumentSpanPresentation(quickInfoItem, snapshot) : null;
+            var elementList = new List<ClassifiedTextElement>();
 
-            //var content = new QuickInfoDisplayPanel(
-            //    symbolGlyph: symbolGlyph != default ? CreateSymbolPresentation(symbolGlyph) : null,
-            //    warningGlyph: warningGlyph != default ? CreateSymbolPresentation(warningGlyph) : null,
-            //    textBlocks: quickInfoItem.Sections.Select(section =>
-            //        new TextBlockElement(section.Kind, CreateTextPresentation(section))).ToImmutableArray(),
-            //    documentSpan: documentSpan);
-
-
-            var textLines = new List<ClassifiedTextElement>();
-            foreach(var section in quickInfoItem.Sections)
+            if (symbolGlyph != Glyph.None)
             {
-                textLines.Add(new ClassifiedTextElement(section.TaggedParts.Select(
+                //elementList.Add(new ImageElement(symbolGlyph.GetImageId()));
+            }
+
+            if (warningGlyph != Glyph.None)
+            {
+                //elementList.Add(new ImageElement(warningGlyph.GetImageId()));
+            }
+
+            foreach (var section in quickInfoItem.Sections)
+            {
+                elementList.Add(new ClassifiedTextElement(section.TaggedParts.Select(
                     part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text))));
             }
 
             var content = new ContainerElement(
                         ContainerElementStyle.Stacked,
-                        textLines);
+                        elementList);
 
             return new IntellisenseQuickInfoItem(lineSpan, content);
         }
