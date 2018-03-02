@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -9,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UseAutoProperty;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 {
@@ -135,19 +137,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         protected override ExpressionSyntax GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
             // Getter has to be of the form:
-            //
-            //     get { return field; } or
+            // 1. Getter can be defined as accessor or expression bodied lambda
+            //     get { return field; }
+            //     get => field;
+            //     int Property => field;
+            // 2. Underlying field can be accessed with this qualifier or not
+            //     get { return field; }
             //     get { return this.field; }
-            var getAccessor = getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as AccessorDeclarationSyntax;
-            var statements = getAccessor?.Body?.Statements;
+            var expr = GetGetterExpressionFromSymbol(getMethod, cancellationToken);
+            if (expr == null)
+            {
+                return null;
+            }
+
+            return CheckExpressionSyntactically(expr) ? expr : null;
+        }
+
+        private ExpressionSyntax GetGetterExpressionFromSymbol(IMethodSymbol getMethod, CancellationToken cancellationToken)
+        {
+            var declaration = getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+            switch (declaration)
+            {
+                case AccessorDeclarationSyntax accessorDeclaration:
+                    return accessorDeclaration.ExpressionBody?.Expression ??
+                           GetSingleStatementFromAccessor<ReturnStatementSyntax>(accessorDeclaration)?.Expression;
+                case ArrowExpressionClauseSyntax arrowExpression:
+                    return arrowExpression.Expression;
+                case null: return null;
+                default: throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private T GetSingleStatementFromAccessor<T>(AccessorDeclarationSyntax accessorDeclaration) where T : StatementSyntax
+        {
+            var statements = accessorDeclaration?.Body?.Statements;
             if (statements?.Count == 1)
             {
                 var statement = statements.Value[0];
-                if (statement.Kind() == SyntaxKind.ReturnStatement)
-                {
-                    var expr = ((ReturnStatementSyntax)statement).Expression;
-                    return CheckExpressionSyntactically(expr) ? expr : null;
-                }
+                return statement as T;
             }
 
             return null;
@@ -157,30 +184,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         {
             // Setter has to be of the form:
             //
-            //     set { field = value; } or
+            //     set { field = value; }
             //     set { this.field = value; }
+            //     set => field = value; 
+            //     set => this.field = value; 
             var setAccessor = setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as AccessorDeclarationSyntax;
-            var statements = setAccessor?.Body?.Statements;
-            if (statements?.Count == 1)
+            var setExpression = GetExpressionFromSetter(setAccessor);
+            if (setExpression?.Kind() == SyntaxKind.SimpleAssignmentExpression)
             {
-                var statement = statements.Value[0];
-                if (statement.IsKind(SyntaxKind.ExpressionStatement))
+                var assignmentExpression = (AssignmentExpressionSyntax)setExpression;
+                if (assignmentExpression.Right.Kind() == SyntaxKind.IdentifierName &&
+                    ((IdentifierNameSyntax)assignmentExpression.Right).Identifier.ValueText == "value")
                 {
-                    var expressionStatement = (ExpressionStatementSyntax)statement;
-                    if (expressionStatement.Expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
-                    {
-                        var assignmentExpression = (AssignmentExpressionSyntax)expressionStatement.Expression;
-                        if (assignmentExpression.Right.Kind() == SyntaxKind.IdentifierName &&
-                            ((IdentifierNameSyntax)assignmentExpression.Right).Identifier.ValueText == "value")
-                        {
-                            return CheckExpressionSyntactically(assignmentExpression.Left) ? assignmentExpression.Left : null;
-                        }
-                    }
+                    return CheckExpressionSyntactically(assignmentExpression.Left) ? assignmentExpression.Left : null;
                 }
             }
 
             return null;
         }
+
+        private ExpressionSyntax GetExpressionFromSetter(AccessorDeclarationSyntax setAccessor)
+            => setAccessor?.ExpressionBody?.Expression ??
+               GetSingleStatementFromAccessor<ExpressionStatementSyntax>(setAccessor)?.Expression;
 
         protected override SyntaxNode GetNodeToFade(FieldDeclarationSyntax fieldDeclaration, VariableDeclaratorSyntax variableDeclarator)
         {
