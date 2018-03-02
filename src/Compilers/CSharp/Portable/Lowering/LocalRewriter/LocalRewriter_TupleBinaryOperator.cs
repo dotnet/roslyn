@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Walk down tuple literals and replace all the elements that need saving with temps.
+        /// Walk down tuple literals and replace all the side-effecting elements that need saving with temps.
         /// Expressions that are not tuple literals need saving, and tuple literals that are involved in a simple comparison rather than a tuple comparison.
         /// </summary>
         private BoundExpression ReplaceTerminalElementsWithTemps(BoundExpression expr, TupleBinaryOperatorInfo operators, ArrayBuilder<BoundExpression> initEffects, ArrayBuilder<LocalSymbol> temps)
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Examples:
             // in `expr == (..., ...)` we need to save `expr` because it's not a tuple literal
             // in `(..., expr) == (..., (..., ...))` we need to save `expr` because it is used in a simple comparison
-            return MakeTemp(VisitExpression(expr), temps, initEffects);
+            return EvaluateSideEffectingArgumentToTemp(VisitExpression(expr), initEffects, ref temps);
         }
 
         private BoundExpression RewriteTupleOperator(TupleBinaryOperatorInfo @operator,

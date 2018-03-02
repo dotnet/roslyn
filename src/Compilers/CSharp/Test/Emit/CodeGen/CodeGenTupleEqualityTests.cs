@@ -461,51 +461,45 @@ class C
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
-  // Code size       73 (0x49)
+  // Code size       66 (0x42)
   .maxstack  2
   .locals init (System.ValueTuple<int?, bool?> V_0,
-                int V_1,
-                bool V_2,
-                int? V_3,
-                int V_4,
-                bool? V_5,
-                bool V_6)
+                int? V_1,
+                int V_2,
+                bool? V_3,
+                bool V_4)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
-  IL_0002:  ldc.i4.2
-  IL_0003:  stloc.1
-  IL_0004:  ldc.i4.1
-  IL_0005:  stloc.2
-  IL_0006:  ldloc.0
-  IL_0007:  ldfld      ""int? System.ValueTuple<int?, bool?>.Item1""
-  IL_000c:  stloc.3
-  IL_000d:  ldloc.1
-  IL_000e:  stloc.s    V_4
-  IL_0010:  ldloca.s   V_3
-  IL_0012:  call       ""int int?.GetValueOrDefault()""
-  IL_0017:  ldloc.s    V_4
-  IL_0019:  beq.s      IL_001e
-  IL_001b:  ldc.i4.0
-  IL_001c:  br.s       IL_0025
-  IL_001e:  ldloca.s   V_3
-  IL_0020:  call       ""bool int?.HasValue.get""
-  IL_0025:  brfalse.s  IL_0047
-  IL_0027:  ldloc.0
-  IL_0028:  ldfld      ""bool? System.ValueTuple<int?, bool?>.Item2""
-  IL_002d:  stloc.s    V_5
-  IL_002f:  ldloc.2
-  IL_0030:  stloc.s    V_6
-  IL_0032:  ldloca.s   V_5
-  IL_0034:  call       ""bool bool?.GetValueOrDefault()""
-  IL_0039:  ldloc.s    V_6
-  IL_003b:  beq.s      IL_003f
-  IL_003d:  ldc.i4.0
-  IL_003e:  ret
-  IL_003f:  ldloca.s   V_5
-  IL_0041:  call       ""bool bool?.HasValue.get""
-  IL_0046:  ret
-  IL_0047:  ldc.i4.0
-  IL_0048:  ret
+  IL_0002:  ldloc.0
+  IL_0003:  ldfld      ""int? System.ValueTuple<int?, bool?>.Item1""
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.2
+  IL_000a:  stloc.2
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  call       ""int int?.GetValueOrDefault()""
+  IL_0012:  ldloc.2
+  IL_0013:  beq.s      IL_0018
+  IL_0015:  ldc.i4.0
+  IL_0016:  br.s       IL_001f
+  IL_0018:  ldloca.s   V_1
+  IL_001a:  call       ""bool int?.HasValue.get""
+  IL_001f:  brfalse.s  IL_0040
+  IL_0021:  ldloc.0
+  IL_0022:  ldfld      ""bool? System.ValueTuple<int?, bool?>.Item2""
+  IL_0027:  stloc.3
+  IL_0028:  ldc.i4.1
+  IL_0029:  stloc.s    V_4
+  IL_002b:  ldloca.s   V_3
+  IL_002d:  call       ""bool bool?.GetValueOrDefault()""
+  IL_0032:  ldloc.s    V_4
+  IL_0034:  beq.s      IL_0038
+  IL_0036:  ldc.i4.0
+  IL_0037:  ret
+  IL_0038:  ldloca.s   V_3
+  IL_003a:  call       ""bool bool?.HasValue.get""
+  IL_003f:  ret
+  IL_0040:  ldc.i4.0
+  IL_0041:  ret
 }");
         }
 
@@ -2457,41 +2451,35 @@ class C
 
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalse");
             verifier.VerifyIL("C.M", @"{
-  // Code size       57 (0x39)
+  // Code size       53 (0x35)
   .maxstack  2
-  .locals init (int V_0,
-                int V_1,
-                (byte, int)? V_2,
-                System.ValueTuple<byte, int> V_3)
+  .locals init ((byte, int)? V_0,
+                System.ValueTuple<byte, int> V_1)
   IL_0000:  nop
-  IL_0001:  ldc.i4.1
+  IL_0001:  ldarg.0
   IL_0002:  stloc.0
-  IL_0003:  ldc.i4.2
-  IL_0004:  stloc.1
-  IL_0005:  ldarg.0
-  IL_0006:  stloc.2
-  IL_0007:  ldloca.s   V_2
-  IL_0009:  call       ""bool (byte, int)?.HasValue.get""
-  IL_000e:  brtrue.s   IL_0013
-  IL_0010:  ldc.i4.0
-  IL_0011:  br.s       IL_0032
-  IL_0013:  br.s       IL_0015
-  IL_0015:  ldloca.s   V_2
-  IL_0017:  call       ""(byte, int) (byte, int)?.GetValueOrDefault()""
-  IL_001c:  stloc.3
-  IL_001d:  ldloc.0
-  IL_001e:  ldloc.3
-  IL_001f:  ldfld      ""byte System.ValueTuple<byte, int>.Item1""
-  IL_0024:  bne.un.s   IL_0031
-  IL_0026:  ldloc.1
-  IL_0027:  ldloc.3
-  IL_0028:  ldfld      ""int System.ValueTuple<byte, int>.Item2""
-  IL_002d:  ceq
-  IL_002f:  br.s       IL_0032
-  IL_0031:  ldc.i4.0
-  IL_0032:  call       ""void System.Console.Write(bool)""
-  IL_0037:  nop
-  IL_0038:  ret
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""bool (byte, int)?.HasValue.get""
+  IL_000a:  brtrue.s   IL_000f
+  IL_000c:  ldc.i4.0
+  IL_000d:  br.s       IL_002e
+  IL_000f:  br.s       IL_0011
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""(byte, int) (byte, int)?.GetValueOrDefault()""
+  IL_0018:  stloc.1
+  IL_0019:  ldc.i4.1
+  IL_001a:  ldloc.1
+  IL_001b:  ldfld      ""byte System.ValueTuple<byte, int>.Item1""
+  IL_0020:  bne.un.s   IL_002d
+  IL_0022:  ldc.i4.2
+  IL_0023:  ldloc.1
+  IL_0024:  ldfld      ""int System.ValueTuple<byte, int>.Item2""
+  IL_0029:  ceq
+  IL_002b:  br.s       IL_002e
+  IL_002d:  ldc.i4.0
+  IL_002e:  call       ""void System.Console.Write(bool)""
+  IL_0033:  nop
+  IL_0034:  ret
 }");
 
             var tree = comp.SyntaxTrees.First();
@@ -2588,47 +2576,41 @@ class C
 
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalse");
             verifier.VerifyIL("C.M", @"{
-  // Code size       66 (0x42)
+  // Code size       59 (0x3b)
   .maxstack  2
   .locals init ((int, int)? V_0,
-                int V_1,
-                int V_2,
-                bool V_3,
-                System.ValueTuple<int, int> V_4)
+                bool V_1,
+                System.ValueTuple<int, int> V_2)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.0
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.1
-  IL_0005:  ldc.i4.2
-  IL_0006:  stloc.2
-  IL_0007:  ldloca.s   V_0
-  IL_0009:  call       ""bool (int, int)?.HasValue.get""
-  IL_000e:  stloc.3
-  IL_000f:  ldloc.3
-  IL_0010:  brtrue.s   IL_0015
-  IL_0012:  ldc.i4.0
-  IL_0013:  br.s       IL_003b
-  IL_0015:  ldloc.3
-  IL_0016:  brtrue.s   IL_001b
-  IL_0018:  ldc.i4.1
-  IL_0019:  br.s       IL_003b
-  IL_001b:  ldloca.s   V_0
-  IL_001d:  call       ""(int, int) (int, int)?.GetValueOrDefault()""
-  IL_0022:  stloc.s    V_4
-  IL_0024:  ldloc.s    V_4
-  IL_0026:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_002b:  ldloc.1
-  IL_002c:  bne.un.s   IL_003a
-  IL_002e:  ldloc.s    V_4
-  IL_0030:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0035:  ldloc.2
-  IL_0036:  ceq
-  IL_0038:  br.s       IL_003b
-  IL_003a:  ldc.i4.0
-  IL_003b:  call       ""void System.Console.Write(bool)""
-  IL_0040:  nop
-  IL_0041:  ret
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""bool (int, int)?.HasValue.get""
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.1
+  IL_000c:  brtrue.s   IL_0011
+  IL_000e:  ldc.i4.0
+  IL_000f:  br.s       IL_0034
+  IL_0011:  ldloc.1
+  IL_0012:  brtrue.s   IL_0017
+  IL_0014:  ldc.i4.1
+  IL_0015:  br.s       IL_0034
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""(int, int) (int, int)?.GetValueOrDefault()""
+  IL_001e:  stloc.2
+  IL_001f:  ldloc.2
+  IL_0020:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0025:  ldc.i4.1
+  IL_0026:  bne.un.s   IL_0033
+  IL_0028:  ldloc.2
+  IL_0029:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_002e:  ldc.i4.2
+  IL_002f:  ceq
+  IL_0031:  br.s       IL_0034
+  IL_0033:  ldc.i4.0
+  IL_0034:  call       ""void System.Console.Write(bool)""
+  IL_0039:  nop
+  IL_003a:  ret
 }");
         }
 
