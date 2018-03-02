@@ -1393,7 +1393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseArguments(ByRef unexpected As GreenNode, Optional RedimOrNewParent As Boolean = False, Optional attributeListParent As Boolean = False) As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax)
             Dim arguments = _pool.AllocateSeparated(Of ArgumentSyntax)()
 
-            Dim allowNonTrailingNamedArguments = LanguageFeatures.AllowNonTrailingNamedArguments(_scanner.Options.LanguageVersion)
+            Dim allowNonTrailingNamedArguments = Feature.NonTrailingNamedArguments.IsAvailable(_scanner.Options)
             Dim seenNames As Boolean = False
 
             Do
@@ -1422,21 +1422,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ElseIf CurrentToken.Kind = SyntaxKind.CommaToken Then
                     TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma)
 
-                    Dim argument = LanguageFeatures.SpecificFeature.ReportNonTrailingNamedArgumentIfNeeded(InternalSyntaxFactory.OmittedArgument(), seenNames, allowNonTrailingNamedArguments)
+                    Dim argument = ReportNonTrailingNamedArgumentIfNeeded(InternalSyntaxFactory.OmittedArgument(), seenNames, allowNonTrailingNamedArguments)
                     arguments.Add(argument)
                     arguments.AddSeparator(comma)
                     Continue Do
 
                 ElseIf CurrentToken.Kind = SyntaxKind.CloseParenToken Then
                     If arguments.Count > 0 Then
-                        Dim argument = LanguageFeatures.SpecificFeature.ReportNonTrailingNamedArgumentIfNeeded(InternalSyntaxFactory.OmittedArgument(), seenNames, allowNonTrailingNamedArguments)
+                        Dim argument = ReportNonTrailingNamedArgumentIfNeeded(InternalSyntaxFactory.OmittedArgument(), seenNames, allowNonTrailingNamedArguments)
                         arguments.Add(argument)
                     End If
                     Exit Do
 
                 Else
                     Dim argument = ParseArgument(RedimOrNewParent)
-                    argument = LanguageFeatures.SpecificFeature.ReportNonTrailingNamedArgumentIfNeeded(argument, seenNames, allowNonTrailingNamedArguments)
+                    argument = ReportNonTrailingNamedArgumentIfNeeded(argument, seenNames, allowNonTrailingNamedArguments)
                     arguments.Add(argument)
                 End If
 
