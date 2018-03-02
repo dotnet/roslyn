@@ -50,30 +50,30 @@ constant_pattern
     ;
 
 property_pattern
-	: type? property_subpattern simple_designation?
-	;
+    : type? property_subpattern simple_designation?
+    ;
 
 property_subpattern
-	: '{' subpatterns? '}'
-	;
+    : '{' subpatterns? '}'
+    ;
 
 subpatterns
-	: subpattern
-	| subpattern ',' subpatterns
-	;
+    : subpattern
+    | subpattern ',' subpatterns
+    ;
 
 subpattern
-	: pattern
-	| identifier ':' pattern
-	;
+    : pattern
+    | identifier ':' pattern
+    ;
 
 deconstruction_pattern
-	: type? '(' subpatterns? ')' property_subpattern? simple_designation?
-	;
+    : type? '(' subpatterns? ')' property_subpattern? simple_designation?
+    ;
 
 simple_designation
-	: single_variable_designation
-	| discard_designation
+    : single_variable_designation
+    | discard_designation
     ;
 
 discard_pattern
@@ -229,7 +229,7 @@ deconstruction_pattern
 
 It is an error if a deconstruction pattern has a single subpattern but omits the type.
 
-The type to be tested is determined as in the *property_pattern*. That type must be a tuple type whose *length* is the same as the number of *subpatterns* between parentheses, or it must be a type that contains a unique `Deconstruct` method with that number of `out` parameters, as defined for the *deconstruction assignment* feature.
+The type to be tested is determined as in the *property_pattern*. That type must be a tuple type whose *cardinality* is the same as the number of *subpatterns* between parentheses, or it must be a type that contains a unique `Deconstruct` method with that number of `out` parameters, as defined for the *deconstruction assignment* feature.
 
 A subpattern between parentheses in a *deconstruction_pattern* is satisfied if the value retrieved from the input operand's deconstruction for that position, when treated as the input operand for the corresponding pattern, matches. If such a subpattern has an *identifier*, it is a compile-time error if that is not the name of the corresponding tuple element or `Deconstruct` `out` parameter.
 
