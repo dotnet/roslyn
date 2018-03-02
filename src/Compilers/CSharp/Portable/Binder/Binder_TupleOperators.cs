@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>
         /// If the left and right are tuples of matching cardinality, we'll try to bind the operator element-wise.
-        /// When that succeeds, the element-wise conversions are collected. We keep them for semantic model, and use some to fix typeless elements.
+        /// When that succeeds, the element-wise conversions are collected. We keep them for semantic model.
         /// The element-wise binary operators are collected and stored as a tree for lowering.
         /// </summary>
         private BoundTupleBinaryOperator BindTupleBinaryOperator(BinaryExpressionSyntax node, BinaryOperatorKind kind,
@@ -29,82 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //BoundExpression convertedLeft = GenerateConversionForAssignment(operators.LeftConvertedType, left, diagnostics);
             //BoundExpression convertedRight = GenerateConversionForAssignment(operators.RightConvertedType, right, diagnostics);
 
-            BoundExpression fixedLeft = FixTypelessElements(left, operators, diagnostics, isRight: false);
-            BoundExpression fixedRight = FixTypelessElements(right, operators, diagnostics, isRight: true);
-
             TypeSymbol resultType = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
-            return new BoundTupleBinaryOperator(node, fixedLeft, fixedRight, kind, operators, resultType);
-        }
-
-        /// <summary>
-        /// Walk down tuple literals and give a type to all the terminal typeless elements that need one.
-        /// Terminal elements are those that correspond to a Single in the tree of operators.
-        /// Elements with constant value (such as `null`) don't get converted, to benefit from lowering optimizations.
-        /// </summary>
-        private BoundExpression FixTypelessElements(BoundExpression expr, TupleBinaryOperatorInfo op, DiagnosticBag diagnostics, bool isRight)
-        {
-            if (op.IsSingle())
-            {
-                if (expr.Type is null)
-                {
-                    Debug.Assert(((TupleBinaryOperatorInfo.Single)op) is var single && (isRight ? single.TypelessRight : single.TypelessLeft));
-
-                    // Use the type from the other side
-                    return GenerateConversionForAssignment(isRight ? op.LeftConvertedType : op.RightConvertedType, expr, diagnostics);
-                }
-
-                return expr;
-            }
-
-            var multiple = (TupleBinaryOperatorInfo.Multiple)op;
-            ImmutableArray<TupleBinaryOperatorInfo> operators = multiple.Operators;
-
-            if (expr.Kind == BoundKind.TupleLiteral)
-            {
-                var tuple = (BoundTupleLiteral)expr;
-                ImmutableArray<BoundExpression> arguments = tuple.Arguments;
-                Debug.Assert(tuple.Arguments.Length == operators.Length);
-
-                ArrayBuilder<BoundExpression> builder = null;
-                for (int i = 0; i < arguments.Length; i++)
-                {
-                    BoundExpression arg = arguments[i];
-
-                    BoundExpression fixedArg = FixTypelessElements(arg, operators[i], diagnostics, isRight);
-                    if ((object)fixedArg != arg)
-                    {
-                        add(ref builder, fixedArg, arguments, i);
-                        continue;
-                    }
-
-                    if (builder != null)
-                    {
-                        builder.Add(arg);
-                    }
-                }
-
-                if (builder != null)
-                {
-                    ImmutableArray<BoundExpression> newArguments = builder.ToImmutableAndFree();
-
-                    var newTupleType = TupleTypeSymbol.Create(locationOpt: null, newArguments.SelectAsArray(a => a.Type),
-                        elementLocations: default, elementNames: default, Compilation, shouldCheckConstraints: false, errorPositions: default);
-
-                    return new BoundTupleLiteral(tuple.Syntax, argumentNamesOpt: default, inferredNamesOpt: default, newArguments, newTupleType);
-                }
-            }
-
-            return expr;
-
-            void add(ref ArrayBuilder<BoundExpression> result, BoundExpression value, ImmutableArray<BoundExpression> values, int n)
-            {
-                if (result is null)
-                {
-                    result = ArrayBuilder<BoundExpression>.GetInstance(values.Length);
-                    result.AddRange(values, n);
-                }
-                result.Add(value);
-            }
+            return new BoundTupleBinaryOperator(node, left, right, kind, operators, resultType);
         }
 
         /// <summary>
@@ -155,8 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             PrepareBoolConversionAndTruthOperator(signature.ReturnType, node, kind, diagnostics, out Conversion conversionIntoBoolOperator, out UnaryOperatorSignature boolOperator);
 
             return new TupleBinaryOperatorInfo.Single(convertedLeftType, convertedRightType, signature.Kind,
-                analysisResult.LeftConversion, analysisResult.RightConversion, signature.Method,
-                left.Type is null, right.Type is null, conversionIntoBoolOperator, boolOperator);
+                analysisResult.LeftConversion, analysisResult.RightConversion, signature.Method, conversionIntoBoolOperator, boolOperator);
         }
 
         /// <summary>
@@ -237,8 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to prepare either a conversion or a truth operator. Those can just be synthesized during lowering.
             return new TupleBinaryOperatorInfo.Single(dynamicType, dynamicType, elementOperatorKind,
                 leftConversion: Conversion.NoConversion, rightConversion: Conversion.NoConversion,
-                methodSymbolOpt: null, typelessLeft: left.Type is null, typelessRight: right.Type is null,
-                conversionForBool: Conversion.Identity, boolOperator: default);
+                methodSymbolOpt: null, conversionForBool: Conversion.Identity, boolOperator: default);
         }
 
         private TupleBinaryOperatorInfo.Multiple BindTupleBinaryOperatorNestedInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
@@ -322,10 +246,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Make a tuple type (with appropriate nesting) from the types (on the left or on the right) collected
         /// from binding element-wise binary operators.
+        /// If any of the elements is typeless, then the tuple is typeless too.
         /// </summary>
         private TypeSymbol MakeConvertedType(ImmutableArray<TypeSymbol> convertedTypes, CSharpSyntaxNode syntax,
             ImmutableArray<BoundExpression> elements, bool isNullable, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
+            foreach (var convertedType in convertedTypes)
+            {
+                if (convertedType is null)
+                {
+                    return null;
+                }
+            }
+
             ImmutableArray<Location> elementLocations = elements.SelectAsArray(e => e.Syntax.Location);
 
             // PROTOTYPE(tuple-equality) Add test for violated tuple constraint

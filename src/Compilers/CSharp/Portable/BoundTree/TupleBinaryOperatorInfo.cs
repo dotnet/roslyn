@@ -40,24 +40,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly Conversion RightConversion;
             internal readonly MethodSymbol MethodSymbolOpt; // User-defined comparison operator, if applicable
 
-            // Typeless expressions get a conversion added into the intial bound tree, unlike most expressions. We need to remember that to avoid applying conversion a second time when lowering. 
-            internal readonly bool TypelessLeft;
-            internal readonly bool TypelessRight;
-
             internal readonly Conversion ConversionForBool; // If a conversion to bool exists, then no operator needed. If an operator is needed, this holds the conversion for input to that operator.
             internal readonly UnaryOperatorSignature BoolOperator; // Information for op_true or op_false
 
             internal Single(TypeSymbol leftConvertedType, TypeSymbol rightConvertedType, BinaryOperatorKind kind,
-                Conversion leftConversion, Conversion rightConversion,
-                MethodSymbol methodSymbolOpt, bool typelessLeft, bool typelessRight,
+                Conversion leftConversion, Conversion rightConversion, MethodSymbol methodSymbolOpt,
                 Conversion conversionForBool, UnaryOperatorSignature boolOperator) : base(leftConvertedType, rightConvertedType)
             {
                 Kind = kind;
                 LeftConversion = leftConversion;
                 RightConversion = rightConversion;
                 MethodSymbolOpt = methodSymbolOpt;
-                TypelessLeft = typelessLeft;
-                TypelessRight = typelessRight;
                 ConversionForBool = conversionForBool;
                 BoolOperator = boolOperator;
 

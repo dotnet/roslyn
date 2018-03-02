@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             //      // outer sequence
             //      leftHasValue = left.HasValue; (or true if !leftNullable)
-            //      leftHasValue == right.HasValue (or true if !rightNullable)
+            //      leftHasValue = right.HasValue (or true if !rightNullable)
             //          ? leftHasValue ? ... inner sequence ... : true/false
             //          : false/true
             //
@@ -288,9 +288,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // PROTOTYPE(tuple-equality) checked
-            // Since we already converted typeless elements during binding, we don't convert them again
-            BoundExpression convertedLeft = single.TypelessLeft ? left : MakeConversionNode(left.Syntax, left, single.LeftConversion, single.LeftConvertedType, @checked: false);
-            BoundExpression convertedRight = single.TypelessRight ? right : MakeConversionNode(right.Syntax, right, single.RightConversion, single.RightConvertedType, @checked: false);
+            // We leave the null literal unconverted because MakeBinaryOperator has special rules for it
+            BoundExpression convertedLeft = left.IsLiteralNull() ? left : MakeConversionNode(left.Syntax, left, single.LeftConversion, single.LeftConvertedType, @checked: false);
+            BoundExpression convertedRight = right.IsLiteralNull() ? right : MakeConversionNode(right.Syntax, right, single.RightConversion, single.RightConvertedType, @checked: false);
 
             BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, convertedLeft, convertedRight, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt);
             UnaryOperatorSignature boolOperator = single.BoolOperator;

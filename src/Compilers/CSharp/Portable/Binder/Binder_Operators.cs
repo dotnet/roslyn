@@ -1068,9 +1068,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// Note this method only deals with regular binary operator overload resolution. The tuple case (for tuple equality) must be handled by the caller.
-        /// </summary>
         private BinaryOperatorAnalysisResult BinaryOperatorOverloadResolution(BinaryOperatorKind kind, BoundExpression left, BoundExpression right, CSharpSyntaxNode node, DiagnosticBag diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
         {
             if (!IsDefaultLiteralAllowedInBinaryOperator(kind, left, right))

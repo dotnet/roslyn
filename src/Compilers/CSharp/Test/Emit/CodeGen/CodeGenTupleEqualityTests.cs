@@ -357,7 +357,7 @@ class C
             //Assert.Equal("System.Int32", ySymbol.ConvertedType.ToTestDisplayString());
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality)")]
+        [Fact]
         public void TestILForNullableElementsEqualsToNull()
         {
             var source = @"
@@ -400,7 +400,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality) CRASH")]
+        [Fact]
         public void TestILForNullableElementsNotEqualsToNull()
         {
             var source = @"
@@ -503,7 +503,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality) CRASH")]
+        [Fact]
         public void TestILForNullableStructEqualsToNull()
         {
             var source = @"
@@ -518,26 +518,40 @@ struct S
 }";
             var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "True");
             comp.VerifyDiagnostics();
-            // PROTOTYPE(tuple-equality) SHould produce s.HasValue
+            // PROTOTYPE(tuple-equality) Weird boxing/unboxing needs to be investigated
 
             comp.VerifyIL("S.Main", @"{
-  // Code size       37 (0x25)
+  // Code size       70 (0x46)
   .maxstack  2
-  .locals init (System.ValueTuple<int?, bool?> V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  newobj     ""System.ValueTuple<int?, bool?>..ctor(int?, bool?)""
-  IL_0007:  stloc.0
+  .locals init (S? V_0, //s
+                S? V_1,
+                S? V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S?""
   IL_0008:  ldloca.s   V_0
-  IL_000a:  ldflda     ""int? System.ValueTuple<int?, bool?>.Item1""
-  IL_000f:  call       ""bool int?.HasValue.get""
-  IL_0014:  brtrue.s   IL_0023
-  IL_0016:  ldloca.s   V_0
-  IL_0018:  ldflda     ""bool? System.ValueTuple<int?, bool?>.Item2""
-  IL_001d:  call       ""bool bool?.HasValue.get""
-  IL_0022:  ret
-  IL_0023:  ldc.i4.1
-  IL_0024:  ret
+  IL_000a:  call       ""bool S?.HasValue.get""
+  IL_000f:  pop
+  IL_0010:  ldloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  stloc.1
+  IL_0013:  box        ""S?""
+  IL_0018:  unbox.any  ""S?""
+  IL_001d:  stloc.2
+  IL_001e:  ldloca.s   V_2
+  IL_0020:  call       ""bool S?.HasValue.get""
+  IL_0025:  brtrue.s   IL_003f
+  IL_0027:  ldloc.1
+  IL_0028:  box        ""S?""
+  IL_002d:  unbox.any  ""S?""
+  IL_0032:  stloc.2
+  IL_0033:  ldloca.s   V_2
+  IL_0035:  call       ""bool S?.HasValue.get""
+  IL_003a:  ldc.i4.0
+  IL_003b:  ceq
+  IL_003d:  br.s       IL_0040
+  IL_003f:  ldc.i4.0
+  IL_0040:  call       ""void System.Console.Write(bool)""
+  IL_0045:  ret
 }");
         }
 
@@ -708,13 +722,14 @@ class C
         (string, string) t = (null, null);
         System.Console.Write(t == (null, null));
         System.Console.Write(t != (null, null));
+        System.Console.Write((1, t) == (1, (null, null)));
     }
 }";
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "TrueFalse");
+            CompileAndVerify(comp, expectedOutput: "TrueFalseTrue");
 
-            // PROTOTYPE(tuple-equality) Semantic model
+            // PROTOTYPE(tuple-equality) Semantic model: check type on last tuple and its elements (should be typeless)
             return;
 
             //var tree = comp.SyntaxTrees[0];
@@ -852,7 +867,7 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
-            // PROTOTYPE(tuple-equality) Semantic model
+            // PROTOTYPE(tuple-equality) Semantic model: expect nulls to have type string
             return;
 
             //var tree = comp.SyntaxTrees[0];
@@ -882,6 +897,7 @@ class C
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueTrueFalse");
+            // PROTOTYPE(tuple-equality) Semantic model: check that null and tuples are typeless
         }
 
         [Fact]
@@ -892,17 +908,20 @@ class C
 {
     static void Main()
     {
-        System.Console.Write((null, null) == (null, () => { }));
+        System.Console.Write((null, null, null) == (null, () => { }, Main));
     }
 }";
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
-                //         System.Console.Write((null, null) == (null, () => { }));
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null) == (null, () => { })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30)
+                //         System.Console.Write((null, null, null) == (null, () => { }, Main));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null) == (null, () => { }, Main)").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30),
+                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'method group'
+                //         System.Console.Write((null, null, null) == (null, () => { }, Main));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null) == (null, () => { }, Main)").WithArguments("==", "<null>", "method group").WithLocation(6, 30)
                 );
 
-            // PROTOTYPE(tuple-equality) Semantic model
+            // PROTOTYPE(tuple-equality) Semantic model: check that null and tuples are typeless
             return;
 
             //var tree = comp.SyntaxTrees[0];
@@ -2725,6 +2744,7 @@ class C
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True False False True");
+            // PROTOTYPE(tuple-equality) Semantic model: check type of null
         }
 
         [Fact]
@@ -3443,5 +3463,4 @@ namespace System
 
 // PROTOTYPE(tuple-equality)
 // Test with tuple element names (semantic model)
-// Test nullableS == null (without user-defined operator==). Should work as `s.HasValue`
 // Test tuples with casts or nested casts
