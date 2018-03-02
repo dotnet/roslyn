@@ -202,9 +202,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var methodToUpdate = argumentInsertPositionData.MethodToUpdate;
                 var argumentToInsert = argumentInsertPositionData.ArgumentToInsert;
                 var parameters = methodToUpdate.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
-
                 var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, methodToUpdate, parameters);
-                var hasCascadingDeclarations = HasCascadingDeclarations(methodToUpdate);
+                var methodSourceTree = methodToUpdate.Locations.Any() ? methodToUpdate.Locations[0].SourceTree : null;
+                var semanticFacts = methodSourceTree != null
+                    ? context.Document.Project.Solution.GetDocument(methodSourceTree).GetLanguageService<ISemanticFactsService>()
+                    : null;
+                var hasCascadingDeclarations = HasCascadingDeclarations(methodToUpdate, semanticFacts);
                 CodeAction codeAction = new MyCodeAction(title,
                     c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c));
                 if (hasCascadingDeclarations)
@@ -229,7 +232,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         /// Checks if there are indications that there might be more than one declarations that need to be fixed.
         /// The check does not look-up if there are other declarations (this is done later in the CodeAction).
         /// </summary>
-        private bool HasCascadingDeclarations(IMethodSymbol method)
+        private bool HasCascadingDeclarations(IMethodSymbol method, ISemanticFactsService semanticFacts)
         {
             // Don't cascade constructors
             if (method.IsConstructor())
@@ -248,6 +251,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
             if (method.ExplicitInterfaceImplementations.Length > 0)
             {
                 return true;
+            }
+
+            if (semanticFacts?.SupportsImplicitInterfaceImplementation == false)
+            {
+                return false;
             }
 
             // For implicit interface implementations lets check if the characteristic of the method
