@@ -959,6 +959,29 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class MethodOrConstructorBodyOperationAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly bool _doOperationBlockAnalysis;
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title",
+                "Method {0}",
+                "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationAction(operationContext =>
+                {
+                    var diagnostic = Diagnostic.Create(Descriptor, operationContext.Operation.Syntax.GetLocation(), operationContext.ContainingSymbol.Name);
+                    operationContext.ReportDiagnostic(diagnostic);
+                }, OperationKind.MethodBodyOperation, OperationKind.ConstructorBodyOperation);
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public class GeneratedCodeAnalyzer : DiagnosticAnalyzer
         {
             private readonly GeneratedCodeAnalysisFlags? _generatedCodeAnalysisFlagsOpt;

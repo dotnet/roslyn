@@ -2075,6 +2075,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (IOperation operationBlock in operationBlocks)
             {
                 operationsToAnalyze.AddRange(operationBlock.DescendantsAndSelf());
+
+                // Special handling for IMethodBodyOperation and IConstructorBodyOperation.
+                // These are newly added root operation nodes for C# method and constructor bodies.
+                // However, to avoid a breaking change for existing operation block analyzers,
+                // we have decided to retain the current behavior of making operation block callbacks with the contained
+                // method body and/or constructor initialer operation nodes.
+                // Hence we detect here if the operation block is parented by IMethodBodyOperation or IConstructorBodyOperation ands
+                // add them to 'operationsToAnalyze' so that analyzers that explicitly register for these operation kinds
+                // can get callbacks for these nodes.
+                if (operationBlock.Parent != null)
+                {
+                    switch (operationBlock.Parent.Kind)
+                    {
+                        case OperationKind.MethodBodyOperation:
+                        case OperationKind.ConstructorBodyOperation:
+                            operationsToAnalyze.Add(operationBlock.Parent);
+                            break;
+
+                        default:
+                            Debug.Fail($"Expected operation with kind '{operationBlock.Kind}' to be the root operation with null 'Parent', but instead it has a non-null Parent with kind '{operationBlock.Parent.Kind}'");
+                            break;
+                    }
+                }
             }
 
             return operationsToAnalyze.ToImmutableAndFree();

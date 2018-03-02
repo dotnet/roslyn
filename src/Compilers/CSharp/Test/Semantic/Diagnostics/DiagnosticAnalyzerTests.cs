@@ -2323,5 +2323,51 @@ internal class Derived : Base
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                 Diagnostic("ID", "Field").WithArguments("Field", "0").WithLocation(11, 29));
         }
+
+        [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
+        public void TestMethodBodyOperationAnalyzer()
+        {
+            string source = @"
+internal class A
+{
+    public void M() { }
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new MethodOrConstructorBodyOperationAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: Diagnostic("ID", squiggledText: "public void M() { }").WithArguments("M").WithLocation(4, 5));
+        }
+
+        [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
+        public void TestConstructorBodyOperationAnalyzer()
+        {
+            string source = @"
+internal class Base
+{
+    protected Base(int i) { }
+}
+
+internal class Derived : Base
+{
+    private const int Field = 0;
+
+    public Derived() : base(Field) { }
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new MethodOrConstructorBodyOperationAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: new[] {
+                    Diagnostic("ID", squiggledText: "protected Base(int i) { }").WithArguments(".ctor").WithLocation(4, 5),
+                    Diagnostic("ID", squiggledText: "public Derived() : base(Field) { }").WithArguments(".ctor").WithLocation(11, 5)
+                });
+        }
     }
 }
