@@ -119,7 +119,8 @@
 
       Developer build:
        - Build Windows PDBs in order to provide stack traces in xUnit on .NET Framework (4.7.1)
-       - TODO: Use embedded PDBs once .NET Framework 4.7.2 is released and xUnit runner includes configuration switch to enable Portable PDBs
+       - TODO: https://github.com/dotnet/roslyn/issues/25184
+         Use embedded PDBs once .NET Framework 4.7.2 is released and xUnit runner includes configuration switch to enable Portable PDBs
     -->
     <RoslynDebugType Condition="'$(RoslynDebugType)' == ''">full</RoslynDebugType>
     <RoslynDebugType Condition="'$(OfficialBuild)' == 'true'">portable</RoslynDebugType>
