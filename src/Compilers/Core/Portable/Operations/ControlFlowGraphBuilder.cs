@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Operations
                             for (int i = region.Regions.Count - 1; i >= 0; i--)
                             {
                                 RegionBuilder subRegion = region.Regions[i];
-                            
+
                                 if (subRegion.Kind == ControlFlowGraph.RegionKind.Locals && !subRegion.HasRegions && subRegion.FirstBlock == subRegion.LastBlock)
                                 {
                                     BasicBlock block = subRegion.FirstBlock;
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 ref BasicBlock.Branch next = ref block.InternalNext;
 
-                Debug.Assert(next.Destination != null || 
+                Debug.Assert(next.Destination != null ||
                              (next.Flags &
                               (BasicBlock.BranchFlags.Error | BasicBlock.BranchFlags.ProgramTermination |
                               BasicBlock.BranchFlags.Throw | BasicBlock.BranchFlags.ReThrow |
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     BasicBlock predecessor = predecessors.Single();
 
                     if (predecessor.Kind != BasicBlockKind.Entry && predecessor.InternalNext.Destination == block && predecessor.InternalConditional.Condition == null &&
-                        regionMap[predecessor] == regionMap[block]) 
+                        regionMap[predecessor] == regionMap[block])
                     {
                         mergeBranch(predecessor, ref predecessor.InternalNext, ref next);
                         next.Destination.RemovePredecessor(block);
@@ -853,6 +853,43 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     _evalStack[i] = new FlowCaptureReference(captureId, operation.Syntax, operation.Type, operation.ConstantValue);
                 }
+            }
+        }
+
+        private void PushArray<T>(ImmutableArray<T> array, Func<T, IOperation> unwrapper = null) where T : IOperation
+        {
+            Debug.Assert(unwrapper != null || typeof(T) == typeof(IOperation));
+            foreach (var element in array)
+            {
+                _evalStack.Push(Visit(unwrapper == null ? element : unwrapper(element)));
+            }
+        }
+
+        private ImmutableArray<T> PopArray<T>(int numElements, Func<IOperation, int, T> wrapper = null) where T : IOperation
+        {
+            Debug.Assert(wrapper != null || typeof(T) == typeof(IOperation));
+            if (numElements == 0)
+            {
+                return ImmutableArray<T>.Empty;
+            }
+            else
+            {
+                var builder = ArrayBuilder<T>.GetInstance(numElements);
+                // Iterate in reverse order so the index corresponds to the original index when pushed onto the stack
+                for (int i = numElements - 1; i >= 0; i--)
+                {
+                    IOperation visitedElement = _evalStack.Pop();
+                    if (wrapper != null)
+                    {
+                        builder.Add(wrapper(visitedElement, i));
+                    }
+                    else
+                    {
+                        builder.Add((T)visitedElement);
+                    }
+                }
+                builder.ReverseContents();
+                return builder.ToImmutableAndFree();
             }
         }
 
@@ -1270,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 LinkBlocks(CurrentBasicBlock,
                            (Operation.SetParentOperation(MakeIsNullOperation(((Operation)operation).SemanticModel,
-                                                                             new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, constantValue)), 
+                                                                             new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, constantValue)),
                                                          null),
                             true,
                             RegularBranch(whenNull)));
@@ -1725,34 +1762,37 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             ImmutableArray<IArgumentOperation> arguments = operation.Arguments;
-            foreach (IArgumentOperation argument in arguments)
-            {
-                _evalStack.Push(Visit(argument.Value));
-            }
-
-            ImmutableArray<IArgumentOperation> visitedArguments;
-            if (!arguments.IsEmpty)
-            {
-                var builder = ArrayBuilder<IArgumentOperation>.GetInstance();
-                for (int i = arguments.Length - 1; i >= 0; i--)
-                {
-                    IOperation visitedValue = _evalStack.Pop();
-                    var originalArgument = (BaseArgument)arguments[i];
-                    builder.Add(new ArgumentOperation(visitedValue, originalArgument.ArgumentKind, originalArgument.Parameter,
-                                                      originalArgument.InConversionConvertibleOpt, originalArgument.OutConversionConvertibleOpt,
-                                                      semanticModel: null, originalArgument.Syntax, originalArgument.ConstantValue, originalArgument.IsImplicit));
-                }
-                builder.ReverseContents();
-                visitedArguments = builder.ToImmutableAndFree();
-            }
-            else
-            {
-                visitedArguments = ImmutableArray<IArgumentOperation>.Empty;
-            }
-
+            PushArray(arguments, arg => arg.Value);
+            ImmutableArray<IArgumentOperation> visitedArguments = PopArray(arguments.Length, RewriteArgumentFromArray(arguments));
             IOperation visitedInstance = operation.Instance == null ? null : _evalStack.Pop();
 
             return new InvocationExpression(operation.TargetMethod, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitObjectCreation(IObjectCreationOperation operation, int? captureIdForResult)
+        {
+            ImmutableArray<IArgumentOperation> arguments = operation.Arguments;
+            PushArray(arguments, arg => arg.Value);
+            ImmutableArray<IArgumentOperation> visitedArgs = PopArray(arguments.Length, RewriteArgumentFromArray(arguments));
+
+            // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
+            var objectCreation = new ObjectCreationExpression(operation.Constructor, initializer: null, visitedArgs, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+
+            // PROTOTYPE(dataflow): For a non-null initializer, we'll need to assign the created object to a flow reference and rewrite all initializers to assign to/call functions on it, then return return the flow reference
+
+            return objectCreation;
+        }
+
+        private Func<IOperation, int, IArgumentOperation> RewriteArgumentFromArray(ImmutableArray<IArgumentOperation> arguments)
+        {
+            return (visitedArgument, index) =>
+            {
+                Debug.Assert(index >= 0 && index < arguments.Length);
+                var originalArgument = (BaseArgument)arguments[index];
+                return new ArgumentOperation(visitedArgument, originalArgument.ArgumentKind, originalArgument.Parameter,
+                                             originalArgument.InConversionConvertibleOpt, originalArgument.OutConversionConvertibleOpt,
+                                             semanticModel: null, originalArgument.Syntax, originalArgument.ConstantValue, originalArgument.IsImplicit);
+            };
         }
 
         internal override IOperation VisitNoneOperation(IOperation operation, int? captureIdForResult)
@@ -2049,11 +2089,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
         {
             return new AddressOfExpression(Visit(operation.Reference), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitObjectCreation(IObjectCreationOperation operation, int? captureIdForResult)
-        {
-            return new ObjectCreationExpression(operation.Constructor, Visit(operation.Initializer), VisitArray(operation.Arguments), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
