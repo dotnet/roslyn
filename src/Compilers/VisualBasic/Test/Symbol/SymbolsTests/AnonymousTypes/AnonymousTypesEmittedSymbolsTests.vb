@@ -27,7 +27,7 @@ End Class
         </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(sources:=compilationDef, references:={})
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source:=compilationDef, references:={})
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC30002: Type 'System.Void' is not defined.
@@ -258,7 +258,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
             Dim position = compilationDef.<file>.Value.IndexOf("Dim v2", StringComparison.Ordinal) - 1
@@ -626,7 +626,7 @@ End Module
         </file>
     </compilation>
 
-            Dim testModule = CreateCompilationWithMscorlibAndVBRuntime(moduleDef, TestOptions.ReleaseModule)
+            Dim testModule = CreateCompilationWithMscorlib40AndVBRuntime(moduleDef, TestOptions.ReleaseModule)
 
             Dim compilationDef =
     <compilation>
@@ -636,7 +636,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(moduleDef, {testModule.EmitToImageReference()}, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(moduleDef, {testModule.EmitToImageReference()}, TestOptions.ReleaseDll)
 
             Assert.Equal(1, compilation.Assembly.Modules(1).GlobalNamespace.GetTypeMembers("VB$AnonymousDelegate_0<TestModule>", 2).Length)
             Assert.Equal(1, compilation.Assembly.Modules(1).GlobalNamespace.GetTypeMembers("VB$AnonymousType_0<TestModule>", 1).Length)
@@ -781,15 +781,15 @@ End Class
         </file>
     </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(compilationDef1, options:=TestOptions.ReleaseModule.WithModuleName("A"))
+            Dim comp1 = CreateCompilationWithMscorlib40(compilationDef1, options:=TestOptions.ReleaseModule.WithModuleName("A"))
             comp1.VerifyDiagnostics()
             Dim ref1 = comp1.EmitToImageReference()
 
-            Dim comp2 = CreateCompilationWithMscorlibAndReferences(compilationDef2, {ref1}, options:=TestOptions.ReleaseModule.WithModuleName("B"))
+            Dim comp2 = CreateCompilationWithMscorlib40AndReferences(compilationDef2, {ref1}, options:=TestOptions.ReleaseModule.WithModuleName("B"))
             comp2.VerifyDiagnostics()
             Dim ref2 = comp2.EmitToImageReference()
 
-            Dim comp3 = CreateCompilationWithMscorlibAndReferences(compilationDef3, {ref1, ref2}, options:=TestOptions.ReleaseExe.WithModuleName("C"))
+            Dim comp3 = CreateCompilationWithMscorlib40AndReferences(compilationDef3, {ref1, ref2}, options:=TestOptions.ReleaseExe.WithModuleName("C"))
             comp3.VerifyDiagnostics()
 
             Dim mA = comp3.Assembly.Modules(1)

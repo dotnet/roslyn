@@ -155,10 +155,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 {
                     retval = action();
                 }
+                catch (ElementNotAvailableException)
+                {
+                    // Devenv can throw automation exceptions if it's busy when we make DTE calls.
+                    Thread.Sleep(delay);
+                    continue;
+                }
                 catch (COMException)
                 {
                     // Devenv can throw COMExceptions if it's busy when we make DTE calls.
-
                     Thread.Sleep(delay);
                     continue;
                 }

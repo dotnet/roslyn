@@ -216,9 +216,9 @@ End Class
 
         <Fact()>
         Public Sub HideLocalTypeDefinitions()
-            Dim compilation1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1_IL)
+            Dim compilation1 = CreateCompilationWithMscorlib40(s_sourceLocalTypes1_IL)
             CompileAndVerify(compilation1)
-            Dim compilation2 = CreateCompilationWithMscorlib(s_sourceLocalTypes2_IL)
+            Dim compilation2 = CreateCompilationWithMscorlib40(s_sourceLocalTypes2_IL)
             CompileAndVerify(compilation2)
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(New Object() {
@@ -282,20 +282,20 @@ End Class
 
         <Fact()>
         Public Sub LocalTypeSubstitution1_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1_IL)
+            Dim compilation1 = CreateCompilationWithMscorlib40(s_sourceLocalTypes1_IL)
             CompileAndVerify(compilation1)
-            Dim compilation2 = CreateCompilationWithMscorlib(s_sourceLocalTypes2_IL)
+            Dim compilation2 = CreateCompilationWithMscorlib40(s_sourceLocalTypes2_IL)
             CompileAndVerify(compilation2)
             LocalTypeSubstitution1(compilation1, compilation2)
         End Sub
 
         <Fact()>
         Public Sub LocalTypeSubstitution1_2()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
                 s_sourceLocalTypes1,
                 references:={TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(True)})
             CompileAndVerify(compilation1)
-            Dim compilation2 = CreateCompilationWithMscorlib(
+            Dim compilation2 = CreateCompilationWithMscorlib40(
                     s_sourceLocalTypes2,
                     references:={TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(True)})
             CompileAndVerify(compilation2)
@@ -304,13 +304,13 @@ End Class
 
         <Fact()>
         Public Sub LocalTypeSubstitution1_3()
-            Dim compilation0 = CreateCompilationWithMscorlib(s_sourcePia1)
+            Dim compilation0 = CreateCompilationWithMscorlib40(s_sourcePia1)
             CompileAndVerify(compilation0)
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
                     s_sourceLocalTypes1,
                     references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             CompileAndVerify(compilation1)
-            Dim compilation2 = CreateCompilationWithMscorlib(
+            Dim compilation2 = CreateCompilationWithMscorlib40(
                     s_sourceLocalTypes2,
                     references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             CompileAndVerify(compilation2)
@@ -535,7 +535,7 @@ End Class
         <Fact()>
         Public Sub CyclicReference_1()
             Dim piaRef = TestReferences.SymbolsTests.NoPia.Pia1
-            Dim compilation1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1_IL)
+            Dim compilation1 = CreateCompilationWithMscorlib40(s_sourceLocalTypes1_IL)
             CompileAndVerify(compilation1)
             Dim localTypes1Ref = New VisualBasicCompilationReference(compilation1)
             CyclicReference(piaRef, localTypes1Ref)
@@ -544,7 +544,7 @@ End Class
         <Fact()>
         Public Sub CyclicReference_2()
             Dim piaRef = TestReferences.SymbolsTests.NoPia.Pia1
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
                     s_sourceLocalTypes1,
                     references:={TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(True)})
             CompileAndVerify(compilation1)
@@ -554,10 +554,10 @@ End Class
 
         <Fact()>
         Public Sub CyclicReference_3()
-            Dim pia1 = CreateCompilationWithMscorlib(s_sourcePia1)
+            Dim pia1 = CreateCompilationWithMscorlib40(s_sourcePia1)
             CompileAndVerify(pia1)
             Dim piaRef = New VisualBasicCompilationReference(pia1)
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
                     s_sourceLocalTypes1,
                     references:={New VisualBasicCompilationReference(pia1, embedInteropTypes:=True)})
             CompileAndVerify(compilation1)
@@ -579,7 +579,7 @@ End Class
 
         <Fact()>
         Public Sub GenericsClosedOverLocalTypes1_1()
-            Dim compilation3 = CreateCompilationWithMscorlib(s_sourceLocalTypes3_IL)
+            Dim compilation3 = CreateCompilationWithMscorlib40(s_sourceLocalTypes3_IL)
             CompileAndVerify(compilation3)
             GenericsClosedOverLocalTypes1(compilation3)
         End Sub
@@ -609,7 +609,7 @@ Public Class C
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
             comp.VerifyDiagnostics()
             CompileAndVerify(comp)
 
@@ -642,7 +642,7 @@ Public Class C
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
             comp.VerifyDiagnostics()
 
             Dim assemblies1 = MetadataTestHelpers.GetSymbolsForReferences({comp})
@@ -667,7 +667,7 @@ Namespace System
     End Structure
 End Namespace
 "
-            Dim pia = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
+            Dim pia = CreateCompilationWithMscorlib40({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
             pia.VerifyDiagnostics()
 
             Dim source = "
@@ -708,11 +708,11 @@ BC36923: Type 'ValueTuple(Of T1, T2)' cannot be embedded because it has generic 
                ~~~~~~
                            </errors>
 
-            Dim comp1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+            Dim comp1 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.ToMetadataReference(embedInteropTypes:=True)})
             comp1.AssertTheseDiagnostics(expected)
 
-            Dim comp2 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+            Dim comp2 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.EmitToImageReference(embedInteropTypes:=True)})
             comp2.AssertTheseDiagnostics(expected)
         End Sub
@@ -744,7 +744,7 @@ Public Interface ITest1
     Function M2() As IEnumerable(Of IEnumerable(Of S(Of Integer)))
 End Interface
 "
-            Dim pia = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
+            Dim pia = CreateCompilationWithMscorlib40({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
             pia.VerifyDiagnostics()
             Dim source = "
 Public Interface ITest2
@@ -756,11 +756,11 @@ BC36923: Type 'S(Of T)' cannot be embedded because it has generic argument. Cons
 BC36923: Type 'ValueTuple(Of T1, T2)' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.
                            </errors>
 
-            Dim comp1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+            Dim comp1 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.ToMetadataReference(embedInteropTypes:=True)})
             comp1.AssertTheseEmitDiagnostics(expected)
 
-            Dim comp2 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+            Dim comp2 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.EmitToImageReference(embedInteropTypes:=True)})
             comp2.AssertTheseEmitDiagnostics(expected)
         End Sub
@@ -791,7 +791,7 @@ Public Interface ITest1
     ReadOnly Property P2 As S(Of Integer)
 End Interface
 "
-            Dim pia = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
+            Dim pia = CreateCompilationWithMscorlib40({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
             pia.VerifyDiagnostics()
             Dim source = "
 Public Interface ITest2
@@ -803,11 +803,11 @@ BC36923: Type 'S(Of T)' cannot be embedded because it has generic argument. Cons
 BC36923: Type 'ValueTuple(Of T1, T2)' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.
                            </errors>
 
-            Dim comp1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+            Dim comp1 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.ToMetadataReference(embedInteropTypes:=True)})
             comp1.AssertTheseEmitDiagnostics(expected)
 
-            Dim comp2 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+            Dim comp2 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.EmitToImageReference(embedInteropTypes:=True)})
             comp2.AssertTheseEmitDiagnostics(expected)
         End Sub
@@ -829,7 +829,7 @@ Public Interface ITest1
      Event E As S(Of Integer)
 End Interface
 "
-            Dim pia = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
+            Dim pia = CreateCompilationWithMscorlib40({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
             pia.VerifyDiagnostics()
             Dim source = "
 Public Interface ITest2
@@ -840,11 +840,11 @@ End Interface
 BC36923: Type 'S(Of T)' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.
                            </errors>
 
-            Dim comp1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+            Dim comp1 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.ToMetadataReference(embedInteropTypes:=True)})
             comp1.AssertTheseEmitDiagnostics(expected)
 
-            Dim comp2 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+            Dim comp2 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.EmitToImageReference(embedInteropTypes:=True)})
             comp2.AssertTheseEmitDiagnostics(expected)
         End Sub
@@ -873,7 +873,7 @@ Public Structure Test1
     public F As IEnumerable(Of IEnumerable(Of (Integer, Integer)))
     public F2 As IEnumerable(Of IEnumerable(Of S(Of Integer)))
 End Structure"
-            Dim pia = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
+            Dim pia = CreateCompilationWithMscorlib40({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
             pia.VerifyDiagnostics()
             Dim source = "
 Public Interface ITest2
@@ -885,11 +885,11 @@ BC36923: Type 'S(Of T)' cannot be embedded because it has generic argument. Cons
 BC36923: Type 'ValueTuple(Of T1, T2)' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.
                            </errors>
 
-            Dim comp1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+            Dim comp1 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.ToMetadataReference(embedInteropTypes:=True)})
             comp1.AssertTheseEmitDiagnostics(expected)
 
-            Dim comp2 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+            Dim comp2 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.EmitToImageReference(embedInteropTypes:=True)})
             comp2.AssertTheseEmitDiagnostics(expected)
         End Sub
@@ -923,10 +923,10 @@ Public Class D
     End Function
 End Class
 "
-            Dim pia = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="pia")
+            Dim pia = CreateCompilationWithMscorlib40({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="pia")
             pia.VerifyDiagnostics()
 
-            Dim [lib] = CreateCompilationWithMscorlib({libSource}, options:=TestOptions.ReleaseDll, references:={pia.ToMetadataReference()})
+            Dim [lib] = CreateCompilationWithMscorlib40({libSource}, options:=TestOptions.ReleaseDll, references:={pia.ToMetadataReference()})
             [lib].VerifyDiagnostics()
 
             Dim source = "
@@ -948,11 +948,11 @@ BC36923: Type 'S(Of T)' cannot be embedded because it has generic argument. Cons
 BC36923: Type 'ValueTuple(Of T1, T2)' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.
                                       </errors>
 
-            Dim comp1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+            Dim comp1 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.ToMetadataReference(embedInteropTypes:=True), [lib].ToMetadataReference()})
             comp1.AssertTheseEmitDiagnostics(expectedDiagnostics)
 
-            Dim comp2 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+            Dim comp2 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.EmitToImageReference(embedInteropTypes:=True), [lib].EmitToImageReference()})
             comp2.AssertTheseEmitDiagnostics(expectedDiagnostics)
         End Sub
@@ -968,7 +968,7 @@ Imports System.Runtime.InteropServices
 Public Structure Generic(Of T1)
 End Structure
 "
-            Dim pia = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="pia")
+            Dim pia = CreateCompilationWithMscorlib40({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="pia")
             pia.VerifyDiagnostics()
 
             Dim source = "
@@ -1003,18 +1003,18 @@ BC36923: Type 'Generic(Of T1)' cannot be embedded because it has generic argumen
                                              ~~~~~~~~~~~~~~~~~~
                                       </errors>
 
-            Dim comp1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+            Dim comp1 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.ToMetadataReference(embedInteropTypes:=True)})
             comp1.AssertTheseDiagnostics(expectedDiagnostics)
 
-            Dim comp2 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+            Dim comp2 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.EmitToImageReference(embedInteropTypes:=True)})
             comp2.AssertTheseDiagnostics(expectedDiagnostics)
         End Sub
 
         <Fact()>
         Public Sub GenericsClosedOverLocalTypes1_2()
-            Dim compilation3 = CreateCompilationWithMscorlib(
+            Dim compilation3 = CreateCompilationWithMscorlib40(
                 s_sourceLocalTypes3,
                 references:={TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(True)})
             CompileAndVerify(compilation3)
@@ -1023,9 +1023,9 @@ BC36923: Type 'Generic(Of T1)' cannot be embedded because it has generic argumen
 
         <Fact()>
         Public Sub GenericsClosedOverLocalTypes1_3()
-            Dim pia1 = CreateCompilationWithMscorlib(s_sourcePia1)
+            Dim pia1 = CreateCompilationWithMscorlib40(s_sourcePia1)
             CompileAndVerify(pia1)
-            Dim compilation3 = CreateCompilationWithMscorlib(
+            Dim compilation3 = CreateCompilationWithMscorlib40(
                 s_sourceLocalTypes3,
                 references:={New VisualBasicCompilationReference(pia1, embedInteropTypes:=True)})
             CompileAndVerify(compilation3)
@@ -1077,7 +1077,7 @@ Public Structure S1
     End Structure
 End Structure
 ]]></file></compilation>
-            Dim pia = CreateCompilationWithMscorlib(piaSource)
+            Dim pia = CreateCompilationWithMscorlib40(piaSource)
             CompileAndVerify(pia)
             Dim piaImage = MetadataReference.CreateFromImage(pia.EmitToArray())
             Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
@@ -1103,11 +1103,11 @@ End Structure
 Interface AttrTest1
 End Interface
 ]]></file></compilation>
-            Dim localTypes2 = CreateCompilationWithMscorlib(source)
+            Dim localTypes2 = CreateCompilationWithMscorlib40(source)
             CompileAndVerify(localTypes2)
             Dim localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray())
 
-            Dim compilation = CreateCompilationWithMscorlib(<compilation/>,
+            Dim compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(localTypes2), New VisualBasicCompilationReference(pia)})
             Dim lt = compilation.GetTypeByMetadataName("LocalTypes2")
             Dim test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1118,7 +1118,7 @@ End Interface
             Assert.Equal("Pia", DirectCast(args(0).Value, TypeSymbol).ContainingAssembly.Name)
             Assert.IsType(Of UnsupportedMetadataTypeSymbol)(args(1).Value)
 
-            compilation = CreateCompilationWithMscorlib(<compilation/>,
+            compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {localTypes2Image, New VisualBasicCompilationReference(pia)})
             lt = compilation.GetTypeByMetadataName("LocalTypes2")
             test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1129,7 +1129,7 @@ End Interface
             Assert.Equal("Pia", DirectCast(args(0).Value, TypeSymbol).ContainingAssembly.Name)
             Assert.IsType(Of UnsupportedMetadataTypeSymbol)(args(1).Value)
 
-            compilation = CreateCompilationWithMscorlib(<compilation/>,
+            compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(localTypes2), piaImage})
             lt = compilation.GetTypeByMetadataName("LocalTypes2")
             test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1140,7 +1140,7 @@ End Interface
             Assert.Equal("Pia", DirectCast(args(0).Value, TypeSymbol).ContainingAssembly.Name)
             Assert.IsType(Of UnsupportedMetadataTypeSymbol)(args(1).Value)
 
-            compilation = CreateCompilationWithMscorlib(<compilation/>,
+            compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {localTypes2Image, piaImage})
             lt = compilation.GetTypeByMetadataName("LocalTypes2")
             test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1169,7 +1169,7 @@ Public Structure S1
     End Structure
 End Structure
 ]]></file></compilation>
-            Dim pia = CreateCompilationWithMscorlib(piaSource)
+            Dim pia = CreateCompilationWithMscorlib40(piaSource)
             CompileAndVerify(pia)
             Dim piaImage = MetadataReference.CreateFromImage(pia.EmitToArray())
             Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
@@ -1194,11 +1194,11 @@ End Structure
 Interface AttrTest1
 End Interface
 ]]></file></compilation>
-            Dim localTypes2 = CreateCompilationWithMscorlib(source)
+            Dim localTypes2 = CreateCompilationWithMscorlib40(source)
             CompileAndVerify(localTypes2)
             Dim localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray())
 
-            Dim compilation = CreateCompilationWithMscorlib(<compilation/>,
+            Dim compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(localTypes2), New VisualBasicCompilationReference(pia)})
             Dim lt = compilation.GetTypeByMetadataName("LocalTypes2")
             Dim test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1209,7 +1209,7 @@ End Interface
             Assert.Equal("Pia", DirectCast(args(0).Value, TypeSymbol).ContainingAssembly.Name)
             Assert.IsType(Of UnsupportedMetadataTypeSymbol)(args(1).Value)
 
-            compilation = CreateCompilationWithMscorlib(<compilation/>,
+            compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {localTypes2Image, New VisualBasicCompilationReference(pia)})
             lt = compilation.GetTypeByMetadataName("LocalTypes2")
             test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1220,7 +1220,7 @@ End Interface
             Assert.Equal("Pia", DirectCast(args(0).Value, TypeSymbol).ContainingAssembly.Name)
             Assert.IsType(Of UnsupportedMetadataTypeSymbol)(args(1).Value)
 
-            compilation = CreateCompilationWithMscorlib(<compilation/>,
+            compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(localTypes2), piaImage})
             lt = compilation.GetTypeByMetadataName("LocalTypes2")
             test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1231,7 +1231,7 @@ End Interface
             Assert.Equal("Pia", DirectCast(args(0).Value, TypeSymbol).ContainingAssembly.Name)
             Assert.IsType(Of UnsupportedMetadataTypeSymbol)(args(1).Value)
 
-            compilation = CreateCompilationWithMscorlib(<compilation/>,
+            compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {localTypes2Image, piaImage})
             lt = compilation.GetTypeByMetadataName("LocalTypes2")
             test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1260,7 +1260,7 @@ Public Structure S1
     End Structure
 End Structure
 ]]></file></compilation>
-            Dim pia = CreateCompilationWithMscorlib(piaSource)
+            Dim pia = CreateCompilationWithMscorlib40(piaSource)
             CompileAndVerify(pia)
             Dim piaImage = MetadataReference.CreateFromImage(pia.EmitToArray())
             Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
@@ -1285,11 +1285,11 @@ End Structure
 Interface AttrTest1
 End Interface
 ]]></file></compilation>
-            Dim localTypes2 = CreateCompilationWithMscorlib(source)
+            Dim localTypes2 = CreateCompilationWithMscorlib40(source)
             'CompileAndVerify(localTypes2)
             Dim localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray())
 
-            Dim compilation = CreateCompilationWithMscorlib(<compilation/>,
+            Dim compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(localTypes2), New VisualBasicCompilationReference(pia)})
             Dim lt = compilation.GetTypeByMetadataName("LocalTypes2")
             Dim test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1300,7 +1300,7 @@ End Interface
             Assert.Equal("LocalTypes2", DirectCast(args(0).Value, TypeSymbol).ContainingAssembly.Name)
             Assert.Equal("LocalTypes2", DirectCast(args(1).Value, TypeSymbol).ContainingAssembly.Name)
 
-            compilation = CreateCompilationWithMscorlib(<compilation/>,
+            compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {localTypes2Image, New VisualBasicCompilationReference(pia)})
             lt = compilation.GetTypeByMetadataName("LocalTypes2")
             test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1311,7 +1311,7 @@ End Interface
             Assert.Equal("LocalTypes2", DirectCast(args(0).Value, TypeSymbol).ContainingAssembly.Name)
             Assert.Equal("LocalTypes2", DirectCast(args(1).Value, TypeSymbol).ContainingAssembly.Name)
 
-            compilation = CreateCompilationWithMscorlib(<compilation/>,
+            compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(localTypes2), piaImage})
             lt = compilation.GetTypeByMetadataName("LocalTypes2")
             test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1322,7 +1322,7 @@ End Interface
             Assert.Equal("LocalTypes2", DirectCast(args(0).Value, TypeSymbol).ContainingAssembly.Name)
             Assert.Equal("LocalTypes2", DirectCast(args(1).Value, TypeSymbol).ContainingAssembly.Name)
 
-            compilation = CreateCompilationWithMscorlib(<compilation/>,
+            compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {localTypes2Image, piaImage})
             lt = compilation.GetTypeByMetadataName("LocalTypes2")
             test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1351,7 +1351,7 @@ Public Structure S1
     End Structure
 End Structure
 ]]></file></compilation>
-            Dim pia = CreateCompilationWithMscorlib(piaSource)
+            Dim pia = CreateCompilationWithMscorlib40(piaSource)
             CompileAndVerify(pia)
             Dim piaImage = MetadataReference.CreateFromImage(pia.EmitToArray())
             Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
@@ -1367,11 +1367,11 @@ End Class
 Interface AttrTest1
 End Interface
 ]]></file></compilation>
-            Dim localTypes2 = CreateCompilationWithMscorlib(source,
+            Dim localTypes2 = CreateCompilationWithMscorlib40(source,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(pia, embedInteropTypes:=True)})
             'CompileAndVerify(localTypes2)
 
-            Dim compilation = CreateCompilationWithMscorlib(<compilation/>,
+            Dim compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(localTypes2), New VisualBasicCompilationReference(pia)})
             Dim lt = compilation.GetTypeByMetadataName("LocalTypes2")
             Dim test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1382,7 +1382,7 @@ End Interface
             Assert.Equal("Pia", DirectCast(args(0).Value, TypeSymbol).ContainingAssembly.Name)
             Assert.IsType(Of UnsupportedMetadataTypeSymbol)(args(1).Value)
 
-            compilation = CreateCompilationWithMscorlib(<compilation/>,
+            compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(localTypes2), piaImage})
             lt = compilation.GetTypeByMetadataName("LocalTypes2")
             test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1411,7 +1411,7 @@ Public Structure S2(Of T)
     Public F1 As Integer
 End Structure
 ]]></file></compilation>
-            Dim pia = CreateCompilationWithMscorlib(piaSource)
+            Dim pia = CreateCompilationWithMscorlib40(piaSource)
             CompileAndVerify(pia)
             Dim piaImage = MetadataReference.CreateFromImage(pia.EmitToArray())
             Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
@@ -1437,11 +1437,11 @@ End Structure
 Interface AttrTest1
 End Interface
 ]]></file></compilation>
-            Dim localTypes2 = CreateCompilationWithMscorlib(source)
+            Dim localTypes2 = CreateCompilationWithMscorlib40(source)
             'CompileAndVerify(localTypes2)
             Dim localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray())
 
-            Dim compilation = CreateCompilationWithMscorlib(<compilation/>,
+            Dim compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(localTypes2), New VisualBasicCompilationReference(pia)})
             Dim lt = compilation.GetTypeByMetadataName("LocalTypes2")
             Dim test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1452,7 +1452,7 @@ End Interface
             Assert.Equal("Pia", DirectCast(args(0).Value, TypeSymbol).ContainingAssembly.Name)
             Assert.IsType(Of UnsupportedMetadataTypeSymbol)(args(1).Value)
 
-            compilation = CreateCompilationWithMscorlib(<compilation/>,
+            compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {localTypes2Image, New VisualBasicCompilationReference(pia)})
             lt = compilation.GetTypeByMetadataName("LocalTypes2")
             test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1463,7 +1463,7 @@ End Interface
             Assert.Equal("Pia", DirectCast(args(0).Value, TypeSymbol).ContainingAssembly.Name)
             Assert.IsType(Of UnsupportedMetadataTypeSymbol)(args(1).Value)
 
-            compilation = CreateCompilationWithMscorlib(<compilation/>,
+            compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(localTypes2), piaImage})
             lt = compilation.GetTypeByMetadataName("LocalTypes2")
             test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1474,7 +1474,7 @@ End Interface
             Assert.Equal("Pia", DirectCast(args(0).Value, TypeSymbol).ContainingAssembly.Name)
             Assert.IsType(Of UnsupportedMetadataTypeSymbol)(args(1).Value)
 
-            compilation = CreateCompilationWithMscorlib(<compilation/>,
+            compilation = CreateCompilationWithMscorlib40(<compilation/>,
                 references:=New MetadataReference() {localTypes2Image, piaImage})
             lt = compilation.GetTypeByMetadataName("LocalTypes2")
             test2 = lt.GetMember(Of MethodSymbol)("Test2")
@@ -1539,7 +1539,7 @@ class C3 {}
             compilation1.VerifyDiagnostics()
             Dim compilation1Image = MetadataReference.CreateFromImage(compilation1.EmitToArray())
 
-            Dim compilation2 = CreateCompilationWithMscorlib(<compilation name="2"/>,
+            Dim compilation2 = CreateCompilationWithMscorlib40(<compilation name="2"/>,
                 references:=New MetadataReference() {compilation1Image, pia1Image})
             Dim type = compilation2.GetTypeByMetadataName("C1")
             Dim argType = DirectCast(type.GetAttributes()(0).CommonConstructorArguments(0).Value, TypeSymbol)
@@ -1554,7 +1554,7 @@ class C3 {}
             Assert.Equal("Pia1", argType.ContainingAssembly.Name)
             Assert.Equal("n1.n2.i", argType.ToString())
 
-            compilation2 = CreateCompilationWithMscorlib(<compilation name="2"/>,
+            compilation2 = CreateCompilationWithMscorlib40(<compilation name="2"/>,
                 references:=New MetadataReference() {compilation1Image, pia2Image})
             type = compilation2.GetTypeByMetadataName("C1")
             argType = DirectCast(type.GetAttributes()(0).CommonConstructorArguments(0).Value, TypeSymbol)
@@ -1588,7 +1588,7 @@ End Interface
 </compilation>
 
 
-            Dim pia1 = CreateCompilationWithMscorlib(piaSource, options:=TestOptions.ReleaseDll)
+            Dim pia1 = CreateCompilationWithMscorlib40(piaSource, options:=TestOptions.ReleaseDll)
             CompileAndVerify(pia1)
 
             Dim moduleSource =
@@ -1602,7 +1602,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim module1 = CreateCompilationWithMscorlib(moduleSource, options:=TestOptions.ReleaseModule,
+            Dim module1 = CreateCompilationWithMscorlib40(moduleSource, options:=TestOptions.ReleaseModule,
                 references:={New VisualBasicCompilationReference(pia1, embedInteropTypes:=True)})
 
             Dim emptySource =
@@ -1611,7 +1611,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim multiModule = CreateCompilationWithMscorlib(emptySource, options:=TestOptions.ReleaseDll,
+            Dim multiModule = CreateCompilationWithMscorlib40(emptySource, options:=TestOptions.ReleaseDll,
                 references:={module1.EmitToImageReference()})
 
             CompileAndVerify(multiModule)
@@ -1627,7 +1627,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim consumer = CreateCompilationWithMscorlib(consumerSource, options:=TestOptions.ReleaseDll,
+            Dim consumer = CreateCompilationWithMscorlib40(consumerSource, options:=TestOptions.ReleaseDll,
                 references:={New VisualBasicCompilationReference(multiModule),
                              New VisualBasicCompilationReference(pia1)})
 
@@ -1657,7 +1657,7 @@ public delegate Sub Y(addin As List(Of string))
     ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(source1, options:=TestOptions.ReleaseDll,
+            Dim comp1 = CreateCompilationWithMscorlib40(source1, options:=TestOptions.ReleaseDll,
                 references:={TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)})
 
             Dim source2 =
@@ -1671,14 +1671,14 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2,
+            Dim comp2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2,
                 {comp1.EmitToImageReference(),
                 TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)},
                 TestOptions.ReleaseExe)
 
             CompileAndVerify(comp2, expectedOutput:="Y").Diagnostics.Verify()
 
-            Dim comp3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2,
+            Dim comp3 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2,
                 {New VisualBasicCompilationReference(comp1),
                 TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)},
                 TestOptions.ReleaseExe)
@@ -1720,7 +1720,7 @@ End Class
                 Dim compilation1 = CreateCompilationWithMscorlib45(consumer1, references:={piaRef.WithEmbedInteropTypes(True)}, options:=TestOptions.ReleaseDll)
 
                 For Each consumer1Ref As MetadataReference In {compilation1.EmitToImageReference(), compilation1.ToMetadataReference()}
-                    Dim compilation2 = CreateCompilation(consumer2, references:={MscorlibRef_v46, piaRef, consumer1Ref})
+                    Dim compilation2 = CreateEmptyCompilation(consumer2, references:={MscorlibRef_v46, piaRef, consumer1Ref})
 
                     compilation2.VerifyDiagnostics()
 

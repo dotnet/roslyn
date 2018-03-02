@@ -33,7 +33,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c1 = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe)
+            Dim c1 = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseExe)
             Dim exe = Temp.CreateFile()
             Using output As FileStream = exe.Open()
                 c1.Emit(output, win32Resources:=c1.CreateDefaultWin32Resources(True, False, Nothing, Nothing))
@@ -120,7 +120,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c1 = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe)
+            Dim c1 = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseExe)
             Dim exe = Temp.CreateFile()
             Using output As FileStream = exe.Open()
                 Dim memStream = New MemoryStream(TestResources.General.nativeCOFFResources)
@@ -199,7 +199,7 @@ End Class
         <Fact>
         Public Sub AddManagedResource()
             ' Use a unique guid as a compilation name to prevent conflicts with other assemblies loaded via Assembly.ReflectionOnlyLoad:
-            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation><file name="a.vb">
 Module Module1
     Sub Main()
@@ -245,7 +245,7 @@ End Module
         <Fact>
         Public Sub AddManagedLinkedResourceFail()
 
-            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation><file name="a.vb">
 Module Module1
     Sub Main()
@@ -273,7 +273,7 @@ End Module
         <Fact>
         Public Sub AddManagedEmbeddedResourceFail()
 
-            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation><file name="a.vb">
 Module Module1
     Sub Main()
@@ -300,7 +300,7 @@ End Module
 
         <Fact>
         Public Sub ResourceWithAttrSettings()
-            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Win32VerAttrs">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyVersion("1.2.3.4")>
@@ -371,7 +371,7 @@ End Module
         <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
         Public Sub BC31502_DuplicateManifestResourceIdentifier()
-            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation><file name="a.vb">
 Module Module1
     Sub Main()
@@ -398,7 +398,7 @@ End Module
             Dim source =
 <compilation><file name="a.vb">
     </file></compilation>
-            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseModule)
+            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseModule)
 
             Dim output As New IO.MemoryStream
             Dim dataProvider = Function() New IO.MemoryStream(New Byte() {})
@@ -435,7 +435,7 @@ End Module
             Assert.False(result.Success)
             result.Diagnostics.Verify(Diagnostic(ERRID.ERR_ResourceInModule))
 
-            Dim c_mod1 = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule)
+            Dim c_mod1 = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule)
 
             Dim output_mod1 = New MemoryStream()
             result = c_mod1.Emit(output_mod1, manifestResources:=
@@ -449,7 +449,7 @@ End Module
             Assert.Equal(ManifestResourceAttributes.Public, mod1.Module.GetEmbeddedResourcesOrThrow()(0).Attributes)
 
             If True Then
-                Dim C2 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod1}, TestOptions.ReleaseDll)
+                Dim C2 = CreateCompilationWithMscorlib40AndReferences(source, {ref_mod1}, TestOptions.ReleaseDll)
                 Dim output2 = New MemoryStream()
                 Dim result2 = C2.Emit(output2)
 
@@ -477,7 +477,7 @@ End Module
                 Assert.Equal(arrayOfEmbeddedData, rBytes)
             End If
 
-            Dim c_mod2 = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule)
+            Dim c_mod2 = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule)
 
             Dim output_mod2 = New MemoryStream()
             result = c_mod2.Emit(output_mod2, manifestResources:=
@@ -490,7 +490,7 @@ End Module
             Dim ref_mod2 = ModuleMetadata.CreateFromImage(output_mod2.ToImmutable()).GetReference()
 
             If True Then
-                Dim C3 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod2}, TestOptions.ReleaseDll)
+                Dim C3 = CreateCompilationWithMscorlib40AndReferences(source, {ref_mod2}, TestOptions.ReleaseDll)
                 Dim output3 = New MemoryStream()
                 Dim result3 = C3.Emit(output3)
 
@@ -527,7 +527,7 @@ End Module
                 Assert.Equal(resourceFileData, rBytes)
             End If
 
-            Dim c_mod3 = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule)
+            Dim c_mod3 = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule)
 
             Dim output_mod3 = New MemoryStream()
             result = c_mod3.Emit(output_mod3, manifestResources:=
@@ -541,7 +541,7 @@ End Module
             Assert.Equal(ManifestResourceAttributes.Private, mod3.Module.GetEmbeddedResourcesOrThrow()(0).Attributes)
 
             If True Then
-                Dim C4 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod3}, TestOptions.ReleaseDll)
+                Dim C4 = CreateCompilationWithMscorlib40AndReferences(source, {ref_mod3}, TestOptions.ReleaseDll)
                 Dim output4 = New MemoryStream()
                 Dim result4 = C4.Emit(output4, manifestResources:=
                                                        {
@@ -581,7 +581,7 @@ End Module
             End If
 
             If True Then
-                Dim c5 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod1, ref_mod3}, TestOptions.ReleaseDll)
+                Dim c5 = CreateCompilationWithMscorlib40AndReferences(source, {ref_mod1, ref_mod3}, TestOptions.ReleaseDll)
                 Dim output5 = New MemoryStream()
                 Dim result5 = c5.Emit(output5)
 
@@ -620,7 +620,7 @@ End Module
             End If
 
             If True Then
-                Dim c6 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod1, ref_mod2}, TestOptions.ReleaseDll)
+                Dim c6 = CreateCompilationWithMscorlib40AndReferences(source, {ref_mod1, ref_mod2}, TestOptions.ReleaseDll)
                 Dim output6 = New MemoryStream()
                 Dim result6 = c6.Emit(output6)
 
@@ -642,7 +642,7 @@ BC31502: Resource name 'another.DoTtEd.NAME' cannot be used more than once.
 BC31502: Resource name 'some.dotted.NAME' cannot be used more than once.
 </expected>)
 
-                c6 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod1, ref_mod2}, TestOptions.ReleaseModule)
+                c6 = CreateCompilationWithMscorlib40AndReferences(source, {ref_mod1, ref_mod2}, TestOptions.ReleaseModule)
                 result6 = c6.Emit(output6, manifestResources:=
                 {
                     New ResourceDescription(r2Name, Function() New IO.MemoryStream(resourceFileData), False)
@@ -656,7 +656,7 @@ BC31502: Resource name 'some.dotted.NAME' cannot be used more than once.
         <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
         Public Sub BC31502_DuplicateManifestResourceIdentifier_EmbeddedResource()
-            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation><file name="a.vb">
 Module Module1
     Sub Main()
@@ -691,7 +691,7 @@ End Module
         <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501"), WorkItem(546298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546298")>
         <Fact()>
         Public Sub BC35003_DuplicateManifestResourceFileName()
-            Dim c1 As Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c1 As Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module Module1
@@ -739,7 +739,7 @@ End Module
         <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
         Public Sub NoDuplicateManifestResourceFileNameDiagnosticForEmbeddedResources()
-            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                               <compilation><file name="a.vb">
 Module Module1
     Sub Main()
@@ -772,7 +772,7 @@ End Module
         <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
         Public Sub BC31502_BC35003_DuplicateManifestResourceDiagnostics()
-            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                                  <compilation><file name="a.vb">
 Module Module1
     Sub Main()
