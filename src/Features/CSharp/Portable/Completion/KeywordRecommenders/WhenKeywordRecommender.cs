@@ -86,8 +86,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             var expression = expressionOrPattern as ExpressionSyntax
                 ?? (expressionOrPattern as ConstantPatternSyntax)?.Expression;
+            
+            if (!(expression is TypeSyntax typeSyntax))
+            {
+                return false;
+            }
 
-            return (expression as TypeSyntax)?.IsPotentialTypeName(semanticModel, cancellationToken) ?? false;
+            // We don't pass in the semantic model - let IsPotentialTypeName handle the cases where it's clear
+            // from the syntax, but other than that, we need to do our own logic here.
+            if (typeSyntax.IsPotentialTypeName(semanticModelOpt: null, cancellationToken))
+            {
+                return true;
+            }
+
+            var symbols = semanticModel.LookupName(typeSyntax, namespacesAndTypesOnly: false, cancellationToken);
+            if (symbols.Length > 1)
+            {
+                return false;
+            }
+
+            if (symbols.Length == 0)
+            {
+                // For all unknown identifiers except var, we return false (therefore 'when' will offered),
+                // because the user could later create a type with this name OR a constant. We give them both options.
+                // But with var, when there is no type or constant with this name, we instead make the reasonable
+                // assumption that the user didn't just type 'var' to then create a constant named 'var', but really
+                // is about to declare a variable. Therefore we don't want to interfere with the declaration.
+                // However note that if such a constant already exists, we do the right thing and do offer 'when'.
+                return typeSyntax.IsVar;
+            }
+
+            var symbol = symbols[0];
+            return symbol is IAliasSymbol || symbol is ITypeSymbol;
         }
     }
 }
