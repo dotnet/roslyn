@@ -1354,6 +1354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         ERR_LocalFunctionMissingBody = 8112,
+        ERR_InvalidHashAlgorithmName = 8113,
 
         // Available = 8113, 8114, 8115
 

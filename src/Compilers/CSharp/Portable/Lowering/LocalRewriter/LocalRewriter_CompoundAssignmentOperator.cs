@@ -728,6 +728,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return conv.ConversionHasSideEffects() ||
                         ReadIsSideeffecting(conv.Operand);
 
+                case BoundKind.PassByCopy:
+                    return ReadIsSideeffecting(((BoundPassByCopy)expression).Expression);
+
                 case BoundKind.ObjectCreationExpression:
                     // common production of lowered conversions to nullable
                     // new S?(arg)

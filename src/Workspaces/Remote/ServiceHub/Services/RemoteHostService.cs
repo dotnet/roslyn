@@ -114,22 +114,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
+        public void UpdateSolutionStorageLocation(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
         {
             RunService(_ =>
             {
                 var persistentStorageService = GetPersistentStorageService();
-                persistentStorageService?.RegisterPrimarySolution(solutionId);
-                RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
-            }, cancellationToken);
-        }
-
-        public void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown, CancellationToken cancellationToken)
-        {
-            RunService(_ =>
-            {
-                var persistentStorageService = GetPersistentStorageService();
-                persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
+                persistentStorageService.UpdateStorageLocation(solutionId, storageLocation);
             }, cancellationToken);
         }
 
@@ -261,11 +251,9 @@ namespace Microsoft.CodeAnalysis.Remote
             return session;
         }
 
-        private static AbstractPersistentStorageService GetPersistentStorageService()
+        private static RemotePersistentStorageLocationService GetPersistentStorageService()
         {
-            var workspace = SolutionService.PrimaryWorkspace;
-            var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
-            return persistentStorageService;
+            return (RemotePersistentStorageLocationService)SolutionService.PrimaryWorkspace.Services.GetService<IPersistentStorageLocationService>();
         }
 
         private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()

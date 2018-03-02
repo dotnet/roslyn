@@ -118,6 +118,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.TypeParameterName;
             }
+            else if (token.Parent is MethodDeclarationSyntax methodDeclaration && methodDeclaration.Identifier == token)
+            {
+                return IsExtensionMethod(methodDeclaration) ? ClassificationTypeNames.ExtensionMethodName : ClassificationTypeNames.MethodName;
+            }
+            else if (token.Parent is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.Identifier == token)
+            {
+                return ClassificationTypeNames.PropertyName;
+            }
+            else if (token.Parent is EnumMemberDeclarationSyntax enumMemberDeclaration && enumMemberDeclaration.Identifier == token)
+            {
+                return ClassificationTypeNames.EnumFieldName;
+            }
+            else if (token.Parent is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Identifier == token)
+            {
+                var varDecl = variableDeclarator.Parent as VariableDeclarationSyntax;
+                switch (varDecl.Parent)
+                {
+                    case FieldDeclarationSyntax fieldDeclaration:
+                        return fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.FieldName;
+                    case LocalDeclarationStatementSyntax localDeclarationStatement:
+                        return localDeclarationStatement.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName;
+                    case EventFieldDeclarationSyntax aventFieldDeclarationSyntax:
+                        return ClassificationTypeNames.EventName;
+                }
+                return ClassificationTypeNames.LocalName;
+            }
+            else if (token.Parent is ParameterSyntax parameterSyntax && parameterSyntax.Identifier == token)
+            {
+                return ClassificationTypeNames.ParameterName;
+            }
+            else if (token.Parent is ForEachStatementSyntax forEachStatementSyntax && forEachStatementSyntax.Identifier == token)
+            {
+                return ClassificationTypeNames.LocalName;
+            }
+            else if (token.Parent is EventDeclarationSyntax eventDeclarationSyntax && eventDeclarationSyntax.Identifier == token)
+            {
+                return ClassificationTypeNames.EventName;
+            }
             else if (IsActualContextualKeyword(token))
             {
                 return ClassificationTypeNames.Keyword;
@@ -126,6 +164,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.Identifier;
             }
+        }
+
+        private static bool IsExtensionMethod(MethodDeclarationSyntax methodDeclaration)
+        {
+            return methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(SyntaxKind.ThisKeyword) == true;
         }
 
         private static string GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)

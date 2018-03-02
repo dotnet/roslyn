@@ -659,7 +659,7 @@ BC36556: Anonymous type member name can be inferred only from a simple or qualif
                           ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>.Value
 
-            VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, additionalReferences:=XmlReferences)
+            VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, references:=XmlReferences)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -680,7 +680,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
 
             Dim expectedDiagnostics = String.Empty
 
-            VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, additionalReferences:=XmlReferences)
+            VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, references:=XmlReferences)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -705,7 +705,7 @@ BC36613: Anonymous type member name cannot be inferred from an XML identifier th
                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>.Value
 
-            VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, additionalReferences:=XmlReferences)
+            VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, references:=XmlReferences)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -760,7 +760,7 @@ BC36613: Anonymous type member name cannot be inferred from an XML identifier th
                             ~~~~~~~~
 ]]>.Value
 
-            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics, additionalReferences:=XmlReferences)
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics, references:=XmlReferences)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
