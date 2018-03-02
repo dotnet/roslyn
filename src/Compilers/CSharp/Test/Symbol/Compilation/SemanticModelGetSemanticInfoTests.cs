@@ -6715,10 +6715,6 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<InitializerExpressionSyntax>(sourceCode);
             Assert.Null(semanticInfo.Type);
-            //Assert.Equal("int[]", semanticInfo.Type.ToString());
-            //Assert.Equal("int[]", semanticInfo.ConvertedType.ToString());
-            //Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
-            //Assert.True(semanticInfo.IsCompileTimeConstant);
         }
 
         [Fact]
@@ -8894,23 +8890,6 @@ public class Test
                 //             case /*<bind>*/()=>3/*</bind>*/:
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(12, 28)
                 );
-
-            // Due to language changes to support recursive patterns, the parser will no longer treat this syntax as a lambda.
-
-            //var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
-
-            //Assert.Null(semanticInfo.Type);
-            //Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
-            //Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            //Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
-
-            //Assert.Equal("lambda expression", semanticInfo.Symbol.ToTestDisplayString());
-            //Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            //Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-
-            //Assert.Equal(0, semanticInfo.MethodGroup.Length);
-
-            //Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
         [Fact]
@@ -8952,22 +8931,6 @@ public class Test
                 //             case /*<bind>*/()=>/*</bind>*/:
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(13, 28)
                 );
-
-            // Due to language changes to support recursive patterns, the parser will no longer treat this syntax as a lambda.
-            //var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
-
-            //Assert.Null(semanticInfo.Type);
-            //Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
-            //Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            //Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
-
-            //Assert.Equal("lambda expression", semanticInfo.Symbol.ToTestDisplayString());
-            //Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            //Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-
-            //Assert.Equal(0, semanticInfo.MethodGroup.Length);
-
-            //Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
         [Fact]

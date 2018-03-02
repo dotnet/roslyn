@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override Symbol MakePatternVariable(TypeSyntax type, SingleVariableDesignationSyntax designation, SyntaxNode nodeToBind)
         {
-            return GlobalExpressionVariable.Create(
+            return designation == null ? null : GlobalExpressionVariable.Create(
                 _containingType, _modifiers, type,
                 designation.Identifier.ValueText, designation, designation.GetLocation(),
                 _containingFieldOpt, nodeToBind);
@@ -652,30 +652,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override Symbol MakePatternVariable(DeconstructionPatternSyntax node, SyntaxNode nodeToBind)
         {
-            var designation = node.Designation as SingleVariableDesignationSyntax;
-            if (designation == null)
-            {
-                return null;
-            }
-
-            return GlobalExpressionVariable.Create(
-                _containingType, _modifiers, node.Type,
-                designation.Identifier.ValueText, designation, designation.GetLocation(),
-                _containingFieldOpt, nodeToBind);
+            return MakePatternVariable(node.Type, node.Designation as SingleVariableDesignationSyntax, nodeToBind);
         }
 
         protected override Symbol MakePatternVariable(PropertyPatternSyntax node, SyntaxNode nodeToBind)
         {
-            var designation = node.Designation as SingleVariableDesignationSyntax;
-            if (designation == null)
-            {
-                return null;
-            }
-
-            return GlobalExpressionVariable.Create(
-                _containingType, _modifiers, node.Type,
-                designation.Identifier.ValueText, designation, designation.GetLocation(),
-                _containingFieldOpt, nodeToBind);
+            return MakePatternVariable(node.Type, node.Designation as SingleVariableDesignationSyntax, nodeToBind);
         }
 
         protected override Symbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, SingleVariableDesignationSyntax designation, BaseArgumentListSyntax argumentListSyntaxOpt, SyntaxNode nodeToBind)

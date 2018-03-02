@@ -13,6 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// Binder for one of the arms of a switch expression. For example, in the one-armed switch expression
+    /// "e switch { p when c => v }", this could be the binder for the arm "p when c => v".
+    /// </summary>
     internal class SwitchExpressionArmBinder : Binder
     {
         private readonly SwitchExpressionArmSyntax _arm;
@@ -26,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this._switchExpressionBinder = switchExpressionBinder;
         }
 
-        internal override BoundSwitchExpressionCase BindSwitchExpressionArm(SwitchExpressionArmSyntax node, DiagnosticBag diagnostics)
+        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, DiagnosticBag diagnostics)
         {
             Debug.Assert(node == _arm);
             var caseBinder = this.GetBinder(node);
@@ -37,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? caseBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
                 : null;
             var result = caseBinder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
-            return new BoundSwitchExpressionCase(node, locals, pattern, guard, result, hasErrors);
+            return new BoundSwitchExpressionArm(node, locals, pattern, guard, result, hasErrors);
         }
     }
 }

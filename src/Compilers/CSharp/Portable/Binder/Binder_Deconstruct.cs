@@ -256,10 +256,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders;
+                if (variables.Count < 2)
+                {
+                    Error(diagnostics, ErrorCode.ERR_DeconstructTooFewElements, syntax);
+                    return false;
+                }
+
                 var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, this.LocalScopeDepth, type);
-                var deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count,
-                    inputPlaceholder, rightSyntax, diagnostics, out outPlaceholders, requireTwoOrMoreElements: true);
+                BoundExpression deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count,
+                    inputPlaceholder, rightSyntax, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders);
 
                 if (deconstructInvocation.HasAnyErrors)
                 {
@@ -588,19 +593,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The overload resolution is similar to writing `receiver.Deconstruct(out var x1, out var x2, ...)`.
         /// </summary>
         private BoundExpression MakeDeconstructInvocationExpression(
-                                    int numCheckedVariables, BoundExpression receiver, SyntaxNode rightSyntax,
-                                    DiagnosticBag diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders,
-                                    bool requireTwoOrMoreElements)
+            int numCheckedVariables,
+            BoundExpression receiver,
+            SyntaxNode rightSyntax,
+            DiagnosticBag diagnostics,
+            out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders)
         {
             var receiverSyntax = (CSharpSyntaxNode)receiver.Syntax;
-            if (requireTwoOrMoreElements && numCheckedVariables < 2)
-            {
-                Error(diagnostics, ErrorCode.ERR_DeconstructTooFewElements, receiverSyntax);
-                outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
-
-                return BadExpression(receiverSyntax, receiver);
-            }
-
             if (receiver.Type.IsDynamic())
             {
                 Error(diagnostics, ErrorCode.ERR_CannotDeconstructDynamic, rightSyntax);

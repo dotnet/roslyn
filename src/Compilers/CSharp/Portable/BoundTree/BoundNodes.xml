@@ -823,10 +823,10 @@
 
   <Node Name="BoundSwitchExpression" Base="BoundExpression">
     <Field Name="GoverningExpression" Type="BoundExpression"/>
-    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchExpressionCase&gt;"/>
+    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchExpressionArm&gt;"/>
     <!--<Field Name="DecisionDag" Type="BoundDecisionDag" Null="allow"/>-->
   </Node>
-  <Node Name="BoundSwitchExpressionCase" Base="BoundNode">
+  <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
     <Field Name="Guard" Type="BoundExpression" Null="allow"/>

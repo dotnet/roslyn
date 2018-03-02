@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternMatchingTests2 : PatternMatchingTestBase
     {
+        CSharpCompilation CreatePatternCompilation(string source)
+        {
+            return CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+        }
+
         [Fact]
         public void Patterns2_00()
         {
@@ -30,7 +35,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"1");
@@ -72,7 +77,7 @@ public class Point
     public int Length => 5;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "");
@@ -117,6 +122,7 @@ public static class PointExtensions
     }
 }
 ";
+            // We use a compilation profile that provides System.Runtime.CompilerServices.ExtensionAttribute needed for this test
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
             compilation.VerifyDiagnostics(
                 );
@@ -163,7 +169,7 @@ namespace System
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "");
@@ -205,7 +211,7 @@ public class Point
     public int Length => 5;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "");
@@ -248,7 +254,7 @@ namespace System
             void testErrorCase(string s1, string s2, string s3)
             {
                 var source = string.Format(sourceTemplate, s1, s2, s3);
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+                var compilation = CreatePatternCompilation(source);
                 compilation.VerifyDiagnostics(
                     // (12,13): error CS8120: The switch case has already been handled by a previous case.
                     //             case (_, _): // error - subsumed
@@ -258,7 +264,7 @@ namespace System
             void testGoodCase(string s1, string s2)
             {
                 var source = string.Format(sourceTemplate, s1, s2, string.Empty);
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+                var compilation = CreatePatternCompilation(source);
                 compilation.VerifyDiagnostics(
                     );
             }
@@ -310,7 +316,7 @@ public class Point
     public int Length => 5;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "True");
@@ -346,7 +352,7 @@ namespace System
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,18): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default) {} // error 1
@@ -378,7 +384,7 @@ namespace System
         var r = 1 switch { _ => 0 };
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (5,17): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //         var r = 1 switch ( _ => 0 );
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch { _ => 0 }").WithArguments("recursive patterns", "patterns2").WithLocation(5, 17)
@@ -413,7 +419,7 @@ namespace System
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+            CreatePatternCompilation(source).VerifyDiagnostics(
                 // (5,18): error CS8117: Invalid operand for pattern match; value required, but found '(int, <null>)'.
                 //         var r1 = (1, null) switch ( _ => 0 );
                 Diagnostic(ErrorCode.ERR_BadPatternExpression, "(1, null)").WithArguments("(int, <null>)").WithLocation(5, 18),
@@ -440,7 +446,7 @@ namespace System
 }";
             // PROTOTYPE(patterns2): This is admittedly poor syntax error recovery (for the line declaring r2),
             // but this test demonstrates that it is a syntax error.
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+            CreatePatternCompilation(source).VerifyDiagnostics(
                 // (6,34): error CS1003: Syntax error, '=>' expected
                 //         var r1 = b switch { true ? true : true => true, false => false };
                 Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>", "?").WithLocation(6, 34),
@@ -515,7 +521,7 @@ namespace System
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+            CreatePatternCompilation(source).VerifyDiagnostics(
                 );
         }
 
@@ -531,7 +537,7 @@ namespace System
         var x = 1 switch { 1 => 1, _ => throw null };
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+            CreatePatternCompilation(source).VerifyDiagnostics(
                 );
         }
 
@@ -550,7 +556,7 @@ namespace System
     public static void M() {}
     public delegate void D();
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+            CreatePatternCompilation(source).VerifyDiagnostics(
                 );
         }
 
@@ -569,7 +575,7 @@ namespace System
         System.Console.WriteLine(u);
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+            CreatePatternCompilation(source).VerifyDiagnostics(
                 );
         }
 
@@ -589,7 +595,7 @@ namespace System
     }
     static int M(int i) => i;
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+            CreatePatternCompilation(source).VerifyDiagnostics(
                 // (8,34): error CS0165: Use of unassigned local variable 'u'
                 //         System.Console.WriteLine(u);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "u").WithArguments("u").WithLocation(8, 34)
@@ -612,7 +618,7 @@ namespace System
     }
     static int M(int i) => i;
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+            CreatePatternCompilation(source).VerifyDiagnostics(
                 // (7,47): error CS0165: Use of unassigned local variable 'u'
                 //         var x = q switch { 0 => u=0, 1 => u=M(u), _ => u=2 };
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "u").WithArguments("u").WithLocation(7, 47)
@@ -637,7 +643,7 @@ namespace System
     }
     static int M(int i) => i;
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
             var names = new[] { "x1", "x2", "x3", "x4", "x5" };
@@ -670,7 +676,7 @@ namespace System
         if (a is _) { }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,18): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
                 //         if (a is _) { }
@@ -693,10 +699,10 @@ class Program
         if (t is (int x)) { }                           // error 1
         switch (t) { case (_): break; }                 // error 2
         var u = t switch { (int y) => y, _ => 2 };      // error 3
-        if (t is (int z1) _) { }                     // ok
-        if (t is (Item1: int z2)) { }                // ok
-        if (t is (int z3) { }) { }                   // ok
-        if (t is ValueTuple<int>(int z4)) { }        // ok
+        if (t is (int z1) _) { }                        // error 4
+        if (t is (Item1: int z2)) { }                   // error 5
+        if (t is (int z3) { }) { }                      // error 6
+        if (t is ValueTuple<int>(int z4)) { }           // ok
     }
     private static bool Check<T>(T expected, T actual)
     {
@@ -715,18 +721,27 @@ namespace System
             this.Item1 = item1;
         }
     }
-}";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+}";;
+            var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,18): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                // (8,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
                 //         if (t is (int x)) { }                           // error 1
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(int x)").WithLocation(8, 18),
-                // (9,27): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int x)").WithLocation(8, 18),
+                // (9,27): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
                 //         switch (t) { case (_): break; }                 // error 2
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(_)").WithLocation(9, 27),
-                // (10,28): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(_)").WithLocation(9, 27),
+                // (10,28): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(int y)").WithLocation(10, 28)
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int y)").WithLocation(10, 28),
+                // (11,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                //         if (t is (int z1) _) { }                        // error 4
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int z1) _").WithLocation(11, 18),
+                // (12,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                //         if (t is (Item1: int z2)) { }                   // error 5
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(Item1: int z2)").WithLocation(12, 18),
+                // (13,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                //         if (t is (int z3) { }) { }                      // error 6
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int z3) { }").WithLocation(13, 18)
                 );
         }
 
@@ -766,7 +781,7 @@ namespace System
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"");
@@ -811,7 +826,7 @@ namespace System
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 // (9,21): error CS0029: Cannot implicitly convert type '(int, int)' to 'N.var'
                 //             var t = (1, 2);

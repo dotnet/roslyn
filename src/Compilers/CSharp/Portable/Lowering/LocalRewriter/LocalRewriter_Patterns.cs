@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        private struct IsPatternExpressionLocalRewriter : IDisposable
+        private struct IsPatternExpressionLocalRewriter
         {
             private readonly LocalRewriter _localRewriter;
             private readonly SyntheticBoundNodeFactory _factory;
@@ -45,14 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this._sideEffectBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             }
 
-            public void Dispose()
+            public void Free()
             {
                 _conjunctBuilder.Free();
                 _sideEffectBuilder.Free();
-                _tempAllocator.Dispose();
+                _tempAllocator.Free();
             }
 
-            public class DagTempAllocator : IDisposable
+            public class DagTempAllocator
             {
                 private readonly SyntheticBoundNodeFactory _factory;
                 private readonly PooledDictionary<BoundDagTemp, BoundExpression> _map = PooledDictionary<BoundDagTemp, BoundExpression>.GetInstance();
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this._factory = factory;
                 }
 
-                public void Dispose()
+                public void Free()
                 {
                     _temps.Free();
                     _map.Free();
@@ -289,15 +289,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = (result == null) ? conjunct : _factory.LogicalAnd(result, conjunct);
                 }
 
-                var bindingsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+                var bindingsBuilder = ArrayBuilder<BoundExpression>.GetInstance(bindings.Length);
                 foreach ((BoundExpression left, BoundDagTemp right) in bindings)
                 {
                     bindingsBuilder.Add(_factory.AssignmentExpression(left, _tempAllocator.GetTemp(right)));
                 }
 
-                if (bindingsBuilder.Count > 0)
+                var bindingAssignments = bindingsBuilder.ToImmutableAndFree();
+                if (bindingAssignments.Length > 0)
                 {
-                    BoundSequence c = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, bindingsBuilder.ToImmutableAndFree(), _factory.Literal(true));
+                    BoundSequence c = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, bindingAssignments, _factory.Literal(true));
                     result = (result == null) ? c : (BoundExpression)_factory.LogicalAnd(result, c);
                 }
                 else if (result == null)
@@ -374,10 +375,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression loweredExpression = VisitExpression(node.Expression);
             BoundPattern loweredPattern = LowerPattern(node.Pattern);
-            using (var x = new IsPatternExpressionLocalRewriter(this, loweredExpression))
-            {
-                return x.LowerIsPattern(loweredPattern, this._compilation);
-            }
+            var isPatternRewriter = new IsPatternExpressionLocalRewriter(this, loweredExpression);
+            BoundExpression result = isPatternRewriter.LowerIsPattern(loweredPattern, this._compilation);
+            isPatternRewriter.Free();
+            return result;
         }
 
         BoundPattern LowerPattern(BoundPattern pattern)

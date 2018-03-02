@@ -1566,7 +1566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_FeatureIsUnimplemented = 8404,
         ERR_DefaultPattern = 8405,
         ERR_SwitchExpressionNoBestType = 8406,
-        ERR_SingleElementPositionalPattern = 8407,
+        ERR_SingleElementPositionalPatternRequiresType = 8407,
         ERR_VarMayNotBindToType = 8408,
         #endregion diagnostics introduced for recursive patterns
 

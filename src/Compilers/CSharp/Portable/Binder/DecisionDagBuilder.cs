@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Used to translate the pattern of an is-pattern expression.
+        /// Used to translate the pattern of an is-pattern expression. Returns the BoundDagTemp used to represent the root (input).
         /// </summary>
         public BoundDagTemp TranslatePattern(
             BoundExpression input,
