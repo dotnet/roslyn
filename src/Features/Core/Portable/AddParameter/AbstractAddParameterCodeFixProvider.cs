@@ -96,9 +96,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var expression = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
-
-            var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-            var candidates = symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().ToImmutableArray();
+            var candidates = semanticModel.GetMemberGroup(expression, cancellationToken).OfType<IMethodSymbol>().ToImmutableArray();
 
             var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
             var argumentInsertPositionInMethodCandidates = GetArgumentInsertPositionForMethodCandidates(

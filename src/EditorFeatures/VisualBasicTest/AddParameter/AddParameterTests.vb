@@ -771,10 +771,6 @@ End Class"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestInvocation_OverloadResolution_Missing() As Task
             ' error BC30311: Value of type 'Exception' cannot be converted to 'String'.
-            ' Overload resolution of VB gives only one Candidate M(String, String)
-            ' See bug report https://github.com/dotnet/roslyn/issues/25135
-            ' Once #25135 is fixed this test will fail and needs to be updated to
-            ' Await TestInRegularAndScriptAsync(code, fix)
             Dim code =
 "
 Public Class C
@@ -801,7 +797,7 @@ Public Class C
         M([|new System.Exception()|], 2)
     End Sub
 End Class"
-            Await TestMissingAsync(code)
+            Await TestInRegularAndScriptAsync(code, fix)
         End Function
 
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
@@ -841,10 +837,6 @@ End Class"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestInvocation_LambdaExpressionParameter() As Task
             ' error BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
-            ' Overload resolution of VB gives only one candidate: M(Integer, Integer)
-            ' See bug report https://github.com/dotnet/roslyn/issues/25135
-            ' Once #25135 is fixed this test will fail and needs to be updated to
-            ' Await TestInRegularAndScriptAsync(code, fix)
             Dim code =
 "
 Public Class C
@@ -871,7 +863,7 @@ Public Class C
         M(Sub() System.Console.Write(0), 1)
     End Sub
 End Class"
-            Await TestMissingAsync(code)
+            Await TestInRegularAndScriptAsync(code, fix)
         End Function
 
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
