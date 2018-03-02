@@ -357,7 +357,7 @@ class C
             Assert.Equal("System.Int32", ySymbol.ConvertedType.ToTestDisplayString());
         }
 
-        [Fact(Skip = "Typeless expression")]
+        [Fact(Skip = "PROTOTYPE(tuple-equality) CRASH")]
         public void TestILForNullableElementsEqualsToNull()
         {
             var source = @"
@@ -374,7 +374,6 @@ class C
         return t1 == (null, null);
     }
 }";
-            // PROTOTYPE(tuple-equality) Crash, need to give typeless expressions a type
             var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "TrueFalse");
             comp.VerifyDiagnostics();
 
@@ -401,7 +400,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "CRASH, need to give typeless expressions a type")]
+        [Fact(Skip = "PROTOTYPE(tuple-equality) CRASH")]
         public void TestILForNullableElementsNotEqualsToNull()
         {
             var source = @"
@@ -510,7 +509,45 @@ class C
 }");
         }
 
-        [Fact(Skip ="CRASH, typeless expression")]
+        [Fact(Skip = "PROTOTYPE(tuple-equality) CRASH")]
+        public void TestILForNullableStructEqualsToNull()
+        {
+            var source = @"
+struct S
+{
+    static void Main()
+    {
+        S? s = null;
+        _ = s == null;
+        System.Console.Write((s, null) == (null, s));
+    }
+}";
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "True");
+            comp.VerifyDiagnostics();
+            // PROTOTYPE(tuple-equality) SHould produce s.HasValue
+
+            comp.VerifyIL("S.Main", @"{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (System.ValueTuple<int?, bool?> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  newobj     ""System.ValueTuple<int?, bool?>..ctor(int?, bool?)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldflda     ""int? System.ValueTuple<int?, bool?>.Item1""
+  IL_000f:  call       ""bool int?.HasValue.get""
+  IL_0014:  brtrue.s   IL_0023
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  ldflda     ""bool? System.ValueTuple<int?, bool?>.Item2""
+  IL_001d:  call       ""bool bool?.HasValue.get""
+  IL_0022:  ret
+  IL_0023:  ldc.i4.1
+  IL_0024:  ret
+}");
+        }
+
+        [Fact]
         public void TestSimpleEqualOnTypelessTupleLiteral()
         {
             var source = @"
@@ -526,15 +563,18 @@ class C
             var tree = comp.Compilation.SyntaxTrees.First();
             var model = comp.Compilation.GetSemanticModel(tree);
 
-            var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
-            var symbol1 = model.GetTypeInfo(tuple1);
-            Assert.Null(symbol1.Type);
-            Assert.Equal("(System.String, System.Int64)", symbol1.ConvertedType.ToTestDisplayString());
+            // PROTOTYPE(tuple-equality) Semantic model
+            return;
 
-            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
-            var symbol2 = model.GetTypeInfo(tuple2);
-            Assert.Equal("(System.String, System.Int32)", symbol2.Type.ToTestDisplayString());
-            Assert.Equal("(System.String, System.Int64)", symbol2.ConvertedType.ToTestDisplayString());
+            //var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
+            //var symbol1 = model.GetTypeInfo(tuple1);
+            //Assert.Null(symbol1.Type);
+            //Assert.Equal("(System.String, System.Int64)", symbol1.ConvertedType.ToTestDisplayString());
+
+            //var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            //var symbol2 = model.GetTypeInfo(tuple2);
+            //Assert.Equal("(System.String, System.Int32)", symbol2.Type.ToTestDisplayString());
+            //Assert.Equal("(System.String, System.Int64)", symbol2.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -569,7 +609,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality) Typeless expression")]
+        [Fact]
         public void TestTypelessTuples()
         {
             var source = @"
@@ -585,20 +625,23 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            // PROTOTYPE(tuple-equality) Semantic model
+            return;
 
-            var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
-            Assert.Equal("(s, null)", tuple1.ToString());
-            var tupleType1 = model.GetTypeInfo(tuple1);
-            Assert.Null(tupleType1.Type);
-            Assert.Equal("(System.String, System.String)", tupleType1.ConvertedType.ToTestDisplayString());
+            //var tree = comp.SyntaxTrees[0];
+            //var model = comp.GetSemanticModel(tree);
 
-            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
-            Assert.Equal("(null, s)", tuple2.ToString());
-            var tupleType2 = model.GetTypeInfo(tuple2);
-            Assert.Null(tupleType2.Type);
-            Assert.Equal("(System.String, System.String)", tupleType2.ConvertedType.ToTestDisplayString());
+            //var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
+            //Assert.Equal("(s, null)", tuple1.ToString());
+            //var tupleType1 = model.GetTypeInfo(tuple1);
+            //Assert.Null(tupleType1.Type);
+            //Assert.Equal("(System.String, System.String)", tupleType1.ConvertedType.ToTestDisplayString());
+
+            //var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            //Assert.Equal("(null, s)", tuple2.ToString());
+            //var tupleType2 = model.GetTypeInfo(tuple2);
+            //Assert.Null(tupleType2.Type);
+            //Assert.Equal("(System.String, System.String)", tupleType2.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -620,14 +663,14 @@ class C
             // PROTOTYPE(tuple-equality) Semantic model
             return;
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            //var tree = comp.SyntaxTrees[0];
+            //var model = comp.GetSemanticModel(tree);
 
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
-            Assert.Equal("(1L, 2)", tuple.ToString());
-            var tupleType = model.GetTypeInfo(tuple);
-            Assert.Equal("(System.Int64, System.Int32)", tupleType.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int64, System.Int64)", tupleType.ConvertedType.ToTestDisplayString());
+            //var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            //Assert.Equal("(1L, 2)", tuple.ToString());
+            //var tupleType = model.GetTypeInfo(tuple);
+            //Assert.Equal("(System.Int64, System.Int32)", tupleType.Type.ToTestDisplayString());
+            //Assert.Equal("(System.Int64, System.Int64)", tupleType.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -650,17 +693,17 @@ class C
             // PROTOTYPE(tuple-equality) Semantic model
             return;
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            //var tree = comp.SyntaxTrees[0];
+            //var model = comp.GetSemanticModel(tree);
 
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
-            Assert.Equal("(1L, t2)", tuple.ToString());
-            var tupleType = model.GetTypeInfo(tuple);
-            Assert.Equal("(System.Int64, (System.Int32, System.String) t2)", tupleType.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int64, (System.Int64, System.String))", tupleType.ConvertedType.ToTestDisplayString());
+            //var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
+            //Assert.Equal("(1L, t2)", tuple.ToString());
+            //var tupleType = model.GetTypeInfo(tuple);
+            //Assert.Equal("(System.Int64, (System.Int32, System.String) t2)", tupleType.Type.ToTestDisplayString());
+            //Assert.Equal("(System.Int64, (System.Int64, System.String))", tupleType.ConvertedType.ToTestDisplayString());
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality) Typeless expression")]
+        [Fact]
         public void TestTypelessTupleAndTupleType()
         {
             var source = @"
@@ -676,17 +719,20 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            // PROTOTYPE(tuple-equality) Semantic model
+            return;
 
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
-            Assert.Equal("(null, null)", tuple.ToString());
-            var tupleType = model.GetTypeInfo(tuple);
-            Assert.Null(tupleType.Type);
-            Assert.Equal("(System.String, System.String)", tupleType.ConvertedType.ToTestDisplayString());
+            //var tree = comp.SyntaxTrees[0];
+            //var model = comp.GetSemanticModel(tree);
+
+            //var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            //Assert.Equal("(null, null)", tuple.ToString());
+            //var tupleType = model.GetTypeInfo(tuple);
+            //Assert.Null(tupleType.Type);
+            //Assert.Equal("(System.String, System.String)", tupleType.ConvertedType.ToTestDisplayString());
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality) Typeless expression")]
+        [Fact]
         public void TestTypedTupleAndDefault()
         {
             var source = @"
@@ -706,7 +752,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality) Typeless expression")]
+        [Fact]
         public void TestMixedTupleLiteralsAndTypes()
         {
             var source = @"
@@ -722,18 +768,39 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            // PROTOTYPE(tuple-equality) Semantic model
+            return;
 
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
-            Assert.Equal("((null, null), t)", tuple.ToString());
-            var tupleType = model.GetTypeInfo(tuple);
-            Assert.Null(tupleType.Type);
-            Assert.Equal("((System.String, System.String), (System.String, System.String))",
-                tupleType.ConvertedType.ToTestDisplayString());
+            //var tree = comp.SyntaxTrees[0];
+            //var model = comp.GetSemanticModel(tree);
+
+            //var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
+            //Assert.Equal("((null, null), t)", tuple.ToString());
+            //var tupleType = model.GetTypeInfo(tuple);
+            //Assert.Null(tupleType.Type);
+            //Assert.Equal("((System.String, System.String), (System.String, System.String))",
+            //    tupleType.ConvertedType.ToTestDisplayString());
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality) Typeless expression")]
+        [Fact]
+        public void TestAllNulls()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write(null == null);
+        System.Console.Write((null, null) == (null, null));
+        System.Console.Write((null, null) != (null, null));
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "TrueTrueFalse");
+        }
+
+        [Fact]
         public void TestFailedInference()
         {
             var source = @"
@@ -751,23 +818,26 @@ class C
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null) == (null, () => { })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            // PROTOTYPE(tuple-equality) Semantic model
+            return;
 
-            var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
-            Assert.Equal("(null, null)", tuple1.ToString());
-            var tupleType1 = model.GetTypeInfo(tuple1);
-            Assert.Null(tupleType1.Type);
-            Assert.Equal("(System.Object, ?)", tupleType1.ConvertedType.ToTestDisplayString());
+            //var tree = comp.SyntaxTrees[0];
+            //var model = comp.GetSemanticModel(tree);
 
-            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
-            Assert.Equal("(null, () => { })", tuple2.ToString());
-            var tupleType2 = model.GetTypeInfo(tuple2);
-            Assert.Null(tupleType2.Type);
-            Assert.Equal("(System.Object, ?)", tupleType2.ConvertedType.ToTestDisplayString());
+            //var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
+            //Assert.Equal("(null, null)", tuple1.ToString());
+            //var tupleType1 = model.GetTypeInfo(tuple1);
+            //Assert.Null(tupleType1.Type);
+            //Assert.Equal("(System.Object, ?)", tupleType1.ConvertedType.ToTestDisplayString());
+
+            //var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            //Assert.Equal("(null, () => { })", tuple2.ToString());
+            //var tupleType2 = model.GetTypeInfo(tuple2);
+            //Assert.Null(tupleType2.Type);
+            //Assert.Equal("(System.Object, ?)", tupleType2.ConvertedType.ToTestDisplayString());
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality) Typeless expression")]
+        [Fact]
         public void TestFailedConversion()
         {
             var source = @"
@@ -779,29 +849,36 @@ class C
     }
 }";
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            // PROTOTYPE(tuple-equality) redundant diagnostic
             comp.VerifyDiagnostics(
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'string' and 'int'
                 //         System.Console.Write((s, s) == (1, () => { }));
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(s, s) == (1, () => { })").WithArguments("==", "string", "int").WithLocation(6, 30),
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'string' and 'lambda expression'
                 //         System.Console.Write((s, s) == (1, () => { }));
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(s, s) == (1, () => { })").WithArguments("==", "string", "lambda expression").WithLocation(6, 30)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(s, s) == (1, () => { })").WithArguments("==", "string", "lambda expression").WithLocation(6, 30),
+                // (6,44): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
+                //         System.Console.Write((s, s) == (1, () => { }));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "string").WithLocation(6, 44)
                 );
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
-            var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
-            Assert.Equal("(s, s)", tuple1.ToString());
-            var tupleType1 = model.GetTypeInfo(tuple1);
-            Assert.Equal("(System.String, System.String)", tupleType1.Type.ToTestDisplayString());
-            Assert.Equal("(System.Object, System.String)", tupleType1.ConvertedType.ToTestDisplayString());
+            // PROTOTYPE(tuple-equality) Semantic model
+            return;
 
-            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
-            Assert.Equal("(1, () => { })", tuple2.ToString());
-            var tupleType2 = model.GetTypeInfo(tuple2);
-            Assert.Null(tupleType2.Type);
-            Assert.Equal("(System.Object, ?)", tupleType2.ConvertedType.ToTestDisplayString());
+            //var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
+            //Assert.Equal("(s, s)", tuple1.ToString());
+            //var tupleType1 = model.GetTypeInfo(tuple1);
+            //Assert.Equal("(System.String, System.String)", tupleType1.Type.ToTestDisplayString());
+            //Assert.Equal("(System.Object, System.String)", tupleType1.ConvertedType.ToTestDisplayString());
+
+            //var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            //Assert.Equal("(1, () => { })", tuple2.ToString());
+            //var tupleType2 = model.GetTypeInfo(tuple2);
+            //Assert.Null(tupleType2.Type);
+            //Assert.Equal("(System.Object, ?)", tupleType2.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -826,7 +903,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "True False False True");
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality) Typeless expression")]
+        [Fact]
         public void TestDynamic_WithTypelessExpression()
         {
             var source = @"
@@ -875,7 +952,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "Operator '==' cannot be applied to operands of type 'int' and 'string'");
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality) Rework")]
+        [Fact]
         public void TestDynamic_WithNull()
         {
             var source = @"
@@ -2072,110 +2149,110 @@ class C
             // PROTOTYPE(tuple-equality) Semantic model
             return;
 
-            var comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
-            var nt1 = comparison.Left;
-            var nt1Type = model.GetTypeInfo(nt1);
-            Assert.Equal("nt1", nt1.ToString());
-            Assert.Equal("(System.Int32, System.Int32)?", nt1Type.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32, System.Int64)?", nt1Type.ConvertedType.ToTestDisplayString());
+//            var comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+//            var nt1 = comparison.Left;
+//            var nt1Type = model.GetTypeInfo(nt1);
+//            Assert.Equal("nt1", nt1.ToString());
+//            Assert.Equal("(System.Int32, System.Int32)?", nt1Type.Type.ToTestDisplayString());
+//            Assert.Equal("(System.Int32, System.Int64)?", nt1Type.ConvertedType.ToTestDisplayString());
 
-            var nt2 = comparison.Right;
-            var nt2Type = model.GetTypeInfo(nt2);
-            Assert.Equal("nt2", nt2.ToString());
-            Assert.Equal("(System.Byte, System.Int64)?", nt2Type.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32, System.Int64)?", nt2Type.ConvertedType.ToTestDisplayString());
+//            var nt2 = comparison.Right;
+//            var nt2Type = model.GetTypeInfo(nt2);
+//            Assert.Equal("nt2", nt2.ToString());
+//            Assert.Equal("(System.Byte, System.Int64)?", nt2Type.Type.ToTestDisplayString());
+//            Assert.Equal("(System.Int32, System.Int64)?", nt2Type.ConvertedType.ToTestDisplayString());
 
-            verifier.VerifyIL("C.Compare", @"{
-  // Code size      217 (0xd9)
-  .maxstack  3
-  .locals init ((int, long)? V_0,
-                bool V_1,
-                System.ValueTuple<int, long> V_2,
-                (int, long)? V_3,
-                System.ValueTuple<int, long> V_4,
-                (int, int)? V_5,
-                (int, long)? V_6,
-                System.ValueTuple<int, int> V_7,
-                (byte, long)? V_8,
-                System.ValueTuple<byte, long> V_9)
-  IL_0000:  nop
-  IL_0001:  ldstr      ""{0} ""
-  IL_0006:  ldarg.0
-  IL_0007:  stloc.s    V_5
-  IL_0009:  ldloca.s   V_5
-  IL_000b:  call       ""bool (int, int)?.HasValue.get""
-  IL_0010:  brtrue.s   IL_001e
-  IL_0012:  ldloca.s   V_6
-  IL_0014:  initobj    ""(int, long)?""
-  IL_001a:  ldloc.s    V_6
-  IL_001c:  br.s       IL_0040
-  IL_001e:  ldloca.s   V_5
-  IL_0020:  call       ""(int, int) (int, int)?.GetValueOrDefault()""
-  IL_0025:  stloc.s    V_7
-  IL_0027:  ldloc.s    V_7
-  IL_0029:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_002e:  ldloc.s    V_7
-  IL_0030:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0035:  conv.i8
-  IL_0036:  newobj     ""System.ValueTuple<int, long>..ctor(int, long)""
-  IL_003b:  newobj     ""(int, long)?..ctor((int, long))""
-  IL_0040:  stloc.0
-  IL_0041:  ldloca.s   V_0
-  IL_0043:  call       ""bool (int, long)?.HasValue.get""
-  IL_0048:  stloc.1
-  IL_0049:  ldarg.1
-  IL_004a:  stloc.s    V_8
-  IL_004c:  ldloca.s   V_8
-  IL_004e:  call       ""bool (byte, long)?.HasValue.get""
-  IL_0053:  brtrue.s   IL_0061
-  IL_0055:  ldloca.s   V_6
-  IL_0057:  initobj    ""(int, long)?""
-  IL_005d:  ldloc.s    V_6
-  IL_005f:  br.s       IL_0082
-  IL_0061:  ldloca.s   V_8
-  IL_0063:  call       ""(byte, long) (byte, long)?.GetValueOrDefault()""
-  IL_0068:  stloc.s    V_9
-  IL_006a:  ldloc.s    V_9
-  IL_006c:  ldfld      ""byte System.ValueTuple<byte, long>.Item1""
-  IL_0071:  ldloc.s    V_9
-  IL_0073:  ldfld      ""long System.ValueTuple<byte, long>.Item2""
-  IL_0078:  newobj     ""System.ValueTuple<int, long>..ctor(int, long)""
-  IL_007d:  newobj     ""(int, long)?..ctor((int, long))""
-  IL_0082:  stloc.3
-  IL_0083:  ldloc.1
-  IL_0084:  ldloca.s   V_3
-  IL_0086:  call       ""bool (int, long)?.HasValue.get""
-  IL_008b:  beq.s      IL_0090
-  IL_008d:  ldc.i4.0
-  IL_008e:  br.s       IL_00c8
-  IL_0090:  ldloc.1
-  IL_0091:  brtrue.s   IL_0096
-  IL_0093:  ldc.i4.1
-  IL_0094:  br.s       IL_00c8
-  IL_0096:  ldloca.s   V_0
-  IL_0098:  call       ""(int, long) (int, long)?.GetValueOrDefault()""
-  IL_009d:  stloc.2
-  IL_009e:  ldloca.s   V_3
-  IL_00a0:  call       ""(int, long) (int, long)?.GetValueOrDefault()""
-  IL_00a5:  stloc.s    V_4
-  IL_00a7:  ldloc.2
-  IL_00a8:  ldfld      ""int System.ValueTuple<int, long>.Item1""
-  IL_00ad:  ldloc.s    V_4
-  IL_00af:  ldfld      ""int System.ValueTuple<int, long>.Item1""
-  IL_00b4:  bne.un.s   IL_00c7
-  IL_00b6:  ldloc.2
-  IL_00b7:  ldfld      ""long System.ValueTuple<int, long>.Item2""
-  IL_00bc:  ldloc.s    V_4
-  IL_00be:  ldfld      ""long System.ValueTuple<int, long>.Item2""
-  IL_00c3:  ceq
-  IL_00c5:  br.s       IL_00c8
-  IL_00c7:  ldc.i4.0
-  IL_00c8:  box        ""bool""
-  IL_00cd:  call       ""string string.Format(string, object)""
-  IL_00d2:  call       ""void System.Console.Write(string)""
-  IL_00d7:  nop
-  IL_00d8:  ret
-}");
+//            verifier.VerifyIL("C.Compare", @"{
+//  // Code size      217 (0xd9)
+//  .maxstack  3
+//  .locals init ((int, long)? V_0,
+//                bool V_1,
+//                System.ValueTuple<int, long> V_2,
+//                (int, long)? V_3,
+//                System.ValueTuple<int, long> V_4,
+//                (int, int)? V_5,
+//                (int, long)? V_6,
+//                System.ValueTuple<int, int> V_7,
+//                (byte, long)? V_8,
+//                System.ValueTuple<byte, long> V_9)
+//  IL_0000:  nop
+//  IL_0001:  ldstr      ""{0} ""
+//  IL_0006:  ldarg.0
+//  IL_0007:  stloc.s    V_5
+//  IL_0009:  ldloca.s   V_5
+//  IL_000b:  call       ""bool (int, int)?.HasValue.get""
+//  IL_0010:  brtrue.s   IL_001e
+//  IL_0012:  ldloca.s   V_6
+//  IL_0014:  initobj    ""(int, long)?""
+//  IL_001a:  ldloc.s    V_6
+//  IL_001c:  br.s       IL_0040
+//  IL_001e:  ldloca.s   V_5
+//  IL_0020:  call       ""(int, int) (int, int)?.GetValueOrDefault()""
+//  IL_0025:  stloc.s    V_7
+//  IL_0027:  ldloc.s    V_7
+//  IL_0029:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+//  IL_002e:  ldloc.s    V_7
+//  IL_0030:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+//  IL_0035:  conv.i8
+//  IL_0036:  newobj     ""System.ValueTuple<int, long>..ctor(int, long)""
+//  IL_003b:  newobj     ""(int, long)?..ctor((int, long))""
+//  IL_0040:  stloc.0
+//  IL_0041:  ldloca.s   V_0
+//  IL_0043:  call       ""bool (int, long)?.HasValue.get""
+//  IL_0048:  stloc.1
+//  IL_0049:  ldarg.1
+//  IL_004a:  stloc.s    V_8
+//  IL_004c:  ldloca.s   V_8
+//  IL_004e:  call       ""bool (byte, long)?.HasValue.get""
+//  IL_0053:  brtrue.s   IL_0061
+//  IL_0055:  ldloca.s   V_6
+//  IL_0057:  initobj    ""(int, long)?""
+//  IL_005d:  ldloc.s    V_6
+//  IL_005f:  br.s       IL_0082
+//  IL_0061:  ldloca.s   V_8
+//  IL_0063:  call       ""(byte, long) (byte, long)?.GetValueOrDefault()""
+//  IL_0068:  stloc.s    V_9
+//  IL_006a:  ldloc.s    V_9
+//  IL_006c:  ldfld      ""byte System.ValueTuple<byte, long>.Item1""
+//  IL_0071:  ldloc.s    V_9
+//  IL_0073:  ldfld      ""long System.ValueTuple<byte, long>.Item2""
+//  IL_0078:  newobj     ""System.ValueTuple<int, long>..ctor(int, long)""
+//  IL_007d:  newobj     ""(int, long)?..ctor((int, long))""
+//  IL_0082:  stloc.3
+//  IL_0083:  ldloc.1
+//  IL_0084:  ldloca.s   V_3
+//  IL_0086:  call       ""bool (int, long)?.HasValue.get""
+//  IL_008b:  beq.s      IL_0090
+//  IL_008d:  ldc.i4.0
+//  IL_008e:  br.s       IL_00c8
+//  IL_0090:  ldloc.1
+//  IL_0091:  brtrue.s   IL_0096
+//  IL_0093:  ldc.i4.1
+//  IL_0094:  br.s       IL_00c8
+//  IL_0096:  ldloca.s   V_0
+//  IL_0098:  call       ""(int, long) (int, long)?.GetValueOrDefault()""
+//  IL_009d:  stloc.2
+//  IL_009e:  ldloca.s   V_3
+//  IL_00a0:  call       ""(int, long) (int, long)?.GetValueOrDefault()""
+//  IL_00a5:  stloc.s    V_4
+//  IL_00a7:  ldloc.2
+//  IL_00a8:  ldfld      ""int System.ValueTuple<int, long>.Item1""
+//  IL_00ad:  ldloc.s    V_4
+//  IL_00af:  ldfld      ""int System.ValueTuple<int, long>.Item1""
+//  IL_00b4:  bne.un.s   IL_00c7
+//  IL_00b6:  ldloc.2
+//  IL_00b7:  ldfld      ""long System.ValueTuple<int, long>.Item2""
+//  IL_00bc:  ldloc.s    V_4
+//  IL_00be:  ldfld      ""long System.ValueTuple<int, long>.Item2""
+//  IL_00c3:  ceq
+//  IL_00c5:  br.s       IL_00c8
+//  IL_00c7:  ldc.i4.0
+//  IL_00c8:  box        ""bool""
+//  IL_00cd:  call       ""string string.Format(string, object)""
+//  IL_00d2:  call       ""void System.Console.Write(string)""
+//  IL_00d7:  nop
+//  IL_00d8:  ret
+//}");
         }
 
         [Fact]
@@ -2214,113 +2291,113 @@ class C
             // PROTOTYPE(tuple-equality) Semantic model
             return;
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+//            var tree = comp.SyntaxTrees.First();
+//            var model = comp.GetSemanticModel(tree);
 
-            var comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
-            var nt1 = comparison.Left;
-            var nt1Type = model.GetTypeInfo(nt1);
-            Assert.Equal("nt1", nt1.ToString());
-            Assert.Equal("(C, System.Int32)?", nt1Type.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32, System.Int32)?", nt1Type.ConvertedType.ToTestDisplayString());
+//            var comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+//            var nt1 = comparison.Left;
+//            var nt1Type = model.GetTypeInfo(nt1);
+//            Assert.Equal("nt1", nt1.ToString());
+//            Assert.Equal("(C, System.Int32)?", nt1Type.Type.ToTestDisplayString());
+//            Assert.Equal("(System.Int32, System.Int32)?", nt1Type.ConvertedType.ToTestDisplayString());
 
-            var nt2 = comparison.Right;
-            var nt2Type = model.GetTypeInfo(nt2);
-            Assert.Equal("nt2", nt2.ToString());
-            Assert.Equal("(System.Int32, C)?", nt2Type.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32, System.Int32)?", nt2Type.ConvertedType.ToTestDisplayString());
-            verifier.VerifyIL("C.Compare", @"{
-  // Code size      226 (0xe2)
-  .maxstack  3
-  .locals init ((int, int)? V_0,
-                bool V_1,
-                System.ValueTuple<int, int> V_2,
-                (int, int)? V_3,
-                System.ValueTuple<int, int> V_4,
-                (C, int)? V_5,
-                (int, int)? V_6,
-                System.ValueTuple<C, int> V_7,
-                (int, C)? V_8,
-                System.ValueTuple<int, C> V_9)
-  IL_0000:  nop
-  IL_0001:  ldstr      ""{0} ""
-  IL_0006:  ldarg.0
-  IL_0007:  stloc.s    V_5
-  IL_0009:  ldloca.s   V_5
-  IL_000b:  call       ""bool (C, int)?.HasValue.get""
-  IL_0010:  brtrue.s   IL_001e
-  IL_0012:  ldloca.s   V_6
-  IL_0014:  initobj    ""(int, int)?""
-  IL_001a:  ldloc.s    V_6
-  IL_001c:  br.s       IL_0044
-  IL_001e:  ldloca.s   V_5
-  IL_0020:  call       ""(C, int) (C, int)?.GetValueOrDefault()""
-  IL_0025:  stloc.s    V_7
-  IL_0027:  ldloc.s    V_7
-  IL_0029:  ldfld      ""C System.ValueTuple<C, int>.Item1""
-  IL_002e:  call       ""int C.op_Implicit(C)""
-  IL_0033:  ldloc.s    V_7
-  IL_0035:  ldfld      ""int System.ValueTuple<C, int>.Item2""
-  IL_003a:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_003f:  newobj     ""(int, int)?..ctor((int, int))""
-  IL_0044:  stloc.0
-  IL_0045:  ldloca.s   V_0
-  IL_0047:  call       ""bool (int, int)?.HasValue.get""
-  IL_004c:  stloc.1
-  IL_004d:  ldarg.1
-  IL_004e:  stloc.s    V_8
-  IL_0050:  ldloca.s   V_8
-  IL_0052:  call       ""bool (int, C)?.HasValue.get""
-  IL_0057:  brtrue.s   IL_0065
-  IL_0059:  ldloca.s   V_6
-  IL_005b:  initobj    ""(int, int)?""
-  IL_0061:  ldloc.s    V_6
-  IL_0063:  br.s       IL_008b
-  IL_0065:  ldloca.s   V_8
-  IL_0067:  call       ""(int, C) (int, C)?.GetValueOrDefault()""
-  IL_006c:  stloc.s    V_9
-  IL_006e:  ldloc.s    V_9
-  IL_0070:  ldfld      ""int System.ValueTuple<int, C>.Item1""
-  IL_0075:  ldloc.s    V_9
-  IL_0077:  ldfld      ""C System.ValueTuple<int, C>.Item2""
-  IL_007c:  call       ""int C.op_Implicit(C)""
-  IL_0081:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0086:  newobj     ""(int, int)?..ctor((int, int))""
-  IL_008b:  stloc.3
-  IL_008c:  ldloc.1
-  IL_008d:  ldloca.s   V_3
-  IL_008f:  call       ""bool (int, int)?.HasValue.get""
-  IL_0094:  beq.s      IL_0099
-  IL_0096:  ldc.i4.0
-  IL_0097:  br.s       IL_00d1
-  IL_0099:  ldloc.1
-  IL_009a:  brtrue.s   IL_009f
-  IL_009c:  ldc.i4.1
-  IL_009d:  br.s       IL_00d1
-  IL_009f:  ldloca.s   V_0
-  IL_00a1:  call       ""(int, int) (int, int)?.GetValueOrDefault()""
-  IL_00a6:  stloc.2
-  IL_00a7:  ldloca.s   V_3
-  IL_00a9:  call       ""(int, int) (int, int)?.GetValueOrDefault()""
-  IL_00ae:  stloc.s    V_4
-  IL_00b0:  ldloc.2
-  IL_00b1:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_00b6:  ldloc.s    V_4
-  IL_00b8:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_00bd:  bne.un.s   IL_00d0
-  IL_00bf:  ldloc.2
-  IL_00c0:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_00c5:  ldloc.s    V_4
-  IL_00c7:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_00cc:  ceq
-  IL_00ce:  br.s       IL_00d1
-  IL_00d0:  ldc.i4.0
-  IL_00d1:  box        ""bool""
-  IL_00d6:  call       ""string string.Format(string, object)""
-  IL_00db:  call       ""void System.Console.Write(string)""
-  IL_00e0:  nop
-  IL_00e1:  ret
-}");
+//            var nt2 = comparison.Right;
+//            var nt2Type = model.GetTypeInfo(nt2);
+//            Assert.Equal("nt2", nt2.ToString());
+//            Assert.Equal("(System.Int32, C)?", nt2Type.Type.ToTestDisplayString());
+//            Assert.Equal("(System.Int32, System.Int32)?", nt2Type.ConvertedType.ToTestDisplayString());
+//            verifier.VerifyIL("C.Compare", @"{
+//  // Code size      226 (0xe2)
+//  .maxstack  3
+//  .locals init ((int, int)? V_0,
+//                bool V_1,
+//                System.ValueTuple<int, int> V_2,
+//                (int, int)? V_3,
+//                System.ValueTuple<int, int> V_4,
+//                (C, int)? V_5,
+//                (int, int)? V_6,
+//                System.ValueTuple<C, int> V_7,
+//                (int, C)? V_8,
+//                System.ValueTuple<int, C> V_9)
+//  IL_0000:  nop
+//  IL_0001:  ldstr      ""{0} ""
+//  IL_0006:  ldarg.0
+//  IL_0007:  stloc.s    V_5
+//  IL_0009:  ldloca.s   V_5
+//  IL_000b:  call       ""bool (C, int)?.HasValue.get""
+//  IL_0010:  brtrue.s   IL_001e
+//  IL_0012:  ldloca.s   V_6
+//  IL_0014:  initobj    ""(int, int)?""
+//  IL_001a:  ldloc.s    V_6
+//  IL_001c:  br.s       IL_0044
+//  IL_001e:  ldloca.s   V_5
+//  IL_0020:  call       ""(C, int) (C, int)?.GetValueOrDefault()""
+//  IL_0025:  stloc.s    V_7
+//  IL_0027:  ldloc.s    V_7
+//  IL_0029:  ldfld      ""C System.ValueTuple<C, int>.Item1""
+//  IL_002e:  call       ""int C.op_Implicit(C)""
+//  IL_0033:  ldloc.s    V_7
+//  IL_0035:  ldfld      ""int System.ValueTuple<C, int>.Item2""
+//  IL_003a:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+//  IL_003f:  newobj     ""(int, int)?..ctor((int, int))""
+//  IL_0044:  stloc.0
+//  IL_0045:  ldloca.s   V_0
+//  IL_0047:  call       ""bool (int, int)?.HasValue.get""
+//  IL_004c:  stloc.1
+//  IL_004d:  ldarg.1
+//  IL_004e:  stloc.s    V_8
+//  IL_0050:  ldloca.s   V_8
+//  IL_0052:  call       ""bool (int, C)?.HasValue.get""
+//  IL_0057:  brtrue.s   IL_0065
+//  IL_0059:  ldloca.s   V_6
+//  IL_005b:  initobj    ""(int, int)?""
+//  IL_0061:  ldloc.s    V_6
+//  IL_0063:  br.s       IL_008b
+//  IL_0065:  ldloca.s   V_8
+//  IL_0067:  call       ""(int, C) (int, C)?.GetValueOrDefault()""
+//  IL_006c:  stloc.s    V_9
+//  IL_006e:  ldloc.s    V_9
+//  IL_0070:  ldfld      ""int System.ValueTuple<int, C>.Item1""
+//  IL_0075:  ldloc.s    V_9
+//  IL_0077:  ldfld      ""C System.ValueTuple<int, C>.Item2""
+//  IL_007c:  call       ""int C.op_Implicit(C)""
+//  IL_0081:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+//  IL_0086:  newobj     ""(int, int)?..ctor((int, int))""
+//  IL_008b:  stloc.3
+//  IL_008c:  ldloc.1
+//  IL_008d:  ldloca.s   V_3
+//  IL_008f:  call       ""bool (int, int)?.HasValue.get""
+//  IL_0094:  beq.s      IL_0099
+//  IL_0096:  ldc.i4.0
+//  IL_0097:  br.s       IL_00d1
+//  IL_0099:  ldloc.1
+//  IL_009a:  brtrue.s   IL_009f
+//  IL_009c:  ldc.i4.1
+//  IL_009d:  br.s       IL_00d1
+//  IL_009f:  ldloca.s   V_0
+//  IL_00a1:  call       ""(int, int) (int, int)?.GetValueOrDefault()""
+//  IL_00a6:  stloc.2
+//  IL_00a7:  ldloca.s   V_3
+//  IL_00a9:  call       ""(int, int) (int, int)?.GetValueOrDefault()""
+//  IL_00ae:  stloc.s    V_4
+//  IL_00b0:  ldloc.2
+//  IL_00b1:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+//  IL_00b6:  ldloc.s    V_4
+//  IL_00b8:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+//  IL_00bd:  bne.un.s   IL_00d0
+//  IL_00bf:  ldloc.2
+//  IL_00c0:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+//  IL_00c5:  ldloc.s    V_4
+//  IL_00c7:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+//  IL_00cc:  ceq
+//  IL_00ce:  br.s       IL_00d1
+//  IL_00d0:  ldc.i4.0
+//  IL_00d1:  box        ""bool""
+//  IL_00d6:  call       ""string string.Format(string, object)""
+//  IL_00db:  call       ""void System.Console.Write(string)""
+//  IL_00e0:  nop
+//  IL_00e1:  ret
+//}");
         }
 
         [Fact]
@@ -2389,18 +2466,18 @@ class C
             // PROTOTYPE(tuple-equality) Semantic model
             return;
 
-            var comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
-            var tuple = comparison.Left;
-            var tupleType = model.GetTypeInfo(tuple);
-            Assert.Equal("(1, 2)", tuple.ToString());
-            Assert.Equal("(System.Int32, System.Int32)", tupleType.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32, System.Int32)?", tupleType.ConvertedType.ToTestDisplayString());
+            //var comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            //var tuple = comparison.Left;
+            //var tupleType = model.GetTypeInfo(tuple);
+            //Assert.Equal("(1, 2)", tuple.ToString());
+            //Assert.Equal("(System.Int32, System.Int32)", tupleType.Type.ToTestDisplayString());
+            //Assert.Equal("(System.Int32, System.Int32)?", tupleType.ConvertedType.ToTestDisplayString());
 
-            var nt = comparison.Right;
-            var ntType = model.GetTypeInfo(nt);
-            Assert.Equal("nt", nt.ToString());
-            Assert.Equal("(System.Byte, System.Int32)?", ntType.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32, System.Int32)?", ntType.ConvertedType.ToTestDisplayString());
+            //var nt = comparison.Right;
+            //var ntType = model.GetTypeInfo(nt);
+            //Assert.Equal("nt", nt.ToString());
+            //Assert.Equal("(System.Byte, System.Int32)?", ntType.Type.ToTestDisplayString());
+            //Assert.Equal("(System.Int32, System.Int32)?", ntType.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -2436,22 +2513,22 @@ class C
             // PROTOTYPE(tuple-equality) Semantic model
             return;
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            //var tree = comp.SyntaxTrees.First();
+            //var model = comp.GetSemanticModel(tree);
 
-            var comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
-            Assert.Equal("(1, 2) == nt", comparison.ToString());
-            var tuple = comparison.Left;
-            var tupleType = model.GetTypeInfo(tuple);
-            Assert.Equal("(1, 2)", tuple.ToString());
-            Assert.Equal("(System.Int32, System.Int32)", tupleType.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32, System.Int32)?", tupleType.ConvertedType.ToTestDisplayString());
+            //var comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+            //Assert.Equal("(1, 2) == nt", comparison.ToString());
+            //var tuple = comparison.Left;
+            //var tupleType = model.GetTypeInfo(tuple);
+            //Assert.Equal("(1, 2)", tuple.ToString());
+            //Assert.Equal("(System.Int32, System.Int32)", tupleType.Type.ToTestDisplayString());
+            //Assert.Equal("(System.Int32, System.Int32)?", tupleType.ConvertedType.ToTestDisplayString());
 
-            var nt = comparison.Right;
-            var ntType = model.GetTypeInfo(nt);
-            Assert.Equal("nt", nt.ToString());
-            Assert.Equal("(C, System.Int32)?", ntType.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32, System.Int32)?", ntType.ConvertedType.ToTestDisplayString());
+            //var nt = comparison.Right;
+            //var ntType = model.GetTypeInfo(nt);
+            //Assert.Equal("nt", nt.ToString());
+            //Assert.Equal("(C, System.Int32)?", ntType.Type.ToTestDisplayString());
+            //Assert.Equal("(System.Int32, System.Int32)?", ntType.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -2630,15 +2707,15 @@ class C
             // PROTOTYPE(tuple-equality) Semantic model
             return;
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var comparison = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
-            Assert.Equal("t.Rest == t.Rest", comparison.ToString());
+            //var tree = comp.SyntaxTrees.First();
+            //var model = comp.GetSemanticModel(tree);
+            //var comparison = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+            //Assert.Equal("t.Rest == t.Rest", comparison.ToString());
 
-            var left = model.GetTypeInfo(comparison.Left);
-            Assert.Equal("ValueTuple<System.Int32?>", left.Type.ToTestDisplayString());
-            Assert.Equal("System.Object", left.ConvertedType.ToTestDisplayString());
-            Assert.True(left.Type.IsTupleType); // PROTOTYPE(tuple-equality) Need to investigate this
+            //var left = model.GetTypeInfo(comparison.Left);
+            //Assert.Equal("ValueTuple<System.Int32?>", left.Type.ToTestDisplayString());
+            //Assert.Equal("System.Object", left.ConvertedType.ToTestDisplayString());
+            //Assert.True(left.Type.IsTupleType); // PROTOTYPE(tuple-equality) Need to investigate this
         }
 
         [Fact]
@@ -3110,3 +3187,7 @@ namespace System
     }
 }
 
+// PROTOTYPE(tuple-equality)
+// Test with tuple element names (semantic model)
+// Test nullableS == null (without user-defined operator==). Should work as `s.HasValue`
+// Test tuples with casts or nested casts

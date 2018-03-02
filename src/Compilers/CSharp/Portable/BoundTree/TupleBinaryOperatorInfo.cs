@@ -40,18 +40,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly Conversion RightConversion;
             internal readonly MethodSymbol MethodSymbolOpt; // User-defined comparison operator, if applicable
 
+            internal readonly bool TypelessLeft;
+            internal readonly bool TypelessRight;
+
             // To convert the result of comparison to bool
             internal readonly Conversion ConversionForBoolOperator;
             internal readonly UnaryOperatorSignature BoolOperator; // Information for op_true or op_false
 
             internal Single(TypeSymbol leftConvertedType, TypeSymbol rightConvertedType, BinaryOperatorKind kind,
                 Conversion leftConversion, Conversion rightConversion,
-                MethodSymbol methodSymbolOpt, Conversion boolConversion, UnaryOperatorSignature boolOperator) : base(leftConvertedType, rightConvertedType)
+                MethodSymbol methodSymbolOpt, bool typelessLeft, bool typelessRight,
+                Conversion boolConversion, UnaryOperatorSignature boolOperator) : base(leftConvertedType, rightConvertedType)
             {
                 Kind = kind;
                 LeftConversion = leftConversion;
                 RightConversion = rightConversion;
                 MethodSymbolOpt = methodSymbolOpt;
+                TypelessLeft = typelessLeft;
+                TypelessRight = typelessRight;
                 ConversionForBoolOperator = boolConversion;
                 BoolOperator = boolOperator;
 
@@ -87,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal readonly ImmutableArray<TupleBinaryOperatorInfo> Operators;
 
-            internal Multiple(ImmutableArray<TupleBinaryOperatorInfo> operators, TypeSymbol leftConvertedType, TypeSymbol rightConvertedType) 
+            internal Multiple(ImmutableArray<TupleBinaryOperatorInfo> operators, TypeSymbol leftConvertedType, TypeSymbol rightConvertedType)
                 : base(leftConvertedType, rightConvertedType)
             {
                 Debug.Assert(leftConvertedType.StrippedType().IsTupleType);

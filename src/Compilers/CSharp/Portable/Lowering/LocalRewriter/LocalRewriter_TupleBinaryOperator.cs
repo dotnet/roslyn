@@ -21,9 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///
         /// Element-wise conversions occur late, together with the element-wise comparisons. They may not be evaluated.
         /// </summary>
-        /// There are 2 cases:
-        /// - tuple literal cannot be null and it produces as many temps as elements
-        /// - tuple types or nullable tuple types produce a single temp (and no further temps are initialized)
         public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
         {
             var boolType = node.Type; // we can re-use the bool type
@@ -32,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression newLeft = ReplaceTerminalElementsWithTemps(node.Left, node.Operators, initialEffectsAndTemps.leftInit, initialEffectsAndTemps.temps);
             BoundExpression newRight = ReplaceTerminalElementsWithTemps(node.Right, node.Operators, initialEffectsAndTemps.rightInit, initialEffectsAndTemps.temps);
 
-            var returnValue = RewriteTupleOperator(node.Operators, newLeft, newRight, boolType, initialEffectsAndTemps, node.OperatorKind);
+            var returnValue = RewriteTupleNestedOperators(node.Operators, newLeft, newRight, boolType, initialEffectsAndTemps, node.OperatorKind);
 
             var (effects, temps) = initialEffectsAndTemps.ToImmutableAndFree();
             var result = _factory.Sequence(temps, effects, returnValue);
@@ -120,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE(tuple-equality) Re-use NullableNeverHasValue/NullableAlwaysHasValue
 
-            var isLeftNullable = left.Type.IsNullableType();
+            var isLeftNullable = left.Kind != BoundKind.TupleLiteral && left.Type.IsNullableType();
             if (isLeftNullable)
             {
                 leftHasValue = MakeHasValueTemp(left, initialEffectsAndTemps.temps, outerEffects);
@@ -135,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rightHasValue;
             BoundExpression rightValue;
 
-            var isRightNullable = right.Type.IsNullableType();
+            var isRightNullable = right.Kind != BoundKind.TupleLiteral && right.Type.IsNullableType();
             if (isRightNullable)
             {
                 rightHasValue = MakeNullableHasValue(right.Syntax, right); // no need for local for right.HasValue since used once
@@ -213,9 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression left, BoundExpression right, TypeSymbol type,
             ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects, TupleOperatorSideEffectsAndTemps effectAndTemps, BinaryOperatorKind operatorKind)
         {
-            Debug.Assert(left.Type?.IsNullableType() == false);
-            Debug.Assert(right.Type?.IsNullableType() == false);
-
             ImmutableArray<TupleBinaryOperatorInfo> nestedOperators = operators.Operators;
 
             BoundExpression currentResult = null;
@@ -239,8 +233,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// For unconverted tuple literals, we just return the element (which is a temp that we prepared).
-        /// For expressions with tuple type, we access `tuple.Item{i}`.
+        /// For tuple literals, we just return the element.
+        /// For expressions with tuple type, we access `Item{i}`.
         /// </summary>
         private BoundExpression GetTuplePart(BoundExpression tuple, int i, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> initEffects)
         {
@@ -288,9 +282,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (left.IsLiteralNull() && right.IsLiteralNull())
+            {
+                // For `null == null` this is special-cased during initial binding
+                return new BoundLiteral(left.Syntax, ConstantValue.Create(operatorKind == BinaryOperatorKind.Equal), boolType);
+            }
+
             // PROTOTYPE(tuple-equality) checked
-            BoundExpression convertedLeft = MakeConversionNode(left.Syntax, left, single.LeftConversion, single.LeftConvertedType, @checked: false);
-            BoundExpression convertedRight = MakeConversionNode(right.Syntax, right, single.RightConversion, single.RightConvertedType, @checked: false);
+            // Since we already converted typeless elements during binding, we don't convert them again
+            BoundExpression convertedLeft = single.TypelessLeft ? left : MakeConversionNode(left.Syntax, left, single.LeftConversion, single.LeftConvertedType, @checked: false);
+            BoundExpression convertedRight = single.TypelessRight ? right : MakeConversionNode(right.Syntax, right, single.RightConversion, single.RightConvertedType, @checked: false);
 
             BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, convertedLeft, convertedRight, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt);
             UnaryOperatorSignature boolOperator = single.BoolOperator;
