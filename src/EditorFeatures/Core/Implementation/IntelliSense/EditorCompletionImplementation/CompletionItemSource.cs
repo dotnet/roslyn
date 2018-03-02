@@ -32,8 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         private const string TriggerSnapshot = nameof(TriggerSnapshot);
 
         public async Task<EditorCompletion.CompletionContext> GetCompletionContextAsync(
-            EditorCompletion.CompletionTrigger trigger, 
-            SnapshotSpan applicableSpan, 
+            EditorCompletion.CompletionTrigger trigger,
+            SnapshotPoint triggerLocation,
+            SnapshotSpan applicableSpan,
             CancellationToken token)
         {
             var snapshot = applicableSpan.Snapshot;
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             var completionList = await completionService.GetCompletionsAsync(
                 document,
-                applicableSpan.Span.End,
+                triggerLocation,
                 roslynTrigger).ConfigureAwait(false);
 
             if (completionList == null)
@@ -214,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 }
             }
 
-            return CustomCommitBehavior.SurpressFurtherCommandHandlers;
+            return CustomCommitBehavior.SuppressFurtherCommandHandlers;
         }
 
         public ImmutableArray<char> GetPotentialCommitCharacters()
