@@ -707,11 +707,12 @@ class C
     {
         (string, string) t = (null, null);
         System.Console.Write(t == (null, null));
+        System.Console.Write(t != (null, null));
     }
 }";
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "True");
+            CompileAndVerify(comp, expectedOutput: "TrueFalse");
 
             // PROTOTYPE(tuple-equality) Semantic model
             return;
@@ -744,6 +745,95 @@ class C
                 //         System.Console.Write(t == default);
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "t == default").WithArguments("==", "default").WithLocation(7, 30)
                 );
+        }
+
+        [Fact]
+        public void TestNullableTupleAndDefault()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (string, string)? t = (null, null);
+        System.Console.Write(t == default);
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,30): error CS8310: Operator '==' cannot be applied to operand 'default'
+                //         System.Console.Write(t == default);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "t == default").WithArguments("==", "default").WithLocation(7, 30)
+                );
+        }
+
+        [Fact]
+        public void TestTypedTupleAndTupleOfDefaults()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (string, string)? t = (null, null);
+        System.Console.Write(t == (default, default));
+        System.Console.Write(t != (default, default));
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "TrueFalse");
+            // PROTOTYPE(tuple-equality) Expand this test
+        }
+
+        [Fact]
+        public void TestNullableStructAndDefault()
+        {
+            var source = @"
+struct S
+{
+    static void M(string s)
+    {
+        S? ns = new S();
+        _ = ns == null;
+        _ = s == null;
+        _ = ns == default;
+        _ = (ns, ns) == (default, default);
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS8310: Operator '==' cannot be applied to operand 'default'
+                //         _ = ns == default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "ns == default").WithArguments("==", "default").WithLocation(9, 13),
+                // (10,13): error CS8310: Operator '==' cannot be applied to operand 'default'
+                //         _ = (ns, ns) == (default, default);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "(ns, ns) == (default, default)").WithArguments("==", "default").WithLocation(10, 13),
+                // (10,13): error CS8310: Operator '==' cannot be applied to operand 'default'
+                //         _ = (ns, ns) == (default, default);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "(ns, ns) == (default, default)").WithArguments("==", "default").WithLocation(10, 13)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var literals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>();
+
+            var nullLiteral = literals.ElementAt(0);
+            Assert.Equal("null", nullLiteral.ToString());
+            Assert.Null(model.GetTypeInfo(nullLiteral).ConvertedType);
+
+            var nullLiteral2 = literals.ElementAt(1);
+            Assert.Equal("null", nullLiteral2.ToString());
+            Assert.Null(model.GetTypeInfo(nullLiteral2).Type);
+            Assert.Equal("System.String", model.GetTypeInfo(nullLiteral2).ConvertedType.ToTestDisplayString());
+
+            var defaultLiteral = literals.ElementAt(2);
+            Assert.Equal("default", defaultLiteral.ToString());
+            Assert.Equal("System.Object", model.GetTypeInfo(defaultLiteral).ConvertedType.ToTestDisplayString());
+
+            var defaultLiteral2 = literals.ElementAt(3);
+            Assert.Equal("default", defaultLiteral2.ToString());
+            Assert.Equal("System.Object", model.GetTypeInfo(defaultLiteral2).ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
