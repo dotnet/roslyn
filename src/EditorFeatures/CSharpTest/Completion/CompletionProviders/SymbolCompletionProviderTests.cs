@@ -8756,7 +8756,7 @@ class C
 
         [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task SwitchCaseWhenClause()
+        public async Task SwitchCaseWhenClause1()
         {
             var markup = @"
 class C
@@ -8773,7 +8773,7 @@ class C
 
         [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task SwitchPatternCaseWhenClause()
+        public async Task SwitchCaseWhenClause2()
         {
             var markup = @"
 class C

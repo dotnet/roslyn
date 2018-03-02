@@ -164,11 +164,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestForSwitchCase_SemanticCheck_NotAfterPredefinedType()
         {
             await VerifyAbsenceAsync(@"
-class SyntaxNode { }
-class Color { }
 class C
 {
-    const Color Color = null;
     void M() { switch (new object()) { case int $$ } }
 }");
         }
@@ -177,11 +174,8 @@ class C
         public async Task TestForSwitchCase_SemanticCheck_NotAfterGenericType()
         {
             await VerifyAbsenceAsync(@"
-class SyntaxNode { }
-class Color { }
 class C
 {
-    const Color Color = null;
     void M() { switch (new object()) { case Dictionary<string, int> $$ } }
 }");
         }
@@ -191,10 +185,8 @@ class C
         {
             await VerifyAbsenceAsync(@"
 class SyntaxNode { }
-class Color { }
 class C
 {
-    const Color Color = null;
     void M() { switch (new object()) { case SyntaxNode $$ } }
 }");
         }
@@ -203,7 +195,6 @@ class C
         public async Task TestForSwitchCase_SemanticCheck_AfterColorColor()
         {
             await VerifyKeywordAsync(@"
-class SyntaxNode { }
 class Color { }
 class C
 {
@@ -216,11 +207,8 @@ class C
         public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstant()
         {
             await VerifyKeywordAsync(@"
-class SyntaxNode { }
-class Color { }
 class C
 {
-    const Color Color = null;
     void M() { const object local = null; switch (new object()) { case local $$ } }
 }");
         }
@@ -229,11 +217,8 @@ class C
         public async Task TestForSwitchCase_SemanticCheck_AfterUnknownName()
         {
             await VerifyKeywordAsync(@"
-class SyntaxNode { }
-class Color { }
 class C
 {
-    const Color Color = null;
     void M() { switch (new object()) { case unknown $$ } }
 }");
         }
