@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -26,13 +27,13 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TNode> IterativeSort<TNode>(IEnumerable<TNode> nodes, Func<TNode, IEnumerable<TNode>> successors)
         {
             // First, count the predecessors of each node
-            PooledDictionary<TNode, int> predecessorCounts = PredecessorCounts(nodes, successors);
+            PooledDictionary<TNode, int> predecessorCounts = PredecessorCounts(nodes, successors, out ImmutableArray<TNode> allNodes);
 
             // Initialize the ready set with those nodes that have no predecessors
             var ready = ArrayBuilder<TNode>.GetInstance();
-            foreach ((TNode node, int count) in predecessorCounts)
+            foreach (TNode node in allNodes)
             {
-                if (count == 0)
+                if (predecessorCounts[node] == 0)
                 {
                     ready.Push(node);
                 }
@@ -56,13 +57,10 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // At this point all the predecessor counts should be zero, otherwise there was a cycle
-            foreach ((TNode node, int count) in predecessorCounts)
+            // At this point all the nodes should have been output, otherwise there was a cycle
+            if (predecessorCounts.Count != resultBuilder.Count)
             {
-                if (count != 0)
-                {
-                    throw new ArgumentException("Cycle in the input graph");
-                }
+                throw new ArgumentException("Cycle in the input graph");
             }
 
             predecessorCounts.Free();
@@ -70,21 +68,25 @@ namespace Microsoft.CodeAnalysis
             return resultBuilder.ToImmutable();
         }
 
-        private static PooledDictionary<TNode, int> PredecessorCounts<TNode>(IEnumerable<TNode> nodes, Func<TNode, IEnumerable<TNode>> successors)
+        private static PooledDictionary<TNode, int> PredecessorCounts<TNode>(
+            IEnumerable<TNode> nodes,
+            Func<TNode, IEnumerable<TNode>> successors,
+            out ImmutableArray<TNode> allNodes)
         {
             var predecessorCounts = PooledDictionary<TNode, int>.GetInstance();
             var counted = PooledHashSet<TNode>.GetInstance();
             var toCount = ArrayBuilder<TNode>.GetInstance();
+            var allNodesBuilder = ArrayBuilder<TNode>.GetInstance();
             toCount.AddRange(nodes);
             while (toCount.Count != 0)
             {
-                
                 var n = toCount.Pop();
                 if (!counted.Add(n))
                 {
                     continue;
                 }
 
+                allNodesBuilder.Add(n);
                 if (!predecessorCounts.ContainsKey(n))
                 {
                     predecessorCounts.Add(n, 0);
@@ -106,6 +108,7 @@ namespace Microsoft.CodeAnalysis
 
             counted.Free();
             toCount.Free();
+            allNodes = allNodesBuilder.ToImmutableAndFree();
             return predecessorCounts;
         }
     }
