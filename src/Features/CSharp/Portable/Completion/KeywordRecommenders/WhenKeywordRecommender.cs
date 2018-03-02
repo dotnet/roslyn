@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private static bool IsAfterCompleteExpressionOrPatternInCaseLabel(CSharpSyntaxContext context,
             CancellationToken cancellationToken)
         {
-            var switchLabel = GetAncestorUntilStatement<SwitchLabelSyntax>(context.TargetToken);
+            var switchLabel = context.TargetToken.GetAncestor<SwitchLabelSyntax>();
             if (switchLabel == null)
             {
                 return false;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return false;
             }
 
-            // If the last token missing, the expression is incomplete - possibly because of missing parentheses,
+            // If the last token is missing, the expression is incomplete - possibly because of missing parentheses,
             // but not necessarily. We don't want to offer 'when' in those cases. Here are some examples that illustrate this:
             // case |
             // case 1 + |
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             {
                 // case constant w|
 
-                // We might have a partially written 'when' keyword, which causes this to be parsed as a pattern.
+                // We might have a partially written 'when' keyword, which causes this to be parsed as a declaration pattern.
                 // lastToken will be 'w' (LeftToken) as opposed to 'constant' (TargetToken). We handle this as a special case.
 
                 return NotATypeName(declarationPattern.Type);
@@ -86,24 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
                 return true;
             }
-        }
-
-        private static T GetAncestorUntilStatement<T>(SyntaxToken token) where T : SyntaxNode
-        {
-            for (var node = token.Parent; node != null; node = node.Parent)
-            {
-                if (node is StatementSyntax)
-                {
-                    break;
-                }
-
-                if (node is T tNode)
-                {
-                    return tNode;
-                }
-            }
-
-            return null;
         }
     }
 }
