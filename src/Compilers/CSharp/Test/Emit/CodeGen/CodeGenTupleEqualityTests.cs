@@ -347,14 +347,14 @@ class C
             // PROTOTYPE(tuple-equality)
             return;
 
-            var tupleYSymbol = model.GetTypeInfo(tupleY);
-            Assert.Equal("(System.Byte, System.Byte)", tupleYSymbol.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32, System.Int32)", tupleYSymbol.ConvertedType.ToTestDisplayString());
+            //var tupleYSymbol = model.GetTypeInfo(tupleY);
+            //Assert.Equal("(System.Byte, System.Byte)", tupleYSymbol.Type.ToTestDisplayString());
+            //Assert.Equal("(System.Int32, System.Int32)", tupleYSymbol.ConvertedType.ToTestDisplayString());
 
-            var y = tupleY.Arguments[0].Expression;
-            var ySymbol = model.GetTypeInfo(y);
-            Assert.Equal("System.Byte", ySymbol.Type.ToTestDisplayString());
-            Assert.Equal("System.Int32", ySymbol.ConvertedType.ToTestDisplayString());
+            //var y = tupleY.Arguments[0].Expression;
+            //var ySymbol = model.GetTypeInfo(y);
+            //Assert.Equal("System.Byte", ySymbol.Type.ToTestDisplayString());
+            //Assert.Equal("System.Int32", ySymbol.ConvertedType.ToTestDisplayString());
         }
 
         [Fact(Skip = "PROTOTYPE(tuple-equality) CRASH")]
@@ -925,6 +925,23 @@ public class C
                 //         System.Console.Write((d1, 2) == (() => 1, d2));
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "dynamic").WithLocation(8, 42)
                 );
+        }
+
+        [Fact]
+        public void TestDynamic_WithBooleanConstants()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        System.Console.Write(((dynamic)true, (dynamic)false) == (true, false));
+        System.Console.Write(((dynamic)true, (dynamic)false) != (true, false));
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics( );
+            CompileAndVerify(comp, expectedOutput: "TrueFalse");
         }
 
         [Fact]

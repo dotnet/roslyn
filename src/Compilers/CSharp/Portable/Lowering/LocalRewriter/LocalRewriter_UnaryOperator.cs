@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (kind)
                     {
                         case UnaryOperatorKind.DynamicTrue:
-                        case UnaryOperatorKind.DynamicFalse:
                             return _factory.Literal(constant.BooleanValue);
                         case UnaryOperatorKind.DynamicLogicalNegation:
                             return MakeConversionNode(_factory.Literal(!constant.BooleanValue), type, @checked: false);
