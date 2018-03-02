@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 using CodeAnalysisQuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
 using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
@@ -130,16 +131,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
             var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);
 
-            var elementList = new List<ClassifiedTextElement>();
+            var elementList = new List<Object>();
 
             if (symbolGlyph != Glyph.None)
             {
-                //elementList.Add(new ImageElement(symbolGlyph.GetImageId()));
+                elementList.Add(new ImageElement(symbolGlyph.GetImageId()));
             }
 
             if (warningGlyph != Glyph.None)
             {
-                //elementList.Add(new ImageElement(warningGlyph.GetImageId()));
+                elementList.Add(new ImageElement(warningGlyph.GetImageId()));
             }
 
             foreach (var section in quickInfoItem.Sections)
@@ -148,79 +149,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text))));
             }
 
-            var content = new ContainerElement(
-                        ContainerElementStyle.Stacked,
-                        elementList);
+            var content = new ContainerElement(ContainerElementStyle.Wrapped, elementList);
 
             return new IntellisenseQuickInfoItem(lineSpan, content);
         }
-
-        //private FrameworkElement CreateSymbolPresentation(Glyph glyph)
-        //{
-        //    var image = new CrispImage
-        //    {
-        //        Moniker = glyph.GetImageMoniker()
-        //    };
-
-        //    // Inform the ImageService of the background color so that images have the correct background.
-        //    var binding = new Binding("Background")
-        //    {
-        //        Converter = new BrushToColorConverter(),
-        //        RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(QuickInfoDisplayPanel), 1)
-        //    };
-
-        //    image.SetBinding(ImageThemingUtilities.ImageBackgroundColorProperty, binding);
-        //    return image;
-        //}
-
-        //private TextBlock CreateTextPresentation(QuickInfoSection section)
-        //{
-        //    if (section.Kind == QuickInfoSectionKinds.DocumentationComments)
-        //    {
-        //        return CreateDocumentationCommentPresentation(section.TaggedParts);
-        //    }
-        //    else
-        //    {
-        //        return CreateTextPresentation(section.TaggedParts);
-        //    }
-        //}
-
-        //private TextBlock CreateTextPresentation(ImmutableArray<TaggedText> text)
-        //{
-        //    var formatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
-        //    var classifiedTextBlock = text.ToTextBlock(formatMap, _classificationTypeMap);
-
-        //    if (classifiedTextBlock.Inlines.Count == 0)
-        //    {
-        //        classifiedTextBlock.Visibility = Visibility.Collapsed;
-        //    }
-
-        //    return classifiedTextBlock;
-        //}
-
-        //private TextBlock CreateDocumentationCommentPresentation(ImmutableArray<TaggedText> text)
-        //{
-        //    var formatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
-        //    var documentationTextBlock = text.ToTextBlock(formatMap, _classificationTypeMap);
-
-        //    documentationTextBlock.TextWrapping = TextWrapping.Wrap;
-
-        //    // If we have already computed the symbol documentation by now, update
-        //    if (documentationTextBlock.Inlines.Count == 0)
-        //    {
-        //        documentationTextBlock.Visibility = Visibility.Collapsed;
-        //    }
-
-        //    return documentationTextBlock;
-        //}
-
-        //private FrameworkElement CreateDocumentSpanPresentation(Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem info, ITextSnapshot snapshot)
-        //{
-        //    return ProjectionBufferContent.Create(
-        //        info.RelatedSpans.Select(s => new SnapshotSpan(snapshot, new Span(s.Start, s.Length))).ToImmutableArray(),
-        //        _projectionBufferFactoryService,
-        //        _editorOptionsFactoryService,
-        //        _textEditorFactoryService);
-        //}
     }
 }
