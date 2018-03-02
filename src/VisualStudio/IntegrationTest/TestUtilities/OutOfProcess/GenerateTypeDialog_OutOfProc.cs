@@ -24,6 +24,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             {
                 throw new InvalidOperationException($"Expected the '{GenerateTypeDialogID}' dialog to be open but it is not.");
             }
+
+            // Wait for application idle to ensure the dialog is fully initialized
+            VisualStudioInstance.WaitForApplicationIdle();
         }
 
         public void VerifyClosed()

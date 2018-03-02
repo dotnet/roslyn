@@ -22,6 +22,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             // FindDialog will wait until the dialog is open, so the return value is unused.
             DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, isOpen: true);
+
+            // Wait for application idle to ensure the dialog is fully initialized
+            VisualStudioInstance.WaitForApplicationIdle();
         }
   
         public void VerifyClosed()
