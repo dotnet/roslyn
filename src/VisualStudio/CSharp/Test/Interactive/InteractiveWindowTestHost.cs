@@ -7,6 +7,9 @@ using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Text.Utilities;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 {
@@ -20,9 +23,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
         private static readonly Lazy<ComposableCatalog> s_lazyCatalog = new Lazy<ComposableCatalog>(() =>
         {
             var assemblies = new[] { typeof(TestWaitIndicator).Assembly, typeof(TestInteractiveEvaluator).Assembly, typeof(IInteractiveWindow).Assembly }
-                .Concat(MinimalTestExportProvider.GetVisualStudioAssemblies());
+                .Concat(MinimalTestExportProvider.GetEditorAssemblies());
             return MinimalTestExportProvider.CreateAssemblyCatalog(assemblies);
         });
+
+
+        // Provide an export of ILoggingServiceInternal to work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/570290
+        [Export(typeof(ILoggingServiceInternal))]
+        private sealed class HACK_LoggingProvider : ILoggingServiceInternal
+        {
+            public void AdjustCounter(string key, string name, int delta = 1)
+            {
+            }
+
+            public void PostCounters()
+            {
+            }
+
+            public void PostEvent(string key, params object[] namesAndProperties)
+            {
+            }
+
+            public void PostEvent(string key, IReadOnlyList<object> namesAndProperties)
+            {
+            }
+
+            public void PostEvent(TelemetryEventType eventType, string eventName, TelemetryResult result = TelemetryResult.Success, params (string name, object property)[] namesAndProperties)
+            {
+            }
+
+            public void PostEvent(TelemetryEventType eventType, string eventName, TelemetryResult result, IReadOnlyList<(string name, object property)> namesAndProperties)
+            {
+            }
+
+            public void PostFault(string eventName, string description, Exception exceptionObject, string additionalErrorInfo, bool? isIncludedInWatsonSample)
+            {
+            }
+        }
 
         internal InteractiveWindowTestHost()
         {

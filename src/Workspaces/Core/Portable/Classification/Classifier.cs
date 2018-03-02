@@ -150,6 +150,16 @@ namespace Microsoft.CodeAnalysis.Classification
                     return SymbolDisplayPartKind.ModuleName;
                 case ClassificationTypeNames.VerbatimStringLiteral:
                     return SymbolDisplayPartKind.StringLiteral;
+                case ClassificationTypeNames.FieldName:
+                case ClassificationTypeNames.EnumFieldName:
+                case ClassificationTypeNames.ConstantName:
+                case ClassificationTypeNames.LocalName:
+                case ClassificationTypeNames.ParameterName:
+                case ClassificationTypeNames.ExtensionMethodName:
+                case ClassificationTypeNames.MethodName:
+                case ClassificationTypeNames.PropertyName:
+                case ClassificationTypeNames.EventName:
+                    return SymbolDisplayPartKind.Text;      // TODO: Add more SymbolDisplayPartKinds 
             }
         }
     }

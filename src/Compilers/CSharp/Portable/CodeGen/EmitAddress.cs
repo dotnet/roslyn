@@ -99,6 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     Debug.Assert(false, "base is always a reference type, why one may need a reference to it?");
                     break;
 
+                case BoundKind.PassByCopy:
+                    return EmitPassByCopyAddress((BoundPassByCopy)expression, addressKind);
+
                 case BoundKind.Sequence:
                     return EmitSequenceAddress((BoundSequence)expression, addressKind);
 
@@ -165,6 +168,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return null;
+        }
+
+        private LocalDefinition EmitPassByCopyAddress(BoundPassByCopy passByCopyExpr, AddressKind addressKind)
+        {
+            // Normally we can just defer PassByCopy to the `default`,
+            // but in some cases the value inside is already a temp that is local to that node.
+            // In such case we can skip extra store/reload
+            if (passByCopyExpr.Expression is BoundSequence sequence)
+            {
+                if (DigForValueLocal(sequence, sequence.Value) != null)
+                {
+                    return EmitSequenceAddress(sequence, addressKind);
+                }
+            }
+
+            return EmitAddressOfTempClone(passByCopyExpr);
         }
 
         /// <summary>

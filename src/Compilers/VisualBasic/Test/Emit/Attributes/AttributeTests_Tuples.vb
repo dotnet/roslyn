@@ -785,7 +785,7 @@ End Interface
                 End Sub
 
             CompileAndVerify(src,
-                             additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                             references:={ValueTupleRef, SystemRuntimeFacadeRef},
                              validator:=validator,
                              symbolValidator:=symbolValidator)
         End Sub
@@ -891,7 +891,7 @@ End Interface
                 End Sub
 
             CompileAndVerify(src,
-                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                references:={ValueTupleRef, SystemRuntimeFacadeRef},
                 validator:=validator,
                 symbolValidator:=symbolValidator)
         End Sub

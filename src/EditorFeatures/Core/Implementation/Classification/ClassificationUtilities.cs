@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
@@ -37,9 +38,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             foreach (var classifiedSpan in list)
             {
+                IClassificationType classificationType;
+                switch (classifiedSpan.ClassificationType) // filter out unsupported classification types
+                {
+                    case ClassificationTypeNames.FieldName:
+                    case ClassificationTypeNames.EnumFieldName:
+                    case ClassificationTypeNames.ConstantName:
+                    case ClassificationTypeNames.LocalName:
+                    case ClassificationTypeNames.ParameterName:
+                    case ClassificationTypeNames.MethodName:
+                    case ClassificationTypeNames.ExtensionMethodName:
+                    case ClassificationTypeNames.PropertyName:
+                    case ClassificationTypeNames.EventName:
+                        classificationType = typeMap.GetClassificationType(ClassificationTypeNames.Identifier);
+                        break;
+                    default:
+                        classificationType = typeMap.GetClassificationType(classifiedSpan.ClassificationType);
+                        break;
+                }
+
                 addTag(new TagSpan<IClassificationTag>(
                     classifiedSpan.TextSpan.ToSnapshotSpan(snapshot),
-                    new ClassificationTag(typeMap.GetClassificationType(classifiedSpan.ClassificationType))));
+                    new ClassificationTag(classificationType)));
             }
         }
 
