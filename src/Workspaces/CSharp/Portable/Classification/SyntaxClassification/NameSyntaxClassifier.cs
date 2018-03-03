@@ -297,12 +297,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         private bool IsSymbolWithName(ISymbol symbol, string name)
         {
-            if (symbol is INamedTypeSymbol namedType)
+            if (symbol is null || symbol.Name != name)
             {
-                return namedType.Arity == 0 && symbol.Name == name;
+                return false;
             }
 
-            return symbol != null && symbol.Name == name;
+            if (symbol is INamedTypeSymbol namedType)
+            {
+                return namedType.Arity == 0;
+            }
+
+            return true;
         }
     }
 }

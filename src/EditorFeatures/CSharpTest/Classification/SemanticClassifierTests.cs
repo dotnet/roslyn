@@ -2329,8 +2329,10 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestUnmanagedConstraint_InsideMethod()
         {
-            await TestInMethodAsync(
-                "var unmanaged = 0;",
+            // Asserts no Keyword("unmanaged") because it is an identifier.
+            await TestInMethodAsync(@"
+var unmanaged = 0;
+unmanaged++;",
                 Keyword("var"));
         }
 

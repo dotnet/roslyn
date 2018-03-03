@@ -4015,12 +4015,16 @@ void M()
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestUnmanagedConstraint_InsideMethod()
         {
-            await TestInMethodAsync(
-                "var unmanaged = 0;",
+            await TestInMethodAsync(@"
+var unmanaged = 0;
+unmanaged++;",
                 Keyword("var"),
                 Identifier("unmanaged"),
                 Operators.Equals,
                 Number("0"),
+                Punctuation.Semicolon,
+                Identifier("unmanaged"),
+                Operators.DoublePlus,
                 Punctuation.Semicolon);
         }
 
