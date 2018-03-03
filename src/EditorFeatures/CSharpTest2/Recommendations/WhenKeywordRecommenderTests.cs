@@ -91,6 +91,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case 1 $$ when }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_AfterMemberAccess() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int.MinValue $$ }"));
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_AfterMemberAccess_BeforeBreak() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int.MinValue $$ break; }"));
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_AfterMemberAccess_BeforeWhen() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int.MinValue $$ when }"));
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_AfterBinaryExpression() =>
             await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case 1 + 1 $$ }"));
 
@@ -125,6 +137,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_AfterParenthesesWithIncompleteExpressionInside_BeforeWhen() =>
             await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case (1 + ) $$ when }"));
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_NotAfterIncompleteMemberAccess() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case int.$$ }"));
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_NotAfterIncompleteMemberAccess_BeforeBreak() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case int.$$ break; }"));
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_NotAfterIncompleteMemberAccess_BeforeWhen() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case int.$$ when }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_NotAfterIncompleteBinaryExpression() =>
@@ -197,18 +221,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_NotInsideParentheses_BeforeWhen() =>
             await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case (1 + 1 $$) when }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterNew() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case new $$ }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterNew_BeforeBreak() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case new $$ break; }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterNew_BeforeWhen() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case new $$ when }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_NotAfterCase() =>

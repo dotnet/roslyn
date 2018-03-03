@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // If the last token is missing, the expression is incomplete - possibly because of missing parentheses,
             // but not necessarily. We don't want to offer 'when' in those cases. Here are some examples that illustrate this:
             // case |
+            // case x.|
             // case 1 + |
             // case (1 + 1 |
-            // case new |
 
             // Also note that if there's a missing token inside the expression, that's fine and we do offer 'when':
             // case (1 + ) |
