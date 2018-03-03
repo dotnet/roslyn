@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #If DEBUG Then
         Private Sub Validate()
             Debug.Assert(Type.SpecialType = SpecialType.System_String)
-            Debug.Assert(Not Contents.Where(Function(content) content.Kind <> BoundKind.Interpolation AndAlso content.Kind <> BoundKind.Literal).Any())
+            Debug.Assert(Contents.All(Function(content) content.Kind = BoundKind.Interpolation OrElse content.Kind = BoundKind.Literal))
         End Sub
 #End If
 
