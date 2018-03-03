@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert &apos;linq method&apos; to &apos;linq query&apos;.
+        ///   Looks up a localized string similar to Convert &apos;LINQ method&apos; to &apos;LINQ query&apos;.
         /// </summary>
         internal static string Convert_linq_method_to_linq_query {
             get {
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert &apos;linq query&apos; to &apos;linq method&apos;.
+        ///   Looks up a localized string similar to Convert &apos;LINQ query&apos; to &apos;LINQ method&apos;.
         /// </summary>
         internal static string Convert_linq_query_to_linq_method {
             get {

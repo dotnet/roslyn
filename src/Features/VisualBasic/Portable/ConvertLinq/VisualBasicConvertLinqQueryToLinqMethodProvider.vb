@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.Operations
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertLinqQueryToLinqMethodProvider)), [Shared]>
@@ -32,10 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
             End Property
 
             Protected Overrides Function TryConvert(source As QueryExpressionSyntax) As ExpressionSyntax
-                Dim expression As ExpressionSyntax
-                expression = Nothing
-
-                Dim symbolInfo = _semanticModel.GetSymbolInfo(source, _cancellationToken)
+                Dim expression As ExpressionSyntax = Nothing
+                Dim symbolInfo As SymbolInfo = _semanticModel.GetSymbolInfo(source, _cancellationToken)
                 For Each clause In source.Clauses
                     expression = ProcessQueryClause(expression, clause)
                     If expression Is Nothing Then
@@ -53,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
                     Case SyntaxKind.DistinctClause
                         Return CreateInvocationExpression(expression, NameOf(Enumerable.Distinct))
                     Case SyntaxKind.WhereClause
-                        Return CreateInvocationExpression(expression, NameOf(Enumerable.Where), DirectCast(queryClause, WhereClauseSyntax).Condition)
+                        Return CreateInvocationExpression(expression, NameOf(Enumerable.Where), CreateLambdaExpressionWithReplacedIdentifiers(DirectCast(queryClause, WhereClauseSyntax).Condition))
                     Case SyntaxKind.SkipClause
                         Return CreateInvocationExpression(expression, NameOf(Enumerable.Skip), DirectCast(queryClause, PartitionClauseSyntax).Count)
                     Case SyntaxKind.TakeClause
@@ -63,73 +62,80 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
                     Case SyntaxKind.SelectClause
                         Return ProcessSelectClause(expression, DirectCast(queryClause, SelectClauseSyntax))
                     Case SyntaxKind.GroupJoinClause
-                        Return Nothing ' Too complicated for query method syntax.
+                        Return Nothing ' TODO: https://github.com/dotnet/roslyn/issues/25112
                     Case SyntaxKind.SimpleJoinClause
-                        Return Nothing ' Too complicated for query method syntax.
+                        Return Nothing ' TODO: https://github.com/dotnet/roslyn/issues/25112
                     Case SyntaxKind.LetClause
-                        Return Nothing ' Too complicated for query method syntax.
+                        Return Nothing ' TODO: https://github.com/dotnet/roslyn/issues/25112
                     Case SyntaxKind.AggregateClause
-                        Return Nothing ' Too complicated for query method syntax.
+                        Return Nothing ' TODO: https://github.com/dotnet/roslyn/issues/25112
                     Case SyntaxKind.GroupByClause
-                        Return Nothing ' Group by in query and in method are not 100% equivalent. Consdier support of some group by in the future.
+                        Return Nothing ' TODO: https://github.com/dotnet/roslyn/issues/25112
                     Case Else
                         Return Nothing
                 End Select
             End Function
 
-            Private Function ProcessFromClause(parentExpression As ExpressionSyntax, fromClause As FromClauseSyntax) As ExpressionSyntax
-                Dim expression = parentExpression
-                Dim variables = fromClause.Variables
-                If variables.Count > 1 Then
-                    Return Nothing ' Do not support more than 1 variable. It complicates query methods.
+            Private Function CreateLambdaExpressionWithReplacedIdentifiers(body As VisualBasicSyntaxNode) As LambdaExpressionSyntax
+                Dim anonymousFunction As IAnonymousFunctionOperation = FindParentAnonymousFunction(body)
+                If anonymousFunction Is Nothing Then
+                    Return Nothing
                 End If
 
-                Dim variable = variables.First()
-                If parentExpression Is Nothing Then
-                    expression = variable.Expression
-
-                    If variable.AsClause IsNot Nothing Then
-                        Dim identifier = SyntaxFactory.IdentifierName(NameOf(Enumerable.Cast))
-                        Dim generic = SyntaxFactory.GenericName(
-                            identifier.Identifier,
-                            SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(variable.AsClause.Type)))
-                        expression = SyntaxFactory.InvocationExpression(
-                            SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            expression,
-                            SyntaxFactory.Token(SyntaxKind.DotToken), generic),
-                            SyntaxFactory.ArgumentList())
-                    End If
-
-                    Return expression
-                End If
-
-                Dim anonymousFunctions = FindAnonymousFunctionsFromParentInvocationOperation(variable.Expression)
-                Dim firstLambda = CreateLambdaExpression(anonymousFunctions.First())
-                Dim secondArgumentAnonymousFunction = anonymousFunctions.Last()
-                Dim returnedValue = DirectCast(secondArgumentAnonymousFunction.Body.Operations.First(), IReturnOperation).ReturnedValue
-                Dim secondLambda As LambdaExpressionSyntax
-                If returnedValue.Kind = OperationKind.AnonymousObjectCreation Then
-                    Dim objectCreation = DirectCast(returnedValue, IAnonymousObjectCreationOperation)
-                    Dim fieldInitializers = objectCreation.Initializers.
-                        Select(Function(initializer) SyntaxFactory.InferredFieldInitializer(
-                        SyntaxFactory.IdentifierName(BeautifyName(DirectCast(initializer, IParameterReferenceOperation).Parameter.Name))))
-                    Dim anonymousObjectCreation = SyntaxFactory.AnonymousObjectCreationExpression(
-                        SyntaxFactory.ObjectMemberInitializer(SyntaxFactory.SeparatedList(Of FieldInitializerSyntax)(fieldInitializers)))
-                    secondLambda = CreateLambdaExpression(secondArgumentAnonymousFunction, anonymousObjectCreation)
-                Else
-                    secondLambda = CreateLambdaExpression(secondArgumentAnonymousFunction)
-                End If
-
-                Return CreateInvocationExpression(expression, NameOf(Enumerable.SelectMany), {firstLambda, secondLambda})
+                Return CreateLambdaExpression(ReplaceIdentifierNames(body), anonymousFunction.Symbol)
             End Function
 
-            Private Function CreateLambdaExpression(anonymousFunction As IAnonymousFunctionOperation, Optional body As VisualBasicSyntaxNode = Nothing) As LambdaExpressionSyntax
-                If body Is Nothing Then
-                    body = MakeIdentifierNameReplacements(anonymousFunction.Body.Operations.First().Syntax)
-                End If
-                Dim parameters = anonymousFunction.Symbol.Parameters.
-                    Select(Function(p) SyntaxFactory.Parameter(SyntaxFactory.ModifiedIdentifier(BeautifyName(p.Name))))
+            Private Function ProcessFromClause(parentExpression As ExpressionSyntax, fromClause As FromClauseSyntax) As ExpressionSyntax
+                Dim expression As ExpressionSyntax = parentExpression
+                For Each variable As CollectionRangeVariableSyntax In fromClause.Variables
+                    If parentExpression Is Nothing Then
+                        expression = variable.Expression
+                    End If
+
+                    If variable.AsClause IsNot Nothing Then
+                        Dim identifier As IdentifierNameSyntax = SyntaxFactory.IdentifierName(NameOf(Enumerable.Cast))
+                        Dim generic As GenericNameSyntax = SyntaxFactory.GenericName(
+                            identifier.Identifier,
+                            SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(variable.AsClause.Type)))
+                        expression = CreateInvocationExpression(expression, generic)
+                    End If
+
+                    If parentExpression Is Nothing Then
+                        Return expression
+                    End If
+
+                    Dim bodyExpression As ExpressionSyntax = variable.Expression
+                    Dim argumentAnonymousFunctions As ImmutableArray(Of IAnonymousFunctionOperation) = FindAnonymousFunctionsFromParentInvocationOperation(bodyExpression)
+                    Debug.Assert(argumentAnonymousFunctions.Length = 2)
+                    Dim secondArgumentAnonymousFunction As IAnonymousFunctionOperation = argumentAnonymousFunctions.Last()
+
+                    Debug.Assert(secondArgumentAnonymousFunction.Body.Operations.Length = 1)
+                    Dim returnOperation As IReturnOperation = DirectCast(secondArgumentAnonymousFunction.Body.Operations.First(), IReturnOperation)
+                    Dim returnedValue As IOperation = returnOperation.ReturnedValue
+
+                    Dim tupleExpression As VisualBasicSyntaxNode
+                    If returnedValue.Kind = OperationKind.AnonymousObjectCreation Then
+                        Dim objectCreation As IAnonymousObjectCreationOperation = DirectCast(returnedValue, IAnonymousObjectCreationOperation)
+                        Dim fieldInitializers As IEnumerable(Of InferredFieldInitializerSyntax) =
+                            objectCreation.
+                            Initializers.
+                            Select(Function(initializer) SyntaxFactory.InferredFieldInitializer(
+                            SyntaxFactory.IdentifierName(BeautifyName(DirectCast(initializer, IParameterReferenceOperation).Parameter.Name))))
+                        tupleExpression = SyntaxFactory.AnonymousObjectCreationExpression(
+                            SyntaxFactory.ObjectMemberInitializer(SyntaxFactory.SeparatedList(Of FieldInitializerSyntax)(fieldInitializers)))
+                    Else
+                        tupleExpression = ReplaceIdentifierNames(returnOperation.Syntax)
+                    End If
+
+                    Dim secondLambda As LambdaExpressionSyntax = CreateLambdaExpression(tupleExpression, secondArgumentAnonymousFunction.Symbol)
+                    expression = CreateInvocationExpression(expression, NameOf(Enumerable.SelectMany), {CreateLambdaExpressionWithReplacedIdentifiers(bodyExpression), secondLambda})
+                Next
+
+                Return expression
+            End Function
+
+            Private Function CreateLambdaExpression(body As VisualBasicSyntaxNode, methodSymbol As IMethodSymbol) As LambdaExpressionSyntax
+                Dim parameters As IEnumerable(Of ParameterSyntax) = methodSymbol.Parameters.Select(Function(p) SyntaxFactory.Parameter(SyntaxFactory.ModifiedIdentifier(BeautifyName(p.Name))))
                 Dim parameterList = SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters))
                 Dim header = SyntaxFactory.LambdaHeader(
                     SyntaxKind.FunctionLambdaHeader,
@@ -142,40 +148,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
             End Function
 
             Private Function ProcessSelectClause(expression As ExpressionSyntax, selectClause As SelectClauseSyntax) As ExpressionSyntax
-                Dim selectExpression = selectClause.Variables.First().Expression
-                ' Avoid trivial Select(Funciton(x) x)
-                Dim variables = selectClause.Variables
-                Dim variable = variables.First()
-                Dim bodyExpression = variable.Expression
-
-                If bodyExpression.Kind() = SyntaxKind.IdentifierName Then
-                    Dim identifierName = DirectCast(bodyExpression, IdentifierNameSyntax)
-                    Dim identifierNames = GetIdentifierNames(_semanticModel, identifierName, _cancellationToken)
-                    If identifierNames.IsDefault OrElse identifierNames.Length = 1 Then
-                        Return expression
-                    End If
-                End If
-
-                Return CreateInvocationExpression(expression, NameOf(Enumerable.Select), selectClause.Variables.First().Expression)
+                For Each variable As ExpressionRangeVariableSyntax In selectClause.Variables
+                    expression = CreateInvocationExpression(expression, NameOf(Enumerable.Select), CreateLambdaExpressionWithReplacedIdentifiers(variable.Expression))
+                Next
+                Return expression
             End Function
 
-            Private Function CreateInvocationExpression(parentExpression As ExpressionSyntax, keyword As String, expression As ExpressionSyntax) As ExpressionSyntax
-                Dim anonymousFunctions = FindAnonymousFunctionsFromParentInvocationOperation(expression)
-                Dim expressions = anonymousFunctions.Select(Function(a) CreateLambdaExpression(a))
-                Return CreateInvocationExpression(parentExpression, keyword, expressions)
+            Private Shared Function CreateInvocationExpression(parentExpression As ExpressionSyntax, keyword As String, argumentExpression As ExpressionSyntax) As InvocationExpressionSyntax
+                Return CreateInvocationExpression(parentExpression, keyword, {argumentExpression})
             End Function
 
-            Private Shared Function CreateInvocationExpression(parentExpression As ExpressionSyntax, keyword As String, Optional expressions As IEnumerable(Of ExpressionSyntax) = Nothing) As InvocationExpressionSyntax
-                Dim argumentList = If(expressions Is Nothing,
-                    Nothing,
+            Private Shared Function CreateInvocationExpression(parentExpression As ExpressionSyntax, simpleName As SimpleNameSyntax, Optional argumentExpressions As IEnumerable(Of ExpressionSyntax) = Nothing) As InvocationExpressionSyntax
+                Dim argumentList As ArgumentListSyntax = If(argumentExpressions Is Nothing,
+                    SyntaxFactory.ArgumentList(),
                     SyntaxFactory.ArgumentList(
                     SyntaxFactory.SeparatedList(Of ArgumentSyntax)(
-                    expressions.Select(Function(expression) SyntaxFactory.SimpleArgument(expression)))))
+                    argumentExpressions.Select(Function(expression) SyntaxFactory.SimpleArgument(expression)))))
                 Dim memberAccessExpression = SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression, parentExpression,
                     SyntaxFactory.Token(SyntaxKind.DotToken),
-                    SyntaxFactory.IdentifierName(keyword))
+                    simpleName)
                 Return SyntaxFactory.InvocationExpression(memberAccessExpression, argumentList)
+            End Function
+
+            Private Shared Function CreateInvocationExpression(parentExpression As ExpressionSyntax, keyword As String, Optional argumentExpressions As IEnumerable(Of ExpressionSyntax) = Nothing) As InvocationExpressionSyntax
+                Return CreateInvocationExpression(parentExpression, SyntaxFactory.IdentifierName(keyword), argumentExpressions)
             End Function
 
             Private Function ProcessOrderByClause(expression As ExpressionSyntax, orderByClause As OrderByClauseSyntax) As ExpressionSyntax
@@ -190,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
                         Case Else
                             Return Nothing
                     End Select
-                    expression = CreateInvocationExpression(expression, keyword, ordering.Expression)
+                    expression = CreateInvocationExpression(expression, keyword, CreateLambdaExpressionWithReplacedIdentifiers(ordering.Expression))
                     isFirst = False
                 Next
 
@@ -201,12 +198,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
                 Return name.Replace("$", "")
             End Function
 
-            Private Function MakeIdentifierNameReplacements(node As SyntaxNode) As VisualBasicSyntaxNode
+            Private Function ReplaceIdentifierNames(node As SyntaxNode) As VisualBasicSyntaxNode
                 Return DirectCast(New LambdaRewriter(Function(n) GetIdentifierName(n)).Visit(node), VisualBasicSyntaxNode)
             End Function
 
             Private Function GetIdentifierName(node As IdentifierNameSyntax) As String
-                Dim names = GetIdentifierNames(_semanticModel, node, _cancellationToken)
+                Dim names As ImmutableArray(Of String) = GetIdentifierNames(node)
                 If (names.IsDefault) Then
                     Return String.Empty
                 Else
@@ -226,7 +223,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
 
                 Public Overrides Function VisitIdentifierName(node As IdentifierNameSyntax) As SyntaxNode
                     Dim name = _getNameMethod(node)
-                    Return If(String.IsNullOrEmpty(name), MyBase.VisitIdentifierName(node), SyntaxFactory.IdentifierName(name))
+                    If Not String.IsNullOrEmpty(name) Then
+                        node = node.WithIdentifier(SyntaxFactory.Identifier(name))
+                    End If
+
+                    Return MyBase.VisitIdentifierName(node)
                 End Function
             End Class
         End Class

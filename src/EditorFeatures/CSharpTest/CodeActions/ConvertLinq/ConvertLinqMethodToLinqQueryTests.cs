@@ -8,10 +8,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
 {
-    public class ConvertLinqQueryToLinqMethodTests : AbstractCSharpCodeActionTest
+    public class ConvertLinqMethodToLinqQueryTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CodeAnalysis.CSharp.ConvertLinq.CSharpConvertLinqQueryToLinqMethodProvider();
+            => new CodeAnalysis.CSharp.ConvertLinq.CSharpConvertLinqMethodToLinqQueryProvider();
 
         #region Diagnostics
 
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
         {
             await Test(
 @"from num in new int[] { 0, 1, 2 }
-where num %2 == 0
+where num % 2 == 0
 orderby num
 select num",
 @"new int[] { 0, 1, 2 }.Where(num => num % 2 == 0

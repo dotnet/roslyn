@@ -539,7 +539,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Convert Linq query to Linq method.
+        '''  Looks up a localized string similar to Convert &apos;LINQ method&apos; to &apos;LINQ query&apos;.
+        '''</summary>
+        Friend ReadOnly Property Convert_linq_method_to_linq_query() As String
+            Get
+                Return ResourceManager.GetString("Convert_linq_method_to_linq_query", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Convert &apos;LINQ query&apos; to &apos;LINQ method&apos;.
         '''</summary>
         Friend ReadOnly Property Convert_linq_query_to_linq_method() As String
             Get

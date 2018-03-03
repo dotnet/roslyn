@@ -1868,8 +1868,13 @@ Sub(&lt;seznam_parametrů&gt;) &lt;výraz&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_linq_query_to_linq_method">
-        <source>Convert Linq query to Linq method</source>
-        <target state="new">Convert Linq query to Linq method</target>
+        <source>Convert 'LINQ query' to 'LINQ method'</source>
+        <target state="new">Convert 'LINQ query' to 'LINQ method'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_linq_method_to_linq_query">
+        <source>Convert 'LINQ method' to 'LINQ query'</source>
+        <target state="new">Convert 'LINQ method' to 'LINQ query'</target>
         <note />
       </trans-unit>
     </body>
