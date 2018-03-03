@@ -2066,64 +2066,15 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__op_Equality);
             compilation.VerifyEmitDiagnostics(
-                // (11,9): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                // (11,17): error CS0656: Missing compiler required member 'System.String.op_Equality'
                 //         switch (o)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (o)
-        {
-            case ""hmm"":
-                Console.WriteLine(""hmm""); break;
-            case null:
-                Console.WriteLine(""null""); break;
-            case 1:
-                Console.WriteLine(""int 1""); break;
-            case ((byte)1):
-                Console.WriteLine(""byte 1""); break;
-            case ((short)1):
-                Console.WriteLine(""short 1""); break;
-            case ""bar"":
-                Console.WriteLine(""bar""); break;
-            case object t when t != o:
-                Console.WriteLine(""impossible""); break;
-            case 2:
-                Console.WriteLine(""int 2""); break;
-            case ((byte)2):
-                Console.WriteLine(""byte 2""); break;
-            case ((short)2):
-                Console.WriteLine(""short 2""); break;
-            case ""baz"":
-                Console.WriteLine(""baz""); break;
-            default:
-                Console.WriteLine(""other "" + o); break;
-        }").WithArguments("System.String", "op_Equality").WithLocation(11, 9),
-                // (11,9): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "o").WithArguments("System.String", "op_Equality").WithLocation(11, 17),
+                // (11,17): error CS0656: Missing compiler required member 'System.String.op_Equality'
                 //         switch (o)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (o)
-        {
-            case ""hmm"":
-                Console.WriteLine(""hmm""); break;
-            case null:
-                Console.WriteLine(""null""); break;
-            case 1:
-                Console.WriteLine(""int 1""); break;
-            case ((byte)1):
-                Console.WriteLine(""byte 1""); break;
-            case ((short)1):
-                Console.WriteLine(""short 1""); break;
-            case ""bar"":
-                Console.WriteLine(""bar""); break;
-            case object t when t != o:
-                Console.WriteLine(""impossible""); break;
-            case 2:
-                Console.WriteLine(""int 2""); break;
-            case ((byte)2):
-                Console.WriteLine(""byte 2""); break;
-            case ((short)2):
-                Console.WriteLine(""short 2""); break;
-            case ""baz"":
-                Console.WriteLine(""baz""); break;
-            default:
-                Console.WriteLine(""other "" + o); break;
-        }").WithArguments("System.String", "op_Equality").WithLocation(11, 9)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "o").WithArguments("System.String", "op_Equality").WithLocation(11, 17),
+                // (11,17): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                //         switch (o)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "o").WithArguments("System.String", "op_Equality").WithLocation(11, 17)
                 );
         }
 

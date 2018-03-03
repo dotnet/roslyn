@@ -128,47 +128,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion implementation for the old-style (no-patterns) variation of the switch statement.
 
-        #region implementation for the pattern-matching variation of the switch statement.
-
-        protected virtual void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
-        {
-            SetState(UnreachableState());
-            foreach (var label in node.SwitchLabels)
-            {
-                VisitLabel(label.Label, node);
-            }
-
-            VisitStatementList(node);
-        }
-
-        #endregion implementation for the pattern-matching variation of the switch statement.
-
         #region implementation for the new recursive pattern-matching variation of the switch statement.
 
-        public override BoundNode VisitPatternSwitchStatement2(BoundPatternSwitchStatement2 node)
+        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
         {
             // visit switch header
-            LocalState breakState = VisitPatternSwitchHeader2(node);
+            VisitRvalue(node.Expression);
 
             // visit switch block
-            VisitPatternSwitchBlock2(node);
+            VisitPatternSwitchBlock(node);
 
-            ResolveBreaks(breakState, node.BreakLabel);
             return null;
         }
 
-        private void VisitPatternSwitchBlock2(BoundPatternSwitchStatement2 node)
+        private void VisitPatternSwitchBlock(BoundPatternSwitchStatement node)
         {
             var initialState = State.Clone();
-
-            // PROTOTYPE(patterns2): when the input is a constant, we should simulate dispatch to see if
-            // a particular case is the only reachable one. We will need a spec for reachability to justify it.
+            HashSet<LabelSymbol> reachableLabels = node.DecisionDag.ReachableLabels;
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
                 {
-                    // We treat all labels as reachable, even if they are subsumed or erroneous.
-                    SetState(initialState.Clone());
+                    if (reachableLabels.Contains(label.Label) || label.HasErrors)
+                    {
+                        SetState(initialState.Clone());
+                    }
+                    else
+                    {
+                        SetUnreachable();
+                    }
+
                     VisitPattern(null, label.Pattern);
                     SetState(StateWhenTrue);
                     if (label.Guard != null)
@@ -176,6 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitCondition(label.Guard);
                         SetState(StateWhenTrue);
                     }
+
                     _pendingBranches.Add(new PendingBranch(label, this.State));
                 }
             }
@@ -186,26 +176,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             var iLastSection = (switchSections.Length - 1);
             for (var iSection = 0; iSection <= iLastSection; iSection++)
             {
-                VisitPatternSwitchSection2(switchSections[iSection], node.Expression, iSection == iLastSection);
+                VisitPatternSwitchSection(switchSections[iSection], iSection == iLastSection);
                 // Even though it is illegal for the end of a switch section to be reachable, in erroneous
                 // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
                 IntersectWith(ref afterSwitchState, ref this.State);
             }
 
-            SetState(afterSwitchState);
+            if (reachableLabels.Contains(node.BreakLabel))
+            {
+                IntersectWith(ref afterSwitchState, ref initialState);
+            }
+
+            ResolveBreaks(afterSwitchState, node.BreakLabel);
         }
 
-        /// <summary>
-        /// Visit the switch expression, and return the initial break state.
-        /// </summary>
-        private LocalState VisitPatternSwitchHeader2(BoundPatternSwitchStatement2 node)
-        {
-            // visit switch expression
-            VisitRvalue(node.Expression);
-            return UnreachableState();
-        }
-
-        protected virtual void VisitPatternSwitchSection2(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
+        protected virtual void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
         {
             SetState(UnreachableState());
             foreach (var label in node.SwitchLabels)

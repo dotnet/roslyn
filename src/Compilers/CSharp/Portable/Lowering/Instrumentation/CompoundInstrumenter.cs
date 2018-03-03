@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentSwitchStatement(original, rewritten);
         }
 
-        public override BoundStatement InstrumentPatternSwitchStatement2(BoundPatternSwitchStatement2 original, BoundStatement rewritten)
+        public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
         {
-            return Previous.InstrumentPatternSwitchStatement2(original, rewritten);
+            return Previous.InstrumentPatternSwitchStatement(original, rewritten);
         }
 
         public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)

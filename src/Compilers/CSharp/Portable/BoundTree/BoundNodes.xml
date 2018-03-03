@@ -787,7 +787,7 @@
     <Field Name="Label" Type="GeneratedLabelSymbol" />
   </Node>
 
-  <Node Name="BoundPatternSwitchStatement2" Base="BoundStatement">
+  <Node Name="BoundPatternSwitchStatement" Base="BoundStatement">
     <Field Name="Expression" Type="BoundExpression"/>
 
     <!-- Locals declared immediately within the switch block. -->
@@ -796,10 +796,6 @@
     <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundPatternSwitchSection&gt;"/>
     <Field Name="DefaultLabel" Type="BoundPatternSwitchLabel" Null="allow"/>
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
-
-    <!-- A directed acyclic decision graph for the switch statement. It can be traversed
-    to determine if all labels are reachable, and if every input is handled. -->
-    <Field Name="DecisionDag" Type="BoundDecisionDag" Null="allow"/>
   </Node>
 
   <!-- Part of a lowered integral switch statement. This evaluates Value, and then branches
@@ -830,7 +826,6 @@
   <Node Name="BoundSwitchExpression" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="SwitchArms" Type="ImmutableArray&lt;BoundSwitchExpressionArm&gt;"/>
-    <Field Name="DecisionDag" Type="BoundDecisionDag" Null="allow"/>
     <Field Name="DefaultLabel" Type="LabelSymbol" Null="allow"/>
   </Node>
   <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
@@ -914,7 +909,6 @@
     <Field Name="Label" Type="LabelSymbol"/>
     <Field Name="Pattern" Type="BoundPattern"/>
     <Field Name="Guard" Type="BoundExpression" Null="allow"/>
-    <Field Name="IsReachable" Type="bool"/>
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">
@@ -1686,7 +1680,7 @@
 
   <Node Name="BoundConstantPattern" Base="BoundPattern">
     <Field Name="Value" Type="BoundExpression"/>
-    <Field Name="ConstantValue" Type="ConstantValue" Null="allow"/>
+    <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
   </Node>
 
   <Node Name="BoundDiscardPattern" Base="BoundPattern">

@@ -56,8 +56,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             defaultLabel = new GeneratedLabelSymbol("default");
-            decisionDag = new DecisionDagBuilder(this.Compilation).CreateDecisionDag(node, boundInputExpression, switchArms, defaultLabel);
-            if (decisionDag.ReachableLabels.Contains(defaultLabel))
+            decisionDag = DecisionDagBuilder.CreateDecisionDag(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
+            HashSet<LabelSymbol> reachableLabels = decisionDag.ReachableLabels;
+            foreach (BoundSwitchExpressionArm arm in switchArms)
+            {
+                if (!reachableLabels.Contains(arm.Label))
+                {
+                    diagnostics.Add(ErrorCode.ERR_SwitchArmSubsumed, arm.Pattern.Syntax.Location);
+                }
+            }
+
+            if (reachableLabels.Contains(defaultLabel))
             {
                 // warning: switch expression is not exhaustive
                 diagnostics.Add(ErrorCode.WRN_SwitchExpressionNotExhaustive, node.SwitchKeyword.GetLocation());

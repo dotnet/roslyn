@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     // We use a subclass of SwitchBinder for the pattern-matching switch statement until we have completed
     // a totally compatible implementation of switch that also accepts pattern-matching constructs.
-    internal partial class PatternSwitchBinder2 : SwitchBinder
+    internal partial class PatternSwitchBinder : SwitchBinder
     {
-        internal PatternSwitchBinder2(Binder next, SwitchStatementSyntax switchSyntax) : base(next, switchSyntax)
+        internal PatternSwitchBinder(Binder next, SwitchStatementSyntax switchSyntax) : base(next, switchSyntax)
         {
         }
 
@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parseOptions = SwitchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
                 return
                     parseOptions?.Features.ContainsKey("testV8SwitchBinder") == true ||
-                    parseOptions?.Features.ContainsKey("testV7SwitchBinder") == true ||
                     HasPatternSwitchSyntax(SwitchSyntax) ||
                     !SwitchGoverningType.IsValidV6SwitchGoverningType();
             }
@@ -56,14 +55,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundPatternSwitchSection> switchSections = BindPatternSwitchSections(originalBinder, diagnostics, out BoundPatternSwitchLabel defaultLabel);
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
             ImmutableArray<LocalFunctionSymbol> functions = GetDeclaredLocalFunctionsForScope(node);
-            BoundDecisionDag decisionDag = new DecisionDagBuilder(this.Compilation).CreateDecisionDag(
+            BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDag(
+                compilation: this.Compilation,
                 syntax: node,
                 switchGoverningExpression: boundSwitchGoverningExpression,
                 switchSections: switchSections,
                 // If there is no explicit default label, the default action is to break out of the switch
-                defaultLabel: defaultLabel?.Label ?? BreakLabel);
-            bool hasErrors = CheckSwitchErrors(node, boundSwitchGoverningExpression, switchSections, decisionDag, diagnostics);
-            return new BoundPatternSwitchStatement2(
+                defaultLabel: defaultLabel?.Label ?? BreakLabel,
+                diagnostics);
+            // Report subsumption errors, but ignore the input's constant value for that.
+            bool hasErrors = CheckSwitchErrors(node, boundSwitchGoverningExpression, ref switchSections, decisionDag, diagnostics);
+
+            if (boundSwitchGoverningExpression.ConstantValue != null)
+            {
+                // But when the input is constant, we use that to reshape the decision dag that is returned
+                // so that flow analysis will see that some of the cases may be unreachable.
+                decisionDag = SimplifyDecisionDagForConstantInput(decisionDag, boundSwitchGoverningExpression);
+            }
+
+            return new BoundPatternSwitchStatement(
                 syntax: node,
                 expression: boundSwitchGoverningExpression,
                 innerLocals: locals,
@@ -78,25 +88,180 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool CheckSwitchErrors(
             SwitchStatementSyntax node,
             BoundExpression boundSwitchGoverningExpression,
-            ImmutableArray<BoundPatternSwitchSection> switchSections,
+            ref ImmutableArray<BoundPatternSwitchSection> switchSections,
             BoundDecisionDag decisionDag,
             DiagnosticBag diagnostics)
         {
-            bool reported = false;
             HashSet<LabelSymbol> reachableLabels = decisionDag.ReachableLabels;
-            foreach (BoundPatternSwitchSection section in switchSections)
+            bool areAnySubsumed(ImmutableArray<BoundPatternSwitchSection> sections)
             {
-                foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
+                foreach (BoundPatternSwitchSection section in sections)
                 {
-                    if (!label.HasErrors && !reachableLabels.Contains(label.Label))
+                    foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
                     {
-                        diagnostics.Add(ErrorCode.ERR_PatternIsSubsumed, label.Syntax.Location);
-                        reported = true;
+                        if (!label.HasErrors && !reachableLabels.Contains(label.Label))
+                        {
+                            // we found a label that is subsumed
+                            return true;
+                        }
                     }
+                }
+
+                return false;
+            }
+
+            if (!areAnySubsumed(switchSections))
+            {
+                return false;
+            }
+
+            // We mark any subsumed sections as erroneous for the benefit of flow analysis
+            var sectionBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
+            foreach (var oldSection in switchSections)
+            {
+                var labelBuilder = ArrayBuilder<BoundPatternSwitchLabel>.GetInstance();
+                foreach (var label in oldSection.SwitchLabels)
+                {
+                    var newLabel = label;
+                    if (!label.HasErrors && !reachableLabels.Contains(label.Label) && label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
+                    {
+                        var syntax = label.Syntax;
+                        switch (syntax)
+                        {
+                            case CasePatternSwitchLabelSyntax p:
+                                syntax = p.Pattern;
+                                break;
+                            case CaseSwitchLabelSyntax p:
+                                syntax = p.Value;
+                                break;
+                        }
+
+                        diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, syntax.Location);
+                        newLabel = new BoundPatternSwitchLabel(label.Syntax, label.Label, label.Pattern, label.Guard, hasErrors: true);
+                    }
+
+                    labelBuilder.Add(newLabel);
+                }
+
+                sectionBuilder.Add(oldSection.Update(oldSection.Locals, labelBuilder.ToImmutableAndFree(), oldSection.Statements));
+            }
+
+            switchSections = sectionBuilder.ToImmutableAndFree();
+            return true;
+        }
+
+        /// <summary>
+        /// Given a decision dag and a constant-valued input, produce a simplified decision dag that has removed all the
+        /// tests that are unnecessary due to that constant value. This simplification affects flow analysis (reachability
+        /// and definite assignment) and permits us to simplify the generated code.
+        /// </summary>
+        private BoundDecisionDag SimplifyDecisionDagForConstantInput(
+            BoundDecisionDag decisionDag,
+            BoundExpression input)
+        {
+            ConstantValue inputConstant = input.ConstantValue;
+            Debug.Assert(inputConstant != null);
+
+            // First, we topologically sort the nodes of the dag so that we can translate the nodes bottom-up.
+            // This will avoid overflowing the compiler's runtime stack which would occur for a large switch
+            // statement if we were using a recursive strategy.
+            ImmutableArray<BoundDecisionDag> sortedNodes = decisionDag.TopologicallySortedNodes();
+
+            // Cache simplified/translated replacement for each translated dag node
+            var replacementCache = PooledDictionary<BoundDecisionDag, BoundDecisionDag>.GetInstance();
+
+            // Loop backwards through the topologically sorted nodes to translate them, so that we always visit a node after its successors
+            for (int i = sortedNodes.Length - 1; i >= 0; i--)
+            {
+                BoundDecisionDag node = sortedNodes[i];
+                Debug.Assert(!replacementCache.ContainsKey(node));
+                BoundDecisionDag newNode = makeReplacement(node);
+                replacementCache.Add(node, newNode);
+            }
+
+            var result = replacement(decisionDag);
+            replacementCache.Free();
+            return result;
+
+            // Return a cached replacement node. Since we always visit a node's succesors before the node,
+            // the replacement should always be in the cache when we need it.
+            BoundDecisionDag replacement(BoundDecisionDag dag)
+            {
+                if (replacementCache.TryGetValue(dag, out BoundDecisionDag knownReplacement))
+                {
+                    return knownReplacement;
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            // Make a replacement for a given node, using the precomputed replacements for its successors.
+            BoundDecisionDag makeReplacement(BoundDecisionDag dag)
+            {
+                switch (dag)
+                {
+                    case BoundEvaluationPoint p:
+                        return p.Update(p.Evaluation, replacement(p.Next));
+                    case BoundDecisionPoint p:
+                        // This is the key to the optimization. The result of a top-level test might be known if the input is constant.
+                        switch (knownResult(p.Decision))
+                        {
+                            case true:
+                                return replacement(p.WhenTrue);
+                            case false:
+                                return replacement(p.WhenFalse);
+                            default:
+                                return p.Update(p.Decision, replacement(p.WhenTrue), replacement(p.WhenFalse));
+                        }
+                    case BoundWhenClause p:
+                        if (p.WhenExpression == null || p.WhenExpression.ConstantValue == ConstantValue.True)
+                        {
+                            return p.Update(p.Bindings, p.WhenExpression, makeReplacement(p.WhenTrue), null);
+                        }
+                        else if (p.WhenExpression.ConstantValue == ConstantValue.False)
+                        {
+                            // It is possible in this case that we could eliminate some predecessor nodes, for example
+                            // those that compute evaluations only needed to get to this decision. We do not bother,
+                            // as that optimization would only be likely to affect test code.
+                            return replacement(p.WhenFalse);
+                        }
+                        else
+                        {
+                            return p.Update(p.Bindings, p.WhenExpression, replacement(p.WhenTrue), replacement(p.WhenFalse));
+                        }
+                    case BoundDecision p:
+                        return p;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(dag);
                 }
             }
 
-            return reported;
+            // Is the decision 
+            bool? knownResult(BoundDagDecision choice)
+            {
+                if (choice.Input.Source != null)
+                {
+                    // This is a test of something other than the main input; result unknown
+                    return null;
+                }
+
+                switch (choice)
+                {
+                    case BoundNullValueDecision d:
+                        return inputConstant.IsNull;
+                    case BoundNonNullDecision d:
+                        return !inputConstant.IsNull;
+                    case BoundNonNullValueDecision d:
+                        return d.Value == inputConstant;
+                    case BoundTypeDecision d:
+                        // PROTOTYPE(patterns2): Is it correct to discard these use-site diagnostics?
+                        HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
+                        return ExpressionOfTypeMatchesPatternType(Conversions, input.Type, d.Type, ref discardedUseSiteDiagnostics, out Conversion conversion, inputConstant, inputConstant.IsNull);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(choice);
+                }
+            }
+
         }
 
         /// <summary>
@@ -178,18 +343,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref BoundPatternSwitchLabel defaultLabel,
             DiagnosticBag diagnostics)
         {
-            // Until we've determined whether or not the switch label is reachable, we assume it
-            // is. The caller updates isReachable after determining if the label is subsumed.
-            const bool isReachable = true;
-
             switch (node.Kind())
             {
                 case SyntaxKind.CaseSwitchLabel:
                     {
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
-                        bool wasExpression;
                         BoundConstantPattern pattern = sectionBinder.BindConstantPattern(
-                            node, SwitchGoverningType, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression);
+                            node, SwitchGoverningType, caseLabelSyntax.Value, node.HasErrors, diagnostics, out _);
+                        pattern.WasCompilerGenerated = true; // we don't have a pattern syntax here
                         bool hasErrors = pattern.HasErrors;
                         ConstantValue constantValue = pattern.ConstantValue;
                         if (!hasErrors &&
@@ -206,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.WRN_DefaultInSwitch, caseLabelSyntax.Value.Location);
                         }
 
-                        return new BoundPatternSwitchLabel(node, label, pattern, null, isReachable, hasErrors);
+                        return new BoundPatternSwitchLabel(node, label, pattern, null, hasErrors);
                     }
 
                 case SyntaxKind.DefaultSwitchLabel:
@@ -218,11 +379,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, label.Name);
                             hasErrors = true;
+                            return new BoundPatternSwitchLabel(node, label, pattern, null, hasErrors);
                         }
-
-                        // Note that this is semantically last! The caller will place it in the decision dag
-                        // in the final position.
-                        return defaultLabel = new BoundPatternSwitchLabel(node, label, pattern, null, isReachable, hasErrors);
+                        else
+                        {
+                            // Note that this is semantically last! The caller will place it in the decision dag
+                            // in the final position.
+                            return defaultLabel = new BoundPatternSwitchLabel(node, label, pattern, null, hasErrors);
+                        }
                     }
 
                 case SyntaxKind.CasePatternSwitchLabel:
@@ -232,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             matchLabelSyntax.Pattern, SwitchGoverningType, node.HasErrors, diagnostics);
                         return new BoundPatternSwitchLabel(node, label, pattern,
                             matchLabelSyntax.WhenClause != null ? sectionBinder.BindBooleanExpression(matchLabelSyntax.WhenClause.Condition, diagnostics) : null,
-                            isReachable, node.HasErrors);
+                            node.HasErrors);
                     }
 
                 default:

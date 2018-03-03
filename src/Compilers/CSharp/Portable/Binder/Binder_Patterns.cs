@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return BindConstantPattern(node, operandType, node.Expression, hasErrors, diagnostics, out bool wasExpression);
+            return BindConstantPattern(node, operandType, node.Expression, hasErrors, diagnostics, out _);
         }
 
         internal BoundConstantPattern BindConstantPattern(
@@ -122,7 +122,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return new BoundConstantPattern(node, convertedExpression, constantValueOpt, hasErrors);
+            if (convertedExpression.Type == null && constantValueOpt != ConstantValue.Null)
+            {
+                Debug.Assert(hasErrors);
+                convertedExpression = new BoundConversion(
+                    convertedExpression.Syntax, convertedExpression, Conversion.NoConversion, @checked: false,
+                    explicitCastInCode: false, constantValueOpt: constantValueOpt, CreateErrorType(), hasErrors: true)
+                    { WasCompilerGenerated = true };
+            }
+
+            return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, hasErrors);
         }
 
         internal BoundExpression ConvertPatternExpression(TypeSymbol inputType, CSharpSyntaxNode node, BoundExpression expression, ref ConstantValue constantValue, DiagnosticBag diagnostics)

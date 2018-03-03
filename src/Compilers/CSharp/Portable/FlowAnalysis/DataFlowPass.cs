@@ -1587,10 +1587,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
         {
             DeclareVariables(node.Locals);
-            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+            base.VisitPatternSwitchSection(node, isLastSection);
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)

@@ -329,9 +329,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
         {
-            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+            base.VisitPatternSwitchSection(node, isLastSection);
 
             // Check for switch section fall through error
             if (this.State.Alive)
@@ -339,7 +339,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var syntax = node.SwitchLabels.Last().Pattern.Syntax;
                 Diagnostics.Add(isLastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(syntax), syntax.ToString());
-                this.State.Reported = true;
             }
         }
     }

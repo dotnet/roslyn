@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // Enable pattern-switch translation even for switches that use no new syntax. This is used
         // to help ensure compatibility of the semantics of the new switch binder with the old switch
         // binder, so that we may eliminate the old one in the future.
-        public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV7SwitchBinder", "true" } });
+        public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV8SwitchBinder", "true" } });
 
         public static readonly CSharpParseOptions RegularWithRecursivePatterns = Regular.WithRecursivePatterns();
 

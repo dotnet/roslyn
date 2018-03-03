@@ -1180,9 +1180,9 @@ class C
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
-                // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                // (12,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case 0:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "0").WithLocation(12, 18)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (8,18): error CS0150: A constant value is expected
@@ -1191,9 +1191,9 @@ class C
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
-                // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                // (12,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case 0:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "0").WithLocation(12, 18)
                 );
         }
 
@@ -2994,8 +2994,6 @@ class SwitchTest
         }
     }
 }";
-            // CONSIDER:    Native compiler doesn't generate CS8070, we may want to do the same.
-
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (8,18): error CS0118: 'System' is a namespace but is used like a variable
                 //             case System:

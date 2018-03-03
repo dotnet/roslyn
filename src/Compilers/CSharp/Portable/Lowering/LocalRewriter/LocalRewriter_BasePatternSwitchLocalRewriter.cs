@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -29,10 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// it may occur when something (from the enclosing expression) is on the stack.
             /// To satisfy the verifier, the caller must arrange forward jumps to these labels. The set of
             /// labels that will need such forward jumps (if something can be on the stack) is stored in
-            /// _backwardLabels.
-            /// PROTOTYPE(patterns2): This is a placeholder. It is not populated or used yet.
+            /// _backwardLabels. In practice, this is exclusively the set of states that are reached
+            /// when a when-clause evaluates to false.
+            /// PROTOTYPE(patterns2): This is a placeholder. It is not used yet for lowering the
+            /// switch expression, where it will be needed.
             /// </summary>
-            private readonly ArrayBuilder<LabelSymbol> _backwardLabels = ArrayBuilder<LabelSymbol>.GetInstance();
+            private readonly ArrayBuilder<BoundDecisionDag> _backwardLabels = ArrayBuilder<BoundDecisionDag>.GetInstance();
 
             /// <summary>
             /// Not all labels are needed in the generated state machine. If there is only one branch to a label
@@ -66,7 +69,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _switchArms.Add(arm, new ArrayBuilder<BoundStatement>());
                 }
 
+                ComputeLabelSet(decisionDag);
+
                 this.LowerDecisionDag(decisionDag);
+            }
+
+            private void ComputeLabelSet(BoundDecisionDag decisionDag)
+            {
+                // compute and populate _backwardLabels and _labelRequired
+                var visited = new HashSet<BoundDecisionDag>();
+
+                void visit(BoundDecisionDag dag)
+                {
+                    if (dag == null)
+                    {
+                        return;
+                    }
+                    else if (visited.Contains(dag))
+                    {
+                        _labelRequired.Add(dag);
+                        return;
+                    }
+
+                    visited.Add(dag);
+                    if (dag is BoundWhenClause w && w.WhenFalse != null)
+                    {
+                        _backwardLabels.Add(w.WhenFalse);
+                        _labelRequired.Add(w.WhenFalse);
+                    }
+
+                    if (dag is BoundDecisionPoint d)
+                    {
+                        visit(d.WhenTrue);
+                        visit(d.WhenFalse);
+                    }
+                }
+
+                visit(decisionDag);
             }
 
             protected new void Free()
@@ -96,8 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return label;
             }
 
+            /// <summary>
+            /// Lower the given decisionDag into _loweredDecisionDag.
+            /// </summary>
             private void LowerDecisionDag(BoundDecisionDag decisionDag)
             {
+                // PROTOTYPE(patterns2): This is a recursive translation of the decision dag. For a large switch
+                // statement, that will overflow the stack at compile-time. This needs to be rewritten to perform
+                // the translation using an iterative strategy.
                 LabelSymbol label = GetDagNodeLabel(decisionDag);
                 if (_generated.Contains(decisionDag))
                 {
@@ -123,6 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundDecisionPoint decision:
                         {
+                            // PROTOTYPE(patterns2): should translate a chain of constant value tests into a switch instruction as before
                             base.LowerDecision(decision.Decision, out BoundExpression sideEffect, out BoundExpression test);
                             Debug.Assert(sideEffect == null);
                             Debug.Assert(test != null);

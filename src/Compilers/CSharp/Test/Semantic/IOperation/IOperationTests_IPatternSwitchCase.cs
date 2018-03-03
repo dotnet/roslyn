@@ -565,10 +565,7 @@ IPatternCaseClauseOperation (Label Symbol: case X y:) (CaseKind.Pattern) (Operat
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(9,28): error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'X'.
                 //             /*<bind>*/case X y:/*</bind>*/
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "X").WithArguments("int?", "X").WithLocation(9, 28),
-                // file.cs(10,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "X").WithArguments("int?", "X").WithLocation(9, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -716,12 +713,9 @@ ISwitchOperation (3 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax
               IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS8120: The switch case has already been handled by a previous case.
+                // file.cs(11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case int y:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int y").WithLocation(11, 18),
-                // CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int y").WithLocation(11, 18)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);

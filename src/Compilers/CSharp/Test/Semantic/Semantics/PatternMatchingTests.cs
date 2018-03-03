@@ -4813,10 +4813,7 @@ public class Program1717
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "double.NaN").WithArguments("double", "int?").WithLocation(10, 18),
                 // (13,18): error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'string'.
                 //             case string _:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("int?", "string").WithLocation(13, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("int?", "string").WithLocation(13, 18)
                 );
         }
 
@@ -4882,7 +4879,10 @@ public class Program5815
             var compilation = CreateStandardCompilation(program).VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case true ? x3 : 4:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "true ? x3 : 4").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "true ? x3 : 4").WithLocation(9, 18),
+                // (9,25): error CS0165: Use of unassigned local variable 'x3'
+                //             case true ? x3 : 4:
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(9, 25)
                 );
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -5080,10 +5080,7 @@ class Derived : Base
             var compilation = CreateStandardCompilation(program).VerifyDiagnostics(
                 // (12,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case TDerived td:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "TDerived td").WithLocation(12, 18),
-                // (13,17): warning CS0162: Unreachable code detected
-                //                 Console.WriteLine(nameof(TDerived));
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "TDerived td").WithLocation(12, 18)
                 );
         }
 
@@ -5109,10 +5106,7 @@ public class Program
             var compilation = CreateStandardCompilation(program).VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case IEnumerable<object> s:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<object> s").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "IEnumerable<object> s").WithLocation(11, 18)
                 );
         }
 
@@ -5201,10 +5195,7 @@ public class Program
             CreateStandardCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
                 // (10,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case T tt: // Produces a diagnostic about subsumption/unreachability
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "T tt").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "T tt").WithLocation(10, 18)
                 );
         }
 
@@ -5585,12 +5576,9 @@ namespace System
             compilation.VerifyDiagnostics(
                 );
             compilation.GetEmitDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Warning).Verify(
-                // (5,9): error CS0656: Missing compiler required member 'System.Single.IsNaN'
+                // (5,17): error CS0656: Missing compiler required member 'System.Single.IsNaN'
                 //         switch (o)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (o)
-        {
-            case 0f/0f: break;
-        }").WithArguments("System.Single", "IsNaN").WithLocation(5, 9)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "o").WithArguments("System.Single", "IsNaN").WithLocation(5, 17)
                 );
         }
 
@@ -5636,7 +5624,7 @@ namespace System
         {
             case 1:
             case int _:
-            case 2:
+            case 2:     // subsumed
                 break;
         }
     }
@@ -5646,7 +5634,7 @@ namespace System
         {
             case 1:
             case int _:
-            case int _:
+            case int _:  // subsumed
                 break;
         }
     }
@@ -5654,12 +5642,12 @@ namespace System
 ";
             var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,13): error CS8120: The switch case has already been handled by a previous case.
-                //             case 2:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 2:").WithLocation(9, 13),
+                // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case 2:     // subsumed
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "2").WithLocation(9, 18),
                 // (19,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case int _:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int _").WithLocation(19, 18)
+                //             case int _:  // subsumed
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int _").WithLocation(19, 18)
                 );
         }
 
@@ -5978,10 +5966,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("int?", "long").WithLocation(15, 18),
                 // (16,17): error CS0103: The name 'b' does not exist in the current context
                 //         switch (b) { case long m: break; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(16, 17),
-                // (16,35): warning CS0162: Unreachable code detected
-                //         switch (b) { case long m: break; }
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(16, 35)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(16, 17)
                 );
         }
 

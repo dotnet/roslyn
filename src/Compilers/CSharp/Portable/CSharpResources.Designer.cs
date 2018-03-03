@@ -7856,15 +7856,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The switch case has already been handled by a previous case..
-        /// </summary>
-        internal static string ERR_PatternIsSubsumed {
-            get {
-                return ResourceManager.GetString("ERR_PatternIsSubsumed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to It is not legal to use nullable type &apos;{0}&apos; in a pattern; use the underlying type &apos;{1}&apos; instead..
         /// </summary>
         internal static string ERR_PatternNullableType {
@@ -9229,6 +9220,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_SubexpressionNotInNameof {
             get {
                 return ResourceManager.GetString("ERR_SubexpressionNotInNameof", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The pattern has already been handled by a previous arm of the switch expression..
+        /// </summary>
+        internal static string ERR_SwitchArmSubsumed {
+            get {
+                return ResourceManager.GetString("ERR_SwitchArmSubsumed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The switch case has already been handled by a previous case..
+        /// </summary>
+        internal static string ERR_SwitchCaseSubsumed {
+            get {
+                return ResourceManager.GetString("ERR_SwitchCaseSubsumed", resourceCulture);
             }
         }
         
@@ -14314,6 +14323,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_SwitchExpressionNotExhaustive {
             get {
                 return ResourceManager.GetString("WRN_SwitchExpressionNotExhaustive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The switch expression does not handle all possible inputs (it is not exhaustive)..
+        /// </summary>
+        internal static string WRN_SwitchExpressionNotExhaustive_Title {
+            get {
+                return ResourceManager.GetString("WRN_SwitchExpressionNotExhaustive_Title", resourceCulture);
             }
         }
         

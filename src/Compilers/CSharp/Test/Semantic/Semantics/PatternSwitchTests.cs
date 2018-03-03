@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             case var i when ((i&1) == 0):
                 break; // warning: unreachable (1)
             case 1: // error: duplicate case label
-                break; // warning: unreachable (2)
+                break;
         }
     }
 }";
@@ -39,10 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(11, 13),
                 // (10,17): warning CS0162: Unreachable code detected
                 //                 break; // warning: unreachable (1)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break; // warning: unreachable (2)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
                 );
         }
 
@@ -59,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             case 1 when true:
                 break;
             case 1 when true: // error: subsumed
-                break; // warning: unreachable
+                break;
         }
     }
 }";
@@ -68,10 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             compilation.VerifyDiagnostics(
                 // (9,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case 1 when true: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "1").WithLocation(9, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break; // warning: unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "1").WithLocation(9, 18)
                 );
         }
 
@@ -90,21 +84,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             case 1 when true:
                 break;
             case 1: // error: handled previously
-                break; // warning
+                break; // warning?
         }
     }
 }";
             var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (11,13): error CS8120: The switch case has already been handled by a previous case.
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case 1: // error: handled previously
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 1:").WithLocation(11, 13),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "1").WithLocation(11, 18),
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // warning: unreachable code (impossible given the value)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break; // warning
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17)
                 );
         }
 
@@ -129,12 +120,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
-                // (10,13): error CS8120: The switch case has already been handled by a previous case.
+                // (10,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case "goo": ; // error: subsumed by previous case
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, @"case ""goo"":").WithLocation(10, 13),
-                // (11,13): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, @"""goo""").WithLocation(10, 18),
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case null: ; // error: subsumed by previous case
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case null:").WithLocation(11, 13)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "null").WithLocation(11, 18),
+                // (10,13): error CS0163: Control cannot fall through from one case label ('case "goo":') to another
+                //             case "goo": ; // error: subsumed by previous case
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, @"case ""goo"":").WithArguments("case \"goo\":").WithLocation(10, 13),
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case null:')
+                //             case null: ; // error: subsumed by previous case
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case null:").WithArguments("case null:").WithLocation(11, 13)
                 );
         }
 
@@ -152,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             case bool n:
                 break;
             case ""goo"": // wrong type
-                break; // unreachable
+                break; // unreachable?
         }
     }
 }";
@@ -161,10 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
                 //             case "goo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(10, 18)
                 );
         }
 
@@ -183,7 +177,7 @@ public class X
             case IComparable i1:
                 break;
             case string s: // error: subsumed by previous case
-                break; // unreachable
+                break;
         }
     }
 }";
@@ -192,10 +186,7 @@ public class X
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case string s: // error: subsumed by previous case
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "string s").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "string s").WithLocation(11, 18)
                 );
         }
 
@@ -215,7 +206,7 @@ public class X
             case IEnumerable i:
                 break;
             case IEnumerable<string> i: // error: subsumed by previous case
-                break; // unreachable
+                break;
         }
     }
 }";
@@ -223,10 +214,7 @@ public class X
             compilation.VerifyDiagnostics(
                 // (12,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case IEnumerable<string> i: // error: subsumed by previous case
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<string> i").WithLocation(12, 18),
-                // (13,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "IEnumerable<string> i").WithLocation(12, 18)
                 );
         }
 
@@ -245,7 +233,7 @@ public class X : List<string>
             case List<string> list:
                 break;
             case X list: // error: subsumed by previous case
-                break; // unreachable
+                break;
         }
     }
 }";
@@ -254,10 +242,7 @@ public class X : List<string>
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case X list: // error: subsumed by previous case
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "X list").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "X list").WithLocation(11, 18)
                 );
         }
 
@@ -276,7 +261,7 @@ public class X : List<string>
             case false:
                 break;
             case var x: // error: subsumed
-                break; // unreachable
+                break; // unreachable?
         }
     }
 }";
@@ -284,10 +269,7 @@ public class X : List<string>
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var x: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var x").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var x").WithLocation(11, 18)
                 );
         }
 
@@ -306,7 +288,7 @@ public class X : List<string>
             case null:
                 break;
             case var x: // error: subsumed by previous cases
-                break; // unreachable
+                break; // unreachable?
         }
     }
 }";
@@ -314,10 +296,7 @@ public class X : List<string>
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var x: // error: subsumed by previous cases
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var x").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var x").WithLocation(11, 18)
                 );
         }
 
@@ -365,10 +344,7 @@ public class X : List<string>
             compilation.VerifyDiagnostics(
                 // (8,18): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'int'.
                 //             case int i: // error: type mismatch.
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("string", "int").WithLocation(8, 18),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("string", "int").WithLocation(8, 18)
                 );
         }
 
@@ -498,10 +474,7 @@ null";
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0031: Constant value '1000' cannot be converted to a 'byte'
                 //             case 1000: // error: impossible given the type
-                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(10, 18)
                 );
         }
 
@@ -518,18 +491,15 @@ null";
             case int i:
                 break;
             case 11: // error: subsumed
-                break; // unreachable
+                break;
         }
     }
 }";
             var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (9,13): error CS8120: The switch case has already been handled by a previous case.
+                // (9,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case 11: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 11:").WithLocation(9, 13),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "11").WithLocation(9, 18)
                 );
         }
 
@@ -547,7 +517,7 @@ null";
             case false:
                 break;
             case bool b: // error: subsumed
-                break; // unreachable
+                break;
             default: //ok
                 break; // unreachable because a single case handles all input
         }
@@ -557,10 +527,7 @@ null";
             compilation.VerifyDiagnostics(
                 // (10,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case bool b: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "bool b").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "bool b").WithLocation(10, 18),
                 // (13,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable because a single case handles all input
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17)
@@ -710,23 +677,20 @@ null";
         switch (""goo"")
         {
             case null when true:
-                break;
-            case null:
+                break; // unreachable
+            case null: // subsumed
                 break;
         }
     }
 }";
             var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (9,13): error CS8120: The switch case has already been handled by a previous case.
-                //             case null:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case null:").WithLocation(9, 13),
+                // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case null: // subsumed
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "null").WithLocation(9, 18),
                 // (8,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17)
                 );
         }
 
@@ -1384,8 +1348,8 @@ class Program
             var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case bool b: ; // error: bool already handled by previous cases.
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "bool b").WithLocation(11, 18)
+                //             case bool b: throw null; // error: bool already handled by previous cases.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "bool b").WithLocation(11, 18)
                 );
         }
 
@@ -2674,10 +2638,7 @@ class Program
             compilation.VerifyDiagnostics(
                 // (13,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case List<(int z, int w)> list2: // subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "List<(int z, int w)> list2").WithLocation(13, 18),
-                // (14,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "List<(int z, int w)> list2").WithLocation(13, 18)
                 );
         }
 
@@ -2793,10 +2754,7 @@ class Program
             compilation.VerifyDiagnostics(
                 // (13,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var x:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var x").WithLocation(13, 18),
-                // (14,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var x").WithLocation(13, 18)
                 );
         }
 
@@ -2827,10 +2785,7 @@ class Program
             compilation.VerifyDiagnostics(
                 // (13,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case List<dynamic> list2: // subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "List<dynamic> list2").WithLocation(13, 18),
-                // (14,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break")
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "List<dynamic> list2").WithLocation(13, 18)
                 );
         }
 
@@ -2958,16 +2913,16 @@ class Program
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var z: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var z").WithLocation(11, 18),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var z").WithLocation(11, 18),
                 // (18,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var y: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var y").WithLocation(18, 18),
-                // (24,13): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var y").WithLocation(18, 18),
+                // (24,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case 1: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 1:"),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "1").WithLocation(24, 18),
                 // (30,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case int y: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int y").WithLocation(30, 18),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int y").WithLocation(30, 18),
                 // (37,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
                 //             case (string)null: // error: subsumed
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (string)null:").WithArguments("null").WithLocation(37, 13)
@@ -2990,11 +2945,11 @@ class Program
             case System.IComparable c:
                 break;
             case 2: // error: subsumed
-                break; // unreachable (1)
+                break; // unreachable (1)?
             case int n: // error: subsumed
-                break; // unreachable (2)
+                break; // unreachable (2)?
             case var i: // error: subsumed
-                break; // unreachable (3)
+                break; // unreachable (3)?
             default:
                 break; // unreachable, because `var i` would catch all
         }
@@ -3003,24 +2958,15 @@ class Program
 ";
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                // (12,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case 2: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 2:").WithLocation(12, 13),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "2").WithLocation(12, 18),
                 // (14,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case int n: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int n").WithLocation(14, 18),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int n").WithLocation(14, 18),
                 // (16,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var i: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var i").WithLocation(16, 18),
-                // (13,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable (1)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17),
-                // (15,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable (2)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(15, 17),
-                // (17,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable (3)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(17, 17),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var i").WithLocation(16, 18),
                 // (19,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable, because `var i` would catch all
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(19, 17)
@@ -3041,7 +2987,7 @@ class Program
             case System.IComparable c:
                 break;
             case System.ValueTuple<int, int> x: // error: subsumed
-                break; // unreachable
+                break;
             default:
                 break; // unreachable because a single case handles all input
         }
@@ -3053,10 +2999,7 @@ class Program
             compilation.VerifyDiagnostics(
                 // (10,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case System.ValueTuple<int, int> x: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "System.ValueTuple<int, int> x").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "System.ValueTuple<int, int> x").WithLocation(10, 18),
                 // (13,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable because a single case handles all input
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17)
@@ -3219,7 +3162,7 @@ static class Ex
           case bool _:
           case true:     // error: subsumed (1 of 12)
           case false:    // error: subsumed (2 of 12)
-            break; // unreachable (1)
+            break;
         }
 
         switch (new object())
@@ -3235,7 +3178,7 @@ static class Ex
           case bool _:
           case true:     // error: subsumed (5 of 12)
           case false:    // error: subsumed (6 of 12)
-            break; // unreachable (2)
+            break;
         }
 
         switch ((bool?)null)
@@ -3243,7 +3186,7 @@ static class Ex
           case bool _:
           case true:     // error: subsumed (7 of 12)
           case false:    // error: subsumed (8 of 12)
-            break; // unreachable (3)
+            break;
         }
 
         switch (default(bool?))
@@ -3251,8 +3194,7 @@ static class Ex
           case bool _:
           case true:     // error: subsumed (9 of 12)
           case false:    // error: subsumed (10 of 12)
-            break; // unreachable (4)
-            // warning on the previous line missing due to https://github.com/dotnet/roslyn/issues/22125
+            break;
         }
 
         switch (default(bool))
@@ -3266,51 +3208,42 @@ static class Ex
 }";
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
-                // (8,11): error CS8120: The switch case has already been handled by a previous case.
+                // (8,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case true:     // error: subsumed (1 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(8, 11),
-                // (9,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(8, 16),
+                // (9,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case false:    // error: subsumed (2 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(9, 11),
-                // (16,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(9, 16),
+                // (16,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case true:     // error: subsumed (3 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(16, 11),
-                // (17,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(16, 16),
+                // (17,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case false:    // error: subsumed (4 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(17, 11),
-                // (24,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(17, 16),
+                // (24,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case true:     // error: subsumed (5 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(24, 11),
-                // (25,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(24, 16),
+                // (25,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case false:    // error: subsumed (6 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(25, 11),
-                // (32,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(25, 16),
+                // (32,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case true:     // error: subsumed (7 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(32, 11),
-                // (33,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(32, 16),
+                // (33,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case false:    // error: subsumed (8 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(33, 11),
-                // (40,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(33, 16),
+                // (40,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case true:     // error: subsumed (9 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(40, 11),
-                // (41,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(40, 16),
+                // (41,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case false:    // error: subsumed (10 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(41, 11),
-                // (49,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(41, 16),
+                // (48,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case true:     // error: subsumed (11 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(49, 11),
-                // (50,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(48, 16),
+                // (49,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case false:    // error: subsumed (12 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(50, 11),
-                // (10,13): warning CS0162: Unreachable code detected
-                //             break; // unreachable (1)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 13),
-                // (26,13): warning CS0162: Unreachable code detected
-                //             break; // unreachable (2)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(26, 13),
-                // (34,13): warning CS0162: Unreachable code detected
-                //             break; // unreachable (3)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(34, 13)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(49, 16)
                 );
         }
     }

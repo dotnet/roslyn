@@ -2364,7 +2364,7 @@ class C
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(patterns2): This test is sensitive to the precise code generated, which is currently in flux.")]
         public void Switch_Patterns()
         {
             var source = @"

@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Operations
             });
         }
 
-        private ImmutableArray<ISwitchCaseOperation> GetPatternSwitchStatementCases(BoundPatternSwitchStatement2 statement)
+        private ImmutableArray<ISwitchCaseOperation> GetPatternSwitchStatementCases(BoundPatternSwitchStatement statement)
         {
             return statement.SwitchSections.SelectAsArray(switchSection =>
             {

@@ -85,18 +85,12 @@ static class C {
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // (12,9): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
+                // (14,18): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
+                //             case int i: break;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(14, 18),
+                // (12,17): error CS0656: Missing compiler required member 'System.Nullable`1.get_Value'
                 //         switch (x)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (x)
-        {
-            case int i: break;
-        }").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(12, 9),
-                // (12,9): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
-                //         switch (x)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (x)
-        {
-            case int i: break;
-        }").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(12, 9),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "get_Value").WithLocation(12, 17),
                 // (17,36): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
                 //     static bool M2(int? x) => x is int i;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(17, 36),
@@ -133,12 +127,12 @@ static class C {
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // (12,9): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
+                // (14,18): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
+                //             case int i: break;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(14, 18),
+                // (12,17): error CS0656: Missing compiler required member 'System.Nullable`1.get_Value'
                 //         switch (x)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (x)
-        {
-            case int i: break;
-        }").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(12, 9),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "get_Value").WithLocation(12, 17),
                 // (17,36): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
                 //     static bool M2(int? x) => x is int i;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(17, 36),
@@ -365,88 +359,73 @@ class Program
 }");
             compVerifier.VerifyIL("Program.P5",
 @"{
-  // Code size      162 (0xa2)
+  // Code size      129 (0x81)
   .maxstack  2
   .locals init (object V_0,
                 double V_1,
                 float V_2,
                 object V_3,
-                object V_4,
-                bool V_5)
+                bool V_4)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.3
   IL_0003:  ldloc.3
   IL_0004:  stloc.0
   IL_0005:  ldloc.0
-  IL_0006:  brtrue.s   IL_000a
-  IL_0008:  br.s       IL_0084
-  IL_000a:  ldloc.0
-  IL_000b:  stloc.s    V_4
-  IL_000d:  ldloc.s    V_4
-  IL_000f:  isinst     ""double""
-  IL_0014:  ldnull
-  IL_0015:  cgt.un
-  IL_0017:  dup
-  IL_0018:  brtrue.s   IL_0025
-  IL_001a:  ldc.r8     0
-  IL_0023:  br.s       IL_002c
-  IL_0025:  ldloc.s    V_4
-  IL_0027:  unbox.any  ""double""
-  IL_002c:  stloc.1
-  IL_002d:  brfalse.s  IL_004b
-  IL_002f:  ldloc.1
-  IL_0030:  call       ""bool double.IsNaN(double)""
-  IL_0035:  brtrue.s   IL_0039
-  IL_0037:  br.s       IL_003b
-  IL_0039:  br.s       IL_0086
-  IL_003b:  ldc.r8     3.14
-  IL_0044:  ldloc.1
-  IL_0045:  beq.s      IL_0049
-  IL_0047:  br.s       IL_004b
-  IL_0049:  br.s       IL_0090
-  IL_004b:  ldloc.0
-  IL_004c:  stloc.s    V_4
-  IL_004e:  ldloc.s    V_4
-  IL_0050:  isinst     ""float""
-  IL_0055:  ldnull
-  IL_0056:  cgt.un
-  IL_0058:  dup
-  IL_0059:  brtrue.s   IL_0062
-  IL_005b:  ldc.r4     0
-  IL_0060:  br.s       IL_0069
-  IL_0062:  ldloc.s    V_4
-  IL_0064:  unbox.any  ""float""
-  IL_0069:  stloc.2
-  IL_006a:  brfalse.s  IL_0084
-  IL_006c:  ldloc.2
-  IL_006d:  call       ""bool float.IsNaN(float)""
-  IL_0072:  brtrue.s   IL_0076
-  IL_0074:  br.s       IL_0078
-  IL_0076:  br.s       IL_008b
-  IL_0078:  ldc.r4     3.14
-  IL_007d:  ldloc.2
-  IL_007e:  beq.s      IL_0082
-  IL_0080:  br.s       IL_0084
-  IL_0082:  br.s       IL_0095
-  IL_0084:  br.s       IL_009a
-  IL_0086:  ldc.i4.1
-  IL_0087:  stloc.s    V_5
-  IL_0089:  br.s       IL_009f
-  IL_008b:  ldc.i4.1
-  IL_008c:  stloc.s    V_5
-  IL_008e:  br.s       IL_009f
-  IL_0090:  ldc.i4.1
-  IL_0091:  stloc.s    V_5
-  IL_0093:  br.s       IL_009f
-  IL_0095:  ldc.i4.1
-  IL_0096:  stloc.s    V_5
-  IL_0098:  br.s       IL_009f
-  IL_009a:  ldc.i4.0
-  IL_009b:  stloc.s    V_5
-  IL_009d:  br.s       IL_009f
-  IL_009f:  ldloc.s    V_5
-  IL_00a1:  ret
+  IL_0006:  brfalse.s  IL_0079
+  IL_0008:  ldloc.0
+  IL_0009:  isinst     ""double""
+  IL_000e:  brfalse.s  IL_0037
+  IL_0010:  ldloc.0
+  IL_0011:  unbox.any  ""double""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  call       ""bool double.IsNaN(double)""
+  IL_001d:  brfalse.s  IL_0021
+  IL_001f:  br.s       IL_0065
+  IL_0021:  ldloc.0
+  IL_0022:  isinst     ""double""
+  IL_0027:  brfalse.s  IL_0079
+  IL_0029:  ldc.r8     3.14
+  IL_0032:  ldloc.1
+  IL_0033:  bne.un.s   IL_0079
+  IL_0035:  br.s       IL_006f
+  IL_0037:  ldloc.0
+  IL_0038:  brfalse.s  IL_0079
+  IL_003a:  ldloc.0
+  IL_003b:  isinst     ""float""
+  IL_0040:  brfalse.s  IL_0079
+  IL_0042:  ldloc.0
+  IL_0043:  unbox.any  ""float""
+  IL_0048:  stloc.2
+  IL_0049:  ldloc.2
+  IL_004a:  call       ""bool float.IsNaN(float)""
+  IL_004f:  brfalse.s  IL_0053
+  IL_0051:  br.s       IL_006a
+  IL_0053:  ldloc.0
+  IL_0054:  isinst     ""float""
+  IL_0059:  brfalse.s  IL_0079
+  IL_005b:  ldc.r4     3.14
+  IL_0060:  ldloc.2
+  IL_0061:  bne.un.s   IL_0079
+  IL_0063:  br.s       IL_0074
+  IL_0065:  ldc.i4.1
+  IL_0066:  stloc.s    V_4
+  IL_0068:  br.s       IL_007e
+  IL_006a:  ldc.i4.1
+  IL_006b:  stloc.s    V_4
+  IL_006d:  br.s       IL_007e
+  IL_006f:  ldc.i4.1
+  IL_0070:  stloc.s    V_4
+  IL_0072:  br.s       IL_007e
+  IL_0074:  ldc.i4.1
+  IL_0075:  stloc.s    V_4
+  IL_0077:  br.s       IL_007e
+  IL_0079:  ldc.i4.0
+  IL_007a:  stloc.s    V_4
+  IL_007c:  br.s       IL_007e
+  IL_007e:  ldloc.s    V_4
+  IL_0080:  ret
 }");
         }
     }

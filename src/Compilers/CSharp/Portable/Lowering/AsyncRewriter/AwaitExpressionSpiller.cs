@@ -1130,7 +1130,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO(patterns2): This does not properly handle side-effects that are statements. That occurs
             // as a result of lowering a switch expression. Interesting cases to test include using `await`
             // in a `when` clause of one of the switch expression arms, or in one of the result expressions.
-            var sideEffects = node.SideEffects.CastArray<BoundExpression>();
+            // Until it is fixed, the cast below will fail whenever an async method contains a pattern switch.
+            var sideEffects = node.SideEffects.SelectAsArray(n => (BoundExpression)n);
 
             sideEffects = VisitExpressionList(ref builder, sideEffects, forceSpill: valueBuilder != null, sideEffectsOnly: true);
 

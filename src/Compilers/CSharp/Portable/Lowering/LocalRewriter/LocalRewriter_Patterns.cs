@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             Debug.Assert(!input.Type.IsNullableType());
-                            test = _localRewriter.MakeEqual(_factory.Literal(d.Value, input.Type), input);
+                            test = _localRewriter.MakeEqual(_localRewriter.MakeLiteral(d.Syntax, d.Value, input.Type), input);
                         }
                         return;
                     case BoundDagFieldEvaluation f:
@@ -279,10 +279,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public BoundExpression LowerIsPattern(BoundPattern pattern, CSharpCompilation compilation)
+            public BoundExpression LowerIsPattern(BoundPattern pattern, CSharpCompilation compilation, DiagnosticBag diagnostics)
             {
-                var decisionBuilder = new DecisionDagBuilder(compilation);
-                BoundDagTemp inputTemp = decisionBuilder.TranslatePattern(_loweredInput, pattern, out ImmutableArray<BoundDagDecision> decisions, out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings);
+                BoundDagTemp inputTemp = DecisionDagBuilder.TranslatePattern(
+                    compilation,
+                    _loweredInput,
+                    pattern,
+                    diagnostics,
+                    out ImmutableArray<BoundDagDecision> decisions,
+                    out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings);
                 Debug.Assert(inputTemp == _inputTemp);
 
                 // first, copy the input expression into the input temp
@@ -401,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression loweredExpression = VisitExpression(node.Expression);
             BoundPattern loweredPattern = LowerPattern(node.Pattern);
             var isPatternRewriter = new IsPatternExpressionLocalRewriter(this, loweredExpression);
-            BoundExpression result = isPatternRewriter.LowerIsPattern(loweredPattern, this._compilation);
+            BoundExpression result = isPatternRewriter.LowerIsPattern(loweredPattern, this._compilation, this._diagnostics);
             isPatternRewriter.Free();
             return result;
         }

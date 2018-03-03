@@ -256,9 +256,9 @@ namespace System
                 var source = string.Format(sourceTemplate, s1, s2, s3);
                 var compilation = CreatePatternCompilation(source);
                 compilation.VerifyDiagnostics(
-                    // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                    // (12,18): error CS8120: The switch case has already been handled by a previous case.
                     //             case (_, _): // error - subsumed
-                    Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case (_, _):").WithLocation(12, 13)
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "(_, _)").WithLocation(12, 18)
                     );
             }
             void testGoodCase(string s1, string s2)
@@ -733,7 +733,7 @@ namespace System
             this.Item1 = item1;
         }
     }
-}";;
+}";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 // (8,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
@@ -753,7 +753,10 @@ namespace System
                 Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(Item1: int z2)").WithLocation(12, 18),
                 // (13,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
                 //         if (t is (int z3) { }) { }                      // error 6
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int z3) { }").WithLocation(13, 18)
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int z3) { }").WithLocation(13, 18),
+                // (10,42): error CS8410: The pattern has already been handled by a previous arm of the switch expression.
+                //         var u = t switch { (int y) => y, _ => 2 };      // error 3
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(10, 42)
                 );
         }
 
@@ -958,9 +961,9 @@ namespace System
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (20,13): error CS8120: The switch case has already been handled by a previous case.
+                // (20,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case _: return 4;
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case _:").WithLocation(20, 13)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "_").WithLocation(20, 18)
                 );
         }
 
@@ -1008,6 +1011,26 @@ namespace System
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"0123");
+        }
+
+        [Fact]
+        public void SwitchArmSubsumed()
+        {
+            var source =
+@"public class X
+{
+    public static void Main()
+    {
+        string s = string.Empty;
+        string s2 = s switch { null => null, string t => t, ""foo"" => null };
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,61): error CS8410: The pattern has already been handled by a previous arm of the switch expression.
+                //         string s2 = s switch { null => null, string t => t, "foo" => null };
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""foo""").WithLocation(6, 61)
+                );
         }
 
         // PROTOTYPE(patterns2): Need to have tests that exercise:

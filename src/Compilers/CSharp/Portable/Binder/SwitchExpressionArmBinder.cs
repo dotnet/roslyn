@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, DiagnosticBag diagnostics)
         {
             Debug.Assert(node == _arm);
-            Binder caseBinder = this.GetBinder(node);
+            Binder armBinder = this.GetBinder(node);
             bool hasErrors = _switchExpressionBinder.SwitchGoverningType.IsErrorType();
             ImmutableArray<LocalSymbol> locals = _armScopeBinder.Locals;
-            BoundPattern pattern = caseBinder.BindPattern(node.Pattern, _switchExpressionBinder.SwitchGoverningType, hasErrors, diagnostics);
+            BoundPattern pattern = armBinder.BindPattern(node.Pattern, _switchExpressionBinder.SwitchGoverningType, hasErrors, diagnostics);
             BoundExpression guard = node.WhenClause != null
-                ? caseBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
+                ? armBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
                 : null;
-            BoundExpression armResult = caseBinder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            BoundExpression armResult = armBinder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             var label = new GeneratedLabelSymbol("arm");
             return new BoundSwitchExpressionArm(node, locals, pattern, guard, armResult, label, hasErrors | pattern.HasErrors);
         }

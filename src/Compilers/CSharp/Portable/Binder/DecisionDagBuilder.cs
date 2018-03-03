@@ -13,22 +13,68 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class DecisionDagBuilder
     {
-        private readonly Conversions Conversions;
-        private readonly TypeSymbol BooleanType;
-        private readonly TypeSymbol ObjectType;
-        private HashSet<DiagnosticInfo> discardedUseSiteDiagnostics;
+        private readonly Conversions _conversions;
+        private readonly TypeSymbol _booleanType;
+        private readonly TypeSymbol _objectType;
+        private readonly DiagnosticBag _diagnostics;
 
-        internal DecisionDagBuilder(CSharpCompilation compilation)
+        private DecisionDagBuilder(CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
-            this.Conversions = compilation.Conversions;
-            this.BooleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
-            this.ObjectType = compilation.GetSpecialType(SpecialType.System_Object);
+            this._conversions = compilation.Conversions;
+            this._booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
+            this._objectType = compilation.GetSpecialType(SpecialType.System_Object);
+            _diagnostics = diagnostics;
+        }
+
+        /// <summary>
+        /// Used to create a decision dag for a switch statement.
+        /// </summary>
+        public static BoundDecisionDag CreateDecisionDag(
+            CSharpCompilation compilation,
+            SyntaxNode syntax,
+            BoundExpression switchGoverningExpression,
+            ImmutableArray<BoundPatternSwitchSection> switchSections,
+            LabelSymbol defaultLabel,
+            DiagnosticBag diagnostics)
+        {
+            var builder = new DecisionDagBuilder(compilation, diagnostics);
+            var result = builder.CreateDecisionDag(syntax, switchGoverningExpression, switchSections, defaultLabel);
+            return result;
+        }
+
+        /// <summary>
+        /// Used to create a decision dag for a switch expression.
+        /// </summary>
+        public static BoundDecisionDag CreateDecisionDag(
+            CSharpCompilation compilation,
+            SyntaxNode syntax,
+            BoundExpression switchExpressionInput,
+            ImmutableArray<BoundSwitchExpressionArm> switchArms,
+            LabelSymbol defaultLabel,
+            DiagnosticBag diagnostics)
+        {
+            var builder = new DecisionDagBuilder(compilation, diagnostics);
+            var result = builder.CreateDecisionDag(syntax, switchExpressionInput, switchArms, defaultLabel);
+            return result;
         }
 
         /// <summary>
         /// Used to translate the pattern of an is-pattern expression. Returns the BoundDagTemp used to represent the root (input).
         /// </summary>
-        public BoundDagTemp TranslatePattern(
+        public static BoundDagTemp TranslatePattern(
+            CSharpCompilation compilation,
+            BoundExpression loweredInput,
+            BoundPattern pattern,
+            DiagnosticBag diagnostics,
+            out ImmutableArray<BoundDagDecision> decisions,
+            out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings)
+        {
+            DecisionDagBuilder builder = new DecisionDagBuilder(compilation, diagnostics);
+            var result = builder.TranslatePattern(loweredInput, pattern, out decisions, out bindings);
+            return result;
+        }
+
+        private BoundDagTemp TranslatePattern(
             BoundExpression input,
             BoundPattern pattern,
             out ImmutableArray<BoundDagDecision> decisions,
@@ -39,15 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rootIdentifier;
         }
 
-        /// <summary>
-        /// Used to create a decision dag for a switch statement.
-        /// </summary>
-        /// <param name="syntax"></param>
-        /// <param name="switchGoverningExpression"></param>
-        /// <param name="switchSections"></param>
-        /// <param name="defaultLabel"></param>
-        /// <returns></returns>
-        public BoundDecisionDag CreateDecisionDag(
+        private BoundDecisionDag CreateDecisionDag(
             SyntaxNode syntax,
             BoundExpression switchGoverningExpression,
             ImmutableArray<BoundPatternSwitchSection> switchSections,
@@ -67,7 +105,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
                 {
-                    builder.Add(MakePartialCaseDecision(++i, rootIdentifier, label));
+                    if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
+                    {
+                        builder.Add(MakePartialCaseDecision(++i, rootIdentifier, label));
+                    }
                 }
             }
 
@@ -88,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="switchArms"></param>
         /// <param name="defaultLabel"></param>
         /// <returns></returns>
-        public BoundDecisionDag CreateDecisionDag(
+        private BoundDecisionDag CreateDecisionDag(
             SyntaxNode syntax,
             BoundExpression switchExpressionInput,
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
@@ -126,9 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var decisionsBuilder = ArrayBuilder<BoundDagDecision>.GetInstance();
             var bindingsBuilder = ArrayBuilder<(BoundExpression, BoundDagTemp)>.GetInstance();
-            // use site diagnostics will have been produced during binding of the patterns, so can be discarded here
-            HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
-            MakeDecisionsAndBindings(input, pattern, decisionsBuilder, bindingsBuilder, ref discardedUseSiteDiagnostics);
+            MakeDecisionsAndBindings(input, pattern, decisionsBuilder, bindingsBuilder);
 
             // Now simplify the decisions and bindings. We don't need anything in decisions that does not
             // contribute to the result. This will, for example, permit us to match `(2, 3) is (2, _)` without
@@ -201,22 +240,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input,
             BoundPattern pattern,
             ArrayBuilder<BoundDagDecision> decisions,
-            ArrayBuilder<(BoundExpression, BoundDagTemp)> bindings,
-            ref HashSet<DiagnosticInfo> discardedUseSiteDiagnostics)
+            ArrayBuilder<(BoundExpression, BoundDagTemp)> bindings)
         {
             switch (pattern)
             {
                 case BoundDeclarationPattern declaration:
-                    MakeDecisionsAndBindings(input, declaration, decisions, bindings, ref discardedUseSiteDiagnostics);
+                    MakeDecisionsAndBindings(input, declaration, decisions, bindings);
                     break;
                 case BoundConstantPattern constant:
-                    MakeDecisionsAndBindings(input, constant, decisions, bindings, ref discardedUseSiteDiagnostics);
+                    MakeDecisionsAndBindings(input, constant, decisions, bindings);
                     break;
                 case BoundDiscardPattern wildcard:
                     // Nothing to do. It always matches.
                     break;
                 case BoundRecursivePattern recursive:
-                    MakeDecisionsAndBindings(input, recursive, decisions, bindings, ref discardedUseSiteDiagnostics);
+                    MakeDecisionsAndBindings(input, recursive, decisions, bindings);
                     break;
                 default:
                     throw new NotImplementedException(pattern.Kind.ToString());
@@ -227,8 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input,
             BoundDeclarationPattern declaration,
             ArrayBuilder<BoundDagDecision> decisions,
-            ArrayBuilder<(BoundExpression, BoundDagTemp)> bindings,
-            ref HashSet<DiagnosticInfo> discardedUseSiteDiagnostics)
+            ArrayBuilder<(BoundExpression, BoundDagTemp)> bindings)
         {
             TypeSymbol type = declaration.DeclaredType.Type;
             SyntaxNode syntax = declaration.Syntax;
@@ -237,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!declaration.IsVar)
             {
                 NullCheck(input, declaration.Syntax, decisions);
-                input = ConvertToType(input, declaration.Syntax, type, decisions, ref discardedUseSiteDiagnostics);
+                input = ConvertToType(input, declaration.Syntax, type, decisions);
             }
 
             BoundExpression left = declaration.VariableAccess;
@@ -268,13 +305,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input,
             SyntaxNode syntax,
             TypeSymbol type,
-            ArrayBuilder<BoundDagDecision> decisions,
-            ref HashSet<DiagnosticInfo> discardedUseSiteDiagnostics)
+            ArrayBuilder<BoundDagDecision> decisions)
         {
             if (input.Type != type)
             {
                 TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
-                Conversion conversion = Conversions.ClassifyBuiltInConversion(inputType, type, ref discardedUseSiteDiagnostics);
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                Conversion conversion = _conversions.ClassifyBuiltInConversion(inputType, type, ref useSiteDiagnostics);
+                _diagnostics.Add(syntax, useSiteDiagnostics);
                 if (input.Type.IsDynamic() ? type.SpecialType == SpecialType.System_Object : conversion.IsImplicit)
                 {
                     // type test not needed, only the type cast
@@ -297,17 +335,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input,
             BoundConstantPattern constant,
             ArrayBuilder<BoundDagDecision> decisions,
-            ArrayBuilder<(BoundExpression, BoundDagTemp)> bindings,
-            ref HashSet<DiagnosticInfo> discardedUseSiteDiagnostics)
+            ArrayBuilder<(BoundExpression, BoundDagTemp)> bindings)
         {
-            input = ConvertToType(input, constant.Syntax, constant.Value.Type, decisions, ref discardedUseSiteDiagnostics);
             if (constant.ConstantValue == ConstantValue.Null)
             {
                 decisions.Add(new BoundNullValueDecision(constant.Syntax, input));
             }
             else
             {
-                decisions.Add(new BoundNonNullValueDecision(constant.Syntax, constant.ConstantValue, input));
+                if (input.Type.CanContainNull())
+                {
+                    decisions.Add(new BoundNonNullDecision(constant.Syntax, input));
+                }
+
+                var convertedInput = ConvertToType(input, constant.Syntax, constant.Value.Type, decisions);
+                decisions.Add(new BoundNonNullValueDecision(constant.Syntax, constant.ConstantValue, convertedInput));
             }
         }
 
@@ -315,14 +357,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input,
             BoundRecursivePattern recursive,
             ArrayBuilder<BoundDagDecision> decisions,
-            ArrayBuilder<(BoundExpression, BoundDagTemp)> bindings,
-            ref HashSet<DiagnosticInfo> discardedUseSiteDiagnostics)
+            ArrayBuilder<(BoundExpression, BoundDagTemp)> bindings)
         {
             Debug.Assert(input.Type.IsErrorType() || input.Type == recursive.InputType);
             NullCheck(input, recursive.Syntax, decisions);
             if (recursive.DeclaredType != null && recursive.DeclaredType.Type != input.Type)
             {
-                input = ConvertToType(input, recursive.Syntax, recursive.DeclaredType.Type, decisions, ref discardedUseSiteDiagnostics);
+                input = ConvertToType(input, recursive.Syntax, recursive.DeclaredType.Type, decisions);
             }
 
             if (!recursive.Deconstruction.IsDefault)
@@ -340,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundPattern pattern = recursive.Deconstruction[i];
                         SyntaxNode syntax = pattern.Syntax;
                         var output = new BoundDagTemp(syntax, method.Parameters[i + extensionExtra].Type, evaluation, i);
-                        MakeDecisionsAndBindings(output, pattern, decisions, bindings, ref discardedUseSiteDiagnostics);
+                        MakeDecisionsAndBindings(output, pattern, decisions, bindings);
                     }
                 }
                 else if (input.Type.IsTupleType)
@@ -356,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var evaluation = new BoundDagFieldEvaluation(syntax, field, input); // fetch the ItemN field
                         decisions.Add(evaluation);
                         var output = new BoundDagTemp(syntax, field.Type, evaluation, 0);
-                        MakeDecisionsAndBindings(output, pattern, decisions, bindings, ref discardedUseSiteDiagnostics);
+                        MakeDecisionsAndBindings(output, pattern, decisions, bindings);
                     }
                 }
                 else
@@ -388,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     decisions.Add(evaluation);
                     var output = new BoundDagTemp(prop.pattern.Syntax, prop.symbol.GetTypeOrReturnType(), evaluation, 0);
-                    MakeDecisionsAndBindings(output, prop.pattern, decisions, bindings, ref discardedUseSiteDiagnostics);
+                    MakeDecisionsAndBindings(output, prop.pattern, decisions, bindings);
                 }
             }
 
@@ -427,7 +468,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // in case the where clause fails, we prepare for the remaining cases.
                     ImmutableArray<PartialCaseDecision> remainingCases = cases.RemoveAt(0);
                     BoundDecisionDag whereFails = MakeDecisionDag(syntax, remainingCases, defaultLabel);
-                    return new BoundWhenClause(first.Syntax, first.Bindings, first.WhereClause, new BoundDecision(first.Syntax, first.CaseLabel), whereFails);
+                    return new BoundWhenClause(first.Syntax, first.Bindings, first.WhereClause,
+                        new BoundDecision(first.Syntax, first.CaseLabel), whereFails);
                 }
             }
             else
@@ -435,13 +477,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (first.Decisions[0])
                 {
                     case BoundDagEvaluation e:
-                        BoundDecisionDag tail = MakeDecisionDag(syntax, RemoveEvaluation(cases, e), defaultLabel);
-                        return new BoundEvaluationPoint(syntax, e, tail);
+                        BoundDecisionDag tail = MakeDecisionDag(e.Syntax, RemoveEvaluation(cases, e), defaultLabel);
+                        return new BoundEvaluationPoint(e.Syntax, e, tail);
                     case BoundDagDecision d:
                         SplitCases(cases, d, out ImmutableArray<PartialCaseDecision> whenTrueDecisions, out ImmutableArray<PartialCaseDecision> whenFalseDecisions);
-                        BoundDecisionDag whenTrue = MakeDecisionDag(syntax, whenTrueDecisions, defaultLabel);
-                        BoundDecisionDag whenFalse = MakeDecisionDag(syntax, whenFalseDecisions, defaultLabel);
-                        return new BoundDecisionPoint(syntax, d, whenTrue, whenFalse);
+                        BoundDecisionDag whenTrue = MakeDecisionDag(d.Syntax, whenTrueDecisions, defaultLabel);
+                        BoundDecisionDag whenFalse = MakeDecisionDag(d.Syntax, whenFalseDecisions, defaultLabel);
+                        return new BoundDecisionPoint(d.Syntax, d, whenTrue, whenFalse);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(first.Decisions[0].Kind);
                 }
@@ -478,6 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckConsistentDecision(
                     d: d,
                     other: other,
+                    syntax: d.Syntax,
                     trueDecisionPermitsTrueOther: out bool trueDecisionPermitsTrueOther,
                     falseDecisionPermitsTrueOther: out bool falseDecisionPermitsTrueOther,
                     trueDecisionImpliesTrueOther: out bool trueDecisionImpliesTrueOther,
@@ -536,6 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckConsistentDecision(
             BoundDagDecision d,
             BoundDagDecision other,
+            SyntaxNode syntax,
             out bool trueDecisionPermitsTrueOther,
             out bool falseDecisionPermitsTrueOther,
             out bool trueDecisionImpliesTrueOther,
@@ -594,18 +638,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundTypeDecision t2:
                             // If T1 could never be T2, then success of T1 implies failure of T2.
-                            bool? matches = Binder.ExpressionOfTypeMatchesPatternType(Conversions, t1.Type, t2.Type, ref discardedUseSiteDiagnostics, out _);
-                            if (matches == false)
                             {
-                                trueDecisionPermitsTrueOther = false;
-                            }
+                                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                                bool? matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t1.Type, t2.Type, ref useSiteDiagnostics, out _);
+                                if (matches == false)
+                                {
+                                    trueDecisionPermitsTrueOther = false;
+                                }
 
-                            // If every T2 is a T1, then failure of T1 implies failure of T2.
-                            matches = Binder.ExpressionOfTypeMatchesPatternType(Conversions, t2.Type, t1.Type, ref discardedUseSiteDiagnostics, out _);
-                            if (matches == true)
-                            {
-                                // Once we know it is of the subtype, we do not need to test for the supertype.
-                                falseDecisionPermitsTrueOther = false;
+                                // If every T2 is a T1, then failure of T1 implies failure of T2.
+                                matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t2.Type, t1.Type, ref useSiteDiagnostics, out _);
+                                _diagnostics.Add(syntax, useSiteDiagnostics);
+                                if (matches == true)
+                                {
+                                    // Once we know it is of the subtype, we do not need to test for the supertype.
+                                    falseDecisionPermitsTrueOther = false;
+                                }
                             }
                             break;
                         case BoundNonNullValueDecision v2:
