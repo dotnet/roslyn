@@ -39,6 +39,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }
         }
 
+        public bool CloseWindow()
+        {
+            var dialog = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), GenerateTypeDialogID, isOpen: true, wait: false);
+            if (dialog == null)
+            {
+                return false;
+            }
+
+            ClickCancel();
+            return true;
+        }
+
         public void SetAccessibility(string accessibility)
         {
             DialogHelpers.SelectComboBoxItem(GetMainWindowHWnd(), GenerateTypeDialogID, "AccessList", accessibility);
