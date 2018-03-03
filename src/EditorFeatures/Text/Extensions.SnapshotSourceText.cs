@@ -32,13 +32,9 @@ namespace Microsoft.CodeAnalysis.Text
             private readonly Encoding _encodingOpt;
             private readonly TextBufferContainer _containerOpt;
 
-            private SnapshotSourceText(ITextSnapshot editorSnapshot)
+            private SnapshotSourceText(ITextSnapshot editorSnapshot) :
+                this(editorSnapshot, TextBufferContainer.From(editorSnapshot.TextBuffer))
             {
-                Contract.ThrowIfNull(editorSnapshot);
-
-                this.TextImage = RecordReverseMapAndGetImage(editorSnapshot);
-                _encodingOpt = editorSnapshot.TextBuffer.GetEncodingOrUTF8();
-                _containerOpt = TextBufferContainer.From(editorSnapshot.TextBuffer);
             }
 
             private SnapshotSourceText(ITextSnapshot editorSnapshot, TextBufferContainer container)
@@ -68,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Text
             /// Reverse map of roslyn text to editor snapshot. unlike forward map, this doesn't strongly hold onto editor snapshot so that 
             /// we don't leak editor snapshot which should go away once editor is closed. roslyn source's lifetime is not usually tied to view.
             /// </summary>
-            private static readonly ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>> s_roslynToEditorSnapshotMap = new ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>>();
+            private static readonly ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>> s_textImageToEditorSnapshotMap = new ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>>();
 
             public static SourceText From(ITextSnapshot editorSnapshot)
             {
@@ -248,10 +244,10 @@ namespace Microsoft.CodeAnalysis.Text
 
                 // If we're already in the map, there's nothing to update.  Do a quick check
                 // to avoid two allocations per call to RecordTextSnapshotAndGetImage.
-                if (!s_roslynToEditorSnapshotMap.TryGetValue(textImage, out var weakReference))
+                if (!s_textImageToEditorSnapshotMap.TryGetValue(textImage, out var weakReference))
                 {
                     // put reverse entry that won't hold onto anything
-                    weakReference = s_roslynToEditorSnapshotMap.GetValue(
+                    weakReference = s_textImageToEditorSnapshotMap.GetValue(
                         textImage, _ => new WeakReference<ITextSnapshot>(editorSnapshot));
                 }
 
@@ -259,14 +255,14 @@ namespace Microsoft.CodeAnalysis.Text
                 // forward and reversed map is 1:1 map. as long as snapshot is not null, it can't be
                 // different
                 var snapshot = weakReference.GetTarget();
-                Contract.ThrowIfFalse(snapshot == null || snapshot == editorSnapshot);
+                Contract.ThrowIfFalse(snapshot == editorSnapshot);
 #endif
                 return textImage;
             }
 
             private static ITextSnapshot TryFindEditorSnapshot(ITextImage textImage)
             {
-                if (!s_roslynToEditorSnapshotMap.TryGetValue(textImage, out var weakReference) ||
+                if (!s_textImageToEditorSnapshotMap.TryGetValue(textImage, out var weakReference) ||
                     !weakReference.TryGetTarget(out var editorSnapshot))
                 {
                     return null;
