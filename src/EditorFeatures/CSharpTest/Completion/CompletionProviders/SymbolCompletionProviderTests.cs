@@ -1263,9 +1263,15 @@ $$";
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SwitchLabelCase()
         {
-            var content = @"switch(i)
-    {
-        case $$";
+            var content = @"switch(i) { case $$";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SwitchPatternLabelCase()
+        {
+            var content = @"switch(i) { case $$ when";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
         }
@@ -2697,6 +2703,24 @@ class C
         switch (i)
         {
             case $$";
+
+            await VerifyItemExistsAsync(markup, "MAX_SIZE");
+        }
+
+        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084#issuecomment-370148553")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ConstantsInSwitchPatternCase()
+        {
+            var markup = @"
+class C
+{
+    public const int MAX_SIZE = 10;
+    void M()
+    {
+        int i = 10;
+        switch (i)
+        {
+            case $$ when";
 
             await VerifyItemExistsAsync(markup, "MAX_SIZE");
         }

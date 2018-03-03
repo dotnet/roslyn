@@ -1802,7 +1802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // case |
             if (token.IsKind(SyntaxKind.CaseKeyword) &&
-                token.Parent.IsKind(SyntaxKind.CaseSwitchLabel))
+                token.Parent.IsKind(SyntaxKind.CaseSwitchLabel, SyntaxKind.CasePatternSwitchLabel))
             {
                 return true;
             }
