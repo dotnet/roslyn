@@ -156,7 +156,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M2(o1, o2,  ... b, o3, o4))')
           Expression: 
             IInvocationOperation ( Sub C.M2(o1 As System.Object, o2 As System.Object, o3 As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(o1, o2,  ... b, o3, o4))')
@@ -178,10 +178,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -244,7 +240,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M2(o1, o2,  ... b, o3, o4))')
           Expression: 
             IInvocationOperation (Sub C.M2(o1 As System.Object, o2 As System.Object, o3 As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(o1, o2,  ... b, o3, o4))')
@@ -266,10 +262,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -327,7 +319,7 @@ Block[B0] - Entry
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
-        Statements (3)
+        Statements (2)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'x = If(b, o ... .ToString()')
               Left: 
                 ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, IsImplicit) (Syntax: 'x')
@@ -339,10 +331,6 @@ Block[B0] - Entry
 
             ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
               Statement: 
-                null
-
-            IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-              ReturnedValue: 
                 null
 
         Next (Regular) Block[B5]
@@ -400,7 +388,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M2(o3:=o3,  ... b, o1, o4))')
           Expression: 
             IInvocationOperation (Sub C.M2(o1 As System.Object, o2 As System.Object, o3 As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(o3:=o3,  ... b, o1, o4))')
@@ -422,10 +410,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -488,7 +472,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M2(o3:=If(b ... o2, o1:=o1)')
           Expression: 
             IInvocationOperation (Sub C.M2(o1 As System.Object, o2 As System.Object, o3 As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(o3:=If(b ... o2, o1:=o1)')
@@ -510,10 +494,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -572,7 +552,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M2(o2:=If(b ... 3), o1:=o1)')
           Expression: 
             IInvocationOperation (Sub C.M2(o1 As System.Object, o2 As System.Object, [o3 As System.Object = Nothing])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(o2:=If(b ... 3), o1:=o1)')
@@ -598,10 +578,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -664,7 +640,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'C.M2(o2:=If ... 3), o1:=o1)')
           Expression: 
             IInvocationOperation (Sub C.M2(o1 As System.Object, o2 As System.Object, [o3 As System.Object = Nothing])) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'C.M2(o2:=If ... 3), o1:=o1)')
@@ -690,10 +666,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]

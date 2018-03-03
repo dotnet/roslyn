@@ -32,7 +32,7 @@ Microsoft.CodeAnalysis.Operations.BasicBlock.BranchFlags.StructuredExceptionHand
 Microsoft.CodeAnalysis.Operations.BasicBlock.BranchFlags.Throw = 32 -> Microsoft.CodeAnalysis.Operations.BasicBlock.BranchFlags
 Microsoft.CodeAnalysis.Operations.BasicBlock.Conditional.get -> (Microsoft.CodeAnalysis.IOperation Condition, bool JumpIfTrue, Microsoft.CodeAnalysis.Operations.BasicBlock.Branch Branch)
 Microsoft.CodeAnalysis.Operations.BasicBlock.Kind.get -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
-Microsoft.CodeAnalysis.Operations.BasicBlock.Next.get -> Microsoft.CodeAnalysis.Operations.BasicBlock.Branch
+Microsoft.CodeAnalysis.Operations.BasicBlock.Next.get -> (Microsoft.CodeAnalysis.IOperation ReturnValue, Microsoft.CodeAnalysis.Operations.BasicBlock.Branch Branch)
 Microsoft.CodeAnalysis.Operations.BasicBlock.Ordinal.get -> int
 Microsoft.CodeAnalysis.Operations.BasicBlock.Predecessors.get -> System.Collections.Immutable.ImmutableHashSet<Microsoft.CodeAnalysis.Operations.BasicBlock>
 Microsoft.CodeAnalysis.Operations.BasicBlock.Region.get -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.Region

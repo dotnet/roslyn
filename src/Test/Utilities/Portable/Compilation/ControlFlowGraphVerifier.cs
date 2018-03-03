@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Equal(0, i);
                         Assert.Empty(block.Statements);
                         Assert.Null(block.Conditional.Condition);
-                        Assert.NotNull(block.Next.Destination);
+                        Assert.NotNull(block.Next.Branch.Destination);
+                        Assert.Null(block.Next.ReturnValue);
                         Assert.Same(graph.Root, currentRegion);
                         Assert.Same(currentRegion, block.Region);
                         Assert.Equal(0, currentRegion.FirstBlockOrdinal);
@@ -62,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Equal(blocks.Length - 1, i);
                         Assert.Empty(block.Statements);
                         Assert.Null(block.Conditional.Condition);
-                        Assert.Null(block.Next.Destination);
+                        Assert.Null(block.Next.Branch.Destination);
+                        Assert.Null(block.Next.ReturnValue);
                         Assert.Same(graph.Root, currentRegion);
                         Assert.Same(currentRegion, block.Region);
                         Assert.Equal(i, currentRegion.LastBlockOrdinal);
@@ -94,7 +96,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     foreach (BasicBlock predecessor in predecessors.OrderBy(p => p.Ordinal))
                     {
                         Assert.Same(blocks[predecessor.Ordinal], predecessor);
-                        Assert.True(predecessor.Conditional.Branch.Destination == block || predecessor.Next.Destination == block);
+                        Assert.True(predecessor.Conditional.Branch.Destination == block || predecessor.Next.Branch.Destination == block);
+
+                        if (block.Kind != BasicBlockKind.Exit && predecessor.Next.Branch.Destination == block)
+                        {
+                            Assert.Null(predecessor.Next.ReturnValue);
+                        }
+
                         stringBuilder.Append($" [B{predecessor.Ordinal}]");
                     }
 
@@ -133,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     validateBranch(block, conditionalBranch);
                 }
 
-                BasicBlock.Branch nextBranch = block.Next;
+                BasicBlock.Branch nextBranch = block.Next.Branch;
 
                 if (nextBranch.Destination != null || block.Kind != BasicBlockKind.Exit)
                 {
@@ -143,11 +151,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
 
                     appendLine($"    Next ({nextBranch.Flags}) Block[{(nextBranch.Destination != null ? ("B" + nextBranch.Destination.Ordinal) : (object)"null")}]");
+                    IOperation value = block.Next.ReturnValue;
+
+                    if (value != null)
+                    {
+                        validateRoot(value);
+                        stringBuilder.Append(OperationTreeVerifier.GetOperationTree(compilation, value, initialIndent: 8 + indent));
+                    }
                 }
                 else
                 {
                     Assert.Equal(0, (int)nextBranch.Flags);
                     Assert.Null(nextBranch.Destination);
+                    Assert.Null(block.Next.ReturnValue);
                 }
 
                 validateBranch(block, nextBranch);

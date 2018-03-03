@@ -86,7 +86,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'result = If ... lternative)')
@@ -97,10 +97,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -193,7 +189,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int64, IsImplicit) (Syntax: 'result = If ... lternative)')
@@ -204,10 +200,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -300,7 +292,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of System.Int64), IsImplicit) (Syntax: 'result = If ... lternative)')
@@ -311,10 +303,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -404,7 +392,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'result = If ... lternative)')
@@ -415,10 +403,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -518,7 +502,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'result = If ... lternative)')
@@ -529,10 +513,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -625,7 +605,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'result = If ... lternative)')
@@ -636,10 +616,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -729,7 +705,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'result = If ... lternative)')
@@ -740,10 +716,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -833,7 +805,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'result = If ... lternative)')
@@ -844,10 +816,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -937,7 +905,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'result = If ... lternative)')
@@ -948,10 +916,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -1044,7 +1008,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'result = If ... lternative)')
@@ -1055,10 +1019,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -1144,7 +1104,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'result = If ... lternative)')
@@ -1155,10 +1115,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -1276,7 +1232,7 @@ Block[B8] - Block
     Next (Regular) Block[B9]
 Block[B9] - Block
     Predecessors: [B5] [B7] [B8]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... ernative2))')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'result = If ... ernative2))')
@@ -1287,10 +1243,6 @@ Block[B9] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B10]

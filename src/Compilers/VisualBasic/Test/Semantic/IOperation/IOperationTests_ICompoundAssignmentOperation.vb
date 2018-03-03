@@ -489,7 +489,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a(0) += If(b, c)')
           Expression: 
             ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a(0) += If(b, c)')
@@ -502,10 +502,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -576,7 +572,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a(0) -= If(b, c)')
           Expression: 
             ICompoundAssignmentOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a(0) -= If(b, c)')
@@ -589,10 +585,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -663,7 +655,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a(0) *= If(b, c)')
           Expression: 
             ICompoundAssignmentOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a(0) *= If(b, c)')
@@ -676,10 +668,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -750,7 +738,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a(0) /= If(b, c)')
           Expression: 
             ICompoundAssignmentOperation (BinaryOperatorKind.Divide, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a(0) /= If(b, c)')
@@ -767,10 +755,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -841,7 +825,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a(0) \= If(b, c)')
           Expression: 
             ICompoundAssignmentOperation (BinaryOperatorKind.IntegerDivide, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a(0) \= If(b, c)')
@@ -854,10 +838,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -928,7 +908,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a(0) &= If(b, c)')
           Expression: 
             ICompoundAssignmentOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a(0) &= If(b, c)')
@@ -945,10 +925,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -1019,7 +995,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a(0) ^= If(b, c)')
           Expression: 
             ICompoundAssignmentOperation (BinaryOperatorKind.Power, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a(0) ^= If(b, c)')
@@ -1036,10 +1012,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -1110,7 +1082,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a(0) <<= If(b, c)')
           Expression: 
             ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a(0) <<= If(b, c)')
@@ -1123,10 +1095,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
@@ -1197,7 +1165,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
+    Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a(0) >>= If(b, c)')
           Expression: 
             ICompoundAssignmentOperation (BinaryOperatorKind.RightShift, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a(0) >>= If(b, c)')
@@ -1210,10 +1178,6 @@ Block[B4] - Block
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
-            null
-
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-          ReturnedValue: 
             null
 
     Next (Regular) Block[B5]
