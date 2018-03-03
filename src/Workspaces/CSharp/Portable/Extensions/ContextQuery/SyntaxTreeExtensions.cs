@@ -1800,6 +1800,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
+            // is |
+            if (token.IsKind(SyntaxKind.IsKeyword) &&
+                token.Parent.IsKind(SyntaxKind.IsExpression, SyntaxKind.IsPatternExpression))
+            {
+                return true;
+            }
+
             // case |
             if (token.IsKind(SyntaxKind.CaseKeyword) &&
                 token.Parent.IsKind(SyntaxKind.CaseSwitchLabel, SyntaxKind.CasePatternSwitchLabel))
