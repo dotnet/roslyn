@@ -16,6 +16,7 @@
     <dependencies>
       <group targetFramework="netstandard1.3">
         <dependency id="Microsoft.CodeAnalysis.Analyzers"              version="$MicrosoftCodeAnalysisAnalyzersVersion$" />
+        <dependency id="Microsoft.DiaSymReader"                        version="$MicrosoftDiaSymReaderVersion$"/>
 
         <dependency id="System.AppContext"                             version="$SystemAppContextVersion$"/>
         <dependency id="System.Collections"                            version="$SystemCollectionsVersion$"/>

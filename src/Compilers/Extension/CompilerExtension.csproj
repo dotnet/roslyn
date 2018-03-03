@@ -32,6 +32,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.Native" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.Win32.Primitives" />
     <!--

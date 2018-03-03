@@ -870,6 +870,7 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\Toolset\System.Xml.XPath.XDocument.dll")
         add("Exes\Toolset\Microsoft.Win32.Primitives.dll")
         add("Vsix\VisualStudioSetup\Humanizer.dll")
+        add("Exes\Toolset\Microsoft.DiaSymReader.dll")
         Return map
     End Function
 
@@ -1146,8 +1147,8 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
                           ' These files are inserted by MSBuild setup 
                           Case "Microsoft.DiaSymReader.Native.amd64.dll", "Microsoft.DiaSymReader.Native.x86.dll"
                               Return False
-                          ' Do not truly understand why these are excluded here. Just maintaining compat
-                          Case "System.Collections.Immutable.dll", "System.Reflection.Metadata.dll"
+                          ' These files are insertied in their own ExternalAPIs directories
+                          Case "System.Collections.Immutable.dll", "System.Reflection.Metadata.dll", "Microsoft.DiaSymReader.dll"
                               Return False
                           Case Else
                               Return True

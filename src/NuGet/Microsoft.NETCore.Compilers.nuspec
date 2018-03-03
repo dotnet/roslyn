@@ -32,6 +32,7 @@
     <!-- N.B.: The backslashes below cannot be replaced with forward slashes. 
          https://github.com/NuGet/Home/issues/3584 -->
     <file src="Dlls\MSBuildTask\netstandard1.3\publish\System.*.dll" target="tools" />
+    <file src="Dlls\MSBuildTask\netstandard1.3\publish\Microsoft.DiaSymReader.dll" target="tools" />
     <file src="Dlls\MSBuildTask\netstandard1.3\publish\runtimes\**" target="tools\runtimes" />
 
     <!-- Compiler exe files -->
