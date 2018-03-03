@@ -235,6 +235,30 @@ commitPullList.each { isPr ->
   }
 }
 
+// True when this is a PR job, false for commit. We generally don't want to run the Loc status
+// check on PRs (as we don't want to block PRs due to unlocalized resources) and never want to
+// bother running it on feature branches.
+def locStatusCommitPullList = [false]
+if (branchName.startsWith("features/")) {
+  locStatusCommitPullList = []
+}
+
+// Loc status check
+locStatusCommitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "loc_status", isPr)
+  def myJob = job(jobName) {
+    description('Loc status check')
+    steps {
+      powerShell("""& .\\build\\scripts\\check-locstatus.ps1""")
+    }
+  }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = "loc-status"
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
 JobReport.Report.generateJobReport(out)
 
 // Make the call to generate the help job
