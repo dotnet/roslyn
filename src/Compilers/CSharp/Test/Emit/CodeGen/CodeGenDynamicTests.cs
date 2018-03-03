@@ -15386,5 +15386,44 @@ class C
         }
 
         #endregion
+
+        #region Regression Tests
+
+        [Fact]
+        public void ByRefDynamic()
+        {
+            string source = @"
+    public class Program
+    {
+        static void Main(string[] args)
+        {
+            System.Console.Write(Test1());
+            System.Console.Write("" "");
+            System.Console.Write(x.Length);
+        }
+
+        static dynamic x = new C1();
+
+        static int Test1()
+        {
+            return M1(ref x.Length);
+        }
+
+        static dynamic M1(ref dynamic d)
+        {
+            d = 321;
+            return d;
+        }
+    }
+
+    class C1
+    {
+        public int Length = 123;
+    }
+";
+            var comp = CompileAndVerify(source, expectedOutput: "321 123", references: new[] { SystemCoreRef, CSharpRef });
+        }
+
+        #endregion
     }
 }

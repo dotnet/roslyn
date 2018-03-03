@@ -7911,6 +7911,51 @@ public class C { }
         }
 
         [Fact]
+        [WorkItem(24835, "https://github.com/dotnet/roslyn/issues/24835")]
+        public void TestCompilationSuccessIfOnlySuppressedDiagnostics()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"
+#pragma warning disable Warning01
+class C { }
+");
+
+            var errorLog = Temp.CreateFile();
+            var csc = new MockCSharpCompilerWithSpecificAnalyzer(
+                workingDirectory: Path.GetDirectoryName(srcFile.Path),
+                args: new[] { "/errorlog:" + errorLog.Path, "/warnaserror+", "/nologo", "/t:library", srcFile.Path },
+                analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new WarningDiagnosticAnalyzer()));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
+
+            // Previously, the compiler would return error code 1 without printing any diagnostics
+            Assert.Empty(outWriter.ToString());
+            Assert.Equal(0, exitCode);
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+            CleanupAllGeneratedFiles(errorLog.Path);
+        }
+
+        /// <summary>
+        /// This mock compiler will not auto-detect analyzers, but only use the ones it is given explicitly.
+        /// </summary>
+        private class MockCSharpCompilerWithSpecificAnalyzer : MockCSharpCompiler
+        {
+            public MockCSharpCompilerWithSpecificAnalyzer(string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers)
+                : base(responseFile: null, workingDirectory, args, analyzers, loader: null)
+            {
+            }
+
+            protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
+                List<DiagnosticInfo> diagnostics,
+                CommonMessageProvider messageProvider)
+            {
+                Assert.True(!_analyzers.IsDefaultOrEmpty);
+                return _analyzers;
+            }
+        }
+
+        [Fact]
         [WorkItem(1759, "https://github.com/dotnet/roslyn/issues/1759")]
         public void AnalyzerDiagnosticThrowsInGetMessage()
         {
