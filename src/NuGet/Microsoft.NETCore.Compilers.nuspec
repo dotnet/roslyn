@@ -60,6 +60,7 @@
     <!-- References that are either not in the target framework or are a higher version -->
     <!-- N.B.: The backslashes below cannot be replaced with forward slashes.
          https://github.com/NuGet/Home/issues/3584 -->
+    <file src="Exes\csc\netcoreapp2.0\publish\Microsoft.DiaSymReader.dll" target="tools\bincore" />
     <file src="Exes\csc\netcoreapp2.0\publish\System.*.dll" target="tools\bincore" />
     <file src="Exes\csc\netcoreapp2.0\publish\runtimes\**" target="tools\bincore\runtimes" />
   </files>

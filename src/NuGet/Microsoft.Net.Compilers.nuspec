@@ -61,6 +61,7 @@
          the src/Setup/DevDivInsertionFiles/BuildDevDivInsertionFiles.vb file, the
          src/Setup/DevDivVsix/CompilersPackage/Microsoft.CodeAnalysis.Compilers.swr file,
          and src/Compilers/Extension/CompilerExtension.csproj file. -->
+    <file src="Exes\Toolset\Microsoft.DiaSymReader.dll" target="tools" />
     <file src="Exes\Toolset\System.AppContext.dll" target="tools" />
     <file src="Exes\Toolset\System.Console.dll" target="tools" />
     <file src="Exes\Toolset\System.Collections.Immutable.dll" target="tools" />

@@ -34,6 +34,7 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Reflection.Metadata.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Exes\csi\net46\System.ValueTuple.dll vs.file.ngenArchitecture=all
 
+    file source=$(OutputPath)\Vsix\CompilerExtension\Microsoft.DiaSymReader.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.AppContext.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Console.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.FileVersionInfo.dll vs.file.ngenArchitecture=all
