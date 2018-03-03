@@ -1796,23 +1796,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsConstantExpressionContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+        public static bool IsConstantExpressionContext(this SyntaxTree syntaxTree, int position,
+            SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
+            if (IsPatternContext(syntaxTree, tokenOnLeftOfPosition, position))
+            {
+                return true;
+            }
+
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
-
-            // is |
-            if (token.IsKind(SyntaxKind.IsKeyword) &&
-                token.Parent.IsKind(SyntaxKind.IsExpression, SyntaxKind.IsPatternExpression))
-            {
-                return true;
-            }
-
-            // case |
-            if (token.IsKind(SyntaxKind.CaseKeyword) &&
-                token.Parent.IsKind(SyntaxKind.CaseSwitchLabel, SyntaxKind.CasePatternSwitchLabel))
-            {
-                return true;
-            }
 
             // goto case |
             if (token.IsKind(SyntaxKind.CaseKeyword) &&
