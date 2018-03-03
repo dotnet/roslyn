@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return inits.Length != 0 && inits[0].Kind == BoundKind.ArrayInitialization;
         }
 
-        private bool TryEmitReadonlySpanAsBlobWrapper(NamedTypeSymbol spanType, BoundExpression wrappedExprerssion, bool used, bool inPlace)
+        private bool TryEmitReadonlySpanAsBlobWrapper(NamedTypeSymbol spanType, BoundExpression wrappedExpression, bool used, bool inPlace)
         {
             ImmutableArray<byte> data = default;
             int elementCount = -1;
@@ -365,11 +365,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return false;
             }
 
-            if (wrappedExprerssion is BoundArrayCreation ac)
+            if (wrappedExpression is BoundArrayCreation ac)
             {
                 var arrayType = (ArrayTypeSymbol)ac.Type;
                 elementType = arrayType.ElementType.EnumUnderlyingType();
 
+                // NB: we cannot use this approach for element types larger than one byte
+                //     the issue is that metadata stores blobs in little-endian format
+                //     so anything that is larger than one byte will be incorrect on a big-endian machine
+                //     With additional runtime support it might be possible, but not yet.
+                //     See: https://github.com/dotnet/corefx/issues/26948 for more details
                 if (elementType.SpecialType.SizeInBytes() != 1)
                 {
                     return false;
@@ -389,26 +394,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return true;
             }
             
-            if(elementCount == 0)
+            if (elementCount == 0)
             {
                 if (inPlace)
                 {
                     _builder.EmitOpCode(ILOpCode.Initobj);
-                    EmitSymbolToken(spanType, wrappedExprerssion.Syntax);
+                    EmitSymbolToken(spanType, wrappedExpression.Syntax);
                 }
                 else
                 {
-                    EmitDefaultValue(spanType, used, wrappedExprerssion.Syntax);
+                    EmitDefaultValue(spanType, used, wrappedExpression.Syntax);
                 }
             }
             else
             {
-                if(EnablePEVerifyCompat())
+                if (EnablePEVerifyCompat())
                 {
                     return false;
                 }
 
-                _builder.EmitArrayBlockFieldRef(data, elementType, wrappedExprerssion.Syntax, _diagnostics);
+                _builder.EmitArrayBlockFieldRef(data, elementType, wrappedExpression.Syntax, _diagnostics);
                 _builder.EmitIntConstant(elementCount);
 
                 if (inPlace)
@@ -422,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment: -1);
                 }
 
-                EmitSymbolToken(ctor.AsMember(spanType), wrappedExprerssion.Syntax, optArgList: null);
+                EmitSymbolToken(ctor.AsMember(spanType), wrappedExpression.Syntax, optArgList: null);
             }
 
             return true;

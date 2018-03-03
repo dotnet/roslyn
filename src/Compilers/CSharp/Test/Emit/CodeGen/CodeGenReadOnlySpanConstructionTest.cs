@@ -244,6 +244,63 @@ class Test
 
         [Fact]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
+        public void NotConstArrayCtorByte()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+class Test
+{
+    static byte[] arr = new byte[]{1, 2, byte.Parse(""3""), 4, 5, 6, 7, 8}; 
+
+    public static void Main()
+    {       
+        var s1 = new ReadOnlySpan<byte>(new byte[]{1, 2, byte.Parse(""3""), 4, 5, 6, 7, 8});
+        var s2 = new ReadOnlySpan<byte>(arr);
+
+        Console.Write(s1[2] == s2[2]);
+    }
+}
+
+", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "True", verify: Verification.Passes).VerifyIL("Test.Main", @"
+{
+  // Code size       75 (0x4b)
+  .maxstack  5
+  .locals init (System.ReadOnlySpan<byte> V_0, //s1
+                System.ReadOnlySpan<byte> V_1) //s2
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.8
+  IL_0003:  newarr     ""byte""
+  IL_0008:  dup
+  IL_0009:  ldtoken    ""long <PrivateImplementationDetails>.7CF9F8998983B6C88C228229964D73D4717979C1""
+  IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0013:  dup
+  IL_0014:  ldc.i4.2
+  IL_0015:  ldstr      ""3""
+  IL_001a:  call       ""byte byte.Parse(string)""
+  IL_001f:  stelem.i1
+  IL_0020:  call       ""System.ReadOnlySpan<byte>..ctor(byte[])""
+  IL_0025:  ldloca.s   V_1
+  IL_0027:  ldsfld     ""byte[] Test.arr""
+  IL_002c:  call       ""System.ReadOnlySpan<byte>..ctor(byte[])""
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  ldc.i4.2
+  IL_0034:  call       ""ref readonly byte System.ReadOnlySpan<byte>.this[int].get""
+  IL_0039:  ldind.u1
+  IL_003a:  ldloca.s   V_1
+  IL_003c:  ldc.i4.2
+  IL_003d:  call       ""ref readonly byte System.ReadOnlySpan<byte>.this[int].get""
+  IL_0042:  ldind.u1
+  IL_0043:  ceq
+  IL_0045:  call       ""void System.Console.Write(bool)""
+  IL_004a:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void NotBlittableArrayConv()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"

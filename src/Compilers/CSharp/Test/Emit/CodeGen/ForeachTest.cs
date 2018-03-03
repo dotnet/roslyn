@@ -441,6 +441,7 @@ class Test
 
 ", TestOptions.ReleaseExe);
 
+            //NOTE: the verification error is expected. Wrapping of literals into readonly spans uses unsafe Span.ctor.
             CompileAndVerify(comp, expectedOutput: "RedGreenBlue", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       50 (0x32)
