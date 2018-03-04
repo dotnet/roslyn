@@ -508,6 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool UseOnlyReferenceEquality(BoundExpression left, BoundExpression right, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
+            // We consider the `null` literal, but not the `default` literal, since the latter does not require a reference equality
             return
                 BuiltInOperators.IsValidObjectEquality(Conversions, left.Type, left.IsLiteralNull(), right.Type, right.IsLiteralNull(), ref useSiteDiagnostics) &&
                 ((object)left.Type == null || (!left.Type.IsDelegateType() && left.Type.SpecialType != SpecialType.System_String && left.Type.SpecialType != SpecialType.System_Delegate)) &&
@@ -1003,7 +1004,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return BetterResult.Neither;
+            // Always prefer operators with val parameters over operators with in parameters:
+            BetterResult valOverInPreference;
+
+            if (op1.LeftRefKind == RefKind.None && op2.LeftRefKind == RefKind.In)
+            {
+                valOverInPreference = BetterResult.Left;
+            }
+            else if (op2.LeftRefKind == RefKind.None && op1.LeftRefKind == RefKind.In)
+            {
+                valOverInPreference = BetterResult.Right;
+            }
+            else
+            {
+                valOverInPreference = BetterResult.Neither;
+            }
+
+            if (op1.RightRefKind == RefKind.None && op2.RightRefKind == RefKind.In)
+            {
+                if (valOverInPreference == BetterResult.Right)
+                {
+                    return BetterResult.Neither;
+                }
+                else
+                {
+                    valOverInPreference = BetterResult.Left;
+                }
+            }
+            else if (op2.RightRefKind == RefKind.None && op1.RightRefKind == RefKind.In)
+            {
+                if (valOverInPreference == BetterResult.Left)
+                {
+                    return BetterResult.Neither;
+                }
+                else
+                {
+                    valOverInPreference = BetterResult.Right;
+                }
+            }
+
+            return valOverInPreference;
         }
 
         private BetterResult MoreSpecificOperator(BinaryOperatorSignature op1, BinaryOperatorSignature op2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

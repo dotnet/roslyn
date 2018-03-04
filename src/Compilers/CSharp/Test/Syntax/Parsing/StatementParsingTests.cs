@@ -2612,7 +2612,7 @@ class C
             tree.GetDiagnostics(root).Verify(
                 // (7,36): error CS1003: Syntax error, 'when' expected
                 //         catch (System.Exception e) if (true) { }
-                CSharpTestBaseBase.Diagnostic(ErrorCode.ERR_SyntaxError, "if").WithArguments("when", "if").WithLocation(7, 36));
+                CSharpTestBase.Diagnostic(ErrorCode.ERR_SyntaxError, "if").WithArguments("when", "if").WithLocation(7, 36));
 
             var filterClause = root.DescendantNodes().OfType<CatchFilterClauseSyntax>().Single();
             Assert.Equal(SyntaxKind.WhenKeyword, filterClause.WhenKeyword.Kind());

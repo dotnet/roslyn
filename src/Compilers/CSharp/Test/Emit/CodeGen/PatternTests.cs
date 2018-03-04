@@ -27,7 +27,7 @@ static class C {
     public static bool M() => ((object)123) is int i;
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -50,7 +50,7 @@ static class C {
     public static bool M() => ((object)123) is int i;
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -80,7 +80,7 @@ static class C {
     static bool M2(int? x) => x is int i;
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -122,7 +122,7 @@ static class C {
     static bool M2(int? x) => x is int i;
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -163,7 +163,7 @@ public class C
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"eval";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -235,17 +235,16 @@ class IdentityAccessor<T>
         return Guid.Empty;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { LinqAssemblyRef });
             compilation.VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("X<T>.Y<U>",
 @"{
-  // Code size       67 (0x43)
+  // Code size       61 (0x3d)
   .maxstack  3
   .locals init (U V_0, //u
                 bool V_1,
-                object V_2,
-                U V_3)
+                T V_2)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  call       ""System.Collections.Generic.IEnumerable<T> X<T>.GetT()""
@@ -253,27 +252,127 @@ class IdentityAccessor<T>
   IL_0008:  ldftn      ""bool X<T>.<Y>b__1_0<U>(T)""
   IL_000e:  newobj     ""System.Func<T, bool>..ctor(object, System.IntPtr)""
   IL_0013:  call       ""T System.Linq.Enumerable.FirstOrDefault<T>(System.Collections.Generic.IEnumerable<T>, System.Func<T, bool>)""
-  IL_0018:  box        ""T""
-  IL_001d:  stloc.2
-  IL_001e:  ldloc.2
+  IL_0018:  dup
+  IL_0019:  stloc.2
+  IL_001a:  box        ""T""
   IL_001f:  isinst     ""U""
-  IL_0024:  ldnull
-  IL_0025:  cgt.un
-  IL_0027:  dup
-  IL_0028:  brtrue.s   IL_0035
-  IL_002a:  ldloca.s   V_3
-  IL_002c:  initobj    ""U""
-  IL_0032:  ldloc.3
-  IL_0033:  br.s       IL_003b
-  IL_0035:  ldloc.2
-  IL_0036:  unbox.any  ""U""
-  IL_003b:  stloc.0
-  IL_003c:  stloc.1
-  IL_003d:  ldloc.1
-  IL_003e:  brfalse.s  IL_0042
-  IL_0040:  nop
-  IL_0041:  nop
-  IL_0042:  ret
+  IL_0024:  brfalse.s  IL_0035
+  IL_0026:  ldloc.2
+  IL_0027:  box        ""T""
+  IL_002c:  unbox.any  ""U""
+  IL_0031:  stloc.0
+  IL_0032:  ldc.i4.1
+  IL_0033:  br.s       IL_0036
+  IL_0035:  ldc.i4.0
+  IL_0036:  stloc.1
+  IL_0037:  ldloc.1
+  IL_0038:  brfalse.s  IL_003c
+  IL_003a:  nop
+  IL_003b:  nop
+  IL_003c:  ret
+}");
+        }
+
+        [Fact, WorkItem(24522, "https://github.com/dotnet/roslyn/issues/24522")]
+        public void IgnoreDeclaredConversion_01()
+        {
+            var source =
+@"class Base<T>
+{
+    public static implicit operator Derived(Base<T> obj)
+    {
+        return new Derived();
+    }
+}
+
+class Derived : Base<object>
+{
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Base<object> x = new Derived();
+        System.Console.WriteLine(x is Derived);
+        System.Console.WriteLine(x is Derived y);
+        switch (x)
+        {
+            case Derived z: System.Console.WriteLine(true); break;
+        }
+        System.Console.WriteLine(null != (x as Derived));
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, references: new[] { LinqAssemblyRef });
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"True
+True
+True
+True";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("Program.Main",
+@"{
+  // Code size      113 (0x71)
+  .maxstack  2
+  .locals init (Base<object> V_0, //x
+                Derived V_1, //y
+                Derived V_2,
+                Derived V_3, //z
+                Base<object> V_4,
+                Derived V_5,
+                Base<object> V_6)
+  IL_0000:  nop
+  IL_0001:  newobj     ""Derived..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  isinst     ""Derived""
+  IL_000d:  ldnull
+  IL_000e:  cgt.un
+  IL_0010:  call       ""void System.Console.WriteLine(bool)""
+  IL_0015:  nop
+  IL_0016:  ldloc.0
+  IL_0017:  brfalse.s  IL_002d
+  IL_0019:  ldloc.0
+  IL_001a:  isinst     ""Derived""
+  IL_001f:  brfalse.s  IL_002d
+  IL_0021:  ldloc.0
+  IL_0022:  castclass  ""Derived""
+  IL_0027:  stloc.2
+  IL_0028:  ldloc.2
+  IL_0029:  stloc.1
+  IL_002a:  ldc.i4.1
+  IL_002b:  br.s       IL_002e
+  IL_002d:  ldc.i4.0
+  IL_002e:  call       ""void System.Console.WriteLine(bool)""
+  IL_0033:  nop
+  IL_0034:  ldloc.0
+  IL_0035:  stloc.s    V_6
+  IL_0037:  ldloc.s    V_6
+  IL_0039:  stloc.s    V_4
+  IL_003b:  ldloc.s    V_4
+  IL_003d:  brfalse.s  IL_0061
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  isinst     ""Derived""
+  IL_0046:  brfalse.s  IL_0061
+  IL_0048:  ldloc.s    V_4
+  IL_004a:  castclass  ""Derived""
+  IL_004f:  stloc.s    V_5
+  IL_0051:  br.s       IL_0053
+  IL_0053:  ldloc.s    V_5
+  IL_0055:  stloc.3
+  IL_0056:  br.s       IL_0058
+  IL_0058:  ldc.i4.1
+  IL_0059:  call       ""void System.Console.WriteLine(bool)""
+  IL_005e:  nop
+  IL_005f:  br.s       IL_0061
+  IL_0061:  ldloc.0
+  IL_0062:  isinst     ""Derived""
+  IL_0067:  ldnull
+  IL_0068:  cgt.un
+  IL_006a:  call       ""void System.Console.WriteLine(bool)""
+  IL_006f:  nop
+  IL_0070:  ret
 }");
         }
 
@@ -319,7 +418,7 @@ class Program
         Console.Write(P5(1.0f));
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"TrueFalseTrueFalseTrueFalseTrueFalseTrueFalseTrueFalseTrueFalseTrueFalse";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);

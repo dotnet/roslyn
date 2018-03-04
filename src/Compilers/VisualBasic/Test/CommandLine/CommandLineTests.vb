@@ -8,6 +8,7 @@ Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
+Imports System.Security.Cryptography
 Imports System.Text
 Imports System.Text.RegularExpressions
 Imports System.Threading
@@ -86,6 +87,19 @@ End Class
             CleanupAllGeneratedFiles(src)
         End Sub
 
+        <Fact>
+        <WorkItem(21508, "https://github.com/dotnet/roslyn/issues/21508")>
+        Public Sub ArgumentStartWithDashAndContainingSlash()
+            Dim args As VisualBasicCommandLineArguments
+            Dim folder = Temp.CreateDirectory()
+
+            args = DefaultParse({"-debug+/debug:portable"}, folder.Path)
+            args.Errors.AssertTheseDiagnostics(<errors>
+BC2007: unrecognized option '-debug+/debug:portable'; ignored
+BC2008: no input sources specified
+                                               </errors>)
+        End Sub
+
         <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CommandLineCompilationWithQuotedMainArgument()
@@ -107,7 +121,7 @@ End Module
             Assert.Equal("", output.ToString().Trim())
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/pull/23529")>
         Public Sub CreateCompilationWithKeyFile()
             Dim source = "
 Public Class C
@@ -587,7 +601,7 @@ a.vb
         Public Sub Win32ResourceArguments()
             Dim args As String() = {"/win32manifest:..\here\there\everywhere\nonexistent"}
             Dim parsedArgs = DefaultParse(args, _baseDirectory)
-            Dim compilation = CreateCompilationWithMscorlib(New VisualBasicSyntaxTree() {})
+            Dim compilation = CreateCompilationWithMscorlib40(New VisualBasicSyntaxTree() {})
             Dim errors As IEnumerable(Of DiagnosticInfo) = Nothing
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
@@ -630,7 +644,7 @@ a.vb
         Public Sub Win32IconContainsGarbage()
             Dim tmpFileName As String = Temp.CreateFile().WriteAllBytes(New Byte() {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}).Path
             Dim parsedArgs = DefaultParse({"/win32icon:" + tmpFileName}, _baseDirectory)
-            Dim compilation = CreateCompilationWithMscorlib(New VisualBasicSyntaxTree() {})
+            Dim compilation = CreateCompilationWithMscorlib40(New VisualBasicSyntaxTree() {})
             Dim errors As IEnumerable(Of DiagnosticInfo) = Nothing
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
@@ -1526,21 +1540,24 @@ End Module").Path
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("codepage", ":<number>"))
         End Sub
 
-        <Fact>
+        <Fact, WorkItem(24735, "https://github.com/dotnet/roslyn/issues/24735")>
         Public Sub ChecksumAlgorithm()
             Dim parsedArgs As VisualBasicCommandLineArguments
 
             parsedArgs = DefaultParse({"/checksumAlgorithm:sHa1", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             parsedArgs = DefaultParse({"/checksumAlgorithm:sha256", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             parsedArgs = DefaultParse({"a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             ' error
             parsedArgs = DefaultParse({"/checksumAlgorithm:256", "a.cs"}, _baseDirectory)
@@ -3099,7 +3116,7 @@ End Module
                     Assert.True(File.Exists(pdbPath))
 
                     Using peStream = File.OpenRead(exePath)
-                        PdbValidation.ValidateDebugDirectory(peStream, Nothing, pePdbPath, isDeterministic)
+                        PdbValidation.ValidateDebugDirectory(peStream, Nothing, pePdbPath, hashAlgorithm:=Nothing, hasEmbeddedPdb:=False, isDeterministic)
                     End Using
                 End Sub
 
@@ -4577,12 +4594,12 @@ Dim b = Loc
             opt = opt.WithEmbedVbCoreRuntime(True)
             opt.Errors.Verify(Diagnostic(ERRID.ERR_VBCoreNetModuleConflict))
 
-            CreateCompilationWithMscorlibAndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify(Diagnostic(ERRID.ERR_VBCoreNetModuleConflict))
+            CreateCompilationWithMscorlib40AndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify(Diagnostic(ERRID.ERR_VBCoreNetModuleConflict))
 
             opt = opt.WithOutputKind(OutputKind.DynamicallyLinkedLibrary)
             opt.Errors.Verify()
 
-            CreateCompilationWithMscorlibAndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify()
+            CreateCompilationWithMscorlib40AndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify()
         End Sub
 
         <Fact()>
@@ -8374,13 +8391,26 @@ End Class
             Assert.False(args.CompilationOptions.PublicSign)
         End Sub
 
-
         <WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")>
         <Fact>
         Public Sub PublicSign_KeyFileRelativePath()
             Dim parsedArgs = FullParse("/publicsign /keyfile:test.snk a.cs", _baseDirectory)
             Assert.Equal(Path.Combine(_baseDirectory, "test.snk"), parsedArgs.CompilationOptions.CryptoKeyFile)
             parsedArgs.Errors.Verify()
+        End Sub
+
+        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        <Fact>
+        Public Sub PublicSignWithEmptyKeyPath()
+            Dim parsedArgs = FullParse("/publicsign /keyfile: a.cs", _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("keyfile", ":<file>").WithLocation(1, 1))
+        End Sub
+
+        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        <Fact>
+        Public Sub PublicSignWithEmptyKeyPath2()
+            Dim parsedArgs = FullParse("/publicsign /keyfile:"""" a.cs", _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("keyfile", ":<file>").WithLocation(1, 1))
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly))>
@@ -8473,7 +8503,7 @@ End Class")
 
             MetadataReaderUtils.VerifyPEMetadata(exe,
                 {"TypeDefinition:<Module>", "TypeDefinition:C"},
-                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()", "MethodDefinition:Void PrivateMethod()"},
+                {"MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()", "MethodDefinition:Void C.PrivateMethod()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
                 )
 
@@ -8510,7 +8540,7 @@ a
             ' See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 {"TypeDefinition:<Module>", "TypeDefinition:C"},
-                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
+                {"MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute", "ReferenceAssemblyAttribute"}
                 )
 
@@ -8593,7 +8623,7 @@ End Class")
             ' See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 {"TypeDefinition:<Module>", "TypeDefinition:C", "TypeDefinition:S"},
-                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
+                {"MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute", "ReferenceAssemblyAttribute"}
                 )
 
@@ -8822,6 +8852,21 @@ End Module
             End Using
         End Sub
 
+        <Fact>
+        Public Sub StrongNameProviderWithCustomTempPath()
+            Dim tempDir = Temp.CreateDirectory()
+            Dim workingDir = Temp.CreateDirectory()
+            workingDir.CreateFile("a.vb")
+
+            Dim vbc = New Vbc(Nothing, New BuildPaths("", workingDir.Path, Nothing, tempDir.Path),
+                              {"/features:UseLegacyStrongNameProvider", "/nostdlib", "a.vb"},
+                              analyzerLoader:=Nothing)
+            Dim comp = vbc.CreateCompilation(New StringWriter(), New TouchedFileLogger(), errorLogger:=Nothing)
+            Dim desktopProvider = Assert.IsType(Of DesktopStrongNameProvider)(comp.Options.StrongNameProvider)
+            Using inputStream = Assert.IsType(Of DesktopStrongNameProvider.TempFileStream)(desktopProvider.CreateInputStream())
+                Assert.Equal(tempDir.Path, Path.GetDirectoryName(inputStream.Path))
+            End Using
+        End Sub
 
         Private Function MakeTrivialExe(Optional directory As String = Nothing) As String
             Return Temp.CreateFile(directory:=directory, prefix:="", extension:=".vb").WriteAllText("

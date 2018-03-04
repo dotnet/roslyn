@@ -43,9 +43,9 @@ namespace BuildBoss
         {
             Key = key;
             Document = document;
+            Namespace = document.Root.Name.Namespace;
             Manager = new XmlNamespaceManager(new NameTable());
-            Manager.AddNamespace("mb", SharedUtil.MSBuildNamespaceUriRaw);
-            Namespace = SharedUtil.MSBuildNamespace;
+            Manager.AddNamespace("mb", Namespace == XNamespace.None ? "" : SharedUtil.MSBuildNamespaceUriRaw);
         }
 
         internal RoslynProjectData GetRoslynProjectData()
@@ -60,7 +60,7 @@ namespace BuildBoss
 
         internal bool TryGetRoslynProjectData(out RoslynProjectData data, out string error)
         {
-            data = default(RoslynProjectData);
+            data = default;
             error = null;
 
             var typeElement = FindSingleProperty("RoslynProjectType");

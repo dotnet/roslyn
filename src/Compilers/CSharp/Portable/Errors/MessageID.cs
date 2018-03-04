@@ -145,8 +145,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefExtensionMethods = MessageBase + 12728,
         IDS_StackAllocExpression = MessageBase + 12729,
         IDS_FeaturePrivateProtected = MessageBase + 12730,
-        IDS_FeatureAttributesOnBackingFields = MessageBase + 12731,
-        IDS_FeatureRecursivePatterns = MessageBase + 12732,
+
+        IDS_FeatureRefConditional = MessageBase + 12731,
+        IDS_FeatureAttributesOnBackingFields = MessageBase + 12732,
+        IDS_FeatureImprovedOverloadCandidates = MessageBase + 12733,
+        IDS_FeatureRecursivePatterns = MessageBase + 12735,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -207,6 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# 7.3 features.
                 case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
+                case MessageID.IDS_FeatureImprovedOverloadCandidates: // semantic check
                     return LanguageVersion.CSharp7_3;
 
                 // C# 7.2 features.
@@ -217,6 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRefStructs:
                 case MessageID.IDS_FeatureReadOnlyStructs:
                 case MessageID.IDS_FeatureRefExtensionMethods:
+                case MessageID.IDS_FeatureRefConditional:
                     return LanguageVersion.CSharp7_2;
 
                 // C# 7.1 features.

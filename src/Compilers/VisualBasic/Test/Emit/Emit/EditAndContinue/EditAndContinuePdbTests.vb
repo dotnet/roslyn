@@ -120,7 +120,7 @@ Public Class C
     End Function
 End Class", fileName:="C:\Enc1.vb")
 
-            Dim compilation0 = CreateCompilationWithMscorlib({source0.Tree}, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName:="EncMethodExtents")
+            Dim compilation0 = CreateCompilationWithMscorlib40({source0.Tree}, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName:="EncMethodExtents")
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation1.WithSource(source2.Tree)
 

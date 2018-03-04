@@ -76,6 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledHashSet<Symbol> _capturedVariables = PooledHashSet<Symbol>.GetInstance();
 
+        private readonly PooledHashSet<Symbol> _capturedInside = PooledHashSet<Symbol>.GetInstance();
+        private readonly PooledHashSet<Symbol> _capturedOutside = PooledHashSet<Symbol>.GetInstance();
+
         /// <summary>
         /// The current source assembly.
         /// </summary>
@@ -138,6 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
             _capturedVariables.Free();
+            _capturedInside.Free();
+            _capturedOutside.Free();
             _unsafeAddressTakenVariables.Free();
             _variableSlot.Free();
 
@@ -394,38 +399,53 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
         private void CheckCaptured(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
-            if (IsCaptured(variable,
-                           currentMethodOrLambda,
-                           rangeVariableUnderlyingParameter))
+            if (IsCaptured(rangeVariableUnderlyingParameter ?? variable, currentMethodOrLambda))
             {
                 NoteCaptured(variable);
             }
         }
 
-        private static bool IsCaptured(Symbol variable,
-                                         MethodSymbol containingMethodOrLambda,
-                                         ParameterSymbol rangeVariableUnderlyingParameter)
+        private static bool IsCaptured(Symbol variable, MethodSymbol containingMethodOrLambda)
         {
             switch (variable.Kind)
             {
-                case SymbolKind.Local:
-                    if (((LocalSymbol)variable).IsConst) break;
-                    goto case SymbolKind.Parameter;
-                case SymbolKind.Parameter:
-                    if (containingMethodOrLambda != variable.ContainingSymbol)
-                    {
-                        return true;
-                    }
-                    break;
+                case SymbolKind.Field:
+                case SymbolKind.Property:
+                case SymbolKind.Event:
+                // Range variables are not captured, but their underlying parameters
+                // may be. If this is a range underlying parameter it will be a
+                // ParameterSymbol, not a RangeVariableSymbol.
                 case SymbolKind.RangeVariable:
-                    if (rangeVariableUnderlyingParameter != null &&
-                        containingMethodOrLambda != rangeVariableUnderlyingParameter.ContainingSymbol)
+                    return false;
+
+                case SymbolKind.Local:
+                    if (((LocalSymbol)variable).IsConst)
                     {
-                        return true;
+                        return false;
                     }
                     break;
+
+                case SymbolKind.Parameter:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(variable.Kind);
             }
-            return false;
+
+            // Walk up the containing symbols until we find the target function, in which
+            // case the variable is not captured by the target function, or null, in which 
+            // case it is.
+            for (var currentFunction = variable.ContainingSymbol;
+                 currentFunction != null;
+                 currentFunction = currentFunction.ContainingSymbol)
+            {
+                if (currentFunction == containingMethodOrLambda)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -434,23 +454,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="variable"></param>
         private void NoteCaptured(Symbol variable)
         {
-            if (variable.Kind != SymbolKind.RangeVariable || this.regionPlace == PreciseAbstractFlowPass<LocalState>.RegionPlace.Inside)
+            if (this.regionPlace == RegionPlace.Inside)
             {
+                _capturedInside.Add(variable);
+                _capturedVariables.Add(variable);
+            }
+            else if (variable.Kind != SymbolKind.RangeVariable)
+            {
+                _capturedOutside.Add(variable);
                 _capturedVariables.Add(variable);
             }
         }
 
-        protected IEnumerable<Symbol> GetCaptured()
-        {
-            // do not expose poolable capturedVariables outside of this class
-            return _capturedVariables.ToArray();
-        }
-
-        protected IEnumerable<Symbol> GetUnsafeAddressTaken()
-        {
-            // do not expose poolable unsafeAddressTakenVariables outside of this class
-            return _unsafeAddressTakenVariables.Keys.ToArray();
-        }
+        // do not expose PooledHashSet<T> outside of this class
+        protected IEnumerable<Symbol> GetCapturedInside() => _capturedInside.ToArray();
+        protected IEnumerable<Symbol> GetCapturedOutside() => _capturedOutside.ToArray();
+        protected IEnumerable<Symbol> GetCaptured() => _capturedVariables.ToArray();
+        protected IEnumerable<Symbol> GetUnsafeAddressTaken() => _unsafeAddressTakenVariables.Keys.ToArray();
 
 #region Tracking reads/writes of variables for warnings
 

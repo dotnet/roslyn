@@ -174,7 +174,6 @@
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
                 case ErrorCode.WRN_Experimental:
-                case ErrorCode.WRN_DefaultInSwitch:
                 case ErrorCode.WRN_UnreferencedLocalFunction:
                 case ErrorCode.WRN_FilterIsConstantFalse:
                 case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:

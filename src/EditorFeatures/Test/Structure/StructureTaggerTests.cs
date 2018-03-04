@@ -171,7 +171,7 @@ End Module";
             var provider = new VisualStudio14StructureTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                 textService, editorService, projectionService,
-                AggregateAsynchronousOperationListener.EmptyListeners);
+                AsynchronousOperationListenerProvider.NullProvider);
 
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
             var context = new TaggerContext<IOutliningRegionTag>(document, view.TextSnapshot);

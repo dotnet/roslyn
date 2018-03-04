@@ -938,6 +938,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
+        public override BoundNode VisitPassByCopy(BoundPassByCopy node)
+        {
+            VisitRvalue(node.Expression);
+            return node;
+        }
+
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             VisitRvalue(node.Expression);
@@ -2612,9 +2618,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConditionalGoto(BoundConditionalGoto node)
         {
-            VisitRvalue(node.Condition);
-            Debug.Assert(!this.IsConditionalState);
-            _pendingBranches.Add(new PendingBranch(node, this.State));
+            VisitCondition(node.Condition);
+            Debug.Assert(this.IsConditionalState);
+            if (node.JumpIfTrue)
+            {
+                _pendingBranches.Add(new PendingBranch(node, this.StateWhenTrue));
+                this.SetState(this.StateWhenFalse);
+            }
+            else
+            {
+                _pendingBranches.Add(new PendingBranch(node, this.StateWhenFalse));
+                this.SetState(this.StateWhenTrue);
+            }
+
             return null;
         }
 

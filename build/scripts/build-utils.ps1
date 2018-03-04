@@ -134,7 +134,7 @@ function Ensure-NuGet() {
 }
 
 # Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
-# SDK.
+# SDK. Returns the location to the dotnet exe
 function Ensure-DotnetSdk() {
 
     # Check to see if the specified dotnet installations meets our build requirements
@@ -191,10 +191,12 @@ function Ensure-BasicTool([string]$name, [string]$version = "") {
         $version = Get-PackageVersion $name
     }
 
-    $p = Join-Path (Get-PackagesDir) "$($name).$($version)"
+    $p = Join-Path (Get-PackagesDir) "$($name)\$($version)"
     if (-not (Test-Path $p)) {
-        $nuget = Ensure-NuGet
-        Exec-Block { & $nuget install $name -OutputDirectory (Get-PackagesDir) -Version $version } | Out-Null
+        $toolsetProject = Join-Path $repoDir "build\ToolsetPackages\RoslynToolset.csproj"
+        $dotnet = Ensure-DotnetSdk
+        Write-Host "Downloading $name"
+        Restore-Project $dotnet $toolsetProject
     }
     
     return $p
@@ -243,12 +245,9 @@ function Get-VersionCore([string]$name, [string]$versionFile) {
     $name = $name.Replace("-", "")
     $nodeName = "$($name)Version"
     $x = [xml](Get-Content -raw $versionFile)
-    $node = $x.Project.PropertyGroup.FirstChild
-    while ($node -ne $null) {
-        if ($node.Name -eq $nodeName) {
-            return $node.InnerText
-        }
-        $node = $node.NextSibling
+    $node = $x.SelectSingleNode("//Project/PropertyGroup/$nodeName")
+    if ($node -ne $null) {
+        return $node.InnerText
     }
 
     throw "Cannot find package $name in $versionFile"
@@ -288,7 +287,7 @@ function Get-PackageDir([string]$name, [string]$version = "") {
     }
 
     $p = Get-PackagesDir
-    $p = Join-Path $p $name
+    $p = Join-Path $p $name.ToLowerInvariant()
     $p = Join-Path $p $version
     return $p
 }
@@ -310,14 +309,21 @@ function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
         return
     }
 
-    # MSBuild from an active VS command prompt.  
+    # MSBuild from an active VS command prompt. Use the MSBuild here so long as it's from a 
+    # compatible Visual Studio. If not though throw and error out. Given the number of 
+    # environment variable changes in a developer command prompt it's hard to make guarantees
+    # about subbing in a new MSBuild instance
     if (${env:VSINSTALLDIR} -ne $null) {
         $command = (Get-Command msbuild -ErrorAction SilentlyContinue)
-        if ($command -ne $null) {
+        if ((Test-SupportedVisualStudioVersion ${env:VSCMD_VER}) -and ($command -ne $null) ) {
             $p = Split-Path -parent $command.Path
             Write-Output "vscmd"
             Write-Output $p
             return
+        }
+        else {
+            $vsMinimumVersion = Get-ToolVersion "vsMinimum"
+            throw "Developer Command Prompt for VS $(${env:VSCMD_VER}) is not recent enough. Please upgrade to {$vsMinimumVersion} or build from a normal CMD window"
         }
     }
 
@@ -351,6 +357,22 @@ function Get-MSBuildDir([switch]$xcopy = $false) {
     return $both[1]
 }
 
+
+# Dose this version of Visual Studio meet our minimum requirements for building.
+function Test-SupportedVisualStudioVersion([string]$version) { 
+    # This regex allows us to strip off any pre-release info that gets attached 
+    # to the version string. VS uses NuGet style pre-release by suffing version
+    # with -<pre-release info>
+    if (-not ($version -match "^([\d.]+)(\+|-)?.*$")) { 
+        return $false
+    }
+
+    $vsMinimumVersion = Get-ToolVersion "vsMinimum"
+    $V = New-Object System.Version $matches[1]
+    $min = New-Object System.Version $vsMinimumVersion
+    return $v -ge $min;
+}
+
 # Get the directory and instance ID of the first Visual Studio version which 
 # meets our minimal requirements for the Roslyn repo.
 function Get-VisualStudioDirAndId() {
@@ -363,10 +385,8 @@ function Get-VisualStudioDirAndId() {
         # set of SDK fixes. Parsing the installationName is the only place where this is 
         # recorded in that form.
         $name = $obj.installationName
-        if ($name -match "VisualStudio(Preview)?/([\d.]+)(\+|-).*") { 
-            $minVersion = New-Object System.Version "15.3.0"
-            $version = New-Object System.Version $matches[2]
-            if ($version -ge $minVersion) {
+        if ($name -match "VisualStudio(Preview)?/(.*)") { 
+            if (Test-SupportedVisualStudioVersion $matches[2]) {
                 Write-Output $obj.installationPath
                 Write-Output $obj.instanceId
                 return
@@ -389,53 +409,50 @@ function Get-VisualStudioDir() {
 
 # Clear out the NuGet package cache
 function Clear-PackageCache() {
-    $nuget = Ensure-NuGet
-    Exec-Block { & $nuget locals all -clear } | Out-Host
+    $dotnet = Ensure-DotnetSdk
+    Exec-Console $dotnet "nuget locals all --clear"
 }
 
 # Restore a single project
-function Restore-Project([string]$fileName, [string]$nuget, [string]$msbuildDir) {
+function Restore-Project([string]$dotnetExe, [string]$projectFileName) {
     $nugetConfig = Join-Path $repoDir "nuget.config"
 
-    $filePath = $fileName
-    if (-not (Test-Path $filePath)) {
-        $filePath = Join-Path $repoDir $fileName
+    $projectFilePath = $projectFileName
+    if (-not (Test-Path $projectFilePath)) {
+        $projectFilePath = Join-Path $repoDir $projectFileName
     }
 
-    Exec-Console $nuget "restore $filePath -verbosity quiet -configfile $nugetConfig -MSBuildPath ""$msbuildDir"" -Project2ProjectTimeOut 1200"
+    Exec-Console $dotnet "restore --verbosity quiet --configfile $nugetConfig $projectFilePath"
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
-    $nuget = Ensure-NuGet
-    if ($msbuildDir -eq "") {
-        $msbuildDir = Get-MSBuildDir
+function Restore-Packages([string]$dotnetExe = "", [string]$project = "") {
+    if ($dotnetExe -eq "") { 
+        $dotnetExe = Ensure-DotnetSdk
     }
 
-    Write-Host "Restore using MSBuild at $msbuildDir"
+    Write-Host "Restore using dotnet at $dotnetExe"
 
     if ($project -ne "") {
         Write-Host "Restoring project $project"
-        Restore-Project -fileName $project -msbuildDir $msbuildDir -nuget $nuget
+        Restore-Project $dotnetExe $project
     }
     else {
         $all = @(
             "Roslyn Toolset:build\ToolsetPackages\RoslynToolset.csproj",
             "Roslyn:Roslyn.sln",
-            "Samples:src\Samples\Samples.sln",
-            "Templates:src\Setup\Templates\Templates.sln",
             "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln")
 
         foreach ($cur in $all) {
             $both = $cur.Split(':')
             Write-Host "Restoring $($both[0])"
-            Restore-Project -fileName $both[1] -msbuildDir $msbuildDir -nuget $nuget
+            Restore-Project $dotnetExe $both[1]
         }
     }
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-All([string]$msbuildDir = "") {
-    Restore-Packages -msbuildDir $msbuildDir
+function Restore-All([string]$dotnetExe = "") {
+    Restore-Packages -dotnetExe $dotnetExe
 }
 

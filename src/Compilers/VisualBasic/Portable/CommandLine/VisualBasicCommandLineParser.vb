@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.IO
 Imports System.Runtime.InteropServices
+Imports System.Security.Cryptography
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -1357,7 +1358,8 @@ lVbRuntimePlus:
                 highEntropyVirtualAddressSpace:=highEntropyVA,
                 subsystemVersion:=ssVersion,
                 runtimeMetadataVersion:=Nothing,
-                instrumentationKinds:=instrumentationKinds.ToImmutableAndFree())
+                instrumentationKinds:=instrumentationKinds.ToImmutableAndFree(),
+                pdbChecksumAlgorithm:=HashAlgorithmName.SHA256) ' TODO: set from /checksumalgorithm (see https://github.com/dotnet/roslyn/issues/24735)
 
             ' add option incompatibility errors if any (parse options will be included in options.Errors)
             diagnostics.AddRange(options.Errors)

@@ -29,7 +29,7 @@ class C
     static int P { get { return 3; } }
     object Q { get { return 4; } }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -86,7 +86,7 @@ class C
     const string F = ""str"";
     const int G = 2;
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "C");
@@ -116,7 +116,7 @@ class C
         return c;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "C");
@@ -152,7 +152,7 @@ class B : A
         return 2;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "B");
@@ -184,7 +184,7 @@ class A<T> where T : class
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "A.B");
@@ -237,7 +237,7 @@ namespace N
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "N.C");
@@ -280,7 +280,7 @@ namespace N
 class C
 {
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "C");
@@ -303,7 +303,7 @@ class C
         return f();
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "C");
@@ -334,7 +334,7 @@ class C
 {
     object F = ""f"";
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "C");
@@ -375,7 +375,7 @@ public class Derived : Base
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "Derived");

@@ -43,7 +43,7 @@ public class Vec
     public Vec(int x) {}
 }
 ";
-            CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (7,18): error CS8059: Feature 'binary literals' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int i1 = 0b001010; // binary literals
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("binary literals", "7.0").WithLocation(7, 18),
@@ -68,7 +68,7 @@ public class Vec
                 );
 
             // enables binary literals, digit separators, local functions, ref locals, pattern matching
-            CreateStandardCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
@@ -107,7 +107,7 @@ public class X
 4. 12
 5. 
 7. True";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // warning CS0184: The given expression is never of the provided ('bool') type
                 //         Console.WriteLine("7. {0}", (x is bool is bool));
@@ -136,7 +136,7 @@ public class X
         if (x is Nullable<int> y) Console.WriteLine($""expression {x} is Nullable<int> y"");
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
     // (11,18): error CS8105: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
     //         if (x is Nullable<int> y) Console.WriteLine($"expression {x} is Nullable<int> y");
@@ -170,7 +170,7 @@ public class X
             Console.WriteLine($""expression {x} is not {typeof(T).Name}"");
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             using (new EnsureInvariantCulture())
@@ -207,7 +207,7 @@ public class X
         if (b is 1000) { } // error: cannot convert 1000 to byte
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is dynamic t) { } // null not allowed
@@ -250,7 +250,7 @@ class D
     public D(bool b) { Console.WriteLine(b); }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 #if ALLOW_IN_CONSTRUCTOR_INITIALIZER
             compilation.VerifyDiagnostics(
                 );
@@ -298,7 +298,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -333,7 +333,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 #if ALLOW_IN_FIELD_INITIALIZER
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
@@ -383,7 +383,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -419,7 +419,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -457,7 +457,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -485,7 +485,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
     // (2,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
     // [Obsolete("" is string s ? s : "")]
@@ -531,7 +531,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -584,7 +584,7 @@ public struct X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -626,7 +626,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,45): error CS0165: Use of unassigned local variable 'x2'
                 //         if (!(o is X x2)) Console.WriteLine(x2);
@@ -660,7 +660,7 @@ public class X
     public static void M2(out int x) { x = 1; }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -701,7 +701,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 true
@@ -751,7 +751,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -792,7 +792,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
@@ -844,7 +844,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (14,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   from x2 in new[] { 2 is var y2 && Print(y2) ? 1 : 0}
@@ -938,7 +938,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput:
 @"1
@@ -973,7 +973,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -1002,7 +1002,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"2
 True
 1
@@ -1030,7 +1030,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 #if ALLOW_IN_FIELD_INITIALIZER
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
@@ -1070,7 +1070,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 #if ALLOW_IN_FIELD_INITIALIZER
             CompileAndVerify(compilation, expectedOutput: @"1
 True
@@ -1110,7 +1110,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -1136,7 +1136,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 #if ALLOW_IN_FIELD_INITIALIZER
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
@@ -1171,7 +1171,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -1215,7 +1215,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 #if ALLOW_IN_CONSTRUCTOR_INITIALIZER
             CompileAndVerify(compilation, expectedOutput:
 @"1
@@ -1274,7 +1274,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"2
 True
@@ -1314,7 +1314,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"Test1 case 0
 Test1 {0}
@@ -1360,7 +1360,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -1423,7 +1423,7 @@ class C : System.IDisposable
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"a
 b
@@ -1473,7 +1473,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"b
 d
@@ -1527,7 +1527,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"b");
             var tree = compilation.SyntaxTrees.Single();
@@ -1579,8 +1579,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
 d
@@ -1636,8 +1635,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b");
 
@@ -1694,8 +1692,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
 d
@@ -1772,8 +1769,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
 d
@@ -1832,7 +1828,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 1
@@ -1877,7 +1873,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -1926,7 +1922,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -1979,7 +1975,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -2034,7 +2030,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -2082,7 +2078,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"2");
 
             var tree = compilation.SyntaxTrees.Single();
@@ -2126,7 +2122,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -2176,7 +2172,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 2
 3
@@ -2223,7 +2219,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 1
@@ -2279,7 +2275,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 1
@@ -2339,7 +2335,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -2396,7 +2392,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -2455,7 +2451,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -2508,7 +2504,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"3
 3");
@@ -2546,7 +2542,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"lock
 lock
@@ -2591,7 +2587,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -2629,8 +2625,8 @@ public unsafe class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
-            CompileAndVerify(compilation, expectedOutput:
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(compilation, verify: Verification.Fails, expectedOutput:
 @"fixed
 fixed");
         }
@@ -2662,7 +2658,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"yield1
 yield2
@@ -2711,7 +2707,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"yield1
 yield2");
@@ -2751,7 +2747,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:@"return");
 
             var tree = compilation.SyntaxTrees.Single();
@@ -2795,7 +2791,7 @@ public class Cls
         return x;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "12").VerifyDiagnostics();
 
@@ -2840,7 +2836,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"throw");
 
             var tree = compilation.SyntaxTrees.Single();
@@ -2890,7 +2886,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"throw 1
 throw 2");
@@ -2932,7 +2928,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException");
@@ -2978,7 +2974,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -3019,7 +3015,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -3060,7 +3056,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -3084,7 +3080,7 @@ a:      Test1(2 is var x1);
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics(
                 // (6,1): warning CS0164: This label has not been referenced
@@ -3131,7 +3127,7 @@ a:          Test2(2 is var x1, x1);
         return x;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics(
                 // (15,1): warning CS0164: This label has not been referenced
@@ -3167,7 +3163,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (7,27): warning CS0184: The given expression is never of the provided ('string') type
                 //         Console.WriteLine(1L is string); // warning: type mismatch
@@ -3217,7 +3213,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,27): warning CS0183: The given expression is always of the provided ('string') type
                 //         Console.WriteLine("goo" is System.String); // true
@@ -3262,7 +3258,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case typeof(string):
@@ -3294,7 +3290,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,22): error CS1001: Identifier expected
                 //             if (obj. is var o) { }
@@ -3369,7 +3365,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"null
@@ -3400,7 +3396,7 @@ other 6");
         }
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6);
             compilation.VerifyDiagnostics(
                 // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case 1 when true:
@@ -3428,7 +3424,7 @@ public static class StaticType
 {
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,18): error CS0723: Cannot declare a variable of static type 'StaticType'
                 //             case StaticType t:
@@ -3453,7 +3449,7 @@ public static class StaticType
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "whatever");
@@ -3479,7 +3475,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var tree = compilation.SyntaxTrees[0];
@@ -3515,9 +3511,9 @@ unsafe struct S
     fixed int F2[3 is var x2 ? 3 : 3, x2];
 }
 ";
-            var compilation = CreateStandardCompilation(text,
-                                                            options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
-                                                            parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text,
+                                                options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
+                                                parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -3561,7 +3557,7 @@ unsafe struct S
         }
     }
 }";
-            CreateStandardCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (8,17): error CS0119: 'T1' is a type, which is not valid in the given context
                 //             if (T1 is object i)
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "T1").WithArguments("CS7.T1", "type").WithLocation(8, 17)
@@ -3585,7 +3581,7 @@ unsafe struct S
         }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,17): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             if (M is T)
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "M is T").WithLocation(8, 17)
@@ -3608,7 +3604,7 @@ unsafe struct S
         }
     }
 }";
-            var compilation = CreateStandardCompilation(source).VerifyDiagnostics(
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
                 // (7,29): error CS1525: Invalid expression term ')'
                 //             if (o.Equals is()) {}
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(7, 28),
@@ -3657,7 +3653,7 @@ unsafe struct S
         }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,24): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             if (null is()) {}
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(7, 24),
@@ -3667,9 +3663,6 @@ unsafe struct S
                 // (7,17): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //             if (null is()) {}
                 Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(7, 17),
-                // (8,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
-                //             if ((1, object.Equals) is()) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, object.Equals)").WithArguments("System.ValueTuple`2").WithLocation(8, 17),
                 // (8,17): error CS0023: Operator 'is' cannot be applied to operand of type '(int, method group)'
                 //             if ((1, object.Equals) is()) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, object.Equals) is()").WithArguments("is", "(int, method group)").WithLocation(8, 17)
@@ -3697,7 +3690,7 @@ public class Vec
     }
 }
 ";
-            CreateStandardCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is 1) {}
                 Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
@@ -3707,9 +3700,6 @@ public class Vec
                 // (8,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (delegate {} is 3) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is 3").WithLocation(8, 13),
-                // (9,13): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         if ((1, null) is 4) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(9, 13),
                 // (9,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is 4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is 4").WithArguments("is", "(int, <null>)").WithLocation(9, 13),
@@ -3722,9 +3712,6 @@ public class Vec
                 // (12,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (delegate {} is var x3) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is var x3").WithLocation(12, 13),
-                // (13,13): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         if ((1, null) is var x4) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(13, 13),
                 // (13,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is var x4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is var x4").WithArguments("is", "(int, <null>)").WithLocation(13, 13)
@@ -3745,10 +3732,7 @@ public class Program
     }
 }
 ";
-            CreateStandardCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
-                // (6,13): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         if ((1, null) is Program) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(6, 13),
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (6,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is Program) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is Program").WithArguments("is", "(int, <null>)").WithLocation(6, 13)
@@ -3773,7 +3757,7 @@ public class TestClass
     }
 }";
             // DEBUG
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3795,7 +3779,7 @@ public class TestClass
 }");
 
             // RELEASE
-            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3832,7 +3816,7 @@ public class TestClass
     }
 }";
             // DEBUG
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3855,7 +3839,7 @@ public class TestClass
 
             
             // RELEASE
-            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3904,7 +3888,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -3937,7 +3921,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -3970,7 +3954,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -4018,7 +4002,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe,
+            var compilation = CreateEmptyCompilation(source, options: TestOptions.DebugExe,
                 references: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
             compilation.VerifyDiagnostics(
                 );
@@ -4049,7 +4033,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -4086,7 +4070,7 @@ class MyException : Exception
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -4124,7 +4108,7 @@ class B
     public static int operator +(bool left, B right) => 8;
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe,
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Console.WriteLine(3 is One + 2); // should print True
@@ -4139,7 +4123,7 @@ class B
 7
 True
 True";
-            compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -4186,7 +4170,7 @@ class D {}
 no
 True
 yes";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -4217,7 +4201,7 @@ class D {}
             var expectedOutput =
 @"True
 B";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
@@ -4268,7 +4252,7 @@ False
 False
 False
 True";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -4293,7 +4277,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -4332,7 +4316,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "is int _: True, is var _: True, case int _, case var _");
             var tree = compilation.SyntaxTrees.Single();
@@ -4390,7 +4374,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case _:
@@ -4423,7 +4407,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
                 // (12,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case _:
@@ -4462,7 +4446,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,33): error CS0103: The name '_' does not exist in the current context
                 //         if (i is int _) { Write(_); }
@@ -4506,7 +4490,7 @@ unsafe public class Typ
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
                 // (8,22): error CS1525: Invalid expression term 'int'
                 //             if (a is int* b) {}
@@ -4595,7 +4579,7 @@ class C
     override public int GetHashCode() => 0;
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: @"False
 False
@@ -4622,7 +4606,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: "True");
         }
@@ -4652,7 +4636,7 @@ public class Color
     public const string Constant = ""abc"";
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: "True");
         }
@@ -4677,7 +4661,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,30): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         System.Console.Write(null is Missing x);
@@ -4721,7 +4705,7 @@ public class Program46
     }
     private static object M() => null;
 }";
-            CreateStandardCompilation(program).VerifyDiagnostics(
+            CreateCompilation(program).VerifyDiagnostics(
                 // (6,17): error CS8119: The switch expression must be a value; found 'lambda expression'.
                 //         switch ((() => 1))
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "(() => 1)").WithArguments("lambda expression").WithLocation(6, 17),
@@ -4751,7 +4735,7 @@ public class Program46
     }
     private static object M() => null;
 }";
-            CreateStandardCompilation(program).VerifyDiagnostics(
+            CreateCompilation(program).VerifyDiagnostics(
                 // (6,17): error CS8119: The switch expression must be a value; found 'lambda expression'.
                 //         switch ((() => 1))
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "(() => 1)").WithArguments("lambda expression").WithLocation(6, 17),
@@ -4774,7 +4758,7 @@ public class Program401
     }
     private static object M() => null;
 }";
-            CreateStandardCompilation(program).VerifyDiagnostics(
+            CreateCompilation(program).VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is M) {}
                 Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
@@ -4807,7 +4791,7 @@ public class Program1717
     }
     private static object M() => null;
 }";
-            CreateStandardCompilation(program).VerifyDiagnostics(
+            CreateCompilation(program).VerifyDiagnostics(
                 // (10,18): error CS0266: Cannot implicitly convert type 'double' to 'int?'. An explicit conversion exists (are you missing a cast?)
                 //             case double.NaN:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "double.NaN").WithArguments("double", "int?").WithLocation(10, 18),
@@ -4834,7 +4818,7 @@ public class Program5815
     }
     private static object M() => null;
 }";
-            var compilation = CreateStandardCompilation(program).VerifyDiagnostics(
+            var compilation = CreateCompilation(program).VerifyDiagnostics(
                 // (9,32): error CS1525: Invalid expression term 'break'
                 //             case Color? Color2:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(9, 32),
@@ -4876,7 +4860,7 @@ public class Program5815
     }
     private static object M() => null;
 }";
-            var compilation = CreateStandardCompilation(program).VerifyDiagnostics(
+            var compilation = CreateCompilation(program).VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case true ? x3 : 4:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "true ? x3 : 4").WithLocation(9, 18),
@@ -4989,7 +4973,7 @@ public class Program{0}
                     throw null;
             }
             var program = string.Format(body, dt, statement);
-            CreateStandardCompilation(program).GetDiagnostics();
+            CreateCompilation(program).GetDiagnostics();
         }
 
         [Fact, WorkItem(16671, "https://github.com/dotnet/roslyn/issues/16671")]
@@ -5034,7 +5018,7 @@ class Derived : Base
 {
 }
 ";
-            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe).VerifyDiagnostics(
+            var compilation = CreateCompilation(program, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"TBase
 TDerived
@@ -5077,7 +5061,7 @@ class Derived : Base
 {
 }
 ";
-            var compilation = CreateStandardCompilation(program).VerifyDiagnostics(
+            var compilation = CreateCompilation(program).VerifyDiagnostics(
                 // (12,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case TDerived td:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "TDerived td").WithLocation(12, 18)
@@ -5103,7 +5087,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(program).VerifyDiagnostics(
+            var compilation = CreateCompilation(program).VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case IEnumerable<object> s:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "IEnumerable<object> s").WithLocation(11, 18)
@@ -5155,7 +5139,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(program, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"1
@@ -5184,7 +5168,7 @@ public class Program
     }
 }
 ";
-            CreateStandardCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (8,18): error CS8314: An expression of type 'string' cannot be handled by a pattern of type 'U' in C# 7.0. Please use language version 7.1 or greater.
                 //             case U uu:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "U").WithArguments("string", "U", "7.0", "7.1").WithLocation(8, 18),
@@ -5192,7 +5176,7 @@ public class Program
                 //             case T tt: // Produces a diagnostic about subsumption/unreachability
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("string", "T", "7.0", "7.1").WithLocation(10, 18)
                 );
-            CreateStandardCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
+            CreateCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
                 // (10,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case T tt: // Produces a diagnostic about subsumption/unreachability
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "T tt").WithLocation(10, 18)
@@ -5231,7 +5215,7 @@ True
 False
 True
 False";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -5251,7 +5235,7 @@ public class Program
         Console.WriteLine(1 is null);
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (7,32): error CS0266: Cannot implicitly convert type 'long' to 'byte'. An explicit conversion exists (are you missing a cast?)
                 //         Console.WriteLine(b is 12L);
@@ -5530,7 +5514,7 @@ M13b
 M14a
 M15a
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -5572,7 +5556,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             compilation.VerifyDiagnostics(
                 );
             compilation.GetEmitDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Warning).Verify(
@@ -5602,7 +5586,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (9,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
                 //             default:
@@ -5640,7 +5624,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (9,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case 2:     // subsumed
@@ -5702,7 +5686,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
             var comp = CompileAndVerify(compilation, expectedOutput: "roslyn");
         }
 
@@ -5735,7 +5719,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Derived b0);
@@ -5744,7 +5728,7 @@ public class Program
                 //             case Derived b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7.0", "7.1").WithLocation(16, 18)
                 );
-            compilation = CreateStandardCompilation(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5778,7 +5762,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (13,28): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is T b0);
@@ -5787,7 +5771,7 @@ public class Program
                 //             case T b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7.0", "7.1")
                 );
-            compilation = CreateStandardCompilation(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5821,7 +5805,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Derived<T> b0);
@@ -5830,7 +5814,7 @@ public class Program
                 //             case Derived<T> b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7.0", "7.1").WithLocation(16, 18)
                 );
-            compilation = CreateStandardCompilation(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5867,7 +5851,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (16,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Container<T>.Derived b0);
@@ -5876,7 +5860,7 @@ public class Program
                 //             case Container<T>.Derived b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7.0", "7.1").WithLocation(19, 18)
                 );
-            compilation = CreateStandardCompilation(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5913,7 +5897,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (16,28): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Container<T>.Derived[] b0);
@@ -5922,7 +5906,7 @@ public class Program
                 //             case Container<T>.Derived[] b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7.0", "7.1").WithLocation(19, 18)
                 );
-            compilation = CreateStandardCompilation(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5950,7 +5934,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (8,13): warning CS0184: The given expression is never of the provided ('string') type
                 //         if (s is string) { }
@@ -5997,7 +5981,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(program, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"TnT");
@@ -6030,7 +6014,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(program, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"TnT");
@@ -6053,12 +6037,12 @@ public class C {
     }
     static bool M<T>(T p) where T : Packet => p is Packet<T> p1;
 }";
-            CreateStandardCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (12,52): error CS8314: An expression of type 'T' cannot be handled by a pattern of type 'Packet<T>' in C# 7.0. Please use language version 7.1 or greater.
                 //     static bool M<T>(T p) where T : Packet => p is Packet<T> p1;
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Packet<T>").WithArguments("T", "Packet<T>", "7.0", "7.1").WithLocation(12, 52)
                 );
-            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            var compilation = CreateCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"FalseTrueFalseFalse");
@@ -6084,7 +6068,7 @@ unsafe public class C {
         return b1 && b2 && b3;
     }
 }";
-            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            var compilation = CreateCompilation(program, options: TestOptions.DebugDll.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
                 // (6,23): error CS1525: Invalid expression term 'int'
                 //         var p1 = p is int* p0;           // syntax error 1
@@ -6143,7 +6127,7 @@ unsafe public class C {
         return z0;
     }
 }";
-            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            var compilation = CreateCompilation(program, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "ok");
@@ -6196,9 +6180,9 @@ public class X
 1
 Func called
 2";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
-            compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -6217,7 +6201,7 @@ class Program
 }
 ";
             var expectedOutput = @"Hello";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,13): warning CS0184: The given expression is never of the provided ('object') type
                 //         if (Console.Write("Hello") is object) {}
@@ -6240,7 +6224,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,17): error CS0039: Cannot convert type 'void' to 'object' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         var o = Console.WriteLine("world!") as object;
@@ -6266,7 +6250,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (10,17): error CS0039: Cannot convert type 'void' to 'T' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         var o = Console.WriteLine("Hello") as T;
@@ -6287,7 +6271,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
                 //         if (Console.WriteLine("Hello") is var x) { }
@@ -6308,7 +6292,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
                 //         if (Console.WriteLine("Hello") is var _) {}
@@ -6333,7 +6317,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,17): error CS8119: The switch expression must be a value; found 'void'.
                 //         switch (Console.WriteLine("Hello"))
@@ -6357,7 +6341,7 @@ class Program
 }
 ";
             var expectedOutput = @"Hello World";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (7,13): warning CS0184: The given expression is never of the provided ('string') type
                 //         if (s is string) {} else { Console.Write("Hello "); }
@@ -6396,7 +6380,7 @@ internal class Program
 }
 ";
             var expectedOutput = @"Exception";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -6439,9 +6423,53 @@ True
 False
 False
 False";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DefaultPattern()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int i = 12;
+        if (i is default) {} // error 1
+        if (i is (default)) {} // error 2
+        if (i is (((default)))) {} // error 3
+        switch (i) { case default: break; } // error 4
+        switch (i) { case (default): break; } // error 5
+        switch (i) { case default when true: break; } // error 6
+        switch (i) { case (default) when true: break; } // error 7
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is default) {} // error 1
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 18),
+                // (7,19): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is (default)) {} // error 2
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(7, 19),
+                // (8,21): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is (((default)))) {} // error 3
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(8, 21),
+                // (9,27): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                //         switch (i) { case default: break; } // error 4
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(9, 27),
+                // (10,28): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                //         switch (i) { case (default): break; } // error 5
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(10, 28),
+                // (11,27): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         switch (i) { case default when true: break; } // error 6
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(11, 27),
+                // (12,28): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         switch (i) { case (default) when true: break; } // error 7
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(12, 28)
+                );
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24865")]
@@ -6489,7 +6517,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -6541,7 +6569,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:

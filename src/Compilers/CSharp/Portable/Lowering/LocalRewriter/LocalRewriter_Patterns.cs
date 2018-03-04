@@ -203,7 +203,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             TypeSymbol type = t.Type;
                             var outputTemp = new BoundDagTemp(t.Syntax, type, t, 0);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            Conversion conversion = _factory.Compilation.ClassifyConversion(inputType, output.Type);
+                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                            Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, ref useSiteDiagnostics);
+                            _localRewriter._diagnostics.Add(t.Syntax, useSiteDiagnostics);
                             if (conversion.Exists)
                             {
                                 sideEffect = _factory.AssignmentExpression(output, _factory.Convert(type, input, conversion));

@@ -19044,11 +19044,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
-    public SyntaxToken RefOrOutKeyword 
+    public SyntaxToken RefKindKeyword 
     {
         get
         {
-            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CrefParameterSyntax)this.Green).refOrOutKeyword;
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CrefParameterSyntax)this.Green).refKindKeyword;
             if (slot != null)
                 return new SyntaxToken(this, slot, this.Position, 0);
 
@@ -19091,11 +19091,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitCrefParameter(this);
     }
 
-    public CrefParameterSyntax Update(SyntaxToken refOrOutKeyword, TypeSyntax type)
+    public CrefParameterSyntax Update(SyntaxToken refKindKeyword, TypeSyntax type)
     {
-        if (refOrOutKeyword != this.RefOrOutKeyword || type != this.Type)
+        if (refKindKeyword != this.RefKindKeyword || type != this.Type)
         {
-            var newNode = SyntaxFactory.CrefParameter(refOrOutKeyword, type);
+            var newNode = SyntaxFactory.CrefParameter(refKindKeyword, type);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -19105,14 +19105,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public CrefParameterSyntax WithRefOrOutKeyword(SyntaxToken refOrOutKeyword)
+    public CrefParameterSyntax WithRefKindKeyword(SyntaxToken refKindKeyword)
     {
-        return this.Update(refOrOutKeyword, this.Type);
+        return this.Update(refKindKeyword, this.Type);
     }
 
     public CrefParameterSyntax WithType(TypeSyntax type)
     {
-        return this.Update(this.RefOrOutKeyword, type);
+        return this.Update(this.RefKindKeyword, type);
     }
   }
 

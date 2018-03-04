@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string GetMessage(MessageID code, CultureInfo culture)
         {
             string message = ResourceManager.GetString(code.ToString(), culture);
-            Debug.Assert(!string.IsNullOrEmpty(message));
+            Debug.Assert(!string.IsNullOrEmpty(message), code.ToString());
             return message;
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string GetMessage(ErrorCode code, CultureInfo culture)
         {
             string message = ResourceManager.GetString(code.ToString(), culture);
-            Debug.Assert(message != null);
+            Debug.Assert(!string.IsNullOrEmpty(message), code.ToString());
             return message;
         }
 
@@ -321,7 +321,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
                 case ErrorCode.WRN_Experimental:
-                case ErrorCode.WRN_DefaultInSwitch:
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustive:
                     return 1;

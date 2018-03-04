@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analyzerMap = pooledObject.Object;
 
-                    AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.IsOpenFileOnly(project.Solution.Workspace)), analyzerMap);
+                    analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.IsOpenFileOnly(project.Solution.Workspace)));
                     if (analyzerMap.Count == 0)
                     {
                         return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
@@ -216,15 +216,6 @@ This data should always be correct as we're never persisting the data between se
                     {
                         _hostDiagnosticUpdateSourceOpt?.ReportAnalyzerDiagnostic(analyzer, diagnostic, project);
                     }
-                }
-            }
-
-            private void AppendAnalyzerMap(IEnumerable<DiagnosticAnalyzer> analyzers, Dictionary<string, DiagnosticAnalyzer> analyzerMap)
-            {
-                foreach (var analyzer in analyzers)
-                {
-                    // user might have included exact same analyzer twice as project analyzers explicitly. we consider them as one
-                    analyzerMap[analyzer.GetAnalyzerId()] = analyzer;
                 }
             }
         }

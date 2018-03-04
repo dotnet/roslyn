@@ -67,7 +67,7 @@ public class C
         [Fact]
         public void TestSpansPresentInResource()
         {
-            var c = CreateStandardCompilation(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -211,7 +211,7 @@ public class C
 }
 ";
 
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -331,7 +331,7 @@ public class C
 }
 ";
 
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -425,7 +425,7 @@ class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
 ";
 
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -472,7 +472,7 @@ public class C
     }
 }
 ";
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -503,7 +503,7 @@ public class C
     }
 }
 ";
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -543,7 +543,7 @@ public class C
     }
 }
 ";
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -611,7 +611,7 @@ public class C
 }
 ";
 
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -692,7 +692,7 @@ public class C
 }
 ";
 
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -773,7 +773,7 @@ partial struct E
 }
 ";
 
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -867,7 +867,7 @@ public class D
 }
 ";
 
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -900,7 +900,7 @@ public class D
         [Fact]
         public void TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
         {
-            var c = CreateStandardCompilation(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default);
 
             var peReader = new PEReader(peImage);

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         CSharpCompilation CreatePatternCompilation(string source)
         {
-            return CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            return CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
         }
 
         [Fact]
@@ -154,20 +154,6 @@ class Program
         if (!object.Equals(expected, actual)) throw new Exception($""expected: {expected}; actual: {actual}"");
         return true;
     }
-}
-namespace System
-{
-    public struct ValueTuple<T1, T2>
-    {
-        public T1 Item1;
-        public T2 Item2;
-
-        public ValueTuple(T1 item1, T2 item2)
-        {
-            this.Item1 = item1;
-            this.Item2 = item2;
-        }
-    }
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
@@ -234,20 +220,6 @@ class Program
             {2}
             case (_, _): // error - subsumed
                 break;
-        }}
-    }}
-}}
-namespace System
-{{
-    public struct ValueTuple<T1, T2>
-    {{
-        public T1 Item1;
-        public T2 Item2;
-
-        public ValueTuple(T1 item1, T2 item2)
-        {{
-            this.Item1 = item1;
-            this.Item2 = item2;
         }}
     }}
 }}";
@@ -337,20 +309,6 @@ public class Point
         switch (i) { case default when true: break; } // error 4
         switch ((1, 2)) { case (1, default): break; } // error 5
     }
-}
-namespace System
-{
-    public struct ValueTuple<T1, T2>
-    {
-        public T1 Item1;
-        public T2 Item2;
-
-        public ValueTuple(T1 item1, T2 item2)
-        {
-            this.Item1 = item1;
-            this.Item2 = item2;
-        }
-    }
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
@@ -360,9 +318,9 @@ namespace System
                 // (7,19): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default)) {} // error 2
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(7, 19),
-                // (8,27): warning CS8313: Did you mean to use the default switch label ('default:') rather than 'case default:'? If you really mean to use the default value, use another literal ('case 0:' or 'case null:') as appropriate.
+                // (8,27): error CS8313: Did you mean to use the default switch label ('default:') rather than 'case default:'? If you really mean to use the default value, use another literal ('case 0:' or 'case null:') as appropriate.
                 //         switch (i) { case default: break; } // warning 3
-                Diagnostic(ErrorCode.WRN_DefaultInSwitch, "default").WithLocation(8, 27),
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(8, 27),
                 // (9,27): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case default when true: break; } // error 4
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(9, 27),
@@ -384,7 +342,7 @@ namespace System
         var r = 1 switch { _ => 0 };
     }
 }";
-            CreateStandardCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (5,17): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //         var r = 1 switch ( _ => 0 );
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch { _ => 0 }").WithArguments("recursive patterns", "patterns2").WithLocation(5, 17)
@@ -403,20 +361,6 @@ namespace System
     {
         var r1 = (1, null) switch { _ => 0 };
         var r2 = System.Console.Write(1) switch { _ => 0 };
-    }
-}
-namespace System
-{
-    public struct ValueTuple<T1, T2>
-    {
-        public T1 Item1;
-        public T2 Item2;
-
-        public ValueTuple(T1 item1, T2 item2)
-        {
-            this.Item1 = item1;
-            this.Item2 = item2;
-        }
     }
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
@@ -511,20 +455,6 @@ namespace System
         var r1 = b switch { (true ? true : true, _) => true, _ => false };
         var r2 = b is (true ? true : true, _);
         switch (b.Item1) { case true ? true : true: break; }
-    }
-}
-namespace System
-{
-    public struct ValueTuple<T1, T2>
-    {
-        public T1 Item1;
-        public T2 Item2;
-
-        public ValueTuple(T1 item1, T2 item2)
-        {
-            this.Item1 = item1;
-            this.Item2 = item2;
-        }
     }
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
@@ -721,18 +651,6 @@ class Program
         if (!object.Equals(expected, actual)) throw new Exception($""expected: {expected}; actual: {actual}"");
         return true;
     }
-}
-namespace System
-{
-    public struct ValueTuple<T>
-    {
-        public T Item1;
-
-        public ValueTuple(T item1)
-        {
-            this.Item1 = item1;
-        }
-    }
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
@@ -781,20 +699,6 @@ class Program
     {
         if (!object.Equals(expected, actual)) throw new Exception($""Expected: '{expected}', Actual: '{actual}'"");
     }
-}
-namespace System
-{
-    public struct ValueTuple<T1, T2>
-    {
-        public T1 Item1;
-        public T2 Item2;
-
-        public ValueTuple(T1 item1, T2 item2)
-        {
-            this.Item1 = item1;
-            this.Item2 = item2;
-        }
-    }
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
@@ -826,20 +730,6 @@ namespace N
         }
     }
     class var { }
-}
-namespace System
-{
-    public struct ValueTuple<T1, T2>
-    {
-        public T1 Item1;
-        public T2 Item2;
-
-        public ValueTuple(T1 item1, T2 item2)
-        {
-            this.Item1 = item1;
-            this.Item2 = item2;
-        }
-    }
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(

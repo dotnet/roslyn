@@ -55,7 +55,7 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
         Dim testProvider = New StrongNameProviderWithBadInputStream(s_defaultDesktopProvider)
         Dim options = TestOptions.DebugDll.WithStrongNameProvider(testProvider).WithCryptoKeyContainer("RoslynTestContainer")
 
-        Dim comp = CreateCompilationWithMscorlib(
+        Dim comp = CreateCompilationWithMscorlib40(
             <compilation>
                 <file name="a.vb"><![CDATA[
 Public Class C

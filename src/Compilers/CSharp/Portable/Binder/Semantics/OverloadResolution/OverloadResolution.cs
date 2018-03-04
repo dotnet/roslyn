@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -110,60 +111,77 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void MethodInvocationOverloadResolution(
             ArrayBuilder<MethodSymbol> methods,
             ArrayBuilder<TypeSymbol> typeArguments,
+            BoundExpression receiver,
             AnalyzedArguments arguments,
             OverloadResolutionResult<MethodSymbol> result,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool isMethodGroupConversion = false,
             bool allowRefOmittedArguments = false,
             bool inferWithDynamic = false,
-            bool allowUnexpandedForm = true)
+            bool allowUnexpandedForm = true,
+            RefKind returnRefKind = default,
+            TypeSymbol returnType = null)
         {
             MethodOrPropertyOverloadResolution(
-                methods, typeArguments, arguments, result, isMethodGroupConversion,
+                methods, typeArguments, receiver, arguments, result, isMethodGroupConversion,
                 allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic,
-                allowUnexpandedForm: allowUnexpandedForm);
+                allowUnexpandedForm: allowUnexpandedForm,
+                returnRefKind: returnRefKind,
+                returnType: returnType);
         }
 
         // Perform overload resolution on the given property group, with the given arguments and
         // names. The names can be null if no names were supplied to any arguments.
         public void PropertyOverloadResolution(
             ArrayBuilder<PropertySymbol> indexers,
+            BoundExpression receiverOpt,
             AnalyzedArguments arguments,
             OverloadResolutionResult<PropertySymbol> result,
             bool allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             ArrayBuilder<TypeSymbol> typeArguments = ArrayBuilder<TypeSymbol>.GetInstance();
-            MethodOrPropertyOverloadResolution(indexers, typeArguments, arguments, result, isMethodGroupConversion: false, allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics);
+            MethodOrPropertyOverloadResolution(
+                indexers, typeArguments, receiverOpt, arguments, result, isMethodGroupConversion: false,
+                allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics);
             typeArguments.Free();
         }
 
         internal void MethodOrPropertyOverloadResolution<TMember>(
             ArrayBuilder<TMember> members,
             ArrayBuilder<TypeSymbol> typeArguments,
+            BoundExpression receiver,
             AnalyzedArguments arguments,
             OverloadResolutionResult<TMember> result,
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
-            bool allowUnexpandedForm = true)
+            bool allowUnexpandedForm = true,
+            RefKind returnRefKind = default,
+            TypeSymbol returnType = null)
             where TMember : Symbol
         {
             var results = result.ResultsBuilder;
 
             // First, attempt overload resolution not getting complete results.
             PerformMemberOverloadResolution(
-                results, members, typeArguments, arguments, false, isMethodGroupConversion,
-                allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic,
-                allowUnexpandedForm: allowUnexpandedForm);
+                results: results, members: members, typeArguments: typeArguments,
+                receiver: receiver, arguments: arguments, completeResults: false,
+                isMethodGroupConversion: isMethodGroupConversion, returnRefKind: returnRefKind, returnType: returnType,
+                allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
+                inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm);
 
             if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
             {
                 // We didn't get a single good result. Get full results of overload resolution and return those.
                 result.Clear();
-                PerformMemberOverloadResolution(results, members, typeArguments, arguments, true, isMethodGroupConversion,
-                    allowRefOmittedArguments, ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
+                PerformMemberOverloadResolution(
+                    results: results, members: members, typeArguments: typeArguments,
+                    receiver: receiver, arguments: arguments, completeResults: true,
+                    isMethodGroupConversion: isMethodGroupConversion, returnRefKind: returnRefKind, returnType: returnType,
+                    allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
+                    allowUnexpandedForm: allowUnexpandedForm);
             }
         }
 
@@ -205,9 +223,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MemberResolutionResult<TMember>> results,
             ArrayBuilder<TMember> members,
             ArrayBuilder<TypeSymbol> typeArguments,
+            BoundExpression receiver,
             AnalyzedArguments arguments,
             bool completeResults,
             bool isMethodGroupConversion,
+            RefKind returnRefKind,
+            TypeSymbol returnType,
             bool allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
@@ -236,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < members.Count; i++)
             {
                 AddMemberToCandidateSet(
-                    members[i], results, members, typeArguments, arguments, completeResults,
+                    members[i], results, members, typeArguments, receiver, arguments, completeResults,
                     isMethodGroupConversion, allowRefOmittedArguments, containingTypeMapOpt, inferWithDynamic: inferWithDynamic,
                     useSiteDiagnostics: ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             }
@@ -251,6 +272,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: The set of candidate methods is reduced to contain only methods from the most derived types.
             RemoveLessDerivedMembers(results, ref useSiteDiagnostics);
+
+            if (Compilation.LanguageVersion.AllowImprovedOverloadCandidates())
+            {
+                RemoveStaticInstanceMismatches(results, arguments, receiver);
+
+                RemoveConstraintViolations(results);
+
+                if (isMethodGroupConversion)
+                {
+                    RemoveDelegateConversionsWithWrongReturnType(results, ref useSiteDiagnostics, returnRefKind, returnType);
+                }
+            }
 
             // NB: As in dev12, we do this AFTER removing less derived members.
             // Also note that less derived members are not actually removed - they are simply flagged.
@@ -271,6 +304,151 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Note, the caller is responsible for "final validation",
             // as that is not part of overload resolution.
+        }
+
+        private void RemoveStaticInstanceMismatches<TMember>(
+            ArrayBuilder<MemberResolutionResult<TMember>> results,
+            AnalyzedArguments arguments,
+            BoundExpression receiverOpt) where TMember : Symbol
+        {
+            // When the feature 'ImprovedOverloadCandidates' is enabled, we do not include instance members when the receiver
+            // is a type, or static members when the receiver is an instance. This does not apply to extension method invocations,
+            // because extension methods are only considered when the receiver is an instance. It also does not apply when the
+            // receiver is a TypeOrValueExpression, which is used to handle the receiver of a Color-Color ambiguity, where either
+            // an instance or a static member would be acceptable.
+            if (arguments.IsExtensionMethodInvocation || Binder.IsTypeOrValueExpression(receiverOpt))
+            {
+                return;
+            }
+
+            bool isImplicitReceiver = Binder.WasImplicitReceiver(receiverOpt);
+            // isStaticContext includes both places where `this` isn't available, and places where it
+            // cannot be used (e.g. a field initializer or a constructor-initializer)
+            bool isStaticContext = !_binder.HasThis(!isImplicitReceiver, out bool inStaticContext) || inStaticContext;
+            if (isImplicitReceiver && !isStaticContext)
+            {
+                return;
+            }
+
+            // We are in a context where only instance (or only static) methods are permitted. We reject the others.
+            bool keepStatic = isImplicitReceiver && isStaticContext || Binder.IsMemberAccessedThroughType(receiverOpt);
+
+            for (int f = 0; f < results.Count; ++f)
+            {
+                var result = results[f];
+                TMember member = result.Member;
+                if (result.Result.IsValid && member.IsStatic != keepStatic)
+                {
+                    results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
+                }
+            }
+        }
+
+        private void RemoveConstraintViolations<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results) where TMember : Symbol
+        {
+            // When the feature 'ImprovedOverloadCandidates' is enabled, we do not include methods for which the type arguments
+            // violate the constraints of the method's type parameters.
+
+            // Constraint violations apply to method in a method group, not to properties in a "property group".
+            if (typeof(TMember) != typeof(MethodSymbol))
+            {
+                return;
+            }
+
+            for (int f = 0; f < results.Count; ++f)
+            {
+                var result = results[f];
+                var member = (MethodSymbol)(Symbol)result.Member;
+                // a constraint failure on the method trumps (for reporting purposes) a previously-detected
+                // constraint failure on the constructed type of a parameter
+                if ((result.Result.IsValid || result.Result.Kind == MemberResolutionKind.ConstructedParameterFailedConstraintCheck) &&
+                    FailsConstraintChecks(member, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt))
+                {
+                    results[f] = new MemberResolutionResult<TMember>(
+                        result.Member, result.LeastOverriddenMember,
+                        MemberAnalysisResult.ConstraintFailure(constraintFailureDiagnosticsOpt.ToImmutableAndFree()));
+                }
+            }
+        }
+
+        private bool FailsConstraintChecks(MethodSymbol method, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt)
+        {
+            if (method.Arity == 0 || method.OriginalDefinition == (object)method)
+            {
+                constraintFailureDiagnosticsOpt = null;
+                return false;
+            }
+
+            var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+            ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
+            bool constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
+                method,
+                this.Conversions,
+                this.Compilation,
+                diagnosticsBuilder,
+                ref useSiteDiagnosticsBuilder);
+
+            if (!constraintsSatisfied)
+            {
+                if (useSiteDiagnosticsBuilder != null)
+                {
+                    diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder);
+                    useSiteDiagnosticsBuilder.Free();
+                }
+
+                constraintFailureDiagnosticsOpt = diagnosticsBuilder;
+                return true;
+            }
+
+            diagnosticsBuilder.Free();
+            useSiteDiagnosticsBuilder?.Free();
+            constraintFailureDiagnosticsOpt = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Remove candidates to a delegate conversion where the method's return ref kind or return type is wrong.
+        /// </summary>
+        /// <param name="returnRefKind">The ref kind of the delegate's return, if known. This is only unknown in
+        /// error scenarios, such as a delegate type that has no invoke method.</param>
+        /// <param name="returnType">The return type of the delegate, if known. It isn't
+        /// known when we're attempting to infer the return type of a method group for type inference.</param>
+        private void RemoveDelegateConversionsWithWrongReturnType<TMember>(
+            ArrayBuilder<MemberResolutionResult<TMember>> results,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            RefKind? returnRefKind,
+            TypeSymbol returnType) where TMember : Symbol
+        {
+            // When the feature 'ImprovedOverloadCandidates' is enabled, then a delegate conversion overload resolution
+            // rejects candidates that have the wrong return ref kind or return type.
+
+            // Delegate conversions apply to method in a method group, not to properties in a "property group".
+            Debug.Assert(typeof(TMember) == typeof(MethodSymbol));
+
+            for (int f = 0; f < results.Count; ++f)
+            {
+                var result = results[f];
+                if (!result.Result.IsValid)
+                {
+                    continue;
+                }
+
+                var method = (MethodSymbol)(Symbol)result.Member;
+                bool returnsMatch =
+                    (object)returnType == null ||
+                    method.ReturnType.Equals(returnType, TypeCompareKind.AllIgnoreOptions) ||
+                    returnRefKind == RefKind.None && Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, returnType, ref useSiteDiagnostics);
+                if (!returnsMatch)
+                {
+                    results[f] = new MemberResolutionResult<TMember>(
+                        result.Member, result.LeastOverriddenMember, MemberAnalysisResult.WrongReturnType());
+                }
+                else if (method.RefKind != returnRefKind)
+                {
+                    results[f] = new MemberResolutionResult<TMember>(
+                        result.Member, result.LeastOverriddenMember, MemberAnalysisResult.WrongRefKind());
+                }
+            }
         }
 
         private static Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>> PartitionMembersByContainingType<TMember>(ArrayBuilder<TMember> members) where TMember : Symbol
@@ -356,7 +534,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MemberAnalysisResult.UseSiteError();
             }
 
-            var effectiveParameters = GetEffectiveParametersInNormalForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, allowRefOmittedArguments: false);
+            var effectiveParameters = GetEffectiveParametersInNormalForm(
+                constructor, 
+                arguments.Arguments.Count, 
+                argumentAnalysis.ArgsToParamsOpt, 
+                arguments.RefKinds, 
+                isMethodGroupConversion: false, 
+                allowRefOmittedArguments: false);
 
             return IsApplicable(
                 constructor,
@@ -388,7 +572,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MemberAnalysisResult.UseSiteError();
             }
 
-            var effectiveParameters = GetEffectiveParametersInExpandedForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, allowRefOmittedArguments: false);
+            var effectiveParameters = GetEffectiveParametersInExpandedForm(
+                constructor, 
+                arguments.Arguments.Count, 
+                argumentAnalysis.ArgsToParamsOpt, 
+                arguments.RefKinds, 
+                isMethodGroupConversion: false, 
+                allowRefOmittedArguments: false);
 
             // A vararg ctor is never applicable in its expanded form because
             // it is never a params method.
@@ -412,6 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MemberResolutionResult<TMember>> results,
             ArrayBuilder<TMember> members,
             ArrayBuilder<TypeSymbol> typeArguments,
+            BoundExpression receiverOpt,
             AnalyzedArguments arguments,
             bool completeResults,
             bool isMethodGroupConversion,
@@ -1222,20 +1413,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             worse.Free();
         }
 
-        // Return the parameter type corresponding to the given argument index.
-        private static TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters)
+        /// <summary>
+        /// Returns the parameter type (considering params).
+        /// </summary>
+        private static TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result)
         {
-            RefKind discarded;
-            return GetParameterType(argIndex, result, parameters, out discarded);
-        }
-
-        // Return the parameter type corresponding to the given argument index.
-        private static TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, out RefKind refKind)
-        {
-            int paramIndex = result.ParameterFromArgument(argIndex);
-            ParameterSymbol parameter = parameters[paramIndex];
-            refKind = parameter.RefKind;
-
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
                 parameter.IsParams && parameter.Type.IsSZArray())
             {
@@ -1245,6 +1427,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return parameter.Type;
             }
+        }
+
+        /// <summary>
+        /// Returns the parameter corresponding to the given argument index.
+        /// </summary>
+        private static ParameterSymbol GetParameter(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters)
+        {
+            int paramIndex = result.ParameterFromArgument(argIndex);
+            return parameters[paramIndex];
         }
 
         private BetterResult BetterFunctionMember<TMember>(
@@ -1308,6 +1499,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // implicit conversion from EX to PX, and for at least one argument, the conversion from
             // EX to PX is better than the conversion from EX to QX.
 
+            var m1LeastOverridenParameters = m1.LeastOverriddenMember.GetParameters();
+            var m2LeastOverridenParameters = m2.LeastOverriddenMember.GetParameters();
+
             bool allSame = true; // Are all parameter types equivalent by identify conversions, ignoring Task-like differences?
             int i;
             for (i = 0; i < arguments.Count; ++i)
@@ -1323,9 +1517,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                RefKind refKind1, refKind2;
-                var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
-                var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
+                var parameter1 = GetParameter(i, m1.Result, m1LeastOverridenParameters);
+                var type1 = GetParameterType(parameter1, m1.Result);
+
+                var parameter2 = GetParameter(i, m2.Result, m2LeastOverridenParameters);
+                var type2 = GetParameterType(parameter2, m2.Result);
 
                 bool okToDowngradeToNeither;
                 BetterResult r;
@@ -1333,10 +1529,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 r = BetterConversionFromExpression(arguments[i],
                                                    type1,
                                                    m1.Result.ConversionForArg(i),
-                                                   refKind1,
+                                                   parameter1.RefKind,
                                                    type2,
                                                    m2.Result.ConversionForArg(i),
-                                                   refKind2,
+                                                   parameter2.RefKind,
                                                    considerRefKinds,
                                                    ref useSiteDiagnostics,
                                                    out okToDowngradeToNeither);
@@ -1454,11 +1650,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    RefKind refKind1, refKind2;
-                    var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
-                    var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
-
+                    var parameter1 = GetParameter(i, m1.Result, m1LeastOverridenParameters);
+                    var type1 = GetParameterType(parameter1, m1.Result);
                     var type1Normalized = type1.NormalizeTaskTypes(Compilation);
+
+                    var parameter2 = GetParameter(i, m2.Result, m2LeastOverridenParameters);
+                    var type2 = GetParameterType(parameter2, m2.Result);
                     var type2Normalized = type2.NormalizeTaskTypes(Compilation);
 
                     if (Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
@@ -1515,7 +1712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return BetterResult.Neither;
+                return PreferValOverInParameters(arguments, m1, m1LeastOverridenParameters, m2, m2LeastOverridenParameters);
             }
 
             // If MP is a non-generic method and MQ is a generic method, then MP is better than MQ.
@@ -1608,8 +1805,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                uninst1.Add(GetParameterType(i, m1.Result, m1Original));
-                uninst2.Add(GetParameterType(i, m2.Result, m2Original));
+                var parameter1 = GetParameter(i, m1.Result, m1Original);
+                uninst1.Add(GetParameterType(parameter1, m1.Result));
+
+                var parameter2 = GetParameter(i, m2.Result, m2Original);
+                uninst2.Add(GetParameterType(parameter2, m2.Result));
             }
 
             result = MoreSpecificType(uninst1, uninst2, ref useSiteDiagnostics);
@@ -1624,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: Otherwise if one member is a non-lifted operator and  the other is a lifted
             // operator, the non-lifted one is better.
 
-            // The penultimate rule: Position in interactive submission chain. The last definition wins.
+            // Otherwise: Position in interactive submission chain. The last definition wins.
             if (m1.Member.ContainingType.TypeKind == TypeKind.Submission && m2.Member.ContainingType.TypeKind == TypeKind.Submission)
             {
                 // script class is always defined in source:
@@ -1644,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Finally, if one has fewer custom modifiers, that is better
+            // Otherwise, if one has fewer custom modifiers, that is better
             int m1ModifierCount = m1.LeastOverriddenMember.CustomModifierCount();
             int m2ModifierCount = m2.LeastOverriddenMember.CustomModifierCount();
             if (m1ModifierCount != m2ModifierCount)
@@ -1652,8 +1852,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (m1ModifierCount < m2ModifierCount) ? BetterResult.Left : BetterResult.Right;
             }
 
-            // Otherwise, neither function member is better.
-            return BetterResult.Neither;
+            // Otherwise, prefer methods with 'val' parameters over 'in' parameters.
+            return PreferValOverInParameters(arguments, m1, m1LeastOverridenParameters, m2, m2LeastOverridenParameters);
+        }
+
+        private static BetterResult PreferValOverInParameters<TMember>(
+            ArrayBuilder<BoundExpression> arguments,
+            MemberResolutionResult<TMember> m1,
+            ImmutableArray<ParameterSymbol> parameters1,
+            MemberResolutionResult<TMember> m2,
+            ImmutableArray<ParameterSymbol> parameters2)
+            where TMember : Symbol
+        {
+            BetterResult valOverInPreference = BetterResult.Neither;
+
+            for (int i = 0; i < arguments.Count; ++i)
+            {
+                if (arguments[i].Kind != BoundKind.ArgListOperator)
+                {
+                    var p1 = GetParameter(i, m1.Result, parameters1);
+                    var p2 = GetParameter(i, m2.Result, parameters2);
+
+                    if (p1.RefKind == RefKind.None && p2.RefKind == RefKind.In)
+                    {
+                        if (valOverInPreference == BetterResult.Right)
+                        {
+                            return BetterResult.Neither;
+                        }
+                        else
+                        {
+                            valOverInPreference = BetterResult.Left;
+                        }
+                    }
+                    else if (p2.RefKind == RefKind.None && p1.RefKind == RefKind.In)
+                    {
+                        if (valOverInPreference == BetterResult.Left)
+                        {
+                            return BetterResult.Neither;
+                        }
+                        else
+                        {
+                            valOverInPreference = BetterResult.Right;
+                        }
+                    }
+                }
+            }
+
+            return valOverInPreference;
         }
 
         private static void GetParameterCounts<TMember>(MemberResolutionResult<TMember> m, ArrayBuilder<BoundExpression> arguments, out int declaredParameterCount, out int parametersUsedIncludingExpansionAndOptional) where TMember : Symbol
@@ -2503,11 +2748,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
+            bool isMethodGroupConversion,
             bool allowRefOmittedArguments)
             where TMember : Symbol
         {
             bool discarded;
-            return GetEffectiveParametersInNormalForm(member, argumentCount, argToParamMap, argumentRefKinds, allowRefOmittedArguments, hasAnyRefOmittedArgument: out discarded);
+            return GetEffectiveParametersInNormalForm(member, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, hasAnyRefOmittedArgument: out discarded);
         }
 
         private EffectiveParameters GetEffectiveParametersInNormalForm<TMember>(
@@ -2515,6 +2761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
+            bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
             out bool hasAnyRefOmittedArgument) where TMember : Symbol
         {
@@ -2551,7 +2798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 types.Add(parameter.Type);
 
                 RefKind argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
-                RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
+                RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, isMethodGroupConversion, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
 
                 if (refs == null)
                 {
@@ -2571,12 +2818,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new EffectiveParameters(types.ToImmutableAndFree(), refKinds);
         }
 
-        private RefKind GetEffectiveParameterRefKind(ParameterSymbol parameter, RefKind argRefKind, bool allowRefOmittedArguments, ref bool hasAnyRefOmittedArgument)
+        private RefKind GetEffectiveParameterRefKind(
+            ParameterSymbol parameter, 
+            RefKind argRefKind,
+            bool isMethodGroupConversion,
+            bool allowRefOmittedArguments, 
+            ref bool hasAnyRefOmittedArgument)
         {
             var paramRefKind = parameter.RefKind;
 
             // 'None' argument is allowed to match 'In' parameter and should behave like 'None' for the purpose of overload resolution
-            if (argRefKind == RefKind.None && paramRefKind == RefKind.In)
+            // unless this is a method group conversion where 'In' must match 'In'
+            if (!isMethodGroupConversion && argRefKind == RefKind.None && paramRefKind == RefKind.In)
             {
                 return RefKind.None;
             }
@@ -2598,10 +2851,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
+            bool isMethodGroupConversion,
             bool allowRefOmittedArguments) where TMember : Symbol
         {
             bool discarded;
-            return GetEffectiveParametersInExpandedForm(member, argumentCount, argToParamMap, argumentRefKinds, allowRefOmittedArguments, hasAnyRefOmittedArgument: out discarded);
+            return GetEffectiveParametersInExpandedForm(member, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, hasAnyRefOmittedArgument: out discarded);
         }
 
         private EffectiveParameters GetEffectiveParametersInExpandedForm<TMember>(
@@ -2609,6 +2863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
+            bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
             out bool hasAnyRefOmittedArgument) where TMember : Symbol
         {
@@ -2629,7 +2884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 types.Add(parm == parameters.Length - 1 ? elementType : parameter.Type);
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
-                var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
+                var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, isMethodGroupConversion, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
 
                 refs.Add(paramRefKind);
                 if (paramRefKind != RefKind.None)
@@ -2689,6 +2944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
+                isMethodGroupConversion,
                 allowRefOmittedArguments,
                 out hasAnyRefOmittedArgument);
 
@@ -2700,6 +2956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
+                isMethodGroupConversion,
                 allowRefOmittedArguments);
 
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
@@ -2756,6 +3013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
+                isMethodGroupConversion: false,
                 allowRefOmittedArguments,
                 out hasAnyRefOmittedArgument);
 
@@ -2767,6 +3025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
+                isMethodGroupConversion: false,
                 allowRefOmittedArguments);
 
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
@@ -2863,7 +3122,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //
                     // Suppose there is a call M("", null). Type inference infers that T is string.
                     // M<string> is then not an applicable candidate *NOT* because string violates the
-                    // constraint on T. That is not checked until "final validation". Rather, the 
+                    // constraint on T. That is not checked until "final validation" (although when
+                    // feature 'ImprovedOverloadCandidates' is enabled in later language versions
+                    // it is checked on the candidate before overload resolution). Rather, the 
                     // method is not a candidate because string violates the constraint *on U*. 
                     // The constructed method has formal parameter type X<string>, which is not legal.
                     // In the case given, the generic method is eliminated and the object version wins.
@@ -3115,13 +3376,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   exists from the argument to the type of the corresponding parameter, or
             // - for a ref or out parameter, the type of the argument is identical to the type of the corresponding parameter. 
 
-            // RefKind has to match unless 
-            //   the ref kind is None and either:
-            //    1) parameter is an 'In'  or
-            //    2) argument expression is of the type dynamic. This is a bug in Dev11 which we also implement. 
+            // effective RefKind has to match unless argument expression is of the type dynamic. 
+            // This is a bug in Dev11 which we also implement. 
             //       The spec is correct, this is not an intended behavior. We don't fix the bug to avoid a breaking change.
             if (!(argRefKind == parRefKind ||
-                 (argRefKind == RefKind.None && (parRefKind == RefKind.In || argument.HasDynamicType()))))
+                 (argRefKind == RefKind.None && argument.HasDynamicType())))
             {
                 return Conversion.NoConversion;
             }

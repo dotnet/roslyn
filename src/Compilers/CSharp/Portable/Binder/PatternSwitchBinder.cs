@@ -349,10 +349,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
                         BoundConstantPattern pattern = sectionBinder.BindConstantPattern(
-                            node, SwitchGoverningType, caseLabelSyntax.Value, node.HasErrors, diagnostics, out _);
+                            node, SwitchGoverningType, caseLabelSyntax.Value, node.HasErrors, diagnostics, out bool wasExpression);
                         pattern.WasCompilerGenerated = true; // we don't have a pattern syntax here
                         bool hasErrors = pattern.HasErrors;
-                        ConstantValue constantValue = pattern.ConstantValue;
+                        SyntaxNode innerValueSyntax = caseLabelSyntax.Value.SkipParens();
+                        if (innerValueSyntax.Kind() == SyntaxKind.DefaultLiteralExpression)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DefaultInSwitch, innerValueSyntax.Location);
+                            hasErrors = true;
+                        }
+
+                        var constantValue = pattern.ConstantValue;
                         if (!hasErrors &&
                             (object)constantValue != null &&
                             pattern.Value.Type == SwitchGoverningType &&
@@ -360,11 +367,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, pattern.ConstantValue.GetValueToDisplay() ?? label.Name);
                             hasErrors = true;
-                        }
-
-                        if (caseLabelSyntax.Value.Kind() == SyntaxKind.DefaultLiteralExpression)
-                        {
-                            diagnostics.Add(ErrorCode.WRN_DefaultInSwitch, caseLabelSyntax.Value.Location);
                         }
 
                         return new BoundPatternSwitchLabel(node, label, pattern, null, hasErrors);

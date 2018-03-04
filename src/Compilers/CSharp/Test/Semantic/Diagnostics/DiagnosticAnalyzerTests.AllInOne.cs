@@ -20,10 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var source = TestResource.AllInOneCSharpCode;
 
-            // AllInOneCSharpCode has no properties with initializers or named types with primary constructors.
+            // AllInOneCSharpCode has no properties with initializers/attributes.
             var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
-            symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
             // PROTOTYPE(patterns2): Add examples of all the new pattern types once supported.
             var syntaxKinds = new HashSet<SyntaxKind>();
