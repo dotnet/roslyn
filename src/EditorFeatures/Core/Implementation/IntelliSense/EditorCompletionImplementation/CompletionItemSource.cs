@@ -56,8 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 return new EditorCompletion.CompletionContext(ImmutableArray<EditorCompletion.CompletionItem>.Empty);
             }
 
-            var imageIdService = document.Project.Solution.Workspace.Services.GetService<IImageIdService>();
-
             var filterCache = new Dictionary<string, CompletionFilter>();
             var service = GetCompletionService(applicableSpan.Snapshot.TextBuffer.CurrentSnapshot) as CompletionServiceWithProviders;
 
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             {
                 var needsCustomCommit = service.GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider;
 
-                var item = Convert(document, roslynItem, imageIdService, completionService, filterCache, needsCustomCommit);
+                var item = Convert(document, roslynItem, completionService, filterCache, needsCustomCommit);
                 item.Properties.AddProperty(TriggerSnapshot, applicableSpan.Snapshot);
                 return item;
             });
@@ -102,13 +100,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         private EditorCompletion.CompletionItem Convert(
             Document document,
             RoslynCompletionItem roslynItem, 
-            IImageIdService imageService, 
             CompletionService completionService, 
             Dictionary<string, CompletionFilter> filterCache,
             bool needsCustomCommit)
         {
-            var imageId = imageService.GetImageId(roslynItem.Tags.GetGlyph());
-            var filters = GetFilters(roslynItem, imageService, filterCache);
+            var imageId = roslynItem.Tags.GetGlyph().GetImageId();
+            var filters = GetFilters(roslynItem, filterCache);
 
             if (!roslynItem.Properties.TryGetValue("InsertionText", out var insertionText))
             {
@@ -122,11 +119,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 var warningImage = Glyph.CompletionWarning.GetImageId();
 
                 // TODO, this makes the completion list invisible
-                attributeImages = ImmutableArray.Create(
-                    new AccessibleImageId(
-                        warningImage.Guid, 
-                        warningImage.Id, 
-                        "Temporary Automation Name"));
+                //attributeImages = ImmutableArray.Create(
+                //    new AccessibleImageId(
+                //        warningImage.Guid, 
+                //        warningImage.Id, 
+                //        "Temporary Automation Name"));
             }
 
             var item = new EditorCompletion.CompletionItem(
@@ -147,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             return item;
         }
 
-        private ImmutableArray<CompletionFilter> GetFilters(RoslynCompletionItem item, IImageIdService imageService, Dictionary<string, CompletionFilter> filterCache)
+        private ImmutableArray<CompletionFilter> GetFilters(RoslynCompletionItem item, Dictionary<string, CompletionFilter> filterCache)
         {
             var result = new List<CompletionFilter>();
             foreach (var filter in CompletionItemFilter.AllFilters)
@@ -160,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                     }
                     else
                     {
-                        var imageId = imageService.GetImageId(filter.Tags.GetGlyph());
+                        var imageId = filter.Tags.GetGlyph().GetImageId();
                         var itemFilter = new CompletionFilter(
                             filter.DisplayText, 
                             filter.AccessKey.ToString(), 
