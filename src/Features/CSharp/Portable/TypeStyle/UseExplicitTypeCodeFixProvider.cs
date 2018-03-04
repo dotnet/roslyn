@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
         {
             var root = editor.OriginalRoot;
 
-            foreach (var diagnostic in diagnostics)
+            var relevantDiagnostics = diagnostics.Length > 1 ? diagnostics.Where(d => d.Severity != DiagnosticSeverity.Hidden) : diagnostics;
+            foreach (var diagnostic in relevantDiagnostics)
             {
                 var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
                 await HandleDeclarationAsync(document, editor, node, cancellationToken).ConfigureAwait(false);

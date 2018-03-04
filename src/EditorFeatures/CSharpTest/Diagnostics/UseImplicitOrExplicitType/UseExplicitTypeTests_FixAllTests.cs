@@ -147,7 +147,7 @@ class Program
     static void F()
     {
         {|FixAllInDocument:var|} i1 = 0;
-        Program p1 = new Program();
+        var p1 = new Program();
     }
 }
         </Document>
@@ -170,6 +170,7 @@ class Program
     </Project>
 </Workspace>";
 
+            // FixAll doesn't fix hidden diagnostics
             await TestInRegularAndScriptAsync(input, expected, options: options, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
