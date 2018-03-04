@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
             ';', '+', '-', '*', '/', '%', '&', '|', '^', '!',
             '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\');
+
         private const string RoslynItem = nameof(RoslynItem);
         private const string TriggerSnapshot = nameof(TriggerSnapshot);
 
