@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -124,6 +125,52 @@ class Program2
 </Workspace>";
 
             await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllInDocumentScope_PreferExplicitBuiltinTypes()
+        {
+            var options = OptionsSet(
+                SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
+                SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
+                SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
+
+            var fixAllActionId = CSharpFeaturesResources.Use_explicit_type_instead_of_var;
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+class Program
+{
+    static void F()
+    {
+        {|FixAllInDocument:var|} i1 = 0;
+        Program p1 = new Program();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+class Program
+{
+    static void F()
+    {
+        int i1 = 0;
+        var p1 = new Program();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestInRegularAndScriptAsync(input, expected, options: options, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
