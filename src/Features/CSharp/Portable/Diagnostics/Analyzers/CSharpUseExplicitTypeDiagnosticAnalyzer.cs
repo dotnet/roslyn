@@ -77,10 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             }
         }
 
-        protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
+        protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            issueSpan = default;
-
             // var (x, y) = e;
             // foreach (var (x, y) in e) ...
             if (typeName.IsParentKind(SyntaxKind.DeclarationExpression))
@@ -88,7 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 var parent = (DeclarationExpressionSyntax)typeName.Parent;
                 if (parent.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
                 {
-                    issueSpan = typeName.Span;
                     return true;
                 }
             }
@@ -123,7 +120,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 }
             }
 
-            issueSpan = typeName.Span;
             return true;
         }
 

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 HandleVariableDeclaration, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression);
 
         protected abstract bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken);
-        protected abstract bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan);
+        protected abstract bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
         protected abstract bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
 
         protected static ExpressionSyntax GetInitializerExpression(ExpressionSyntax initializer) =>
@@ -51,8 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
-            TypeSyntax declaredType;
-            State state = null;
             var declarationStatement = context.Node;
             var options = context.Options;
             var syntaxTree = context.Node.SyntaxTree;
@@ -63,8 +61,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return;
             }
 
+            State state;
+            TypeSyntax declaredType;
             var semanticModel = context.SemanticModel;
+            if (CanOfferFix(declarationStatement, optionSet, semanticModel, out state, out declaredType, cancellationToken))
+            {
+                // The severity preference is not Hidden, as indicated by IsStylePreferred.
+                var descriptor = GetDescriptorWithSeverity(state.GetDiagnosticSeverityPreference());
+                context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.Span));
+            }
+        }
 
+        private bool CanOfferFix(SyntaxNode declarationStatement, OptionSet optionSet, SemanticModel semanticModel, out State state, out TypeSyntax declaredType, CancellationToken cancellationToken)
+        {
+            state = null;
             if (declarationStatement.IsKind(SyntaxKind.VariableDeclaration))
             {
                 var declaration = (VariableDeclarationSyntax)declarationStatement;
@@ -72,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
                 if (!ShouldAnalyzeVariableDeclaration(declaration, semanticModel, cancellationToken))
                 {
-                    return;
+                    return false;
                 }
 
                 state = State.Generate(declarationStatement, semanticModel, optionSet, isVariableDeclarationContext: true, cancellationToken: cancellationToken);
@@ -84,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
                 if (!ShouldAnalyzeForEachStatement(declaration, semanticModel, cancellationToken))
                 {
-                    return;
+                    return false;
                 }
 
                 state = State.Generate(declarationStatement, semanticModel, optionSet, isVariableDeclarationContext: false, cancellationToken: cancellationToken);
@@ -96,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
                 if (!ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken))
                 {
-                    return;
+                    return false;
                 }
 
                 state = State.Generate(declarationStatement, semanticModel, optionSet, isVariableDeclarationContext: false, cancellationToken: cancellationToken);
@@ -104,21 +114,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             else
             {
                 Debug.Assert(false, $"called in for unregistered node kind {declarationStatement.Kind().ToString()}");
-                return;
+                declaredType = default;
+                return false;
             }
 
             if (!IsStylePreferred(semanticModel, optionSet, state, cancellationToken))
             {
-                return;
+                return false;
             }
 
             Debug.Assert(state != null, "analyzing a declaration and state is null.");
-            if (TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken, out var diagnosticSpan))
+            if (TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken))
             {
-                // The severity preference is not Hidden, as indicated by IsStylePreferred.
-                var descriptor = GetDescriptorWithSeverity(state.GetDiagnosticSeverityPreference());
-                context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, diagnosticSpan));
+                return true;
             }
+
+            return false;
         }
 
         private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan) =>

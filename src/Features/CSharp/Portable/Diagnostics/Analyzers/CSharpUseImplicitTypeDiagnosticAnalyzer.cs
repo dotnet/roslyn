@@ -81,18 +81,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             }
         }
 
-        protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
+        protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
             Debug.Assert(!typeName.IsVar, "'var' special case should have prevented analysis of this variable.");
 
             var candidateReplacementNode = SyntaxFactory.IdentifierName("var");
-            var candidateIssueSpan = typeName.Span;
 
             // If there exists a type named var, return.
             var conflict = semanticModel.GetSpeculativeSymbolInfo(typeName.SpanStart, candidateReplacementNode, SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
             if (conflict?.IsKind(SymbolKind.NamedType) == true)
             {
-                issueSpan = default;
                 return false;
             }
 
@@ -104,7 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 // implicitly typed variables cannot be constants.
                 if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
                 {
-                    issueSpan = default;
                     return false;
                 }
 
@@ -121,7 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
                     if (containsStackAlloc)
                     {
-                        issueSpan = default;
                         return false;
                     }
                 }
@@ -130,7 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                         variable.Identifier, typeName, initializer,
                         semanticModel, optionSet, cancellationToken))
                 {
-                    issueSpan = candidateIssueSpan;
                     return true;
                 }
             }
@@ -139,18 +134,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
                 if (foreachStatementInfo.ElementConversion.IsIdentity)
                 {
-                    issueSpan = candidateIssueSpan;
                     return true;
                 }
             }
             else if (typeName.Parent is DeclarationExpressionSyntax declarationExpression &&
                      TryAnalyzeDeclarationExpression(declarationExpression, semanticModel, optionSet, cancellationToken))
             {
-                issueSpan = candidateIssueSpan;
                 return true;
             }
 
-            issueSpan = default;
             return false;
         }
 
