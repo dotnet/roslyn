@@ -251,6 +251,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case 1 when $$ break; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_NotAfterColon() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case 1: $$ }"));
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_NotAfterColon_BeforeBreak() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case 1: $$ break; }"));
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_NotInEmptySwitchStatement() =>
             await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { $$ }"));
 
