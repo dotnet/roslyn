@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -82,17 +84,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
                 builder.Append('(');
-                builder.Append(arguments[0].Display);
+                builder.Append("{0}");
 
-                for(int i = 1; i < arguments.Length; i++)
+                for (int i = 1; i < arguments.Length; i++)
                 {
-                    builder.Append(", ");
-                    builder.Append(arguments[i].Display);
+                    builder.Append(", {" + i + "}");
                 }
 
                 builder.Append(')');
 
-                return pooledBuilder.ToStringAndFree();
+                var format = pooledBuilder.ToStringAndFree();
+                var argumentDisplays = arguments.Select(a => a.Display).ToArray();
+                return FormattableStringFactory.Create(format, argumentDisplays);
             }
         }
     }

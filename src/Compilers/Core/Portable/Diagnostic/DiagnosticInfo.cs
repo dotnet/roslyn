@@ -102,6 +102,11 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
+                if (arg is FormattableString)
+                {
+                    continue;
+                }
+
                 var type = arg.GetType();
                 if (type == typeof(string) || type == typeof(AssemblyIdentity))
                 {
