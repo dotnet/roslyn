@@ -60,6 +60,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
 
+        private IDictionary<OptionKey, object> ExplicitTypeNoneEnforcement() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithNone),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithNone),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithNone));
+
+        private IDictionary<OptionKey, object> ExplicitTypeWarningEnforcement() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
+
         private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
             => new Dictionary<OptionKey, object> { { option, value } };
 
@@ -397,6 +407,27 @@ class C
         };
     }
 }", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        public async Task Test()
+        {
+            string before =
+@"class C
+{
+    static void M()
+    {
+        [|string|] s = ""hello"";
+    }
+}";
+            // non-vocal preference for explicit type, ok to refactor to implicit type
+            await TestDiagnosticInfoAsync(before,
+                options: ExplicitTypeNoneEnforcement(),
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
+
+            // vocal preference for explicit type, cannot refactor to implicit type
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeWarningEnforcement()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1451,8 +1482,11 @@ class C
         [|C|] n1 = new C();
     }
 }";
-            await TestMissingInRegularAndScriptAsync(source,
-                new TestParameters(options: ImplicitTypeNoneEnforcement()));
+            // non-vocal preference for implicit type, ok to refactor to implicit type
+            await TestDiagnosticInfoAsync(source,
+                options: ImplicitTypeNoneEnforcement(),
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]

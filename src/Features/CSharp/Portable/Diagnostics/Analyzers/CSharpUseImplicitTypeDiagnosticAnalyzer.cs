@@ -59,13 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         protected override bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
         {
             var stylePreferences = state.TypeStylePreference;
-            var shouldNotify = state.ShouldNotify();
-
-            // If notification preference is None, don't offer the suggestion.
-            if (!shouldNotify)
-            {
-                return false;
-            }
 
             if (state.IsInIntrinsicTypeContext)
             {
