@@ -17,7 +17,7 @@ Update this file only if the change to RepoToolset gets approved and merged.
   </PropertyGroup>
   
   <PropertyGroup>
-    <SourceLink>$(IntermediateOutputPath)$(MSBuildProjectName).sourcelink.json</SourceLink>
+    <SourceLink Condition="'$(DebugType)' != 'none'">$(IntermediateOutputPath)$(MSBuildProjectName).sourcelink.json</SourceLink>
     
     <!-- Override SourceLinkRoot if DeterministicSourceRoot is set, otherwise use RepoRoot as a default value -->
     <SourceLinkRoot Condition="'$(DeterministicSourceRoot)' != ''">$(DeterministicSourceRoot)</SourceLinkRoot>
@@ -27,7 +27,8 @@ Update this file only if the change to RepoToolset gets approved and merged.
   <Target Name="GenerateSourceLinkFile"
           Outputs="$(SourceLink)"
           DependsOnTargets="PrepareForBuild"
-          BeforeTargets="CoreCompile">
+          BeforeTargets="CoreCompile"
+          Condition="'$(SourceLink)' != ''">
 
     <Error Text="GitHeadSha has invalid value: '$(GitHeadSha)'" Condition="'$(GitHeadSha.Length)' != '40'" />
     <Error Text="SourceLinkRoot must end with a slash or backslash: '$(SourceLinkRoot)'" Condition="!HasTrailingSlash('$(SourceLinkRoot)')"/>

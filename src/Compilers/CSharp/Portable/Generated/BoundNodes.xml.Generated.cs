@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         GlobalStatementInitializer,
         DeconstructValuePlaceholder,
         Dup,
+        PassByCopy,
         BadExpression,
         BadStatement,
         TypeExpression,
@@ -493,6 +494,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (refKind != this.RefKind || type != this.Type)
             {
                 var result = new BoundDup(this.Syntax, refKind, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundPassByCopy : BoundExpression
+    {
+        public BoundPassByCopy(SyntaxNode syntax, BoundExpression expression, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.PassByCopy, syntax, type, hasErrors || expression.HasErrors())
+        {
+
+            Debug.Assert(expression != null, "Field 'expression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Expression = expression;
+        }
+
+
+        public BoundExpression Expression { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitPassByCopy(this);
+        }
+
+        public BoundPassByCopy Update(BoundExpression expression, TypeSymbol type)
+        {
+            if (expression != this.Expression || type != this.Type)
+            {
+                var result = new BoundPassByCopy(this.Syntax, expression, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6811,6 +6843,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDeconstructValuePlaceholder(node as BoundDeconstructValuePlaceholder, arg);
                 case BoundKind.Dup: 
                     return VisitDup(node as BoundDup, arg);
+                case BoundKind.PassByCopy: 
+                    return VisitPassByCopy(node as BoundPassByCopy, arg);
                 case BoundKind.BadExpression: 
                     return VisitBadExpression(node as BoundBadExpression, arg);
                 case BoundKind.BadStatement: 
@@ -7162,6 +7196,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitDup(BoundDup node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitPassByCopy(BoundPassByCopy node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7830,6 +7868,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitDup(BoundDup node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitPassByCopy(BoundPassByCopy node)
         {
             return this.DefaultVisit(node);
         }
@@ -8504,6 +8546,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitDup(BoundDup node)
         {
+            return null;
+        }
+        public override BoundNode VisitPassByCopy(BoundPassByCopy node)
+        {
+            this.Visit(node.Expression);
             return null;
         }
         public override BoundNode VisitBadExpression(BoundBadExpression node)
@@ -9376,6 +9423,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.RefKind, type);
+        }
+        public override BoundNode VisitPassByCopy(BoundPassByCopy node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(expression, type);
         }
         public override BoundNode VisitBadExpression(BoundBadExpression node)
         {
@@ -10389,6 +10442,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("dup", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("refKind", node.RefKind, null),
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitPassByCopy(BoundPassByCopy node, object arg)
+        {
+            return new TreeDumperNode("passByCopy", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

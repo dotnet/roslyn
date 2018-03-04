@@ -1755,6 +1755,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_InterfaceImplementedByConditional" xml:space="preserve">
     <value>Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'</value>
   </data>
+  <data name="ERR_InterfaceImplementedImplicitlyByVariadic" xml:space="preserve">
+    <value>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</value>
+  </data>
   <data name="ERR_IllegalRefParam" xml:space="preserve">
     <value>ref and out are not valid in this context</value>
   </data>
@@ -2604,7 +2607,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>#r is only allowed in scripts</value>
   </data>
   <data name="ERR_ForEachMissingMember" xml:space="preserve">
-    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</value>
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
   </data>
   <data name="WRN_BadXMLRefParamType" xml:space="preserve">
     <value>Invalid type for parameter {0} in XML comment cref attribute: '{1}'</value>
@@ -2751,7 +2754,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Expression expected after yield return</value>
   </data>
   <data name="ERR_AnonDelegateCantUse" xml:space="preserve">
-    <value>Cannot use ref or out parameter '{0}' inside an anonymous method, lambda expression, or query expression</value>
+    <value>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</value>
   </data>
   <data name="ERR_IllegalInnerUnsafe" xml:space="preserve">
     <value>Unsafe code may not appear in iterators</value>
@@ -4264,6 +4267,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefStructs" xml:space="preserve">
     <value>ref structs</value>
   </data>
+  <data name="IDS_FeatureRefConditional" xml:space="preserve">
+    <value>ref conditional expression</value>
+  </data>
   <data name="CompilationC" xml:space="preserve">
     <value>Compilation (C#): </value>
   </data>
@@ -5061,6 +5067,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
   </data>
+  <data name="ERR_InvalidHashAlgorithmName" xml:space="preserve">
+    <value>Invalid hash algorithm name: '{0}'</value>
+  </data>
   <data name="ERR_VarInvocationLvalueReserved" xml:space="preserve">
     <value>The syntax 'var (...)' as an lvalue is reserved.</value>
   </data>
@@ -5160,11 +5169,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_AttributesOnBackingFieldsNotAvailable_Title" xml:space="preserve">
     <value>Field-targeted attributes on auto-properties are not supported in this version of the language.</value>
   </data>
-  <data name="WRN_DefaultInSwitch" xml:space="preserve">
-    <value>Did you mean to use the default switch label ('default:') rather than 'case default:'? If you really mean to use the default value, use another literal ('case 0:' or 'case null:') as appropriate.</value>
-  </data>
-  <data name="WRN_DefaultInSwitch_Title" xml:space="preserve">
-    <value>Did you mean to use the default switch label ('default:') rather than 'case default:'?</value>
+  <data name="ERR_DefaultInSwitch" xml:space="preserve">
+    <value>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</value>
   </data>
   <data name="ERR_VoidInTuple" xml:space="preserve">
     <value>A tuple may not contain a value of type 'void'.</value>
@@ -5204,9 +5210,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
     <value>The first parameter of an 'in' extension method '{0}' must be a value type.</value>
-  </data>
-  <data name="ERR_BadParameterModifiersOrder" xml:space="preserve">
-    <value>The parameter modifier '{0}' cannot be used after the modifier '{1}'</value>
   </data>
   <data name="ERR_FieldsInRoStruct" xml:space="preserve">
     <value>Instance fields of readonly structs must be readonly.</value>
@@ -5249,6 +5252,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ConditionalInInterpolation" xml:space="preserve">
     <value>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</value>
+  </data>
+  <data name="ERR_InDynamicMethodArg" xml:space="preserve">
+    <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</value>
   </data>
   <data name="ERR_MissingPattern" xml:space="preserve">
     <value>Pattern missing</value>

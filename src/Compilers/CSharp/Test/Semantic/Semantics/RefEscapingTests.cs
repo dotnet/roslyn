@@ -2595,6 +2595,12 @@ public static class Extensions
                 // (8,9): error CS1510: A ref or out value must be an assignable variable
                 //         (global, global) = global;
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(global, global) = global").WithLocation(8, 9),
+                // (8,9): error CS8352: Cannot use local '(global, global) = global' in this context because it may expose referenced variables outside of their declaration scope
+                //         (global, global) = global;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "(global, global) = global").WithArguments("(global, global) = global").WithLocation(8, 9),
+                // (8,28): error CS8350: This combination of arguments to 'Extensions.Deconstruct(ref Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         (global, global) = global;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "global").WithArguments("Extensions.Deconstruct(ref System.Span<int>, out System.Span<int>, out System.Span<int>)", "x").WithLocation(8, 28),
                 // (8,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Span<int>', with 2 out parameters and a void return type.
                 //         (global, global) = global;
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "global").WithArguments("System.Span<int>", "2").WithLocation(8, 28),

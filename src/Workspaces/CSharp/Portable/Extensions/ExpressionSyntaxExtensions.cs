@@ -1000,6 +1000,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/23582",
+            Constraint = "Most trees do not have using alias directives, so avoid the expensive " + nameof(CSharpExtensions.GetSymbolInfo) + " call for this case.")]
         private static bool TryReplaceWithAlias(this ExpressionSyntax node, SemanticModel semanticModel, bool preferAliasToQualifiedName, CancellationToken cancellationToken, out IAliasSymbol aliasReplacement)
         {
             aliasReplacement = null;
@@ -1007,6 +1010,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (!node.IsAliasReplaceableExpression())
             {
                 return false;
+            }
+
+            // Avoid the TryReplaceWithAlias algorithm if the tree has no using alias directives. Since the input node
+            // might be a speculative node (not fully rooted in a tree), we use the original semantic model to find the
+            // equivalent node in the original tree, and from there determine if the tree has any using alias
+            // directives.
+            var originalModel = semanticModel.GetOriginalSemanticModel();
+
+            // Perf: We are only using the syntax tree root in a fast-path syntax check. If the root is not readily
+            // available, it is fine to continue through the normal algorithm.
+            if (originalModel.SyntaxTree.TryGetRoot(out var root))
+            {
+                if (!HasUsingAliasDirective(root))
+                {
+                    return false;
+                }
             }
 
             var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
@@ -1103,6 +1122,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (aliasReplacement != null && preferAliasToQualifiedName)
             {
                 return ValidateAliasForTarget(aliasReplacement, semanticModel, node, symbol);
+            }
+
+            return false;
+        }
+
+        private static bool HasUsingAliasDirective(SyntaxNode syntax)
+        {
+            SyntaxList<UsingDirectiveSyntax> usings;
+            SyntaxList<MemberDeclarationSyntax> members;
+            if (syntax.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax namespaceDeclaration))
+            {
+                usings = namespaceDeclaration.Usings;
+                members = namespaceDeclaration.Members;
+            }
+            else if (syntax.IsKind(SyntaxKind.CompilationUnit, out CompilationUnitSyntax compilationUnit))
+            {
+                usings = compilationUnit.Usings;
+                members = compilationUnit.Members;
+            }
+            else
+            {
+                return false;
+            }
+
+            foreach (var usingDirective in usings)
+            {
+                if (usingDirective.Alias != null)
+                {
+                    return true;
+                }
+            }
+
+            foreach (var member in members)
+            {
+                if (HasUsingAliasDirective(member))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -2519,6 +2576,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (node is MemberBindingExpressionSyntax memberBinding)
             {
                 return memberBinding.Name;
+            }
+
+            if (node is AliasQualifiedNameSyntax aliasQualifiedName && aliasQualifiedName.Name != null)
+            {
+                return aliasQualifiedName.Name;
             }
 
             return null;

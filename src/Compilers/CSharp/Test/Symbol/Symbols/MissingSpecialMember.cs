@@ -29,7 +29,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator);
 
@@ -61,7 +61,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_IDisposable__Dispose);
 
@@ -93,7 +93,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -116,7 +116,7 @@ public static class Program
 
     public static void Extension(this string x) {}
 }";
-            var comp = CreateCompilation(source, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -261,7 +261,7 @@ namespace System
     public struct Void { }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateEmptyCompilation(source);
 
             var wellKnownType = comp.GetWellKnownType(WellKnownType.System_Type);
             Assert.Equal(TypeKind.Class, wellKnownType.TypeKind);
@@ -343,8 +343,8 @@ namespace System
                 comp.GetDiagnostics();
             };
 
-            validatePresent(CreateCompilation(string.Format(sourceTemplate, "public")));
-            validatePresent(CreateCompilation(string.Format(sourceTemplate, "internal")));
+            validatePresent(CreateEmptyCompilation(string.Format(sourceTemplate, "public")));
+            validatePresent(CreateEmptyCompilation(string.Format(sourceTemplate, "internal")));
         }
 
         // Document the fact that we don't reject type parameters with constraints (yet?).
@@ -466,16 +466,16 @@ namespace System
 }}
 ";
 
-            var corlibRef = CreateCompilation(corlibSource).EmitToImageReference(expectedWarnings: new[]
+            var corlibRef = CreateEmptyCompilation(corlibSource).EmitToImageReference(expectedWarnings: new[]
             {
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
             });
 
-            var publicLibRef = CreateCompilation(string.Format(libSourceTemplate, "public"), new[] { corlibRef }).EmitToImageReference();
-            var internalLibRef = CreateCompilation(string.Format(libSourceTemplate, "internal"), new[] { corlibRef }).EmitToImageReference();
+            var publicLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "public"), new[] { corlibRef }).EmitToImageReference();
+            var internalLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "internal"), new[] { corlibRef }).EmitToImageReference();
 
-            var comp = CreateCompilation("", new[] { corlibRef, publicLibRef, internalLibRef }, assemblyName: "Test");
+            var comp = CreateEmptyCompilation("", new[] { corlibRef, publicLibRef, internalLibRef }, assemblyName: "Test");
 
             var wellKnown = comp.GetWellKnownType(WellKnownType.System_Type);
             Assert.NotNull(wellKnown);
@@ -488,7 +488,7 @@ namespace System
 
         private static void ValidateSourceAndMetadata(string source, Action<CSharpCompilation> validate)
         {
-            var comp1 = CreateCompilation(source);
+            var comp1 = CreateEmptyCompilation(source);
             validate(comp1);
 
             var reference = comp1.EmitToImageReference(expectedWarnings: new[]
@@ -497,7 +497,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
             });
 
-            var comp2 = CreateCompilation("", new[] { reference });
+            var comp2 = CreateEmptyCompilation("", new[] { reference });
             validate(comp2);
         }
 
@@ -505,7 +505,7 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypes()
         {
-            var comp = CreateCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
+            var comp = CreateEmptyCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
 
             for (var special = SpecialType.None + 1; special <= SpecialType.Count; special++)
             {
@@ -519,7 +519,7 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypeMembers()
         {
-            var comp = CreateCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
+            var comp = CreateEmptyCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
 
             foreach (SpecialMember special in Enum.GetValues(typeof(SpecialMember)))
             {
@@ -546,7 +546,7 @@ namespace System
                 SystemWindowsFormsRef,
                 ValueTupleRef
             }.Concat(WinRtRefs).ToArray();
-            var comp = CreateCompilation("", refs);
+            var comp = CreateEmptyCompilation("", refs);
 
             for (var wkt = WellKnownType.First; wkt < WellKnownType.NextAvailable; wkt++)
             {
@@ -561,6 +561,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
                     case WellKnownType.System_Span_T:
+                    case WellKnownType.System_ReadOnlySpan_T:
                     // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
@@ -845,7 +846,7 @@ namespace System
                 SystemWindowsFormsRef,
                 ValueTupleRef
             }.Concat(WinRtRefs).ToArray();
-            var comp = CreateCompilation("", refs);
+            var comp = CreateEmptyCompilation("", refs);
 
             foreach (WellKnownMember wkm in Enum.GetValues(typeof(WellKnownMember)))
             {
@@ -860,6 +861,10 @@ namespace System
                         continue;
                     case WellKnownMember.System_Array__Empty:
                     case WellKnownMember.System_Span_T__ctor:
+                    case WellKnownMember.System_Span_T__get_Item:
+                    case WellKnownMember.System_Span_T__get_Length:
+                    case WellKnownMember.System_ReadOnlySpan_T__get_Item:
+                    case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
@@ -890,7 +895,7 @@ public class MyClass
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.MakeMemberMissing(SpecialMember.System_IntPtr__op_Explicit_FromInt32);
             comp.VerifyEmitDiagnostics(
                 // (8,10): error CS0656: Missing compiler required member 'System.IntPtr.op_Explicit'

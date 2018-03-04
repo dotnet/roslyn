@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Threading;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -20,7 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal sealed class PEMethodSymbol : MethodSymbol
     {
-        private class SignatureData
+        /// <summary>
+        /// internal for testing purpose
+        /// </summary>
+        internal class SignatureData
         {
             public readonly SignatureHeader Header;
             public readonly ImmutableArray<ParameterSymbol> Parameters;
@@ -555,7 +558,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return false;
         }
 
-        private SignatureData Signature => _lazySignature ?? LoadSignature();
+        /// <summary>
+        /// internal for testing purpose
+        /// </summary>
+        internal SignatureData Signature => _lazySignature ?? LoadSignature();
 
         private SignatureData LoadSignature()
         {
@@ -583,7 +589,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var builder = ImmutableArray.CreateBuilder<ParameterSymbol>(count);
                 for (int i = 0; i < count; i++)
                 {
-                    builder.Add(PEParameterSymbol.Create(moduleSymbol, this, i, paramInfo[i + 1], out isBadParameter));
+                    builder.Add(PEParameterSymbol.Create(
+                        moduleSymbol, this, this.IsMetadataVirtual(), i,
+                        paramInfo[i + 1], isReturn: false, out isBadParameter));
+
                     if (isBadParameter)
                     {
                         makeBad = true;
@@ -605,7 +614,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             paramInfo[0].Type = returnType;
 
-            var returnParam = PEParameterSymbol.Create(moduleSymbol, this, 0, paramInfo[0], out isBadParameter);
+            var returnParam = PEParameterSymbol.Create(
+                moduleSymbol, this, this.IsMetadataVirtual(), 0,
+                paramInfo[0], isReturn: true, out isBadParameter);
 
             if (makeBad || isBadParameter)
             {
@@ -803,13 +814,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private bool IsValidUserDefinedOperatorSignature(int parameterCount) =>
-                !this.ReturnsVoid &&
-                !this.IsGenericMethod &&
-                !this.IsVararg &&
-                this.ParameterCount == parameterCount &&
-                this.ParameterRefKinds.IsDefault && // No 'ref' or 'out'
-                !this.IsParams();
+        private bool IsValidUserDefinedOperatorSignature(int parameterCount)
+        {
+            if (this.ReturnsVoid || this.IsGenericMethod || this.IsVararg || this.ParameterCount != parameterCount || this.IsParams())
+            {
+                return false;
+            }
+
+            if (this.ParameterRefKinds.IsDefault)
+            {
+                return true;
+            }
+
+            foreach (var kind in this.ParameterRefKinds)
+            {
+                switch (kind)
+                {
+                    case RefKind.None:
+                    case RefKind.In:
+                        continue;
+                    case RefKind.Out:
+                    case RefKind.Ref:
+                        return false;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(kind);
+                }
+            }
+
+            return true;
+        }
 
         private MethodKind ComputeMethodKind()
         {

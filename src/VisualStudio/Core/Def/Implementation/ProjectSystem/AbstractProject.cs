@@ -15,8 +15,10 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -33,8 +35,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     // NOTE: Microsoft.VisualStudio.LanguageServices.TypeScript.TypeScriptProject derives from AbstractProject.
+#pragma warning disable CS0618 // IVisualStudioHostProject is obsolete
     internal abstract partial class AbstractProject : ForegroundThreadAffinitizedObject, IVisualStudioHostProject
+#pragma warning restore CS0618 // IVisualStudioHostProject is obsolete
     {
+        internal const string ProjectGuidPropertyName = "ProjectGuid";
+
         internal static object RuleSetErrorId = new object();
         private readonly object _gate = new object();
 
@@ -45,6 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<string, IVisualStudioHostDocument> _documentMonikers = new Dictionary<string, IVisualStudioHostDocument>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, VisualStudioAnalyzer> _analyzers = new Dictionary<string, VisualStudioAnalyzer>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _additionalDocuments = new Dictionary<DocumentId, IVisualStudioHostDocument>();
+        private readonly Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>> _hierarchyEventSinks = new Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>>();
 
         /// <summary>
         /// The list of files which have been added to the project but we aren't tracking since they
@@ -52,13 +59,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// files, and if those are open in a strange editor we just bail.
         /// </summary>
         private readonly ISet<string> _untrackedDocuments = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        /// <summary>
-        /// The path to a metadata reference that was converted to project references.
-        /// </summary>
-        private readonly Dictionary<string, ProjectReference> _metadataFileNameToConvertedProjectReference = new Dictionary<string, ProjectReference>(StringComparer.OrdinalIgnoreCase);
-
-        private bool _pushingChangesToWorkspaceHosts;
 
         #endregion
 
@@ -82,6 +82,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return _donotAccessDirectlyChangedReferencesPendingUpdate;
             }
         }
+
+        private readonly HashSet<(AbstractProject, MetadataReferenceProperties)> _projectsReferencingMe = new HashSet<(AbstractProject, MetadataReferenceProperties)>();
+        
+        /// <summary>
+        /// Maps from the output path of a project that was converted to
+        /// </summary>
+        private readonly Dictionary<string, ProjectReference> _metadataFileNameToConvertedProjectReference = new Dictionary<string, ProjectReference>(StringComparer.OrdinalIgnoreCase);
 
         #endregion
 
@@ -167,6 +174,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             UpdateAssemblyName();
+
+            Logger.Log(FunctionId.AbstractProject_Created,
+                KeyValueLogMessage.Create(LogType.Trace, m =>
+                {
+                    m[ProjectGuidPropertyName] = Guid;
+                }));
         }
 
         internal IServiceProvider ServiceProvider { get; }
@@ -278,18 +291,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal VsENCRebuildableProjectImpl EditAndContinueImplOpt { get; private set; }
 
-        /// <summary>
-        /// Override this method to validate references when creating <see cref="ProjectInfo"/> for current state.
-        /// By default, this method does nothing.
-        /// </summary>
-        protected virtual void ValidateReferences()
-        {
-        }
-
         public ProjectInfo CreateProjectInfoForCurrentState()
         {
-            ValidateReferences();
-
             lock (_gate)
             {
                 var info = ProjectInfo.Create(
@@ -312,15 +315,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected void SetIntellisenseBuildResultAndNotifyWorkspaceHosts(bool succeeded)
+        protected void SetIntellisenseBuildResultAndNotifyWorkspace(bool succeeded)
         {
-            // set intellisense related info
+            // set IntelliSense related info
             LastDesignTimeBuildSucceeded = succeeded;
 
-            if (PushingChangesToWorkspaceHosts)
+            Logger.Log(FunctionId.AbstractProject_SetIntelliSenseBuild,
+                KeyValueLogMessage.Create(LogType.Trace, m =>
+                {
+                    m[ProjectGuidPropertyName] = Guid;
+                    m[nameof(LastDesignTimeBuildSucceeded)] = LastDesignTimeBuildSucceeded;
+
+                    // Use old name for consistency
+                    m["PushingChangesToWorkspaceHosts"] = PushingChangesToWorkspace;
+                }));
+
+            if (PushingChangesToWorkspace)
             {
                 // set workspace reference info
-                ProjectTracker.NotifyWorkspaceHosts(host => (host as IVisualStudioWorkspaceHost2)?.OnHasAllInformation(Id, succeeded));
+                ProjectTracker.NotifyWorkspace(workspace => workspace.OnHasAllInformationChanged(Id, succeeded));
             }
         }
 
@@ -437,46 +450,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void AddMetadataFileNameToConvertedProjectReference(string filePath, ProjectReference projectReference)
-        {
-            lock (_gate)
-            {
-                _metadataFileNameToConvertedProjectReference.Add(filePath, projectReference);
-            }
-        }
-
-        private void UpdateMetadataFileNameToConvertedProjectReference(string filePath, ProjectReference projectReference)
-        {
-            lock (_gate)
-            {
-                _metadataFileNameToConvertedProjectReference[filePath] = projectReference;
-            }
-        }
-
-        private bool RemoveMetadataFileNameToConvertedProjectReference(string filePath)
-        {
-            lock (_gate)
-            {
-                return _metadataFileNameToConvertedProjectReference.Remove(filePath);
-            }
-        }
-
-        private bool TryGetMetadataFileNameToConvertedProjectReference(string filePath, out ProjectReference projectReference)
-        {
-            lock (_gate)
-            {
-                return _metadataFileNameToConvertedProjectReference.TryGetValue(filePath, out projectReference);
-            }
-        }
-
-        private bool HasMetadataFileNameToConvertedProjectReference(string filePath)
-        {
-            lock (_gate)
-            {
-                return _metadataFileNameToConvertedProjectReference.ContainsKey(filePath);
-            }
-        }
-
         public bool CurrentProjectReferencesContains(ProjectId projectId)
         {
             lock (_gate)
@@ -572,7 +545,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (CanAddProjectReference(projectReference))
                 {
                     AddProjectReference(projectReference);
-                    AddMetadataFileNameToConvertedProjectReference(filePath, projectReference);
+                    _metadataFileNameToConvertedProjectReference.Add(filePath, projectReference);
                     return VSConstants.S_OK;
                 }
             }
@@ -598,7 +571,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // at this point, we don't know whether it is a metadata reference added because 
             // we don't have enough information yet for p2p reference or user explicitly added it 
             // as a metadata reference.
-            AddMetadataReferenceCore(this.MetadataReferenceProvider.CreateMetadataReference(this, filePath, properties));
+            AddMetadataReferenceCore(this.MetadataReferenceProvider.CreateMetadataReference(filePath, properties));
 
             // here, we change behavior compared to old C# language service. regardless of file being exist or not, 
             // we will always return S_OK. this is to support cross language p2p reference better. 
@@ -629,12 +602,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AssertIsForeground();
 
             // Is this a reference we converted to a project reference?
-            if (TryGetMetadataFileNameToConvertedProjectReference(filePath, out var projectReference))
+            if (_metadataFileNameToConvertedProjectReference.TryGetValue(filePath, out var projectReference))
             {
                 // We converted this, so remove the project reference instead
                 RemoveProjectReference(projectReference);
 
-                Contract.ThrowIfFalse(RemoveMetadataFileNameToConvertedProjectReference(filePath));
+                Contract.ThrowIfFalse(_metadataFileNameToConvertedProjectReference.Remove(filePath));
             }
 
             // Just a metadata reference, so remove all of those
@@ -652,10 +625,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _metadataReferences.Add(reference);
             }
 
-            if (_pushingChangesToWorkspaceHosts)
+            if (PushingChangesToWorkspace)
             {
                 var snapshot = reference.CurrentSnapshot;
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnMetadataReferenceAdded(this.Id, snapshot));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnMetadataReferenceAdded(this.Id, snapshot));
             }
 
             reference.UpdatedOnDisk += OnImportChanged;
@@ -668,10 +641,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _metadataReferences.Remove(reference);
             }
 
-            if (_pushingChangesToWorkspaceHosts)
+            if (PushingChangesToWorkspace)
             {
                 var snapshot = reference.CurrentSnapshot;
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnMetadataReferenceRemoved(this.Id, snapshot));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnMetadataReferenceRemoved(this.Id, snapshot));
             }
 
             reference.UpdatedOnDisk -= OnImportChanged;
@@ -764,16 +737,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // always manipulate current state after workspace is told so it will correctly observe the initial state
                 _projectReferences.Add(projectReference);
+
+                var otherProject = ProjectTracker.GetProject(projectReference.ProjectId);
+                otherProject?.RecordNewReferencingProject(this, new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes));
             }
 
-            if (_pushingChangesToWorkspaceHosts)
+            if (PushingChangesToWorkspace)
             {
                 // This project is already pushed to listening workspace hosts, but it's possible that our target
                 // project hasn't been yet. Get the dependent project into the workspace as well.
                 var targetProject = this.ProjectTracker.GetProject(projectReference.ProjectId);
                 this.ProjectTracker.StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(targetProject));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnProjectReferenceAdded(this.Id, projectReference));
+            }
+        }
 
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnProjectReferenceAdded(this.Id, projectReference));
+        private void RecordNewReferencingProject(AbstractProject referencingProject, MetadataReferenceProperties properties)
+        {
+            _projectsReferencingMe.Add((referencingProject, properties));
+        }
+
+        private void RecordNoLongerReferencingProject(AbstractProject referencingProject, MetadataReferenceProperties properties)
+        {
+            if (!_projectsReferencingMe.Remove((referencingProject, properties)))
+            {
+                FatalError.ReportWithoutCrash(new Exception($"We didn't know that {nameof(referencingProject)} was referencing us."));
             }
         }
 
@@ -854,55 +842,88 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 Contract.ThrowIfFalse(_projectReferences.Remove(projectReference));
+
+                var otherProject = ProjectTracker.GetProject(projectReference.ProjectId);
+
+                otherProject?.RecordNoLongerReferencingProject(this, new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes));
             }
 
-            if (_pushingChangesToWorkspaceHosts)
+            if (PushingChangesToWorkspace)
             {
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnProjectReferenceRemoved(this.Id, projectReference));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnProjectReferenceRemoved(this.Id, projectReference));
             }
         }
 
         private static void OnDocumentOpened(object sender, bool isCurrentContext)
         {
             IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
-            AbstractProject project = (AbstractProject)document.Project;
+            AbstractProject project = document.Project;
 
             project.AssertIsForeground();
 
-            if (project._pushingChangesToWorkspaceHosts)
+            if (project.PushingChangesToWorkspace)
             {
-                project.ProjectTracker.NotifyWorkspaceHosts(host => host.OnDocumentOpened(document.Id, document.GetOpenTextBuffer(), isCurrentContext));
+                project.ProjectTracker.NotifyWorkspace(workspace => workspace.OnDocumentOpened(document.Id, document.GetOpenTextBuffer().AsTextContainer(), isCurrentContext));
             }
             else
             {
                 StartPushingToWorkspaceAndNotifyOfOpenDocuments(project);
+            }
+
+            var itemId = document.GetItemId();
+
+            if (itemId != (uint)VSConstants.VSITEMID.Nil)
+            {
+                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(project.Hierarchy, itemId);
+
+                if (sharedHierarchy != null)
+                {
+                    project.ProjectTracker.NotifyWorkspace(workspace =>
+                    {
+                        var eventSink = new HierarchyEventsSink((VisualStudioWorkspaceImpl)workspace, sharedHierarchy, document.Id);
+                        if (ErrorHandler.Succeeded(sharedHierarchy.AdviseHierarchyEvents(eventSink, out var cookie)))
+                        {
+                            project._hierarchyEventSinks.MultiAdd(document.Id, (sharedHierarchy, cookie));
+                        }
+                    });
+                }
             }
         }
 
         private static void OnDocumentClosing(object sender, bool updateActiveContext)
         {
             IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
-            AbstractProject project = (AbstractProject)document.Project;
+            AbstractProject project = document.Project;
             var projectTracker = project.ProjectTracker;
 
             project.AssertIsForeground();
 
-            if (project._pushingChangesToWorkspaceHosts)
+            if (project.PushingChangesToWorkspace)
             {
-                projectTracker.NotifyWorkspaceHosts(host => host.OnDocumentClosed(document.Id, document.GetOpenTextBuffer(), document.Loader, updateActiveContext));
+                projectTracker.NotifyWorkspace(workspace => workspace.OnDocumentClosed(document.Id, document.Loader, updateActiveContext));
+            }
+
+            if (project._hierarchyEventSinks.TryGetValue(document.Id, out var subscribedSinks))
+            {
+                foreach (var subscribedSink in subscribedSinks)
+                {
+                    subscribedSink.hierarchy.UnadviseHierarchyEvents(subscribedSink.cookie);
+                }
+
+                project._hierarchyEventSinks.Remove(document.Id);
             }
         }
 
         private static void OnDocumentUpdatedOnDisk(object sender, EventArgs e)
         {
             IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
-            AbstractProject project = (AbstractProject)document.Project;
+            AbstractProject project = document.Project;
 
             project.AssertIsForeground();
 
-            if (project._pushingChangesToWorkspaceHosts)
+            if (project.PushingChangesToWorkspace)
             {
-                project.ProjectTracker.NotifyWorkspaceHosts(host => host.OnDocumentTextUpdatedOnDisk(document.Id));
+                project.ProjectTracker.NotifyWorkspace(workspace => workspace.OnDocumentTextLoaderChanged(document.Id, document.Loader));
             }
         }
 
@@ -913,9 +934,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             project.AssertIsForeground();
 
-            if (project._pushingChangesToWorkspaceHosts)
+            if (project.PushingChangesToWorkspace)
             {
-                project.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentOpened(document.Id, document.GetOpenTextBuffer(), isCurrentContext));
+                project.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAdditionalDocumentOpened(document.Id, document.GetOpenTextBuffer().AsTextContainer(), isCurrentContext));
             }
             else
             {
@@ -926,27 +947,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static void OnAdditionalDocumentClosing(object sender, bool notUsed)
         {
             IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
-            AbstractProject project = (AbstractProject)document.Project;
+            AbstractProject project = document.Project;
             var projectTracker = project.ProjectTracker;
 
             project.AssertIsForeground();
 
-            if (project._pushingChangesToWorkspaceHosts)
+            if (project.PushingChangesToWorkspace)
             {
-                projectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentClosed(document.Id, document.GetOpenTextBuffer(), document.Loader));
+                projectTracker.NotifyWorkspace(workspace => workspace.OnAdditionalDocumentClosed(document.Id, document.Loader));
             }
         }
 
         private static void OnAdditionalDocumentUpdatedOnDisk(object sender, EventArgs e)
         {
             IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
-            AbstractProject project = (AbstractProject)document.Project;
+            AbstractProject project = document.Project;
 
             project.AssertIsForeground();
 
-            if (project._pushingChangesToWorkspaceHosts)
+            if (project.PushingChangesToWorkspace)
             {
-                project.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentTextUpdatedOnDisk(document.Id));
+                project.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAdditionalDocumentTextLoaderChanged(document.Id, document.Loader));
             }
         }
 
@@ -1037,13 +1058,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _documentMonikers.Add(document.Key.Moniker, document);
                 }
 
-                if (_pushingChangesToWorkspaceHosts)
+                if (PushingChangesToWorkspace)
                 {
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnDocumentAdded(document.GetInitialState()));
+                    this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnDocumentAdded(document.GetInitialState()));
 
                     if (document.IsOpen)
                     {
-                        this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnDocumentOpened(document.Id, document.GetOpenTextBuffer(), isCurrentContext));
+                        this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnDocumentOpened(document.Id, document.GetOpenTextBuffer().AsTextContainer(), isCurrentContext));
                     }
                 }
 
@@ -1056,7 +1077,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 DocumentProvider.NotifyDocumentRegisteredToProjectAndStartToRaiseEvents(document);
 
-                if (!_pushingChangesToWorkspaceHosts && document.IsOpen)
+                if (!PushingChangesToWorkspace && document.IsOpen)
                 {
                     StartPushingToWorkspaceAndNotifyOfOpenDocuments();
                 }
@@ -1091,19 +1112,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _documentMonikers.Add(document.Key.Moniker, document);
             }
 
-            if (_pushingChangesToWorkspaceHosts)
+            if (PushingChangesToWorkspace)
             {
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentAdded(document.GetInitialState()));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAdditionalDocumentAdded(document.GetInitialState()));
 
                 if (document.IsOpen)
                 {
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentOpened(document.Id, document.GetOpenTextBuffer(), isCurrentContext));
+                    this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAdditionalDocumentOpened(document.Id, document.GetOpenTextBuffer().AsTextContainer(), isCurrentContext));
                 }
             }
 
             DocumentProvider.NotifyDocumentRegisteredToProjectAndStartToRaiseEvents(document);
 
-            if (!_pushingChangesToWorkspaceHosts && document.IsOpen)
+            if (!PushingChangesToWorkspace && document.IsOpen)
             {
                 StartPushingToWorkspaceAndNotifyOfOpenDocuments();
             }
@@ -1138,10 +1159,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     ChangedReferencesPendingUpdate.Clear();
 
-                    var wasPushing = _pushingChangesToWorkspaceHosts;
+                    var wasPushing = PushingChangesToWorkspace;
 
                     // disable pushing down to workspaces, so we don't get redundant workspace document removed events
-                    _pushingChangesToWorkspaceHosts = false;
+                    PushingChangesToWorkspace = false;
 
                     // The project is going away, so let's remove ourselves from the host. First, we
                     // close and dispose of any remaining documents
@@ -1175,11 +1196,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     ClearAnalyzerRuleSet();
 
                     // reinstate pushing down to workspace, so the workspace project remove event fires
-                    _pushingChangesToWorkspaceHosts = wasPushing;
+                    PushingChangesToWorkspace = wasPushing;
+
+                    if (_projectsReferencingMe.Count > 0)
+                    {
+                        FatalError.ReportWithoutCrash(new Exception("We still have projects referencing us. That's not expected."));
+
+                        // Clear just so we don't cause a leak
+                        _projectsReferencingMe.Clear();
+                    }
 
                     this.ProjectTracker.RemoveProject(this);
 
-                    _pushingChangesToWorkspaceHosts = false;
+                    PushingChangesToWorkspace = false;
 
                     this.EditAndContinueImplOpt = null;
                 }
@@ -1193,7 +1222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (this.CanConvertToProjectReferences)
             {
                 // We should not already have references for this, since we're only introducing the path for the first time
-                Contract.ThrowIfTrue(HasMetadataFileNameToConvertedProjectReference(binPath));
+                Contract.ThrowIfTrue(_metadataFileNameToConvertedProjectReference.ContainsKey(binPath));
 
                 var metadataReference = TryGetCurrentMetadataReference(binPath);
                 if (metadataReference != null)
@@ -1208,7 +1237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         RemoveMetadataReferenceCore(metadataReference, disposeReference: true);
                         AddProjectReference(projectReference);
 
-                        AddMetadataFileNameToConvertedProjectReference(binPath, projectReference);
+                        _metadataFileNameToConvertedProjectReference.Add(binPath, projectReference);
                     }
                 }
             }
@@ -1218,7 +1247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            if (TryGetMetadataFileNameToConvertedProjectReference(binPath, out var projectReference))
+            if (_metadataFileNameToConvertedProjectReference.TryGetValue(binPath, out var projectReference))
             {
                 // We converted this, so convert it back to a metadata reference
                 RemoveProjectReference(projectReference);
@@ -1228,9 +1257,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     projectReference.Aliases,
                     projectReference.EmbedInteropTypes);
 
-                AddMetadataReferenceCore(MetadataReferenceProvider.CreateMetadataReference(this, binPath, metadataReferenceProperties));
+                AddMetadataReferenceCore(MetadataReferenceProvider.CreateMetadataReference(binPath, metadataReferenceProperties));
 
-                Contract.ThrowIfFalse(RemoveMetadataFileNameToConvertedProjectReference(binPath));
+                Contract.ThrowIfFalse(_metadataFileNameToConvertedProjectReference.Remove(binPath));
             }
         }
 
@@ -1241,7 +1270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             file = FileUtilities.NormalizeAbsolutePath(file);
             // Have we converted these to project references?
 
-            if (TryGetMetadataFileNameToConvertedProjectReference(file, out var convertedProjectReference))
+            if (_metadataFileNameToConvertedProjectReference.TryGetValue(file, out var convertedProjectReference))
             {
                 var project = ProjectTracker.GetProject(convertedProjectReference.ProjectId);
                 UpdateProjectReferenceAliases(project, aliases);
@@ -1255,7 +1284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 RemoveMetadataReferenceCore(existingReference, disposeReference: true);
 
-                AddMetadataReferenceCore(this.MetadataReferenceProvider.CreateMetadataReference(this, file, newProperties));
+                AddMetadataReferenceCore(this.MetadataReferenceProvider.CreateMetadataReference(file, newProperties));
             }
         }
 
@@ -1269,9 +1298,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Is this a project with converted references? If so, make sure we track it
             string referenceBinPath = referencedProject.BinOutputPath;
-            if (referenceBinPath != null && HasMetadataFileNameToConvertedProjectReference(referenceBinPath))
+            if (referenceBinPath != null && _metadataFileNameToConvertedProjectReference.ContainsKey(referenceBinPath))
             {
-                UpdateMetadataFileNameToConvertedProjectReference(referenceBinPath, newProjectReference);
+                _metadataFileNameToConvertedProjectReference[referenceBinPath]= newProjectReference;
             }
 
             // Remove the existing reference first
@@ -1284,14 +1313,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            if (_pushingChangesToWorkspaceHosts)
+            if (PushingChangesToWorkspace)
             {
                 if (document.IsOpen)
                 {
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnDocumentClosed(document.Id, document.GetOpenTextBuffer(), document.Loader, updateActiveContext: true));
+                    this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnDocumentClosed(document.Id, document.Loader, updateActiveContext: true));
                 }
 
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnDocumentRemoved(document.Id));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnDocumentRemoved(document.Id));
             }
 
             document.Opened -= s_documentOpenedEventHandler;
@@ -1305,14 +1334,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            if (_pushingChangesToWorkspaceHosts)
+            if (PushingChangesToWorkspace)
             {
                 if (document.IsOpen)
                 {
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentClosed(document.Id, document.GetOpenTextBuffer(), document.Loader));
+                    this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAdditionalDocumentClosed(document.Id, document.Loader));
                 }
 
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentRemoved(document.Id));
+                this.ProjectTracker.NotifyWorkspace(host => host.OnAdditionalDocumentRemoved(document.Id));
             }
 
             document.Opened -= s_additionalDocumentOpenedEventHandler;
@@ -1326,29 +1355,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
         }
 
-        internal void StartPushingToWorkspaceHosts()
-        {
-            _pushingChangesToWorkspaceHosts = true;
-        }
-
-        internal void StopPushingToWorkspaceHosts()
-        {
-            _pushingChangesToWorkspaceHosts = false;
-        }
-
         internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments()
         {
             AssertIsForeground();
             StartPushingToWorkspaceAndNotifyOfOpenDocuments(this);
         }
 
-        internal bool PushingChangesToWorkspaceHosts
-        {
-            get
-            {
-                return _pushingChangesToWorkspaceHosts;
-            }
-        }
+        internal bool PushingChangesToWorkspace { get; set; }
 
         protected void UpdateRuleSetError(IRuleSetFile ruleSetFile)
         {
@@ -1394,10 +1407,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     SetOptionsCore(newCompilationOptions);
                 }
 
-                if (_pushingChangesToWorkspaceHosts)
+                if (PushingChangesToWorkspace)
                 {
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(this.Id, CurrentCompilationOptions, CurrentParseOptions));
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOutputFilePathChanged(this.Id, objOutputPath));
+                    this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnCompilationOptionsChanged(this.Id, CurrentCompilationOptions));
+                    this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnParseOptionsChanged(this.Id, CurrentParseOptions));
+                    this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnOutputFilePathChanged(this.Id, objOutputPath));
                 }
 
                 UpdateAssemblyName();
@@ -1416,14 +1430,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 AssemblyName = newAssemblyName;
 
-                if (_pushingChangesToWorkspaceHosts)
+                if (PushingChangesToWorkspace)
                 {
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAssemblyNameChanged(this.Id, newAssemblyName));
+                    this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAssemblyNameChanged(this.Id, newAssemblyName));
                 }
             }
         }
 
-        protected void SetBinOutputPathAndRelatedData(string binOutputPath)
+        protected internal void SetBinOutputPathAndRelatedData(string binOutputPath)
         {
             AssertIsForeground();
 
@@ -1470,9 +1484,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 updateMade = true;
             }
 
-            if (updateMade && _pushingChangesToWorkspaceHosts)
+            if (updateMade && PushingChangesToWorkspace)
             {
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnProjectNameChanged(Id, this.DisplayName, this.ProjectFilePath));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnProjectNameChanged(Id, this.DisplayName, this.ProjectFilePath));
             }
         }
 
@@ -1511,16 +1525,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(assemblySearchPaths, baseDirectory: projectDirectory));
         }
-
-#if DEBUG
-        public virtual bool Debug_VBEmbeddedCoreOptionOn
-        {
-            get
-            {
-                return false;
-            }
-        }
-#endif
 
         /// <summary>
         /// Used for unit testing: don't crash the process if something bad happens.

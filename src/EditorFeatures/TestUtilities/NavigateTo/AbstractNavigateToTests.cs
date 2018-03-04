@@ -11,6 +11,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
@@ -72,9 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         private void InitializeWorkspace(TestWorkspace workspace)
         {
-            var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
-
-            _provider = new NavigateToItemProvider(workspace, aggregateListener);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
             _aggregator = new NavigateToTestAggregator(_provider);
         }
 

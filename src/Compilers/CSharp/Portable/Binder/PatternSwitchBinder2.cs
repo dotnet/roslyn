@@ -191,6 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             node, SwitchGoverningType, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression);
                         bool hasErrors = pattern.HasErrors;
                         ConstantValue constantValue = pattern.ConstantValue;
+                        pattern.WasCompilerGenerated = true;
+
                         if (!hasErrors &&
                             (object)constantValue != null &&
                             pattern.Value.Type == SwitchGoverningType &&
@@ -200,9 +202,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
 
-                        if (caseLabelSyntax.Value.Kind() == SyntaxKind.DefaultLiteralExpression)
+                        SyntaxNode innerValueSyntax = caseLabelSyntax.Value.SkipParens();
+                        if (innerValueSyntax.Kind() == SyntaxKind.DefaultLiteralExpression)
                         {
-                            diagnostics.Add(ErrorCode.WRN_DefaultInSwitch, caseLabelSyntax.Value.Location);
+                            diagnostics.Add(ErrorCode.ERR_DefaultInSwitch, innerValueSyntax.Location);
+                            hasErrors = true;
                         }
 
                         return new BoundPatternSwitchLabel(node, label, pattern, null, isReachable, hasErrors);

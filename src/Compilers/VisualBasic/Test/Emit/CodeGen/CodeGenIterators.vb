@@ -40,17 +40,19 @@ End Module
 </compilation>, expectedOutput:="True
 False").VerifyIL("A.VB$StateMachine_1_YieldString.MoveNext", "
 {
-  // Code size      220 (0xdc)
+  // Code size      184 (0xb8)
   .maxstack  5
-  .locals init (Integer V_0)
+  .locals init (Integer V_0,
+                Boolean V_1, //b
+                Boolean V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  switch    (
         IL_001b,
-        IL_007e,
-        IL_00b0)
+        IL_0067,
+        IL_008f)
   IL_0019:  ldc.i4.0
   IL_001a:  ret
   IL_001b:  ldarg.0
@@ -68,77 +70,72 @@ False").VerifyIL("A.VB$StateMachine_1_YieldString.MoveNext", "
   IL_002f:  stfld      ""A.VB$StateMachine_1_YieldString.$S0 As Boolean()""
   IL_0034:  ldarg.0
   IL_0035:  ldc.i4.0
-  IL_0036:  stfld      ""A.VB$StateMachine_1_YieldString.$S3 As Integer""
-  IL_003b:  br         IL_00c7
-  IL_0040:  ldarg.0
-  IL_0041:  ldarg.0
-  IL_0042:  ldfld      ""A.VB$StateMachine_1_YieldString.$S0 As Boolean()""
-  IL_0047:  ldarg.0
-  IL_0048:  ldfld      ""A.VB$StateMachine_1_YieldString.$S3 As Integer""
-  IL_004d:  ldelem.u1
-  IL_004e:  stfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_b$2 As Boolean""
-  IL_0053:  ldarg.0
-  IL_0054:  ldc.i4.1
-  IL_0055:  stfld      ""A.VB$StateMachine_1_YieldString.$S1 As Boolean""
-  IL_005a:  ldarg.0
-  IL_005b:  ldfld      ""A.VB$StateMachine_1_YieldString.$S1 As Boolean""
-  IL_0060:  ldarg.0
-  IL_0061:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_b$2 As Boolean""
-  IL_0066:  bne.un.s   IL_0089
-  IL_0068:  ldarg.0
-  IL_0069:  ldstr      ""True""
-  IL_006e:  stfld      ""A.VB$StateMachine_1_YieldString.$Current As String""
-  IL_0073:  ldarg.0
-  IL_0074:  ldc.i4.1
-  IL_0075:  dup
-  IL_0076:  stloc.0
-  IL_0077:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
-  IL_007c:  ldc.i4.1
-  IL_007d:  ret
-  IL_007e:  ldarg.0
-  IL_007f:  ldc.i4.m1
-  IL_0080:  dup
-  IL_0081:  stloc.0
-  IL_0082:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
-  IL_0087:  br.s       IL_00b9
-  IL_0089:  ldarg.0
-  IL_008a:  ldfld      ""A.VB$StateMachine_1_YieldString.$S1 As Boolean""
+  IL_0036:  stfld      ""A.VB$StateMachine_1_YieldString.$S1 As Integer""
+  IL_003b:  br.s       IL_00a6
+  IL_003d:  ldarg.0
+  IL_003e:  ldfld      ""A.VB$StateMachine_1_YieldString.$S0 As Boolean()""
+  IL_0043:  ldarg.0
+  IL_0044:  ldfld      ""A.VB$StateMachine_1_YieldString.$S1 As Integer""
+  IL_0049:  ldelem.u1
+  IL_004a:  stloc.1
+  IL_004b:  ldc.i4.1
+  IL_004c:  stloc.2
+  IL_004d:  ldloc.2
+  IL_004e:  ldloc.1
+  IL_004f:  bne.un.s   IL_0072
+  IL_0051:  ldarg.0
+  IL_0052:  ldstr      ""True""
+  IL_0057:  stfld      ""A.VB$StateMachine_1_YieldString.$Current As String""
+  IL_005c:  ldarg.0
+  IL_005d:  ldc.i4.1
+  IL_005e:  dup
+  IL_005f:  stloc.0
+  IL_0060:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
+  IL_0065:  ldc.i4.1
+  IL_0066:  ret
+  IL_0067:  ldarg.0
+  IL_0068:  ldc.i4.m1
+  IL_0069:  dup
+  IL_006a:  stloc.0
+  IL_006b:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
+  IL_0070:  br.s       IL_0098
+  IL_0072:  ldloc.2
+  IL_0073:  ldloc.1
+  IL_0074:  ldc.i4.0
+  IL_0075:  ceq
+  IL_0077:  bne.un.s   IL_0098
+  IL_0079:  ldarg.0
+  IL_007a:  ldstr      ""False""
+  IL_007f:  stfld      ""A.VB$StateMachine_1_YieldString.$Current As String""
+  IL_0084:  ldarg.0
+  IL_0085:  ldc.i4.2
+  IL_0086:  dup
+  IL_0087:  stloc.0
+  IL_0088:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
+  IL_008d:  ldc.i4.1
+  IL_008e:  ret
   IL_008f:  ldarg.0
-  IL_0090:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_b$2 As Boolean""
-  IL_0095:  ldc.i4.0
-  IL_0096:  ceq
-  IL_0098:  bne.un.s   IL_00b9
-  IL_009a:  ldarg.0
-  IL_009b:  ldstr      ""False""
-  IL_00a0:  stfld      ""A.VB$StateMachine_1_YieldString.$Current As String""
-  IL_00a5:  ldarg.0
-  IL_00a6:  ldc.i4.2
-  IL_00a7:  dup
-  IL_00a8:  stloc.0
-  IL_00a9:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
-  IL_00ae:  ldc.i4.1
-  IL_00af:  ret
-  IL_00b0:  ldarg.0
-  IL_00b1:  ldc.i4.m1
-  IL_00b2:  dup
-  IL_00b3:  stloc.0
-  IL_00b4:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
-  IL_00b9:  ldarg.0
-  IL_00ba:  ldarg.0
-  IL_00bb:  ldfld      ""A.VB$StateMachine_1_YieldString.$S3 As Integer""
-  IL_00c0:  ldc.i4.1
-  IL_00c1:  add.ovf
-  IL_00c2:  stfld      ""A.VB$StateMachine_1_YieldString.$S3 As Integer""
-  IL_00c7:  ldarg.0
-  IL_00c8:  ldfld      ""A.VB$StateMachine_1_YieldString.$S3 As Integer""
-  IL_00cd:  ldarg.0
-  IL_00ce:  ldfld      ""A.VB$StateMachine_1_YieldString.$S0 As Boolean()""
-  IL_00d3:  ldlen
-  IL_00d4:  conv.i4
-  IL_00d5:  blt        IL_0040
-  IL_00da:  ldc.i4.0
-  IL_00db:  ret
-}").VerifyIL("A.VB$StateMachine_1_YieldString.IEnumerable.GetEnumerator", "
+  IL_0090:  ldc.i4.m1
+  IL_0091:  dup
+  IL_0092:  stloc.0
+  IL_0093:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
+  IL_0098:  ldarg.0
+  IL_0099:  ldarg.0
+  IL_009a:  ldfld      ""A.VB$StateMachine_1_YieldString.$S1 As Integer""
+  IL_009f:  ldc.i4.1
+  IL_00a0:  add.ovf
+  IL_00a1:  stfld      ""A.VB$StateMachine_1_YieldString.$S1 As Integer""
+  IL_00a6:  ldarg.0
+  IL_00a7:  ldfld      ""A.VB$StateMachine_1_YieldString.$S1 As Integer""
+  IL_00ac:  ldarg.0
+  IL_00ad:  ldfld      ""A.VB$StateMachine_1_YieldString.$S0 As Boolean()""
+  IL_00b2:  ldlen
+  IL_00b3:  conv.i4
+  IL_00b4:  blt.s      IL_003d
+  IL_00b6:  ldc.i4.0
+  IL_00b7:  ret
+}
+").VerifyIL("A.VB$StateMachine_1_YieldString.IEnumerable.GetEnumerator", "
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1003,20 +1000,20 @@ End Module
 
             CompileAndVerify(source, expectedOutput:="12").VerifyIL("Module1.VB$StateMachine_1_Goo.MoveNext", <![CDATA[
 {
-  // Code size      175 (0xaf)
+  // Code size      158 (0x9e)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1,
-                System.Exception V_2)
+                System.Exception V_2) //ex
   IL_0000:  ldarg.0
   IL_0001:  ldfld      "Module1.VB$StateMachine_1_Goo.$State As Integer"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  switch    (
         IL_001f,
-        IL_002f,
-        IL_002f,
-        IL_00a2)
+        IL_002a,
+        IL_002a,
+        IL_0091)
   IL_001d:  ldc.i4.0
   IL_001e:  ret
   IL_001f:  ldarg.0
@@ -1024,78 +1021,73 @@ End Module
   IL_0021:  dup
   IL_0022:  stloc.1
   IL_0023:  stfld      "Module1.VB$StateMachine_1_Goo.$State As Integer"
-  IL_0028:  ldarg.0
-  IL_0029:  ldnull
-  IL_002a:  stfld      "Module1.VB$StateMachine_1_Goo.$VB$ResumableLocal_ex$0 As System.Exception"
-  IL_002f:  nop
+  IL_0028:  ldnull
+  IL_0029:  stloc.2
+  IL_002a:  nop
   .try
   {
-    IL_0030:  ldloc.1
-    IL_0031:  ldc.i4.1
-    IL_0032:  beq.s      IL_0062
-    IL_0034:  ldloc.1
-    IL_0035:  ldc.i4.2
-    IL_0036:  bne.un.s   IL_0045
-    IL_0038:  ldarg.0
-    IL_0039:  ldc.i4.m1
-    IL_003a:  dup
-    IL_003b:  stloc.1
-    IL_003c:  stfld      "Module1.VB$StateMachine_1_Goo.$State As Integer"
-    IL_0041:  ldc.i4.1
-    IL_0042:  stloc.0
-    IL_0043:  leave.s    IL_00ad
-    IL_0045:  ldarg.0
-    IL_0046:  ldstr      "1"
-    IL_004b:  newobj     "Sub System.Exception..ctor(String)"
-    IL_0050:  stfld      "Module1.VB$StateMachine_1_Goo.$Current As System.Exception"
-    IL_0055:  ldarg.0
-    IL_0056:  ldc.i4.1
-    IL_0057:  dup
-    IL_0058:  stloc.1
-    IL_0059:  stfld      "Module1.VB$StateMachine_1_Goo.$State As Integer"
-    IL_005e:  ldc.i4.1
-    IL_005f:  stloc.0
-    IL_0060:  leave.s    IL_00ad
-    IL_0062:  ldarg.0
-    IL_0063:  ldc.i4.m1
-    IL_0064:  dup
-    IL_0065:  stloc.1
-    IL_0066:  stfld      "Module1.VB$StateMachine_1_Goo.$State As Integer"
-    IL_006b:  ldstr      "2"
-    IL_0070:  newobj     "Sub System.Exception..ctor(String)"
-    IL_0075:  throw
+    IL_002b:  ldloc.1
+    IL_002c:  ldc.i4.1
+    IL_002d:  beq.s      IL_005d
+    IL_002f:  ldloc.1
+    IL_0030:  ldc.i4.2
+    IL_0031:  bne.un.s   IL_0040
+    IL_0033:  ldarg.0
+    IL_0034:  ldc.i4.m1
+    IL_0035:  dup
+    IL_0036:  stloc.1
+    IL_0037:  stfld      "Module1.VB$StateMachine_1_Goo.$State As Integer"
+    IL_003c:  ldc.i4.1
+    IL_003d:  stloc.0
+    IL_003e:  leave.s    IL_009c
+    IL_0040:  ldarg.0
+    IL_0041:  ldstr      "1"
+    IL_0046:  newobj     "Sub System.Exception..ctor(String)"
+    IL_004b:  stfld      "Module1.VB$StateMachine_1_Goo.$Current As System.Exception"
+    IL_0050:  ldarg.0
+    IL_0051:  ldc.i4.1
+    IL_0052:  dup
+    IL_0053:  stloc.1
+    IL_0054:  stfld      "Module1.VB$StateMachine_1_Goo.$State As Integer"
+    IL_0059:  ldc.i4.1
+    IL_005a:  stloc.0
+    IL_005b:  leave.s    IL_009c
+    IL_005d:  ldarg.0
+    IL_005e:  ldc.i4.m1
+    IL_005f:  dup
+    IL_0060:  stloc.1
+    IL_0061:  stfld      "Module1.VB$StateMachine_1_Goo.$State As Integer"
+    IL_0066:  ldstr      "2"
+    IL_006b:  newobj     "Sub System.Exception..ctor(String)"
+    IL_0070:  throw
   }
   catch System.Exception
   {
-    IL_0076:  dup
-    IL_0077:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_007c:  stloc.2
-    IL_007d:  ldarg.0
-    IL_007e:  ldloc.2
-    IL_007f:  stfld      "Module1.VB$StateMachine_1_Goo.$VB$ResumableLocal_ex$0 As System.Exception"
-    IL_0084:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_0089:  leave.s    IL_008b
+    IL_0071:  dup
+    IL_0072:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0077:  stloc.2
+    IL_0078:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_007d:  leave.s    IL_007f
   }
-  IL_008b:  ldarg.0
-  IL_008c:  ldarg.0
-  IL_008d:  ldfld      "Module1.VB$StateMachine_1_Goo.$VB$ResumableLocal_ex$0 As System.Exception"
-  IL_0092:  stfld      "Module1.VB$StateMachine_1_Goo.$Current As System.Exception"
-  IL_0097:  ldarg.0
-  IL_0098:  ldc.i4.3
-  IL_0099:  dup
-  IL_009a:  stloc.1
-  IL_009b:  stfld      "Module1.VB$StateMachine_1_Goo.$State As Integer"
-  IL_00a0:  ldc.i4.1
-  IL_00a1:  ret
-  IL_00a2:  ldarg.0
-  IL_00a3:  ldc.i4.m1
-  IL_00a4:  dup
-  IL_00a5:  stloc.1
-  IL_00a6:  stfld      "Module1.VB$StateMachine_1_Goo.$State As Integer"
-  IL_00ab:  ldc.i4.0
-  IL_00ac:  ret
-  IL_00ad:  ldloc.0
-  IL_00ae:  ret
+  IL_007f:  ldarg.0
+  IL_0080:  ldloc.2
+  IL_0081:  stfld      "Module1.VB$StateMachine_1_Goo.$Current As System.Exception"
+  IL_0086:  ldarg.0
+  IL_0087:  ldc.i4.3
+  IL_0088:  dup
+  IL_0089:  stloc.1
+  IL_008a:  stfld      "Module1.VB$StateMachine_1_Goo.$State As Integer"
+  IL_008f:  ldc.i4.1
+  IL_0090:  ret
+  IL_0091:  ldarg.0
+  IL_0092:  ldc.i4.m1
+  IL_0093:  dup
+  IL_0094:  stloc.1
+  IL_0095:  stfld      "Module1.VB$StateMachine_1_Goo.$State As Integer"
+  IL_009a:  ldc.i4.0
+  IL_009b:  ret
+  IL_009c:  ldloc.0
+  IL_009d:  ret
 }
 ]]>)
         End Sub
@@ -1574,7 +1566,7 @@ Public Class Program
     End Function
 End Class]]></file>
                          </compilation>
-            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626}, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626}, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim verifier = Me.CompileAndVerify(comp)
             Dim il = verifier.VisualizeIL("Program.VB$StateMachine_1_Goo.GetEnumerator()")
             Assert.Contains("System.Environment.get_CurrentManagedThreadId()", il, StringComparison.Ordinal)
@@ -1688,7 +1680,7 @@ Class C
 End Class
 "
             ' The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
-            Dim compilation = CompilationUtils.CreateCompilation({Parse(source), Parse(corlib)})
+            Dim compilation = CompilationUtils.CreateEmptyCompilation({Parse(source), Parse(corlib)})
             Dim verifier = CompileAndVerify(compilation, verify:=Verification.Fails)
             verifier.VerifyDiagnostics()
         End Sub
@@ -1738,7 +1730,7 @@ Class C
     End Function
 End Class
 "
-            Dim compilation = CreateCompilation({Parse(source)})
+            Dim compilation = CreateEmptyCompilation({Parse(source)})
 
             compilation.AssertTheseEmitDiagnostics(<expected>
 BC30002: Type 'System.Collections.Generic.IEnumerable' is not defined.
@@ -1808,7 +1800,7 @@ Class C
     End Function
 End Class
 "
-            Dim compilation = CreateCompilation({Parse(source)})
+            Dim compilation = CreateEmptyCompilation({Parse(source)})
 
             ' No error about IEnumerable
             compilation.AssertTheseEmitDiagnostics(<expected>

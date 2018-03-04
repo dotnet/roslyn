@@ -70,29 +70,30 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             // We need this to fork soluton, otherwise, option is cached at document.
             // all this can go away once we do this - https://github.com/dotnet/roslyn/issues/19284
-            var temporaryWorksapce = new TemporaryWorkspace(_project.Solution);
+            using (var temporaryWorksapce = new TemporaryWorkspace(_project.Solution))
+            {
+                // TODO: can we support analyzerExceptionFilter in remote host? 
+                //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
+                var analyzerOptions = new CompilationWithAnalyzersOptions(
+                        options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, MergeOptions(_project.Solution.Options, options), temporaryWorksapce.CurrentSolution),
+                        onAnalyzerException: OnAnalyzerException,
+                        analyzerExceptionFilter: null,
+                        concurrentAnalysis: useConcurrent,
+                        logAnalyzerExecutionTime: logAnalyzerExecutionTime,
+                        reportSuppressedDiagnostics: reportSuppressedDiagnostics);
 
-            // TODO: can we support analyzerExceptionFilter in remote host? 
-            //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
-            var analyzerOptions = new CompilationWithAnalyzersOptions(
-                    options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, MergeOptions(_project.Solution.Options, options), temporaryWorksapce.CurrentSolution),
-                    onAnalyzerException: OnAnalyzerException,
-                    analyzerExceptionFilter: null,
-                    concurrentAnalysis: useConcurrent,
-                    logAnalyzerExecutionTime: logAnalyzerExecutionTime,
-                    reportSuppressedDiagnostics: reportSuppressedDiagnostics);
+                var analyzerDriver = compilation.WithAnalyzers(analyzers, analyzerOptions);
 
-            var analyzerDriver = compilation.WithAnalyzers(analyzers, analyzerOptions);
+                // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
+                var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
 
-            // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
-            var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+                var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
 
-            var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
-
-            return DiagnosticAnalysisResultMap.Create(
-                builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                _exceptions.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value.ToImmutableArray()));
+                return DiagnosticAnalysisResultMap.Create(
+                    builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
+                    analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
+                    _exceptions.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value.ToImmutableArray()));
+            }
         }
 
         private void OnAnalyzerException(Exception exception, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
@@ -130,9 +131,28 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         private BidirectionalMap<string, DiagnosticAnalyzer> CreateAnalyzerMap(IEnumerable<AnalyzerReference> hostAnalyzers, Project project)
         {
-            // TODO: probably need something like analyzer service so that we don't do this repeatedly?
-            return new BidirectionalMap<string, DiagnosticAnalyzer>(
-                hostAnalyzers.Concat(project.AnalyzerReferences).SelectMany(r => r.GetAnalyzers(project.Language)).Select(a => KeyValuePair.Create(a.GetAnalyzerId(), a)));
+            // we could consider creating a service so that we don't do this repeatedly if this shows up as perf cost
+            using (var pooledObject = SharedPools.Default<HashSet<object>>().GetPooledObject())
+            using (var pooledMap = SharedPools.Default<Dictionary<string, DiagnosticAnalyzer>>().GetPooledObject())
+            {
+                var referenceSet = pooledObject.Object;
+                var analyzerMap = pooledMap.Object;
+
+                // this follow what we do in HostAnalayzerManager.CheckAnalyzerReferenceIdentity
+                foreach (var reference in hostAnalyzers.Concat(project.AnalyzerReferences))
+                {
+                    if (!referenceSet.Add(reference.Id))
+                    {
+                        // already exist
+                        continue;
+                    }
+
+                    analyzerMap.AppendAnalyzerMap(reference.GetAnalyzers(project.Language));
+                }
+
+                // convert regular map to bidirectional map
+                return new BidirectionalMap<string, DiagnosticAnalyzer>(analyzerMap);
+            }
         }
 
         private OptionSet MergeOptions(OptionSet workspaceOptions, OptionSet userOptions)

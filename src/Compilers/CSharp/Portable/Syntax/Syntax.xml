@@ -3925,9 +3925,10 @@
       </summary>
     </TypeComment>
     <Kind Name="CrefParameter"/>
-    <Field Name="RefOrOutKeyword" Type="SyntaxToken" Optional="true">
+    <Field Name="RefKindKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="RefKeyword"/>
       <Kind Name="OutKeyword"/>
+      <Kind Name="InKeyword"/>
     </Field>
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>

@@ -29841,59 +29841,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
   /// </summary>
   internal sealed partial class CrefParameterSyntax : CSharpSyntaxNode
   {
-    internal readonly SyntaxToken refOrOutKeyword;
+    internal readonly SyntaxToken refKindKeyword;
     internal readonly TypeSyntax type;
 
-    internal CrefParameterSyntax(SyntaxKind kind, SyntaxToken refOrOutKeyword, TypeSyntax type, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal CrefParameterSyntax(SyntaxKind kind, SyntaxToken refKindKeyword, TypeSyntax type, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         this.SlotCount = 2;
-        if (refOrOutKeyword != null)
+        if (refKindKeyword != null)
         {
-            this.AdjustFlagsAndWidth(refOrOutKeyword);
-            this.refOrOutKeyword = refOrOutKeyword;
+            this.AdjustFlagsAndWidth(refKindKeyword);
+            this.refKindKeyword = refKindKeyword;
         }
         this.AdjustFlagsAndWidth(type);
         this.type = type;
     }
 
 
-    internal CrefParameterSyntax(SyntaxKind kind, SyntaxToken refOrOutKeyword, TypeSyntax type, SyntaxFactoryContext context)
+    internal CrefParameterSyntax(SyntaxKind kind, SyntaxToken refKindKeyword, TypeSyntax type, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
         this.SlotCount = 2;
-        if (refOrOutKeyword != null)
+        if (refKindKeyword != null)
         {
-            this.AdjustFlagsAndWidth(refOrOutKeyword);
-            this.refOrOutKeyword = refOrOutKeyword;
+            this.AdjustFlagsAndWidth(refKindKeyword);
+            this.refKindKeyword = refKindKeyword;
         }
         this.AdjustFlagsAndWidth(type);
         this.type = type;
     }
 
 
-    internal CrefParameterSyntax(SyntaxKind kind, SyntaxToken refOrOutKeyword, TypeSyntax type)
+    internal CrefParameterSyntax(SyntaxKind kind, SyntaxToken refKindKeyword, TypeSyntax type)
         : base(kind)
     {
         this.SlotCount = 2;
-        if (refOrOutKeyword != null)
+        if (refKindKeyword != null)
         {
-            this.AdjustFlagsAndWidth(refOrOutKeyword);
-            this.refOrOutKeyword = refOrOutKeyword;
+            this.AdjustFlagsAndWidth(refKindKeyword);
+            this.refKindKeyword = refKindKeyword;
         }
         this.AdjustFlagsAndWidth(type);
         this.type = type;
     }
 
-    public SyntaxToken RefOrOutKeyword { get { return this.refOrOutKeyword; } }
+    public SyntaxToken RefKindKeyword { get { return this.refKindKeyword; } }
     public TypeSyntax Type { get { return this.type; } }
 
     internal override GreenNode GetSlot(int index)
     {
         switch (index)
         {
-            case 0: return this.refOrOutKeyword;
+            case 0: return this.refKindKeyword;
             case 1: return this.type;
             default: return null;
         }
@@ -29914,11 +29914,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         visitor.VisitCrefParameter(this);
     }
 
-    public CrefParameterSyntax Update(SyntaxToken refOrOutKeyword, TypeSyntax type)
+    public CrefParameterSyntax Update(SyntaxToken refKindKeyword, TypeSyntax type)
     {
-        if (refOrOutKeyword != this.RefOrOutKeyword || type != this.Type)
+        if (refKindKeyword != this.RefKindKeyword || type != this.Type)
         {
-            var newNode = SyntaxFactory.CrefParameter(refOrOutKeyword, type);
+            var newNode = SyntaxFactory.CrefParameter(refKindKeyword, type);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -29933,23 +29933,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
     {
-         return new CrefParameterSyntax(this.Kind, this.refOrOutKeyword, this.type, diagnostics, GetAnnotations());
+         return new CrefParameterSyntax(this.Kind, this.refKindKeyword, this.type, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new CrefParameterSyntax(this.Kind, this.refOrOutKeyword, this.type, GetDiagnostics(), annotations);
+         return new CrefParameterSyntax(this.Kind, this.refKindKeyword, this.type, GetDiagnostics(), annotations);
     }
 
     internal CrefParameterSyntax(ObjectReader reader)
         : base(reader)
     {
       this.SlotCount = 2;
-      var refOrOutKeyword = (SyntaxToken)reader.ReadValue();
-      if (refOrOutKeyword != null)
+      var refKindKeyword = (SyntaxToken)reader.ReadValue();
+      if (refKindKeyword != null)
       {
-         AdjustFlagsAndWidth(refOrOutKeyword);
-         this.refOrOutKeyword = refOrOutKeyword;
+         AdjustFlagsAndWidth(refKindKeyword);
+         this.refKindKeyword = refKindKeyword;
       }
       var type = (TypeSyntax)reader.ReadValue();
       if (type != null)
@@ -29962,7 +29962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
-      writer.WriteValue(this.refOrOutKeyword);
+      writer.WriteValue(this.refKindKeyword);
       writer.WriteValue(this.type);
     }
 
@@ -38531,9 +38531,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override CSharpSyntaxNode VisitCrefParameter(CrefParameterSyntax node)
     {
-      var refOrOutKeyword = (SyntaxToken)this.Visit(node.RefOrOutKeyword);
+      var refKindKeyword = (SyntaxToken)this.Visit(node.RefKindKeyword);
       var type = (TypeSyntax)this.Visit(node.Type);
-      return node.Update(refOrOutKeyword, type);
+      return node.Update(refKindKeyword, type);
     }
 
     public override CSharpSyntaxNode VisitXmlElement(XmlElementSyntax node)
@@ -44789,19 +44789,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public CrefParameterSyntax CrefParameter(SyntaxToken refOrOutKeyword, TypeSyntax type)
+    public CrefParameterSyntax CrefParameter(SyntaxToken refKindKeyword, TypeSyntax type)
     {
 #if DEBUG
-      if (refOrOutKeyword != null)
+      if (refKindKeyword != null)
       {
-      switch (refOrOutKeyword.Kind)
+      switch (refKindKeyword.Kind)
       {
         case SyntaxKind.RefKeyword:
         case SyntaxKind.OutKeyword:
+        case SyntaxKind.InKeyword:
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("refOrOutKeyword");
+          throw new ArgumentException("refKindKeyword");
       }
       }
       if (type == null)
@@ -44809,10 +44810,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.CrefParameter, refOrOutKeyword, type, this.context, out hash);
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.CrefParameter, refKindKeyword, type, this.context, out hash);
       if (cached != null) return (CrefParameterSyntax)cached;
 
-      var result = new CrefParameterSyntax(SyntaxKind.CrefParameter, refOrOutKeyword, type, this.context);
+      var result = new CrefParameterSyntax(SyntaxKind.CrefParameter, refKindKeyword, type, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -51930,19 +51931,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static CrefParameterSyntax CrefParameter(SyntaxToken refOrOutKeyword, TypeSyntax type)
+    public static CrefParameterSyntax CrefParameter(SyntaxToken refKindKeyword, TypeSyntax type)
     {
 #if DEBUG
-      if (refOrOutKeyword != null)
+      if (refKindKeyword != null)
       {
-      switch (refOrOutKeyword.Kind)
+      switch (refKindKeyword.Kind)
       {
         case SyntaxKind.RefKeyword:
         case SyntaxKind.OutKeyword:
+        case SyntaxKind.InKeyword:
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("refOrOutKeyword");
+          throw new ArgumentException("refKindKeyword");
       }
       }
       if (type == null)
@@ -51950,10 +51952,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CrefParameter, refOrOutKeyword, type, out hash);
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CrefParameter, refKindKeyword, type, out hash);
       if (cached != null) return (CrefParameterSyntax)cached;
 
-      var result = new CrefParameterSyntax(SyntaxKind.CrefParameter, refOrOutKeyword, type);
+      var result = new CrefParameterSyntax(SyntaxKind.CrefParameter, refKindKeyword, type);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);

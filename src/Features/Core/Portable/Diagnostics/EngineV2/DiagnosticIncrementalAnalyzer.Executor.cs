@@ -112,6 +112,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // perf optimization. check whether we want to analyze this project or not.
                         if (!FullAnalysisEnabled(project, forceAnalyzerRun))
                         {
+                            Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"FSA off ({p.FilePath ?? p.Name})", project);
+
                             return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                         }
 
@@ -153,6 +155,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // no result from compiler analyzer
                     return result;
                 }
+
+                Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"Failed to Load Successfully ({p.FilePath ?? p.Name})", project);
 
                 // get rid of any result except syntax from compiler analyzer result
                 var newCompilerAnalysisResult = new DiagnosticAnalysisResult(
@@ -325,10 +329,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // create result map
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    var builder = new DiagnosticAnalysisResultBuilder(project, version);
 
                     foreach (var analyzer in ideAnalyzers)
                     {
+                        var builder = new DiagnosticAnalysisResultBuilder(project, version);
+
                         if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
                         {
                             foreach (var document in project.Documents)
@@ -451,7 +456,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                if (!await SemanticAnalysisEnabled(document, analyzer, kind, cancellationToken).ConfigureAwait(false))
+                if (!await AnalysisEnabled(document, analyzer, kind, cancellationToken).ConfigureAwait(false))
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }
@@ -478,14 +483,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private async Task<bool> SemanticAnalysisEnabled(Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, CancellationToken cancellationToken)
+            private async Task<bool> AnalysisEnabled(Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 // if project is not loaded successfully then, we disable semantic errors for compiler analyzers
-                var disabled = kind != AnalysisKind.Syntax &&
-                               _owner.HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer) &&
-                               !await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                if (kind == AnalysisKind.Syntax || !_owner.HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer))
+                {
+                    return true;
+                }
 
-                return !disabled;
+                var enabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+                Logger.Log(FunctionId.Diagnostics_SemanticDiagnostic, (a, d, e) => $"{a.ToString()}, ({d.FilePath ?? d.Name}), Enabled:{e}", analyzer, document, enabled);
+
+                return enabled;
             }
 
             private void UpdateAnalyzerTelemetryData(
@@ -620,42 +630,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // ignore these kinds
                         break;
                     case LocationKind.SourceFile:
+                    {
+                        if (project.GetDocument(location.SourceTree) == null)
                         {
-                            if (project.GetDocument(location.SourceTree) == null)
-                            {
-                                // Disallow diagnostics with source locations outside this project.
-                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed, id, location.SourceTree.FilePath), "diagnostic");
-                            }
-
-                            if (location.SourceSpan.End > location.SourceTree.Length)
-                            {
-                                // Disallow diagnostics with source locations outside this project.
-                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
-                            }
+                            // Disallow diagnostics with source locations outside this project.
+                            throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed, id, location.SourceTree.FilePath), "diagnostic");
                         }
-                        break;
+
+                        if (location.SourceSpan.End > location.SourceTree.Length)
+                        {
+                            // Disallow diagnostics with source locations outside this project.
+                            throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
+                        }
+                    }
+                    break;
                     case LocationKind.ExternalFile:
+                    {
+                        var filePath = location.GetLineSpan().Path;
+                        var document = TryGetDocumentWithFilePath(project, filePath);
+                        if (document == null)
                         {
-                            var filePath = location.GetLineSpan().Path;
-                            var document = TryGetDocumentWithFilePath(project, filePath);
-                            if (document == null)
-                            {
-                                // this is not a roslyn file. we don't care about this file.
-                                return;
-                            }
-
-                            // this can be potentially expensive since it will load text if it is not already loaded.
-                            // but, this text is most likely already loaded since producer of this diagnostic (Document/ProjectDiagnosticAnalyzers)
-                            // should have loaded it to produce the diagnostic at the first place. once loaded, it should stay in memory until
-                            // project cache goes away. when text is already there, await should return right away.
-                            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                            if (location.SourceSpan.End > text.Length)
-                            {
-                                // Disallow diagnostics with locations outside this project.
-                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, filePath), "diagnostic");
-                            }
+                            // this is not a roslyn file. we don't care about this file.
+                            return;
                         }
-                        break;
+
+                        // this can be potentially expensive since it will load text if it is not already loaded.
+                        // but, this text is most likely already loaded since producer of this diagnostic (Document/ProjectDiagnosticAnalyzers)
+                        // should have loaded it to produce the diagnostic at the first place. once loaded, it should stay in memory until
+                        // project cache goes away. when text is already there, await should return right away.
+                        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        if (location.SourceSpan.End > text.Length)
+                        {
+                            // Disallow diagnostics with locations outside this project.
+                            throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, filePath), "diagnostic");
+                        }
+                    }
+                    break;
                     default:
                         throw ExceptionUtilities.Unreachable;
                 }

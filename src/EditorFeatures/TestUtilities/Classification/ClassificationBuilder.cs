@@ -49,6 +49,60 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         }
 
         [DebuggerStepThrough]
+        public Tuple<string, string> Field(string value)
+        {
+            return Tuple.Create(value, ClassificationTypeNames.FieldName);
+        }
+
+        [DebuggerStepThrough]
+        public Tuple<string, string> EnumField(string value)
+        {
+            return Tuple.Create(value, ClassificationTypeNames.EnumFieldName);
+        }
+
+        [DebuggerStepThrough]
+        public Tuple<string, string> Constant(string value)
+        {
+            return Tuple.Create(value, ClassificationTypeNames.ConstantName);
+        }
+
+        [DebuggerStepThrough]
+        public Tuple<string, string> Local(string value)
+        {
+            return Tuple.Create(value, ClassificationTypeNames.LocalName);
+        }
+
+        [DebuggerStepThrough]
+        public Tuple<string, string> Parameter(string value)
+        {
+            return Tuple.Create(value, ClassificationTypeNames.ParameterName);
+        }
+
+        [DebuggerStepThrough]
+        public Tuple<string, string> Method(string value)
+        {
+            return Tuple.Create(value, ClassificationTypeNames.MethodName);
+        }
+
+        [DebuggerStepThrough]
+        public Tuple<string, string> ExtensionMethod(string value)
+        {
+            return Tuple.Create(value, ClassificationTypeNames.ExtensionMethodName);
+        }
+
+        [DebuggerStepThrough]
+        public Tuple<string, string> Property(string value)
+        {
+            return Tuple.Create(value, ClassificationTypeNames.PropertyName);
+        }
+
+        [DebuggerStepThrough]
+        public Tuple<string, string> Event(string value)
+        {
+            return Tuple.Create(value, ClassificationTypeNames.EventName);
+        }
+
+        [DebuggerStepThrough]
         public Tuple<string, string> String(string value)
         {
             return Tuple.Create(value, ClassificationTypeNames.StringLiteral);
