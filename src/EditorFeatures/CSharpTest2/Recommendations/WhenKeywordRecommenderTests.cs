@@ -341,6 +341,36 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterOverloadedTypeName() =>
+    await VerifyAbsenceAsync(@"
+class ValueTuple { }
+class ValueTuple<T> { }
+class C
+{
+    void M() { switch (new object()) { case ValueTuple $$ } }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterOverloadedTypeName_BeforeBreak() =>
+            await VerifyAbsenceAsync(@"
+class ValueTuple { }
+class ValueTuple<T> { }
+class C
+{
+    void M() { switch (new object()) { case ValueTuple $$ break; } }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterOverloadedTypeName_BeforeWhen() =>
+            await VerifyAbsenceAsync(@"
+class ValueTuple { }
+class ValueTuple<T> { }
+class C
+{
+    void M() { switch (new object()) { case ValueTuple $$ when } }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_AfterColorColor() =>
             await VerifyKeywordAsync(@"
 class Color { }
@@ -363,6 +393,39 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_AfterColorColor_BeforeWhen() =>
             await VerifyKeywordAsync(@"
+class Color { }
+class C
+{
+    const Color Color = null;
+    void M() { switch (new object()) { case Color $$ when } }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_AfterOverloadedTypeNameColorColor() =>
+    await VerifyKeywordAsync(@"
+class Color<T> { }
+class Color { }
+class C
+{
+    const Color Color = null;
+    void M() { switch (new object()) { case Color $$ } }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_AfterOverloadedTypeNameColorColor_BeforeBreak() =>
+            await VerifyKeywordAsync(@"
+class Color<T> { }
+class Color { }
+class C
+{
+    const Color Color = null;
+    void M() { switch (new object()) { case Color $$ break; } }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_AfterOverloadedTypeNameColorColor_BeforeWhen() =>
+            await VerifyKeywordAsync(@"
+class Color<T> { }
 class Color { }
 class C
 {
