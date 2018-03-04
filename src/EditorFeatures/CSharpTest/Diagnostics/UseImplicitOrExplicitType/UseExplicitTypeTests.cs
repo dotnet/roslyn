@@ -54,6 +54,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithNone),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithNone));
 
+        private IDictionary<OptionKey, object> ImplicitTypeNoneEnforcement() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
+
+        private IDictionary<OptionKey, object> ImplicitTypeInfoEnforcement() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo));
+
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
             var options = new Dictionary<OptionKey, object>();
@@ -1436,8 +1446,20 @@ class C
         [|var|] n1 = new C();
     }
 }";
+            await TestDiagnosticInfoAsync(source,
+                options: ExplicitTypeNoneEnforcement(),
+                diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
+
+            // non-vocal preference for implicit type, ok to refactor to explicit type
+            await TestDiagnosticInfoAsync(source,
+                options: ImplicitTypeNoneEnforcement(),
+                diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
+
+            // vocal preference for implicit type, cannot refactor to explicit type
             await TestMissingInRegularAndScriptAsync(source,
-                new TestParameters(options: ExplicitTypeNoneEnforcement()));
+                new TestParameters(options: ImplicitTypeInfoEnforcement()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
