@@ -46,7 +46,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             var completionService = document.GetLanguageService<CompletionService>();
+            var completionList = await completionService.GetCompletionsAsync(
+                document,
+                triggerLocation,
+                GetRoslynTrigger(trigger)).ConfigureAwait(false);
 
+            if (completionList == null)
+            {
+                return new EditorCompletion.CompletionContext(ImmutableArray<EditorCompletion.CompletionItem>.Empty);
+            }
+
+            var imageIdService = document.Project.Solution.Workspace.Services.GetService<IImageIdService>();
+
+            var filterCache = new Dictionary<string, CompletionFilter>();
+            var service = GetCompletionService(applicableSpan.Snapshot.TextBuffer.CurrentSnapshot) as CompletionServiceWithProviders;
+
+            var items = completionList.Items.SelectAsArray(roslynItem =>
+            {
+                var needsCustomCommit = service.GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider;
+
+                var item = Convert(document, roslynItem, imageIdService, completionService, filterCache, needsCustomCommit);
+                item.Properties.AddProperty(TriggerSnapshot, applicableSpan.Snapshot);
+                return item;
+            });
+
+            return new EditorCompletion.CompletionContext(
+                items,
+                useSoftSelection: false,
+                useSuggestionMode: completionList.SuggestionModeItem != null,
+                suggestionModeDescription: completionList.SuggestionModeItem?.DisplayText);
+        }
+
+        private static RoslynTrigger GetRoslynTrigger(EditorCompletion.CompletionTrigger trigger)
+        {
             RoslynTrigger roslynTrigger = default;
             switch (trigger.Reason)
             {
@@ -64,36 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                     break;
             }
 
-            var completionList = await completionService.GetCompletionsAsync(
-                document,
-                triggerLocation,
-                roslynTrigger).ConfigureAwait(false);
-
-            if (completionList == null)
-            {
-                return new EditorCompletion.CompletionContext(ImmutableArray<EditorCompletion.CompletionItem>.Empty);
-            }
-
-            var imageIdService = document.Project.Solution.Workspace.Services.GetService<IImageIdService>();
-
-            Dictionary<string, CompletionFilter> filterCache = new Dictionary<string, CompletionFilter>();
-
-            var service = GetCompletionService(applicableSpan.Snapshot.TextBuffer.CurrentSnapshot) as CompletionServiceWithProviders;
-
-            var items = completionList.Items.SelectAsArray(roslynItem =>
-            {
-                var needsCustomCommit = service.GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider;
-
-                var item = Convert(document, roslynItem, imageIdService, completionService, filterCache, needsCustomCommit);
-                item.Properties.AddProperty(TriggerSnapshot, applicableSpan.Snapshot);
-                return item;
-            });
-
-            return new EditorCompletion.CompletionContext(
-                items,
-                useSoftSelection: false, 
-                useSuggestionMode: completionList.SuggestionModeItem != null,
-                suggestionModeDescription: completionList.SuggestionModeItem?.DisplayText);
+            return roslynTrigger;
         }
 
         private EditorCompletion.CompletionItem Convert(
@@ -114,11 +117,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             var attributeImages = ImmutableArray<AccessibleImageId>.Empty;
             var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(roslynItem, document.Project.Solution.Workspace);
-            if (supportedPlatforms != null && false) // TODO, this makes the completion list invisible
+            if (supportedPlatforms != null)
             {
-                var warningImage = imageService.GetImageId(Glyph.CompletionWarning);
+                var warningImage = Glyph.CompletionWarning.GetImageId();
 
-                attributeImages = SpecializedCollections.SingletonEnumerable(new AccessibleImageId(warningImage.Guid, warningImage.Id, "Temporary Automation Name")).ToImmutableArray();
+                // TODO, this makes the completion list invisible
+                attributeImages = ImmutableArray.Create(
+                    new AccessibleImageId(
+                        warningImage.Guid, 
+                        warningImage.Id, 
+                        "Temporary Automation Name"));
             }
 
             var item = new EditorCompletion.CompletionItem(
@@ -128,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 filters,
                 suffix: string.Empty,
                 needsCustomCommit,
-                insertText: insertionText,
+                insertionText,
                 roslynItem.SortText,
                 roslynItem.FilterText,
                 attributeImages);
