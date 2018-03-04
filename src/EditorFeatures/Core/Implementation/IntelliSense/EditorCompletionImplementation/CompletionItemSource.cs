@@ -117,13 +117,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             if (supportedPlatforms != null)
             {
                 var warningImage = Glyph.CompletionWarning.GetImageId();
-
-                // TODO, this makes the completion list invisible
-                //attributeImages = ImmutableArray.Create(
-                //    new AccessibleImageId(
-                //        warningImage.Guid, 
-                //        warningImage.Id, 
-                //        "Temporary Automation Name"));
+                attributeImages = ImmutableArray.Create(
+                    new AccessibleImageId(
+                        warningImage.Guid,
+                        warningImage.Id,
+                        "Temporary Automation Name"));
             }
 
             var item = new EditorCompletion.CompletionItem(
