@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var tree1 = SyntaxFactory.ParseSyntaxTree(StringText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), path: "sha1.cs");
             var tree256 = SyntaxFactory.ParseSyntaxTree(StringText.From(source256, Encoding.UTF8, SourceHashAlgorithm.Sha256), path: "sha256.cs");
 
-            var compilation = CreateStandardCompilation(new[] { tree1, tree256 });
+            var compilation = CreateCompilation(new[] { tree1, tree256 });
             compilation.VerifyPdb(@"
 <symbols>
   <files>
@@ -224,7 +224,7 @@ int y = 1;
     }
 }
 ";
-            var compilation = CreateStandardCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
+            var compilation = CreateCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
             compilation.VerifyPdb("C.Main", @"
 <symbols>
   <files>

@@ -63,6 +63,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (ITaskItem[])_store[nameof(EmbeddedFiles)]; }
         }
 
+        public bool EmbedAllSources
+        {
+            set { _store[nameof(EmbedAllSources)] = value; }
+            get { return _store.GetOrDefault(nameof(EmbedAllSources), false); }
+        }
+
         public ITaskItem[] Analyzers
         {
             set { _store[nameof(Analyzers)] = value; }
@@ -619,7 +625,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal static void LogErrorOutput(string output, TaskLoggingHelper log)
         {
-            string[] lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            string[] lines = output.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)
             {
                 string trimmedMessage = line.Trim();
@@ -845,6 +851,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private void AddEmbeddedFilesToCommandLine(CommandLineBuilderExtension commandLine)
         {
+            if (EmbedAllSources)
+            {
+                commandLine.AppendSwitch("/embed");
+            }
+
             if (EmbeddedFiles != null)
             {
                 foreach (ITaskItem embeddedFile in EmbeddedFiles)

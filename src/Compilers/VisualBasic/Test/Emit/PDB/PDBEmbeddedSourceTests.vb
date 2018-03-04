@@ -28,7 +28,7 @@ End Class
 
             Dim tree1 = Parse(source1, "f:/build/goo.vb")
             Dim tree2 = Parse(source2, "f:/build/nocode.vb")
-            Dim c = CreateCompilationWithMscorlib({tree1, tree2}, options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib40({tree1, tree2}, options:=TestOptions.DebugDll)
             Dim embeddedTexts = {
                                    EmbeddedText.FromSource(tree1.FilePath, tree1.GetText()),
                                    EmbeddedText.FromSource(tree2.FilePath, tree2.GetText())
@@ -78,7 +78,7 @@ Class C
 End Class
 "
             Dim tree = Parse(source, "f:/build/goo.cs")
-            Dim c = CreateCompilationWithMscorlib(tree, options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib40(tree, options:=TestOptions.DebugDll)
 
             Dim pdbStream = New MemoryStream()
             Dim peBlob = c.EmitToArray(

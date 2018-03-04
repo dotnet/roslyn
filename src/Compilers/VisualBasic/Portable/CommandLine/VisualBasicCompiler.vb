@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithMetadataReferenceResolver(referenceDirectiveResolver).
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
                      WithXmlReferenceResolver(xmlFileResolver).
-                     WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
+                     WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem, _tempDirectory)).
                      WithSourceReferenceResolver(sourceFileResolver))
         End Function
 

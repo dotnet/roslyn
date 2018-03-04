@@ -38,7 +38,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C1.Main",
 <symbols>
     <files>
@@ -297,7 +297,7 @@ Public Interface I
     Function F() As Object
 End Interface
 "
-            Dim piaComp = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.DebugDll, assemblyName:="PIA")
+            Dim piaComp = CreateCompilationWithMscorlib40({piaSource}, options:=TestOptions.DebugDll, assemblyName:="PIA")
             AssertNoErrors(piaComp)
             Dim piaRef = piaComp.EmitToImageReference(embedInteropTypes:=True)
 
@@ -318,7 +318,7 @@ Namespace N2
 End Namespace
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, {piaRef}, TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, {piaRef}, TestOptions.DebugDll)
             Dim v = CompileAndVerify(comp)
 
             v.VerifyPdb(
@@ -370,7 +370,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
                 {source},
                 {SystemCoreRef, SystemDataRef},
                 options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("System.Data.DataColumn")))
@@ -408,7 +408,7 @@ Class Program
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
                 {source},
                 {SystemCoreRef, SystemDataRef},
                 options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("E.F"), GlobalImport.Parse("Q = G.H")))
@@ -440,10 +440,10 @@ Class C
     End Sub
 End Class
 "
-            Dim comp1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.ReleaseDll)
+            Dim comp1 = CreateCompilationWithMscorlib40({source1}, options:=TestOptions.ReleaseDll)
             Dim ref1 = comp1.EmitToImageReference()
 
-            Dim comp2 = CreateCompilationWithMscorlib(
+            Dim comp2 = CreateCompilationWithMscorlib40(
                 {source2}, {ref1},
                 options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("X=N.A"), GlobalImport.Parse("System")))
 

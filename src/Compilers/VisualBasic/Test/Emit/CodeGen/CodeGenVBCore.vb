@@ -27,19 +27,19 @@ End Class
                           </compilation>
 
             ' With InternalXmlHelper.
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:=NoVbRuntimeReferences.Concat(XmlReferences),
                 options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
             compilation.AssertNoErrors()
 
             ' With VBCore.
-            compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:=NoVbRuntimeReferences,
                 options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
             compilation.AssertNoErrors()
 
             ' No embedded code.
-            compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:=NoVbRuntimeReferences,
                 options:=TestOptions.ReleaseDll)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
@@ -64,7 +64,7 @@ End Class
                           </compilation>
 
             ' No embedded code.
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:=NoVbRuntimeReferences.Concat({MsvbRef, SystemXmlRef, SystemXmlLinqRef}),
                 options:=TestOptions.ReleaseDll)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
@@ -89,7 +89,7 @@ End Class
                           </compilation>
 
             ' No embedded code.
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:=NoVbRuntimeReferences.Concat({MsvbRef, SystemXmlRef, SystemXmlLinqRef}),
                 options:=TestOptions.ReleaseDll)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
@@ -255,7 +255,7 @@ End Class
 
         <Fact()>
         Public Sub InternalXmlHelper_Locations()
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Class C
@@ -2210,7 +2210,7 @@ symbolValidator:=Sub([module])
 
         <Fact>
         Public Sub VbCore_InvisibleViaInternalsVisibleTo()
-            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
     <compilation name="HasIVTToCompilationVbCore">
         <file name="a.vb"><![CDATA[
 Imports System
@@ -2233,7 +2233,7 @@ End Class
 
             CompilationUtils.AssertNoErrors(other)
 
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
     <compilation name="WantsIVTAccessVbCoreButCantHave">
         <file name="a.vb"><![CDATA[
 Public Class A
@@ -2259,7 +2259,7 @@ BC30002: Type 'Microsoft.VisualBasic.Strings' is not defined.
                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </error>)
 
-            Dim c2 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim c2 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
     <compilation name="WantsIVTAccessVbCoreAndStillCannot">
         <file name="a.vb"><![CDATA[
 Public Class A
@@ -2286,7 +2286,7 @@ BC30002: Type 'Microsoft.VisualBasic.Strings' is not defined.
 
         <Fact>
         Public Sub VbCore_InvisibleViaInternalsVisibleTo2()
-            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
     <compilation name="VbCore_InvisibleViaInternalsVisibleTo2">
         <file name="a.vb"><![CDATA[
 Imports System
@@ -2311,7 +2311,7 @@ End Class
 
             CompilationUtils.AssertNoErrors(other)
 
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
     <compilation name="WantsIVTAccessVbCoreAndStillCannot2">
         <file name="a.vb"><![CDATA[
 Imports System
@@ -2340,7 +2340,7 @@ BC30456: 'CopyArray' is not a member of 'Utils'.
 
         <Fact>
         Public Sub VbCore_InvisibleViaInternalsVisibleTo3()
-            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
     <compilation name="VbCore_InvisibleViaInternalsVisibleTo3">
         <file name="a.vb"><![CDATA[
 Imports System
@@ -2362,7 +2362,7 @@ End Class
 
             CompilationUtils.AssertNoErrors(other)
 
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
     <compilation name="WantsIVTAccessVbCoreAndStillCannot3">
         <file name="a.vb"><![CDATA[
 Imports System
@@ -2391,7 +2391,7 @@ BC30451: 'ChrW' is not declared. It may be inaccessible due to its protection le
 
         <Fact>
         Public Sub VbCore_InvisibleViaInternalsVisibleTo3_ViaBinary()
-            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
     <compilation name="VbCore_InvisibleViaInternalsVisibleTo3">
         <file name="a.vb"><![CDATA[
 Imports System
@@ -2416,7 +2416,7 @@ End Class
             Dim memory As New MemoryStream()
             other.Emit(memory)
 
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
     (<compilation name="WantsIVTAccessVbCoreAndStillCannot3">
          <file name="a.vb"><![CDATA[
 Imports System
@@ -2444,7 +2444,7 @@ BC30451: 'ChrW' is not declared. It may be inaccessible due to its protection le
 
         <Fact>
         Public Sub VbCore_EmbeddedVbCoreWithIVToAndRuntime()
-            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
     <compilation name="VbCore_EmbeddedVbCoreWithIVToAndRuntime">
         <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("WantsIVTAccessVbCoreAndStillCannot3")>
@@ -2494,7 +2494,7 @@ End Class
 
         <Fact()>
         Public Sub VbCore_CompilationOptions()
-            Dim withoutVbCore As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim withoutVbCore As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
     <compilation name="VbCore_CompilationOptions1">
         <file name="a.vb"><![CDATA[
 Imports System
@@ -2551,7 +2551,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe.WithEmbedVbCoreRuntime(True))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe.WithEmbedVbCoreRuntime(True))
             compilation.VerifyPdb(
 <symbols>
     <files>
@@ -2584,7 +2584,7 @@ End Class
 
         <Fact>
         Public Sub VbCoreTypeAndUserPartialTypeConflict()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2610,7 +2610,7 @@ BC31210: class 'HideModuleNameAttribute' conflicts with a Visual Basic Runtime c
 
         <Fact>
         Public Sub VbCoreTypeAndUserTypeConflict()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2636,7 +2636,7 @@ BC31210: class 'HideModuleNameAttribute' conflicts with a Visual Basic Runtime c
 
         <Fact>
         Public Sub VbCoreNamespaceAndUserTypeConflict()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2662,7 +2662,7 @@ BC31210: class 'VisualBasic' conflicts with a Visual Basic Runtime namespace 'Vi
 
         <Fact>
         Public Sub VbCoreTypeAndUserNamespaceConflict()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2688,7 +2688,7 @@ Namespace Global.Microsoft.VisualBasic.Strings
 
         <Fact>
         Public Sub VbCoreTypeAndUserNamespaceConflict2()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2723,7 +2723,7 @@ Namespace Global.Microsoft.VisualBasic.Strings
 
         <Fact>
         Public Sub VbCoreTypeAndUserNamespaceConflict3()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2771,7 +2771,7 @@ Namespace Global.Microsoft.VisualBasic.Strings
 
             Dim compilationOptions = TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"System", "Microsoft.VisualBasic"}))
 
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="testa.vb">
 Imports Microsoft.VisualBasic
@@ -2789,7 +2789,7 @@ End Namespace
     </file>
 </compilation>,
             options:=compilationOptions,
-additionalRefs:={SystemCoreRef, SystemXmlLinqRef, SystemXmlRef})
+references:={SystemCoreRef, SystemXmlLinqRef, SystemXmlRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
             <errors>BC30560: Error in project-level import 'Microsoft.VisualBasic' at 'Microsoft.VisualBasic' : 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
@@ -2809,7 +2809,7 @@ BC31210: module 'VisualBasic' conflicts with a Visual Basic Runtime namespace 'V
 
             ' Remove the reference to System.XML.Linq and verify compilation behavior that the 
             ' diagnostic is not produced.
-            compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="testa.vb">
                         Imports Microsoft.VisualBasic
@@ -2838,7 +2838,7 @@ BC31210: module 'VisualBasic' conflicts with a Visual Basic Runtime namespace 'V
 
         <Fact>
         Public Sub VbCore_IsImplicitlyDeclaredSymbols()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="a.vb">
     </file>
@@ -2868,14 +2868,14 @@ BC31210: module 'VisualBasic' conflicts with a Visual Basic Runtime namespace 'V
 
         <Fact()>
         Public Sub InternalXmlHelper_IsImplicitlyDeclaredSymbols()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Module M
     Dim x = <x/>.<y>.Value
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim type = compilation.GetTypeByMetadataName("My.InternalXmlHelper")
             AssertTypeAndItsMembersAreImplicitlyDeclared(type)
@@ -2888,7 +2888,7 @@ End Module
         Public Sub VbCoreWithStaticLocals_UsingEmbedVBCore()
             'Static Locals use types contained within VB Runtime so verify with VBCore option to ensure the feature works
             'using VBCore which would be the case with platforms such as Phone.
-            Dim compilation As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
       <compilation>
           <file name="a.vb">
               Imports System
@@ -2917,7 +2917,7 @@ End Module
         Public Sub VbCoreWithStaticLocals_NoRequiredTypes()
             'Static Locals use types in VB Runtime so verify with no VBRuntime we generate applicable errors about missing types.  
             'This will include types for Module as well as static locals
-            Dim compilation As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
       <compilation>
           <file name="a.vb">
         Module Module1
@@ -2944,7 +2944,7 @@ End Module
         Public Sub VbCoreWithStaticLocals_CorrectDefinedTypes()
             'Static Locals use types in VB Runtime so verify with no VBRuntime but appropriate types specified in Source the static
             'local scenarios should work correctly.
-            Dim compilation As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
       <compilation>
           <file name="a.vb">
         Imports System
@@ -2987,7 +2987,7 @@ End Namespace
             'Static Locals use types in VB Runtime so verify with no VBRuntime but appropriate types specified in Source the static
             'local scenarios should work correctly but if we define the types incorrectly we should generate errors although we 
             'should not crash.
-            Dim compilation As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
       <compilation>
           <file name="a.vb">
         Public Class Module1
@@ -3114,7 +3114,7 @@ End Module
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(
+            CreateCompilationWithMscorlib40(
                 source,
                 options:=TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True)).
             VerifyDiagnostics(

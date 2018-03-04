@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub From_Lookup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -145,7 +145,7 @@ End Module
 
         <Fact>
         Public Sub Select_Lookup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -250,7 +250,7 @@ End Module
 
         <Fact>
         Public Sub Filter_Lookup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -320,7 +320,7 @@ End Module
 
         <Fact>
         Public Sub Let_Lookup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -437,7 +437,7 @@ End Module
 
         <Fact>
         Public Sub Partition_Lookup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -490,10 +490,10 @@ End Module
             End If
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/23483")>
+        <Fact>
         <CompilerTrait(CompilerFeature.IOperation)>
         Public Sub GroupBy_Lookup1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -803,7 +803,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                 ReturnedValue: 
                   IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key $315 As ?, Key $315 As ?>, IsInvalid, IsImplicit) (Syntax: 'Group ')
                     Initializers(2):
-                        IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '')
+                        IParameterReferenceOperation: $315 (OperationKind.ParameterReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '')
                         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: '')
                           Children(1):
                               IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group ')
@@ -812,7 +812,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
 
         <Fact>
         Public Sub GroupBy_Lookup2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -892,7 +892,7 @@ End Module
 
         <Fact>
         Public Sub GroupBy_Lookup3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -906,7 +906,7 @@ Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:={SystemCoreRef})
+</compilation>, references:={SystemCoreRef})
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -922,7 +922,7 @@ End Module
 
         <Fact>
         Public Sub OrderBy_Lookup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1046,7 +1046,7 @@ End Module
 
         <Fact>
         Public Sub Join_Lookup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1252,7 +1252,7 @@ End Module
 
         <Fact>
         Public Sub GroupJoin_Lookup1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1465,7 +1465,7 @@ End Module
 
         <Fact>
         Public Sub GroupJoin_Lookup2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1533,7 +1533,7 @@ End Module
 
         <Fact>
         Public Sub Aggregate_Lookup1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1684,7 +1684,7 @@ End Module
 
         <Fact>
         Public Sub Aggregate_Lookup2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1848,7 +1848,7 @@ End Module
 
         <Fact>
         Public Sub Aggregate_Lookup3()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1927,7 +1927,7 @@ End Module
 
         <Fact>
         Public Sub Aggregate_Lookup4()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off

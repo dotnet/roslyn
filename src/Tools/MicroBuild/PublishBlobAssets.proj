@@ -1,7 +1,6 @@
 <Project>
 
-  <Import Project="..\..\..\build\Targets\Versions.props" />
-  <Import Project="..\..\..\build\Targets\Packages.props" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
 
   <PropertyGroup>
     <PublishOverwrite Condition="'$(PublishOverwrite)' == ''">false</PublishOverwrite>
@@ -18,10 +17,15 @@
   </ItemGroup>
 
   <Target Name="Build">
-    <PushToBlobFeed ExpectedFeedUrl="$(ExpectedFeedUrl)"
-                    AccountKey="$(AccountKey)"
+    <PushToBlobFeed ExpectedFeedUrl="$(PB_PublishBlobFeedUrl)"
+                    AccountKey="$(PB_PublishBlobFeedKey)"
                     ItemsToPush="@(ItemsToPush)"
-                    Overwrite="$(PublishOverwrite)" />
+                    Overwrite="$(PublishOverwrite)"
+                    ManifestBranch="$(BUILD_SOURCEBRANCH)"
+                    ManifestBuildId="$(BUILD_BUILDNUMBER)"
+                    ManifestCommit="$(CommitHashDisplay)"
+                    ManifestName="roslyn"
+                    SkipCreateManifest="false" />
   </Target>
 
 </Project>

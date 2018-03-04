@@ -229,7 +229,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal bool IsDisposed
+        /// <summary>
+        /// True if the module has been disposed.
+        /// </summary>
+        public bool IsDisposed
         {
             get { return _isDisposed || _module.IsDisposed; }
         }

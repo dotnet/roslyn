@@ -206,7 +206,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             compilation.VerifyPdb("Module1.F",
 <symbols>
@@ -418,7 +418,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.DebugDll)
@@ -499,7 +499,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.ReleaseDll)
@@ -567,7 +567,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.DebugDll)
@@ -646,7 +646,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.ReleaseDll)
@@ -713,7 +713,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c = CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim c = CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             c.AssertNoErrors()
 
             ' NOTE: No <local> for the return variable "M".
@@ -908,7 +908,7 @@ Public Partial Class C
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation(src, LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CreateEmptyCompilation(src, LatestVbReferences, options:=TestOptions.DebugDll)
             Dim v = CompileAndVerify(compilation)
             v.VerifyPdb("C.M", "
 <symbols>

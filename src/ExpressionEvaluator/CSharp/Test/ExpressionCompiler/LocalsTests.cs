@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M", atLineNumber: 999);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact]
+        [Fact(Skip = "PROOTYPE(patterns2): switch code gen is in flux.")]
         public void LocalsInSwitch()
         {
             var source =
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M", atLineNumber: 1000);
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact]
+        [Fact(Skip = "PROOTYPE(patterns2): switch code gen is in flux.")]
         [WorkItem(16594, "https://github.com/dotnet/roslyn/issues/16594")]
         public void LocalsInSwitchWithLambda()
         {
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M", atLineNumber: 1000);
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact]
+        [Fact(Skip = "PROOTYPE(patterns2): switch code gen is in flux.")]
         public void LocalsInSwitchWithAwait()
         {
             var source =
@@ -591,12 +591,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<M>d__1.<>4__this""
   IL_0006:  ret
@@ -609,12 +608,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.o""
   IL_0006:  ret
@@ -627,12 +625,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<a>5__4""
   IL_0006:  ret
@@ -645,12 +642,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<s>5__5""
   IL_0006:  ret
@@ -674,12 +670,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<M>d__1.<>4__this""
   IL_0006:  ret
@@ -692,12 +687,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.o""
   IL_0006:  ret
@@ -710,12 +704,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<a>5__4""
   IL_0006:  ret
@@ -728,12 +721,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__1.<s>5__6""
   IL_0006:  ret
@@ -765,7 +757,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, references: null, includeLocalSignatures: false, includeIntrinsicAssembly: true, validator: runtime =>
             {
@@ -826,7 +818,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -932,7 +924,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -971,7 +963,7 @@ class C
         object y = x;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1017,7 +1009,7 @@ class C
         return false;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.F", atLineNumber: 999);
@@ -1082,7 +1074,7 @@ class C
         return w + x + y;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.F", atLineNumber: 888);
@@ -1156,7 +1148,7 @@ class C
         M(E.A);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugExe);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1212,7 +1204,7 @@ class P
         C<object>.M<string>();
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugExe);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1285,7 +1277,7 @@ class P
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
@@ -1382,7 +1374,7 @@ class P
         });
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<>c__DisplayClass1_0.<M>b__0");
@@ -1444,7 +1436,7 @@ class C
 {
     void M() { }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1479,7 +1471,7 @@ class C
 {
     void M() { }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1543,7 +1535,7 @@ class C
         f(1, 2, 3, 4)(5, 6, 7)(8, 9)(10);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -1713,7 +1705,7 @@ class C
         f(2)(x);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<M>b__0");
@@ -1758,7 +1750,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "A.B.M");
@@ -1783,10 +1775,10 @@ class C
                 var method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m0<W>").Method;
                 var containingType = method.ContainingType;
                 var returnType = (NamedTypeSymbol)method.ReturnType;
-                Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments[0]);
-                Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments[1]);
+                Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments()[0]);
+                Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments()[1]);
                 returnType = returnType.ContainingType;
-                Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments[0]);
+                Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments()[0]);
 
                 VerifyLocal(testData, "<>x<T, U, V>", locals[1], "<>m1<W>", "o", expectedILOpt:
 @"{
@@ -1802,9 +1794,9 @@ class C
                 method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m1<W>").Method;
                 // method.ReturnType: A<U>.B<V, object>[]
                 returnType = (NamedTypeSymbol)((ArrayTypeSymbol)method.ReturnType).ElementType;
-                Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments[0]);
+                Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments()[0]);
                 returnType = returnType.ContainingType;
-                Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments[0]);
+                Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments()[0]);
 
                 VerifyLocal(testData, "<>x<T, U, V>", locals[2], "<>m2<W>", "t", expectedILOpt:
 @"{
@@ -1863,10 +1855,10 @@ class C
                     expectedGeneric: true);
                 method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m5<W>").Method;
                 returnType = (NamedTypeSymbol)method.ReturnType;
-                Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments[0]);
-                Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments[1]);
-                Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments[2]);
-                Assert.Equal(method.TypeParameters[0], returnType.TypeArguments[3]);
+                Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments()[0]);
+                Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments()[1]);
+                Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments()[2]);
+                Assert.Equal(method.TypeParameters[0], returnType.TypeArguments()[3]);
 
                 // Verify <>c__TypeVariables type was emitted (#976772).
                 using (var metadata = ModuleMetadata.CreateFromImage(ImmutableArray.CreateRange(assembly)))
@@ -1893,7 +1885,7 @@ class C
         f();
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<M>b__0");
@@ -1946,7 +1938,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>d__2.MoveNext", atLineNumber: 999);
@@ -1995,7 +1987,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -2431,12 +2423,12 @@ public struct B
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(
+            var compilation0 = CreateCompilation(
                 source0,
                 options: TestOptions.DebugDll,
                 assemblyName: "Comp1");
 
-            var compilation1 = CreateStandardCompilation(
+            var compilation1 = CreateCompilation(
                 source1,
                 options: TestOptions.DebugDll,
                 references: new[] { compilation0.EmitToImageReference() });
@@ -2475,12 +2467,12 @@ public struct B
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(
+            var compilation0 = CreateCompilation(
                 source0,
                 options: TestOptions.DebugDll,
                 assemblyName: "Comp1");
 
-            var compilation1 = CreateStandardCompilation(
+            var compilation1 = CreateCompilation(
                 source1,
                 options: TestOptions.DebugDll,
                 references: new[] { compilation0.EmitToImageReference() });
@@ -2521,7 +2513,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
@@ -2578,7 +2570,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -2612,7 +2604,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -2649,7 +2641,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M");
@@ -2691,7 +2683,7 @@ class C
         string @namespace = ""NS"";
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -2780,7 +2772,7 @@ static class C
   IL_0006:  ret
 }";
 
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext");
@@ -2841,7 +2833,7 @@ class C
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 string displayClassName;
@@ -3006,7 +2998,7 @@ class C
         Func<T, T> g = t => t;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 string displayClassName;
@@ -3092,7 +3084,7 @@ class C
         return local;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 string typeName;
@@ -3430,8 +3422,8 @@ class C
     }
 }
 ";
-            var libRef = CreateStandardCompilation(libSource).EmitToImageReference();
-            var comp = CreateStandardCompilation(source, new[] { SystemRef }, TestOptions.DebugDll);
+            var libRef = CreateCompilation(libSource).EmitToImageReference();
+            var comp = CreateCompilation(source, new[] { SystemRef }, TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef }, runtime =>
             {
@@ -3586,7 +3578,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 string typeName;
@@ -3682,7 +3674,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 string typeName;
@@ -3754,7 +3746,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 string typeName;
@@ -3788,7 +3780,7 @@ class Program
         const int a = 1;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             WithRuntimeInstance(comp, runtime =>
             {
                 var badConst = new MockSymUnmanagedConstant(
@@ -3841,7 +3833,7 @@ class C
                 locals.Free();
             });
 
-            comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 EvaluationContext context;
@@ -3852,6 +3844,46 @@ class C
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The problem is not fixed in versions before 4.5: the order of arguments can be wrong.
                 Assert.Equal(names, new[] { "x", "y" });
+                locals.Free();
+            });
+        }
+
+        /// <summary>
+        /// CompileGetLocals should skip locals with errors.
+        /// </summary>
+        [WorkItem(535899, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=535899")]
+        [Fact]
+        public void SkipPseudoVariablesWithUseSiteErrors()
+        {
+            var source =
+@"class C
+{
+    static void M(object x)
+    {
+        object y;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var aliases = ImmutableArray.Create(ReturnValueAlias(1, "UnknownType, UnknownAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"));
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var diagnostics = DiagnosticBag.GetInstance();
+                var testData = new CompilationTestData();
+                context.CompileGetLocals(
+                    locals,
+                    argumentsOnly: false,
+                    aliases: aliases,
+                    diagnostics: diagnostics,
+                    typeName: out typeName,
+                    testData: testData);
+                diagnostics.Verify();
+                diagnostics.Free();
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "y");
                 locals.Free();
             });
         }

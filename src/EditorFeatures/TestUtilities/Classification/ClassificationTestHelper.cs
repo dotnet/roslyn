@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             return "(" + tuple.TextSpan + ", " + tuple.ClassificationType + ")";
         }
 
-        internal static void Verify(
+        internal static void VerifyTextAndClassifications(
             string expectedText,
             IEnumerable<Tuple<string, string>> expectedClassifications,
             string actualText,
@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             }
         }
 
-        internal static void Verify(
+        internal static void VerifyTextAndClassifications(
             string expectedText,
             IEnumerable<Tuple<string, string>> expectedClassifications,
             IList<TaggedText> actualContent)
         {
-            Verify(
+            VerifyTextAndClassifications(
                 expectedText,
                 expectedClassifications,
                 actualText: actualContent.GetFullText(),

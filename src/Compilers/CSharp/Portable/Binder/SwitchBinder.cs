@@ -647,9 +647,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
 
-                    if (caseLabelSyntax.Value.Kind() == SyntaxKind.DefaultLiteralExpression)
+                    SyntaxNode innerValueSyntax = caseLabelSyntax.Value.SkipParens();
+                    if (innerValueSyntax.Kind() == SyntaxKind.DefaultLiteralExpression)
                     {
-                        diagnostics.Add(ErrorCode.WRN_DefaultInSwitch, caseLabelSyntax.Value.Location);
+                        diagnostics.Add(ErrorCode.ERR_DefaultInSwitch, innerValueSyntax.Location);
                     }
 
                     // LabelSymbols for all the switch case labels are created by BuildLabels().

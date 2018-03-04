@@ -209,11 +209,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CaseSwitchLabel:
                     {
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
-                        bool wasExpression;
                         var pattern = sectionBinder.BindConstantPattern(
-                            node, SwitchGoverningType, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression);
-                        pattern.WasCompilerGenerated = true;
+                            node, SwitchGoverningType, caseLabelSyntax.Value, node.HasErrors, diagnostics, out bool wasExpression);
                         bool hasErrors = pattern.HasErrors;
+                        SyntaxNode innerValueSyntax = caseLabelSyntax.Value.SkipParens();
+                        if (innerValueSyntax.Kind() == SyntaxKind.DefaultLiteralExpression)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DefaultInSwitch, innerValueSyntax.Location);
+                            hasErrors = true;
+                        }
+
+                        pattern.WasCompilerGenerated = true;
                         var constantValue = pattern.ConstantValue;
                         if (!hasErrors &&
                             (object)constantValue != null &&
@@ -222,11 +228,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, pattern.ConstantValue.GetValueToDisplay() ?? label.Name);
                             hasErrors = true;
-                        }
-
-                        if (caseLabelSyntax.Value.Kind() == SyntaxKind.DefaultLiteralExpression)
-                        {
-                            diagnostics.Add(ErrorCode.WRN_DefaultInSwitch, caseLabelSyntax.Value.Location);
                         }
 
                         // Until we've determined whether or not the switch label is reachable, we assume it

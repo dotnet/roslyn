@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using static Roslyn.Test.Utilities.RuntimeUtilities; 
+using static Roslyn.Test.Utilities.RuntimeEnvironmentUtilities; 
 
 namespace Roslyn.Test.Utilities.Desktop
 {

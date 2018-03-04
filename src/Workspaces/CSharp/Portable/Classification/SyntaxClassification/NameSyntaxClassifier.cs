@@ -147,19 +147,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             }
 
             // Use .Equals since we can't rely on object identity for constructed types.
-            if (symbol is ITypeSymbol typeSymbol)
+            SyntaxToken token;
+            switch (symbol)
             {
-                var classification = GetClassificationForType(typeSymbol);
-                if (classification != null)
-                {
-                    var token = name.GetNameToken();
-                    classifiedSpan = new ClassifiedSpan(token.Span, classification);
+                case ITypeSymbol typeSymbol:
+                    var classification = GetClassificationForType(typeSymbol);
+                    if (classification != null)
+                    {
+                        token = name.GetNameToken();
+                        classifiedSpan = new ClassifiedSpan(token.Span, classification);
+                        return true;
+                    }
+                    break;
+                case IFieldSymbol fieldSymbol:
+                    token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForField(fieldSymbol));
                     return true;
-                }
+                case IMethodSymbol methodSymbol:
+                    token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, methodSymbol.IsExtensionMethod ? ClassificationTypeNames.ExtensionMethodName : ClassificationTypeNames.MethodName);
+                    return true;
+                case IPropertySymbol propertySymbol:
+                    token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.PropertyName);
+                    return true;
+                case IEventSymbol eventSymbol:
+                    token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.EventName);
+                    return true;
+                case IParameterSymbol parameterSymbol:
+                    if (parameterSymbol.IsImplicitlyDeclared && parameterSymbol.Name == "value")
+                    {
+                        break;
+                    }
+                    token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.ParameterName);
+                    return true;
+                case ILocalSymbol localSymbol:
+                    token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, localSymbol.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName);
+                    return true;
             }
 
             classifiedSpan = default;
             return false;
+        }
+
+        private static string GetClassificationForField(IFieldSymbol fieldSymbol)
+        {
+            if (fieldSymbol.IsConst)
+            {
+                return fieldSymbol.ContainingType.IsEnumType() ? ClassificationTypeNames.EnumFieldName : ClassificationTypeNames.ConstantName;
+            }
+            return ClassificationTypeNames.FieldName;
         }
 
         private bool IsInVarContext(NameSyntax name)
@@ -211,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         break;
 
                     case CandidateReason.WrongArity:
-                        if (name.GetRightmostName().Arity == 0)
+                        if (name.GetRightmostName()?.Arity == 0)
                         {
                             // When the user writes something like "IList" we don't want to *not* classify 
                             // just because the type bound to "IList<T>".  This is also important for use

@@ -10,9 +10,11 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader;
@@ -492,15 +494,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void EmitWithPdb(MemoryStream peStream, MemoryStream pdbStream, Compilation compilation, IMethodSymbol debugEntryPoint, IEnumerable<EmbeddedText> embeddedTexts, bool portable)
         {
+            var emitOptions = EmitOptions.Default.WithDebugInformationFormat(portable ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb);
+
             var result = compilation.Emit(
                 peStream,
                 pdbStream,
                 debugEntryPoint: debugEntryPoint,
-                options: EmitOptions.Default.WithDebugInformationFormat(portable ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb),
+                options: emitOptions,
                 embeddedTexts: embeddedTexts);
 
             result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
-            ValidateDebugDirectory(peStream, portable ? pdbStream : null, compilation.AssemblyName + ".pdb", compilation.IsEmitDeterministic);
+            ValidateDebugDirectory(peStream, portable ? pdbStream : null, compilation.AssemblyName + ".pdb", emitOptions.PdbChecksumAlgorithm, hasEmbeddedPdb: false, isDeterministic: compilation.IsEmitDeterministic);
         }
 
         public unsafe static byte[] GetSourceLinkData(Stream pdbStream)
@@ -526,120 +530,89 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static void ValidateDebugDirectory(Stream peStream, Stream portablePdbStreamOpt, string pdbPath, bool isDeterministic)
+        public static void ValidateDebugDirectory(Stream peStream, Stream portablePdbStreamOpt, string pdbPath, HashAlgorithmName hashAlgorithm, bool hasEmbeddedPdb, bool isDeterministic)
         {
             peStream.Position = 0;
 
             var peReader = new PEReader(peStream);
-            var debugDirectory = peReader.PEHeaders.PEHeader.DebugTableDirectory;
+            var entries = peReader.ReadDebugDirectory();
+            int entryIndex = 0;
 
-            Assert.True(peReader.PEHeaders.TryGetDirectoryOffset(debugDirectory, out var position));
-            int entries = debugDirectory.Size / 0x1c;
-            Assert.Equal(0, debugDirectory.Size % 0x1c);
-            Assert.True(entries == 1 || entries == 2);
-            bool hasDebug = entries == 2;
+            var codeViewEntry = entries[entryIndex++];
 
-            peStream.Position = position;
-            var reader = new BinaryReader(peStream);
+            Assert.Equal((portablePdbStreamOpt != null) ? 0x0100 : 0, codeViewEntry.MajorVersion);
+            Assert.Equal((portablePdbStreamOpt != null) ? 0x504d : 0, codeViewEntry.MinorVersion);
+            var codeViewData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
 
-            // first the IMAGE_DEBUG_TYPE_CODEVIEW entry
-            int characteristics = reader.ReadInt32();
-            Assert.Equal(0, characteristics);
+            Assert.Equal(1, codeViewData.Age);
+            Assert.Equal(pdbPath, codeViewData.Path);
 
-            byte[] stamp = reader.ReadBytes(sizeof(int));
+            // CodeView data: 
+            //  4B "RSDS"
+            // 16B Guid
+            //  4B Age
+            //     NUL-terminated path
+            int paddedPathLength = codeViewEntry.DataSize - 24;
 
-            uint version = reader.ReadUInt32();
-            Assert.Equal((portablePdbStreamOpt != null) ? 0x504d0100u : 0, version);
-
-            int type = reader.ReadInt32();
-            Assert.Equal(2, type); // IMAGE_DEBUG_TYPE_CODEVIEW
-
-            int sizeOfData = reader.ReadInt32();
-            int rvaOfRawData = reader.ReadInt32();
-
-            int section = peReader.PEHeaders.GetContainingSectionIndex(rvaOfRawData);
-            var sectionHeader = peReader.PEHeaders.SectionHeaders[section];
-
-            int pointerToRawData = reader.ReadInt32();
-            Assert.Equal(pointerToRawData, sectionHeader.PointerToRawData + rvaOfRawData - sectionHeader.VirtualAddress);
-
-            // optionally a IMAGE_DEBUG_TYPE_NO_TIMESTAMP entry indicating that timestamps are deterministic
-            if (hasDebug)
+            if (isDeterministic)
             {
-                int characteristics2 = reader.ReadInt32();
-                Assert.Equal(0, characteristics2);
-
-                byte[] stamp2 = reader.ReadBytes(sizeof(int));
-
-                int version2 = reader.ReadInt32();
-                Assert.Equal(0, version2);
-
-                int type2 = reader.ReadInt32();
-                Assert.Equal(16, type2); // IMAGE_DEBUG_TYPE_NO_TIMESTAMP
-
-                int sizeOfData2 = reader.ReadInt32();
-                int rvaOfRawData2 = reader.ReadInt32();
-                int pointerToRawData2 = reader.ReadInt32();
-                Assert.Equal(0, sizeOfData2 | rvaOfRawData2 | pointerToRawData2);
+                Assert.Equal(Encoding.UTF8.GetByteCount(pdbPath) + 1, paddedPathLength);
+            }
+            else
+            {
+                Assert.True(paddedPathLength >= 260, "Path should be at least MAX_PATH long");
             }
 
-            // Now verify the data pointed to by the IMAGE_DEBUG_TYPE_CODEVIEW entry
-            peStream.Position = pointerToRawData;
-
-            Assert.Equal((byte)'R', reader.ReadByte());
-            Assert.Equal((byte)'S', reader.ReadByte());
-            Assert.Equal((byte)'D', reader.ReadByte());
-            Assert.Equal((byte)'S', reader.ReadByte());
-
-            byte[] guidBlob = new byte[16];
-            reader.Read(guidBlob, 0, guidBlob.Length);
-
-            Assert.Equal(1u, reader.ReadUInt32());
-
-            byte[] pathBlob = new byte[sizeOfData - 24];
-            reader.Read(pathBlob, 0, pathBlob.Length);
-
-            int terminator = Array.IndexOf(pathBlob, (byte)0);
-            Assert.True(terminator >= 0, "Path should be NUL terminated");
-
-            for (int i = terminator + 1; i < pathBlob.Length; i++)
+            if (portablePdbStreamOpt != null)
             {
-                Assert.Equal(0, pathBlob[i]);
+                portablePdbStreamOpt.Position = 0;
+
+                using (var provider = MetadataReaderProvider.FromPortablePdbStream(portablePdbStreamOpt, MetadataStreamOptions.LeaveOpen))
+                {
+                    var pdbReader = provider.GetMetadataReader();
+                    ValidatePortablePdbId(pdbReader, codeViewEntry.Stamp, codeViewData.Guid);
+                }
+            }
+
+            if ((portablePdbStreamOpt != null || hasEmbeddedPdb) && hashAlgorithm.Name != null)
+            {
+                var entry = entries[entryIndex++];
+
+                var pdbChecksumData = peReader.ReadPdbChecksumDebugDirectoryData(entry);
+                Assert.Equal(hashAlgorithm.Name, pdbChecksumData.AlgorithmName);
+
+                // TODO: validate hash
             }
 
             if (isDeterministic)
             {
-                Assert.Equal(pathBlob.Length - 1, terminator);
-            }
-            else
-            {
-                Assert.True(pathBlob.Length >= 260, "Path should be at least MAX_PATH long");
+                var entry = entries[entryIndex++];
+                Assert.Equal(0, entry.MinorVersion);
+                Assert.Equal(0, entry.MajorVersion);
+                Assert.Equal(0U, entry.Stamp);
+                Assert.Equal(DebugDirectoryEntryType.Reproducible, entry.Type);
+                Assert.Equal(0, entry.DataPointer);
+                Assert.Equal(0, entry.DataRelativeVirtualAddress);
+                Assert.Equal(0, entry.DataSize);
             }
 
-            var actualPath = Encoding.UTF8.GetString(pathBlob, 0, terminator);
-            Assert.Equal(pdbPath, actualPath);
-
-            if (portablePdbStreamOpt != null)
+            if (hasEmbeddedPdb)
             {
-                ValidatePortablePdbId(portablePdbStreamOpt, stamp, guidBlob);
+                var entry = entries[entryIndex++];
+                using (var provider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry))
+                {
+                    ValidatePortablePdbId(provider.GetMetadataReader(), codeViewEntry.Stamp, codeViewData.Guid);
+                }
             }
+
+            Assert.Equal(entries.Length, entryIndex);
         }
 
-        private unsafe static void ValidatePortablePdbId(Stream pdbStream, byte[] stampInDebugDirectory, byte[] guidInDebugDirectory)
+        private unsafe static void ValidatePortablePdbId(MetadataReader pdbReader, uint stampInDebugDirectory, Guid guidInDebugDirectory)
         {
-            var expectedId = ImmutableArray.CreateRange(guidInDebugDirectory.Concat(stampInDebugDirectory));
-
-            pdbStream.Position = 0;
-            var buffer = new byte[pdbStream.Length];
-            var bytesRead = pdbStream.TryReadAll(buffer, 0, buffer.Length);
-
-            Assert.Equal(buffer.Length, bytesRead);
-
-            fixed (byte* bufferPtr = buffer)
-            {
-                var id = new MetadataReader(bufferPtr, buffer.Length).DebugMetadataHeader.Id;
-                Assert.Equal(id.ToArray(), expectedId);
-            }
+            var expectedId = new BlobContentId(guidInDebugDirectory, stampInDebugDirectory);
+            var actualId = new BlobContentId(pdbReader.DebugMetadataHeader.Id);
+            Assert.Equal(expectedId, actualId);
         }
     }
 }
