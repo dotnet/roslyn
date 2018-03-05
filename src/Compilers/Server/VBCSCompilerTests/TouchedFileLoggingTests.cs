@@ -29,7 +29,7 @@ class C
     }
 }";
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TrivialMetadataCaching()
         {
             List<String> filelist = new List<string>();
