@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -376,6 +377,51 @@ namespace Analyzer.Utilities.Extensions
         {
             return interfaceMember != null &&
                    symbol.Equals(symbol.ContainingType.FindImplementationForInterfaceMember(interfaceMember));
+        }
+
+        /// <summary>
+        /// Checks if a given symbol implements an interface member or overrides an implementation of an interface member.
+        /// </summary>
+        public static bool IsOverrideOrImplementationOfInterfaceMember(this ISymbol symbol, ISymbol interfaceMember)
+        {
+            Debug.Assert(symbol != null);
+            if (interfaceMember == null)
+            {
+                return false;
+            }
+
+            if (symbol.IsImplementationOfInterfaceMember(interfaceMember))
+            {
+                return true;
+            }
+
+            return symbol.IsOverride &&
+                symbol.GetOverriddenMember().IsOverrideOrImplementationOfInterfaceMember(interfaceMember);
+        }
+
+        /// <summary>
+        /// Gets the symbol overridden by the given <paramref name="symbol"/>.
+        /// </summary>
+        /// <remarks>Requires that <see cref="ISymbol.IsOverride"/> is true for the given <paramref name="symbol"/>.</remarks>
+        public static ISymbol GetOverriddenMember(this ISymbol symbol)
+        {
+            Debug.Assert(symbol != null);
+            Debug.Assert(symbol.IsOverride);
+
+            switch(symbol)
+            {
+                case IMethodSymbol methodSymbol:
+                    return methodSymbol.OverriddenMethod;
+
+                case IPropertySymbol propertySymbol:
+                    return propertySymbol.OverriddenProperty;
+
+                case IEventSymbol eventSymbol:
+                    return eventSymbol.OverriddenEvent;
+
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         /// <summary>
