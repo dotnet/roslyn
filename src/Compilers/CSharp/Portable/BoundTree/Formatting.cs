@@ -150,9 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundStackAllocArrayCreation
     {
         public override object Display
-        {
-            get { return string.Format(MessageID.IDS_StackAllocExpression.Localize().ToString(), ElementType, Count.Syntax); }
-        }
+            => ErrorFacts.GetMessageFormat(MessageID.IDS_StackAllocExpression, ElementType.ToDisplayString(), Count.Syntax.ToString());
     }
 
     internal partial class BoundPassByCopy

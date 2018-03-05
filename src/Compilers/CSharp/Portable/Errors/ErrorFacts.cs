@@ -85,6 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LocalizableResourceString(code.ToString(), ResourceManager, typeof(ErrorFacts));
         }
 
+        public static LocalizableResourceString GetMessageFormat(MessageID code, params string[] formatArguments)
+        {
+            return new LocalizableResourceString(code.ToString(), ResourceManager, typeof(ErrorFacts), formatArguments);
+        }
+
         public static LocalizableResourceString GetTitle(ErrorCode code)
         {
             return new LocalizableResourceString(code.ToString() + s_titleSuffix, ResourceManager, typeof(ErrorFacts));
