@@ -29,6 +29,42 @@ namespace Microsoft.Cci
 
     internal static class PeWriter
     {
+        private static byte ReadByteFromBlobBuilder(BlobBuilder blobBuilder, int offset)
+        {
+            BlobBuilder.Blobs blobs = blobBuilder.GetBlobs();
+            int startOffsetOfBlob = 0;
+            foreach (Blob b in blobs)
+            {
+                ArraySegment<byte> bytesInBlob = b.GetBytes();
+                int offsetInBlob = offset - startOffsetOfBlob;
+
+                if (offsetInBlob < bytesInBlob.Count)
+                    return ((IList<Byte>)bytesInBlob)[offsetInBlob];
+
+                startOffsetOfBlob += bytesInBlob.Count;
+            }
+            throw new IndexOutOfRangeException();
+        }
+
+        private static void WriteByteToBlobBuilder(BlobBuilder blobBuilder, int offset, byte data)
+        {
+            BlobBuilder.Blobs blobs = blobBuilder.GetBlobs();
+            int startOffsetOfBlob = 0;
+            foreach (Blob b in blobs)
+            {
+                ArraySegment<byte> bytesInBlob = b.GetBytes();
+                int offsetInBlob = offset - startOffsetOfBlob;
+
+                if (offsetInBlob < bytesInBlob.Count)
+                {
+                    ((IList<Byte>)bytesInBlob)[offsetInBlob] = data;
+                    return;
+                }
+
+                startOffsetOfBlob += bytesInBlob.Count;
+            }
+        }
+
         internal static bool WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,
@@ -118,8 +154,16 @@ namespace Microsoft.Cci
             ushort portablePdbVersion = 0;
             var metadataRootBuilder = mdWriter.GetRootBuilder();
 
+            Machine SRMVisibleMachine = properties.Machine;
+
+            // When attempting to write an Arm64 PE file, tell the PEBuilder that an Amd64 pe is being written instead
+            // then replace the bits in the produced PE header with the correct bits. This will allow an Arm64 pe to be
+            // generated without requiring the System.Reflection.Metadata dll to be updated to a newer version.
+            if (SRMVisibleMachine == (Machine)0xAA64)
+                SRMVisibleMachine = Machine.Amd64;
+
             var peHeaderBuilder = new PEHeaderBuilder(
-                machine: properties.Machine,
+                machine: SRMVisibleMachine,
                 sectionAlignment: properties.SectionAlignment,
                 fileAlignment: properties.FileAlignment,
                 imageBase: properties.BaseAddress,
@@ -245,6 +289,49 @@ namespace Microsoft.Cci
 
             var peBlob = new BlobBuilder();
             var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
+
+            if (SRMVisibleMachine != properties.Machine)
+            {
+                // ARM64 pe
+                // Update Amd64 machine type in PE header to 0xAA64
+                // Machine type in PEHeader is located at...
+                // 128 bytes (dos header)
+                // 4 bytes (PE Signature)
+                // 2 bytes (Machine)
+                // 4 bytes (TimeStamp)
+                ushort amd64MachineType = (ushort)Machine.Amd64;
+                Debug.Assert(ReadByteFromBlobBuilder(peBlob, 128+4) == (byte)(amd64MachineType));
+                Debug.Assert(ReadByteFromBlobBuilder(peBlob, 128+4 + 1) == (byte)(amd64MachineType >> 8));
+
+                ushort realMachineType = (ushort)properties.Machine;
+                byte lsbMachineType = (byte)realMachineType;
+                byte msbMachineType = (byte)(realMachineType >> 8);
+
+                // This code path is currently only expected to be used for ARM64
+                Debug.Assert(lsbMachineType == 0x64);
+                Debug.Assert(msbMachineType == 0xAA);
+
+                WriteByteToBlobBuilder(peBlob, 128+4, lsbMachineType);
+                WriteByteToBlobBuilder(peBlob, 128+4 + 1, msbMachineType);
+
+                if (peIdProvider != null)
+                {
+                    // Patch timestamp in COFF Header to all zeroes
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2, 0);
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2 + 1, 0);
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2 + 2, 0);
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2 + 3, 0);
+
+                    peContentId = peIdProvider(peBlob.GetBlobs());
+
+                    // patch timestamp in COFF header:
+                    uint newTimestamp = peContentId.Stamp;
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2, (byte)newTimestamp);
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2 + 1, (byte)(newTimestamp >> 8));
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2 + 2, (byte)(newTimestamp >> 16));
+                    WriteByteToBlobBuilder(peBlob, 128 + 4 + 2 + 3, (byte)(newTimestamp >> 24));
+                }
+            }
 
             PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
 
