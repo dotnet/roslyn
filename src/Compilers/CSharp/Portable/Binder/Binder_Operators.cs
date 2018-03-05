@@ -513,9 +513,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
             BinaryOperatorSignature signature;
-
+            BinaryOperatorAnalysisResult best;
             bool foundOperator = BindSimpleBinaryOperatorParts(node, diagnostics, left, right, kind,
-                out resultKind, out originalUserDefinedOperators, out signature, out _);
+                out resultKind, out originalUserDefinedOperators, out signature, out best);
 
             BinaryOperatorKind resultOperatorKind = signature.Kind;
             bool hasErrors = false;
@@ -550,12 +550,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression resultRight = right;
             ConstantValue resultConstant = null;
 
-            if ((object)signature.LeftType != null)
+            if (foundOperator && (resultOperatorKind.OperandTypes() != BinaryOperatorKind.NullableNull))
             {
+                Debug.Assert((object)signature.LeftType != null);
                 Debug.Assert((object)signature.RightType != null);
 
-                resultLeft = GenerateConversionForAssignment(signature.LeftType, left, diagnostics);
-                resultRight = GenerateConversionForAssignment(signature.RightType, right, diagnostics);
+                resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, diagnostics);
+                resultRight = CreateConversion(right, best.RightConversion, signature.RightType, diagnostics);
                 resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType.SpecialType, diagnostics, ref compoundStringLength);
             }
 
@@ -574,7 +575,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors);
         }
 
-        // PROTOTYPE(tuple-equality) I do not love returning both a signature and an analysis result
         private bool BindSimpleBinaryOperatorParts(BinaryExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression left, BoundExpression right, BinaryOperatorKind kind,
             out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators,
             out BinaryOperatorSignature resultSignature, out BinaryOperatorAnalysisResult best)
@@ -613,7 +613,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (isNullableEquality)
                 {
-                    // PROTOTYPE(tuple-equality) I find it strange that we leave leftType and rightType null here
                     resultSignature = new BinaryOperatorSignature(kind | BinaryOperatorKind.NullableNull, leftType: null, rightType: null, 
                         GetSpecialType(SpecialType.System_Boolean, diagnostics, node));
 

@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(leftConvertedType.StrippedType().IsTupleType);
                 Debug.Assert(rightConvertedType.StrippedType().IsTupleType);
                 Debug.Assert(!operators.IsDefault);
+                Debug.Assert(operators.IsEmpty || operators.Length > 1); // an empty array is used for error cases, otherwise tuples must have cardinality > 1
+
                 Operators = operators;
             }
 

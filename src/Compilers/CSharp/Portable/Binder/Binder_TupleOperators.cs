@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// If a element-wise binary operator returns a non-bool type, we will either:
+        /// If an element-wise binary operator returns a non-bool type, we will either:
         /// - prepare a conversion to bool if one exists
         /// - prepare a truth operator: op_false in the case of an equality (`a == b` will be lowered to `!((a == b).op_false)) or op_true in the case of inequality,
         ///     with the conversion being used for its input.

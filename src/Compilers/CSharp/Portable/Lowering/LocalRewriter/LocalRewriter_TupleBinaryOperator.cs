@@ -24,16 +24,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
         {
             var boolType = node.Type; // we can re-use the bool type
-            var initialEffectsAndTemps = TupleOperatorSideEffectsAndTemps.GetInstance();
+            var leftInit = ArrayBuilder<BoundExpression>.GetInstance();
+            var rightInit = ArrayBuilder<BoundExpression>.GetInstance();
+            var temps = ArrayBuilder<LocalSymbol>.GetInstance();
 
-            BoundExpression newLeft = ReplaceTerminalElementsWithTemps(node.Left, node.Operators, initialEffectsAndTemps.leftInit, initialEffectsAndTemps.temps);
-            BoundExpression newRight = ReplaceTerminalElementsWithTemps(node.Right, node.Operators, initialEffectsAndTemps.rightInit, initialEffectsAndTemps.temps);
+            BoundExpression newLeft = ReplaceTerminalElementsWithTemps(node.Left, node.Operators, leftInit, temps);
+            BoundExpression newRight = ReplaceTerminalElementsWithTemps(node.Right, node.Operators, rightInit, temps);
 
-            var returnValue = RewriteTupleNestedOperators(node.Operators, newLeft, newRight, boolType, initialEffectsAndTemps, node.OperatorKind);
+            var returnValue = RewriteTupleNestedOperators(node.Operators, newLeft, newRight, boolType, temps, node.OperatorKind);
 
-            var (effects, temps) = initialEffectsAndTemps.ToImmutableAndFree();
-            var result = _factory.Sequence(temps, effects, returnValue);
+            leftInit.AddRange(rightInit);
+            rightInit.Free();
+
+            BoundExpression result = MakeSequenceOrResultValue(temps.ToImmutableAndFree(), leftInit.ToImmutableAndFree(), returnValue);
             return result;
+        }
+
+        private BoundExpression MakeSequenceOrResultValue(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> effects, BoundExpression returnValue)
+        {
+            if (locals.IsEmpty && effects.IsEmpty)
+            {
+                return returnValue;
+            }
+
+            return _factory.Sequence(locals, effects, returnValue);
         }
 
         /// <summary>
@@ -69,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteTupleOperator(TupleBinaryOperatorInfo @operator,
             BoundExpression left, BoundExpression right, TypeSymbol boolType,
-            TupleOperatorSideEffectsAndTemps initialEffectsAndTemps, BinaryOperatorKind operatorKind)
+            ArrayBuilder<LocalSymbol> temps, BinaryOperatorKind operatorKind)
         {
             if (@operator.IsSingle())
             {
@@ -77,12 +91,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return RewriteTupleNestedOperators((TupleBinaryOperatorInfo.Multiple)@operator, left, right, boolType, initialEffectsAndTemps, operatorKind);
+                return RewriteTupleNestedOperators((TupleBinaryOperatorInfo.Multiple)@operator, left, right, boolType, temps, operatorKind);
             }
         }
 
         private BoundExpression RewriteTupleNestedOperators(TupleBinaryOperatorInfo.Multiple operators, BoundExpression left, BoundExpression right,
-            TypeSymbol boolType, TupleOperatorSideEffectsAndTemps initialEffectsAndTemps, BinaryOperatorKind operatorKind)
+            TypeSymbol boolType, ArrayBuilder<LocalSymbol> temps, BinaryOperatorKind operatorKind)
         {
             // If either left or right is nullable, produce:
             //
@@ -99,10 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // and true/false and false/true depend on operatorKind (== vs. !=)
             //
-            // and temps are created an initialized with early side-effects for:
-            //  - elements from left and right, in case of a tuple literal
-            //  - left and right, in case of a tuple or nullable tuple type
-            //
             // But if neither is nullable, then just produce the inner sequence.
             //
             // Note: all the temps are created in a single bucket (rather than different scopes of applicability) for simplicity
@@ -116,11 +126,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression leftValue;
 
             // Note: left and right are either temps or `null`, so we don't have detailed information to tell us a nullable always has a value
+            // PROTOTYPE(tuple-equality) We could save this information when the temps are created
             var isLeftNullable = left.Kind != BoundKind.TupleLiteral && left.Type.IsNullableType();
             if (isLeftNullable)
             {
-                leftHasValue = MakeHasValueTemp(left, initialEffectsAndTemps.temps, outerEffects);
-                leftValue = MakeValueOrDefaultTemp(left, initialEffectsAndTemps.temps, innerEffects);
+                leftHasValue = MakeHasValueTemp(left, temps, outerEffects);
+                leftValue = MakeValueOrDefaultTemp(left, temps, innerEffects);
             }
             else
             {
@@ -135,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isRightNullable)
             {
                 rightHasValue = MakeNullableHasValue(right.Syntax, right); // no need for local for right.HasValue since used once
-                rightValue = MakeValueOrDefaultTemp(right, initialEffectsAndTemps.temps, innerEffects);
+                rightValue = MakeValueOrDefaultTemp(right, temps, innerEffects);
             }
             else
             {
@@ -145,13 +156,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Produces:
             //     ... logical expression using leftValue and rightValue ...
-            BoundExpression logicalExpression = RewriteNonNullableNestedTupleOperators(operators, leftValue, rightValue, boolType, initialEffectsAndTemps.temps, innerEffects, initialEffectsAndTemps, operatorKind);
+            BoundExpression logicalExpression = RewriteNonNullableNestedTupleOperators(operators, leftValue, rightValue, boolType, temps, innerEffects, operatorKind);
 
             // Produces:
             //     leftValue = left.GetValueOrDefault(); (or left if !leftNullable)
             //     rightValue = right.GetValueOrDefault(); (or right if !rightNullable)
             //     ... logical expression using leftValue and rightValue ...
-            BoundExpression innerSequence = _factory.Sequence(locals: ImmutableArray<LocalSymbol>.Empty, innerEffects.ToImmutableAndFree(), logicalExpression);
+            BoundExpression innerSequence = MakeSequenceOrResultValue(locals: ImmutableArray<LocalSymbol>.Empty, innerEffects.ToImmutableAndFree(), logicalExpression);
 
             if (!isLeftNullable && !isRightNullable)
             {
@@ -165,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //          : false/true
             bool boolValue = operatorKind == BinaryOperatorKind.Equal; // true/false
             BoundExpression outerSequence =
-                _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, outerEffects.ToImmutableAndFree(),
+                MakeSequenceOrResultValue(ImmutableArray<LocalSymbol>.Empty, outerEffects.ToImmutableAndFree(),
                     _factory.Conditional(
                         _factory.Binary(BinaryOperatorKind.Equal, boolType, leftHasValue, rightHasValue),
                         _factory.Conditional(leftHasValue, innerSequence, MakeBooleanConstant(right.Syntax, boolValue), boolType),
@@ -207,16 +218,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression RewriteNonNullableNestedTupleOperators(TupleBinaryOperatorInfo.Multiple operators,
             BoundExpression left, BoundExpression right, TypeSymbol type,
-            ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects, TupleOperatorSideEffectsAndTemps effectAndTemps, BinaryOperatorKind operatorKind)
+            ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects, BinaryOperatorKind operatorKind)
         {
             ImmutableArray<TupleBinaryOperatorInfo> nestedOperators = operators.Operators;
 
             BoundExpression currentResult = null;
             for (int i = 0; i < nestedOperators.Length; i++)
             {
-                BoundExpression leftElement = GetTuplePart(left, i, effectAndTemps.temps, effectAndTemps.leftInit);
-                BoundExpression rightElement = GetTuplePart(right, i, effectAndTemps.temps, effectAndTemps.rightInit);
-                BoundExpression nextLogicalOperand = RewriteTupleOperator(nestedOperators[i], leftElement, rightElement, type, effectAndTemps, operatorKind);
+                BoundExpression leftElement = GetTuplePart(left, i);
+                BoundExpression rightElement = GetTuplePart(right, i);
+                BoundExpression nextLogicalOperand = RewriteTupleOperator(nestedOperators[i], leftElement, rightElement, type, temps, operatorKind);
                 if (currentResult is null)
                 {
                     currentResult = nextLogicalOperand;
@@ -235,13 +246,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For tuple literals, we just return the element.
         /// For expressions with tuple type, we access `Item{i}`.
         /// </summary>
-        private BoundExpression GetTuplePart(BoundExpression tuple, int i, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> initEffects)
+        private BoundExpression GetTuplePart(BoundExpression tuple, int i)
         {
             // Example:
             // (1, 2) == (1, 2);
             if (IsTupleExpression(tuple.Kind))
             {
-                return ((BoundTupleExpression)tuple).Arguments[i];
+                return ((BoundTupleLiteral)tuple).Arguments[i];
             }
 
             Debug.Assert(tuple.Type.IsTupleType);
@@ -288,9 +299,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // PROTOTYPE(tuple-equality) checked
-            // We leave the null literal unconverted because MakeBinaryOperator has special rules for it
-            BoundExpression convertedLeft = left.IsLiteralNull() ? left : MakeConversionNode(left.Syntax, left, single.LeftConversion, single.LeftConvertedType, @checked: false);
-            BoundExpression convertedRight = right.IsLiteralNull() ? right : MakeConversionNode(right.Syntax, right, single.RightConversion, single.RightConvertedType, @checked: false);
+            // We leave the null literal in nullable-null conversions unconverted because MakeBinaryOperator has special rules for it
+            bool isNullableNullConversion = ((operatorKind & BinaryOperatorKind.NullableNull) == 0);
+            BoundExpression convertedLeft = (isNullableNullConversion && left.IsLiteralNull())
+                ? left
+                : MakeConversionNode(left.Syntax, left, single.LeftConversion, single.LeftConvertedType, @checked: false);
+
+            BoundExpression convertedRight = (isNullableNullConversion && right.IsLiteralNull())
+                ? right
+                : MakeConversionNode(right.Syntax, right, single.RightConversion, single.RightConvertedType, @checked: false);
 
             BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, convertedLeft, convertedRight, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt);
             UnaryOperatorSignature boolOperator = single.BoolOperator;
@@ -312,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = _factory.Not(result);
                 }
             }
-            else if (boolConversion != Conversion.Identity)
+            else if (!boolConversion.IsIdentity)
             {
                 // Produce
                 // (bool)(left == right)
@@ -325,31 +342,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
-        }
-
-        private class TupleOperatorSideEffectsAndTemps
-        {
-            internal ArrayBuilder<BoundExpression> leftInit;
-            internal ArrayBuilder<BoundExpression> rightInit;
-            internal ArrayBuilder<LocalSymbol> temps;
-
-            internal static TupleOperatorSideEffectsAndTemps GetInstance()
-            {
-                var result = new TupleOperatorSideEffectsAndTemps();
-                result.leftInit = ArrayBuilder<BoundExpression>.GetInstance();
-                result.rightInit = ArrayBuilder<BoundExpression>.GetInstance();
-                result.temps = ArrayBuilder<LocalSymbol>.GetInstance();
-
-                return result;
-            }
-
-            internal (ImmutableArray<BoundExpression>, ImmutableArray<LocalSymbol>) ToImmutableAndFree()
-            {
-                leftInit.AddRange(rightInit);
-                rightInit.Free();
-
-                return (leftInit.ToImmutableAndFree(), temps.ToImmutableAndFree());
-            }
         }
     }
 }
