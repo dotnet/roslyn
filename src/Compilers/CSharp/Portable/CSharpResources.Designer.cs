@@ -10764,6 +10764,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ref for-loop variables.
+        /// </summary>
+        internal static string IDS_FeatureRefFor {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRefFor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ref foreach iteration variables.
+        /// </summary>
+        internal static string IDS_FeatureRefForEach {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRefForEach", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to byref locals and returns.
         /// </summary>
         internal static string IDS_FeatureRefLocalsReturns {

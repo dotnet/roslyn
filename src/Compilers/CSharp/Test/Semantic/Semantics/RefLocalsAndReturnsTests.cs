@@ -13,6 +13,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class RefLocalsAndReturnsTests : CompilingTestBase
     {
         [Fact]
+        public void RefFor72()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(int x)
+    {
+        for (ref int rx = ref x; x < 0; x++) { }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
+            comp.VerifyDiagnostics(
+                // (6,14): error CS8320: Feature 'ref for-loop variables' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         for (ref int rx = ref x; x < 0; x++) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref int").WithArguments("ref for-loop variables", "7.3").WithLocation(6, 14));
+        }
+
+        [Fact]
+        public void RefForEach72()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(Span<int> span)
+    {
+        foreach (ref int x in span) { }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
+            comp.VerifyDiagnostics(
+                // (7,18): error CS8320: Feature 'ref foreach iteration variables' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         foreach (ref int x in span) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref int").WithArguments("ref foreach iteration variables", "7.3").WithLocation(7, 18));
+        }
+
+        [Fact]
         public void RefReturnRefExpression()
         {
             var comp = CreateCompilation(@"
