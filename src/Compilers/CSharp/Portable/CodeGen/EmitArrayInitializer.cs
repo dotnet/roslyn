@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return false;
                 }
 
-                data = TryGetRawDataForArrayInit(ac.InitializerOpt, out elementCount);
+                elementCount = TryGetRawDataForArrayInit(ac.InitializerOpt, out data);
             }
 
             if (elementCount < 0)
@@ -434,44 +434,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         /// <summary>
-        ///  Returns a byte blob that matches serialized content of the string.        
-        ///  elementCount is set to the char count and is -1 if the string is 'null' or empty.
-        /// </summary>
-        private ImmutableArray<byte> TryGetRawDataForStringLiteral(string stringValue, out int elementCount)
-        {
-            if (string.IsNullOrEmpty(stringValue))
-            {
-                elementCount = -1;
-                return default;
-            }
-
-            elementCount = stringValue.Length;
-            if (elementCount == 0)
-            {
-                return ImmutableArray<byte>.Empty;
-            }
-
-            var writer = new BlobBuilder(stringValue.Length * 2);
-
-            foreach (var ch in stringValue)
-            {
-                writer.WriteInt16((short)ch);
-            }
-
-            return writer.ToImmutableArray();
-        }
-
-        /// <summary>
         ///  Returns a byte blob that matches serialized content of single array initializer.    
-        ///  elementCount is set to -1 if the initializer is null or not an array of literals
+        ///  returns -1 if the initializer is null or not an array of literals
         /// </summary>
-        private ImmutableArray<byte> TryGetRawDataForArrayInit(BoundArrayInitialization initializer, out int elementCount)
+        private int TryGetRawDataForArrayInit(BoundArrayInitialization initializer, out ImmutableArray<byte> data)
         {
-            elementCount = -1;
+            data = default;
 
             if (initializer == null)
             {
-                return default;
+                return -1;
             }
 
             var initializers = initializer.Initializers;
@@ -480,10 +452,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return default;
             }
 
-            elementCount = initializers.Length;
+            var elementCount = initializers.Length;
             if (elementCount == 0)
             {
-                return ImmutableArray<byte>.Empty;
+                data = ImmutableArray<byte>.Empty;
+                return 0;
             }
 
             var writer = new BlobBuilder(initializers.Length * 4);
@@ -493,7 +466,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 init.ConstantValue.Serialize(writer);
             }
 
-            return writer.ToImmutableArray();
+            data = writer.ToImmutableArray();
+            return elementCount;
         }
     }
 }
