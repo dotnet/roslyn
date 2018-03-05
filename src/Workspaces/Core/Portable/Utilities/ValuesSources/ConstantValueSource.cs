@@ -18,7 +18,7 @@ namespace Roslyn.Utilities
             _value = value;
         }
 
-        public override T GetValue(CancellationToken cancellationToken = default(CancellationToken))
+        public override T GetValue(CancellationToken cancellationToken = default)
         {
             return _value;
         }
@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
             return true;
         }
 
-        public override Task<T> GetValueAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<T> GetValueAsync(CancellationToken cancellationToken = default)
         {
             if (_task == null)
             {

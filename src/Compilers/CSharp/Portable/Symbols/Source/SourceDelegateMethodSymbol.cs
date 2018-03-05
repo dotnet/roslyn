@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourceDelegateMethodSymbol : SourceMethodSymbol
+    internal abstract class SourceDelegateMethodSymbol : SourceMemberMethodSymbol
     {
         private ImmutableArray<ParameterSymbol> _parameters;
         private readonly TypeSymbol _returnType;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var objectType = binder.GetSpecialType(SpecialType.System_Object, diagnostics, syntax);
             var intPtrType = binder.GetSpecialType(SpecialType.System_IntPtr, diagnostics, syntax);
 
-            if (returnType.IsRestrictedType())
+            if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 // Method or delegate cannot return type '{0}'
                 diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeSyntax.Location, returnType);
@@ -135,6 +136,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+
         public sealed override TypeSymbol ReturnType
         {
             get
@@ -197,8 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : base(delegateType, voidType, syntax, MethodKind.Constructor, DeclarationModifiers.Public)
             {
                 InitializeParameters(ImmutableArray.Create<ParameterSymbol>(
-                    new SynthesizedParameterSymbol(this, objectType, 0, RefKind.None, "object"),
-                    new SynthesizedParameterSymbol(this, intPtrType, 1, RefKind.None, "method")));
+                    SynthesizedParameterSymbol.Create(this, objectType, 0, RefKind.None, "object"),
+                    SynthesizedParameterSymbol.Create(this, intPtrType, 1, RefKind.None, "method")));
             }
 
             public override string Name
@@ -206,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return WellKnownMemberNames.InstanceConstructorName; }
             }
 
-            internal override RefKind RefKind
+            public override RefKind RefKind
             {
                 get { return RefKind.None; }
             }
@@ -231,7 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class InvokeMethod : SourceDelegateMethodSymbol
         {
-            private readonly RefKind refKind;
+            private readonly RefKind _refKind;
+            private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
             internal InvokeMethod(
                 SourceMemberContainerTypeSymbol delegateType,
@@ -242,16 +247,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DiagnosticBag diagnostics)
                 : base(delegateType, returnType, syntax, MethodKind.DelegateInvoke, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
-                this.refKind = refKind;
+                this._refKind = refKind;
 
                 SyntaxToken arglistToken;
-                var parameters = ParameterHelpers.MakeParameters(binder, this, syntax.ParameterList, true, out arglistToken, diagnostics, false);
+                var parameters = ParameterHelpers.MakeParameters(
+                    binder, this, syntax.ParameterList, out arglistToken,
+                    allowRefOrOut: true,
+                    allowThis: false,
+                    addRefReadOnlyModifier: true,
+                    diagnostics: diagnostics);
+
                 if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
                 {
                     // This is a parse-time error in the native compiler; it is a semantic analysis error in Roslyn.
 
                     // error CS1669: __arglist is not valid in this context
                     diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, new SourceLocation(arglistToken));
+                }
+
+                if (_refKind == RefKind.RefReadOnly)
+                {
+                    var modifierType = binder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.ReturnType);
+                    _refCustomModifiers = ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
+                }
+                else
+                {
+                    _refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                 }
 
                 InitializeParameters(parameters);
@@ -262,9 +283,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return WellKnownMemberNames.DelegateInvokeName; }
             }
 
-            internal override RefKind RefKind
+            public override RefKind RefKind
             {
-                get { return refKind; }
+                get { return _refKind; }
             }
 
             internal override LexicalSortKey GetLexicalSortKey()
@@ -277,6 +298,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }
+
+            internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+            {
+                base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+                if (_refKind == RefKind.RefReadOnly)
+                {
+                    var syntax = (DelegateDeclarationSyntax)SyntaxRef.GetSyntax();
+                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.GetLocation(), modifyCompilationForRefReadOnly: true);
+                }
+
+                ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
+            }
+
+            public override ImmutableArray<CustomModifier> RefCustomModifiers => _refCustomModifiers;
         }
 
         private sealed class BeginInvokeMethod : SourceDelegateMethodSymbol
@@ -297,8 +333,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 int paramCount = invoke.ParameterCount;
-                parameters.Add(new SynthesizedParameterSymbol(this, asyncCallbackType, paramCount, RefKind.None, GetUniqueParameterName(parameters, "callback")));
-                parameters.Add(new SynthesizedParameterSymbol(this, objectType, paramCount + 1, RefKind.None, GetUniqueParameterName(parameters, "object")));
+                parameters.Add(SynthesizedParameterSymbol.Create(this, asyncCallbackType, paramCount, RefKind.None, GetUniqueParameterName(parameters, "callback")));
+                parameters.Add(SynthesizedParameterSymbol.Create(this, objectType, paramCount + 1, RefKind.None, GetUniqueParameterName(parameters, "object")));
 
                 InitializeParameters(parameters.ToImmutableAndFree());
             }
@@ -308,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return WellKnownMemberNames.DelegateBeginInvokeName; }
             }
 
-            internal override RefKind RefKind
+            public override RefKind RefKind
             {
                 get { return RefKind.None; }
             }
@@ -324,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class EndInvokeMethod : SourceDelegateMethodSymbol
         {
-            private readonly RefKind refKind;
+            private readonly InvokeMethod _invoke;
 
             internal EndInvokeMethod(
                 InvokeMethod invoke,
@@ -332,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DelegateDeclarationSyntax syntax)
                 : base((SourceNamedTypeSymbol)invoke.ContainingType, invoke.ReturnType, syntax, MethodKind.Ordinary, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
-                this.refKind = invoke.RefKind;
+                _invoke = invoke;
 
                 var parameters = ArrayBuilder<ParameterSymbol>.GetInstance();
                 int ordinal = 0;
@@ -346,28 +382,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                parameters.Add(new SynthesizedParameterSymbol(this, iAsyncResultType, ordinal++, RefKind.None, GetUniqueParameterName(parameters, "result")));
+                parameters.Add(SynthesizedParameterSymbol.Create(this, iAsyncResultType, ordinal++, RefKind.None, GetUniqueParameterName(parameters, "result")));
                 InitializeParameters(parameters.ToImmutableAndFree());
             }
 
-            protected override SourceMethodSymbol BoundAttributesSource
-            {
-                get
-                {
-                    // copy return attributes from InvokeMethod
-                    return (SourceMethodSymbol)((SourceNamedTypeSymbol)this.ContainingSymbol).DelegateInvokeMethod;
-                }
-            }
+            protected override SourceMemberMethodSymbol BoundAttributesSource => _invoke;
 
-            public override string Name
-            {
-                get { return WellKnownMemberNames.DelegateEndInvokeName; }
-            }
+            public override string Name => WellKnownMemberNames.DelegateEndInvokeName;
 
-            internal override RefKind RefKind
-            {
-                get { return refKind; }
-            }
+            public override RefKind RefKind => _invoke.RefKind;
+
+            public override ImmutableArray<CustomModifier> RefCustomModifiers => _invoke.RefCustomModifiers;
         }
 
         private static string GetUniqueParameterName(ArrayBuilder<ParameterSymbol> currentParameters, string name)

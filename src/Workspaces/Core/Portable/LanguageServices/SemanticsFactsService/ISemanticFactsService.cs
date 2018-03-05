@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -50,6 +51,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsAttributeNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsNameOfContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
+        bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken);
+
         /// <summary>
         /// True if a write is performed to the given expression.  Note: reads may also be performed
         /// to the expression as well.  For example, "++a".  In this expression 'a' is both read from
@@ -65,10 +68,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsOnlyWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         bool IsInOutContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         bool IsInRefContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+        bool IsInInContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
 
         bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken);
 
-        string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize = false);
+        string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken);
 
         ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
 
@@ -86,8 +90,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement);
 
+        ImmutableArray<IMethodSymbol> GetDeconstructionAssignmentMethods(SemanticModel semanticModel, SyntaxNode node);
+
+        ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node);
+
         bool IsAssignableTo(ITypeSymbol fromSymbol, ITypeSymbol toSymbol, Compilation compilation);
 
         bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken);
+
+        IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
     }
 }

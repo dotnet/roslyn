@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface IBraceMatchingService
     {
-        Task<BraceMatchingResult?> GetMatchingBracesAsync(Document document, int position, CancellationToken cancellationToken = default(CancellationToken));
+        Task<BraceMatchingResult?> GetMatchingBracesAsync(Document document, int position, CancellationToken cancellationToken = default);
     }
 
     internal struct BraceMatchingResult

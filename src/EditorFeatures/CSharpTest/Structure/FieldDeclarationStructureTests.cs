@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
             const string code = @"
 class C
 {
-    {|span:// Foo
+    {|span:// Goo
     // Bar|}
     $$int F;
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "// Foo ...", autoCollapse: true));
+                Region("span", "// Goo ...", autoCollapse: true));
         }
     }
 }

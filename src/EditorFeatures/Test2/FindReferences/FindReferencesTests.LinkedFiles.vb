@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -24,7 +24,7 @@ class C
         <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
     </Project>
 </Workspace>
-            Using workspace = Await TestWorkspace.CreateAsync(definition)
+            Using workspace = TestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
@@ -56,7 +56,7 @@ End Class
         <Document IsLinkFile="true" LinkAssemblyName="VBProj1" LinkFilePath="C.vb"/>
     </Project>
 </Workspace>
-            Using workspace = Await TestWorkspace.CreateAsync(definition)
+            Using workspace = TestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
@@ -93,7 +93,7 @@ End Class
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(definition)
+            Using workspace = TestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
                 Dim linkedDocument = workspace.Documents.Single(Function(d) d.IsLinkFile)

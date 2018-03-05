@@ -2,16 +2,15 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
@@ -19,29 +18,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller :
         AbstractController<Controller.Session, Model, ICompletionPresenterSession, ICompletionSession>,
-        ICommandHandler<TabKeyCommandArgs>,
-        ICommandHandler<ToggleCompletionModeCommandArgs>,
-        ICommandHandler<TypeCharCommandArgs>,
-        ICommandHandler<ReturnKeyCommandArgs>,
-        ICommandHandler<InvokeCompletionListCommandArgs>,
-        ICommandHandler<CommitUniqueCompletionListItemCommandArgs>,
-        ICommandHandler<PageUpKeyCommandArgs>,
-        ICommandHandler<PageDownKeyCommandArgs>,
-        ICommandHandler<CutCommandArgs>,
-        ICommandHandler<PasteCommandArgs>,
-        ICommandHandler<BackspaceKeyCommandArgs>,
-        ICommandHandler<InsertSnippetCommandArgs>,
-        ICommandHandler<SurroundWithCommandArgs>,
-        ICommandHandler<AutomaticLineEnderCommandArgs>,
-        ICommandHandler<SaveCommandArgs>,
-        ICommandHandler<DeleteKeyCommandArgs>,
-        ICommandHandler<SelectAllCommandArgs>
+        IChainedCommandHandler<TabKeyCommandArgs>,
+        IChainedCommandHandler<ToggleCompletionModeCommandArgs>,
+        IChainedCommandHandler<TypeCharCommandArgs>,
+        IChainedCommandHandler<ReturnKeyCommandArgs>,
+        IChainedCommandHandler<InvokeCompletionListCommandArgs>,
+        IChainedCommandHandler<CommitUniqueCompletionListItemCommandArgs>,
+        IChainedCommandHandler<PageUpKeyCommandArgs>,
+        IChainedCommandHandler<PageDownKeyCommandArgs>,
+        IChainedCommandHandler<CutCommandArgs>,
+        IChainedCommandHandler<PasteCommandArgs>,
+        IChainedCommandHandler<BackspaceKeyCommandArgs>,
+        IChainedCommandHandler<InsertSnippetCommandArgs>,
+        IChainedCommandHandler<SurroundWithCommandArgs>,
+        IChainedCommandHandler<AutomaticLineEnderCommandArgs>,
+        IChainedCommandHandler<SaveCommandArgs>,
+        IChainedCommandHandler<DeleteKeyCommandArgs>,
+        IChainedCommandHandler<SelectAllCommandArgs>
     {
         private static readonly object s_controllerPropertyKey = new object();
 
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IWaitIndicator _waitIndicator;
         private readonly ImmutableHashSet<char> _autoBraceCompletionChars;
         private readonly bool _isDebugger;
         private readonly bool _isImmediateWindow;
@@ -52,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             ITextBuffer subjectBuffer,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IWaitIndicator waitIndicator,
             IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> presenter,
             IAsynchronousOperationListener asyncListener,
             ImmutableHashSet<char> autoBraceCompletionChars,
@@ -62,7 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _undoHistoryRegistry = undoHistoryRegistry;
-            _waitIndicator = waitIndicator;
             _autoBraceCompletionChars = autoBraceCompletionChars;
             _isDebugger = isDebugger;
             _isImmediateWindow = isImmediateWindow;
@@ -74,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             ITextBuffer subjectBuffer,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IWaitIndicator waitIndicator,
             IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> presenter,
             IAsynchronousOperationListener asyncListener,
             ImmutableHashSet<char> autoBraceCompletionChars)
@@ -84,22 +79,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var isImmediateWindow = isDebugger && debuggerTextView.IsImmediateWindow;
 
             return textView.GetOrCreatePerSubjectBufferProperty(subjectBuffer, s_controllerPropertyKey,
-                (v, b) => new Controller(textView, subjectBuffer, editorOperationsFactoryService, undoHistoryRegistry, waitIndicator,
-                    presenter, asyncListener,
-                    autoBraceCompletionChars,
-                    isDebugger, isImmediateWindow));
-        }
-
-        internal bool WaitForComputation()
-        {
-            if (sessionOpt == null)
-            {
-                return false;
-            }
-
-            var model = sessionOpt.WaitForModel();
-
-            return model != null;
+                (v, b) => new Controller(
+                    textView, subjectBuffer, editorOperationsFactoryService, undoHistoryRegistry, 
+                    presenter, asyncListener, autoBraceCompletionChars, isDebugger, isImmediateWindow));
         }
 
         private SnapshotPoint GetCaretPointInViewBuffer()
@@ -114,19 +96,52 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return this.TextView.BufferGraph.MapUpOrDownToBuffer(this.TextView.Caret.Position.BufferPosition, this.SubjectBuffer).GetValueOrDefault();
         }
 
+        private bool ShouldBlockForCompletionItems()
+        {
+            var service = GetCompletionService();
+            var options = GetOptions();
+            if (service == null || options == null)
+            {
+                return true;
+            }
+
+            return options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language);
+        }
+
+        private Model WaitForModel()
+        {
+            this.AssertIsForeground();
+
+            var shouldBlock = ShouldBlockForCompletionItems();
+            var model = sessionOpt.WaitForModel_DoNotCallDirectly(shouldBlock);
+            if (model == null && !shouldBlock)
+            {
+                // We didn't get a model back, and we're a language that doesn't want to block
+                // when this happens.  Essentially, the user typed something like a commit 
+                // character before we got any results back.  In this case, because we're not
+                // willing to block, we just stop everything that we're doing and return to 
+                // the non-active state.
+                DismissSessionIfActive();
+            }
+
+            return model;
+        }
+
         internal override void OnModelUpdated(Model modelOpt)
         {
             AssertIsForeground();
             if (modelOpt == null)
             {
-                this.StopModelComputation();
+                this.DismissSessionIfActive();
             }
             else
             {
                 var selectedItem = modelOpt.SelectedItemOpt;
                 var viewSpan = selectedItem == null ? (ViewTextSpan?)null : modelOpt.GetViewBufferSpan(selectedItem.Span);
-                var triggerSpan = viewSpan == null ? null : modelOpt.GetCurrentSpanInSnapshot(viewSpan.Value, this.TextView.TextSnapshot)
-                                          .CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
+                var triggerSpan = viewSpan == null 
+                    ? null
+                    : modelOpt.GetCurrentSpanInSnapshot(viewSpan.Value, this.TextView.TextSnapshot)
+                              .CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
                 sessionOpt.PresenterSession.PresentItems(
                     triggerSpan, modelOpt.FilteredItems, selectedItem,
@@ -136,17 +151,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         }
 
         private bool StartNewModelComputation(
-            CompletionService completionService, bool filterItems, bool dismissIfEmptyAllowed)
-        {
-            return StartNewModelComputation(
-                completionService, CompletionTrigger.Default, filterItems, dismissIfEmptyAllowed);
-        }
-
-        private bool StartNewModelComputation(
             CompletionService completionService,
-            CompletionTrigger trigger,
-            bool filterItems,
-            bool dismissIfEmptyAllowed)
+            CompletionTrigger trigger)
         {
             AssertIsForeground();
             Contract.ThrowIfTrue(sessionOpt != null);
@@ -180,41 +186,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             this.sessionOpt = new Session(this, computation, Presenter.CreateSession(TextView, SubjectBuffer, null));
 
             sessionOpt.ComputeModel(completionService, trigger, _roles, GetOptions());
-
-            var filterReason = trigger.Kind == CompletionTriggerKind.Deletion
-                ? CompletionFilterReason.BackspaceOrDelete
-                : trigger.Kind == CompletionTriggerKind.Other
-                    ? CompletionFilterReason.Other
-                    : CompletionFilterReason.TypeChar;
-
-            FilterToSomeOrAllItems(filterItems, dismissIfEmptyAllowed, filterReason);
+            sessionOpt.FilterModel(trigger.GetFilterReason(), filterState: null);
 
             return true;
         }
 
-        private void FilterToSomeOrAllItems(bool filterItems, bool dismissIfEmptyAllowed, CompletionFilterReason filterReason)
-        {
-            if (filterItems)
-            {
-                sessionOpt.FilterModel(
-                    filterReason,
-                    recheckCaretPosition: false,
-                    dismissIfEmptyAllowed: dismissIfEmptyAllowed,
-                    filterState: null);
-            }
-            else
-            {
-                sessionOpt.IdentifyBestMatchAndFilterToAllItems(
-                    filterReason,
-                    recheckCaretPosition: false,
-                    dismissIfEmptyAllowed: dismissIfEmptyAllowed);
-            }
-        }
-
         private CompletionService GetCompletionService()
         {
-            Workspace workspace;
-            if (!Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
+            if (!Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out var workspace))
             {
                 return null;
             }
@@ -225,9 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private OptionSet GetOptions()
         {
             AssertIsForeground();
-
-            Workspace workspace;
-            if (!Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
+            if (!Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out var workspace))
             {
                 return null;
             }
@@ -248,17 +225,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var model = sessionOpt.InitialUnfilteredModel;
 
             // If the selected item is the builder, there's not actually any work to do to commit
-            if (item == model.SuggestionModeItem)
+            if (item != model.SuggestionModeItem)
             {
-                this.StopModelComputation();
-                return;
+                this.CommitOnNonTypeChar(item, this.sessionOpt.Computation.InitialUnfilteredModel);
             }
 
-            this.CommitOnNonTypeChar(item, this.sessionOpt.Computation.InitialUnfilteredModel);
+            // Make sure we're always dismissed after any commit request.
+            this.DismissSessionIfActive();
         }
 
         private const int MaxMRUSize = 10;
         private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
+
+        public string DisplayName => EditorFeaturesResources.Completion_Command_Handler;
 
         public void MakeMostRecentItem(string item)
         {

@@ -19,10 +19,10 @@ Class C
     Sub M()
         dim d = new Dictionary(of integer, string) From {
             {|hintspan:{|textspan:$${
-                1, ""foo""
+                1, ""goo""
             },|}|}
             {
-                1, ""foo""
+                1, ""goo""
             }
         }
     End Sub

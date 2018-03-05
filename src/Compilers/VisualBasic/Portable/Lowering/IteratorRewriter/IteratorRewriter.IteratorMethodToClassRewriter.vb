@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -108,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function HandleReturn() As BoundStatement
                 If Me._exitLabel Is Nothing Then
                     ' did not see indirect returns
-                    Return F.Block()
+                    Return F.StatementList()
                 Else
                     '  _methodValue = False
                     ' exitlabel:

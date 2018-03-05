@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -91,8 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
+            if (conversion.IsStackAlloc)
+            {
+                return CreateStackAllocConversion(syntax, source, conversion, isCast, destination, diagnostics);
+            }
+
             if (conversion.IsTupleLiteralConversion ||
-                (conversion.Kind == ConversionKind.ImplicitNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
+                (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
             {
                 return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast, destination, diagnostics);
             }
@@ -103,42 +112,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
+            if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
+            {
+                source = ((BoundDefaultExpression)source).Update(constantValue, destination);
+            }
+
             return new BoundConversion(
                 syntax,
                 source,
                 conversion,
-                IsCheckedConversion(source.Type, destination),
+                @checked: CheckOverflowAtRuntime,
                 explicitCastInCode: isCast && !wasCompilerGenerated,
                 constantValueOpt: constantValue,
                 type: destination)
             { WasCompilerGenerated = wasCompilerGenerated };
-        }
-
-        private bool IsCheckedConversion(TypeSymbol source, TypeSymbol target)
-        {
-            Debug.Assert((object)target != null);
-
-            if ((object)source == null || !CheckOverflowAtRuntime)
-            {
-                return false;
-            }
-
-            if (source.IsDynamic())
-            {
-                return true;
-            }
-
-            SpecialType sourceST = source.StrippedType().EnumUnderlyingType().SpecialType;
-            SpecialType targetST = target.StrippedType().EnumUnderlyingType().SpecialType;
-
-            // integral to double or float is never checked, but float/double to integral 
-            // may be checked.
-            bool sourceIsNumeric = SpecialType.System_Char <= sourceST && sourceST <= SpecialType.System_Double;
-            bool targetIsNumeric = SpecialType.System_Char <= targetST && targetST <= SpecialType.System_UInt64;
-
-            return
-                sourceIsNumeric && (targetIsNumeric || target.IsPointerType()) ||
-                targetIsNumeric && source.IsPointerType();
         }
 
         protected BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
@@ -332,16 +319,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
+        private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(conversion.IsStackAlloc);
+
+            var boundStackAlloc = (BoundStackAllocArrayCreation)source;
+            var elementType = boundStackAlloc.ElementType;
+            TypeSymbol stackAllocType;
+
+            switch (conversion.Kind)
+            {
+                case ConversionKind.StackAllocToPointerType:
+                    stackAllocType = new PointerTypeSymbol(elementType);
+                    break;
+                case ConversionKind.StackAllocToSpanType:
+                    stackAllocType = Compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
+            }
+
+            var convertedNode = new BoundConvertedStackAllocExpression(syntax, elementType, boundStackAlloc.Count, stackAllocType, boundStackAlloc.HasErrors);
+
+            var underlyingConversion = conversion.UnderlyingConversions.Single();
+            return CreateConversion(syntax, convertedNode, underlyingConversion, isCast, destination, diagnostics);
+        }
+
         private BoundExpression CreateTupleLiteralConversion(SyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful tuple conversion; rather than producing a separate conversion node 
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
-            Debug.Assert((conversion.Kind == ConversionKind.ImplicitNullable) == destination.IsNullableType());
+            Debug.Assert(conversion.IsNullable == destination.IsNullableType());
 
             var destinationWithoutNullable = destination;
             var conversionWithoutNullable = conversion;
 
-            if (conversion.Kind == ConversionKind.ImplicitNullable)
+            if (conversion.IsNullable)
             {
                 destinationWithoutNullable = destination.GetNullableUnderlyingType();
                 conversionWithoutNullable = conversion.UnderlyingConversions[0];
@@ -353,12 +366,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetType.IsTupleType)
             {
                 var destTupleType = (TupleTypeSymbol)targetType;
-                // do not lose the original element names in the literal if different from names in the target
 
                 TupleTypeSymbol.ReportNamesMismatchesIfAny(targetType, sourceTuple, diagnostics);
 
-                // Come back to this, what about locations? (https://github.com/dotnet/roslyn/issues/11013)
-                targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt);
+                // do not lose the original element names and locations in the literal if different from names in the target
+                //
+                // the tuple has changed the type of elements due to target-typing, 
+                // but element names has not changed and locations of their declarations 
+                // should not be confused with element locations on the target type.
+                var sourceType = sourceTuple.Type as TupleTypeSymbol;
+
+                if ((object)sourceType != null)
+                {
+                    targetType = sourceType.WithUnderlyingType(destTupleType.UnderlyingNamedType);
+                }
+                else
+                {
+                    var tupleSyntax = (TupleExpressionSyntax)sourceTuple.Syntax;
+                    var locationBuilder = ArrayBuilder<Location>.GetInstance();
+
+                    foreach (var argument in tupleSyntax.Arguments)
+                    {
+                        locationBuilder.Add(argument.NameColon?.Name.Location);
+                    }
+
+                    targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt,
+                                                                tupleSyntax.Location,
+                                                                locationBuilder.ToImmutableAndFree());
+                }
             }
 
             var arguments = sourceTuple.Arguments;
@@ -549,10 +584,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (invokedAsExtensionMethod)
                 {
-                    if (receiverOpt?.Kind == BoundKind.QueryClause && IsMemberAccessedThroughType(receiverOpt))
+                    if (IsMemberAccessedThroughType(receiverOpt))
                     {
-                        // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
-                        diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, receiverOpt.Type, memberSymbol.Name);
+                        if (receiverOpt.Kind == BoundKind.QueryClause)
+                        {
+                            // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
+                            diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, receiverOpt.Type, memberSymbol.Name);
+                        }
+                        else
+                        {
+                            // An object reference is required for the non-static field, method, or property '{0}'
+                            diagnostics.Add(ErrorCode.ERR_ObjectRequired, node.Location, memberSymbol);
+                        }
                         return true;
                     }
                 }
@@ -705,10 +748,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numParams; i++)
             {
-                var delegateParameterType = delegateParameters[i].Type;
-                var methodParameterType = methodParameters[isExtensionMethod ? i + 1 : i].Type;
+                var delegateParameter = delegateParameters[i];
+                var methodParameter = methodParameters[isExtensionMethod ? i + 1 : i];
 
-                if (!Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameterType, methodParameterType, ref useSiteDiagnostics))
+                if (delegateParameter.RefKind != methodParameter.RefKind ||
+                    !Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameter.Type, methodParameter.Type, ref useSiteDiagnostics))
                 {
                     // No overload for '{0}' matches delegate '{1}'
                     Error(diagnostics, ErrorCode.ERR_MethDelegateMismatch, errorLocation, method, delegateType);
@@ -717,10 +761,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // - Return types "match"
-            var returnsMatch =
-                method.ReturnsVoid && delegateMethod.ReturnsVoid ||
-                Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, delegateMethod.ReturnType, ref useSiteDiagnostics);
+            if (delegateMethod.RefKind != method.RefKind)
+            {
+                Error(diagnostics, ErrorCode.ERR_DelegateRefMismatch, errorLocation, method, delegateType);
+                diagnostics.Add(errorLocation, useSiteDiagnostics);
+                return false;
+            }
+
+            bool returnsMatch = delegateMethod.RefKind != RefKind.None ?
+                                    // - Return types identity-convertible
+                                    Conversions.HasIdentityConversion(method.ReturnType, delegateMethod.ReturnType):
+                                    // - Return types "match"
+                                    method.ReturnsVoid && delegateMethod.ReturnsVoid ||
+                                        Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, delegateMethod.ReturnType, ref useSiteDiagnostics);
+
             if (!returnsMatch)
             {
                 Error(diagnostics, ErrorCode.ERR_BadRetType, errorLocation, method, method.ReturnType);
@@ -767,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var sourceMethod = selectedMethod as SourceMemberMethodSymbol;
+            var sourceMethod = selectedMethod as SourceOrdinaryMethodSymbol;
             if ((object)sourceMethod != null && sourceMethod.IsPartialWithoutImplementation)
             {
                 // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration
@@ -863,7 +917,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var sourceConstantValue = source.ConstantValue;
-            if (sourceConstantValue == null || sourceConstantValue.IsBad)
+            if (sourceConstantValue == null)
+            {
+                if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
+                {
+                    return destination.GetDefaultValue();
+                }
+                else
+                {
+                    return sourceConstantValue;
+                }
+            }
+            else if (sourceConstantValue.IsBad)
             {
                 return sourceConstantValue;
             }
@@ -884,7 +949,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return sourceConstantValue;
                     }
 
-                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultOrNullLiteral:
+                    // 'default' case is handled above, 'null' is handled here
                     return sourceConstantValue;
 
                 case ConversionKind.ImplicitConstant:

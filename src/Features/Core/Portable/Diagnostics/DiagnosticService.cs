@@ -202,9 +202,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
         }
 
-        private static IEnumerable<DiagnosticData> FilterSuppressedDiagnostics(IEnumerable<DiagnosticData> diagnostics)
+        private static IEnumerable<DiagnosticData> FilterSuppressedDiagnostics(ImmutableArray<DiagnosticData> diagnostics)
         {
-            if (diagnostics != null)
+            if (!diagnostics.IsDefault)
             {
                 foreach (var diagnostic in diagnostics)
                 {
@@ -279,18 +279,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             lock (_gate)
             {
-                Dictionary<object, Data> current;
-                Dictionary<Workspace, Dictionary<object, Data>> workspaceMap;
-                if (!_map.TryGetValue(source, out workspaceMap) ||
-                    !workspaceMap.TryGetValue(workspace, out current))
+                if (!_map.TryGetValue(source, out var workspaceMap) ||
+                    !workspaceMap.TryGetValue(workspace, out var current))
                 {
                     return;
                 }
 
                 if (id != null)
                 {
-                    Data data;
-                    if (current.TryGetValue(id, out data))
+                    if (current.TryGetValue(id, out var data))
                     {
                         list.Add(data);
                     }

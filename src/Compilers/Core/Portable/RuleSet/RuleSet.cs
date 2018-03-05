@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis
                 // Copy every rule in the ruleset and change the action if there's a stricter one.
                 foreach (var item in effectiveRuleset.SpecificDiagnosticOptions)
                 {
-                    if (effectiveSpecificOptions.ContainsKey(item.Key))
+                    if (effectiveSpecificOptions.TryGetValue(item.Key, out var value))
                     {
-                        if (IsStricterThan(item.Value, effectiveSpecificOptions[item.Key]))
+                        if (IsStricterThan(item.Value, value))
                         {
                             effectiveSpecificOptions[item.Key] = item.Value;
                         }
@@ -284,29 +284,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(string rulesetFileFullPath, out Dictionary<string, ReportDiagnostic> specificDiagnosticOptions)
         {
-            specificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>();
-            if (rulesetFileFullPath == null)
-            {
-                return ReportDiagnostic.Default;
-            }
-
-            return GetDiagnosticOptionsFromRulesetFile(specificDiagnosticOptions, rulesetFileFullPath, null, null);
+            return GetDiagnosticOptionsFromRulesetFile(rulesetFileFullPath, out specificDiagnosticOptions, null, null);
         }
 
-        internal static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(Dictionary<string, ReportDiagnostic> diagnosticOptions, string path, string baseDirectory, IList<Diagnostic> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        internal static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(string rulesetFileFullPath, out Dictionary<string, ReportDiagnostic> diagnosticOptions, IList<Diagnostic> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
-            var resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
-            if (resolvedPath == null)
-            {
-                if (diagnosticsOpt != null && messageProviderOpt != null)
-                {
-                    diagnosticsOpt.Add(Diagnostic.Create(messageProviderOpt, messageProviderOpt.FTL_InputFileNameTooLong, path));
-                }
-
+            diagnosticOptions = new Dictionary<string, ReportDiagnostic>();
+            if (rulesetFileFullPath == null)
+            { 
                 return ReportDiagnostic.Default;
             }
 
-            return GetDiagnosticOptionsFromRulesetFile(diagnosticOptions, resolvedPath, diagnosticsOpt, messageProviderOpt);
+            return GetDiagnosticOptionsFromRulesetFile(diagnosticOptions, rulesetFileFullPath, diagnosticsOpt, messageProviderOpt);
         }
 
         private static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(Dictionary<string, ReportDiagnostic> diagnosticOptions, string resolvedPath, IList<Diagnostic> diagnosticsOpt, CommonMessageProvider messageProviderOpt)

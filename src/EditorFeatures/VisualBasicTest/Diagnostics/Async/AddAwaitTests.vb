@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TaskNotAwaited() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 Module Program
@@ -54,7 +54,7 @@ Module Program
     End Sub
 End Module
 </File>
-            Await TestAsync(initial, expected, compareTokens:=False)
+            Await TestAsync(initial, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
@@ -177,7 +177,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(initial, expected, compareTokens:=False)
+            Await TestAsync(initial, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
@@ -206,9 +206,9 @@ Imports System.Threading.Tasks
 
 Module Program
     Sub MySub()
-        Dim a = Async Sub() 
-                        Await Task.Delay(1)
-                      End Sub
+        Dim a = Async Sub()
+                    Await Task.Delay(1)
+                End Sub
     End Sub
 End Module
 </File>
@@ -251,12 +251,12 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(initial, expected, compareTokens:=False)
+            Await TestAsync(initial, expected)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 Module Program
     Async Function MyTestMethod1Async() As Task
@@ -279,7 +279,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 Module Program
     Async Function MyTestMethod1Async() As Task
@@ -302,7 +302,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment3() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 Module Program
     Sub MyTestMethod1Async()
@@ -316,7 +316,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment4() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 Module Program
     Async Function MyTestMethod1Async() As Task
@@ -339,7 +339,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment5() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 Module Program
     Sub MyTestMethod1Async()
@@ -366,7 +366,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment6() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 Module Program
     Sub MyTestMethod1Async()
@@ -393,7 +393,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment7() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 Module Program
     Sub MyTestMethod1Async()
@@ -418,7 +418,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestTernaryOperator() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 Module M
     Async Function A() As Task(Of Integer)
@@ -435,7 +435,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestTernaryOperator2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 Module M
     Async Function A() As Task(Of Integer)
@@ -452,7 +452,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestCastExpression() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 Module M
     Async Function A() As Task(Of Integer)
@@ -467,10 +467,8 @@ Module M
 End Module")
         End Function
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing,
-                New VisualBasicAddAwaitCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New VisualBasicAddAwaitCodeFixProvider())
         End Function
     End Class
 End Namespace

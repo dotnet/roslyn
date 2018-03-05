@@ -2,8 +2,10 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.AddPackage
 {
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
         private readonly string _source;
         private readonly string _packageName;
 
-        internal override int? Glyph => (int)CodeAnalysis.Glyph.NuGet;
+        public override ImmutableArray<string> Tags => WellKnownTagArrays.NuGet;
 
         /// <summary>
         /// Even though we have child actions, we mark ourselves as explicitly non-inlinable.

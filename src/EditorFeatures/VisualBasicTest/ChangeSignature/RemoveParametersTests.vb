@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ChangeSignature
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
@@ -94,11 +95,11 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function TestChangeSignatureCommandDisabledInSubmission() As Task
+        Public Sub TestChangeSignatureCommandDisabledInSubmission()
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C
@@ -115,23 +116,14 @@ End Module
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New VisualBasicChangeSignatureCommandHandler(TestWaitIndicator.Default)
-                Dim delegatedToNext = False
-                Dim nextHandler =
-                    Function()
-                        delegatedToNext = True
-                        Return CommandState.Unavailable
-                    End Function
+                Dim handler = New VisualBasicChangeSignatureCommandHandler()
 
-                Dim state = handler.GetCommandState(New Commands.ReorderParametersCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
+                Dim state = handler.GetCommandState(New ReorderParametersCommandArgs(textView, textView.TextBuffer))
+                Assert.True(state.IsUnspecified)
 
-                delegatedToNext = False
-                state = handler.GetCommandState(New Commands.RemoveParametersCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
+                state = handler.GetCommandState(New RemoveParametersCommandArgs(textView, textView.TextBuffer))
+                Assert.True(state.IsUnspecified)
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace

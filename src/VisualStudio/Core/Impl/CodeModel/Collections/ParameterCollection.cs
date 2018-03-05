@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -52,8 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             var parentNode = this.ParentElement.LookupNode();
             if (parentNode != null)
             {
-                SyntaxNode parameterNode;
-                if (CodeModelService.TryGetParameterNode(parentNode, name, out parameterNode))
+                if (CodeModelService.TryGetParameterNode(parentNode, name, out var parameterNode))
                 {
                     // The name of the CodeElement should be just the identifier name associated with the element 
                     // devoid of the type characters hence we use the just identifier name for both creation and 

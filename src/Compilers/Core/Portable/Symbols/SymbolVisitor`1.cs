@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             return DefaultVisit(symbol);
         }
 
-        public virtual TResult VisitDiscarded(IDiscardedSymbol symbol)
+        public virtual TResult VisitDiscard(IDiscardSymbol symbol)
         {
             return DefaultVisit(symbol);
         }

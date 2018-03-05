@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
@@ -39,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             var query =
                 from d in definitionsAndReferences.Definitions
                 let referenceItems = CreateReferenceItems(d, definitionsAndReferences, commonPathElements)
-                select new DefinitionTreeItem(d, referenceItems);
+                select new DefinitionTreeItem(_workspace, d, referenceItems);
 
             return query.ToList<AbstractTreeItem>();
         }

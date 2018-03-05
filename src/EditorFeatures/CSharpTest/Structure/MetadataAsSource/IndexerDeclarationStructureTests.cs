@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         public async Task NoCommentsOrAttributes()
         {
             const string code = @"
-class Foo
+class Goo
 {
     public string $$this[int x] { get; set; }
 }";
@@ -31,9 +31,9 @@ class Foo
         public async Task WithAttributes()
         {
             const string code = @"
-class Foo
+class Goo
 {
-    {|hint:{|textspan:[Foo]
+    {|hint:{|textspan:[Goo]
     |}public string $$this[int x] { get; set; }|}
 }";
 
@@ -45,11 +45,11 @@ class Foo
         public async Task WithCommentsAndAttributes()
         {
             const string code = @"
-class Foo
+class Goo
 {
     {|hint:{|textspan:// Summary:
     //     This is a summary.
-    [Foo]
+    [Goo]
     |}string $$this[int x] { get; set; }|}
 }";
 
@@ -61,11 +61,11 @@ class Foo
         public async Task WithCommentsAttributesAndmodifiers()
         {
             const string code = @"
-class Foo
+class Goo
 {
     {|hint:{|textspan:// Summary:
     //     This is a summary.
-    [Foo]
+    [Goo]
     |}public string $$this[int x] { get; set; }|}
 }";
 

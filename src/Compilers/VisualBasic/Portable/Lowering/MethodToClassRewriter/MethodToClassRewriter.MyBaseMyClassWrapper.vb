@@ -7,6 +7,7 @@ Imports System.Diagnostics
 Imports System.Linq
 Imports System.Text
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var text = this.SemanticDocument.Text;
             var root = this.SemanticDocument.Root;
             var model = this.SemanticDocument.SemanticModel;
+            var doc = this.SemanticDocument;
 
             // go through pipe line and calculate information about the user selection
             var selectionInfo = GetInitialSelectionInfo(root, text, cancellationToken);
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken);
             selectionInfo = AssignFinalSpan(selectionInfo, text, cancellationToken);
             selectionInfo = ApplySpecialCases(selectionInfo, text, cancellationToken);
-            selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root, cancellationToken);
+            selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root, model, cancellationToken);
 
             // there was a fatal error that we couldn't even do negative preview, return error result
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
@@ -72,16 +74,64 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
             }
 
+            // Warn if local functions are in selection since data flow analysis
+            // cannot correctly analyze them
+            // https://github.com/dotnet/roslyn/issues/14214
+            if (SpanInvolvesLocalFunction(selectionInfo.FinalSpan, model, root))
+            {
+                selectionInfo = selectionInfo.WithStatus(s => s.With(
+                    OperationStatusFlag.Succeeded | OperationStatusFlag.BestEffort,
+                    CSharpFeaturesResources.Warning_Extracting_a_local_function_reference_may_produce_invalid_code));
+                var commonRoot = selectionInfo.CommonRootFromOriginalSpan;
+                var annotated = commonRoot.WithAdditionalAnnotations(
+                        WarningAnnotation.Create(CSharpFeaturesResources.Warning_Extracting_a_local_function_reference_may_produce_invalid_code));
+                doc = await doc.WithSyntaxRootAsync(
+                    root.ReplaceNode(commonRoot, annotated),
+                    cancellationToken).ConfigureAwait(false);
+                selectionInfo.FirstTokenInOriginalSpan = doc.Root.FindToken(selectionInfo.FirstTokenInOriginalSpan.SpanStart);
+                selectionInfo.LastTokenInOriginalSpan = doc.Root.FindToken(selectionInfo.LastTokenInOriginalSpan.SpanStart);
+                selectionInfo.FirstTokenInFinalSpan = doc.Root.FindToken(selectionInfo.FirstTokenInFinalSpan.SpanStart);
+                selectionInfo.LastTokenInFinalSpan = doc.Root.FindToken(selectionInfo.LastTokenInFinalSpan.SpanStart);
+            }
+
             return await CSharpSelectionResult.CreateAsync(
                 selectionInfo.Status,
                 selectionInfo.OriginalSpan,
                 selectionInfo.FinalSpan,
                 this.Options,
                 selectionInfo.SelectionInExpression,
-                this.SemanticDocument,
+                doc,
                 selectionInfo.FirstTokenInFinalSpan,
                 selectionInfo.LastTokenInFinalSpan,
                 cancellationToken).ConfigureAwait(false);
+        }
+
+        private static bool SpanInvolvesLocalFunction(TextSpan finalSpan, SemanticModel model, SyntaxNode root)
+        {
+            var nodes = root.DescendantNodes(finalSpan).Where(n => finalSpan.Contains(n.Span));
+            foreach (var node in nodes)
+            {
+                if (node.IsKind(SyntaxKind.LocalFunctionStatement))
+                {
+                    return true;
+                }
+
+                if (node is IdentifierNameSyntax id)
+                {
+                    var symbolInfo = model.GetSymbolInfo(id);
+                    if (symbolInfo.Symbol is IMethodSymbol method &&
+                        method.MethodKind == MethodKind.LocalFunction)
+                    {
+                        return true;
+                    }
+                }
+
+                if (node.HasAncestor<LocalFunctionStatementSyntax>())
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, CancellationToken cancellationToken)
@@ -145,8 +195,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 // couldn't find any valid node
                 return selectionInfo.WithStatus(s => new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.Selection_does_not_contain_a_valid_node))
-                                    .With(s => s.FirstTokenInFinalSpan = default(SyntaxToken))
-                                    .With(s => s.LastTokenInFinalSpan = default(SyntaxToken));
+                                    .With(s => s.FirstTokenInFinalSpan = default)
+                                    .With(s => s.LastTokenInFinalSpan = default);
             }
 
             firstValidNode = (firstValidNode.Parent is ExpressionStatementSyntax) ? firstValidNode.Parent : firstValidNode;
@@ -226,7 +276,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             };
         }
 
-        private SelectionInfo CheckErrorCasesAndAppendDescriptions(SelectionInfo selectionInfo, SyntaxNode root, CancellationToken cancellationToken)
+        private static SelectionInfo CheckErrorCasesAndAppendDescriptions(
+            SelectionInfo selectionInfo,
+            SyntaxNode root,
+            SemanticModel model,
+            CancellationToken cancellationToken)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
             {
@@ -431,7 +485,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // make sure this method doesn't have return type.
-            return method.ReturnType.TypeSwitch((PredefinedTypeSyntax p) => p.Keyword.Kind() == SyntaxKind.VoidKeyword);
+            return method.ReturnType is PredefinedTypeSyntax p &&
+                p.Keyword.Kind() == SyntaxKind.VoidKeyword;
         }
 
         private static TextSpan GetAdjustedSpan(SourceText text, TextSpan textSpan)

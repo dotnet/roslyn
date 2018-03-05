@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -79,8 +79,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public int GetBaseClassName(string pszClassName, out string pbstrBaseClassName)
         {
             var result = false;
-            string baseClassName = null;
             var waitIndicator = this.ComponentModel.GetService<IWaitIndicator>();
+            string baseClassName = null;
             waitIndicator.Wait(
                 "Intellisense",
                 allowCancel: false,
@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public int GetMemberNavigationPoint(string pszClassName, string pszUniqueMemberID, TextSpan[] pSpanNavPoint, out uint pItemID)
         {
             uint itemId = 0;
-            TextSpan textSpan = default(TextSpan);
+            TextSpan textSpan = default;
             var succeeded = false;
 
             var waitIndicator = this.ComponentModel.GetService<IWaitIndicator>();
@@ -139,8 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 allowCancel: false,
                 action: c =>
                 {
-                    Document targetDocument;
-                    if (ContainedLanguageCodeSupport.TryGetMemberNavigationPoint(GetThisDocument(), pszClassName, pszUniqueMemberID, out textSpan, out targetDocument, c.CancellationToken))
+                    if (ContainedLanguageCodeSupport.TryGetMemberNavigationPoint(GetThisDocument(), pszClassName, pszUniqueMemberID, out textSpan, out var targetDocument, c.CancellationToken))
                     {
                         succeeded = true;
                         itemId = this.ContainedDocument.FindItemIdOfDocument(targetDocument);

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // When we issue filter tasks, provide them with a (monotonically increasing) id.  That
             // way, when they run we can bail on computation if they've been superseded by another
-            // filter task.  
+            // filter task.
             private int _filterId;
 
             #endregion
@@ -100,10 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // Update the filter state for the model.  Note: if we end up filtering everything
                 // out we do *not* want to dismiss the completion list. 
-                this.FilterModel(CompletionFilterReason.ItemFiltersChanged,
-                    dismissIfEmptyAllowed: false,
-                    recheckCaretPosition: false,
-                    filterState: e.FilterState);
+                this.FilterModel(CompletionFilterReason.Other, filterState: e.FilterState);
             }
         }
     }

@@ -23,11 +23,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // item-specific answer given to us from Venus rather than the project-level answer
             // given, which are going to be different. This was changed for Dev10 bug 839428.
             string projectName = null;
-            var webApplicationCtxSvc = this.SystemServiceProvider.GetService(typeof(SWebApplicationCtxSvc)) as IWebApplicationCtxSvc;
-            if (webApplicationCtxSvc != null)
+            if (this.SystemServiceProvider.GetService(typeof(SWebApplicationCtxSvc)) is IWebApplicationCtxSvc webApplicationCtxSvc)
             {
-                VsServiceProvider webServiceProvider;
-                if (webApplicationCtxSvc.GetItemContext(hierarchy, itemid, out webServiceProvider) >= 0)
+                if (webApplicationCtxSvc.GetItemContext(hierarchy, itemid, out var webServiceProvider) >= 0)
                 {
                     var webFileCtxServiceGuid = typeof(IWebFileCtxService).GUID;
                     IntPtr service = IntPtr.Zero;
@@ -51,8 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             if (projectName == null)
             {
-                var containedLanguageProjectNameProvider = hierarchy as IVsContainedLanguageProjectNameProvider;
-                if (containedLanguageProjectNameProvider != null)
+                if (hierarchy is IVsContainedLanguageProjectNameProvider containedLanguageProjectNameProvider)
                 {
                     containedLanguageProjectNameProvider.GetProjectName(itemid, out projectName);
                 }
@@ -63,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return null;
             }
 
-            return this.Workspace.ProjectTracker.ImmutableProjects
+            return this.Workspace.DeferredState.ProjectTracker.ImmutableProjects
                 .Where(p => p.Hierarchy == hierarchy)
                 .Where(p => p.ProjectSystemName == projectName)
                 .SingleOrDefault();

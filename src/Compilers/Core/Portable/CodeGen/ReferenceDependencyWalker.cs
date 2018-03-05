@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return;
             }
 
-            Debug.Assert(!(typeReference is Cci.IManagedPointerTypeReference));
             //Cci.IManagedPointerTypeReference managedPointerType = typeReference as Cci.IManagedPointerTypeReference;
             //if (managedPointerType != null)
             //{
@@ -131,6 +130,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // Visit return value type
             VisitTypeReference(methodReference.GetType(context), context);
 
+            foreach (var typeModifier in methodReference.RefCustomModifiers)
+            {
+                VisitTypeReference(typeModifier.GetModifier(context), context);
+            }
+
             foreach (var typeModifier in methodReference.ReturnValueCustomModifiers)
             {
                 VisitTypeReference(typeModifier.GetModifier(context), context);
@@ -142,6 +146,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             foreach (var param in parameters)
             {
                 VisitTypeReference(param.GetType(context), context);
+
+                foreach (var typeModifier in param.RefCustomModifiers)
+                {
+                    VisitTypeReference(typeModifier.GetModifier(context), context);
+                }
 
                 foreach (var typeModifier in param.CustomModifiers)
                 {

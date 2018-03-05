@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp,
         Name = PredefinedCodeFixProviderNames.UseThrowExpression), Shared]
-    internal partial class UseThrowExpressionCodeFixProvider : CodeFixProvider
+    internal partial class UseThrowExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseThrowExpressionDiagnosticId);
 
-        public override FixAllProvider GetFixAllProvider()
-            => new UseThrowExpressionFixAllProvider(this);
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -35,23 +35,12 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             return SpecializedTasks.EmptyTask;
         }
 
-        private Task<Document> FixAsync(
-            Document document,
-            Diagnostic diagnostic,
-            CancellationToken cancellationToken)
+        protected override Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-        }
-
-        private async Task<Document> FixAllAsync(
-            Document document, 
-            ImmutableArray<Diagnostic> diagnostics, 
-            CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             var generator = editor.Generator;
+            var root = editor.OriginalRoot;
 
             foreach (var diagnostic in diagnostics)
             {
@@ -62,14 +51,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 // First, remote the if-statement entirely.
                 editor.RemoveNode(ifStatement);
 
-                // Now, update the assignemnt value to go from 'a' to 'a ?? throw ...'.
+                // Now, update the assignment value to go from 'a' to 'a ?? throw ...'.
                 editor.ReplaceNode(assignmentValue,
                     generator.CoalesceExpression(assignmentValue,
                     generator.ThrowExpression(throwStatementExpression)));
             }
 
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
+            return SpecializedTasks.EmptyTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

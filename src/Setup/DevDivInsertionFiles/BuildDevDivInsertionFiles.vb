@@ -1,18 +1,15 @@
-﻿Imports <xmlns:wix="http://schemas.microsoft.com/wix/2006/wi">
-Imports <xmlns:msbuild="http://schemas.microsoft.com/developer/msbuild/2003">
-Imports <xmlns:vsix="http://schemas.microsoft.com/developer/vsx-schema/2011">
-Imports <xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
-Imports System.IO.Packaging
+﻿Imports System.IO.Packaging
 Imports System.IO
 Imports System.Threading
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 Imports System.Reflection.PortableExecutable
 Imports System.Reflection.Metadata
-Imports Roslyn.BuildDevDivInsertionFiles
-Imports System.Security.Cryptography
-Imports System.Text
 Imports System.Runtime.InteropServices
+
+' Set the global XML namespace to be the NuSpec namespace. This will simplify 
+' the building of xml literals in this file
+Imports <xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
 
 Public Class BuildDevDivInsertionFiles
     Private Const DevDivInsertionFilesDirName = "DevDivInsertionFiles"
@@ -26,22 +23,25 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly _outputPackageDirectory As String
     Private ReadOnly _setupDirectory As String
     Private ReadOnly _nugetPackageRoot As String
-    Private ReadOnly _assemblyVersion As String
+    Private ReadOnly _nuspecDirectory As String
     Private ReadOnly _pathMap As Dictionary(Of String, String)
 
     Private Sub New(args As String())
         _binDirectory = Path.GetFullPath(args(0))
-        _setupDirectory = Path.GetFullPath(args(1))
+
+        Dim repoDirectory = Path.GetFullPath(args(1))
+        _setupDirectory = Path.Combine(repoDirectory, "src\Setup")
+        _nuspecDirectory = Path.Combine(repoDirectory, "src\Nuget")
         _nugetPackageRoot = Path.GetFullPath(args(2))
         _outputDirectory = Path.Combine(_binDirectory, DevDivInsertionFilesDirName)
         _outputPackageDirectory = Path.Combine(_binDirectory, DevDivPackagesDirName)
-        _assemblyVersion = args(3)
         _pathMap = CreatePathMap()
     End Sub
 
     Public Shared Function Main(args As String()) As Integer
-        If args.Length <> 4 Then
-            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir> <assembly version>")
+        If args.Length <> 3 Then
+            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir>")
+            Console.WriteLine($"Actual argument count is {args.Length}")
             Return 1
         End If
 
@@ -66,12 +66,22 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.TeamSystem.Common.dll",
         "Microsoft.VisualStudio.TeamSystem.Common.Framework.dll",
         "Microsoft.VisualStudio.TeamSystem.Integration.dll",
+        "SQLitePCLRaw.batteries_green.dll",
+        "SQLitePCLRaw.batteries_v2.dll",
+        "SQLitePCLRaw.core.dll",
+        "SQLitePCLRaw.provider.e_sqlite3.dll",
+        "e_sqlite3.dll",
         "Newtonsoft.Json.dll",
         "StreamJsonRpc.dll",
         "StreamJsonRpc.resources.dll",
         "codeAnalysisService.servicehub.service.json",
         "remoteHostService.servicehub.service.json",
-        "serviceHubSnapshotService.servicehub.service.json",
+        "snapshotService.servicehub.service.json",
+        "remoteSymbolSearchUpdateEngine.servicehub.service.json",
+        "codeAnalysisService64.servicehub.service.json",
+        "remoteHostService64.servicehub.service.json",
+        "snapshotService64.servicehub.service.json",
+        "remoteSymbolSearchUpdateEngine64.servicehub.service.json",
         "Microsoft.Build.Conversion.Core.dll",
         "Microsoft.Build.dll",
         "Microsoft.Build.Engine.dll",
@@ -95,50 +105,6 @@ Public Class BuildDevDivInsertionFiles
         "VisualBasicInteractivePackageRegistration.pkgdef"
     }
 
-    Private ReadOnly CompilerFiles As String() = {
-        "Microsoft.CodeAnalysis.dll",
-        "Microsoft.CodeAnalysis.CSharp.dll",
-        "Microsoft.CodeAnalysis.Scripting.dll",
-        "Microsoft.CodeAnalysis.CSharp.Scripting.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.dll",
-        "Microsoft.DiaSymReader.Native.amd64.dll",
-        "Microsoft.DiaSymReader.Native.x86.dll",
-        "System.Diagnostics.FileVersionInfo.dll",
-        "System.Diagnostics.StackTrace.dll",
-        "System.IO.Compression.dll",
-        "System.IO.FileSystem.dll",
-        "System.IO.FileSystem.DriveInfo.dll",
-        "System.IO.FileSystem.Primitives.dll",
-        "System.IO.Pipes.dll",
-        "System.Runtime.InteropServices.RuntimeInformation.dll",
-        "System.Security.AccessControl.dll",
-        "System.Security.Claims.dll",
-        "System.Security.Cryptography.Algorithms.dll",
-        "System.Security.Cryptography.Encoding.dll",
-        "System.Security.Cryptography.Primitives.dll",
-        "System.Security.Cryptography.X509Certificates.dll",
-        "System.Security.Principal.Windows.dll",
-        "System.Text.Encoding.CodePages.dll",
-        "System.Threading.Thread.dll",
-        "System.ValueTuple.dll",
-        "System.Xml.XmlDocument.dll",
-        "System.Xml.XPath.dll",
-        "System.Xml.XPath.XDocument.dll",
-        "csc.exe",
-        "csc.exe.config",
-        "csc.rsp",
-        "csi.exe",
-        "csi.rsp",
-        "vbc.exe",
-        "vbc.exe.config",
-        "vbc.rsp",
-        "VBCSCompiler.exe",
-        "VBCSCompiler.exe.config",
-        "Microsoft.Build.Tasks.CodeAnalysis.dll",
-        "Microsoft.CSharp.Core.targets",
-        "Microsoft.VisualBasic.Core.targets"
-    }
-
     Private ReadOnly VsixesToInstall As String() = {
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
@@ -149,7 +115,7 @@ Public Class BuildDevDivInsertionFiles
     ' Files copied to Maddog machines running integration tests that are produced from our builds.
     Private ReadOnly IntegrationTestFiles As String() = {
         "xunit.*.dll",
-        "Esent.Interop.dll",
+        "*.UnitTests.dll.config",
         "InteractiveHost.exe",
         "Microsoft.CodeAnalysis.CSharp.dll",
         "Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
@@ -173,18 +139,14 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.CodeAnalysis.Workspaces.dll",
         "Microsoft.Diagnostics.Runtime.dll",
         "Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll",
+        "Microsoft.VisualStudio.IntegrationTest.Setup.vsix",
         "Microsoft.VisualStudio.LanguageServices.CSharp.dll",
         "Microsoft.VisualStudio.LanguageServices.dll",
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-        "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
         "Roslyn.Compilers.Test.Resources.dll",
         "Roslyn.Hosting.Diagnostics.dll",
-        "Roslyn.Services.Test.Utilities.dll",
-        "Roslyn.Test.PdbUtilities.dll",
-        "Roslyn.Test.Utilities.dll",
-        "Roslyn.Test.Utilities.dll.config",
-        "Roslyn.VisualStudio.Test.Setup.vsix"
+        "Roslyn.Test.PdbUtilities.dll"
     }
 
     ' Files needed by Mad dog tests that are produced by our internal builds.
@@ -279,12 +241,12 @@ Public Class BuildDevDivInsertionFiles
 
     ' Files copied to Maddog machines running unit tests that are produced from our open build.
     Private ReadOnly UnitTestFiles As String() = {
+        "*.UnitTests.dll.config",
         "Microsoft.*.UnitTests*.dll",
         "Roslyn.*.UnitTests*.dll",
         "xunit.*.dll",
         "PerfTests",
         "BasicUndo.dll",
-        "Esent.Interop.dll",
         "InteractiveHost.exe",
         "Microsoft.CodeAnalysis.CSharp.dll",
         "Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
@@ -314,6 +276,8 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll",
         "Microsoft.CodeAnalysis.Workspaces.dll",
         "Microsoft.DiaSymReader.dll",
+        "Microsoft.DiaSymReader.Converter.dll",
+        "Microsoft.DiaSymReader.Converter.Xml.dll",
         "Microsoft.DiaSymReader.Native.amd64.dll",
         "Microsoft.DiaSymReader.Native.x86.dll",
         "Microsoft.DiaSymReader.PortablePdb.dll",
@@ -324,7 +288,6 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
         "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-        "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
         "Moq.dll",
         "csc.exe",
         "csc.exe.config",
@@ -338,10 +301,7 @@ Public Class BuildDevDivInsertionFiles
         "Roslyn.Hosting.Diagnostics.dll",
         "Roslyn.Services.Test.Utilities.dll",
         "Roslyn.Test.PdbUtilities.dll",
-        "Roslyn.Test.Utilities.Desktop.dll",
         "Roslyn.Test.Utilities.dll",
-        "Roslyn.Test.Utilities.dll.config",
-        "Roslyn.Test.Utilities.FX45.dll",
         "vbc.exe",
         "vbc.exe.config",
         "vbc.rsp",
@@ -398,8 +358,7 @@ Public Class BuildDevDivInsertionFiles
 
         ' And now copy over all our core compiler binaries and related files
         ' Build tools setup authoring depends on these files being inserted.
-        For Each fileName In CompilerFiles
-
+        For Each fileName In GetCompilerInsertFiles()
             Dim dependency As DependencyInfo = Nothing
             If Not dependencies.TryGetValue(fileName, dependency) Then
                 AddXmlDocumentationFile(filesToInsert, fileName)
@@ -407,12 +366,7 @@ Public Class BuildDevDivInsertionFiles
             End If
         Next
 
-        ' Add just the compiler files to a separate compiler nuspec
-        ' (with the Immutable collections and System.Reflection.Metadata, which
-        '  are normally inserted separately)
-        Dim allCompilerFiles = CompilerFiles.Concat({
-            "System.Collections.Immutable.dll", "System.Reflection.Metadata.dll"})
-        GenerateRoslynCompilerNuSpec(allCompilerFiles)
+        GenerateVSToolsRoslynCoreXTNuspec()
 
         ' Copy over the files in the NetFX20 subdirectory (identical, except for references and Authenticode signing).
         ' These are for msvsmon, whose setup authoring is done by the debugger.
@@ -540,14 +494,18 @@ Public Class BuildDevDivInsertionFiles
 
     Private Function BuildDependencyMap(inputDirectory As String) As Dictionary(Of String, DependencyInfo)
         Dim result = New Dictionary(Of String, DependencyInfo)
+        Dim objDir = Path.Combine(Path.GetDirectoryName(_binDirectory.TrimEnd(Path.DirectorySeparatorChar)), "Obj")
+        Dim files = New List(Of String)
+        files.Add(Path.Combine(objDir, "DevDivPackagesRoslyn\project.assets.json"))
+        files.Add(Path.Combine(objDir, "DevDivPackagesDebugger\project.assets.json"))
 
-        For Each projectLockJson In Directory.EnumerateFiles(Path.Combine(_setupDirectory, DevDivPackagesDirName), "*.lock.json", SearchOption.AllDirectories)
+        For Each projectLockJson In files
             Dim items = JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson))
             Const targetFx = ".NETFramework,Version=v4.6/win"
 
             Dim targetObj = DirectCast(DirectCast(DirectCast(items, JObject).Property("targets")?.Value, JObject).Property(targetFx)?.Value, JObject)
             If targetObj Is Nothing Then
-                Throw New InvalidDataException($"Expected platform not found in '{projectLockJson}': '{targetFx}'")
+                Throw New InvalidDataException($"Expected platform Not found in '{projectLockJson}': '{targetFx}'")
             End If
 
             For Each targetProperty In targetObj.Properties
@@ -590,7 +548,7 @@ Public Class BuildDevDivInsertionFiles
                                                                 packageName,
                                                                 packageVersion,
                                                                 isNative:=native IsNot Nothing,
-                                                                isFacade:=frameworkAssemblies IsNot Nothing))
+                                                                isFacade:=frameworkAssemblies IsNot Nothing OrElse packageName = "System.IO.Pipes.AccessControl"))
                     End If
                 Next
             Next
@@ -794,10 +752,15 @@ Public Class BuildDevDivInsertionFiles
                           Throw New Exception($"Mapped VSIX path does not exist: {filePath}")
                       End If
                       Dim name = Path.GetFileName(filePath)
+                      If map.ContainsKey(name) Then
+                          Throw New Exception($"{name} already exist!")
+                      End If
+
                       map.Add(name, filePath)
                   End Sub
 
         Dim configPath = Path.Combine(_binDirectory, "..\..\build\config\SignToolData.json")
+        Dim comparison = StringComparison.OrdinalIgnoreCase
         Dim obj = JObject.Parse(File.ReadAllText(configPath))
         Dim array = CType(obj.Property("sign").Value, JArray)
         For Each element As JObject In array
@@ -806,11 +769,25 @@ Public Class BuildDevDivInsertionFiles
                 Dim parent = Path.GetDirectoryName(item)
 
                 ' Don't add in the csc.exe or vbc.exe from the CoreCLR projects.
-                If parent.EndsWith("Core", StringComparison.OrdinalIgnoreCase) Then
+                If parent.EndsWith("Core", comparison) Then
                     Continue For
                 End If
 
-                If parent.EndsWith("NetFX20", StringComparison.OrdinalIgnoreCase) Then
+                If parent.EndsWith("NetFX20", comparison) Then
+                    Continue For
+                End If
+
+                ' There are items in SignToolData which are built after this tool is run and hence
+                ' can't be a part of the map.
+                If parent.EndsWith("DevDivPackages\Roslyn", comparison) OrElse
+                    parent.StartsWith("Vsix\CodeAnalysisCompilers", comparison) Then
+                    Continue For
+                End If
+
+                ' Ignore wild cards. The map contains full file paths and supporting wildcards would
+                ' require expansion. That is doable but given none of the files identified by wild cards
+                ' are used by other downstream tools this isn't necessary.
+                If item.Contains("*") Then
                     Continue For
                 End If
 
@@ -818,25 +795,30 @@ Public Class BuildDevDivInsertionFiles
             Next
         Next
 
-        add("Exes\csc\csc.exe.config")
-        add("Exes\csc\csc.rsp")
-        add("Exes\vbc\vbc.exe.config")
-        add("Exes\vbc\vbc.rsp")
-        add("Exes\VBCSCompiler\VBCSCompiler.exe.config")
+        add("Exes\csc\net46\csc.exe.config")
+        add("Exes\csc\net46\csc.rsp")
+        add("Exes\vbc\net46\vbc.exe.config")
+        add("Exes\vbc\net46\vbc.rsp")
+        add("Exes\VBCSCompiler\net46\VBCSCompiler.exe.config")
         add("Exes\InteractiveHost\InteractiveHost.exe.config")
-        add("Exes\csi\csi.rsp")
-        add("Vsix\Roslyn.Deployment.Full.Next\remoteSymbolSearchUpdateEngine.servicehub.service.json")
-        add("Vsix\Roslyn.Deployment.Full.Next\snapshotService.servicehub.service.json")
+        add("Exes\csi\net46\csi.rsp")
+        add("Exes\csi\net46\csi.exe.config")
         add("Vsix\VisualStudioInteractiveComponents\CSharpInteractive.rsp")
+        add("Vsix\VisualStudioSetup\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Convention.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Hosting.dll")
         add("Vsix\VisualStudioSetup\System.Composition.TypedParts.dll")
-        add("Vsix\VisualStudioSetup.Next\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll")
+        add("Vsix\VisualStudioSetup\Mono.Cecil.dll")
+        add("Vsix\VisualStudioSetup\Mono.Cecil.Mdb.dll")
+        add("Vsix\VisualStudioSetup\Mono.Cecil.Pdb.dll")
+        add("Vsix\VisualStudioSetup\Mono.Cecil.Rocks.dll")
+        add("Vsix\VisualStudioSetup\ICSharpCode.Decompiler.dll")
         add("Dlls\BasicExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
         add("Dlls\BasicResultProvider.Portable\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.vsdconfig")
         add("Dlls\CSharpExpressionCompiler\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
         add("Dlls\CSharpResultProvider.Portable\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.vsdconfig")
         add("Dlls\FunctionResolver\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.vsdconfig")
+        add("Dlls\ServicesVisualStudio\Microsoft.VisualStudio.LanguageServices.vsdconfig")
         add("Dlls\MSBuildTask\Microsoft.CSharp.Core.targets")
         add("Dlls\MSBuildTask\Microsoft.VisualBasic.Core.targets")
         add("Dlls\CSharpCompilerTestUtilities\Roslyn.Compilers.CSharp.Test.Utilities.dll")
@@ -844,46 +826,47 @@ Public Class BuildDevDivInsertionFiles
         add("Dlls\CompilerTestResources\\Roslyn.Compilers.Test.Resources.dll")
         add("Dlls\ExpressionCompilerTestUtilities\Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities.dll")
         add("Dlls\ResultProviderTestUtilities\Roslyn.ExpressionEvaluator.ResultProvider.Test.Utilities.dll")
-        add("Dlls\ServicesTestUtilities\Roslyn.Services.Test.Utilities.dll")
         add("Dlls\PdbUtilities\Roslyn.Test.PdbUtilities.dll")
-        add("Dlls\TestUtilities.Desktop\Roslyn.Test.Utilities.Desktop.dll")
-        add("Dlls\TestUtilities\Roslyn.Test.Utilities.dll")
-        add("Dlls\TestUtilities\Roslyn.Test.Utilities.dll.config")
-        add("Dlls\TestUtilities.FX45\Roslyn.Test.Utilities.FX45.dll")
         add("UnitTests\EditorServicesTest\BasicUndo.dll")
-        add("UnitTests\EditorServicesTest\Esent.Interop.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
         add("UnitTests\EditorServicesTest\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Native.amd64.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Native.x86.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll")
-        add("Dlls\Concord\Microsoft.VisualStudio.Debugger.Engine.dll")
-        add("Vsix\VisualStudioTestSetup\Microsoft.Diagnostics.Runtime.dll")
-        add("Vsix\VisualStudioTestSetup\Roslyn.VisualStudio.Test.Setup.vsix")
-        add("Vsix\CompilerExtension\System.Collections.Immutable.dll")
-        add("Vsix\CompilerExtension\System.Reflection.Metadata.dll")
-        add("Vsix\CompilerExtension\System.Diagnostics.FileVersionInfo.dll")
-        add("Vsix\CompilerExtension\System.IO.Compression.dll")
-        add("Vsix\CompilerExtension\System.IO.FileSystem.dll")
-        add("Vsix\CompilerExtension\System.IO.FileSystem.DriveInfo.dll")
-        add("Vsix\CompilerExtension\System.IO.FileSystem.Primitives.dll")
-        add("Vsix\CompilerExtension\System.IO.Pipes.dll")
-        add("Vsix\CompilerExtension\System.Runtime.InteropServices.RuntimeInformation.dll")
-        add("Vsix\CompilerExtension\System.Security.AccessControl.dll")
-        add("Vsix\CompilerExtension\System.Security.Claims.dll")
-        add("Vsix\CompilerExtension\System.Security.Cryptography.Algorithms.dll")
-        add("Vsix\CompilerExtension\System.Security.Cryptography.Encoding.dll")
-        add("Vsix\CompilerExtension\System.Security.Cryptography.Primitives.dll")
-        add("Vsix\CompilerExtension\System.Security.Cryptography.X509Certificates.dll")
-        add("Vsix\CompilerExtension\System.Security.Principal.Windows.dll")
-        add("Vsix\CompilerExtension\System.Text.Encoding.CodePages.dll")
-        add("Vsix\CompilerExtension\System.Threading.Thread.dll")
-        add("Vsix\CompilerExtension\System.Xml.XmlDocument.dll")
-        add("Vsix\CompilerExtension\System.Xml.XPath.dll")
-        add("Vsix\CompilerExtension\System.Xml.XPath.XDocument.dll")
-        add("Exes\csi\System.Diagnostics.StackTrace.dll")
-        add("Exes\csi\System.ValueTuple.dll")
+        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.PortablePdb.dll")
+        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Converter.dll")
+        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Converter.Xml.dll")
+        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.dll")
+        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Native.amd64.dll")
+        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Native.x86.dll")
+        add("Vsix\ExpressionEvaluatorPackage\Microsoft.VisualStudio.Debugger.Engine.dll")
+        add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
+        add("Exes\Toolset\System.AppContext.dll")
+        add("Exes\Toolset\System.Console.dll")
+        add("Exes\Toolset\System.Collections.Immutable.dll")
+        add("Exes\Toolset\System.Diagnostics.FileVersionInfo.dll")
+        add("Exes\Toolset\System.Diagnostics.Process.dll")
+        add("Exes\Toolset\System.Diagnostics.StackTrace.dll")
+        add("Exes\Toolset\System.IO.Compression.dll")
+        add("Exes\Toolset\System.IO.FileSystem.dll")
+        add("Exes\Toolset\System.IO.FileSystem.DriveInfo.dll")
+        add("Exes\Toolset\System.IO.FileSystem.Primitives.dll")
+        add("Exes\Toolset\System.IO.Pipes.dll")
+        add("Exes\Toolset\System.IO.Pipes.AccessControl.dll")
+        add("Exes\Toolset\System.Reflection.Metadata.dll")
+        add("Exes\Toolset\System.Security.AccessControl.dll")
+        add("Exes\Toolset\System.Security.Claims.dll")
+        add("Exes\Toolset\System.Security.Cryptography.Algorithms.dll")
+        add("Exes\Toolset\System.Security.Cryptography.Encoding.dll")
+        add("Exes\Toolset\System.Security.Cryptography.Primitives.dll")
+        add("Exes\Toolset\System.Security.Cryptography.X509Certificates.dll")
+        add("Exes\Toolset\System.Security.Principal.Windows.dll")
+        add("Exes\Toolset\System.Text.Encoding.CodePages.dll")
+        add("Exes\Toolset\System.Threading.Thread.dll")
+        add("Exes\Toolset\System.ValueTuple.dll")
+        add("Exes\Toolset\System.Xml.ReaderWriter.dll")
+        add("Exes\Toolset\System.Xml.XmlDocument.dll")
+        add("Exes\Toolset\System.Xml.XPath.dll")
+        add("Exes\Toolset\System.Xml.XPath.XDocument.dll")
+        add("Exes\Toolset\Microsoft.Win32.Primitives.dll")
+        add("Vsix\VisualStudioSetup\Humanizer.dll")
         Return map
     End Function
 
@@ -929,6 +912,11 @@ Public Class BuildDevDivInsertionFiles
                     End If
 
                     If IsLanguageServiceRegistrationFile(partFileName) Then
+                        Continue For
+                    End If
+
+                    ' Files generated by the VSIX v3 installer that don't need to be inserted.
+                    If partFileName = "catalog.json" OrElse partFileName = "manifest.json" Then
                         Continue For
                     End If
 
@@ -1000,7 +988,7 @@ Public Class BuildDevDivInsertionFiles
         Next
 
         Dim xml = <?xml version="1.0" encoding="utf-8"?>
-                  <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+                  <package>
                       <metadata>
                           <id><%= PackageName %></id>
                           <summary>Roslyn binaries for the VS build.</summary>
@@ -1012,38 +1000,59 @@ Public Class BuildDevDivInsertionFiles
                           <%= filesToInsert.
                               OrderBy(Function(f) f.Path).
                               Distinct().
-                              Select(Function(f) <file src=<%= f.Path %> target=<%= f.Target %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
+                              Select(Function(f) <file src=<%= f.Path %> target=<%= f.Target %>/>) %>
                       </files>
                   </package>
 
         xml.Save(GetAbsolutePathInOutputDirectory(PackageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
     End Sub
 
+    ''' <summary>
+    ''' Generates the nuspec + supporting file layout for the Roslyn toolset nupkg file. This is the toolset
+    ''' which will be used during the VS build. This will exactly match the layout of the toolset used 
+    ''' by the Microsoft.Net.Compilers package + some devdiv environment files.
+    ''' </summary>
+    Private Sub GenerateVSToolsRoslynCoreXTNuspec()
+        Const packageName As String = "VS.Tools.Roslyn"
+        Dim outputDir = GetAbsolutePathInOutputDirectory(packageName)
+        Dim nuspecFiles As New List(Of String)
+        Directory.CreateDirectory(outputDir)
 
-    Private Sub GenerateRoslynCompilerNuSpec(filesToInsert As IEnumerable(Of String))
-        Const PackageName As String = "VS.Tools.Roslyn"
+        ' First copy over all the files from the compilers toolset. 
+        For Each fileRelativePath In GetCompilerToolsetNuspecFiles()
+            Dim filePath = Path.Combine(_binDirectory, fileRelativePath)
+            Dim fileName = Path.GetFileName(fileRelativePath)
+            Dim destFilepath = Path.Combine(outputDir, fileName)
+            File.Copy(filePath, destFilepath)
+            nuspecFiles.Add(fileName)
 
-        ' No duplicates are allowed
-        filesToInsert.GroupBy(Function(x) x).All(Function(g) g.Count() = 1)
+            ' A bug in VS forces all of our exes to use the prefer 32 bit mode. Mark the copies added 
+            ' to this nuspec as such. They are isolated and hence allow our binaries shipped to customers
+            ' to remain executable as 64 bit apps
+            ' See https://github.com/dotnet/roslyn/issues/17864
+            If Path.GetExtension(fileName) = ".exe" Then
+                MarkFile32BitPref(destFilepath)
+            End If
+        Next
 
         ' Write an Init.cmd that sets DEVPATH to the toolset location. This overrides
         ' assembly loading during the VS build to always look in the Roslyn toolset
         ' first. This is necessary because there are various incompatible versions
         ' of Roslyn littered throughout the DEVPATH already and this one should always
         ' take precedence.
+        Dim initFileName = "Init.cmd"
         Dim fileContents = "@echo off
 
 set RoslynToolsRoot=%~dp0
 set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
 
-        File.WriteAllText(
-            Path.Combine(_binDirectory, "Init.cmd"),
-            fileContents)
+        File.WriteAllText(Path.Combine(outputDir, initFileName), fileContents)
+        nuspecFiles.Add(initFileName)
 
         Dim xml = <?xml version="1.0" encoding="utf-8"?>
-                  <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+                  <package>
                       <metadata>
-                          <id><%= PackageName %></id>
+                          <id><%= packageName %></id>
                           <summary>Roslyn compiler binaries used to build VS</summary>
                           <description>CoreXT package for Roslyn compiler toolset.</description>
                           <authors>Managed Language Compilers</authors>
@@ -1051,13 +1060,36 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
                       </metadata>
                       <files>
                           <file src="Init.cmd"/>
-                          <%= filesToInsert.
+                          <%= nuspecFiles.
                               OrderBy(Function(f) f).
-                              Select(Function(f) <file src=<%= GetMappedPath(f) %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
+                              Select(Function(f) <file src=<%= f %>/>) %>
                       </files>
                   </package>
 
-        xml.Save(GetAbsolutePathInOutputDirectory(PackageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
+        xml.Save(Path.Combine(outputDir, packageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
+    End Sub
+
+    Private Sub MarkFile32BitPref(filePath As String)
+        Const OffsetFromStartOfCorHeaderToFlags = 4 + ' byte count 
+                                                  2 + ' Major version
+                                                  2 + ' Minor version
+                                                  8   ' Metadata directory
+
+        Using stream As FileStream = File.Open(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read)
+            Using reader As PEReader = New PEReader(stream)
+                Dim newFlags As Int32 = reader.PEHeaders.CorHeader.Flags Or
+                                        CorFlags.Prefers32Bit Or
+                                        CorFlags.Requires32Bit ' CLR requires both req and pref flags to be set
+
+                Using writer = New BinaryWriter(stream)
+                    Dim mdReader = reader.GetMetadataReader()
+                    stream.Position = reader.PEHeaders.CorHeaderStartOffset + OffsetFromStartOfCorHeaderToFlags
+
+                    writer.Write(newFlags)
+                    writer.Flush()
+                End Using
+            End Using
+        End Using
     End Sub
 
     Private Function IsLanguageServiceRegistrationFile(fileName As String) As Boolean
@@ -1081,5 +1113,42 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
         Directory.CreateDirectory(Path.GetDirectoryName(absolutePath))
 
         Return absolutePath
+    End Function
+
+    ''' <summary>
+    ''' Get the list of files that appear in the compiler toolset nuspec file. This is the authorative
+    ''' list of files that make up the compiler toolset layout. 
+    ''' </summary>
+    Private Function GetCompilerToolsetNuspecFiles() As List(Of String)
+        Dim files As New List(Of String)
+        Dim nuspecFilePath = Path.Combine(_nuspecDirectory, "Microsoft.Net.Compilers.nuspec")
+        Dim document = XDocument.Load(nuspecFilePath)
+        For Each fileElement In document.<package>.<files>.<file>
+            If fileElement.Attribute("target").Value = "tools" Then
+                files.Add(fileElement.Attribute("src").Value)
+            End If
+        Next
+
+        Return files
+    End Function
+
+    ''' <summary>
+    ''' Get the set of compiler files that need to be copied over during insertion. 
+    ''' </summary>
+    Private Function GetCompilerInsertFiles() As IEnumerable(Of String)
+        Return GetCompilerToolsetNuspecFiles().
+            Select(AddressOf Path.GetFileName).
+            Where(Function(f)
+                      Select Case f
+                          ' These files are inserted by MSBuild setup 
+                          Case "Microsoft.DiaSymReader.Native.amd64.dll", "Microsoft.DiaSymReader.Native.x86.dll"
+                              Return False
+                          ' Do not truly understand why these are excluded here. Just maintaining compat
+                          Case "System.Collections.Immutable.dll", "System.Reflection.Metadata.dll"
+                              Return False
+                          Case Else
+                              Return True
+                      End Select
+                  End Function)
     End Function
 End Class

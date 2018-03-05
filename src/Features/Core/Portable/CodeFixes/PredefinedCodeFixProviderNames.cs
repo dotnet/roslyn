@@ -7,6 +7,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddDocCommentNodes = nameof(AddDocCommentNodes);
         public const string AddAwait = nameof(AddAwait);
         public const string AddAsync = nameof(AddAsync);
+        public const string AddParameter = nameof(AddParameter);
         public const string ApplyNamingStyle = nameof(ApplyNamingStyle);
         public const string AddBraces = nameof(AddBraces);
         public const string ChangeReturnType = nameof(ChangeReturnType);
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
         public const string RemoveDocCommentNode = nameof(RemoveDocCommentNode);
         public const string AddMissingReference = nameof(AddMissingReference);
-        public const string AddUsingOrImport = nameof(AddUsingOrImport);
+        public const string AddImport = nameof(AddImport);
         public const string FullyQualify = nameof(FullyQualify);
         public const string FixIncorrectFunctionReturnType = nameof(FixIncorrectFunctionReturnType);
         public const string FixIncorrectExitContinue = nameof(FixIncorrectExitContinue);
@@ -31,11 +32,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ImplementAbstractClass = nameof(ImplementAbstractClass);
         public const string ImplementInterface = nameof(ImplementInterface);
         public const string InsertMissingCast = nameof(InsertMissingCast);
+        public const string MakeMethodSynchronous = nameof(MakeMethodSynchronous);
         public const string MoveToTopOfFile = nameof(MoveToTopOfFile);
         public const string PopulateSwitch = nameof(PopulateSwitch);
         public const string QualifyMemberAccess = nameof(QualifyMemberAccess);
         public const string RemoveUnnecessaryCast = nameof(RemoveUnnecessaryCast);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
+        public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
+        public const string RemoveUnusedLocalFunction = nameof(RemoveUnusedLocalFunction);
+        public const string RemoveUnusedVariable = nameof(RemoveUnusedVariable);
         public const string RenameTracking = nameof(RenameTracking);
         public const string SimplifyNames = nameof(SimplifyNames);
         public const string SpellCheck = nameof(SpellCheck);

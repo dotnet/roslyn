@@ -169,7 +169,7 @@ End Class"
                         Dim metadataDecoder = New MetadataDecoder([module])
                         Dim signatureHeader As SignatureHeader = Nothing
                         Dim metadataException As BadImageFormatException = Nothing
-                        Dim parameters = metadataDecoder.GetSignatureForMethod(methodHandle, signatureHeader, metadataException, allowByRefReturn:=False)
+                        Dim parameters = metadataDecoder.GetSignatureForMethod(methodHandle, signatureHeader, metadataException)
                         Assert.Equal(parameters.Length, 5)
                         Dim actualReturnType = parameters(0).Type
                         Assert.Equal(actualReturnType.TypeKind, TypeKind.Class) ' not error

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -44,21 +44,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Start();
                     }
 
-                    public Task Running
-                    {
-                        get
-                        {
-                            return _running;
-                        }
-                    }
+                    public Task Running => _running;
 
-                    public bool HasAnyWork
-                    {
-                        get
-                        {
-                            return _workItemQueue.HasAnyWork;
-                        }
-                    }
+                    public bool HasAnyWork => _workItemQueue.HasAnyWork;
 
                     public void AddAnalyzer(IIncrementalAnalyzer analyzer)
                     {
@@ -116,13 +104,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             // mark it as running
                             _running = source.Task;
-
                             // okay, there must be at least one item in the map
-
                             // see whether we have work item for the document
-                            WorkItem workItem;
-                            CancellationTokenSource documentCancellation;
-                            Contract.ThrowIfFalse(GetNextWorkItem(out workItem, out documentCancellation));
+                            Contract.ThrowIfFalse(GetNextWorkItem(out var workItem, out var documentCancellation));
 
                             var solution = _processor.CurrentSolution;
 

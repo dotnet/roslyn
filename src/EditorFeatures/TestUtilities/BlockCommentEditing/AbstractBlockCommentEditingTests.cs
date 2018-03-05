@@ -2,33 +2,29 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentEditing
 {
     public abstract class AbstractBlockCommentEditingTests
     {
-        internal abstract ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(
+        internal abstract VSCommanding.ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService);
 
-        protected abstract Task<TestWorkspace> CreateTestWorkspaceAsync(string initialMarkup);
+        protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
 
-        protected async Task VerifyAsync(string initialMarkup, string expectedMarkup)
+        protected void Verify(string initialMarkup, string expectedMarkup)
         {
-            using (var workspace = await CreateTestWorkspaceAsync(initialMarkup))
+            using (var workspace = CreateTestWorkspace(initialMarkup))
             {
                 var testDocument = workspace.Documents.Single();
                 var view = testDocument.GetTextView();
@@ -39,11 +35,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentEditing
                 var args = new ReturnKeyCommandArgs(view, view.TextBuffer);
                 var nextHandler = CreateInsertTextHandler(view, "\r\n");
 
-                commandHandler.ExecuteCommand(args, nextHandler);
+                if (!commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create()))
+                {
+                    nextHandler();
+                }
 
-                string expectedCode;
-                int expectedPosition;
-                MarkupTestFile.GetPosition(expectedMarkup, out expectedCode, out expectedPosition);
+                MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
 
                 Assert.Equal(expectedCode, view.TextSnapshot.GetText());
 
@@ -53,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentEditing
             }
         }
 
-        protected Task VerifyTabsAsync(string initialMarkup, string expectedMarkup) => VerifyAsync(ReplaceTabTags(initialMarkup), ReplaceTabTags(expectedMarkup));
+        protected void VerifyTabs(string initialMarkup, string expectedMarkup) 
+            => Verify(ReplaceTabTags(initialMarkup), ReplaceTabTags(expectedMarkup));
 
         private string ReplaceTabTags(string markup) => markup.Replace("<tab>", "\t");
 

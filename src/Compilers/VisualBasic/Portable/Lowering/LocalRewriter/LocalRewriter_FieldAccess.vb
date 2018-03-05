@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     syntax,
                                     LookupResultKind.Empty,
                                     ImmutableArray.Create(Of Symbol)(tupleField),
-                                    ImmutableArray.Create(Of BoundNode)(rewrittenReceiver),
+                                    ImmutableArray.Create(rewrittenReceiver),
                                     tupleField.Type,
                                     hasErrors:=True)
         End Function

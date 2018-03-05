@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -848,10 +849,10 @@ class C
   IL_0006:  ret
 }}";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
-                var dummyComp = CreateCompilationWithMscorlib("", new[] { comp.EmitToImageReference() }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+                var dummyComp = CreateStandardCompilation("", new[] { comp.EmitToImageReference() }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
                 var typeC = dummyComp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var displayClassTypes = typeC.GetMembers().OfType<NamedTypeSymbol>();
                 Assert.True(displayClassTypes.Any());
@@ -911,10 +912,10 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
-                var dummyComp = CreateCompilationWithMscorlib("", new[] { comp.EmitToImageReference() }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+                var dummyComp = CreateStandardCompilation("", new[] { comp.EmitToImageReference() }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
                 var typeC = dummyComp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var displayClassTypes = typeC.GetMembers().OfType<NamedTypeSymbol>();
                 Assert.True(displayClassTypes.Any());
@@ -1045,7 +1046,7 @@ class C
         yield return this.x;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>d__1.MoveNext");
@@ -1118,7 +1119,7 @@ class C
         a();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>b__1_0");
@@ -1154,7 +1155,7 @@ class Derived : Base
         yield return base.x;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "Derived.<M>d__1.MoveNext");
@@ -1237,7 +1238,7 @@ class Derived : Base
         a();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "Derived.<F>b__1_0");
@@ -1431,9 +1432,9 @@ public class C
 
         private static void CheckIteratorOverloading(string source, Func<MethodSymbol, bool> isDesiredOverload)
         {
-            var comp1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp1 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var ref1 = comp1.EmitToImageReference();
-            var comp2 = CreateCompilationWithMscorlib("", new[] { ref1 }, options: TestOptions.DebugDll);
+            var comp2 = CreateStandardCompilation("", new[] { ref1 }, options: TestOptions.DebugDll);
 
             var originalType = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var iteratorMethod = originalType.GetMembers("M").OfType<MethodSymbol>().Single(isDesiredOverload);

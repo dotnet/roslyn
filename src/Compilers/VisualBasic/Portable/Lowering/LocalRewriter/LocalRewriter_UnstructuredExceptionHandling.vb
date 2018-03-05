@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -372,7 +373,7 @@ Done:
             Dim rewritten As BoundStatement = New BoundStatementList(node.Syntax, statements.ToImmutableAndFree())
 
             If Instrument(node, rewritten) Then
-                rewritten = _instrumenter.InstrumentOnErrorStatement(node, rewritten)
+                rewritten = _instrumenterOpt.InstrumentOnErrorStatement(node, rewritten)
             End If
 
             Return rewritten
@@ -438,7 +439,7 @@ Done:
             Dim rewritten As BoundStatement = New BoundStatementList(node.Syntax, statements.ToImmutableAndFree())
 
             If Instrument(node, rewritten) Then
-                rewritten = _instrumenter.InstrumentResumeStatement(node, rewritten)
+                rewritten = _instrumenterOpt.InstrumentResumeStatement(node, rewritten)
             End If
 
             Return rewritten

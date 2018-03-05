@@ -14,16 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ChangeSignatureCodeRefactoringProvider();
 
         protected override string GetLanguage()
             => LanguageNames.CSharp;
 
-        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
-        {
-            return TestWorkspace.CreateCSharpAsync(definition, (CSharpParseOptions)parseOptions, (CSharpCompilationOptions)compilationOptions);
-        }
+        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
+            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_ImplicitInvokeCalls()
@@ -216,13 +214,13 @@ class C
     void M()
     {
         MyDelegate d1 = null;
-        d1 = Foo;
-        Foo(1, ""Two"", true);
-        Foo(1, false, false);
+        d1 = Goo;
+        Goo(1, ""Two"", true);
+        Goo(1, false, false);
     }
 
-    void Foo(int a, string b, bool c) { }
-    void Foo(int a, object b, bool c) { }
+    void Goo(int a, string b, bool c) { }
+    void Goo(int a, object b, bool c) { }
 }";
             var updatedSignature = new[] { 2, 1 };
             var expectedUpdatedCode = @"
@@ -233,13 +231,13 @@ class C
     void M()
     {
         MyDelegate d1 = null;
-        d1 = Foo;
-        Foo(true, ""Two"");
-        Foo(1, false, false);
+        d1 = Goo;
+        Goo(true, ""Two"");
+        Goo(1, false, false);
     }
 
-    void Foo(bool c, string b) { }
-    void Foo(int a, object b, bool c) { }
+    void Goo(bool c, string b) { }
+    void Goo(int a, object b, bool c) { }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
@@ -254,13 +252,13 @@ class C
 {
     void M()
     {
-        MyDelegate d1 = new MyDelegate(Foo);
-        Foo(1, ""Two"", true);
-        Foo(1, false, false);
+        MyDelegate d1 = new MyDelegate(Goo);
+        Goo(1, ""Two"", true);
+        Goo(1, false, false);
     }
 
-    void Foo(int a, string b, bool c) { }
-    void Foo(int a, object b, bool c) { }
+    void Goo(int a, string b, bool c) { }
+    void Goo(int a, object b, bool c) { }
 }";
             var updatedSignature = new[] { 2, 1 };
             var expectedUpdatedCode = @"
@@ -270,13 +268,13 @@ class C
 {
     void M()
     {
-        MyDelegate d1 = new MyDelegate(Foo);
-        Foo(true, ""Two"");
-        Foo(1, false, false);
+        MyDelegate d1 = new MyDelegate(Goo);
+        Goo(true, ""Two"");
+        Goo(1, false, false);
     }
 
-    void Foo(bool c, string b) { }
-    void Foo(int a, object b, bool c) { }
+    void Goo(bool c, string b) { }
+    void Goo(int a, object b, bool c) { }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
@@ -291,15 +289,15 @@ class C
 {
     void M()
     {
-        Target(Foo);
-        Foo(1, ""Two"", true);
-        Foo(1, false, false);
+        Target(Goo);
+        Goo(1, ""Two"", true);
+        Goo(1, false, false);
     }
 
     void Target(MyDelegate d) { }
 
-    void Foo(int a, string b, bool c) { }
-    void Foo(int a, object b, bool c) { }
+    void Goo(int a, string b, bool c) { }
+    void Goo(int a, object b, bool c) { }
 }";
             var updatedSignature = new[] { 2, 1 };
             var expectedUpdatedCode = @"
@@ -309,15 +307,15 @@ class C
 {
     void M()
     {
-        Target(Foo);
-        Foo(true, ""Two"");
-        Foo(1, false, false);
+        Target(Goo);
+        Goo(true, ""Two"");
+        Goo(1, false, false);
     }
 
     void Target(MyDelegate d) { }
 
-    void Foo(bool c, string b) { }
-    void Foo(int a, object b, bool c) { }
+    void Goo(bool c, string b) { }
+    void Goo(int a, object b, bool c) { }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
@@ -333,16 +331,16 @@ class C
     void M()
     {
         MyDelegate d1 = Result();
-        Foo(1, ""Two"", true);
+        Goo(1, ""Two"", true);
     }
 
     private MyDelegate Result()
     {
-        return Foo;
+        return Goo;
     }
 
-    void Foo(int a, string b, bool c) { }
-    void Foo(int a, object b, bool c) { }
+    void Goo(int a, string b, bool c) { }
+    void Goo(int a, object b, bool c) { }
 }";
             var updatedSignature = new[] { 2, 1 };
             var expectedUpdatedCode = @"
@@ -353,16 +351,16 @@ class C
     void M()
     {
         MyDelegate d1 = Result();
-        Foo(true, ""Two"");
+        Goo(true, ""Two"");
     }
 
     private MyDelegate Result()
     {
-        return Foo;
+        return Goo;
     }
 
-    void Foo(bool c, string b) { }
-    void Foo(int a, object b, bool c) { }
+    void Goo(bool c, string b) { }
+    void Goo(int a, object b, bool c) { }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
@@ -379,16 +377,16 @@ class C
 {
     void M()
     {
-        Foo(1, ""Two"", true);
+        Goo(1, ""Two"", true);
     }
 
     private IEnumerable<MyDelegate> Result()
     {
-        yield return Foo;
+        yield return Goo;
     }
 
-    void Foo(int a, string b, bool c) { }
-    void Foo(int a, object b, bool c) { }
+    void Goo(int a, string b, bool c) { }
+    void Goo(int a, object b, bool c) { }
 }";
             var updatedSignature = new[] { 2, 1 };
             var expectedUpdatedCode = @"
@@ -400,16 +398,16 @@ class C
 {
     void M()
     {
-        Foo(true, ""Two"");
+        Goo(true, ""Two"");
     }
 
     private IEnumerable<MyDelegate> Result()
     {
-        yield return Foo;
+        yield return Goo;
     }
 
-    void Foo(bool c, string b) { }
-    void Foo(int a, object b, bool c) { }
+    void Goo(bool c, string b) { }
+    void Goo(int a, object b, bool c) { }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
@@ -523,14 +521,14 @@ class C
 {
     void M()
     {
-        MyDelegate d1 = Foo;
-        Foo(1, ""Two"", true);
+        MyDelegate d1 = Goo;
+        Goo(1, ""Two"", true);
     }
 
     /// <param name=""a""></param>
     /// <param name=""b""></param>
     /// <param name=""c""></param>
-    void Foo(int a, string b, bool c) { }
+    void Goo(int a, string b, bool c) { }
 }";
             var updatedSignature = new[] { 2, 1 };
             var expectedUpdatedCode = @"
@@ -550,14 +548,14 @@ class C
 {
     void M()
     {
-        MyDelegate d1 = Foo;
-        Foo(true, ""Two"");
+        MyDelegate d1 = Goo;
+        Goo(true, ""Two"");
     }
 
     /// <param name=""c""></param>
     /// <param name=""b""></param>
     /// 
-    void Foo(bool c, string b) { }
+    void Goo(bool c, string b) { }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }

@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using Xunit;
 using Roslyn.Test.Utilities;
+using Xunit;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
-    internal class InteractiveCommandHandlerTests
+    public class InteractiveCommandHandlerTests
     {
         private const string Caret = "$$";
         private const string ExampleCode1 = @"var x = 1;";
@@ -22,7 +22,7 @@ Task.Run(() => { return 1; });";
 
         private const string ExampleMultiline =
 @"namespace N {
-    void foo() {
+    void goo() {
         Console.WriteLine(
             $$""LLL"");
     }
@@ -95,7 +95,7 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
                 submissionBuffer: "var x = 1;");
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/23200")]
         public void TestExecuteInInteractiveWithDefines()
         {
             string exampleWithIfDirective =
@@ -171,12 +171,12 @@ $@"#define DEF
         private static void AssertExecuteInInteractive(string code, string[] expectedSubmissions, string submissionBuffer = null)
         {
             List<string> submissions = new List<string>();
-            EventHandler<string> appendSubmission = (_, item) => { submissions.Add(item.TrimEnd()); };
+            void appendSubmission(object _, string item) { submissions.Add(item.TrimEnd()); }
 
             using (var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(code))
             {
                 PrepareSubmissionBuffer(submissionBuffer, workspace);
-                Assert.Equal(CommandState.Available, workspace.GetStateForExecuteInInteractive());
+                Assert.Equal(VSCommanding.CommandState.Available, workspace.GetStateForExecuteInInteractive());
 
                 workspace.Evaluator.OnExecute += appendSubmission;
                 workspace.ExecuteInInteractive();

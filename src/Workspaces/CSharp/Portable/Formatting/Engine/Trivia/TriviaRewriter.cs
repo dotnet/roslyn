@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -81,8 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return ValueTuple.Create(default(SyntaxTriviaList), GetLeadingTriviaAtBeginningOfTree(pair.Key, pair.Value, cancellationToken));
             }
 
-            var csharpTriviaData = pair.Value as TriviaDataWithList;
-            if (csharpTriviaData != null)
+            if (pair.Value is TriviaDataWithList csharpTriviaData)
             {
                 var triviaList = csharpTriviaData.GetTriviaList(cancellationToken);
                 var index = GetFirstEndOfLineIndexOrRightBeforeComment(triviaList);
@@ -156,8 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             TriviaData triviaData,
             CancellationToken cancellationToken)
         {
-            var csharpTriviaData = triviaData as TriviaDataWithList;
-            if (csharpTriviaData != null)
+            if (triviaData is TriviaDataWithList csharpTriviaData)
             {
                 return SyntaxFactory.TriviaList(csharpTriviaData.GetTriviaList(cancellationToken));
             }
@@ -172,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (node == null || !_spans.IntersectsWith(node.FullSpan))
+            if (node == null || !_spans.HasIntervalThatIntersectsWith(node.FullSpan))
             {
                 return node;
             }
@@ -184,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (!_spans.IntersectsWith(token.FullSpan))
+            if (!_spans.HasIntervalThatIntersectsWith(token.FullSpan))
             {
                 return token;
             }
@@ -194,23 +193,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // get token span
 
             // check whether we have trivia info belongs to this token
-            var leadingTrivia = token.LeadingTrivia;
-            var trailingTrivia = token.TrailingTrivia;
-
-            if (_trailingTriviaMap.ContainsKey(token))
+            if (_trailingTriviaMap.TryGetValue(token, out var trailingTrivia))
             {
                 // okay, we have this situation
                 // token|trivia
-                trailingTrivia = _trailingTriviaMap[token];
                 hasChanges = true;
             }
+            else
+            {
+                trailingTrivia = token.TrailingTrivia;
+            }
 
-            if (_leadingTriviaMap.ContainsKey(token))
+            if (_leadingTriviaMap.TryGetValue(token, out var leadingTrivia))
             {
                 // okay, we have this situation
                 // trivia|token
-                leadingTrivia = _leadingTriviaMap[token];
                 hasChanges = true;
+            }
+            else
+            {
+                leadingTrivia = token.LeadingTrivia;
             }
 
             if (hasChanges)
@@ -222,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return token;
         }
 
-        private SyntaxToken CreateNewToken(SyntaxTriviaList leadingTrivia, SyntaxToken token, SyntaxTriviaList trailingTrivia)
+        private static SyntaxToken CreateNewToken(SyntaxTriviaList leadingTrivia, SyntaxToken token, SyntaxTriviaList trailingTrivia)
         {
             return token.With(leadingTrivia, trailingTrivia);
         }

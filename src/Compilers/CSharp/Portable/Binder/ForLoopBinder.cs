@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Diagnostics;
@@ -41,8 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Initializers);
             }
 
-            ExpressionVariableFinder.FindExpressionVariables(this, locals, node: _syntax.Condition);
-            ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Incrementors);
             return locals.ToImmutableAndFree();
         }
 
@@ -66,14 +65,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializer = originalBinder.BindStatementExpressionList(node.Initializers, diagnostics);
             }
 
-            var condition = (node.Condition != null) ? originalBinder.BindBooleanExpression(node.Condition, diagnostics) : null;
-            var increment = originalBinder.BindStatementExpressionList(node.Incrementors, diagnostics);
+            BoundExpression condition = null;
+            var innerLocals = ImmutableArray<LocalSymbol>.Empty;
+            ExpressionSyntax conditionSyntax = node.Condition;
+            if (conditionSyntax != null)
+            {
+                originalBinder = originalBinder.GetBinder(conditionSyntax);
+                condition = originalBinder.BindBooleanExpression(conditionSyntax, diagnostics);
+                innerLocals = originalBinder.GetDeclaredLocalsForScope(conditionSyntax);
+            }
+
+            BoundStatement increment = null;
+            SeparatedSyntaxList<ExpressionSyntax> incrementors = node.Incrementors;
+            if (incrementors.Count > 0)
+            {
+                var scopeDesignator = incrementors.First();
+                var incrementBinder = originalBinder.GetBinder(scopeDesignator);
+                increment = incrementBinder.WrapWithVariablesIfAny(scopeDesignator, incrementBinder.BindStatementExpressionList(incrementors, diagnostics));
+            }
+
             var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
 
             Debug.Assert(this.Locals == this.GetDeclaredLocalsForScope(node));
             return new BoundForStatement(node,
                                          this.Locals,
                                          initializer,
+                                         innerLocals,
                                          condition,
                                          increment,
                                          body,

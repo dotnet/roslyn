@@ -1,18 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal abstract class AbstractCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer
+    internal abstract class AbstractCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         protected readonly string DescriptorId;
 
         /// <summary>
-        /// Diagnostic descriptor that for analysis results that we don't want any treatment for.
+        /// Diagnostic descriptors corresponding to each of the DiagnosticSeverities.
         /// </summary>
         protected readonly DiagnosticDescriptor HiddenDescriptor;
+        protected readonly DiagnosticDescriptor InfoDescriptor;
+        protected readonly DiagnosticDescriptor WarningDescriptor;
+        protected readonly DiagnosticDescriptor ErrorDescriptor;
 
         /// <summary>
         /// Diagnostic descriptor for code you want to fade out *and* want to have a smart-tag
@@ -24,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// Diagnostic descriptor for code you want to fade out and do *not* want to have a smart-tag
         /// appear for.  This is uncommon but useful in some cases.  For example, if you are fading
         /// out pieces of code before/after another piece of code *on the same line*, then you will
-        /// only want one usafe of <see cref="UnnecessaryWithSuggestionDescriptor"/> and multiple
+        /// only want one usage of <see cref="UnnecessaryWithSuggestionDescriptor"/> and multiple
         /// usages of <see cref="UnnecessaryWithoutSuggestionDescriptor"/>.
         /// 
         /// That's because if you use <see cref="UnnecessaryWithSuggestionDescriptor"/> for all the
@@ -34,17 +40,25 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         protected readonly DiagnosticDescriptor UnnecessaryWithoutSuggestionDescriptor;
 
-        private readonly LocalizableString _localizableTitle;
-        private readonly LocalizableString _localizableMessage;
+        protected readonly LocalizableString _localizableTitle;
+        protected readonly LocalizableString _localizableMessage;
+
+        private readonly bool _configurable;
 
         protected AbstractCodeStyleDiagnosticAnalyzer(
-            string descriptorId, LocalizableString title, LocalizableString message = null)
+            string descriptorId, LocalizableString title,
+            LocalizableString message = null,
+            bool configurable = true)
         {
             DescriptorId = descriptorId;
             _localizableTitle = title;
             _localizableMessage = message ?? title;
+            _configurable = configurable;
 
             HiddenDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Hidden);
+            InfoDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Info);
+            WarningDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Warning);
+            ErrorDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Error);
 
             UnnecessaryWithSuggestionDescriptor = CreateDescriptorWithId(
                 descriptorId, _localizableTitle, _localizableMessage, 
@@ -59,7 +73,19 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 HiddenDescriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
         }
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+
+        protected DiagnosticDescriptor GetDescriptorWithSeverity(DiagnosticSeverity severity)
+        {
+            switch (severity)
+            {
+                case DiagnosticSeverity.Hidden: return HiddenDescriptor;
+                case DiagnosticSeverity.Info: return InfoDescriptor;
+                case DiagnosticSeverity.Warning: return WarningDescriptor;
+                case DiagnosticSeverity.Error: return ErrorDescriptor;
+                default: throw new InvalidOperationException();
+            }
+        }
 
         protected DiagnosticDescriptor CreateDescriptorWithSeverity(DiagnosticSeverity severity, params string[] customTags)
             => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessage, severity, customTags);
@@ -67,13 +93,22 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected DiagnosticDescriptor CreateDescriptorWithTitle(LocalizableString title, DiagnosticSeverity severity, params string[] customTags)
             => CreateDescriptorWithId(DescriptorId, title, title, severity, customTags);
 
-        private DiagnosticDescriptor CreateDescriptorWithId(string id, LocalizableString title, LocalizableString message, DiagnosticSeverity severity, params string[] customTags)
-            => new DiagnosticDescriptor(
+        protected DiagnosticDescriptor CreateDescriptorWithId(
+            string id, LocalizableString title, LocalizableString message,
+            DiagnosticSeverity severity, params string[] customTags)
+        {
+            if (!_configurable)
+            {
+                customTags = customTags.Concat(WellKnownDiagnosticTags.NotConfigurable).ToArray();
+            }
+
+            return new DiagnosticDescriptor(
                 id, title, message,
                 DiagnosticCategory.Style,
                 severity,
                 isEnabledByDefault: true,
                 customTags: customTags);
+        }
 
         public sealed override void Initialize(AnalysisContext context)
         {
@@ -85,5 +120,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         protected abstract void InitializeWorker(AnalysisContext context);
+
+        public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
+        public abstract bool OpenFileOnly(Workspace workspace);
     }
 }

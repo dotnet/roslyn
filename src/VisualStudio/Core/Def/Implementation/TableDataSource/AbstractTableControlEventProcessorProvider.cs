@@ -21,14 +21,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             protected static AbstractTableEntriesSnapshot<TData> GetEntriesSnapshot(ITableEntryHandle entryHandle)
             {
-                int index;
-                return GetEntriesSnapshot(entryHandle, out index);
+                return GetEntriesSnapshot(entryHandle, out var index);
             }
 
             protected static AbstractTableEntriesSnapshot<TData> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
             {
-                ITableEntriesSnapshot snapshot;
-                if (!entryHandle.TryGetSnapshot(out snapshot, out index))
+                if (!entryHandle.TryGetSnapshot(out var snapshot, out index))
                 {
                     return null;
                 }
@@ -38,8 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override void PreprocessNavigate(ITableEntryHandle entryHandle, TableEntryNavigateEventArgs e)
             {
-                int index;
-                var roslynSnapshot = GetEntriesSnapshot(entryHandle, out index);
+                var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
                 if (roslynSnapshot == null)
                 {
                     return;

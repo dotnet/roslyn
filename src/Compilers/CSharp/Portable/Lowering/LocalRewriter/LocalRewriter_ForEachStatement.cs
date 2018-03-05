@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   RewriteEnumeratorForEachStatement
         ///   RewriteSingleDimensionalArrayForEachStatement
         ///   RewriteMultiDimensionalArrayForEachStatement
-        ///   RewriteStringForEachStatement
+        ///   CanRewriteForEachAsFor
         /// </summary>
         /// <remarks>
         /// We are diverging from the C# 4 spec (and Dev10) to follow the C# 5 spec.
@@ -44,14 +44,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return RewriteMultiDimensionalArrayForEachStatement(node);
                 }
             }
-            else if (nodeExpressionType.SpecialType == SpecialType.System_String)
+            else if (CanRewriteForEachAsFor(node.Syntax, nodeExpressionType, out var indexerGet, out var lengthGetter))
             {
-                return RewriteStringForEachStatement(node);
+                return RewriteForEachStatementAsFor(node, indexerGet, lengthGetter);
             }
             else
             {
                 return RewriteEnumeratorForEachStatement(node);
             }
+        }
+
+        private bool CanRewriteForEachAsFor(SyntaxNode forEachSyntax, TypeSymbol nodeExpressionType, out MethodSymbol indexerGet, out MethodSymbol lengthGet)
+        {
+            lengthGet = indexerGet = null;
+            var origDefinition = nodeExpressionType.OriginalDefinition;
+
+            if (origDefinition.SpecialType == SpecialType.System_String)
+            {
+                lengthGet = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Length);
+                indexerGet = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Chars);
+            }
+            else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_Span_T))
+            {
+                var spanType = (NamedTypeSymbol)nodeExpressionType;
+                lengthGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
+                indexerGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Item, isOptional: true)?.SymbolAsMember(spanType);
+            }
+            else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T))
+            {
+                var spanType = (NamedTypeSymbol)nodeExpressionType;
+                lengthGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
+                indexerGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__get_Item, isOptional: true)?.SymbolAsMember(spanType);
+            }
+
+            return (object)lengthGet != null && (object)indexerGet != null;
         }
 
         /// <summary>
@@ -96,9 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             InstrumentForEachStatementCollectionVarDeclaration(node, ref enumeratorVarDecl);
 
-            // V v
-            LocalSymbol iterationVar = node.IterationVariableOpt;
-
             //(V)(T)e.Current
             BoundExpression iterationVarAssignValue = MakeConversionNode(
                 syntax: forEachSyntax,
@@ -117,8 +140,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // V v = (V)(T)e.Current;  -OR-  (D1 d1, ...) = (V)(T)e.Current;
 
-            ImmutableArray<LocalSymbol> iterationVariables;
-            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, iterationVar, iterationVarAssignValue, out iterationVariables);
+            ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
+            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, iterationVariables, iterationVarAssignValue);
 
             InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVarDecl);
 
@@ -362,28 +385,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Lower a foreach loop that will enumerate the characters of a string.
-        ///
-        /// string s = x;
-        /// for (int p = 0; p &lt; s.Length; p = p + 1) {
-        ///     V v = (V)s.Chars[p];   /* OR */   (D1 d1, ...) = (V)s.Chars[p];
+        /// Lower a foreach loop that will enumerate a collection via indexing.
+        /// 
+        /// <![CDATA[
+        /// 
+        /// Indexable a = x;
+        /// for (int p = 0; p < a.Length; p = p + 1) {
+        ///     V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
         ///     // body
         /// }
+        /// 
+        /// ]]>
         /// </summary>
         /// <remarks>
-        /// We will follow Dev10 in diverging from the C# 4 spec by ignoring string's 
-        /// implementation of IEnumerable and just indexing into its characters.
-        /// 
         /// NOTE: We're assuming that sequence points have already been generated.
         /// Otherwise, lowering to for-loops would generated spurious ones.
         /// </remarks>
-        private BoundStatement RewriteStringForEachStatement(BoundForEachStatement node)
+        private BoundStatement RewriteForEachStatementAsFor(BoundForEachStatement node, MethodSymbol indexerGet, MethodSymbol lengthGet)
         {
             var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
 
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
-            TypeSymbol stringType = collectionExpression.Type;
-            Debug.Assert(stringType.SpecialType == SpecialType.System_String);
+            NamedTypeSymbol collectionType = (NamedTypeSymbol)collectionExpression.Type;
 
             TypeSymbol intType = _compilation.GetSpecialType(SpecialType.System_Int32);
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
@@ -391,43 +414,60 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
             BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
 
-            // string s;
-            LocalSymbol stringVar = _factory.SynthesizedLocal(stringType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
-            // int p;
-            LocalSymbol positionVar = _factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex);
+            // Collection a
+            LocalSymbol collectionTemp = _factory.SynthesizedLocal(collectionType, forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
 
-            // Reference to s.
-            BoundLocal boundStringVar = MakeBoundLocal(forEachSyntax, stringVar, stringType);
+            // Collection a = /*node.Expression*/;
+            BoundStatement arrayVarDecl = MakeLocalDeclaration(forEachSyntax, collectionTemp, rewrittenExpression);
+
+            InstrumentForEachStatementCollectionVarDeclaration(node, ref arrayVarDecl);
+
+            // Reference to a.
+            BoundLocal boundArrayVar = MakeBoundLocal(forEachSyntax, collectionTemp, collectionType);
+
+            // int p
+            LocalSymbol positionVar = _factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex);
 
             // Reference to p.
             BoundLocal boundPositionVar = MakeBoundLocal(forEachSyntax, positionVar, intType);
 
-            // string s = /*expr*/;
-            BoundStatement stringVarDecl = MakeLocalDeclaration(forEachSyntax, stringVar, rewrittenExpression);
-
-            InstrumentForEachStatementCollectionVarDeclaration(node, ref stringVarDecl);
-
             // int p = 0;
-            BoundStatement positionVariableDecl = MakeLocalDeclaration(forEachSyntax, positionVar,
+            BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar,
                 MakeLiteral(forEachSyntax, ConstantValue.Default(SpecialType.System_Int32), intType));
 
-            // string s = /*node.Expression*/; int p = 0;
-            BoundStatement initializer = new BoundStatementList(forEachSyntax,
-                statements: ImmutableArray.Create<BoundStatement>(stringVarDecl, positionVariableDecl));
-
-            MethodSymbol method = GetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Length);
-            BoundExpression stringLength = BoundCall.Synthesized(
+            // (V)a[p]
+            BoundExpression iterationVarInitValue = MakeConversionNode(
+                syntax: forEachSyntax,
+                rewrittenOperand: BoundCall.Synthesized(
                     syntax: forEachSyntax,
-                    receiverOpt: boundStringVar,
-                    method: method,
-                    arguments: ImmutableArray<BoundExpression>.Empty);
+                    receiverOpt: boundArrayVar,
+                    indexerGet,
+                    boundPositionVar),
+                conversion: node.ElementConversion,
+                rewrittenType: node.IterationVariableType.Type,
+                @checked: node.Checked);
 
-            // p < s.Length
+            // V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
+            ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
+            BoundStatement iterationVariableDecl = LocalOrDeconstructionDeclaration(node, iterationVariables, iterationVarInitValue);
+
+            InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVariableDecl);
+
+            BoundStatement initializer = new BoundStatementList(forEachSyntax,
+                        statements: ImmutableArray.Create<BoundStatement>(arrayVarDecl, positionVarDecl));
+
+            // a.Length
+            BoundExpression arrayLength = BoundCall.Synthesized(
+                syntax: forEachSyntax,
+                receiverOpt: boundArrayVar,
+                lengthGet);
+
+            // p < a.Length
             BoundExpression exitCondition = new BoundBinaryOperator(
                 syntax: forEachSyntax,
                 operatorKind: BinaryOperatorKind.IntLessThan,
                 left: boundPositionVar,
-                right: stringLength,
+                right: arrayLength,
                 constantValueOpt: null,
                 methodOpt: null,
                 resultKind: LookupResultKind.Viable,
@@ -436,42 +476,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // p = p + 1;
             BoundStatement positionIncrement = MakePositionIncrement(forEachSyntax, boundPositionVar, intType);
 
-            LocalSymbol iterationVar = node.IterationVariableOpt;
-            Debug.Assert(node.ElementConversion.IsValid);
-
-            // (V)s.Chars[p]
-            MethodSymbol chars = GetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Chars);
-            BoundExpression iterationVarInitValue = MakeConversionNode(
-                syntax: forEachSyntax,
-                rewrittenOperand: BoundCall.Synthesized(
-                    syntax: forEachSyntax,
-                    receiverOpt: boundStringVar,
-                    method: chars,
-                    arguments: ImmutableArray.Create<BoundExpression>(boundPositionVar)),
-                conversion: node.ElementConversion,
-                rewrittenType: node.IterationVariableType.Type,
-                @checked: node.Checked);
-
-            // V v = (V)s.Chars[p];   /* OR */   (D1 d1, ...) = (V)s.Chars[p];
-            ImmutableArray<LocalSymbol> iterationVariables;
-            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, iterationVar, iterationVarInitValue, out iterationVariables);
-
-            InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVarDecl);
-
             // {
-            //     V v = (V)s.Chars[p];   /* OR */   (D1 d1, ...) = (V)s.Chars[p];
-            //     /* node.Body */
-            // }
-
-            BoundStatement loopBody = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVarDecl, rewrittenBody, forEachSyntax);
-
-            // for (string s = /*node.Expression*/, int p = 0; p < s.Length; p = p + 1) {
-            //     V v = (V)s.Chars[p];   /* OR */   (D1 d1, ...) = (V)s.Chars[p];
+            //     V v = (V)a[p];    /* OR */   (D1 d1, ...) = (V)a[p];
             //     /*node.Body*/
             // }
-            BoundStatement result = RewriteForStatement(
+
+            BoundStatement loopBody = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVariableDecl, rewrittenBody, forEachSyntax);
+
+            // for (Collection a = /*node.Expression*/, int p = 0; p < a.Length; p = p + 1) {
+            //     V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
+            //     /*node.Body*/
+            // }
+            BoundStatement result = RewriteForStatementWithoutInnerLocals(
                 original: node,
-                outerLocals: ImmutableArray.Create(stringVar, positionVar),
+                outerLocals: ImmutableArray.Create<LocalSymbol>(collectionTemp, positionVar),
                 rewrittenInitializer: initializer,
                 rewrittenCondition: exitCondition,
                 rewrittenIncrement: positionIncrement,
@@ -494,9 +512,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundStatement LocalOrDeconstructionDeclaration(
                                     BoundForEachStatement forEachBound,
-                                    LocalSymbol iterationVar,
-                                    BoundExpression iterationVarValue,
-                                    out ImmutableArray<LocalSymbol> iterationVariables)
+                                    ImmutableArray<LocalSymbol> iterationVariables,
+                                    BoundExpression iterationVarValue)
         {
             var forEachSyntax = (CommonForEachStatementSyntax)forEachBound.Syntax;
 
@@ -506,8 +523,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (deconstruction == null)
             {
                 // V v = /* expression */
-                iterationVarDecl = MakeLocalDeclaration(forEachSyntax, iterationVar, iterationVarValue);
-                iterationVariables = ImmutableArray.Create(iterationVar);
+                Debug.Assert(iterationVariables.Length == 1);
+                iterationVarDecl = MakeLocalDeclaration(forEachSyntax, iterationVariables[0], iterationVarValue);
             }
             else
             {
@@ -518,24 +535,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression loweredAssignment = VisitExpression(assignment);
                 iterationVarDecl = new BoundExpressionStatement(assignment.Syntax, loweredAssignment);
                 RemovePlaceholderReplacement(deconstruction.TargetPlaceholder);
-
-                iterationVariables = GetLocalSymbols(assignment.LeftVariables);
             }
 
             return iterationVarDecl;
-        }
-
-        private static ImmutableArray<LocalSymbol> GetLocalSymbols(ImmutableArray<BoundExpression> leftVariables)
-        {
-            var builder = ArrayBuilder<LocalSymbol>.GetInstance();
-            foreach (var variable in leftVariables)
-            {
-                if (variable.Kind == BoundKind.Local)
-                {
-                    builder.Add(((BoundLocal)variable).LocalSymbol);
-                }
-            }
-            return builder.ToImmutableAndFree();
         }
 
         private static BoundBlock CreateBlockDeclaringIterationVariables(
@@ -613,9 +615,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar,
                 MakeLiteral(forEachSyntax, ConstantValue.Default(SpecialType.System_Int32), intType));
 
-            // V v
-            LocalSymbol iterationVar = node.IterationVariableOpt;
-
             // (V)a[p]
             BoundExpression iterationVarInitValue = MakeConversionNode(
                 syntax: forEachSyntax,
@@ -629,8 +628,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 @checked: node.Checked);
 
             // V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
-            ImmutableArray<LocalSymbol> iterationVariables;
-            BoundStatement iterationVariableDecl = LocalOrDeconstructionDeclaration(node, iterationVar, iterationVarInitValue, out iterationVariables);
+            ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
+            BoundStatement iterationVariableDecl = LocalOrDeconstructionDeclaration(node, iterationVariables, iterationVarInitValue);
 
             InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVariableDecl);
 
@@ -668,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
             //     /*node.Body*/
             // }
-            BoundStatement result = RewriteForStatement(
+            BoundStatement result = RewriteForStatementWithoutInnerLocals(
                 original: node,
                 outerLocals: ImmutableArray.Create<LocalSymbol>(arrayVar, positionVar),
                 rewrittenInitializer: initializer,
@@ -720,8 +719,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
             // Values we'll use every iteration
-            MethodSymbol getLowerBoundMethod = GetSpecialTypeMethod(forEachSyntax, SpecialMember.System_Array__GetLowerBound);
-            MethodSymbol getUpperBoundMethod = GetSpecialTypeMethod(forEachSyntax, SpecialMember.System_Array__GetUpperBound);
+            MethodSymbol getLowerBoundMethod = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_Array__GetLowerBound);
+            MethodSymbol getUpperBoundMethod = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_Array__GetUpperBound);
 
             BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
             BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
@@ -771,9 +770,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundPositionVar[dimension] = MakeBoundLocal(forEachSyntax, positionVar[dimension], intType);
             }
 
-            // V v
-            LocalSymbol iterationVar = node.IterationVariableOpt;
-
             // (V)a[p_0, p_1, ...]
             BoundExpression iterationVarInitValue = MakeConversionNode(
                 syntax: forEachSyntax,
@@ -787,8 +783,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // V v = (V)a[p_0, p_1, ...];   /* OR */   (D1 d1, ...) = (V)a[p_0, p_1, ...];
 
-            ImmutableArray<LocalSymbol> iterationVariables;
-            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, iterationVar, iterationVarInitValue, out iterationVariables);
+            ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
+            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, iterationVariables, iterationVarInitValue);
 
             InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVarDecl);
 
@@ -854,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continueLabel = new GeneratedLabelSymbol("continue"); // Should not affect emitted code since unused
                 }
 
-                forLoop = RewriteForStatement(
+                forLoop = RewriteForStatementWithoutInnerLocals(
                     original: node,
                     outerLocals: ImmutableArray.Create(positionVar[dimension]),
                     rewrittenInitializer: positionVarDecl,

@@ -1,16 +1,18 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
@@ -23,7 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         private INotificationService _notificationService;
         private IProjectManagementService _projectManagementService;
         private ISyntaxFactsService _syntaxFactsService;
-        private IGeneratedCodeRecognitionService _generatedCodeService;
         private GenerateTypeDialogOptions _generateTypeDialogOptions;
         private string _typeName;
         private bool _isNewFile;
@@ -507,45 +508,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
         private Project _previouslyPopulatedProject = null;
         private List<DocumentSelectItem> _previouslyPopulatedDocumentList = null;
-        public IEnumerable<DocumentSelectItem> DocumentList
+
+        public IEnumerable<DocumentSelectItem> GetDocumentList(CancellationToken cancellationToken)
         {
-            get
+            if (_previouslyPopulatedProject == _selectedProject)
             {
-                if (_previouslyPopulatedProject == _selectedProject)
-                {
-                    return _previouslyPopulatedDocumentList;
-                }
-
-                _previouslyPopulatedProject = _selectedProject;
-                _previouslyPopulatedDocumentList = new List<DocumentSelectItem>();
-
-                // Check for the current project
-                if (_selectedProject == _document.Project)
-                {
-                    // populate the current document
-                    _previouslyPopulatedDocumentList.Add(new DocumentSelectItem(_document, "<Current File>"));
-
-                    // Set the initial selected Document
-                    this.SelectedDocument = _document;
-
-                    // Populate the rest of the documents for the project
-                    _previouslyPopulatedDocumentList.AddRange(_document.Project.Documents
-                        .Where(d => d != _document && !_generatedCodeService.IsGeneratedCode(d))
-                        .Select(d => new DocumentSelectItem(d)));
-                }
-                else
-                {
-                    _previouslyPopulatedDocumentList.AddRange(_selectedProject.Documents
-                        .Where(d => !_generatedCodeService.IsGeneratedCode(d))
-                        .Select(d => new DocumentSelectItem(d)));
-
-                    this.SelectedDocument = _selectedProject.Documents.FirstOrDefault();
-                }
-
-                this.IsExistingFileEnabled = _previouslyPopulatedDocumentList.Count == 0 ? false : true;
-                this.IsNewFile = this.IsExistingFileEnabled ? this.IsNewFile : true;
                 return _previouslyPopulatedDocumentList;
             }
+
+            _previouslyPopulatedProject = _selectedProject;
+            _previouslyPopulatedDocumentList = new List<DocumentSelectItem>();
+
+            // Check for the current project
+            if (_selectedProject == _document.Project)
+            {
+                // populate the current document
+                _previouslyPopulatedDocumentList.Add(new DocumentSelectItem(_document, "<Current File>"));
+
+                // Set the initial selected Document
+                this.SelectedDocument = _document;
+
+                // Populate the rest of the documents for the project
+                _previouslyPopulatedDocumentList.AddRange(_document.Project.Documents
+                    .Where(d => d != _document && !d.IsGeneratedCode(cancellationToken))
+                    .Select(d => new DocumentSelectItem(d)));
+            }
+            else
+            {
+                _previouslyPopulatedDocumentList.AddRange(_selectedProject.Documents
+                    .Where(d => !d.IsGeneratedCode(cancellationToken))
+                    .Select(d => new DocumentSelectItem(d)));
+
+                this.SelectedDocument = _selectedProject.Documents.FirstOrDefault();
+            }
+
+            this.IsExistingFileEnabled = _previouslyPopulatedDocumentList.Count == 0 ? false : true;
+            this.IsNewFile = this.IsExistingFileEnabled ? this.IsNewFile : true;
+            return _previouslyPopulatedDocumentList;
         }
 
         private bool _isExistingFileEnabled = true;
@@ -723,7 +722,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             INotificationService notificationService,
             IProjectManagementService projectManagementService,
             ISyntaxFactsService syntaxFactsService,
-            IGeneratedCodeRecognitionService generatedCodeService,
             GenerateTypeDialogOptions generateTypeDialogOptions,
             string typeName,
             string fileExtension,
@@ -759,20 +757,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             this.SelectedProject = document.Project;
             this.SelectedDocument = document;
             _notificationService = notificationService;
-            _generatedCodeService = generatedCodeService;
 
-            this.AccessList = document.Project.Language == LanguageNames.CSharp ?
-                                _csharpAccessList :
-                                _visualBasicAccessList;
-            this.AccessSelectIndex = this.AccessList.Contains(accessSelectString) ?
-                                        this.AccessList.IndexOf(accessSelectString) : 0;
+            this.AccessList = document.Project.Language == LanguageNames.CSharp
+                ? _csharpAccessList 
+                : _visualBasicAccessList;
+            this.AccessSelectIndex = this.AccessList.Contains(accessSelectString) 
+                ? this.AccessList.IndexOf(accessSelectString) : 0;
             this.IsAccessListEnabled = true;
 
-            this.KindList = document.Project.Language == LanguageNames.CSharp ?
-                                _csharpTypeKindList :
-                                _visualBasicTypeKindList;
-            this.KindSelectIndex = this.KindList.Contains(typeKindSelectString) ?
-                                    this.KindList.IndexOf(typeKindSelectString) : 0;
+            this.KindList = document.Project.Language == LanguageNames.CSharp
+                ? _csharpTypeKindList 
+                : _visualBasicTypeKindList;
+            this.KindSelectIndex = this.KindList.Contains(typeKindSelectString)
+                ? this.KindList.IndexOf(typeKindSelectString) : 0;
 
             this.ProjectSelectIndex = 0;
             this.DocumentSelectIndex = 0;

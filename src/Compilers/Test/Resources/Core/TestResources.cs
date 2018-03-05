@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace TestResources
 {
@@ -385,6 +385,9 @@ namespace TestResources.SymbolsTests
 
         private static byte[] s_modoptTests;
         public static byte[] ModoptTests => ResourceLoader.GetOrCreateResource(ref s_modoptTests, "SymbolsTests.CustomModifiers.ModoptTests.dll");
+
+        private static byte[] s_genericMethodWithModifiers;
+        public static byte[] GenericMethodWithModifiers => ResourceLoader.GetOrCreateResource(ref s_genericMethodWithModifiers, "SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll");
     }
 
     public static class Cyclic

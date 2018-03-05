@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -127,7 +129,7 @@ namespace Microsoft.CodeAnalysis
             return new LinkedFileMergeResult(allLinkedDocuments, originalSourceText.WithChanges(allChanges), mergeConflictResolutionSpan);
         }
 
-        private static async Task<IEnumerable<TextChange>> AddDocumentMergeChangesAsync(
+        private static async Task<ImmutableArray<TextChange>> AddDocumentMergeChangesAsync(
             Document oldDocument,
             Document newDocument,
             List<TextChange> cumulativeChanges,
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken)
         {
             var unmergedDocumentChanges = new List<TextChange>();
-            var successfullyMergedChanges = new List<TextChange>();
+            var successfullyMergedChanges = ArrayBuilder<TextChange>.GetInstance();
 
             int cumulativeChangeIndex = 0;
 
@@ -216,7 +218,7 @@ namespace Microsoft.CodeAnalysis
                     oldDocument.Id));
             }
 
-            return successfullyMergedChanges;
+            return successfullyMergedChanges.ToImmutableAndFree();
         }
 
         private IEnumerable<TextChange> MergeChangesWithMergeFailComments(

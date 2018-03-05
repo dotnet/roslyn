@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Emit
         // NOTE: We are not considering how filesystem or debuggers do the comparisons, but how native implementations did.
         // Deviating from that may result in unexpected warnings or different behavior (possibly without warnings).
         private readonly ConcurrentDictionary<string, Cci.DebugSourceDocument> _debugDocuments;
-        private readonly ConcurrentCache<ValueTuple<string, string>, string> _normalizedPathsCache;
+        private readonly ConcurrentCache<(string, string), string> _normalizedPathsCache;
         private readonly SourceReferenceResolver _resolverOpt;
         private ImmutableArray<Cci.DebugSourceDocument> _embeddedDocuments;
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     StringComparer.Ordinal :
                     StringComparer.OrdinalIgnoreCase);
 
-            _normalizedPathsCache = new ConcurrentCache<ValueTuple<string, string>, string>(16);
+            _normalizedPathsCache = new ConcurrentCache<(string, string), string>(16);
             _embeddedDocuments = ImmutableArray<Cci.DebugSourceDocument>.Empty;
         }
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return path;
             }
 
-            var key = ValueTuple.Create(path, basePath);
+            var key = (path, basePath);
             string normalizedPath;
             if (!_normalizedPathsCache.TryGetValue(key, out normalizedPath))
             {

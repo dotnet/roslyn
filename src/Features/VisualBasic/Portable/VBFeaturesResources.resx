@@ -301,7 +301,7 @@
     <value>&lt;new variable&gt;</value>
   </data>
   <data name="Remove_and_Sort_Imports" xml:space="preserve">
-    <value>Remove &amp;and Sort Imports</value>
+    <value>R&amp;emove and Sort Imports</value>
   </data>
   <data name="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName" xml:space="preserve">
     <value>Creates a delegate procedure instance that references the specified procedure.
@@ -1237,5 +1237,14 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Add_Me" xml:space="preserve">
     <value>Add 'Me.'</value>
+  </data>
+  <data name="Convert_If_to_Select_Case" xml:space="preserve">
+    <value>Convert 'If' to 'Select Case'</value>
+  </data>
+  <data name="Use_Is_Nothing_check" xml:space="preserve">
+    <value>Use 'Is Nothing' check</value>
+  </data>
+  <data name="Use_IsNot_Nothing_check" xml:space="preserve">
+    <value>Use 'IsNot Nothing' check</value>
   </data>
 </root>

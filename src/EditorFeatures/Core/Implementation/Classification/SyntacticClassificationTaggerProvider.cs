@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return null;
             }
 
-            TagComputer tagComputer;
-            if (!_tagComputers.TryGetValue(buffer, out tagComputer))
+            if (!_tagComputers.TryGetValue(buffer, out var tagComputer))
             {
                 var asyncListener = new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.Classification);
                 tagComputer = new TagComputer(buffer, _notificationService, asyncListener, _typeMap, this);

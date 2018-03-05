@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // For method symbols
         ReturnTypeAttributes = 1 << 1,
 
-        // For symbols with parameters: method and property symbols.
+        // For methods.
         Parameters = 1 << 2,
 
-        // For symbols with type: method, property and field symbols
+        // For symbols with type: method, and field symbols. Properties are handled separately.
         Type = 1 << 3,
 
         // For named type symbols
@@ -81,7 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         TypeParameterSymbolAll = Attributes | TypeParameterConstraints,
 
         // For property symbols
-        PropertySymbolAll = Attributes | Parameters | Type,
+        StartPropertyParameters = 1 << 4,
+        FinishPropertyParameters = 1 << 5,
+        StartPropertyType = 1 << 6,
+        FinishPropertyType = 1 << 7,
+        PropertySymbolAll = Attributes | StartPropertyParameters | FinishPropertyParameters | StartPropertyType | FinishPropertyType,
 
         // For alias symbols
         AliasTarget = 1 << 4,

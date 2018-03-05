@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
@@ -18,13 +18,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             {
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                project.OnSourceFileAdded("Foo.xoml");
+                project.OnSourceFileAdded("Goo.xoml");
 
                 // Even though we added a source file, since it has a .xoml extension we'll ignore it
                 Assert.Empty(environment.Workspace.CurrentSolution.Projects.Single().Documents);
 
                 // Try removing it to make sure it doesn't throw
-                project.OnSourceFileRemoved("Foo.xoml");
+                project.OnSourceFileRemoved("Goo.xoml");
             }
         }
     }

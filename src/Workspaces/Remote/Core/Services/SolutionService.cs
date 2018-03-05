@@ -1,13 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -17,193 +12,156 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// TODO: change this to workspace service
     /// </summary>
-    internal class SolutionService
+    internal class SolutionService : ISolutionController
     {
-        public const string WorkspaceKind_RemoteWorkspace = "RemoteWorkspace";
-
-        // TODO: make this simple cache better
-        // this simple cache hold onto the last solution created
-        private static SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
-        private static ValueTuple<Checksum, Solution> s_lastSolution;
+        private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
+        public static readonly RemoteWorkspace PrimaryWorkspace = new RemoteWorkspace();
 
         private readonly AssetService _assetService;
+
+        // this simple cache hold onto the last and primary solution created
+        private volatile static Tuple<Checksum, Solution> s_primarySolution;
+        private volatile static Tuple<Checksum, Solution> s_lastSolution;
 
         public SolutionService(AssetService assetService)
         {
             _assetService = assetService;
         }
 
-        public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        public Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
-            if (s_lastSolution.Item1 == solutionChecksum)
+            // this method is called by users which means we don't know whether the solution is from primary branch or not.
+            // so we will be conservative and assume it is not. meaning it won't update any internal caches but only consume cache if possible.
+            return GetSolutionInternalAsync(solutionChecksum, fromPrimaryBranch: false, cancellationToken: cancellationToken);
+        }
+
+        private async Task<Solution> GetSolutionInternalAsync(Checksum solutionChecksum, bool fromPrimaryBranch, CancellationToken cancellationToken)
+        {
+            var currentSolution = GetAvailableSolution(solutionChecksum);
+            if (currentSolution != null)
             {
-                return s_lastSolution.Item2;
+                return currentSolution;
             }
 
             // make sure there is always only one that creates a new solution
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (s_lastSolution.Item1 == solutionChecksum)
+                currentSolution = GetAvailableSolution(solutionChecksum);
+                if (currentSolution != null)
                 {
-                    return s_lastSolution.Item2;
+                    return currentSolution;
                 }
 
-                var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-                s_lastSolution = ValueTuple.Create(solutionChecksum, solution);
+                var solution = await CreateSolution_NoLockAsync(solutionChecksum, fromPrimaryBranch, PrimaryWorkspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+                s_lastSolution = Tuple.Create(solutionChecksum, solution);
 
                 return solution;
             }
         }
 
-        public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, OptionSet optionSet, CancellationToken cancellationToken)
+        /// <summary>
+        /// SolutionService is designed to be stateless. if someone asks a solution (through solution checksum), 
+        /// it will create one and return the solution. the engine takes care of synching required data and creating a solution
+        /// correspoing to the given checksum.
+        /// 
+        /// but doing that from scratch all the time wil be expansive in terms of synching data, compilation being cached, file being parsed
+        /// and etc. so even if the service itself is stateless, internally it has several caches to improve perf of various parts.
+        /// 
+        /// first, it holds onto last solution got built. this will take care of common cases where multiple services running off same solution.
+        /// second, it uses assets cache to hold onto data just synched (within 3 min) so that if it requires to build new solution, 
+        ///         it can save some time to re-sync data which might just used by other solution.
+        /// third, it holds onto solution from primary branch from Host. and it will try to see whether it can build new solution off the
+        ///        primary solution it is holding onto. this will make many solution level cache to be re-used.
+        ///
+        /// the primary solution can be updated in 2 ways.
+        /// first, host will keep track of primary solution changes in host, and call OOP to synch to latest time to time.
+        /// second, engine keeps track of whether a certain request is for primary solution or not, and if it is, 
+        ///         it let that request to update primary solution cache to latest.
+        /// 
+        /// these 2 are complimentary to each other. #1 makes OOP's primary solution to be ready for next call (push), #2 makes OOP's primary
+        /// solution be not stale as much as possible. (pull)
+        /// </summary>
+        private async Task<Solution> CreateSolution_NoLockAsync(Checksum solutionChecksum, bool fromPrimaryBranch, Solution baseSolution, CancellationToken cancellationToken)
         {
-            if (optionSet == null)
+            var updater = new SolutionCreator(_assetService, baseSolution, cancellationToken);
+
+            // check whether solution is update to the given base solution
+            if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
             {
-                return await GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                // create updated solution off the baseSolution
+                var solution = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
+
+                if (fromPrimaryBranch)
+                {
+                    // if the solutionChecksum is for primary branch, update primary workspace cache with the solution
+                    PrimaryWorkspace.UpdateSolution(solution);
+                    return PrimaryWorkspace.CurrentSolution;
+                }
+
+                // otherwise, just return the solution
+                return solution;
             }
 
-            // since option belong to workspace, we can't share solution
-
-            // create new solution
-            var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-            // set merged options
-            solution.Workspace.Options = MergeOptions(solution.Workspace.Options, optionSet);
-
-            // return new solution
-            return solution;
-        }
-
-        private OptionSet MergeOptions(OptionSet workspaceOptions, OptionSet userOptions)
-        {
-            var newOptions = workspaceOptions;
-            foreach (var key in userOptions.GetChangedOptions(workspaceOptions))
-            {
-                newOptions = newOptions.WithChangedOption(key, userOptions.GetOption(key));
-            }
-
-            return newOptions;
-        }
-
-        private async Task<Solution> CreateSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
-        {
-            // synchronize whole solution first
+            // we need new solution. bulk sync all asset for the solution first.
             await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-            var solutionChecksumObject = await _assetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            // get new solution info
+            var solutionInfo = await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false);
 
-            var workspace = new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: WorkspaceKind_RemoteWorkspace);
-
-            // never cache any tree in memory
-            workspace.Options = workspace.Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
-
-            var solutionInfo = await _assetService.GetAssetAsync<SolutionInfo.SolutionAttributes>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
-
-            var projects = new List<ProjectInfo>();
-            foreach (var projectChecksum in solutionChecksumObject.Projects)
+            if (fromPrimaryBranch)
             {
-                var projectSnapshot = await _assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, cancellationToken).ConfigureAwait(false);
-                var projectInfo = await _assetService.GetAssetAsync<ProjectInfo.ProjectAttributes>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
-                if (!workspace.Services.IsSupported(projectInfo.Language))
-                {
-                    // only add project our workspace supports. 
-                    // workspace doesn't allow creating project with unknown languages
-                    continue;
-                }
+                // if the solutionChecksum is for primary branch, update primary workspace cache with new solution
+                PrimaryWorkspace.ClearSolution();
+                PrimaryWorkspace.AddSolution(solutionInfo);
 
-                var documents = new List<DocumentInfo>();
-                foreach (var documentChecksum in projectSnapshot.Documents)
-                {
-                    var documentSnapshot = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
-                    var documentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
-
-                    var textLoader = TextLoader.From(
-                        TextAndVersion.Create(
-                            new ChecksumSourceText(
-                                documentSnapshot.Text,
-                                await _assetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false)),
-                            VersionStamp.Create(),
-                            documentInfo.FilePath));
-
-                    // TODO: do we need version?
-                    documents.Add(
-                        DocumentInfo.Create(
-                            documentInfo.Id,
-                            documentInfo.Name,
-                            documentInfo.Folders,
-                            documentInfo.SourceCodeKind,
-                            textLoader,
-                            documentInfo.FilePath,
-                            documentInfo.IsGenerated));
-                }
-
-                var p2p = new List<ProjectReference>();
-                foreach (var checksum in projectSnapshot.ProjectReferences)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var reference = await _assetService.GetAssetAsync<ProjectReference>(checksum, cancellationToken).ConfigureAwait(false);
-                    p2p.Add(reference);
-                }
-
-                var metadata = new List<MetadataReference>();
-                foreach (var checksum in projectSnapshot.MetadataReferences)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var reference = await _assetService.GetAssetAsync<MetadataReference>(checksum, cancellationToken).ConfigureAwait(false);
-                    metadata.Add(reference);
-                }
-
-                var analyzers = new List<AnalyzerReference>();
-                foreach (var checksum in projectSnapshot.AnalyzerReferences)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var reference = await _assetService.GetAssetAsync<AnalyzerReference>(checksum, cancellationToken).ConfigureAwait(false);
-                    analyzers.Add(reference);
-                }
-
-                var additionals = new List<DocumentInfo>();
-                foreach (var documentChecksum in projectSnapshot.AdditionalDocuments)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var documentSnapshot = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
-                    var documentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
-
-                    var textLoader = TextLoader.From(
-                        TextAndVersion.Create(
-                            new ChecksumSourceText(
-                                documentSnapshot.Text,
-                            await _assetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false)),
-                            VersionStamp.Create(),
-                            documentInfo.FilePath));
-
-                    // TODO: do we need version?
-                    additionals.Add(
-                        DocumentInfo.Create(
-                            documentInfo.Id,
-                            documentInfo.Name,
-                            documentInfo.Folders,
-                            documentInfo.SourceCodeKind,
-                            textLoader,
-                            documentInfo.FilePath,
-                            documentInfo.IsGenerated));
-                }
-
-                var compilationOptions = await _assetService.GetAssetAsync<CompilationOptions>(projectSnapshot.CompilationOptions, cancellationToken).ConfigureAwait(false);
-                var parseOptions = await _assetService.GetAssetAsync<ParseOptions>(projectSnapshot.ParseOptions, cancellationToken).ConfigureAwait(false);
-
-                projects.Add(
-                    ProjectInfo.Create(
-                        projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
-                        projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
-                        compilationOptions, parseOptions,
-                        documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission));
+                return PrimaryWorkspace.CurrentSolution;
             }
 
-            return workspace.AddSolution(SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects));
+            // otherwise, just return new solution
+            var workspace = new TemporaryWorkspace(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
+            return workspace.CurrentSolution;
+        }
+
+        async Task<Solution> ISolutionController.GetSolutionAsync(Checksum solutionChecksum, bool primary, CancellationToken cancellationToken)
+        {
+            return await GetSolutionInternalAsync(solutionChecksum, primary, cancellationToken).ConfigureAwait(false);
+        }
+
+        async Task ISolutionController.UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        {
+            var currentSolution = PrimaryWorkspace.CurrentSolution;
+
+            var primarySolutionChecksum = await currentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            if (primarySolutionChecksum == solutionChecksum)
+            {
+                return;
+            }
+
+            using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var primary = true;
+                var solution = await CreateSolution_NoLockAsync(solutionChecksum, primary, currentSolution, cancellationToken).ConfigureAwait(false);
+                s_primarySolution = Tuple.Create(solutionChecksum, solution);
+            }
+        }
+
+        private static Solution GetAvailableSolution(Checksum solutionChecksum)
+        {
+            var currentSolution = s_primarySolution;
+            if (currentSolution?.Item1 == solutionChecksum)
+            {
+                // asked about primary solution
+                return currentSolution.Item2;
+            }
+
+            var lastSolution = s_lastSolution;
+            if (lastSolution?.Item1 == solutionChecksum)
+            {
+                // asked about last solution
+                return lastSolution.Item2;
+            }
+
+            return null;
         }
     }
 }

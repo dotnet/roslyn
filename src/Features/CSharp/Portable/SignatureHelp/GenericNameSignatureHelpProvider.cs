@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -38,16 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             CancellationToken cancellationToken,
             out SyntaxToken genericIdentifier, out SyntaxToken lessThanToken)
         {
-            GenericNameSyntax name;
-            if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out name))
+            if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out GenericNameSyntax name))
             {
                 genericIdentifier = name.Identifier;
                 lessThanToken = name.TypeArgumentList.LessThanToken;
                 return true;
             }
 
-            genericIdentifier = default(SyntaxToken);
-            lessThanToken = default(SyntaxToken);
+            genericIdentifier = default;
+            lessThanToken = default;
             return false;
         }
 
@@ -70,10 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            SyntaxToken genericIdentifier, lessThanToken;
             if (!TryGetGenericIdentifier(root, position, document.GetLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken,
-                    out genericIdentifier, out lessThanToken))
+                    out var genericIdentifier, out var lessThanToken))
             {
                 return null;
             }
@@ -137,15 +134,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
-            SyntaxToken genericIdentifier, lessThanToken;
             if (!TryGetGenericIdentifier(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken,
-                    out genericIdentifier, out lessThanToken))
+                    out var genericIdentifier, out var lessThanToken))
             {
                 return null;
             }
 
-            GenericNameSyntax genericName;
-            if (genericIdentifier.TryParseGenericName(cancellationToken, out genericName))
+            if (genericIdentifier.TryParseGenericName(cancellationToken, out var genericName))
             {
                 // Because we synthesized the generic name, it will have an index starting at 0
                 // instead of at the actual position it's at in the text.  Because of this, we need to
@@ -176,9 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var position = lessThanToken.SpanStart;
 
             SignatureHelpItem item;
-            if (symbol is INamedTypeSymbol)
+            if (symbol is INamedTypeSymbol namedType)
             {
-                var namedType = (INamedTypeSymbol)symbol;
                 item = CreateItem(
                     symbol, semanticModel, position,
                     symbolDisplayService, anonymousTypeDisplayService,

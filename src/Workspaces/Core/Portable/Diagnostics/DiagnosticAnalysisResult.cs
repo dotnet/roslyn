@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             _syntaxLocals = null;
             _semanticLocals = null;
             _nonLocals = null;
-            _others = default(ImmutableArray<DiagnosticData>);
+            _others = default;
         }
 
         public DiagnosticAnalysisResult(
@@ -107,8 +107,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         public ImmutableArray<DiagnosticData> GetResultOrEmpty(ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> map, DocumentId key)
         {
             // this is just a helper method.
-            ImmutableArray<DiagnosticData> diagnostics;
-            if (map.TryGetValue(key, out diagnostics))
+            if (map.TryGetValue(key, out var diagnostics))
             {
                 Contract.ThrowIfFalse(DocumentIds.Contains(key));
                 return diagnostics;
@@ -124,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private T ReturnIfNotDefault<T>(T value)
         {
-            if (object.Equals(value, default(T)))
+            if (object.Equals(value, default))
             {
                 Contract.Fail("shouldn't be called");
             }

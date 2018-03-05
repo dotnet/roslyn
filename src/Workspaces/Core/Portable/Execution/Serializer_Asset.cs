@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
@@ -25,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32((int)text.ChecksumAlgorithm);
-            writer.WriteString(text.Encoding?.WebName);
+            _hostSerializationService.WriteTo(text.Encoding, writer, cancellationToken);
 
             // TODO: refactor this part in its own abstraction (Bits) that has multiple sub types
             //       rather than using enums
@@ -33,12 +30,13 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
                 writer.WriteString(storage.Name);
+                writer.WriteInt64(storage.Offset);
                 writer.WriteInt64(storage.Size);
                 return;
             }
 
             writer.WriteInt32((int)SerializationKinds.Bits);
-            writer.WriteString(text.ToString());
+            text.WriteTo(writer, cancellationToken);
         }
 
         private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
@@ -47,28 +45,22 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             // REVIEW: why IDE services doesnt care about checksumAlgorithm?
             var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
-            var webName = reader.ReadString();
-            var encoding = webName == null ? null : Encoding.GetEncoding(webName);
+            var encoding = _hostSerializationService.ReadEncodingFrom(reader, cancellationToken);
 
             var kind = (SerializationKinds)reader.ReadInt32();
             if (kind == SerializationKinds.MemoryMapFile)
             {
                 var name = reader.ReadString();
+                var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
-                var tempService = _workspaceServices.GetService<ITemporaryStorageService>() as ITemporaryStorageService2;
-                var storage = tempService.AttachTemporaryTextStorage(name, size, encoding, cancellationToken);
+                var storage = _tempService.AttachTemporaryTextStorage(name, offset, size, encoding, cancellationToken);
 
                 return storage.ReadText(cancellationToken);
             }
 
-            // TODO: should include version info here as well?
-
-            var textService = _workspaceServices.GetService<ITextFactoryService>();
-            using (var textReader = new StringReader(reader.ReadString()))
-            {
-                return textService.CreateText(textReader, encoding, cancellationToken);
-            }
+            Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
+            return SourceTextExtensions.ReadFrom(_textService, reader, encoding, cancellationToken);
         }
 
         public void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
@@ -149,10 +141,10 @@ namespace Microsoft.CodeAnalysis.Serialization
             return _hostSerializationService.ReadMetadataReferenceFrom(reader, cancellationToken);
         }
 
-        public void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, bool usePathFromAssembly, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            _hostSerializationService.WriteTo(reference, writer, cancellationToken);
+            _hostSerializationService.WriteTo(reference, writer, usePathFromAssembly, cancellationToken);
         }
 
         private AnalyzerReference DeserializeAnalyzerReference(ObjectReader reader, CancellationToken cancellationToken)

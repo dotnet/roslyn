@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
 
@@ -9,28 +10,28 @@ namespace Microsoft.CodeAnalysis.Scripting
     {
         // TODO: we need to clean up and refactor CreateCompilationWithMscorlib in compiler tests 
         // so that it can be used in portable tests.
-        internal static Compilation CreateCSharpCompilationWithMscorlib(string source, string assemblyName)
+        internal static Compilation CreateCSharpCompilationWithCorlib(string source, string assemblyName = null)
         {
             return CSharpCompilation.Create(
-                assemblyName,
+                assemblyName ?? Guid.NewGuid().ToString(),
                 new[] { CSharp.SyntaxFactory.ParseSyntaxTree(source) },
-                new[] { TestReferences.NetFx.v4_0_30319.mscorlib },
+                new[] { TestReferences.NetStandard13.SystemRuntime },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
 
-        internal static Compilation CreateVisualBasicCompilationWithMscorlib(string source, string assemblyName)
+        internal static Compilation CreateVisualBasicCompilationWithCorlib(string source, string assemblyName = null)
         {
             return VisualBasicCompilation.Create(
-                assemblyName,
+                assemblyName ?? Guid.NewGuid().ToString(),
                 new[] { VisualBasic.SyntaxFactory.ParseSyntaxTree(source) },
-                new[] { TestReferences.NetFx.v4_0_30319.mscorlib },
+                new[] { TestReferences.NetStandard13.SystemRuntime },
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
 
-        internal static Compilation CreateCSharpCompilation(string source, MetadataReference[] references, string assemblyName, CSharpCompilationOptions options = null)
+        internal static Compilation CreateCSharpCompilation(string source, MetadataReference[] references, string assemblyName = null, CSharpCompilationOptions options = null)
         {
             return CSharpCompilation.Create(
-                assemblyName,
+                assemblyName ?? Guid.NewGuid().ToString(),
                 new[] { CSharp.SyntaxFactory.ParseSyntaxTree(source) },
                 references,
                 options ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));

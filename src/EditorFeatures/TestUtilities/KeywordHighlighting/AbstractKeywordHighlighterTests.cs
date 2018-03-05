@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
     {
         internal abstract IHighlighter CreateHighlighter();
         protected abstract IEnumerable<ParseOptions> GetOptions();
-        protected abstract Task<TestWorkspace> CreateWorkspaceFromFileAsync(string code, ParseOptions options);
+        protected abstract TestWorkspace CreateWorkspaceFromFile(string code, ParseOptions options);
 
         protected async Task TestAsync(
             string code)
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
             ParseOptions options,
             bool optionIsEnabled = true)
         {
-            using (var workspace = await CreateWorkspaceFromFileAsync(markup, options))
+            using (var workspace = CreateWorkspaceFromFile(markup, options))
             {
                 var testDocument = workspace.Documents.Single();
                 var expectedHighlightSpans = testDocument.SelectedSpans ?? new List<TextSpan>();

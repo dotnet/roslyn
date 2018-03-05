@@ -70,13 +70,7 @@ namespace Microsoft.CodeAnalysis
             return lastIndex;
         }
 
-        public int Capacity
-        {
-            get
-            {
-                return _capacity;
-            }
-        }
+        public int Capacity => _capacity;
 
         [Conditional("DEBUG_BITARRAY")]
         private void Check()
@@ -213,28 +207,16 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static BitVector Null
-        {
-            get
-            {
-                return s_nullValue;
-            }
-        }
+        public static BitVector Null => s_nullValue;
 
-        public static BitVector Empty
-        {
-            get
-            {
-                return s_emptyValue;
-            }
-        }
+        public static BitVector Empty => s_emptyValue;
 
         /// <summary>
         /// Modify this bit vector by bitwise AND-ing each element with the other bit vector.
         /// For the purposes of the intersection, any bits beyond the current length will be treated as zeroes.
         /// Return true if any changes were made to the bits of this bit vector.
         /// </summary>
-        public bool IntersectWith(BitVector other)
+        public bool IntersectWith(in BitVector other)
         {
             bool anyChanged = false;
             int otherLength = other._bits.Length;
@@ -286,7 +268,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>
         /// True if any bits were set as a result of the union.
         /// </returns>
-        public bool UnionWith(BitVector other)
+        public bool UnionWith(in BitVector other)
         {
             bool anyChanged = false;
 

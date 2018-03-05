@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -43,8 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim builder = ArrayBuilder(Of ParameterSymbol).GetInstance()
             For Each p As ParameterSymbol In implementingMethod.Parameters
                 Dim implementedParameter = implementedMethod.Parameters(p.Ordinal)
-                builder.Add(New SynthesizedParameterSymbolWithCustomModifiers(Me, implementedParameter.Type, p.Ordinal, p.IsByRef, p.Name,
-                                                                              implementedParameter.CustomModifiers, implementedParameter.CountOfCustomModifiersPrecedingByRef))
+                builder.Add(SynthesizedParameterSymbol.Create(Me, implementedParameter.Type, p.Ordinal, p.IsByRef, p.Name,
+                                                              implementedParameter.CustomModifiers, implementedParameter.RefCustomModifiers))
             Next
 
             _parameters = builder.ToImmutableAndFree()

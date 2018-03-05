@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                        originalBinder As Binder)
 
                 For Each typeParameter In _typeParameters.Values
-                    If originalBinder.CanAddLookupSymbolInfo(typeParameter, options, Nothing) Then
+                    If originalBinder.CanAddLookupSymbolInfo(typeParameter, options, nameSet, Nothing) Then
                         nameSet.AddSymbol(typeParameter, typeParameter.Name, 0)
                     End If
                 Next

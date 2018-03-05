@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -12,11 +12,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            void Foo()
+            void Goo()
             {
-            $${|Definition:Foo|}:
-                int Foo;
-                goto [|Foo|];
+            $${|Definition:Goo|}:
+                int Goo;
+                goto [|Goo|];
             }
         }
         </Document>
@@ -33,11 +33,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            void Foo()
+            void Goo()
             {
-            {|Definition:Foo|}:
-                int Foo;
-                goto [|$$Foo|];
+            {|Definition:Goo|}:
+                int Goo;
+                goto [|$$Goo|];
             }
         }
         </Document>

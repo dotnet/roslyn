@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Inherits AbstractFlagsEnumGenerator
 
         Public Shared ReadOnly Instance As VisualBasicFlagsEnumGenerator = New VisualBasicFlagsEnumGenerator
-        Private Shared ReadOnly s_syntaxGeneratorInstance As SyntaxGenerator = New VisualBasicSyntaxGenerator
+        Private Shared ReadOnly s_syntaxGeneratorInstance As SyntaxGenerator = VisualBasicSyntaxGenerator.Instance
 
         Private Sub New()
         End Sub
@@ -32,8 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return expression
             End If
 
-            Dim factory = New VisualBasicSyntaxGenerator()
-            Return factory.ConvertExpression(enumType, expression)
+            Return VisualBasicSyntaxGenerator.Instance.ConvertExpression(enumType, expression)
         End Function
 
         Protected Overrides Function GetSyntaxGenerator() As SyntaxGenerator

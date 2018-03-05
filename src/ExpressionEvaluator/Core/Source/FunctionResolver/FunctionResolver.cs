@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.VisualStudio.Debugger;
-using Microsoft.VisualStudio.Debugger.Clr;
-using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
-using Microsoft.VisualStudio.Debugger.Evaluation;
-using Microsoft.VisualStudio.Debugger.FunctionResolution;
-using Microsoft.VisualStudio.Debugger.Symbols;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.VisualStudio.Debugger;
+using Microsoft.VisualStudio.Debugger.Clr;
+using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
+using Microsoft.VisualStudio.Debugger.FunctionResolution;
+using Microsoft.VisualStudio.Debugger.Symbols;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -26,17 +26,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (request.LineOffset > 0)
             {
                 return;
-            }
-
-            var languageId = request.CompilerId.LanguageId;
-            if (languageId == DkmLanguageId.MethodId)
-            {
-                return;
-            }
-            else if (languageId != default(Guid))
-            {
-                // Verify module matches language before binding
-                // (see https://github.com/dotnet/roslyn/issues/15119).
             }
 
             EnableResolution(request.Process, request, OnFunctionResolved(workList));
@@ -85,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             OnModuleLoad(module.Process, module, OnFunctionResolved(workList));
         }
 
-        internal override bool ShouldEnableFunctionResolver(DkmProcess process)
+        internal sealed override bool ShouldEnableFunctionResolver(DkmProcess process)
         {
             var dataItem = process.GetDataItem<FunctionResolverDataItem>();
             if (dataItem == null)
@@ -97,7 +86,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return dataItem.Enabled;
         }
 
-        internal override IEnumerable<DkmClrModuleInstance> GetAllModules(DkmProcess process)
+        internal sealed override IEnumerable<DkmClrModuleInstance> GetAllModules(DkmProcess process)
         {
             foreach (var runtimeInstance in process.GetRuntimeInstances())
             {
@@ -108,9 +97,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 foreach (var moduleInstance in runtime.GetModuleInstances())
                 {
-                    var module = moduleInstance as DkmClrModuleInstance;
                     // Only interested in managed modules.
-                    if (module != null)
+                    if (moduleInstance is DkmClrModuleInstance module)
                     {
                         yield return module;
                     }
@@ -118,12 +106,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal override string GetModuleName(DkmClrModuleInstance module)
+        internal sealed override string GetModuleName(DkmClrModuleInstance module)
         {
             return module.Name;
         }
 
-        internal override MetadataReader GetModuleMetadata(DkmClrModuleInstance module)
+        internal sealed override MetadataReader GetModuleMetadata(DkmClrModuleInstance module)
         {
             uint length;
             IntPtr ptr;
@@ -131,7 +119,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 ptr = module.GetMetaDataBytesPtr(out length);
             }
-            catch (Exception e) when (IsBadOrMissingMetadataException(e))
+            catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
             {
                 return null;
             }
@@ -142,14 +130,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal override DkmRuntimeFunctionResolutionRequest[] GetRequests(DkmProcess process)
+        internal sealed override DkmRuntimeFunctionResolutionRequest[] GetRequests(DkmProcess process)
         {
             return process.GetRuntimeFunctionResolutionRequests();
         }
 
-        internal override string GetRequestModuleName(DkmRuntimeFunctionResolutionRequest request)
+        internal sealed override string GetRequestModuleName(DkmRuntimeFunctionResolutionRequest request)
         {
             return request.ModuleName;
+        }
+
+        internal sealed override Guid GetLanguageId(DkmRuntimeFunctionResolutionRequest request)
+        {
+            return request.CompilerId.LanguageId;
         }
 
         private static OnFunctionResolvedDelegate<DkmClrModuleInstance, DkmRuntimeFunctionResolutionRequest> OnFunctionResolved(DkmWorkList workList)
@@ -196,21 +189,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             catch (NotImplementedException)
             {
                 return false;
-            }
-        }
-
-        private const uint COR_E_BADIMAGEFORMAT = 0x8007000b;
-        private const uint CORDBG_E_MISSING_METADATA = 0x80131c35;
-
-        private static bool IsBadOrMissingMetadataException(Exception e)
-        {
-            switch (unchecked((uint)e.HResult))
-            {
-                case COR_E_BADIMAGEFORMAT:
-                case CORDBG_E_MISSING_METADATA:
-                    return true;
-                default:
-                    return false;
             }
         }
 

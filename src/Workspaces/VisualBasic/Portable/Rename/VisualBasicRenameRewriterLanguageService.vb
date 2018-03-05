@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.CodeAnalysis.Simplification
@@ -80,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 If Not Me._isProcessingComplexifiedSpans Then
                     _renameSpansTracker.AddModifiedSpan(_documentId, oldSpan, newSpan)
                 Else
-                    Me._modifiedSubSpans.Add(ValueTuple.Create(oldSpan, newSpan))
+                    Me._modifiedSubSpans.Add((oldSpan, newSpan))
                 End If
             End Sub
 
@@ -173,6 +174,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 newNode = speculativeTree.GetAnnotatedNodes(Of SyntaxNode)(annotation).First()
                 Me._speculativeModel = GetSemanticModelForNode(newNode, Me._semanticModel)
                 Debug.Assert(_speculativeModel IsNot Nothing, "expanding a syntax node which cannot be speculated?")
+
+                ' There are cases when we change the type of node to make speculation work (e.g.,
+                ' for AsNewClauseSyntax), so getting the newNode from the _speculativeModel 
+                ' ensures the final node replacing the original node is found.
+                newNode = Me._speculativeModel.SyntaxTree.GetRoot(_cancellationToken).GetAnnotatedNodes(Of SyntaxNode)(annotation).First()
 
                 Dim oldSpan = originalNode.Span
 
@@ -272,8 +278,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Dim prefix = If(isRenameLocation AndAlso Me._renameLocations(token.Span).IsRenamableAccessor, newToken.ValueText.Substring(0, newToken.ValueText.IndexOf("_"c) + 1), String.Empty)
                 Dim suffix As String = Nothing
 
-                If symbols.Count() = 1 Then
-                    Dim symbol = symbols.Single()
+                If symbols.Length = 1 Then
+                    Dim symbol = symbols(0)
 
                     If symbol.IsConstructor() Then
                         symbol = symbol.ContainingSymbol

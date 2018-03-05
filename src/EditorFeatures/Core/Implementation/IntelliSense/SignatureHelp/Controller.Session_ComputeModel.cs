@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,15 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         internal partial class Session
         {
             public void ComputeModel(
-                IList<ISignatureHelpProvider> providers,
-                SignatureHelpTriggerInfo triggerInfo)
-            {
-                ComputeModel(providers, SpecializedCollections.EmptyList<ISignatureHelpProvider>(), triggerInfo);
-            }
-
-            public void ComputeModel(
-                IList<ISignatureHelpProvider> matchedProviders,
-                IList<ISignatureHelpProvider> unmatchedProviders,
+                ImmutableArray<ISignatureHelpProvider> providers,
                 SignatureHelpTriggerInfo triggerInfo)
             {
                 AssertIsForeground();
@@ -38,16 +31,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 var caretPosition = Controller.TextView.GetCaretPoint(Controller.SubjectBuffer).Value;
                 var disconnectedBufferGraph = new DisconnectedBufferGraph(Controller.SubjectBuffer, Controller.TextView.TextBuffer);
 
+                // If this is a retrigger command then update the retrigger-id.  This way
+                // any in-flight retrigger-updates will immediately bail out.
+                if (IsNonTypeCharRetrigger(triggerInfo))
+                {
+                    Interlocked.Increment(ref _retriggerId);
+                }
+
+                var localId = _retriggerId;
+
                 // If we've already computed a model, then just use that.  Otherwise, actually
                 // compute a new model and send that along.
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
-                    (model, cancellationToken) => ComputeModelInBackgroundAsync(model, matchedProviders, unmatchedProviders, caretPosition, disconnectedBufferGraph, triggerInfo, cancellationToken));
+                    (model, cancellationToken) => ComputeModelInBackgroundAsync(
+                        localId, model, providers, caretPosition,
+                        disconnectedBufferGraph, triggerInfo, cancellationToken));
             }
 
+            private static bool IsNonTypeCharRetrigger(SignatureHelpTriggerInfo triggerInfo)
+                => triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand &&
+                   triggerInfo.TriggerCharacter == null;
+
             private async Task<Model> ComputeModelInBackgroundAsync(
+                int localRetriggerId,
                 Model currentModel,
-                IList<ISignatureHelpProvider> matchedProviders,
-                IList<ISignatureHelpProvider> unmatchedProviders,
+                ImmutableArray<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
                 DisconnectedBufferGraph disconnectedBufferGraph,
                 SignatureHelpTriggerInfo triggerInfo,
@@ -68,30 +76,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                         if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand)
                         {
-                            if (currentModel == null ||
-                                (triggerInfo.TriggerCharacter.HasValue && !currentModel.Provider.IsRetriggerCharacter(triggerInfo.TriggerCharacter.Value)))
+                            if (currentModel == null)
+                            {
+                                return null;
+                            }
+
+                            if (triggerInfo.TriggerCharacter.HasValue &&
+                                !currentModel.Provider.IsRetriggerCharacter(triggerInfo.TriggerCharacter.Value))
                             {
                                 return currentModel;
                             }
                         }
 
                         // first try to query the providers that can trigger on the specified character
-                        var result = await ComputeItemsAsync(matchedProviders, caretPosition, triggerInfo, document, cancellationToken).ConfigureAwait(false);
-                        var provider = result.Item1;
-                        var items = result.Item2;
+                        var providerAndItemsOpt = await ComputeItemsAsync(
+                            localRetriggerId, providers, caretPosition,
+                            triggerInfo, document, cancellationToken).ConfigureAwait(false);
 
+                        if (providerAndItemsOpt == null)
+                        {
+                            // Another retrigger was enqueued while we were inflight.  Just 
+                            // stop all work and return the last computed model.  We'll compute
+                            // the correct model when we process the other retrigger task.
+                            return currentModel;
+                        }
+
+                        var (provider, items) = providerAndItemsOpt.Value;
                         if (provider == null)
                         {
-                            // no match, so now query the other providers
-                            result = await ComputeItemsAsync(unmatchedProviders, caretPosition, triggerInfo, document, cancellationToken).ConfigureAwait(false);
-                            provider = result.Item1;
-                            items = result.Item2;
-
-                            if (provider == null)
-                            {
-                                // the other providers didn't produce items either, so we don't produce a model
-                                return null;
-                            }
+                            // No provider produced items. So we can't produce a model
+                            return null;
                         }
 
                         if (currentModel != null &&
@@ -158,17 +172,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
 
             private static bool DisplayPartsMatch(SignatureHelpItem i1, SignatureHelpItem i2)
-            {
-                return i1.GetAllParts().SequenceEqual(i2.GetAllParts(), CompareParts);
-            }
+                => i1.GetAllParts().SequenceEqual(i2.GetAllParts(), CompareParts);
 
             private static bool CompareParts(TaggedText p1, TaggedText p2)
-            {
-                return p1.ToString() == p2.ToString();
-            }
+                => p1.ToString() == p2.ToString();
 
-            private async Task<Tuple<ISignatureHelpProvider, SignatureHelpItems>> ComputeItemsAsync(
-                IList<ISignatureHelpProvider> providers,
+            /// <summary>
+            /// Returns <code>null</code> if our work was preempted and we want to return the 
+            /// previous model we've computed.
+            /// </summary>
+            private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)?> ComputeItemsAsync(
+                int localRetriggerId,
+                ImmutableArray<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
                 SignatureHelpTriggerInfo triggerInfo,
                 Document document,
@@ -183,6 +198,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // to the extension crashing.
                     foreach (var provider in providers)
                     {
+                        // If this is a retrigger command, and another retrigger command has already
+                        // been issued then we can bail out immediately.
+                        if (IsNonTypeCharRetrigger(triggerInfo) &&
+                            localRetriggerId != _retriggerId)
+                        {
+                            return null;
+                        }
+
                         cancellationToken.ThrowIfCancellationRequested();
 
                         var currentItems = await provider.GetItemsAsync(document, caretPosition, triggerInfo, cancellationToken).ConfigureAwait(false);
@@ -192,10 +215,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             // start after the last batch of items.  i.e. we want the set of items that
                             // conceptually are closer to where the caret position is.  This way if you have:
                             //
-                            //  Foo(new Bar($$
+                            //  Goo(new Bar($$
                             //
                             // Then invoking sig help will only show the items for "new Bar(" and not also
-                            // the items for "Foo(..."
+                            // the items for "Goo(..."
                             if (IsBetter(bestItems, currentItems.ApplicableSpan))
                             {
                                 bestItems = currentItems;
@@ -204,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         }
                     }
 
-                    return Tuple.Create(bestProvider, bestItems);
+                    return (bestProvider, bestItems);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {

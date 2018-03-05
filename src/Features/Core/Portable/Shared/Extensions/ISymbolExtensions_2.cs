@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     var containingType = symbol.ContainingType;
                     if (containingType != null && containingType.TypeKind == TypeKind.Enum)
                     {
-                        return Glyph.EnumMember;
+                        return Glyph.EnumMemberPublic;
                     }
 
                     publicIcon = ((IFieldSymbol)symbol).IsConst ? Glyph.ConstantPublic : Glyph.FieldPublic;
@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return Glyph.Label;
 
                 case SymbolKind.Local:
+                case SymbolKind.Discard:
                     return Glyph.Local;
 
                 case SymbolKind.NamedType:
@@ -170,16 +171,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static IEnumerable<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
         {
-            var documentation = symbol.TypeSwitch(
-                    (IParameterSymbol parameter) => parameter.ContainingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(symbol.Name),
-                    (ITypeParameterSymbol typeParam) => typeParam.ContainingSymbol.GetDocumentationComment(cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name),
-                    (IMethodSymbol method) => GetMethodDocumentation(method),
-                    (IAliasSymbol alias) => alias.Target.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText,
-                    _ => symbol.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText);
+            string documentation = GetDocumentation(symbol, cancellationToken);
 
             return documentation != null
                 ? formatter.Format(documentation, semanticModel, position, CrefFormat)
                 : SpecializedCollections.EmptyEnumerable<TaggedText>();
+        }
+
+        private static string GetDocumentation(ISymbol symbol, CancellationToken cancellationToken)
+        {
+            switch (symbol)
+            {
+                case IParameterSymbol parameter: return parameter.ContainingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(symbol.Name);
+                case ITypeParameterSymbol typeParam: return typeParam.ContainingSymbol.GetDocumentationComment(cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name);
+                case IMethodSymbol method: return GetMethodDocumentation(method);
+                case IAliasSymbol alias: return alias.Target.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText;
+                default: return symbol.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText;
+            }
         }
 
         public static Func<CancellationToken, IEnumerable<TaggedText>> GetDocumentationPartsFactory(

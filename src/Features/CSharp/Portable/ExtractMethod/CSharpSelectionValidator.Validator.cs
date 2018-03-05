@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -11,11 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         public bool Check(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         {
-            return node.TypeSwitch(
-                (ExpressionSyntax expression) => CheckExpression(semanticModel, expression, cancellationToken),
-                (BlockSyntax block) => CheckBlock(semanticModel, block, cancellationToken),
-                (StatementSyntax statement) => CheckStatement(semanticModel, statement, cancellationToken),
-                (GlobalStatementSyntax globalStatement) => CheckGlobalStatement(semanticModel, globalStatement, cancellationToken));
+            switch (node)
+            {
+                case ExpressionSyntax expression: return CheckExpression(semanticModel, expression, cancellationToken);
+                case BlockSyntax block: return CheckBlock(semanticModel, block, cancellationToken);
+                case StatementSyntax statement: return CheckStatement(semanticModel, statement, cancellationToken);
+                case GlobalStatementSyntax globalStatement: return CheckGlobalStatement(semanticModel, globalStatement, cancellationToken);
+                default: return false;
+            }
         }
 
         private bool CheckGlobalStatement(SemanticModel semanticModel, GlobalStatementSyntax globalStatement, CancellationToken cancellationToken)

@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
@@ -69,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
         Protected Function AssertFormatSpanAsync(markupCode As String, expected As String) As Task
             Dim code As String = Nothing
             Dim cursorPosition As Integer? = Nothing
-            Dim spans As IList(Of TextSpan) = Nothing
+            Dim spans As ImmutableArray(Of TextSpan) = Nothing
             MarkupTestFile.GetSpans(markupCode, code, spans)
 
             Return AssertFormatAsync(expected, code, spans)

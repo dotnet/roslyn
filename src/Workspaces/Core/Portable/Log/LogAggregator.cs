@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         {
             if (values.Count == 0)
             {
-                return default(StatisticResult);
+                return default;
             }
 
             var max = int.MinValue;
@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public int GetCount(object key)
         {
-            Counter counter;
-            if (_map.TryGetValue(key, out counter))
+            if (_map.TryGetValue(key, out var counter))
             {
                 return counter.GetCount();
             }

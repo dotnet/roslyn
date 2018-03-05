@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         protected override SyntaxTrivia CreateEndOfLine()
         {
-            if (_newLine == default(SyntaxTrivia))
+            if (_newLine == default)
             {
                 var text = this.Context.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
                 _newLine = SyntaxFactory.EndOfLine(text);
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private bool TryFormatMultiLineCommentTrivia(LineColumn lineColumn, SyntaxTrivia trivia, out SyntaxTrivia result)
         {
-            result = default(SyntaxTrivia);
+            result = default;
 
             if (trivia.Kind() != SyntaxKind.MultiLineCommentTrivia)
             {
@@ -218,8 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return FormatStructuredTrivia(lineColumn, trivia, changes, cancellationToken);
             }
 
-            var newComment = default(SyntaxTrivia);
-            if (TryFormatMultiLineCommentTrivia(lineColumn, trivia, out newComment))
+            if (TryFormatMultiLineCommentTrivia(lineColumn, trivia, out var newComment))
             {
                 changes.Add(newComment);
                 return GetLineColumnDelta(lineColumn, newComment);
@@ -237,8 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return FormatStructuredTrivia(lineColumn, trivia, changes, cancellationToken);
             }
 
-            var newComment = default(SyntaxTrivia);
-            if (TryFormatMultiLineCommentTrivia(lineColumn, trivia, out newComment))
+            if (TryFormatMultiLineCommentTrivia(lineColumn, trivia, out var newComment))
             {
                 changes.Add(new TextChange(trivia.FullSpan, newComment.ToFullString()));
                 return GetLineColumnDelta(lineColumn, newComment);

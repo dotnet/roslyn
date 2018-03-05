@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
@@ -66,8 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 return null;
             }
 
-            string filePath;
-            if (!item.TryGetFullPath(out filePath))
+            if (!item.TryGetFullPath(out var filePath))
             {
                 return null;
             }

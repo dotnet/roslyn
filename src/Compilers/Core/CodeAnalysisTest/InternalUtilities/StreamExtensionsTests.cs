@@ -11,7 +11,7 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
     public class StreamExtensionsTests
     {
         [Fact]
-        public void CallsReadMultipleTimes()
+        public void TryReadAll_CallsReadMultipleTimes()
         {
             var firstRead = true;
             var sourceArray = new byte[] { 1, 2, 3, 4 };
@@ -37,7 +37,7 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
         }
 
         [Fact]
-        public void ExceptionsPropagate()
+        public void TryReadAll_ExceptionsPropagate()
         {
             var buffer = new byte[10];
 
@@ -57,7 +57,7 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
         }
 
         [Fact]
-        public void ExceptionMayChangeOutput()
+        public void TryReadAll_ExceptionMayChangeOutput()
         {
             var firstRead = true;
             var sourceArray = new byte[] { 1, 2, 3, 4 };
@@ -82,7 +82,7 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
         }
 
         [Fact]
-        public void ExceptionMayChangePosition()
+        public void TryReadAll_ExceptionMayChangePosition()
         {
             var firstRead = true;
             var sourceArray = new byte[] { 1, 2, 3, 4 };
@@ -107,7 +107,7 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
         }
 
         [Fact]
-        public void PrematureEndOfStream()
+        public void TryReadAll_PrematureEndOfStream()
         {
             var sourceArray = new byte[] { 1, 2, 3, 4 };
             var stream = new MemoryStream(sourceArray);
@@ -117,6 +117,39 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
             Assert.Equal(4, stream.TryReadAll(destArray, 0, 6));
             var expected = new byte[] { 1, 2, 3, 4, 0, 0 };
             Assert.Equal(expected, destArray);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ReadAllBytes(bool canSeek)
+        {
+            var sourceArray = new byte[] { 1, 2, 3, 4 };
+            var stream = new TestStream(canSeek: canSeek, backingStream: new MemoryStream(sourceArray));
+            stream.ReadByte();
+            Assert.Equal(new byte[] { 2, 3, 4 }, stream.ReadAllBytes());
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ReadAllBytes_End(bool canSeek)
+        {
+            var sourceArray = new byte[] { 1, 2 };
+            var stream = new TestStream(canSeek: canSeek, backingStream: new MemoryStream(sourceArray));
+            stream.ReadByte();
+            stream.ReadByte();
+            Assert.Equal(new byte[0], stream.ReadAllBytes());
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ReadAllBytes_Resize(bool canSeek)
+        {
+            var sourceArray = new byte[] { 1, 2 };
+            var stream = new TestStream(canSeek: canSeek, backingStream: new MemoryStream(sourceArray), length: 3);
+            Assert.Equal(new byte[] { 1, 2 }, stream.ReadAllBytes());
         }
     }
 }

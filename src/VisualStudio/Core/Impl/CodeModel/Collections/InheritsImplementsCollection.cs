@@ -1,9 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
@@ -103,9 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             // Inherits statements
             foreach (var child in CodeModelService.GetInheritsNodes(node))
             {
-                string childName;
-                int ordinal;
-                CodeModelService.GetInheritsNamespaceAndOrdinal(node, child, out childName, out ordinal);
+                CodeModelService.GetInheritsNamespaceAndOrdinal(node, child, out var childName, out var ordinal);
                 if (childName == name)
                 {
                     element = FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(child);
@@ -116,9 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             // Implements statements
             foreach (var child in CodeModelService.GetImplementsNodes(node))
             {
-                string childName;
-                int ordinal;
-                CodeModelService.GetImplementsNamespaceAndOrdinal(node, child, out childName, out ordinal);
+                CodeModelService.GetImplementsNamespaceAndOrdinal(node, child, out var childName, out var ordinal);
                 if (childName == name)
                 {
                     element = FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(child);

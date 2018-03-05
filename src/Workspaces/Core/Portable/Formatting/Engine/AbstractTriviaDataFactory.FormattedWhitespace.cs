@@ -42,29 +42,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return new string(' ', this.Spaces);
             }
 
-            public override bool TreatAsElastic
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            public override bool TreatAsElastic => false;
 
-            public override bool IsWhitespaceOnlyTrivia
-            {
-                get
-                {
-                    return true;
-                }
-            }
+            public override bool IsWhitespaceOnlyTrivia => true;
 
-            public override bool ContainsChanges
-            {
-                get
-                {
-                    return true;
-                }
-            }
+            public override bool ContainsChanges => true;
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan textSpan)
             {

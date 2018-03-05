@@ -296,26 +296,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             //     int i = 5;
             //     i.          // <-- here
             //     List<string> ml = new List<string>();
+            //
+            // The problem is that "i.List<string>" gets parsed as a type.  In this case we need 
+            // to try binding again as if "i" is an expression and not a type.  In order to do 
+            // that, we need to speculate as to what 'i' meant if it wasn't part of a local 
+            // declaration's type.
+            //
+            // Another interesting case is something like:
+            //
+            //      stringList.
+            //      await Test2();
+            //
+            // Here "stringList.await" is thought of as the return type of a local function.
 
-            // The problem is that "i.List<string>" gets parsed as a type.  In this case we need to
-            // try binding again as if "i" is an expression and not a type.  In order to do that, we
-            // need to speculate as to what 'i' meant if it wasn't part of a local declaration's
-            // type.
-
-            if (name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
+            if (name.IsFoundUnder<LocalFunctionStatementSyntax>(d => d.ReturnType) ||
+                name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
                 name.IsFoundUnder<FieldDeclarationSyntax>(d => d.Declaration.Type))
             {
-                var speculativeBinding = context.SemanticModel.GetSpeculativeSymbolInfo(name.SpanStart, name, SpeculativeBindingOption.BindAsExpression);
-                var container = context.SemanticModel.GetSpeculativeTypeInfo(name.SpanStart, name, SpeculativeBindingOption.BindAsExpression).Type;
-                return GetSymbolsOffOfBoundExpression(context, name, name, speculativeBinding, container, cancellationToken);
+                var speculativeBinding = context.SemanticModel.GetSpeculativeSymbolInfo(
+                    name.SpanStart, name, SpeculativeBindingOption.BindAsExpression);
+
+                var container = context.SemanticModel.GetSpeculativeTypeInfo(
+                    name.SpanStart, name, SpeculativeBindingOption.BindAsExpression).Type;
+
+                var speculativeResult = GetSymbolsOffOfBoundExpression(
+                    context, name, name, speculativeBinding, container, cancellationToken);
+
+                return speculativeResult;
             }
 
             // We're in a name-only context, since if we were an expression we'd be a
             // MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
             var nameBinding = context.SemanticModel.GetSymbolInfo(name, cancellationToken);
 
-            var symbol = nameBinding.Symbol as INamespaceOrTypeSymbol;
-            if (symbol != null)
+            if (nameBinding.Symbol is INamespaceOrTypeSymbol symbol)
             {
                 if (context.IsNameOfContext)
                 {
@@ -394,9 +408,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var leftHandBinding = context.SemanticModel.GetSymbolInfo(expression, cancellationToken);
 
             var container = context.SemanticModel.GetTypeInfo(expression, cancellationToken).Type;
-            if (container is IPointerTypeSymbol)
+            if (container is IPointerTypeSymbol pointerType)
             {
-                container = ((IPointerTypeSymbol)container).PointedAtType;
+                container = pointerType.PointedAtType;
             }
 
             return GetSymbolsOffOfBoundExpression(context, originalExpression, expression, leftHandBinding, container, cancellationToken);
@@ -436,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var useBaseReferenceAccessibility = false;
             var excludeInstance = false;
             var excludeStatic = false;
-            var symbol = leftHandBinding.GetBestOrAllSymbols().FirstOrDefault();
+            var symbol = leftHandBinding.GetAnySymbol();
 
             if (symbol != null)
             {
@@ -453,6 +467,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 // If the thing on the left is a lambda expression, we shouldn't show anything.
                 if (symbol.Kind == SymbolKind.Method &&
                     ((IMethodSymbol)symbol).MethodKind == MethodKind.AnonymousFunction)
+                {
+                    return ImmutableArray<ISymbol>.Empty;
+                }
+
+                // If the thing on the left is a method name identifier, we shouldn't show anything.
+                var originalExpressionKind = originalExpression.Kind();
+                if (symbol.Kind == SymbolKind.Method &&
+                    (originalExpressionKind == SyntaxKind.IdentifierName || originalExpressionKind == SyntaxKind.GenericName))
                 {
                     return ImmutableArray<ISymbol>.Empty;
                 }

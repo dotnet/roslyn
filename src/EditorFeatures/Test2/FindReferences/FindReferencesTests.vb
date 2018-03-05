@@ -1,11 +1,15 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.FindReferences
 Imports Microsoft.CodeAnalysis.FindSymbols
+Imports Microsoft.CodeAnalysis.FindUsages
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Remote
+Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 Imports Xunit.Abstractions
@@ -25,20 +29,34 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestStreamingFeature(definition, searchSingleFileOnly, uiVisibleOnly)
         End Function
 
-        Private Async Function TestStreamingFeature(element As XElement, searchSingleFileOnly As Boolean, uiVisibleOnly As Boolean) As Task
-            ' We don't support testing features htat only expect partial results.
+        Private Async Function TestStreamingFeature(element As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
+            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=True)
+        End Function
+
+        Private Async Function TestStreamingFeature(element As XElement,
+                                                    searchSingleFileOnly As Boolean,
+                                                    uiVisibleOnly As Boolean,
+                                                    outOfProcess As Boolean) As Task
+            ' We don't support testing features that only expect partial results.
             If searchSingleFileOnly OrElse uiVisibleOnly Then
                 Return
             End If
 
-            Using workspace = Await TestWorkspace.CreateAsync(element)
+            Using workspace = TestWorkspace.Create(element)
+                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
+                                                      WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).
+                                                      WithChangedOption(RemoteFeatureOptions.SymbolFinderEnabled, outOfProcess)
+
+                Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
+
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
                     Dim cursorPosition = cursorDocument.CursorPosition.Value
 
                     Dim startDocument = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
                     Assert.NotNull(startDocument)
 
-                    Dim findRefsService = startDocument.GetLanguageService(Of IStreamingFindReferencesService)
+                    Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
                     Dim context = New TestContext()
                     Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context)
 
@@ -108,8 +126,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         End Structure
 
-        Private Class TestContext
-            Inherits FindReferencesContext
+        Friend Class TestContext
+            Inherits FindUsagesContext
 
             Private ReadOnly gate As Object = New Object()
 
@@ -142,7 +160,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Class
 
         Private Async Function TestAPI(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
-            Using workspace = Await TestWorkspace.CreateAsync(definition)
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=True)
+        End Function
+
+        Private Async Function TestAPI(definition As XElement,
+                                       searchSingleFileOnly As Boolean,
+                                       uiVisibleOnly As Boolean,
+                                       outOfProcess As Boolean) As Task
+            Using workspace = TestWorkspace.Create(definition)
+                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
+                                                      WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).
+                                                      WithChangedOption(RemoteFeatureOptions.SymbolFinderEnabled, outOfProcess)
+
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
@@ -173,7 +203,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Dim documentsWithAnnotatedSpans = workspace.Documents.Where(Function(d) d.AnnotatedSpans.Any())
                     Assert.Equal(Of String)(documentsWithAnnotatedSpans.Select(Function(d) GetFilePathAndProjectLabel(workspace, d)).Order(), actualDefinitions.Keys.Order())
                     For Each doc In documentsWithAnnotatedSpans
-                        Assert.Equal(Of Text.TextSpan)(doc.AnnotatedSpans(DefinitionKey).Order(), actualDefinitions(GetFilePathAndProjectLabel(workspace, doc)).Order())
+
+                        Dim expected = doc.AnnotatedSpans(DefinitionKey).Order()
+                        Dim actual = actualDefinitions(GetFilePathAndProjectLabel(workspace, doc)).Order()
+
+                        If Not TextSpansMatch(expected, actual) Then
+                            Assert.True(False, PrintSpans(expected, actual, workspace.CurrentSolution.GetDocument(doc.Id), "{|Definition:", "|}"))
+                        End If
                     Next
 
                     Dim actualReferences =
@@ -193,10 +229,78 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                         Dim expectedSpans = doc.SelectedSpans.Order()
                         Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(workspace, doc)).Order()
 
-                        AssertEx.Equal(expectedSpans, actualSpans)
+                        AssertEx.Equal(expectedSpans, actualSpans,
+                                       message:=PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), "[|", "|]", messageOnly:=True))
                     Next
                 Next
             End Using
+        End Function
+
+        Private Shared Function PrintSpans(expected As IOrderedEnumerable(Of TextSpan), actual As IOrderedEnumerable(Of TextSpan), doc As Document, prefix As String, suffix As String, Optional messageOnly As Boolean = False) As String
+            Debug.Assert(expected IsNot Nothing)
+            Debug.Assert(actual IsNot Nothing)
+
+            Dim instance = PooledStringBuilder.GetInstance()
+            Dim builder = instance.Builder
+
+            builder.AppendLine()
+            If Not messageOnly Then
+                builder.AppendLine($"Expected: {String.Join(", ", expected.Select(Function(e) e.ToString()))}")
+                builder.AppendLine($"Actual: {String.Join(", ", actual.Select(Function(a) a.ToString()))}")
+            End If
+
+            Dim text As SourceText = Nothing
+            doc.TryGetText(text)
+            Dim position = 0
+
+            For Each span In actual
+                builder.Append(text.GetSubText(New TextSpan(position, span.Start - position)))
+                builder.Append(prefix)
+                builder.Append(text.GetSubText(span))
+                builder.Append(suffix)
+                position = span.End
+            Next
+            builder.Append(text.GetSubText(New TextSpan(position, text.Length - position)))
+
+            Return instance.ToStringAndFree()
+        End Function
+
+        Private Shared Function TextSpansMatch(expected As IOrderedEnumerable(Of TextSpan), actual As IOrderedEnumerable(Of TextSpan)) As Boolean
+            Debug.Assert(expected IsNot Nothing)
+            Debug.Assert(actual IsNot Nothing)
+
+            Dim enumeratorExpected As IEnumerator(Of TextSpan) = Nothing
+            Dim enumeratorActual As IEnumerator(Of TextSpan) = Nothing
+            Try
+                enumeratorExpected = expected.GetEnumerator()
+                enumeratorActual = actual.GetEnumerator()
+
+                While True
+                    Dim hasNextExpected = enumeratorExpected.MoveNext()
+                    Dim hasNextActual = enumeratorActual.MoveNext()
+
+                    If Not hasNextExpected OrElse Not hasNextActual Then
+                        Return hasNextExpected = hasNextActual
+                    End If
+
+                    If Not enumeratorExpected.Current.Equals(enumeratorActual.Current) Then
+                        Return False
+                    End If
+                End While
+
+            Finally
+                Dim asDisposable = TryCast(enumeratorExpected, IDisposable)
+                If asDisposable IsNot Nothing Then
+                    asDisposable.Dispose()
+                End If
+
+                asDisposable = TryCast(enumeratorActual, IDisposable)
+                If asDisposable IsNot Nothing Then
+                    asDisposable.Dispose()
+                End If
+            End Try
+
+            Return True
         End Function
 
         Private Function IsImplicitNamespace(referencedSymbol As ReferencedSymbol) As Boolean

@@ -211,8 +211,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
                 else
                 {
-                    if (x.MethodKind == MethodKind.AnonymousFunction)
+                    if (x.MethodKind == MethodKind.AnonymousFunction ||
+                        x.MethodKind == MethodKind.LocalFunction)
                     {
+                        // Treat local and anonymous functions just like we do ILocalSymbols.  
+                        // They're only equivalent if they have the same location.
                         return HaveSameLocation(x, y);
                     }
 
@@ -336,9 +339,30 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 Debug.Assert(GetTypeKind(x) == GetTypeKind(y));
 
-                if (x.IsTupleType)
+                if (x.IsTupleType || y.IsTupleType)
                 {
-                    return y.IsTupleType && TypeArgumentsAreEquivalent(x.TupleElementTypes, y.TupleElementTypes, equivalentTypesWithDifferingAssemblies);
+                    if (x.IsTupleType != y.IsTupleType)
+                    {
+                        return false;
+                    }
+
+                    var xElements = x.TupleElements;
+                    var yElements = y.TupleElements;
+
+                    if (xElements.Length != yElements.Length)
+                    {
+                        return false;
+                    }
+
+                    for (int i = 0; i < xElements.Length; i++)
+                    {
+                        if (!AreEquivalent(xElements[i].Type, yElements[i].Type, equivalentTypesWithDifferingAssemblies))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
                 }
 
                 if (x.IsDefinition != y.IsDefinition ||

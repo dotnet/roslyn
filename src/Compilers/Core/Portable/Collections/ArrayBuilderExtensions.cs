@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -149,6 +150,15 @@ namespace Microsoft.CodeAnalysis
             if (value != null)
             {
                 builder.Add(value.Value);
+            }
+        }
+
+        public static void AddIfNotNull<T>(this ArrayBuilder<T> builder, T value)
+            where T : class
+        {
+            if (value != null)
+            {
+                builder.Add(value);
             }
         }
     }

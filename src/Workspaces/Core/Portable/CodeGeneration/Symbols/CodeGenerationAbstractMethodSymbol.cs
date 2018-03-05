@@ -19,19 +19,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         protected CodeGenerationAbstractMethodSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name,
-            IList<AttributeData> returnTypeAttributes)
+            ImmutableArray<AttributeData> returnTypeAttributes)
             : base(containingType, attributes, declaredAccessibility, modifiers, name)
         {
-            _returnTypeAttributes = returnTypeAttributes.AsImmutableOrEmpty();
+            _returnTypeAttributes = returnTypeAttributes.NullToEmpty();
         }
 
         public abstract int Arity { get; }
         public abstract bool ReturnsVoid { get; }
         public abstract bool ReturnsByRef { get; }
+        public abstract bool ReturnsByRefReadonly { get; }
+        public abstract RefKind RefKind { get; }
         public abstract ITypeSymbol ReturnType { get; }
         public abstract ImmutableArray<ITypeSymbol> TypeArguments { get; }
         public abstract ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
@@ -63,21 +65,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return visitor.VisitMethod(this);
         }
 
-        public virtual MethodKind MethodKind
-        {
-            get
-            {
-                return MethodKind.Ordinary;
-            }
-        }
+        public virtual MethodKind MethodKind => MethodKind.Ordinary;
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Method;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Method;
 
         public virtual bool IsGenericMethod
         {
@@ -87,13 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public virtual bool IsExtensionMethod
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public virtual bool IsExtensionMethod => false;
 
         public virtual bool IsAsync
         {
@@ -103,27 +87,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public virtual bool IsVararg
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public virtual bool IsVararg => false;
 
-        public bool IsCheckedBuiltin
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsCheckedBuiltin => false;
 
-        public virtual bool HidesBaseMethodsByName
+        public virtual bool HidesBaseMethodsByName => false;
+
+        public ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
-                return false;
+                return ImmutableArray.Create<CustomModifier>();
             }
         }
 
@@ -135,21 +109,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public virtual ISymbol AssociatedSymbol
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public virtual ISymbol AssociatedSymbol => null;
 
-        public INamedTypeSymbol AssociatedAnonymousDelegate
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public INamedTypeSymbol AssociatedAnonymousDelegate => null;
 
         public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
         {

@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -111,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If instrument Then
-                    rewrittenStatement = _instrumenter.InstrumentFieldOrPropertyInitializer(node, rewrittenStatement, symbolIndex, createTemporary)
+                    rewrittenStatement = _instrumenterOpt.InstrumentFieldOrPropertyInitializer(node, rewrittenStatement, symbolIndex, createTemporary)
                 End If
 
                 rewrittenStatements.Add(rewrittenStatement)

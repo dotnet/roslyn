@@ -1,77 +1,70 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Organizing;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.OrganizeDocument,
-        ContentTypeNames.CSharpContentType,
-        ContentTypeNames.VisualBasicContentType,
-        ContentTypeNames.XamlContentType)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.VisualBasicContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
+    [Name(PredefinedCommandHandlerNames.OrganizeDocument)]
     internal class OrganizeDocumentCommandHandler :
-        ICommandHandler<OrganizeDocumentCommandArgs>,
-        ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
+        VSCommanding.ICommandHandler<OrganizeDocumentCommandArgs>,
+        VSCommanding.ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
     {
-        protected readonly IWaitIndicator WaitIndicator;
+        public string DisplayName => EditorFeaturesResources.Organize_Document_Command_Handler;
 
-        [ImportingConstructor]
-        public OrganizeDocumentCommandHandler(
-            IWaitIndicator waitIndicator)
+        public VSCommanding.CommandState GetCommandState(OrganizeDocumentCommandArgs args)
         {
-            Contract.ThrowIfNull(waitIndicator);
-
-            this.WaitIndicator = waitIndicator;
+            return GetCommandState(args, _ => EditorFeaturesResources.Organize_Document);
         }
 
-        public CommandState GetCommandState(OrganizeDocumentCommandArgs args, Func<CommandState> nextHandler)
+        public bool ExecuteCommand(OrganizeDocumentCommandArgs args, CommandExecutionContext context)
         {
-            return GetCommandState(args, nextHandler, _ => EditorFeaturesResources.Organize_Document);
+            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
+            {
+                this.Organize(args.SubjectBuffer, context.WaitContext.UserCancellationToken);
+            }
+
+            return true;
         }
 
-        public void ExecuteCommand(OrganizeDocumentCommandArgs args, Action nextHandler)
+        public VSCommanding.CommandState GetCommandState(SortAndRemoveUnnecessaryImportsCommandArgs args)
         {
-            this.WaitIndicator.Wait(
-                title: EditorFeaturesResources.Organize_Document,
-                message: EditorFeaturesResources.Organizing_document,
-                allowCancel: true,
-                action: waitContext => this.Organize(args.SubjectBuffer, waitContext.CancellationToken));
+            return GetCommandState(args, o => o.SortAndRemoveUnusedImportsDisplayStringWithAccelerator);
         }
 
-        public CommandState GetCommandState(SortAndRemoveUnnecessaryImportsCommandArgs args, Func<CommandState> nextHandler)
+        private VSCommanding.CommandState GetCommandState(EditorCommandArgs args, Func<IOrganizeImportsService, string> descriptionString)
         {
-            return GetCommandState(args, nextHandler, o => o.SortAndRemoveUnusedImportsDisplayStringWithAccelerator);
-        }
-
-        private CommandState GetCommandState(CommandArgs args, Func<CommandState> nextHandler, Func<IOrganizeImportsService, string> descriptionString)
-        {
-            Workspace workspace;
-            if (IsCommandSupported(args, out workspace))
+            if (IsCommandSupported(args, out var workspace))
             {
                 var organizeImportsService = workspace.Services.GetLanguageServices(args.SubjectBuffer).GetService<IOrganizeImportsService>();
-                return new CommandState(isAvailable: true, displayText: descriptionString(organizeImportsService));
+                return new VSCommanding.CommandState(isAvailable: true, displayText: descriptionString(organizeImportsService));
             }
             else
             {
-                return nextHandler();
+                return VSCommanding.CommandState.Unspecified;
             }
         }
 
-        private bool IsCommandSupported(CommandArgs args, out Workspace workspace)
+        private bool IsCommandSupported(EditorCommandArgs args, out Workspace workspace)
         {
             workspace = null;
             var document = args.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
@@ -96,13 +89,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             return workspace.Services.GetService<IDocumentSupportsFeatureService>().SupportsRefactorings(document);
         }
 
-        public void ExecuteCommand(SortAndRemoveUnnecessaryImportsCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(SortAndRemoveUnnecessaryImportsCommandArgs args, CommandExecutionContext context)
         {
-            this.WaitIndicator.Wait(
-                title: EditorFeaturesResources.Organize_Document,
-                message: EditorFeaturesResources.Organizing_document,
-                allowCancel: true,
-                action: waitContext => this.SortAndRemoveUnusedImports(args.SubjectBuffer, waitContext.CancellationToken));
+            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
+            {
+                this.SortAndRemoveUnusedImports(args.SubjectBuffer, context.WaitContext.UserCancellationToken);
+            }
+
+            return true;
         }
 
         private void Organize(ITextBuffer subjectBuffer, CancellationToken cancellationToken)
@@ -124,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             if (document != null)
             {
                 var newDocument = document.GetLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-                newDocument = OrganizeImportsService.OrganizeImportsAsync(newDocument, subjectBuffer.GetFeatureOnOffOption(GenerationOptions.PlaceSystemNamespaceFirst), cancellationToken).WaitAndGetResult(cancellationToken);
+                newDocument = OrganizeImportsService.OrganizeImportsAsync(newDocument, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (document != newDocument)
                 {
                     ApplyTextChange(document, newDocument);

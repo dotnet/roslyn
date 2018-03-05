@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -12,15 +13,22 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Default), Shared]
     internal class TextFactoryService : ITextFactoryService
     {
-        public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default(CancellationToken))
+        public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return SourceText.From(stream, defaultEncoding);
+            return EncodedStringText.Create(stream, defaultEncoding);
         }
 
-        public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken))
+        public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            var textReaderWithLength = reader as TextReaderWithLength;
+            if (textReaderWithLength != null)
+            {
+                return SourceText.From(textReaderWithLength, textReaderWithLength.Length, encoding);
+            }
+
             return SourceText.From(reader.ReadToEnd(), encoding);
         }
     }

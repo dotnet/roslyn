@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            string diagnosticId;
-            var node = GetNodeToSimplify(root, model, span, documentOptions, out diagnosticId, cancellationToken);
+            var node = GetNodeToSimplify(root, model, span, documentOptions, out var diagnosticId, cancellationToken);
             if (node == null)
             {
                 return;
@@ -102,16 +101,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
                     return CSharpFeaturesResources.Remove_this_qualification;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(diagnosticId);
             }
         }
 
         private static bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, TextSpan span, out string diagnosticId, CancellationToken cancellationToken)
         {
             diagnosticId = null;
-            TextSpan issueSpan;
             if (!CSharpSimplifyTypeNamesDiagnosticAnalyzer.IsCandidate(node) ||
-                !CSharpSimplifyTypeNamesDiagnosticAnalyzer.CanSimplifyTypeNameExpression(model, node, optionSet, out issueSpan, out diagnosticId, cancellationToken))
+                !CSharpSimplifyTypeNamesDiagnosticAnalyzer.CanSimplifyTypeNameExpression(model, node, optionSet, out var issueSpan, out diagnosticId, cancellationToken))
             {
                 return false;
             }

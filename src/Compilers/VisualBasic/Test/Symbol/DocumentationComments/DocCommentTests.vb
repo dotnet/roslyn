@@ -36,23 +36,25 @@ End Class
 ]]>
     </file>
 </compilation>
+            Using(new EnsureEnglishUICulture()) 
+            
+                Dim comp = CreateCompilationWithMscorlib(sources)
+                Dim diags = New DiagnosticBag()
+                Dim badStream = New BrokenStream()
+                badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite
 
-            Dim comp = CreateCompilationWithMscorlib(sources)
-            Dim diags = New DiagnosticBag()
-            Dim badStream = New BrokenStream()
-            badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=badStream,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing)
 
-            DocumentationCommentCompiler.WriteDocumentationCommentXml(
-                comp,
-                assemblyName:=Nothing,
-                xmlDocStream:=badStream,
-                diagnostics:=diags,
-                cancellationToken:=Nothing)
-
-            AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
-                                   <errors><![CDATA[
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+									   <errors><![CDATA[
 BC37258: Error writing to XML documentation file: I/O error occurred.
                                    ]]></errors>)
+            End Using
         End Sub
 
         <Fact>
@@ -12406,6 +12408,41 @@ DashDash
 ]]>
     </xml>,
                 stringMapper:=Function(o) StringReplace(o, System.IO.Path.Combine(TestHelpers.AsXmlCommentText(path), "- - -.xml"), "**FILE**"), ensureEnglishUICulture:=True)
+        End Sub
+
+        <Fact>
+        <WorkItem(410932, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=410932")>
+        Public Sub LookupOnCrefTypeParameter()
+
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Public Class Test
+    Function F(Of T)() As T
+    End Function
+
+    ''' <summary>
+    ''' <see cref="F(Of U)()"/>
+    ''' </summary>
+    Public Sub S()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                sources,
+                options:=TestOptions.ReleaseDll)
+
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim name = FindNodesOfTypeFromText(Of NameSyntax)(tree, "U").Single()
+            Dim typeParameter = DirectCast(model.GetSymbolInfo(name).Symbol, TypeParameterSymbol)
+            Assert.Empty(model.LookupSymbols(name.SpanStart, typeParameter, "GetAwaiter"))
         End Sub
 
     End Class

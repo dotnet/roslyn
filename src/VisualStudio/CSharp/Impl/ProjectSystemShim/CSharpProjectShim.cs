@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -144,8 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             foreach (var diagnosticID in ParseWarningCodes(CompilerOptions.OPTID_WARNNOTASERRORLIST))
             {
-                ReportDiagnostic ruleSetOption;
-                if (ruleSetSpecificDiagnosticOptions.TryGetValue(diagnosticID, out ruleSetOption))
+                if (ruleSetSpecificDiagnosticOptions.TryGetValue(diagnosticID, out var ruleSetOption))
                 {
                     diagnosticOptions[diagnosticID] = ruleSetOption;
                 }
@@ -160,16 +159,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 diagnosticOptions[diagnosticID] = ReportDiagnostic.Suppress;
             }
 
-            Platform platform;
-
-            if (!Enum.TryParse(GetStringOption(CompilerOptions.OPTID_PLATFORM, ""), ignoreCase: true, result: out platform))
+            if (!Enum.TryParse(GetStringOption(CompilerOptions.OPTID_PLATFORM, ""), ignoreCase: true, result: out Platform platform))
             {
                 platform = Platform.AnyCpu;
             }
 
-            int warningLevel;
-
-            if (!int.TryParse(GetStringOption(CompilerOptions.OPTID_WARNINGLEVEL, defaultValue: ""), out warningLevel))
+            if (!int.TryParse(GetStringOption(CompilerOptions.OPTID_WARNINGLEVEL, defaultValue: ""), out var warningLevel))
             {
                 warningLevel = 4;
             }
@@ -196,9 +191,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             Contract.ThrowIfFalse(compilerOptions == CompilerOptions.OPTID_NOWARNLIST || compilerOptions == CompilerOptions.OPTID_WARNASERRORLIST || compilerOptions == CompilerOptions.OPTID_WARNNOTASERRORLIST);
             foreach (var warning in GetStringOption(compilerOptions, defaultValue: "").Split(new[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
             {
-                int warningId;
                 var warningStringID = warning;
-                if (int.TryParse(warning, out warningId))
+                if (int.TryParse(warning, out var warningId))
                 {
                     warningStringID = GetIdForErrorCode(warningId);
                 }
@@ -262,8 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 documentationMode = DocumentationMode.Diagnose;
             }
 
-            var languageVersion = CompilationOptionsConversion.GetLanguageVersion(GetStringOption(CompilerOptions.OPTID_COMPATIBILITY, defaultValue: ""))
-                                  ?? CSharpParseOptions.Default.LanguageVersion;
+            GetStringOption(CompilerOptions.OPTID_COMPATIBILITY, defaultValue: "").TryParse(out var languageVersion);
 
             return options.WithKind(SourceCodeKind.Regular)
                 .WithLanguageVersion(languageVersion)

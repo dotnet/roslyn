@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
@@ -127,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                 if (SetProperty(ref _interfaceName, value))
                 {
                     FileName = string.Format("{0}{1}", value.Trim(), _fileExtension);
-                    NotifyPropertyChanged("GeneratedName");
+                    NotifyPropertyChanged(nameof(GeneratedName));
                 }
             }
         }

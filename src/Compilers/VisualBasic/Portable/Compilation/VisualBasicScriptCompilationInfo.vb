@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Shadows Function WithPreviousScriptCompilation(compilation As VisualBasicCompilation) As VisualBasicScriptCompilationInfo
-            Return If(compilation Is PreviousScriptCompilation, Me, New VisualBasicScriptCompilationInfo(compilation, ReturnType, GlobalsType))
+            Return If(compilation Is PreviousScriptCompilation, Me, New VisualBasicScriptCompilationInfo(compilation, ReturnTypeOpt, GlobalsType))
         End Function
 
         Friend Overrides Function CommonWithPreviousScriptCompilation(compilation As Compilation) As ScriptCompilationInfo

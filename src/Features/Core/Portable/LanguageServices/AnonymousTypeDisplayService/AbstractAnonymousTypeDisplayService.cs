@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -89,9 +89,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             IList<INamedTypeSymbol> transitiveAnonymousTypeReferences,
             ISymbol symbol)
         {
-            if (symbol is IMethodSymbol)
+            if (symbol is IMethodSymbol method)
             {
-                var method = (IMethodSymbol)symbol;
                 return transitiveAnonymousTypeReferences.OrderBy(
                     (n1, n2) =>
                     {
@@ -103,9 +102,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         return index1 - index2;
                     }).ToList();
             }
-            else if (symbol is IPropertySymbol)
+            else if (symbol is IPropertySymbol property)
             {
-                var property = (IPropertySymbol)symbol;
                 return transitiveAnonymousTypeReferences.OrderBy(
                     (n1, n2) =>
                     {

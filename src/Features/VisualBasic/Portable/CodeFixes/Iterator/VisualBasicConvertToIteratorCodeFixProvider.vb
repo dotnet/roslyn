@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
             End If
 
             ' Check that return type of containing method is convertible to IEnumerable
-            Dim ienumerableSymbol As INamedTypeSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1")
+            Dim ienumerableSymbol = model.Compilation.GetTypeByMetadataName(GetType(IEnumerable(Of)).FullName)
             If ienumerableSymbol Is Nothing Then
                 Return Nothing
             End If

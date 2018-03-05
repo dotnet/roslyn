@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
@@ -1470,11 +1470,11 @@ Imports System.Linq
 Class Program
     Shared Sub Main()
         Dim x As Integer = 1
-        [|Foo(x)|]
+        [|Goo(x)|]
         Console.WriteLine(x)
     End Sub
 
-    Shared Sub Foo(ByRef x As Integer)
+    Shared Sub Goo(ByRef x As Integer)
         x = x + 1
     End Sub
 End Class</text>
@@ -1490,11 +1490,11 @@ Class Program
     End Sub
 
     Private Shared Function NewMethod(x As Integer) As Integer
-        Foo(x)
+        Goo(x)
         Return x
     End Function
 
-    Shared Sub Foo(ByRef x As Integer)
+    Shared Sub Goo(ByRef x As Integer)
         x = x + 1
     End Sub
 End Class</text>
@@ -1571,7 +1571,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 
 Class Program
-    Shared Sub Foo(GetX As Integer)
+    Shared Sub Goo(GetX As Integer)
         Dim x As Integer = [|1|]
     End Sub
 End Class</text>
@@ -1580,7 +1580,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 
 Class Program
-    Shared Sub Foo(GetX As Integer)
+    Shared Sub Goo(GetX As Integer)
         Dim x As Integer = GetX1()
     End Sub
 
@@ -1605,7 +1605,7 @@ End Class</text>
         End Set
     End Property
 
-    Shared Sub Foo(i As Integer)
+    Shared Sub Goo(i As Integer)
         Dim str As String = [|[Class].Names|]
     End Sub
 End Class</text>
@@ -1621,7 +1621,7 @@ End Class</text>
         End Set
     End Property
 
-    Shared Sub Foo(i As Integer)
+    Shared Sub Goo(i As Integer)
         Dim str As String = GetStr()
     End Sub
 
@@ -1698,13 +1698,13 @@ End Class</text>
     Class B
     End Class
 
-    Shared Function Foo() As D.B
+    Shared Function Goo() As D.B
         Return Nothing
     End Function
 
     Class C(Of T2)
         Shared Sub Bar()
-            Dim x As D.B = [|Foo()|]
+            Dim x As D.B = [|Goo()|]
         End Sub
     End Class
 End Class</text>
@@ -1716,7 +1716,7 @@ End Class</text>
     Class B
     End Class
 
-    Shared Function Foo() As D.B
+    Shared Function Goo() As D.B
         Return Nothing
     End Function
 
@@ -1726,7 +1726,7 @@ End Class</text>
         End Sub
 
         Private Shared Function GetX() As B
-            Return Foo()
+            Return Goo()
         End Function
     End Class
 End Class</text>
@@ -2042,7 +2042,7 @@ End Class</text>
     End Class
 
     Class C(Of T)
-        Shared Sub Foo()
+        Shared Sub Goo()
             Dim x As D.B = [|New D.B()|]
         End Sub
     End Class
@@ -4308,21 +4308,21 @@ End Class</text>
             Public Async Function TestImplicitFunctionLocal5() As Task
                 Dim code = <text>Module Module1
     Sub Main()
-        Console.WriteLine(Foo(2))
+        Console.WriteLine(Goo(2))
     End Sub
 
-    Function Foo%(ByVal j As Integer)
-        [|Foo = 3.87 * j|]
+    Function Goo%(ByVal j As Integer)
+        [|Goo = 3.87 * j|]
         Exit Function
     End Function
 End Module</text>
                 Dim expected = <text>Module Module1
     Sub Main()
-        Console.WriteLine(Foo(2))
+        Console.WriteLine(Goo(2))
     End Sub
 
-    Function Foo%(ByVal j As Integer)
-        Foo = NewMethod(j)
+    Function Goo%(ByVal j As Integer)
+        Goo = NewMethod(j)
         Exit Function
     End Function
 
@@ -4423,16 +4423,16 @@ End Module</text>
                 Dim code = <text>Module Module1
     Sub Main()
     End Sub
-    Public Function Foo(ByVal params&amp;)
-        Foo = [|params&amp;|]
+    Public Function Goo(ByVal params&amp;)
+        Goo = [|params&amp;|]
     End Function
 End Module</text>
 
                 Dim expected = <text>Module Module1
     Sub Main()
     End Sub
-    Public Function Foo(ByVal params&amp;)
-        Foo = GetParams(params)
+    Public Function Goo(ByVal params&amp;)
+        Goo = GetParams(params)
     End Function
 
     Private Function GetParams(params As Long) As Long
@@ -4520,22 +4520,22 @@ End Class</text>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestBug6138() As Task
                 Dim code = <text>Class Test
-    Private _foo As Integer
-    Property Foo As Integer
+    Private _goo As Integer
+    Property Goo As Integer
         Get
-            Return _foo
+            Return _goo
         End Get
         Set(ByVal value As Integer)
-            [|_foo = value|]
+            [|_goo = value|]
         End Set
     End Property
 End Class </text>
 
                 Dim expected = <text>Class Test
-    Private _foo As Integer
-    Property Foo As Integer
+    Private _goo As Integer
+    Property Goo As Integer
         Get
-            Return _foo
+            Return _goo
         End Get
         Set(ByVal value As Integer)
             NewMethod(value)
@@ -4543,7 +4543,7 @@ End Class </text>
     End Property
 
     Private Sub NewMethod(value As Integer)
-        _foo = value
+        _goo = value
     End Sub
 End Class </text>
 
@@ -4728,12 +4728,12 @@ End Module</text>
 Module Module1
     Delegate Function Del(ByVal v As String) As String
     Sub Main(args As String())
-        Dim r As Del = [|AddressOf Foo|]
+        Dim r As Del = [|AddressOf Goo|]
 
         Console.WriteLine(r.Invoke("test"))
     End Sub
 
-    Function Foo(ByVal value As String) As String
+    Function Goo(ByVal value As String) As String
         Return value
     End Function
 
@@ -4750,10 +4750,10 @@ Module Module1
     End Sub
 
     Private Function GetR() As Del
-        Return AddressOf Foo
+        Return AddressOf Goo
     End Function
 
-    Function Foo(ByVal value As String) As String
+    Function Goo(ByVal value As String) As String
         Return value
     End Function
 
@@ -4770,12 +4770,12 @@ End Module</text>
 Module Module1
     Delegate Function Del(ByVal v As String) As String
     Sub Main(args As String())
-        Dim r As Del = AddressOf [|Foo|]
+        Dim r As Del = AddressOf [|Goo|]
 
         Console.WriteLine(r.Invoke("test"))
     End Sub
 
-    Function Foo(ByVal value As String) As String
+    Function Goo(ByVal value As String) As String
         Return value
     End Function
 
@@ -4792,10 +4792,10 @@ Module Module1
     End Sub
 
     Private Function GetR() As Del
-        Return AddressOf Foo
+        Return AddressOf Goo
     End Function
 
-    Function Foo(ByVal value As String) As String
+    Function Goo(ByVal value As String) As String
         Return value
     End Function
 
@@ -5079,7 +5079,7 @@ End Module</text>
     Sub Main(args As String())
     End Sub
     Sub UseThread()
-        Dim t As New System.Threading.Thread(AddressOf [|foo|])
+        Dim t As New System.Threading.Thread(AddressOf [|goo|])
     End Sub
 End Module</text>
 
@@ -5759,7 +5759,7 @@ End Class</text>
             Public Async Function ExtractMethodExitInLambda_3() As Task
                 Dim code = <text>Imports System
 Public Class Program
-    Shared Sub foo()
+    Shared Sub goo()
         Dim syncroot As Object = New Object
         SyncLock syncroot
             SyncLock Sub x

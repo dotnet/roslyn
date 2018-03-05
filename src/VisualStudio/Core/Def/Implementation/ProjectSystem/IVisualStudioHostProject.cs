@@ -2,33 +2,15 @@
 
 using System;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     /// <summary>
-    /// The interface implemented by all types of projects within Visual Studio (like regular
-    /// projects, Miscellaneous files projects, etc.)
+    /// This interface only exists to maintain an overload of <see cref="DocumentProvider.TryGetDocumentForFile(IVisualStudioHostProject, string, CodeAnalysis.SourceCodeKind, System.Func{Text.ITextBuffer, bool}, System.Func{uint, System.Collections.Generic.IReadOnlyList{string}}, System.EventHandler, System.EventHandler{bool}, System.EventHandler{bool})"/>.
     /// </summary>
+    [Obsolete("This overload is a compatibility shim for TypeScript; please do not use it.")]
     internal interface IVisualStudioHostProject
     {
         ProjectId Id { get; }
-        string Language { get; }
-
-        /// <summary>
-        /// The <see cref="IVsHierarchy"/> for this project.  NOTE: May be null in Deferred Project Load cases.
-        /// </summary>
-        IVsHierarchy Hierarchy { get; }
-        Guid Guid { get; }
-
-        Workspace Workspace { get; }
-        string ProjectSystemName { get; }
-
-        IVisualStudioHostDocument GetDocumentOrAdditionalDocument(DocumentId id);
-        IVisualStudioHostDocument GetCurrentDocumentFromPath(string filePath);
-
-        ProjectInfo CreateProjectInfoForCurrentState();
-
-        bool ContainsFile(string moniker);
     }
 }

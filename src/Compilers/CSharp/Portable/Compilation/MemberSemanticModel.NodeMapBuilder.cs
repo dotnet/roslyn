@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Linq;
@@ -223,13 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <param name="currentBoundNode">The bound node.</param>
             private bool ShouldAddNode(BoundNode currentBoundNode)
             {
-                BoundBlock block;
-
                 // Do not add compiler generated nodes.
-                if (currentBoundNode.WasCompilerGenerated &&
-                    (currentBoundNode.Kind != BoundKind.Block ||
-                     (block = (BoundBlock)currentBoundNode).Statements.Length != 1 ||
-                     block.Statements.Single().WasCompilerGenerated))
+                if (currentBoundNode.WasCompilerGenerated)
                 {
                     return false;
                 }
@@ -250,17 +246,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode VisitRangeVariable(BoundRangeVariable node)
+            {
+                return null;
+            }
+
             public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
             {
                 throw ExceptionUtilities.Unreachable;
-            }
-
-            public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
-            {
-                VisitList(node.LeftVariables);
-                Visit(node.Right);
-                // don't map the deconstruction, conversion or assignment steps
-                return null;
             }
 
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()

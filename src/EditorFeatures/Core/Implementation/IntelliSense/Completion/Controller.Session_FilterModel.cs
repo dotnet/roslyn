@@ -21,102 +21,71 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             public void FilterModel(
                 CompletionFilterReason filterReason,
-                bool dismissIfEmptyAllowed,
-                bool recheckCaretPosition,
                 ImmutableDictionary<CompletionItemFilter, bool> filterState)
             {
                 AssertIsForeground();
 
                 var caretPosition = GetCaretPointInViewBuffer();
+                var document = Controller.GetDocument();
 
                 // Use an interlocked increment so that reads by existing filter tasks will see the
                 // change.
                 Interlocked.Increment(ref _filterId);
                 var localId = _filterId;
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
-                    model =>
-                    {
-                        if (model != null && filterState != null)
-                        {
-                            // If the UI specified an updated filter state, then incorporate that 
-                            // into our model.
-                            model = model.WithFilterState(filterState);
-                        }
-
-                        return FilterModelInBackground(
-                            model, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
-                    });
-            }
-
-            public void IdentifyBestMatchAndFilterToAllItems(
-                CompletionFilterReason filterReason, bool recheckCaretPosition, bool dismissIfEmptyAllowed)
-            {
-                AssertIsForeground();
-
-                var caretPosition = GetCaretPointInViewBuffer();
-
-                // Use an interlocked increment so that reads by existing filter tasks will see the
-                // change.
-                Interlocked.Increment(ref _filterId);
-                var localId = _filterId;
-                Computation.ChainTaskAndNotifyControllerWhenFinished(model =>
-                    {
-                        var filteredModel = FilterModelInBackground(
-                            model, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
-
-                        return filteredModel != null
-                            ? filteredModel.WithFilteredItems(filteredModel.TotalItems).WithSelectedItem(filteredModel.SelectedItemOpt)
-                            : null;
-                    });
+                    model => FilterModelInBackground(
+                        document, model, localId, caretPosition, filterReason, filterState));
             }
 
             private Model FilterModelInBackground(
+                Document document,
                 Model model,
                 int id,
                 SnapshotPoint caretPosition,
-                bool recheckCaretPosition,
-                bool dismissIfEmptyAllowed,
-                CompletionFilterReason filterReason)
+                CompletionFilterReason filterReason,
+                ImmutableDictionary<CompletionItemFilter, bool> filterState)
             {
                 using (Logger.LogBlock(FunctionId.Completion_ModelComputation_FilterModelInBackground, CancellationToken.None))
                 {
                     return FilterModelInBackgroundWorker(
-                        model, id, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
+                        document, model, id, caretPosition, filterReason, filterState);
                 }
             }
 
             private Model FilterModelInBackgroundWorker(
+                Document document,
                 Model model,
                 int id,
                 SnapshotPoint caretPosition,
-                bool recheckCaretPosition,
-                bool dismissIfEmptyAllowed,
-                CompletionFilterReason filterReason)
+                CompletionFilterReason filterReason,
+                ImmutableDictionary<CompletionItemFilter, bool> filterState)
             {
                 if (model == null)
                 {
                     return null;
                 }
 
-                var filterState = model.FilterState;
-
-                // If all the filters are on, or all the filters are off then we don't actually 
-                // need to filter.
-                if (filterState != null)
-                {
-                    if (filterState.Values.All(b => b) ||
-                        filterState.Values.All(b => !b))
-                    {
-                        filterState = null;
-                    }
-                }
-
                 // We want to dismiss the session if the caret ever moved outside our bounds.
-                if (recheckCaretPosition && Controller.IsCaretOutsideAllItemBounds(model, caretPosition))
+                // Do this before we check the _filterId.  We don't want this work to not happen
+                // just because the user typed more text and added more filter items.
+                if (filterReason == CompletionFilterReason.CaretPositionChanged &&
+                    Controller.IsCaretOutsideAllItemBounds(model, caretPosition))
                 {
                     return null;
                 }
 
+                // If the UI specified an updated filter state, then incorporate that 
+                // into our model. Do this before we check the _filterId.  We don't 
+                // want this work to not happen just because the user typed more text 
+                // and added more filter items.
+                if (filterState != null)
+                {
+                    model = model.WithFilterState(filterState);
+                }
+
+                // If there's another request in the queue to filter items, then just
+                // bail out immediately.  No point in doing extra work that's just
+                // going to be overridden by the next filter task.
                 if (id != _filterId)
                 {
                     return model;
@@ -125,8 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var textSnapshot = caretPosition.Snapshot;
                 var textSpanToText = new Dictionary<TextSpan, string>();
 
-                var document = this.Controller.GetDocument();
-                var helper = this.Controller.GetCompletionHelper();
+                var helper = this.Controller.GetCompletionHelper(document);
 
                 var recentItems = this.Controller.GetRecentItems();
 
@@ -149,12 +117,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var filterTextStartsWithANumber = filterText.Length > 0 && char.IsNumber(filterText[0]);
                 if (filterTextStartsWithANumber)
                 {
-                    if (!IsAfterDot(model, textSnapshot, textSpanToText))
+                    if (!IsAfterDot(model, model.TriggerSnapshot, textSpanToText))
                     {
                         return null;
                     }
                 }
 
+                var effectiveFilterItemState = ComputeEffectiveFilterItemState(model);
                 foreach (var currentItem in model.TotalItems)
                 {
                     // Check if something new has happened and there's a later on filter operation
@@ -165,7 +134,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         return model;
                     }
 
-                    if (ItemIsFilteredOut(currentItem, filterState))
+                    if (CompletionItemFilter.ShouldBeFilteredOutOfCompletionList(
+                            currentItem, effectiveFilterItemState))
                     {
                         continue;
                     }
@@ -180,11 +150,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
                     else
                     {
-                        if (filterText.Length <= 1)
+                        // The item didn't match the filter text.  We'll still keep it in the list
+                        // if one of two things is true:
+                        //
+                        //  1. The user has only typed a single character.  In this case they might
+                        //     have just typed the character to get completion.  Filtering out items
+                        //     here is not desirable.
+                        //
+                        //  2. They brough up completion with ctrl-j or through deletion.  In these
+                        //     cases we just always keep all the items in the list.
+
+                        var wasTriggeredByDeleteOrSimpleInvoke =
+                            model.Trigger.Kind == CompletionTriggerKind.Deletion ||
+                            model.Trigger.Kind == CompletionTriggerKind.Invoke;
+                        var shouldKeepItem = filterText.Length <= 1 || wasTriggeredByDeleteOrSimpleInvoke;
+
+                        if (shouldKeepItem)
                         {
-                            // Even though the rule provider didn't match this, we'll still include it
-                            // since we want to allow a user typing a single character and seeing all
-                            // possibly completions.
                             filterResults.Add(new FilterResult(
                                 currentItem, filterText, matchedFilterText: false));
                         }
@@ -196,29 +178,55 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // If no items matched the filter text then determine what we should do.
                 if (filterResults.Count == 0)
                 {
-                    return HandleAllItemsFilteredOut(model, filterReason, dismissIfEmptyAllowed);
+                    return HandleAllItemsFilteredOut(model, filterReason);
                 }
 
                 // If this was deletion, then we control the entire behavior of deletion
                 // ourselves.
                 if (model.Trigger.Kind == CompletionTriggerKind.Deletion)
                 {
-                    return HandleDeletionTrigger(model, filterResults);
+                    return HandleDeletionTrigger(model, filterReason, filterResults);
                 }
 
                 return HandleNormalFiltering(
-                    model, document, filterReason, textSnapshot,
+                    model, document, filterReason, caretPosition,
                     helper, recentItems, filterText, filterResults);
             }
 
-            private Boolean IsAfterDot(Model model, ITextSnapshot textSnapshot, Dictionary<TextSpan, string> textSpanToText)
+            private static ImmutableDictionary<CompletionItemFilter, bool> ComputeEffectiveFilterItemState(Model model)
             {
-                var span = model.OriginalList.Span;
+                var filterState = model.FilterState;
+
+                // If all the filters are on, or all the filters are off then we don't actually 
+                // need to filter.
+                if (filterState != null)
+                {
+                    if (filterState.Values.All(b => b) ||
+                        filterState.Values.All(b => !b))
+                    {
+                        return null;
+                    }
+                }
+
+                return filterState;
+            }
+
+            private bool IsAfterDot(Model model, ITextSnapshot textSnapshot, Dictionary<TextSpan, string> textSpanToText)
+            {
+                var originalSpan = model.OriginalList.Span;
 
                 // Move the span back one character if possible.
-                span = TextSpan.FromBounds(Math.Max(0, span.Start - 1), span.End);
+                var span = Span.FromBounds(Math.Max(0, originalSpan.Start - 1), originalSpan.End);
 
-                var text = model.GetCurrentTextInSnapshot(span, textSnapshot, textSpanToText);
+                // Because we are adjusting the span, it's not safe to call
+                // model.GetCurrentTextInSnapshot. GetCurrentTextInSnapshot starts by
+                // mapping the span into the ViewBuffer. In debugger intellisense, if the
+                // caret is at the start of the immediate/watch window, moving the span 
+                // start backwards results in a span that is outside the view.
+
+                // Since we just need to look at the Document's contents, it should
+                // be safe to do this check by inspecting model.TriggerSnapshot
+                var text = model.TriggerSnapshot.GetText(span);
                 return text.Length > 0 && text[0] == '.';
             }
 
@@ -226,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 Model model,
                 Document document,
                 CompletionFilterReason filterReason,
-                ITextSnapshot textSnapshot,
+                SnapshotPoint caretPosition,
                 CompletionHelper helper,
                 ImmutableArray<string> recentItems,
                 string filterText,
@@ -255,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var bestOrFirstCompletionItem = bestCompletionItem ?? filterResults.First().CompletionItem;
 
                 var hardSelection = IsHardSelection(
-                    model, bestOrFirstCompletionItem, textSnapshot, helper, filterReason);
+                    model, bestOrFirstCompletionItem, caretPosition, helper, filterReason);
 
                 // Determine if we should consider this item 'unique' or not.  A unique item
                 // will be automatically committed if the user hits the 'invoke completion' 
@@ -327,8 +335,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return bestItem;
             }
 
-            private Model HandleDeletionTrigger(Model model, List<FilterResult> filterResults)
+            private Model HandleDeletionTrigger(
+                Model model, CompletionFilterReason filterReason, List<FilterResult> filterResults)
             {
+                if (filterReason == CompletionFilterReason.Insertion &&
+                    !filterResults.Any(r => r.MatchedFilterText))
+                {
+                    // The user has typed something, but nothing in the actual list matched what
+                    // they were typing.  In this case, we want to dismiss completion entirely.
+                    // The thought process is as follows: we aggressively brough up completion
+                    // to help them when they typed delete (in case they wanted to pick another
+                    // item).  However, they're typing something that doesn't seem to match at all
+                    // The completion list is just distracting at this point.
+                    return null;
+                }
+
                 FilterResult? bestFilterResult = null;
                 int matchCount = 0;
                 foreach (var currentFilterResult in filterResults.Where(r => r.MatchedFilterText))
@@ -352,8 +373,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 if (bestFilterResult != null)
                 {
+                    // Only hard select this result if it's a prefix match
+                    // We need to do this so that 
+                    // * deleting and retyping a dot in a member access does not change the 
+                    //   text that originally appeared before the dot
+                    // * deleting through a word from the end keeps that word selected
+                    // This also preserves the behavior the VB had through Dev12.
+                    var hardSelect = bestFilterResult.Value.CompletionItem.FilterText.StartsWith(model.FilterText, StringComparison.CurrentCultureIgnoreCase);
                     return model.WithSelectedItem(bestFilterResult.Value.CompletionItem)
-                                .WithHardSelection(true)
+                                .WithHardSelection(hardSelect)
                                 .WithIsUnique(matchCount == 1);
                 }
                 else
@@ -377,44 +405,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     return true;
                 }
 
-                // If the lengths are the same, prefer the one with the higher match priority.
-                // But only if it's an item that would have been hard selected.  We don't want
-                // to aggressively select an item that was only going to be softly offered.
-                var item1Priority = item1.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                    ? item1.Rules.MatchPriority : MatchPriority.Default;
-                var item2Priority = item2.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                    ? item2.Rules.MatchPriority : MatchPriority.Default;
-
-                if (item1Priority > item2Priority)
+                if (prefixLength1 == prefixLength2)
                 {
-                    return true;
-                }
+                    // If the lengths are the same, prefer the one with the higher match priority.
+                    // But only if it's an item that would have been hard selected.  We don't want
+                    // to aggressively select an item that was only going to be softly offered.
+                    var item1Priority = item1.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
+                        ? item1.Rules.MatchPriority : MatchPriority.Default;
+                    var item2Priority = item2.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
+                        ? item2.Rules.MatchPriority : MatchPriority.Default;
 
+                    if (item1Priority > item2Priority)
+                    {
+                        return true;
+                    }
+                }
                 return false;
-            }
-
-            private struct FilterResult
-            {
-                public readonly CompletionItem CompletionItem;
-                public readonly bool MatchedFilterText;
-                public readonly string FilterText;
-
-                public FilterResult(CompletionItem completionItem, string filterText, bool matchedFilterText)
-                {
-                    CompletionItem = completionItem;
-                    MatchedFilterText = matchedFilterText;
-                    FilterText = filterText;
-                }
             }
 
             private static Model HandleAllItemsFilteredOut(
                 Model model,
-                CompletionFilterReason filterReason,
-                bool dismissIfEmptyAllowed)
+                CompletionFilterReason filterReason)
             {
-                if (dismissIfEmptyAllowed &&
-                    model.DismissIfEmpty &&
-                    filterReason == CompletionFilterReason.TypeChar)
+                if (model.DismissIfEmpty &&
+                    filterReason == CompletionFilterReason.Insertion)
                 {
                     // If the user was just typing, and the list went to empty *and* this is a 
                     // language that wants to dismiss on empty, then just return a null model
@@ -454,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // Specifically, to avoid being too aggressive when matching an item during 
                 // completion, we require that the current filter text be a prefix of the 
                 // item in the list.
-                if (filterReason == CompletionFilterReason.BackspaceOrDelete &&
+                if (filterReason == CompletionFilterReason.Deletion &&
                     trigger.Kind == CompletionTriggerKind.Deletion)
                 {
                     return item.FilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
@@ -475,7 +489,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
                 }
 
-                return helper.MatchesFilterText(item, filterText, CultureInfo.CurrentCulture);
+                // Checks if the given completion item matches the pattern provided so far. 
+                // A  completion item is checked against the pattern by see if it's 
+                // CompletionItem.FilterText matches the item.  That way, the pattern it checked 
+                // against terms like "IList" and not IList<>
+                return helper.MatchesPattern(item.FilterText, filterText, CultureInfo.CurrentCulture);
             }
 
             private static int GetRecentItemIndex(ImmutableArray<string> recentItems, CompletionItem item)
@@ -497,39 +515,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return true;
             }
 
-            private bool ItemIsFilteredOut(
-                CompletionItem item,
-                ImmutableDictionary<CompletionItemFilter, bool> filterState)
-            {
-                if (filterState == null)
-                {
-                    // No filtering.  The item is not filtered out.
-                    return false;
-                }
-
-                foreach (var filter in CompletionItemFilter.AllFilters)
-                {
-                    // only consider filters that match the item
-                    var matches = filter.Matches(item);
-                    if (matches)
-                    {
-                        // if the specific filter is enabled then it is not filtered out
-                        bool enabled;
-                        if (filterState.TryGetValue(filter, out enabled) && enabled)
-                        {
-                            return false;
-                        }
-                    }
-                }
-
-                // The item was filtered out.
-                return true;
-            }
-
             private bool IsHardSelection(
                 Model model,
                 CompletionItem bestFilterMatch,
-                ITextSnapshot textSnapshot,
+                SnapshotPoint caretPosition,
                 CompletionHelper completionHelper,
                 CompletionFilterReason reason)
             {
@@ -537,6 +526,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 {
                     return false;
                 }
+
+                var textSnapshot = caretPosition.Snapshot;
 
                 // We don't have a builder and we have a best match.  Normally this will be hard
                 // selected, except for a few cases.  Specifically, if no filter text has been
@@ -549,8 +540,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 //
                 // Completion will comes up after = with 'integer' selected (Because of MRU).  We do
                 // not want 'space' to commit this.
-                var viewSpan = model.GetViewBufferSpan(bestFilterMatch.Span);
-                var fullFilterText = model.GetCurrentTextInSnapshot(viewSpan, textSnapshot, endPoint: null);
+                var itemViewSpan = model.GetViewBufferSpan(bestFilterMatch.Span);
+                var fullFilterText = model.GetCurrentTextInSnapshot(itemViewSpan, textSnapshot, endPoint: null);
 
                 var trigger = model.Trigger;
                 var shouldSoftSelect = ShouldSoftSelectItem(bestFilterMatch, fullFilterText, trigger);
@@ -562,6 +553,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // If the user moved the caret left after they started typing, the 'best' match may not match at all
                 // against the full text span that this item would be replacing.
                 if (!MatchesFilterText(completionHelper, bestFilterMatch, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
+                {
+                    return false;
+                }
+
+                // Switch to soft selection, if user moved caret to the start of a non-empty filter span.
+                // This prevents commiting if user types a commit character at this position later, but 
+                // still has the list if user types filter character
+                // i.e. blah| -> |blah -> !|blah
+                // We want the filter span non-empty because we still want hard selection in the following case:
+                //
+                //  A a = new |
+                if (caretPosition == itemViewSpan.TextSpan.Start && itemViewSpan.TextSpan.Length > 0)
                 {
                     return false;
                 }

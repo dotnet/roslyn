@@ -25,7 +25,7 @@ using NSA = A;
 
 namespace A
 {
-    class Foo { }
+    class Goo { }
 }
 
 namespace B
@@ -34,21 +34,21 @@ namespace B
     {
         class NSA
         {
-            public NSA(int Foo) { this.Foo = Foo; }
-            int Foo;
+            public NSA(int Goo) { this.Goo = Goo; }
+            int Goo;
         }
 
         static int Main()
         {
-             NSA::Foo foo = new NSA::Foo(); // shouldn't error here
-             if (foo == null) {} 
+             NSA::Goo goo = new NSA::Goo(); // shouldn't error here
+             if (goo == null) {} 
              return 0;
         }
     }
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
 
             comp.GetMethodBodyDiagnostics().Verify();
@@ -70,7 +70,7 @@ public class MyClass
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
 
             comp.GetMethodBodyDiagnostics().Verify();
@@ -86,14 +86,14 @@ class Program
     static void Main()
     {
         uint ui = 2;
-        foo(ui + 2);
+        goo(ui + 2);
     }
-    static void foo(uint x)
+    static void goo(uint x)
     {
     }
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -107,16 +107,16 @@ class Program
 {
     static void Main()
     {
-        object x = foo(); 
+        object x = goo(); 
         if (x == null) {}
-        Console.WriteLine(foo());
+        Console.WriteLine(goo());
     }
-    static void foo()
+    static void goo()
     {
     }
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             int[] count = new int[4];
             Dictionary<int, int> errors = new Dictionary<int, int>();
@@ -156,7 +156,7 @@ class Program
     } 
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -196,7 +196,7 @@ class Program
     }
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -236,7 +236,7 @@ class Program
     }
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -259,7 +259,7 @@ class Program
     }
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -287,7 +287,7 @@ public class MyClass
 ";
 
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -337,7 +337,7 @@ class A
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
     // (6,42): error CS1525: Invalid expression term ','
     //         int[,] arr = new int[3,2] {{1,2},,{4,5}};
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",")
@@ -363,7 +363,7 @@ public class Program
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -387,7 +387,7 @@ public class Program2
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -410,7 +410,7 @@ public class Program1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -434,7 +434,7 @@ public class Program1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -457,7 +457,7 @@ public class Program1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -480,7 +480,7 @@ public class Program1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -503,7 +503,7 @@ public class Program1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -526,7 +526,7 @@ public class Program
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -537,12 +537,12 @@ public class Program
             var text = @"
 interface IA
 {
-    int Foo { get; }
+    int Goo { get; }
 }
 
 interface IB
 {
-    int Foo { get; }
+    int Goo { get; }
 }
 
 interface IC : IA, IB { }
@@ -552,16 +552,16 @@ class C
     static void Main()
     {
         IC x = null;
-        int y = x.Foo;
+        int y = x.Goo;
     }
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics(
-                // (19,19): error CS0229: Ambiguity between 'IA.Foo' and 'IB.Foo'
-                //         int y = x.Foo;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "Foo").WithArguments("IA.Foo", "IB.Foo"),
+                // (19,19): error CS0229: Ambiguity between 'IA.Goo' and 'IB.Goo'
+                //         int y = x.Goo;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Goo").WithArguments("IA.Goo", "IB.Goo"),
                 // (18,12): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         IC x = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x")
@@ -609,7 +609,7 @@ public class Program : I3
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var diags = comp.GetDiagnostics();
             Assert.Equal(0, diags.Count(d => d.Severity == DiagnosticSeverity.Error));
             Assert.Equal(0, diags.Count(d => d.Severity == DiagnosticSeverity.Warning));
@@ -633,7 +633,7 @@ public class Program
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics(
                 // (10,18): warning CS0219: The variable 'C' is assigned but its value is never used
                 //         const c1 C = null;
@@ -653,14 +653,14 @@ class B
 
 class A<T> : B
 {
-    static void Foo()
+    static void Goo()
     {
         T();
     }
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -692,7 +692,7 @@ namespace ParenthesizedExpression
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -719,7 +719,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -744,7 +744,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -764,7 +764,7 @@ class F
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics(
                 // (8,19): warning CS0414: The field 'F.p' is assigned but its value is never used
                 //   ProtectionLevel p = ProtectionLevel.Privacy;
@@ -789,7 +789,7 @@ class F
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree,
+            var comp = CreateStandardCompilation(tree,
                 references: new[] { TestReferences.NetFx.v4_0_30319.System });
             Assert.Equal(string.Empty, string.Join(Environment.NewLine, comp.GetDiagnostics()));
         }
@@ -827,7 +827,7 @@ namespace LevelOne.LevelTwo.LevelThree
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -854,7 +854,7 @@ public static int Main()
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -879,7 +879,7 @@ public class TestClass
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -906,7 +906,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -927,7 +927,7 @@ class Test
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -948,7 +948,7 @@ struct Outer
     }
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
             comp.GetMethodBodyDiagnostics().Verify(
                 // (10,21): error CS0120: An object reference is required for the non-static field, method, or property 'Outer.f1'
@@ -963,7 +963,7 @@ struct Outer
             var text = @"
 using System;
 
-public delegate void Foo ();
+public delegate void Goo ();
 
 class D
 {
@@ -972,7 +972,7 @@ class D
         return new D ();
     }
 
-    public static explicit operator D (Foo d)
+    public static explicit operator D (Goo d)
     {
         return new D ();
     }
@@ -987,11 +987,11 @@ class Program
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.GetMethodBodyDiagnostics().Verify(
-                // (23,15): error CS0457: Ambiguous user defined conversions 'D.explicit operator D(Foo)' and 'D.implicit operator D(Action)' when converting from 'method group' to 'D'
+                // (23,15): error CS0457: Ambiguous user defined conversions 'D.explicit operator D(Goo)' and 'D.implicit operator D(Action)' when converting from 'method group' to 'D'
                 //          D d = (D) Main;
-                Diagnostic(ErrorCode.ERR_AmbigUDConv, "(D) Main").WithArguments("D.explicit operator D(Foo)", "D.implicit operator D(System.Action)", "method group", "D").WithLocation(23, 15)
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "(D) Main").WithArguments("D.explicit operator D(Goo)", "D.implicit operator D(System.Action)", "method group", "D").WithLocation(23, 15)
                 );
         }
     }

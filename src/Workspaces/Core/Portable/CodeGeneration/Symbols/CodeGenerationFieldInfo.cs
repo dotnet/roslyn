@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static CodeGenerationFieldInfo GetInfo(IFieldSymbol field)
         {
-            CodeGenerationFieldInfo info;
-            s_fieldToInfoMap.TryGetValue(field, out info);
+            s_fieldToInfoMap.TryGetValue(field, out var info);
             return info;
         }
 

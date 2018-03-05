@@ -42,6 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
             {
                 WriteOptionTo(options, option, writer, cancellationToken);
             }
+
+            foreach (var option in CSharpCodeStyleOptions.GetExpressionBodyOptions())
+            {
+                WriteOptionTo(options, option, writer, cancellationToken);
+            }
+
+            WriteOptionTo(options, CSharpCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken);
         }
 
         public override OptionSet ReadOptionSetFrom(ObjectReader reader, CancellationToken cancellationToken)
@@ -55,42 +62,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
                 options = ReadOptionFrom(options, option, reader, cancellationToken);
             }
 
+            foreach (var option in CSharpCodeStyleOptions.GetExpressionBodyOptions())
+            {
+                options = ReadOptionFrom(options, option, reader, cancellationToken);
+            }
+
+            options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken);
+
             return options;
         }
 
         public override CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
-            OutputKind outputKind;
-            bool reportSuppressedDiagnostics;
-            string moduleName;
-            string mainTypeName;
-            string scriptClassName;
-            OptimizationLevel optimizationLevel;
-            bool checkOverflow;
-            string cryptoKeyContainer;
-            string cryptoKeyFile;
-            ImmutableArray<byte> cryptoPublicKey;
-            bool? delaySign;
-            Platform platform;
-            ReportDiagnostic generalDiagnosticOption;
-            int warningLevel;
-            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions;
-            bool concurrentBuild;
-            bool deterministic;
-            bool publicSign;
-            XmlReferenceResolver xmlReferenceResolver;
-            SourceReferenceResolver sourceReferenceResolver;
-            MetadataReferenceResolver metadataReferenceResolver;
-            AssemblyIdentityComparer assemblyIdentityComparer;
-            StrongNameProvider strongNameProvider;
-
             ReadCompilationOptionsFrom(
                 reader,
-                out outputKind, out reportSuppressedDiagnostics, out moduleName, out mainTypeName, out scriptClassName,
-                out optimizationLevel, out checkOverflow, out cryptoKeyContainer, out cryptoKeyFile, out cryptoPublicKey,
-                out delaySign, out platform, out generalDiagnosticOption, out warningLevel, out specificDiagnosticOptions,
-                out concurrentBuild, out deterministic, out publicSign, out xmlReferenceResolver, out sourceReferenceResolver,
-                out metadataReferenceResolver, out assemblyIdentityComparer, out strongNameProvider, cancellationToken);
+                out var outputKind, out var reportSuppressedDiagnostics, out var moduleName, out var mainTypeName, out var scriptClassName,
+                out var optimizationLevel, out var checkOverflow, out var cryptoKeyContainer, out var cryptoKeyFile, out var cryptoPublicKey,
+                out var delaySign, out var platform, out var generalDiagnosticOption, out var warningLevel, out var specificDiagnosticOptions,
+                out var concurrentBuild, out var deterministic, out var publicSign, out var xmlReferenceResolver, out var sourceReferenceResolver,
+                out var metadataReferenceResolver, out var assemblyIdentityComparer, out var strongNameProvider, cancellationToken);
 
             var usings = reader.ReadArray<string>();
             var allowUnsafe = reader.ReadBoolean();
@@ -103,10 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
 
         public override ParseOptions ReadParseOptionsFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
-            SourceCodeKind kind;
-            DocumentationMode documentationMode;
-            IEnumerable<KeyValuePair<string, string>> features;
-            ReadParseOptionsFrom(reader, out kind, out documentationMode, out features, cancellationToken);
+            ReadParseOptionsFrom(reader, out var kind, out var documentationMode, out var features, cancellationToken);
 
             var languageVersion = (LanguageVersion)reader.ReadInt32();
             var preprocessorSymbolNames = reader.ReadArray<string>();

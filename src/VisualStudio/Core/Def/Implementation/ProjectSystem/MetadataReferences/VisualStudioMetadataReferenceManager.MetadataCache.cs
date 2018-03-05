@@ -38,8 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private bool TryGetMetadata_NoLock(FileKey key, out AssemblyMetadata metadata)
             {
-                ValueSource<AssemblyMetadata> metadataSource;
-                if (_metadataCache.TryGetValue(key, out metadataSource))
+                if (_metadataCache.TryGetValue(key, out var metadataSource))
                 {
                     metadata = metadataSource.GetValue();
                     return metadata != null;

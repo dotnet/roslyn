@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -46,9 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static ExpressionSyntax GenerateNullLiteral()
-        {
-            return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
-        }
+            => SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
         internal static ExpressionSyntax GenerateExpression(
             ITypeSymbol type,
@@ -77,84 +74,54 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static ExpressionSyntax GenerateNonEnumValueExpression(
             ITypeSymbol type, object value, bool canUseFieldReference)
         {
-            if (value is bool)
+            switch (value)
             {
-                return SyntaxFactory.LiteralExpression((bool)value
-                    ? SyntaxKind.TrueLiteralExpression
-                    : SyntaxKind.FalseLiteralExpression);
+                case bool val: return GenerateBooleanLiteralExpression(val);
+                case string val: return GenerateStringLiteralExpression(val);
+                case char val: return GenerateCharLiteralExpression(val);
+                case sbyte val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.SByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v));
+                case short val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v));
+                case int val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
+                case long val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
+                case byte val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.ByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v));
+                case ushort val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.UInt16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, (uint)v));
+                case uint val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.UInt32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
+                case ulong val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.UInt64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
+                case float val: return GenerateSingleLiteralExpression(type, val, canUseFieldReference);
+                case double val: return GenerateDoubleLiteralExpression(type, val, canUseFieldReference);
+                case decimal val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.DecimalSpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
             }
-            else if (value is string)
-            {
-                var valueString = SymbolDisplay.FormatLiteral((string)value, quote: true);
-                return SyntaxFactory.LiteralExpression(
-                    SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(valueString, (string)value));
-            }
-            else if (value is char)
-            {
-                var charValue = (char)value;
-                var literal = SymbolDisplay.FormatLiteral(charValue, quote: true);
-                return SyntaxFactory.LiteralExpression(
-                    SyntaxKind.CharacterLiteralExpression, SyntaxFactory.Literal(literal, charValue));
-            }
-            else if (value is sbyte)
-            {
-                return GenerateLiteralExpression(type, (sbyte)value, LiteralSpecialValues.SByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v));
-            }
-            else if (value is short)
-            {
-                return GenerateLiteralExpression(type, (short)value, LiteralSpecialValues.Int16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v));
-            }
-            else if (value is int)
-            {
-                return GenerateLiteralExpression(type, (int)value, LiteralSpecialValues.Int32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
-            }
-            else if (value is long)
-            {
-                return GenerateLiteralExpression(type, (long)value, LiteralSpecialValues.Int64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
-            }
-            else if (value is byte)
-            {
-                return GenerateLiteralExpression(type, (byte)value, LiteralSpecialValues.ByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v));
-            }
-            else if (value is ushort)
-            {
-                return GenerateLiteralExpression(type, (ushort)value, LiteralSpecialValues.UInt16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, (uint)v));
-            }
-            else if (value is uint)
-            {
-                return GenerateLiteralExpression(type, (uint)value, LiteralSpecialValues.UInt32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
-            }
-            else if (value is ulong)
-            {
-                return GenerateLiteralExpression(type, (ulong)value, LiteralSpecialValues.UInt64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
-            }
-            else if (value is float)
-            {
-                return GenerateSingleLiteralExpression(type, (float)value, canUseFieldReference);
-            }
-            else if (value is double)
-            {
-                return GenerateDoubleLiteralExpression(type, (double)value, canUseFieldReference);
-            }
-            else if (value is decimal)
-            {
-                return GenerateLiteralExpression(type, (decimal)value, LiteralSpecialValues.DecimalSpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
-            }
-            else if (type == null || type.IsReferenceType || type.IsPointerType())
-            {
-                return GenerateNullLiteral();
-            }
-            else
-            {
-                return SyntaxFactory.DefaultExpression(type.GenerateTypeSyntax());
-            }
+
+            return type == null || type.IsReferenceType || type.IsPointerType() || type.IsNullable()
+                ? GenerateNullLiteral()
+                : (ExpressionSyntax)CSharpSyntaxGenerator.Instance.DefaultExpression(type);
+        }
+
+        private static ExpressionSyntax GenerateBooleanLiteralExpression(bool val)
+        {
+            return SyntaxFactory.LiteralExpression(val
+                ? SyntaxKind.TrueLiteralExpression
+                : SyntaxKind.FalseLiteralExpression);
+        }
+
+        private static ExpressionSyntax GenerateStringLiteralExpression(string val)
+        {
+            var valueString = SymbolDisplay.FormatLiteral(val, quote: true);
+            return SyntaxFactory.LiteralExpression(
+                SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(valueString, val));
+        }
+
+        private static ExpressionSyntax GenerateCharLiteralExpression(char val)
+        {
+            var literal = SymbolDisplay.FormatLiteral(val, quote: true);
+            return SyntaxFactory.LiteralExpression(
+                SyntaxKind.CharacterLiteralExpression, SyntaxFactory.Literal(literal, val));
         }
 
         private static string DetermineSuffix(ITypeSymbol type, object value)
         {
-            if (value is float)
+            if (value is float f)
             {
-                var f = (float)value;
                 var stringValue = ((IFormattable)value).ToString("R", CultureInfo.InvariantCulture);
 
                 var isNotSingle = !IsSpecialType(type, SpecialType.System_Single);
@@ -188,9 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return "UL";
             }
 
-            if (value is decimal)
+            if (value is decimal d)
             {
-                var d = (decimal)value;
                 var scale = d.GetScale();
 
                 var isNotDecimal = !IsSpecialType(type, SpecialType.System_Decimal);

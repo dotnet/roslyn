@@ -1572,12 +1572,12 @@ class Test
         string name = "";
         object obj = new object();
 /*<bind>*/
-        lock (new { p1 = name, p2 = foo(obj) })
+        lock (new { p1 = name, p2 = goo(obj) })
         {
         }
 /*</bind>*/
     }
-    static int foo(object  x)
+    static int goo(object  x)
     { return 1; }
 }
 ");

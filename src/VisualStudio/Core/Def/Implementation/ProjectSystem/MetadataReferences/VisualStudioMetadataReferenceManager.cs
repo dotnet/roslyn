@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -68,13 +69,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal IEnumerable<ITemporaryStreamStorage> GetStorages(string fullPath, DateTime snapshotTimestamp)
         {
             var key = new FileKey(fullPath, snapshotTimestamp);
-
             // check existing metadata
-            ValueSource<AssemblyMetadata> source;
-            if (_metadataCache.TryGetSource(key, out source))
+            if (_metadataCache.TryGetSource(key, out var source))
             {
-                var metadata = source as RecoverableMetadataValueSource;
-                if (metadata != null)
+                if (source is RecoverableMetadataValueSource metadata)
                 {
                     return metadata.GetStorages();
                 }
@@ -88,9 +86,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return new VisualStudioMetadataReference.Snapshot(this, properties, filePath);
         }
 
-        public VisualStudioMetadataReference CreateMetadataReference(IVisualStudioHostProject hostProject, string filePath, MetadataReferenceProperties properties)
+        public VisualStudioMetadataReference CreateMetadataReference(string filePath, MetadataReferenceProperties properties)
         {
-            return new VisualStudioMetadataReference(this, hostProject, filePath, properties);
+            return new VisualStudioMetadataReference(this, filePath, properties);
         }
 
         public void ClearCache()
@@ -120,16 +118,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal Metadata GetMetadata(string fullPath, DateTime snapshotTimestamp)
         {
             var key = new FileKey(fullPath, snapshotTimestamp);
-
             // check existing metadata
-            AssemblyMetadata metadata;
-            if (_metadataCache.TryGetMetadata(key, out metadata))
+            if (_metadataCache.TryGetMetadata(key, out var metadata))
             {
                 return metadata;
             }
 
-            AssemblyMetadata newMetadata;
-            if (VsSmartScopeCandidate(key.FullPath) && TryCreateAssemblyMetadataFromMetadataImporter(key, out newMetadata))
+            if (VsSmartScopeCandidate(key.FullPath) && TryCreateAssemblyMetadataFromMetadataImporter(key, out var newMetadata))
             {
                 if (!_metadataCache.TryGetOrAddMetadata(key, new WeakConstantValueSource<AssemblyMetadata>(newMetadata), out metadata))
                 {
@@ -162,10 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ModuleMetadata CreateModuleMetadataFromTemporaryStorage(FileKey moduleFileKey, List<ITemporaryStreamStorage> storages)
         {
-            ITemporaryStreamStorage storage;
-            Stream stream;
-            IntPtr pImage;
-            GetStorageInfoFromTemporaryStorage(moduleFileKey, out storage, out stream, out pImage);
+            GetStorageInfoFromTemporaryStorage(moduleFileKey, out var storage, out var stream, out var pImage);
 
             var metadata = ModuleMetadata.CreateFromMetadata(pImage, (int)stream.Length);
 
@@ -243,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <exception cref="BadImageFormatException" />
         private bool TryCreateAssemblyMetadataFromMetadataImporter(FileKey fileKey, out AssemblyMetadata metadata)
         {
-            metadata = default(AssemblyMetadata);
+            metadata = default;
 
             var manifestModule = TryCreateModuleMetadataFromMetadataImporter(fileKey);
             if (manifestModule == null)
@@ -257,10 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ModuleMetadata TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
         {
-            IMetaDataInfo info;
-            IntPtr pImage;
-            long length;
-            if (!TryGetFileMappingFromMetadataImporter(moduleFileKey, out info, out pImage, out length))
+            if (!TryGetFileMappingFromMetadataImporter(moduleFileKey, out var info, out var pImage, out var length))
             {
                 return null;
             }
@@ -295,17 +284,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // it won't be changed in the middle of VS running.
                 var fullPath = fileKey.FullPath;
 
-                info = default(IMetaDataInfo);
-                pImage = default(IntPtr);
-                length = default(long);
+                info = default;
+                pImage = default;
+                length = default;
 
                 if (SmartOpenScopeServiceOpt == null)
                 {
                     return false;
                 }
 
-                var ppUnknown = default(object);
-                if (ErrorHandler.Failed(SmartOpenScopeServiceOpt.OpenScope(fullPath, (uint)CorOpenFlags.ReadOnly, s_IID_IMetaDataImport, out ppUnknown)))
+                if (ErrorHandler.Failed(SmartOpenScopeServiceOpt.OpenScope(fullPath, (uint)CorOpenFlags.ReadOnly, s_IID_IMetaDataImport, out var ppUnknown)))
                 {
                     return false;
                 }
@@ -316,8 +304,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return false;
                 }
 
-                CorFileMapping mappingType;
-                return ErrorHandler.Succeeded(info.GetFileMapping(out pImage, out length, out mappingType)) && mappingType == CorFileMapping.Flat;
+                return ErrorHandler.Succeeded(info.GetFileMapping(out pImage, out length, out var mappingType)) && mappingType == CorFileMapping.Flat;
             }
         }
 

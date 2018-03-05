@@ -39,6 +39,7 @@ UnitTestResults.html
 *.nuget.props
 *.nuget.targets
 project.lock.json
+msbuild.binlog
 *.project.lock.json
 
 *_i.c
@@ -89,6 +90,7 @@ ipch/
 # ReSharper is a .NET coding add-in
 _ReSharper*/
 *.[Rr]e[Ss]harper
+*.DotSettings
 
 # TeamCity is a build add-in
 _TeamCity*
@@ -180,3 +182,6 @@ $RECYCLE.BIN/
 
 # Visual Studio Code
 .vscode/
+
+# JetBrains Rider
+.idea/

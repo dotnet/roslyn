@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _projectStates = new ProjectStates(this);
             }
 
-            private HostAnalyzerManager AnalyzerManager { get { return _analyzerManager; } }
+            private HostAnalyzerManager AnalyzerManager => _analyzerManager;
 
             /// <summary>
             /// This will be raised whenever <see cref="StateManager"/> finds <see cref="Project.AnalyzerReferences"/> change
@@ -122,6 +122,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public ImmutableArray<StateSet> CreateBuildOnlyProjectStateSet(Project project)
             {
+                if (!project.SupportsCompilation)
+                {
+                    // languages which don't use our compilation model but diagnostic framework,
+                    // all their analyzer should be host analyzers. return all host analyzers
+                    // for the language
+                    return _hostStates.GetOrCreateStateSets(project.Language).ToImmutableArray();
+                }
+
                 // create project analyzer reference identity map
                 var referenceIdentities = project.AnalyzerReferences.Select(r => _analyzerManager.GetAnalyzerReferenceIdentity(r)).ToSet();
 
@@ -139,8 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     FailFast.OnFatalException(new Exception("How can this happen?"));
                 }
 
-                StateSet compilerStateSet;
-                if (hostStateSetMap.TryGetValue(compilerAnalyzer, out compilerStateSet))
+                if (hostStateSetMap.TryGetValue(compilerAnalyzer, out var compilerStateSet))
                 {
                     stateSets.Add(compilerStateSet);
                 }
@@ -164,8 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // we include it in build only analyzer.
                     foreach (var analyzer in kv.Value)
                     {
-                        StateSet stateSet;
-                        if (hostStateSetMap.TryGetValue(analyzer, out stateSet) && stateSet != compilerStateSet)
+                        if (hostStateSetMap.TryGetValue(analyzer, out var stateSet) && stateSet != compilerStateSet)
                         {
                             stateSets.Add(stateSet);
                         }

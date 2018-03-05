@@ -62,9 +62,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Me._value = CType(reader.ReadValue(), T)
         End Sub
 
-        Friend Overrides Function GetReader() As Func(Of ObjectReader, Object)
-            Return Function(r) New IntegerLiteralTokenSyntax(Of T)(r)
-        End Function
+        Shared Sub New()
+            ObjectBinder.RegisterTypeReader(GetType(IntegerLiteralTokenSyntax(Of T)), Function(r) New IntegerLiteralTokenSyntax(Of T)(r))
+        End Sub
 
         Friend Overrides Sub WriteTo(writer As ObjectWriter)
             MyBase.WriteTo(writer)
@@ -186,9 +186,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Me._value = CType(reader.ReadValue(), T)
         End Sub
 
-        Friend Overrides Function GetReader() As Func(Of ObjectReader, Object)
-            Return Function(r) New FloatingLiteralTokenSyntax(Of T)(r)
-        End Function
+        Shared Sub New()
+            ObjectBinder.RegisterTypeReader(GetType(FloatingLiteralTokenSyntax(Of T)), Function(r) New FloatingLiteralTokenSyntax(Of T)(r))
+        End Sub
 
         Friend Overrides Sub WriteTo(writer As ObjectWriter)
             MyBase.WriteTo(writer)

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -84,11 +84,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
         }
 
-        private async Task<ChangeSignatureAnalyzedContext> GetContextAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
+        private async Task<ChangeSignatureAnalyzedContext> GetContextAsync(
+            Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
-            var symbol = await GetInvocationSymbolAsync(document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
+            var symbol = await GetInvocationSymbolAsync(
+                document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
 
-            // Cross-lang symbols will show as metadata, so map it to source if possible.
+            // Cross-language symbols will show as metadata, so map it to source if possible.
             symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false) ?? symbol;
 
             if (symbol == null)
@@ -96,9 +98,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
             }
 
-            if (symbol is IMethodSymbol)
+            if (symbol is IMethodSymbol method)
             {
-                var method = symbol as IMethodSymbol;
                 var containingType = method.ContainingType;
 
                 if (method.Name == WellKnownMemberNames.DelegateBeginInvokeName &&
@@ -110,14 +111,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
             }
 
-            if (symbol is IEventSymbol)
+            if (symbol is IEventSymbol ev)
             {
-                symbol = (symbol as IEventSymbol).Type;
+                symbol = ev.Type;
             }
 
-            if (symbol is INamedTypeSymbol)
+            if (symbol is INamedTypeSymbol typeSymbol)
             {
-                var typeSymbol = symbol as INamedTypeSymbol;
                 if (typeSymbol.IsDelegateType() && typeSymbol.DelegateInvokeMethod != null)
                 {
                     symbol = typeSymbol.DelegateInvokeMethod;
@@ -157,8 +157,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         internal ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
-            Solution updatedSolution;
-            var succeeded = TryCreateUpdatedSolution(context, options, cancellationToken, out updatedSolution);
+            var succeeded = TryCreateUpdatedSolution(context, options, cancellationToken, out var updatedSolution);
             return new ChangeSignatureResult(succeeded, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
         }
 
@@ -242,8 +241,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 if (symbolWithSyntacticParameters.Kind == SymbolKind.Event)
                 {
                     var eventSymbol = symbolWithSyntacticParameters as IEventSymbol;
-                    var type = eventSymbol.Type as INamedTypeSymbol;
-                    if (type != null && type.DelegateInvokeMethod != null)
+                    if (eventSymbol.Type is INamedTypeSymbol type && type.DelegateInvokeMethod != null)
                     {
                         symbolWithSemanticParameters = type.DelegateInvokeMethod;
                     }
@@ -275,9 +273,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     foreach (var def in symbolWithSyntacticParameters.Locations)
                     {
-                        DocumentId documentId;
-                        SyntaxNode nodeToUpdate;
-                        if (!TryGetNodeWithEditableSignatureOrAttributes(def, updatedSolution, out nodeToUpdate, out documentId))
+                        if (!TryGetNodeWithEditableSignatureOrAttributes(def, updatedSolution, out var nodeToUpdate, out var documentId))
                         {
                             continue;
                         }
@@ -301,9 +297,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         continue;
                     }
 
-                    DocumentId documentId2;
-                    SyntaxNode nodeToUpdate2;
-                    if (!TryGetNodeWithEditableSignatureOrAttributes(location.Location, updatedSolution, out nodeToUpdate2, out documentId2))
+                    if (!TryGetNodeWithEditableSignatureOrAttributes(location.Location, updatedSolution, out var nodeToUpdate2, out var documentId2))
                     {
                         continue;
                     }
@@ -368,9 +362,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         private void AddUpdatableNodeToDictionaries(Dictionary<DocumentId, List<SyntaxNode>> nodesToUpdate, DocumentId documentId, SyntaxNode nodeToUpdate, Dictionary<SyntaxNode, ISymbol> definitionToUse, ISymbol symbolWithSemanticParameters)
         {
             nodesToUpdate[documentId].Add(nodeToUpdate);
-
-            ISymbol sym;
-            if (definitionToUse.TryGetValue(nodeToUpdate, out sym) && sym != symbolWithSemanticParameters)
+            if (definitionToUse.TryGetValue(nodeToUpdate, out var sym) && sym != symbolWithSemanticParameters)
             {
                 Debug.Assert(false, "Change Signature: Attempted to modify node twice with different semantic parameters.");
             }

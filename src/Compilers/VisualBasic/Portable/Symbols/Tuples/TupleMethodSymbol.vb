@@ -84,6 +84,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return Me._underlyingMethod.RefCustomModifiers
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
             Get
                 Return StaticCast(Of TypeSymbol).From(Me._typeParameters)

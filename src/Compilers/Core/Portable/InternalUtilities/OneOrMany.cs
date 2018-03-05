@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using System.Diagnostics;
 
@@ -21,7 +22,7 @@ namespace Roslyn.Utilities
         public OneOrMany(T one)
         {
             _one = one;
-            _many = default(ImmutableArray<T>);
+            _many = default;
         }
 
         public OneOrMany(ImmutableArray<T> many)
@@ -31,7 +32,7 @@ namespace Roslyn.Utilities
                 throw new ArgumentNullException(nameof(many));
             }
 
-            _one = default(T);
+            _one = default;
             _many = many;
         }
 
@@ -76,6 +77,51 @@ namespace Roslyn.Utilities
             }
             builder.Add(one);
             return new OneOrMany<T>(builder.ToImmutableAndFree());
+        }
+
+        public bool Contains(T item)
+        {
+            Debug.Assert(item != null);
+            if (Count == 1)
+            {
+                return item.Equals(_one);
+            }
+
+            var iter = GetEnumerator();
+            while (iter.MoveNext())
+            {
+                if (item.Equals(iter.Current))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public OneOrMany<T> RemoveAll(T item)
+        {
+            if (_many.IsDefault)
+            {
+                return item.Equals(_one) ? default : this;
+            }
+
+            var builder = ArrayBuilder<T>.GetInstance();
+            var iter = GetEnumerator();
+            while (iter.MoveNext())
+            {
+                if (!item.Equals(iter.Current))
+                {
+                    builder.Add(iter.Current);
+                }
+            }
+
+            if (builder.Count == 0)
+            {
+                return default;
+            }
+
+            return builder.Count == Count ? this : new OneOrMany<T>(builder.ToImmutableAndFree());
         }
 
         public Enumerator GetEnumerator()

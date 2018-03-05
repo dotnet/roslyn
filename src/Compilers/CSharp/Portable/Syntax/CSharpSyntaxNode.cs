@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -35,19 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal CSharpSyntaxNode(GreenNode green, int position, SyntaxTree syntaxTree)
             : base(green, position, syntaxTree)
         {
-        }
-
-        //TODO: move to common
-        /// <summary>
-        /// Creates a clone of a red node that can be used as a root of given syntaxTree.
-        /// New node has no parents, position == 0, and syntaxTree as specified.
-        /// </summary>
-        internal static T CloneNodeAsRoot<T>(T node, SyntaxTree syntaxTree) where T : SyntaxNode
-        {
-            var clone = (T)node.Green.CreateRed(null, 0);
-            clone._syntaxTree = syntaxTree;
-
-            return clone;
         }
 
         /// <summary>
@@ -204,96 +192,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom);
             }
 
-            using (var reader = new ObjectReader(stream, defaultData: GetDefaultObjectReaderData(), binder: s_defaultBinder))
+            using (var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken))
             {
+                if (reader == null)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.Stream_contains_invalid_data, nameof(stream));
+                }
+
                 var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
                 return root.CreateRed();
             }
         }
 
-        private static ObjectWriterData s_defaultObjectWriterData;
-        internal override ObjectWriterData GetDefaultObjectWriterData()
-        {
-            if (s_defaultObjectWriterData == null)
-            {
-                var data = new ObjectWriterData(GetSerializationData());
-                Interlocked.CompareExchange(ref s_defaultObjectWriterData, data, null);
-            }
-
-            return s_defaultObjectWriterData;
-        }
-
-        private static ObjectReaderData s_defaultObjectReaderData;
-        private static ObjectReaderData GetDefaultObjectReaderData()
-        {
-            if (s_defaultObjectReaderData == null)
-            {
-                var data = new ObjectReaderData(GetSerializationData());
-                Interlocked.CompareExchange(ref s_defaultObjectReaderData, data, null);
-            }
-
-            return s_defaultObjectReaderData;
-        }
-
-        private static IEnumerable<object> s_serializationData;
-
-        private static IEnumerable<object> GetSerializationData()
-        {
-            if (s_serializationData == null)
-            {
-                var data =
-                    // known assemblies names and types (not in generated list)
-                    new object[] {
-                        typeof(object).GetTypeInfo().Assembly.FullName, // mscorlib
-                        typeof(Microsoft.CodeAnalysis.DiagnosticInfo).GetTypeInfo().Assembly.FullName, // Roslyn.Compilers
-                        typeof(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode).GetTypeInfo().Assembly.FullName, // Roslyn.Compilers.CSharp 
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.MissingTokenWithTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxIdentifier),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxIdentifierExtended),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxIdentifierWithTrailingTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxIdentifierWithTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValue<string>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValueAndTrivia<string>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValue<int>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValueAndTrivia<int>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValue<long>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValueAndTrivia<long>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValue<double>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValueAndTrivia<double>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxTrivia),
-                        typeof(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithManyChildren),
-                        typeof(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithThreeChildren),
-                        typeof(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithTwoChildren)
-                    }
-                    .Concat(
-                        Syntax.InternalSyntax.SyntaxFactory.GetNodeTypes()) // known types (generated)
-                    .Concat(
-                        Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.GetWellKnownTokens()) // known tokens
-                    .Concat(
-                        Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.GetWellKnownTrivia()) // known trivia
-                    .Concat(
-                        new object[] {   // other
-                            " ",
-                            typeof(Microsoft.CodeAnalysis.SyntaxAnnotation),
-                            typeof(Microsoft.CodeAnalysis.DiagnosticInfo),
-                            typeof(Microsoft.CodeAnalysis.CSharp.SyntaxDiagnosticInfo), // serialization names & types
-                            typeof(Microsoft.CodeAnalysis.CSharp.MessageProvider),
-                            "messageProvider",
-                            "errorCode",
-                            "argumentCount",
-                            "offset",
-                            "width",
-                        })
-                    .ToImmutableArray();
-
-                System.Threading.Interlocked.CompareExchange(ref s_serializationData, data, null);
-            }
-
-            return s_serializationData;
-        }
 #endregion
 
         /// <summary>
@@ -576,47 +486,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             IEnumerable<SyntaxTrivia> trivia = null,
             Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> computeReplacementTrivia = null)
         {
-            return SyntaxReplacer.Replace(this, nodes, computeReplacementNode, tokens, computeReplacementToken, trivia, computeReplacementTrivia);
+            return SyntaxReplacer.Replace(this, nodes, computeReplacementNode, tokens, computeReplacementToken, trivia, computeReplacementTrivia).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode ReplaceNodeInListCore(SyntaxNode originalNode, IEnumerable<SyntaxNode> replacementNodes)
         {
-            return SyntaxReplacer.ReplaceNodeInList(this, originalNode, replacementNodes);
+            return SyntaxReplacer.ReplaceNodeInList(this, originalNode, replacementNodes).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode InsertNodesInListCore(SyntaxNode nodeInList, IEnumerable<SyntaxNode> nodesToInsert, bool insertBefore)
         {
-            return SyntaxReplacer.InsertNodeInList(this, nodeInList, nodesToInsert, insertBefore);
+            return SyntaxReplacer.InsertNodeInList(this, nodeInList, nodesToInsert, insertBefore).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode ReplaceTokenInListCore(SyntaxToken originalToken, IEnumerable<SyntaxToken> newTokens)
         {
-            return SyntaxReplacer.ReplaceTokenInList(this, originalToken, newTokens);
+            return SyntaxReplacer.ReplaceTokenInList(this, originalToken, newTokens).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode InsertTokensInListCore(SyntaxToken originalToken, IEnumerable<SyntaxToken> newTokens, bool insertBefore)
         {
-            return SyntaxReplacer.InsertTokenInList(this, originalToken, newTokens, insertBefore);
+            return SyntaxReplacer.InsertTokenInList(this, originalToken, newTokens, insertBefore).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode ReplaceTriviaInListCore(SyntaxTrivia originalTrivia, IEnumerable<SyntaxTrivia> newTrivia)
         {
-            return SyntaxReplacer.ReplaceTriviaInList(this, originalTrivia, newTrivia);
+            return SyntaxReplacer.ReplaceTriviaInList(this, originalTrivia, newTrivia).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode InsertTriviaInListCore(SyntaxTrivia originalTrivia, IEnumerable<SyntaxTrivia> newTrivia, bool insertBefore)
         {
-            return SyntaxReplacer.InsertTriviaInList(this, originalTrivia, newTrivia, insertBefore);
+            return SyntaxReplacer.InsertTriviaInList(this, originalTrivia, newTrivia, insertBefore).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode RemoveNodesCore(IEnumerable<SyntaxNode> nodes, SyntaxRemoveOptions options)
         {
-            return SyntaxNodeRemover.RemoveNodes(this, nodes.Cast<CSharpSyntaxNode>(), options);
+            return SyntaxNodeRemover.RemoveNodes(this, nodes.Cast<CSharpSyntaxNode>(), options).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode NormalizeWhitespaceCore(string indentation, string eol, bool elasticTrivia)
         {
-            return SyntaxNormalizer.Normalize(this, indentation, eol, elasticTrivia);
+            return SyntaxNormalizer.Normalize(this, indentation, eol, elasticTrivia).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected override bool IsEquivalentToCore(SyntaxNode node, bool topLevel = false)

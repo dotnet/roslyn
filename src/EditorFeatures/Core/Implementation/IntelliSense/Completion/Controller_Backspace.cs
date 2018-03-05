@@ -4,23 +4,25 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<BackspaceKeyCommandArgs>.GetCommandState(BackspaceKeyCommandArgs args, System.Func<CommandState> nextHandler)
+        VSCommanding.CommandState IChainedCommandHandler<BackspaceKeyCommandArgs>.GetCommandState(BackspaceKeyCommandArgs args, System.Func<VSCommanding.CommandState> nextHandler)
         {
             AssertIsForeground();
             return nextHandler();
         }
 
-        void ICommandHandler<BackspaceKeyCommandArgs>.ExecuteCommand(BackspaceKeyCommandArgs args, Action nextHandler)
+        void IChainedCommandHandler<BackspaceKeyCommandArgs>.ExecuteCommand(BackspaceKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             ExecuteBackspaceOrDelete(args.TextView, nextHandler, isDelete: false);
         }
@@ -36,14 +38,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 deletedChar = viewBufferCaretPoint.Position >= 0 && viewBufferCaretPoint.Position < textView.TextBuffer.CurrentSnapshot.Length
                     ? textView.TextBuffer.CurrentSnapshot[viewBufferCaretPoint.Position]
-                    : default(char?);
+                    : default;
             }
             else
             {
                 // backspace
                 deletedChar = viewBufferCaretPoint > 0
                     ? textView.TextBuffer.CurrentSnapshot[viewBufferCaretPoint - 1]
-                    : default(char?);
+                    : default;
             }
 
             if (sessionOpt == null)
@@ -67,8 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 if (completionService != null)
                 {
-                    this.StartNewModelComputation(
-                        completionService, trigger, filterItems: false, dismissIfEmptyAllowed: true);
+                    this.StartNewModelComputation(completionService, trigger);
                 }
 
                 return;
@@ -76,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             else
             {
                 var textBeforeDeletion = SubjectBuffer.AsTextContainer().CurrentText;
-                var documentBeforeDeletion = textBeforeDeletion.GetDocumentWithFrozenPartialSemanticsAsync(CancellationToken.None)
-                                                                .WaitAndGetResult(CancellationToken.None);
+                var documentBeforeDeletion = textBeforeDeletion.GetDocumentWithFrozenPartialSemantics(CancellationToken.None);
 
                 this.TextView.TextBuffer.PostChanged -= OnTextViewBufferPostChanged;
                 this.TextView.Caret.PositionChanged -= OnCaretPositionChanged;
@@ -98,19 +98,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     (model != null && model.OriginalList.Rules.DismissIfLastCharacterDeleted && AllFilterTextsEmpty(model, GetCaretPointInViewBuffer())))
                 {
                     // If the caret moved out of bounds of our items, then we want to dismiss the list. 
-                    this.StopModelComputation();
+                    this.DismissSessionIfActive();
                     return;
                 }
                 else if (model != null)
                 {
-                    // If we were triggered on backspace/delete, and we're still deleting,
-                    // then we don't want to filter out items (i.e. we still want all items).
-                    // However, we do still want to run the code to figure out what the best 
-                    // item is to select from all those items.
-                    FilterToSomeOrAllItems(
-                        filterItems: model.Trigger.Kind != CompletionTriggerKind.Deletion,
-                        dismissIfEmptyAllowed: true,
-                        filterReason: CompletionFilterReason.BackspaceOrDelete);
+                    sessionOpt.FilterModel(CompletionFilterReason.Deletion, filterState: null);
                 }
             }
         }
@@ -156,8 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
            Dictionary<TextSpan, ViewTextSpan> textSpanToViewSpan)
         {
             // Easy first check.  See if the caret point is before the start of the item.
-            ViewTextSpan filterSpanInViewBuffer;
-            if (!textSpanToViewSpan.TryGetValue(item.Span, out filterSpanInViewBuffer))
+            if (!textSpanToViewSpan.TryGetValue(item.Span, out var filterSpanInViewBuffer))
             {
                 filterSpanInViewBuffer = model.GetViewBufferSpan(item.Span);
                 textSpanToViewSpan[item.Span] = filterSpanInViewBuffer;

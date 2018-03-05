@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Sub GetSmartIndent2()
-            Using workspace = Await TestWorkspace.CreateCSharpAsync("")
+        Public Sub GetSmartIndent2()
+            Using workspace = TestWorkspace.CreateCSharp("")
                 Assert.Equal(True, workspace.Options.GetOption(InternalFeatureOnOffOptions.SmartIndenter))
 
                 Dim document = workspace.Projects.Single().Documents.Single()
@@ -31,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Sub GetSmartIndent3()
-            Using workspace = Await TestWorkspace.CreateCSharpAsync("")
+        Public Sub GetSmartIndent3()
+            Using workspace = TestWorkspace.CreateCSharp("")
                 workspace.Options = workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.SmartIndenter, False)
 
                 Dim document = workspace.Projects.Single().Documents.Single()

@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
             const string code = @"
 class C
 {
-    {|span:// Foo
+    {|span:// Goo
     // Bar|}
     $$event EventHandler E;
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "// Foo ...", autoCollapse: true));
+                Region("span", "// Goo ...", autoCollapse: true));
         }
     }
 }

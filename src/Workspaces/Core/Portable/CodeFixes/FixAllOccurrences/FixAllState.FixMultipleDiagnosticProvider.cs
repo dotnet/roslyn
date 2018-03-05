@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 _documentDiagnosticsMap = ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
             }
 
-            internal override Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
+            internal override Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(
                 FixAllContext context)
             {
                 return Task.FromResult(_documentDiagnosticsMap);
@@ -69,8 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
             {
-                ImmutableArray<Diagnostic> diagnostics;
-                if (_documentDiagnosticsMap.TryGetValue(document, out diagnostics))
+                if (_documentDiagnosticsMap.TryGetValue(document, out var diagnostics))
                 {
                     return Task.FromResult<IEnumerable<Diagnostic>>(diagnostics);
                 }
@@ -80,8 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
             {
-                ImmutableArray<Diagnostic> diagnostics;
-                if (_projectDiagnosticsMap.TryGetValue(project, out diagnostics))
+                if (_projectDiagnosticsMap.TryGetValue(project, out var diagnostics))
                 {
                     return Task.FromResult<IEnumerable<Diagnostic>>(diagnostics);
                 }

@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -43,9 +44,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                     _document.Project.Solution,
                     _state.TypeToGenerateIn,
                     CodeGenerationSymbolFactory.CreateFieldSymbol(
-                        attributes: null,
+                        attributes: default,
                         accessibility: Accessibility.Public,
-                        modifiers: default(DeclarationModifiers),
+                        modifiers: default,
                         type: _state.TypeToGenerateIn,
                         name: _state.IdentifierToken.ValueText,
                         hasConstantValue: value != null,
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
             {
                 get
                 {
-                    var text = FeaturesResources.Generate_enum_member_0_in_1;
+                    var text = FeaturesResources.Generate_enum_member_1_0;
 
                     return string.Format(
                         text,

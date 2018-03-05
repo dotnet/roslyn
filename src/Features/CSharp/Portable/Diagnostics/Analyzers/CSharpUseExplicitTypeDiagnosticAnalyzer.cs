@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -28,6 +28,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         {
         }
 
+        protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (!variableDeclaration.Type.IsVar)
+            {
+                // If the type is not 'var', this analyze has no work to do
+                return false;
+            }
+
+            // The base analyzer may impose further limitations
+            return base.ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken);
+        }
+
+        protected override bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (!forEachStatement.Type.IsVar)
+            {
+                // If the type is not 'var', this analyze has no work to do
+                return false;
+            }
+
+            // The base analyzer may impose further limitations
+            return base.ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken);
+        }
+
         protected override bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
         {
             var stylePreferences = state.TypeStylePreference;
@@ -55,7 +79,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
         {
-            issueSpan = default(TextSpan);
+            issueSpan = default;
+
+            // var (x, y) = e;
+            // foreach (var (x, y) in e) ...
+            if (typeName.IsParentKind(SyntaxKind.DeclarationExpression))
+            {
+                var parent = (DeclarationExpressionSyntax)typeName.Parent;
+                if (parent.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
+                {
+                    issueSpan = typeName.Span;
+                    return true;
+                }
+            }
 
             // If it is currently not var, explicit typing exists, return. 
             // this also takes care of cases where var is mapped to a named type via an alias or a class declaration.
@@ -119,6 +155,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             // cannot find type if initializer resolves to an ErrorTypeSymbol
             var initializerTypeInfo = semanticModel.GetTypeInfo(initializer, cancellationToken);
             return !initializerTypeInfo.Type.IsErrorType();
+        }
+
+        protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (!declaration.Type.IsVar)
+            {
+                // If the type is not 'var', this analyze has no work to do
+                return false;
+            }
+
+            // The base analyzer may impose further limitations
+            return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
         }
     }
 }

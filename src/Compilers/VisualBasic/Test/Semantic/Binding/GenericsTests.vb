@@ -55,7 +55,7 @@ BC32042: Too few type arguments to 'vbCls5(Of UInteger()()).vbStrA(Of X, Y)'.
             Dim vbCompilation = CreateVisualBasicCompilation("TestNestedGenericTypeInference",
             <![CDATA[Imports System
         Public Module Program
-            Sub foo(Of U, T)(ByVal x As cls1(Of U).cls2(Of T))
+            Sub goo(Of U, T)(ByVal x As cls1(Of U).cls2(Of T))
                 Console.WriteLine(GetType(U).ToString())
                 Console.WriteLine(GetType(T).ToString())
             End Sub
@@ -66,7 +66,7 @@ BC32042: Too few type arguments to 'vbCls5(Of UInteger()()).vbStrA(Of X, Y)'.
 
             Sub Main()
                 Dim x = New cls1(Of Integer).cls2(Of Long)
-                foo(x)
+                goo(x)
             End Sub
         End Module]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
@@ -232,7 +232,7 @@ End Namespace
 Imports System
 
 Module Program
-    Sub foo(ByRef x As RuntimeArgumentHandle())
+    Sub goo(ByRef x As RuntimeArgumentHandle())
         ReDim x(100)
     End Sub
 End Module

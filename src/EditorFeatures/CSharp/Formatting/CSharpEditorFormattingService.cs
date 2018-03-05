@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -43,13 +43,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
         {
-            var options = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var smartIndentOn = options.GetOption(FormattingOptions.SmartIndent) == FormattingOptions.IndentStyle.Smart;
+            // Performance: This method checks several options to determine if we should do smart
+            // indent, none of which are controlled by editorconfig. Instead of calling 
+            // document.GetOptionsAsync we can use the Workspace's global options and thus save the
+            // work of attempting to read in the editorconfig file.
+            var options = document.Project.Solution.Workspace.Options;
+
+            var smartIndentOn = options.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp) == FormattingOptions.IndentStyle.Smart;
 
             // We consider the proper placement of a close curly when it is typed at the start of the
             // line to be a smart-indentation operation.  As such, even if "format on typing" is off,
             // if "smart indent" is on, we'll still format this.  (However, we won't touch anything
-            // else in teh block this close curly belongs to.).
+            // else in the block this close curly belongs to.).
             //
             // TODO(cyrusn): Should we expose an option for this?  Personally, i don't think so.
             // If a user doesn't want this behavior, they can turn off 'smart indent' and control
@@ -60,18 +65,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             }
 
             // If format-on-typing is not on, then we don't support formatting on any other characters.
-            var autoFormattingOnTyping = options.GetOption(FeatureOnOffOptions.AutoFormattingOnTyping);
+            var autoFormattingOnTyping = options.GetOption(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp);
             if (!autoFormattingOnTyping)
             {
                 return false;
             }
             
-            if (ch == '}' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace))
+            if (ch == '}' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp))
             {
                 return false;
             }
 
-            if (ch == ';' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnSemicolon))
+            if (ch == ';' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp))
             {
                 return false;
             }

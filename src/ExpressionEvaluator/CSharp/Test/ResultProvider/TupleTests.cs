@@ -191,7 +191,7 @@ class C
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBaseBase.CreateStandardCompilation(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -227,7 +227,7 @@ class C
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBaseBase.CreateStandardCompilation(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -819,6 +819,123 @@ class B
             }
         }
 
+        // Different number of tuple elements
+        // in value and declared type.
+        [WorkItem(13420, "https://github.com/dotnet/roslyn/issues/13420")]
+        [Fact(Skip = "13420")]
+        public void ValueAndTypeDifferentElementCount()
+        {
+            var source =
+@"class C<T>
+{
+}
+struct S<T, U>
+{
+}
+class C
+{
+    (object One, System.ValueType Two, (int A, int B) Three) F1 = ((1, 2), (3, 4), (5, 6)); // base types
+    ((int A, int B)[] One, (int C, int D)[] Two, (int E, int F) Three) F2 = (null, new[] { (1, 2), (3, 4) }, (5, 6)); // arrays
+    ((int A, int B)? One, (int C, int D)? Two) F3 = (null, (1, 2)); // Nullable<T>
+    (C<(int A, int B)> One, C<(int C, int D)> Two, (int E, int F) Three) F4 = (null, new C<(int, int)>(), (5, 6)); // class type arguments
+    (S<(int A, (int B, int C) D), object>? One, S<object, (int E, int F)>? Two, (int G, int H) Three) F5 = (null, new S<object, (int, int)>(), (5, 6)); // struct type arguments
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: new[] { reference0 });
+            var assembly1 = compilation1.EmitToArray();
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult(
+                        "F1",
+                        "(One: (1, 2), Two: (3, 4), Three: (A: 5, B: 6))",
+                        "(object One, System.ValueType Two, (int A, int B) Three)",
+                        "o.F1",
+                        DkmEvaluationResultFlags.Expandable),
+                    EvalResult(
+                        "F2",
+                        "(One: null, Two: {(int, int)[2]}, Three: (E: 5, F: 6))",
+                        "((int A, int B)[] One, (int C, int D)[] Two, (int E, int F) Three)",
+                        "o.F2",
+                        DkmEvaluationResultFlags.Expandable),
+                    EvalResult(
+                        "F3",
+                        "(One: null, Two: (C: 1, D: 2))",
+                        "((int A, int B)? One, (int C, int D)? Two)",
+                        "o.F3",
+                        DkmEvaluationResultFlags.Expandable),
+                    EvalResult(
+                        "F4",
+                        "(One: null, Two: {C<(int, int)>}, Three: (E: 5, F: 6))",
+                        "(C<(int A, int B)> One, C<(int C, int D)> Two, (int E, int F) Three)",
+                        "o.F4",
+                        DkmEvaluationResultFlags.Expandable),
+                    EvalResult(
+                        "F5",
+                        "(One: null, Two: {S<object, (int, int)>}, Three: (G: 5, H: 6))",
+                        "(S<(int A, (int B, int C) D), object>? One, S<object, (int E, int F)>? Two, (int G, int H) Three)",
+                        "o.F5",
+                        DkmEvaluationResultFlags.Expandable));
+            }
+        }
+
+        [WorkItem(13420, "https://github.com/dotnet/roslyn/issues/13420")]
+        [Fact(Skip = "13420")]
+        public void ValueAndTypeDifferentElementCount_LongTuple()
+        {
+            var source =
+@"class C
+{
+    (
+        object One,
+        object Two,
+        (int A, int B) Three,
+        (int C, int D) Four,
+        (int E, int F)[] Five,
+        (int G, int H)[] Six,
+        (int I, int J)? Seven,
+        (int K, int L)? Eight,
+        object Nine
+    ) F =
+    (
+        One: null,
+        Two: (M: 21, N: 22),
+        Three: (31, 32),
+        Four: (41, 42),
+        Five: new[] { (71, 72), (73, 74) },
+        Six: null,
+        Seven: null,
+        Eight: (61, 62),
+        Nine: (O: 91, P: 92)
+    );
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: new[] { reference0 });
+            var assembly1 = compilation1.EmitToArray();
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult(
+                        "F",
+                        "(One: null, Two: (21, 22), Three: (A: 31, B: 32), Four: (C: 41, D: 42), Five: {(int, int)[2]}, Six: null, Seven: null, Eight: (K: 61, L: 62), Nine: (91, 92))",
+                        "(object One, object Two, (int A, int B) Three, (int C, int D) Four, (int E, int F)[] Five, (int G, int H)[] Six, (int I, int J)? Seven, (int K, int L)? Eight, object Nine)",
+                        "o.F",
+                        DkmEvaluationResultFlags.Expandable));
+            }
+        }
+
         [Fact]
         public void InvalidElementName()
         {
@@ -946,7 +1063,7 @@ class B
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBaseBase.CreateStandardCompilation(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -998,7 +1115,7 @@ class async
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBaseBase.CreateStandardCompilation(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -1091,7 +1208,7 @@ class B
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBaseBase.CreateStandardCompilation(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -1337,7 +1454,7 @@ namespace System.Runtime.CompilerServices
         }
     }
 }";
-            var comp = CSharpTestBaseBase.CreateCompilationWithMscorlib(source, assemblyName: "Tuples");
+            var comp = CSharpTestBaseBase.CreateStandardCompilation(source, assemblyName: "Tuples");
             comp.VerifyDiagnostics();
             return comp.EmitToArray();
         }

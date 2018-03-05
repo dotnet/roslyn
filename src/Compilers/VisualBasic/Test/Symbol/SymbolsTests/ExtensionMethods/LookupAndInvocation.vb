@@ -2835,7 +2835,7 @@ Imports X
 Namespace X
     Module M
         &lt;Extension()&gt;
-        Function Foo(ByVal x As String) As String
+        Function Goo(ByVal x As String) As String
             Return x
         End Function
     End Module
@@ -2843,14 +2843,14 @@ Namespace X
     Namespace Y
         Module N
             &lt;Extension()&gt;
-            Sub Foo(ByVal x As String)
+            Sub Goo(ByVal x As String)
                 System.Console.WriteLine(x)
             End Sub
         End Module
 
         Module P
             Sub Main()
-                Dim x = "test".Foo
+                Dim x = "test".Goo
             End Sub
         End Module
     End Namespace
@@ -2870,7 +2870,7 @@ End Namespace
             CompilationUtils.AssertTheseDiagnostics(CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef),
 <expected>
 BC30491: Expression does not produce a value.
-                Dim x = "test".Foo
+                Dim x = "test".Goo
                         ~~~~~~~~~~
 </expected>)
         End Sub
@@ -3010,14 +3010,14 @@ Imports System.Runtime.CompilerServices
 
 Module Module1
     Sub Main()
-        Call 1.Foo()
+        Call 1.Goo()
     End Sub
 End Module
 
 Public Module M
     &lt;extension()&gt;
-    Sub Foo(ByVal x As Integer)
-        System.Console.WriteLine("Foo")
+    Sub Goo(ByVal x As Integer)
+        System.Console.WriteLine("Goo")
     End Sub
 End Module
 
@@ -3034,7 +3034,7 @@ End Namespace
             Dim verifier = CompileAndVerify(compilationDef,
                              expectedOutput:=
             <![CDATA[
-Foo
+Goo
 ]]>)
 
 
@@ -3043,7 +3043,7 @@ Foo
     <file name="a.vb">
 Module Module1
     Sub Main()
-        Call 1.Foo()
+        Call 1.Goo()
     End Sub
 End Module
     </file>
@@ -3071,14 +3071,14 @@ Imports System.Runtime.CompilerServices
 
 Module Module1
     Sub Main()
-        Call 1.Foo()
+        Call 1.Goo()
     End Sub
 End Module
 
 Module M
     &lt;Extension()&gt;
-    Sub Foo(ByVal x As Integer)
-        System.Console.WriteLine("Foo")
+    Sub Goo(ByVal x As Integer)
+        System.Console.WriteLine("Goo")
     End Sub
 End Module
 
@@ -3095,7 +3095,7 @@ End Namespace
             CompileAndVerify(compilationDef,
                              expectedOutput:=
             <![CDATA[
-Foo
+Goo
 ]]>)
         End Sub
 

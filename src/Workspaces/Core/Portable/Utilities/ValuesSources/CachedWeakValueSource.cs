@@ -34,10 +34,9 @@ namespace Microsoft.CodeAnalysis.Host
                 || _source.TryGetValue(out value);
         }
 
-        public override T GetValue(CancellationToken cancellationToken = default(CancellationToken))
+        public override T GetValue(CancellationToken cancellationToken = default)
         {
-            T value;
-            if (!_reference.TryGetTarget(out value))
+            if (!_reference.TryGetTarget(out var value))
             {
                 using (Gate.DisposableWait(cancellationToken))
                 {
@@ -52,10 +51,9 @@ namespace Microsoft.CodeAnalysis.Host
             return value;
         }
 
-        public override async Task<T> GetValueAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<T> GetValueAsync(CancellationToken cancellationToken = default)
         {
-            T value;
-            if (!_reference.TryGetTarget(out value))
+            if (!_reference.TryGetTarget(out var value))
             {
                 using (await Gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -91,7 +91,7 @@ Module M1
             Console.Write(y.ToString())
         End Sub
 
-        Public Sub Foo(Of TFun1, TFun2)(p As TFun1, p1 As TFun2, p3 As Integer)
+        Public Sub Goo(Of TFun1, TFun2)(p As TFun1, p1 As TFun2, p3 As Integer)
             Dim d1 As Action(Of Integer, Integer) =
                 Sub(lifted As Integer, notLifted As Integer)
                     Dim iii As Integer = lifted + notlifted
@@ -111,7 +111,7 @@ Module M1
 
     Public Sub Main()
         Dim inst As New C1(Of Integer)
-        inst.Foo(Of Integer, Integer)(42, 333, 432)
+        inst.Goo(Of Integer, Integer)(42, 333, 432)
     End Sub
 End Module
 ]]></file>
@@ -123,6 +123,9 @@ End Module
 
             compilation.VerifyPdb("M1+C1`1+_Closure$__3-1`2._Lambda$__0",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <entryPoint declaringType="M1" methodName="Main"/>
     <methods>
         <method containingType="M1+C1`1+_Closure$__3-1`2" name="_Lambda$__0" parameterNames="lifted, notLifted">
@@ -134,13 +137,13 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="17" endLine="16" endColumn="61"/>
-                <entry offset="0x1" hidden="true"/>
-                <entry offset="0x15" startLine="17" startColumn="25" endLine="17" endColumn="60"/>
-                <entry offset="0x1e" startLine="18" startColumn="21" endLine="18" endColumn="43"/>
-                <entry offset="0x25" startLine="20" startColumn="25" endLine="24" endColumn="32"/>
-                <entry offset="0x32" startLine="26" startColumn="21" endLine="26" endColumn="33"/>
-                <entry offset="0x3f" startLine="27" startColumn="17" endLine="27" endColumn="24"/>
+                <entry offset="0x0" startLine="16" startColumn="17" endLine="16" endColumn="61" document="1"/>
+                <entry offset="0x1" hidden="true" document="1"/>
+                <entry offset="0x15" startLine="17" startColumn="25" endLine="17" endColumn="60" document="1"/>
+                <entry offset="0x1e" startLine="18" startColumn="21" endLine="18" endColumn="43" document="1"/>
+                <entry offset="0x25" startLine="20" startColumn="25" endLine="24" endColumn="32" document="1"/>
+                <entry offset="0x32" startLine="26" startColumn="21" endLine="26" endColumn="33" document="1"/>
+                <entry offset="0x3f" startLine="27" startColumn="17" endLine="27" endColumn="24" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x40">
                 <importsforward declaringType="M1" methodName="Main"/>
@@ -201,6 +204,9 @@ End Module
 
             compilation.VerifyPdb("Module1+_Closure$__._Lambda$__0-0",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1+_Closure$__" name="_Lambda$__0-0">
@@ -211,10 +217,10 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="17" endLine="5" endColumn="27"/>
-                <entry offset="0x1" startLine="6" startColumn="25" endLine="6" endColumn="31"/>
-                <entry offset="0x4" startLine="7" startColumn="21" endLine="7" endColumn="29"/>
-                <entry offset="0x8" startLine="8" startColumn="12" endLine="8" endColumn="24"/>
+                <entry offset="0x0" startLine="5" startColumn="17" endLine="5" endColumn="27" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="25" endLine="6" endColumn="31" document="1"/>
+                <entry offset="0x4" startLine="7" startColumn="21" endLine="7" endColumn="29" document="1"/>
+                <entry offset="0x8" startLine="8" startColumn="12" endLine="8" endColumn="24" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xa">
                 <importsforward declaringType="Module1" methodName="Main"/>
@@ -509,6 +515,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -517,9 +526,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="47"/>
-                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="25"/>
-                <entry offset="0x15" startLine="7" startColumn="5" endLine="7" endColumn="17"/>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="25" document="1"/>
+                <entry offset="0x15" startLine="7" startColumn="5" endLine="7" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x17">
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -547,12 +556,12 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="15"/>
-                <entry offset="0x1" startLine="12" startColumn="13" endLine="15" endColumn="64"/>
-                <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="20"/>
-                <entry offset="0xa8" startLine="19" startColumn="13" endLine="20" endColumn="38"/>
-                <entry offset="0x100" startLine="22" startColumn="9" endLine="22" endColumn="21"/>
-                <entry offset="0x107" startLine="23" startColumn="5" endLine="23" endColumn="12"/>
+                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="12" startColumn="13" endLine="15" endColumn="64" document="1"/>
+                <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="20" document="1"/>
+                <entry offset="0xa8" startLine="19" startColumn="13" endLine="20" endColumn="38" document="1"/>
+                <entry offset="0x100" startLine="22" startColumn="9" endLine="22" endColumn="21" document="1"/>
+                <entry offset="0x107" startLine="23" startColumn="5" endLine="23" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x108">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -562,7 +571,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="x">
             <sequencePoints>
-                <entry offset="0x0" startLine="13" startColumn="26" endLine="13" endColumn="27"/>
+                <entry offset="0x0" startLine="13" startColumn="26" endLine="13" endColumn="27" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -570,7 +579,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="x">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="60" endLine="14" endColumn="67"/>
+                <entry offset="0x0" startLine="14" startColumn="60" endLine="14" endColumn="67" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x4">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -578,8 +587,8 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="x">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="27" endLine="14" endColumn="33"/>
-                <entry offset="0x4" startLine="14" startColumn="39" endLine="14" endColumn="46"/>
+                <entry offset="0x0" startLine="14" startColumn="27" endLine="14" endColumn="33" document="1"/>
+                <entry offset="0x4" startLine="14" startColumn="39" endLine="14" endColumn="46" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xe">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -587,9 +596,9 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="evenOdd, $VB$ItAnonymous">
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x1" startLine="15" startColumn="30" endLine="15" endColumn="44"/>
-                <entry offset="0x2b" startLine="15" startColumn="50" endLine="15" endColumn="64"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x1" startLine="15" startColumn="30" endLine="15" endColumn="44" document="1"/>
+                <entry offset="0x2b" startLine="15" startColumn="50" endLine="15" endColumn="64" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x5b">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -597,7 +606,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="34" endLine="15" endColumn="43"/>
+                <entry offset="0x0" startLine="15" startColumn="34" endLine="15" endColumn="43" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xd">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -605,7 +614,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="54" endLine="15" endColumn="63"/>
+                <entry offset="0x0" startLine="15" startColumn="54" endLine="15" endColumn="63" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xd">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -613,7 +622,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="x">
             <sequencePoints>
-                <entry offset="0x0" startLine="19" startColumn="25" endLine="19" endColumn="32"/>
+                <entry offset="0x0" startLine="19" startColumn="25" endLine="19" endColumn="32" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -621,7 +630,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-7" parameterNames="x">
             <sequencePoints>
-                <entry offset="0x0" startLine="20" startColumn="26" endLine="20" endColumn="27"/>
+                <entry offset="0x0" startLine="20" startColumn="26" endLine="20" endColumn="27" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -662,6 +671,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -670,9 +682,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -694,10 +706,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="14" endColumn="37"/>
-                <entry offset="0x30" startLine="15" startColumn="9" endLine="15" endColumn="36"/>
-                <entry offset="0x3c" startLine="16" startColumn="5" endLine="16" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="14" endColumn="37" document="1"/>
+                <entry offset="0x30" startLine="15" startColumn="9" endLine="15" endColumn="36" document="1"/>
+                <entry offset="0x3c" startLine="16" startColumn="5" endLine="16" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3d">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -740,6 +752,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -748,9 +763,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -775,10 +790,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="14" endColumn="74"/>
-                <entry offset="0x7d" startLine="15" startColumn="9" endLine="15" endColumn="35"/>
-                <entry offset="0x89" startLine="16" startColumn="5" endLine="16" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="14" endColumn="74" document="1"/>
+                <entry offset="0x7d" startLine="15" startColumn="9" endLine="15" endColumn="35" document="1"/>
+                <entry offset="0x89" startLine="16" startColumn="5" endLine="16" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x8a">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -788,7 +803,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="28" endLine="14" endColumn="35"/>
+                <entry offset="0x0" startLine="14" startColumn="28" endLine="14" endColumn="35" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -796,7 +811,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="68" endLine="14" endColumn="74"/>
+                <entry offset="0x0" startLine="14" startColumn="68" endLine="14" endColumn="74" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2f">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -804,7 +819,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="57" endLine="14" endColumn="64"/>
+                <entry offset="0x0" startLine="14" startColumn="57" endLine="14" endColumn="64" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -846,6 +861,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -854,9 +872,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -878,10 +896,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="42"/>
-                <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="35"/>
-                <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="42" document="1"/>
+                <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="35" document="1"/>
+                <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3d">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -891,7 +909,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="29" endLine="15" endColumn="42"/>
+                <entry offset="0x0" startLine="15" startColumn="29" endLine="15" endColumn="42" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xa">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -933,6 +951,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -941,9 +962,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -966,10 +987,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="85"/>
-                <entry offset="0x59" startLine="16" startColumn="9" endLine="16" endColumn="35"/>
-                <entry offset="0x65" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="85" document="1"/>
+                <entry offset="0x59" startLine="16" startColumn="9" endLine="16" endColumn="35" document="1"/>
+                <entry offset="0x65" startLine="17" startColumn="5" endLine="17" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x66">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -979,7 +1000,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="37" endLine="15" endColumn="50"/>
+                <entry offset="0x0" startLine="15" startColumn="37" endLine="15" endColumn="50" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xb">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -987,7 +1008,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="64" endLine="15" endColumn="85"/>
+                <entry offset="0x0" startLine="15" startColumn="64" endLine="15" endColumn="85" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x20">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1029,6 +1050,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -1037,9 +1061,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -1061,10 +1085,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="45"/>
-                <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="36"/>
-                <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="45" document="1"/>
+                <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="36" document="1"/>
+                <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3d">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1074,7 +1098,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="32" endLine="15" endColumn="45"/>
+                <entry offset="0x0" startLine="15" startColumn="32" endLine="15" endColumn="45" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x4">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1116,6 +1140,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -1124,9 +1151,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -1148,10 +1175,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="33"/>
-                <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="36"/>
-                <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="33" document="1"/>
+                <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="36" document="1"/>
+                <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3d">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1161,7 +1188,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="33"/>
+                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="33" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x4">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1203,6 +1230,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -1211,9 +1241,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -1235,10 +1265,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="72"/>
-                <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="35"/>
-                <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="72" document="1"/>
+                <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="35" document="1"/>
+                <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3d">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1248,8 +1278,8 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="32" endLine="15" endColumn="45"/>
-                <entry offset="0x3" startLine="15" startColumn="59" endLine="15" endColumn="72"/>
+                <entry offset="0x0" startLine="15" startColumn="32" endLine="15" endColumn="45" document="1"/>
+                <entry offset="0x3" startLine="15" startColumn="59" endLine="15" endColumn="72" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x15">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1291,6 +1321,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -1299,9 +1332,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -1326,10 +1359,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="67"/>
-                <entry offset="0xa6" startLine="16" startColumn="9" endLine="16" endColumn="35"/>
-                <entry offset="0xb2" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="67" document="1"/>
+                <entry offset="0xa6" startLine="16" startColumn="9" endLine="16" endColumn="35" document="1"/>
+                <entry offset="0xb2" startLine="17" startColumn="5" endLine="17" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xb3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1339,7 +1372,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="53" endLine="14" endColumn="60"/>
+                <entry offset="0x0" startLine="14" startColumn="53" endLine="14" endColumn="60" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1347,7 +1380,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="41" endLine="15" endColumn="50"/>
+                <entry offset="0x0" startLine="15" startColumn="41" endLine="15" endColumn="50" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1355,7 +1388,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="58" endLine="15" endColumn="67"/>
+                <entry offset="0x0" startLine="15" startColumn="58" endLine="15" endColumn="67" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1399,6 +1432,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -1407,9 +1443,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -1436,10 +1472,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="106"/>
-                <entry offset="0xf3" startLine="18" startColumn="9" endLine="18" endColumn="35"/>
-                <entry offset="0xff" startLine="19" startColumn="5" endLine="19" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="106" document="1"/>
+                <entry offset="0xf3" startLine="18" startColumn="9" endLine="18" endColumn="35" document="1"/>
+                <entry offset="0xff" startLine="19" startColumn="5" endLine="19" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x100">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1449,7 +1485,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="63" endLine="16" endColumn="72"/>
+                <entry offset="0x0" startLine="16" startColumn="63" endLine="16" endColumn="72" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1457,7 +1493,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar3">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="46" endLine="16" endColumn="55"/>
+                <entry offset="0x0" startLine="16" startColumn="46" endLine="16" endColumn="55" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1465,8 +1501,8 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="41" endLine="17" endColumn="50"/>
-                <entry offset="0x1" startLine="17" startColumn="93" endLine="17" endColumn="106"/>
+                <entry offset="0x0" startLine="17" startColumn="41" endLine="17" endColumn="50" document="1"/>
+                <entry offset="0x1" startLine="17" startColumn="93" endLine="17" endColumn="106" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xa">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1474,8 +1510,8 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="58" endLine="17" endColumn="67"/>
-                <entry offset="0x6" startLine="17" startColumn="72" endLine="17" endColumn="85"/>
+                <entry offset="0x0" startLine="17" startColumn="58" endLine="17" endColumn="67" document="1"/>
+                <entry offset="0x6" startLine="17" startColumn="72" endLine="17" endColumn="85" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x14">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1518,6 +1554,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -1526,9 +1565,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -1553,10 +1592,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="48"/>
-                <entry offset="0xa6" startLine="17" startColumn="9" endLine="17" endColumn="35"/>
-                <entry offset="0xb2" startLine="18" startColumn="5" endLine="18" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="48" document="1"/>
+                <entry offset="0xa6" startLine="17" startColumn="9" endLine="17" endColumn="35" document="1"/>
+                <entry offset="0xb2" startLine="18" startColumn="5" endLine="18" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xb3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1566,7 +1605,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="59" endLine="14" endColumn="66"/>
+                <entry offset="0x0" startLine="14" startColumn="59" endLine="14" endColumn="66" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1574,7 +1613,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="41" endLine="15" endColumn="50"/>
+                <entry offset="0x0" startLine="15" startColumn="41" endLine="15" endColumn="50" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1582,7 +1621,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="58" endLine="15" endColumn="67"/>
+                <entry offset="0x0" startLine="15" startColumn="58" endLine="15" endColumn="67" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1628,6 +1667,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -1636,9 +1678,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -1669,10 +1711,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="19" endColumn="57"/>
-                <entry offset="0x145" startLine="20" startColumn="9" endLine="20" endColumn="35"/>
-                <entry offset="0x151" startLine="21" startColumn="5" endLine="21" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="19" endColumn="57" document="1"/>
+                <entry offset="0x145" startLine="20" startColumn="9" endLine="20" endColumn="35" document="1"/>
+                <entry offset="0x151" startLine="21" startColumn="5" endLine="21" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x152">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1682,7 +1724,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="59" endLine="14" endColumn="66"/>
+                <entry offset="0x0" startLine="14" startColumn="59" endLine="14" endColumn="66" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1690,7 +1732,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar3">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="63" endLine="15" endColumn="70"/>
+                <entry offset="0x0" startLine="15" startColumn="63" endLine="15" endColumn="70" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1698,7 +1740,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="69" endLine="16" endColumn="78"/>
+                <entry offset="0x0" startLine="16" startColumn="69" endLine="16" endColumn="78" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1706,7 +1748,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar3">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="52" endLine="16" endColumn="61"/>
+                <entry offset="0x0" startLine="16" startColumn="52" endLine="16" endColumn="61" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1714,8 +1756,8 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar2, $VB$ItAnonymous">
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x1" startLine="17" startColumn="47" endLine="17" endColumn="61"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x1" startLine="17" startColumn="47" endLine="17" endColumn="61" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x31">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1723,7 +1765,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="rangeVar3">
             <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="51" endLine="17" endColumn="60"/>
+                <entry offset="0x0" startLine="17" startColumn="51" endLine="17" endColumn="60" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1731,7 +1773,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="18" startColumn="41" endLine="18" endColumn="50"/>
+                <entry offset="0x0" startLine="18" startColumn="41" endLine="18" endColumn="50" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1739,7 +1781,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-7" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="18" startColumn="58" endLine="18" endColumn="67"/>
+                <entry offset="0x0" startLine="18" startColumn="58" endLine="18" endColumn="67" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1747,8 +1789,8 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-8" parameterNames="rangeVar1, $VB$ItAnonymous">
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x1" startLine="19" startColumn="43" endLine="19" endColumn="57"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x1" startLine="19" startColumn="43" endLine="19" endColumn="57" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x31">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1756,7 +1798,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-9" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="19" startColumn="47" endLine="19" endColumn="56"/>
+                <entry offset="0x0" startLine="19" startColumn="47" endLine="19" endColumn="56" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1799,6 +1841,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -1807,9 +1852,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -1834,10 +1879,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="79"/>
-                <entry offset="0x7d" startLine="17" startColumn="9" endLine="17" endColumn="35"/>
-                <entry offset="0x89" startLine="18" startColumn="5" endLine="18" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="79" document="1"/>
+                <entry offset="0x7d" startLine="17" startColumn="9" endLine="17" endColumn="35" document="1"/>
+                <entry offset="0x89" startLine="18" startColumn="5" endLine="18" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x8a">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1847,8 +1892,8 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="41" endLine="15" endColumn="50"/>
-                <entry offset="0x1" startLine="15" startColumn="93" endLine="15" endColumn="106"/>
+                <entry offset="0x0" startLine="15" startColumn="41" endLine="15" endColumn="50" document="1"/>
+                <entry offset="0x1" startLine="15" startColumn="93" endLine="15" endColumn="106" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xa">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1856,8 +1901,8 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="58" endLine="15" endColumn="67"/>
-                <entry offset="0x1" startLine="15" startColumn="72" endLine="15" endColumn="85"/>
+                <entry offset="0x0" startLine="15" startColumn="58" endLine="15" endColumn="67" document="1"/>
+                <entry offset="0x1" startLine="15" startColumn="72" endLine="15" endColumn="85" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xa">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1865,9 +1910,9 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar1, $VB$ItAnonymous">
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x2" startLine="16" startColumn="56" endLine="16" endColumn="70"/>
-                <entry offset="0x2c" startLine="16" startColumn="72" endLine="16" endColumn="79"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x2" startLine="16" startColumn="56" endLine="16" endColumn="70" document="1"/>
+                <entry offset="0x2c" startLine="16" startColumn="72" endLine="16" endColumn="79" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x38">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1875,7 +1920,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="60" endLine="16" endColumn="69"/>
+                <entry offset="0x0" startLine="16" startColumn="60" endLine="16" endColumn="69" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1917,6 +1962,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -1925,9 +1973,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -1951,10 +1999,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="73"/>
-                <entry offset="0x7d" startLine="16" startColumn="9" endLine="16" endColumn="35"/>
-                <entry offset="0x89" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="73" document="1"/>
+                <entry offset="0x7d" startLine="16" startColumn="9" endLine="16" endColumn="35" document="1"/>
+                <entry offset="0x89" startLine="17" startColumn="5" endLine="17" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x8a">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1964,7 +2012,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58"/>
+                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -1972,7 +2020,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="19" endLine="15" endColumn="73"/>
+                <entry offset="0x0" startLine="15" startColumn="19" endLine="15" endColumn="73" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x22">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2014,6 +2062,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -2022,9 +2073,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -2048,10 +2099,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="78"/>
-                <entry offset="0x7d" startLine="16" startColumn="9" endLine="16" endColumn="35"/>
-                <entry offset="0x89" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="78" document="1"/>
+                <entry offset="0x7d" startLine="16" startColumn="9" endLine="16" endColumn="35" document="1"/>
+                <entry offset="0x89" startLine="17" startColumn="5" endLine="17" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x8a">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2061,7 +2112,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58"/>
+                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2069,7 +2120,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="24" endLine="15" endColumn="78"/>
+                <entry offset="0x0" startLine="15" startColumn="24" endLine="15" endColumn="78" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x22">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2111,6 +2162,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -2119,9 +2173,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -2145,10 +2199,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="78"/>
-                <entry offset="0x7d" startLine="16" startColumn="9" endLine="16" endColumn="35"/>
-                <entry offset="0x89" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="78" document="1"/>
+                <entry offset="0x7d" startLine="16" startColumn="9" endLine="16" endColumn="35" document="1"/>
+                <entry offset="0x89" startLine="17" startColumn="5" endLine="17" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x8a">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2158,7 +2212,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58"/>
+                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2166,7 +2220,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="24" endLine="15" endColumn="78"/>
+                <entry offset="0x0" startLine="15" startColumn="24" endLine="15" endColumn="78" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x22">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2208,6 +2262,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -2216,9 +2273,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -2236,10 +2293,10 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="19"/>
-                <entry offset="0xd" startLine="16" startColumn="9" endLine="16" endColumn="35"/>
-                <entry offset="0x19" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="19" document="1"/>
+                <entry offset="0xd" startLine="16" startColumn="9" endLine="16" endColumn="35" document="1"/>
+                <entry offset="0x19" startLine="17" startColumn="5" endLine="17" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1a">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2283,6 +2340,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -2291,9 +2351,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -2311,10 +2371,10 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="19"/>
-                <entry offset="0xd" startLine="16" startColumn="9" endLine="16" endColumn="35"/>
-                <entry offset="0x19" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="19" document="1"/>
+                <entry offset="0xd" startLine="16" startColumn="9" endLine="16" endColumn="35" document="1"/>
+                <entry offset="0x19" startLine="17" startColumn="5" endLine="17" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1a">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2359,6 +2419,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -2367,9 +2430,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -2394,10 +2457,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="23"/>
-                <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="35"/>
-                <entry offset="0xad" startLine="18" startColumn="5" endLine="18" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="23" document="1"/>
+                <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="35" document="1"/>
+                <entry offset="0xad" startLine="18" startColumn="5" endLine="18" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xae">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2407,7 +2470,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58"/>
+                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2415,7 +2478,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="22" endLine="15" endColumn="31"/>
+                <entry offset="0x0" startLine="15" startColumn="22" endLine="15" endColumn="31" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2458,6 +2521,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -2466,9 +2532,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -2494,10 +2560,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="32"/>
-                <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="35"/>
-                <entry offset="0xad" startLine="18" startColumn="5" endLine="18" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="32" document="1"/>
+                <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="35" document="1"/>
+                <entry offset="0xad" startLine="18" startColumn="5" endLine="18" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xae">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2507,7 +2573,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58"/>
+                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2515,7 +2581,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="34" endLine="15" endColumn="47"/>
+                <entry offset="0x0" startLine="15" startColumn="34" endLine="15" endColumn="47" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2523,8 +2589,8 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2, $VB$ItAnonymous">
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x1" startLine="16" startColumn="18" endLine="16" endColumn="32"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x1" startLine="16" startColumn="18" endLine="16" endColumn="32" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x31">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2532,7 +2598,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="22" endLine="16" endColumn="31"/>
+                <entry offset="0x0" startLine="16" startColumn="22" endLine="16" endColumn="31" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2575,6 +2641,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -2583,9 +2652,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -2611,10 +2680,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="54"/>
-                <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="35"/>
-                <entry offset="0xad" startLine="18" startColumn="5" endLine="18" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="54" document="1"/>
+                <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="35" document="1"/>
+                <entry offset="0xad" startLine="18" startColumn="5" endLine="18" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xae">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2624,7 +2693,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58"/>
+                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2632,8 +2701,8 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="34" endLine="15" endColumn="47"/>
-                <entry offset="0x8" startLine="15" startColumn="61" endLine="15" endColumn="74"/>
+                <entry offset="0x0" startLine="15" startColumn="34" endLine="15" endColumn="47" document="1"/>
+                <entry offset="0x8" startLine="15" startColumn="61" endLine="15" endColumn="74" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1f">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2641,9 +2710,9 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$It, $VB$ItAnonymous">
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0xd" startLine="16" startColumn="31" endLine="16" endColumn="45"/>
-                <entry offset="0x37" startLine="16" startColumn="47" endLine="16" endColumn="54"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0xd" startLine="16" startColumn="31" endLine="16" endColumn="45" document="1"/>
+                <entry offset="0x37" startLine="16" startColumn="47" endLine="16" endColumn="54" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x43">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2651,7 +2720,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="35" endLine="16" endColumn="44"/>
+                <entry offset="0x0" startLine="16" startColumn="35" endLine="16" endColumn="44" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2694,6 +2763,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -2702,9 +2774,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -2728,10 +2800,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="36"/>
-                <entry offset="0x30" startLine="17" startColumn="9" endLine="17" endColumn="35"/>
-                <entry offset="0x3c" startLine="18" startColumn="5" endLine="18" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="36" document="1"/>
+                <entry offset="0x30" startLine="17" startColumn="9" endLine="17" endColumn="35" document="1"/>
+                <entry offset="0x3c" startLine="18" startColumn="5" endLine="18" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3d">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2741,7 +2813,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="13" endLine="16" endColumn="36"/>
+                <entry offset="0x0" startLine="15" startColumn="13" endLine="16" endColumn="36" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x5e">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2749,7 +2821,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40"/>
+                <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2757,7 +2829,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="22" endLine="16" endColumn="35"/>
+                <entry offset="0x0" startLine="16" startColumn="22" endLine="16" endColumn="35" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xd">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2800,6 +2872,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -2808,9 +2883,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -2836,10 +2911,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="50"/>
-                <entry offset="0x30" startLine="17" startColumn="9" endLine="17" endColumn="35"/>
-                <entry offset="0x3c" startLine="18" startColumn="5" endLine="18" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="50" document="1"/>
+                <entry offset="0x30" startLine="17" startColumn="9" endLine="17" endColumn="35" document="1"/>
+                <entry offset="0x3c" startLine="18" startColumn="5" endLine="18" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3d">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2849,7 +2924,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="13" endLine="16" endColumn="50"/>
+                <entry offset="0x0" startLine="15" startColumn="13" endLine="16" endColumn="50" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xab">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2857,7 +2932,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40"/>
+                <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2865,7 +2940,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="65" endLine="15" endColumn="71"/>
+                <entry offset="0x0" startLine="15" startColumn="65" endLine="15" endColumn="71" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2873,7 +2948,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="49"/>
+                <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="49" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xf">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2917,6 +2992,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -2925,9 +3003,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -2952,10 +3030,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="36"/>
-                <entry offset="0x59" startLine="18" startColumn="9" endLine="18" endColumn="35"/>
-                <entry offset="0x65" startLine="19" startColumn="5" endLine="19" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="36" document="1"/>
+                <entry offset="0x59" startLine="18" startColumn="9" endLine="18" endColumn="35" document="1"/>
+                <entry offset="0x65" startLine="19" startColumn="5" endLine="19" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x66">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2965,7 +3043,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21"/>
+                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2973,7 +3051,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="$VB$ItAnonymous">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="13" endLine="17" endColumn="36"/>
+                <entry offset="0x0" startLine="16" startColumn="13" endLine="17" endColumn="36" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x58">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2981,7 +3059,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="33" endLine="16" endColumn="40"/>
+                <entry offset="0x0" startLine="16" startColumn="33" endLine="16" endColumn="40" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -2989,7 +3067,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="22" endLine="17" endColumn="35"/>
+                <entry offset="0x0" startLine="17" startColumn="22" endLine="17" endColumn="35" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xd">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3032,6 +3110,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -3040,9 +3121,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -3066,10 +3147,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="47"/>
-                <entry offset="0x59" startLine="17" startColumn="9" endLine="17" endColumn="35"/>
-                <entry offset="0x65" startLine="18" startColumn="5" endLine="18" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="47" document="1"/>
+                <entry offset="0x59" startLine="17" startColumn="9" endLine="17" endColumn="35" document="1"/>
+                <entry offset="0x65" startLine="18" startColumn="5" endLine="18" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x66">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3079,7 +3160,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="13" endLine="15" endColumn="42"/>
+                <entry offset="0x0" startLine="15" startColumn="13" endLine="15" endColumn="42" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3087,9 +3168,9 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x6" startLine="16" startColumn="24" endLine="16" endColumn="38"/>
-                <entry offset="0x35" startLine="16" startColumn="40" endLine="16" endColumn="47"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x6" startLine="16" startColumn="24" endLine="16" endColumn="38" document="1"/>
+                <entry offset="0x35" startLine="16" startColumn="40" endLine="16" endColumn="47" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x46">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3097,7 +3178,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="37"/>
+                <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="37" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3140,6 +3221,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -3148,9 +3232,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -3177,10 +3261,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="47"/>
-                <entry offset="0x59" startLine="17" startColumn="9" endLine="17" endColumn="35"/>
-                <entry offset="0x65" startLine="18" startColumn="5" endLine="18" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="47" document="1"/>
+                <entry offset="0x59" startLine="17" startColumn="9" endLine="17" endColumn="35" document="1"/>
+                <entry offset="0x65" startLine="18" startColumn="5" endLine="18" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x66">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3190,7 +3274,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="13" endLine="15" endColumn="71"/>
+                <entry offset="0x0" startLine="15" startColumn="13" endLine="15" endColumn="71" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x82">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3198,7 +3282,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40"/>
+                <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3206,7 +3290,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="65" endLine="15" endColumn="71"/>
+                <entry offset="0x0" startLine="15" startColumn="65" endLine="15" endColumn="71" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3214,9 +3298,9 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x6" startLine="16" startColumn="24" endLine="16" endColumn="38"/>
-                <entry offset="0x35" startLine="16" startColumn="40" endLine="16" endColumn="47"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x6" startLine="16" startColumn="24" endLine="16" endColumn="38" document="1"/>
+                <entry offset="0x35" startLine="16" startColumn="40" endLine="16" endColumn="47" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x46">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3224,7 +3308,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="37"/>
+                <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="37" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3267,6 +3351,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -3275,9 +3362,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -3305,10 +3392,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="47"/>
-                <entry offset="0x59" startLine="17" startColumn="9" endLine="17" endColumn="35"/>
-                <entry offset="0x65" startLine="18" startColumn="5" endLine="18" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="47" document="1"/>
+                <entry offset="0x59" startLine="17" startColumn="9" endLine="17" endColumn="35" document="1"/>
+                <entry offset="0x65" startLine="18" startColumn="5" endLine="18" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x66">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3318,7 +3405,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="13" endLine="15" endColumn="105"/>
+                <entry offset="0x0" startLine="15" startColumn="13" endLine="15" endColumn="105" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xab">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3326,7 +3413,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40"/>
+                <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3334,7 +3421,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="79" endLine="15" endColumn="88"/>
+                <entry offset="0x0" startLine="15" startColumn="79" endLine="15" endColumn="88" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3342,7 +3429,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar3">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="96" endLine="15" endColumn="105"/>
+                <entry offset="0x0" startLine="15" startColumn="96" endLine="15" endColumn="105" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3350,9 +3437,9 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x6" startLine="16" startColumn="24" endLine="16" endColumn="38"/>
-                <entry offset="0x35" startLine="16" startColumn="40" endLine="16" endColumn="47"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x6" startLine="16" startColumn="24" endLine="16" endColumn="38" document="1"/>
+                <entry offset="0x35" startLine="16" startColumn="40" endLine="16" endColumn="47" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x46">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3360,7 +3447,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="37"/>
+                <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="37" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3404,6 +3491,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -3412,9 +3502,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -3439,10 +3529,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="47"/>
-                <entry offset="0x82" startLine="18" startColumn="9" endLine="18" endColumn="35"/>
-                <entry offset="0x8e" startLine="19" startColumn="5" endLine="19" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="47" document="1"/>
+                <entry offset="0x82" startLine="18" startColumn="9" endLine="18" endColumn="35" document="1"/>
+                <entry offset="0x8e" startLine="19" startColumn="5" endLine="19" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x8f">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3452,7 +3542,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21"/>
+                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3460,7 +3550,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="$VB$ItAnonymous">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="13" endLine="16" endColumn="42"/>
+                <entry offset="0x0" startLine="16" startColumn="13" endLine="16" endColumn="42" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3468,8 +3558,8 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$Group">
             <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="24" endLine="17" endColumn="38"/>
-                <entry offset="0x2a" startLine="17" startColumn="40" endLine="17" endColumn="47"/>
+                <entry offset="0x0" startLine="17" startColumn="24" endLine="17" endColumn="38" document="1"/>
+                <entry offset="0x2a" startLine="17" startColumn="40" endLine="17" endColumn="47" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x36">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3477,7 +3567,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="28" endLine="17" endColumn="37"/>
+                <entry offset="0x0" startLine="17" startColumn="28" endLine="17" endColumn="37" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3521,6 +3611,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -3529,9 +3622,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -3559,10 +3652,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="47"/>
-                <entry offset="0x82" startLine="18" startColumn="9" endLine="18" endColumn="35"/>
-                <entry offset="0x8e" startLine="19" startColumn="5" endLine="19" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="47" document="1"/>
+                <entry offset="0x82" startLine="18" startColumn="9" endLine="18" endColumn="35" document="1"/>
+                <entry offset="0x8e" startLine="19" startColumn="5" endLine="19" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x8f">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3572,7 +3665,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21"/>
+                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3580,7 +3673,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="$VB$ItAnonymous">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="13" endLine="16" endColumn="71"/>
+                <entry offset="0x0" startLine="16" startColumn="13" endLine="16" endColumn="71" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7c">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3588,7 +3681,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="33" endLine="16" endColumn="40"/>
+                <entry offset="0x0" startLine="16" startColumn="33" endLine="16" endColumn="40" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3596,7 +3689,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="65" endLine="16" endColumn="71"/>
+                <entry offset="0x0" startLine="16" startColumn="65" endLine="16" endColumn="71" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3604,8 +3697,8 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$Group">
             <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="24" endLine="17" endColumn="38"/>
-                <entry offset="0x2a" startLine="17" startColumn="40" endLine="17" endColumn="47"/>
+                <entry offset="0x0" startLine="17" startColumn="24" endLine="17" endColumn="38" document="1"/>
+                <entry offset="0x2a" startLine="17" startColumn="40" endLine="17" endColumn="47" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x36">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3613,7 +3706,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="28" endLine="17" endColumn="37"/>
+                <entry offset="0x0" startLine="17" startColumn="28" endLine="17" endColumn="37" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3657,6 +3750,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -3665,9 +3761,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -3696,10 +3792,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="47"/>
-                <entry offset="0x82" startLine="18" startColumn="9" endLine="18" endColumn="35"/>
-                <entry offset="0x8e" startLine="19" startColumn="5" endLine="19" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="47" document="1"/>
+                <entry offset="0x82" startLine="18" startColumn="9" endLine="18" endColumn="35" document="1"/>
+                <entry offset="0x8e" startLine="19" startColumn="5" endLine="19" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x8f">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3709,7 +3805,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21"/>
+                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3717,7 +3813,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="$VB$ItAnonymous">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="13" endLine="16" endColumn="105"/>
+                <entry offset="0x0" startLine="16" startColumn="13" endLine="16" endColumn="105" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xa5">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3725,7 +3821,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="33" endLine="16" endColumn="40"/>
+                <entry offset="0x0" startLine="16" startColumn="33" endLine="16" endColumn="40" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3733,7 +3829,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="79" endLine="16" endColumn="88"/>
+                <entry offset="0x0" startLine="16" startColumn="79" endLine="16" endColumn="88" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3741,7 +3837,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar3">
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="96" endLine="16" endColumn="105"/>
+                <entry offset="0x0" startLine="16" startColumn="96" endLine="16" endColumn="105" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3749,8 +3845,8 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="$VB$Group">
             <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="24" endLine="17" endColumn="38"/>
-                <entry offset="0x2a" startLine="17" startColumn="40" endLine="17" endColumn="47"/>
+                <entry offset="0x0" startLine="17" startColumn="24" endLine="17" endColumn="38" document="1"/>
+                <entry offset="0x2a" startLine="17" startColumn="40" endLine="17" endColumn="47" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x36">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3758,7 +3854,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-7" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="28" endLine="17" endColumn="37"/>
+                <entry offset="0x0" startLine="17" startColumn="28" endLine="17" endColumn="37" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3797,6 +3893,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -3805,9 +3904,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -3829,9 +3928,9 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="12" startColumn="9" endLine="13" endColumn="36"/>
-                <entry offset="0x5e" startLine="14" startColumn="5" endLine="14" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="12" startColumn="9" endLine="13" endColumn="36" document="1"/>
+                <entry offset="0x5e" startLine="14" startColumn="5" endLine="14" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x5f">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3840,7 +3939,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="12" startColumn="33" endLine="12" endColumn="40"/>
+                <entry offset="0x0" startLine="12" startColumn="33" endLine="12" endColumn="40" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3848,7 +3947,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="13" startColumn="22" endLine="13" endColumn="35"/>
+                <entry offset="0x0" startLine="13" startColumn="22" endLine="13" endColumn="35" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xd">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3887,6 +3986,9 @@ End Module
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="Module1" name="Nums">
             <customDebugInfo>
@@ -3895,9 +3997,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
@@ -3922,9 +4024,9 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15"/>
-                <entry offset="0x1" startLine="12" startColumn="9" endLine="13" endColumn="47"/>
-                <entry offset="0x8a" startLine="14" startColumn="5" endLine="14" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="12" startColumn="9" endLine="13" endColumn="47" document="1"/>
+                <entry offset="0x8a" startLine="14" startColumn="5" endLine="14" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x8b">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3933,7 +4035,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" startLine="12" startColumn="65" endLine="12" endColumn="71"/>
+                <entry offset="0x0" startLine="12" startColumn="65" endLine="12" endColumn="71" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2f">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3941,7 +4043,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar2">
             <sequencePoints>
-                <entry offset="0x0" startLine="12" startColumn="54" endLine="12" endColumn="61"/>
+                <entry offset="0x0" startLine="12" startColumn="54" endLine="12" endColumn="61" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3949,7 +4051,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" startLine="13" startColumn="28" endLine="13" endColumn="37"/>
+                <entry offset="0x0" startLine="13" startColumn="28" endLine="13" endColumn="37" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
@@ -3984,10 +4086,13 @@ End Module
 
             compilation.VerifyPdb("Module1+_Closure$__._Lambda$__0-0",
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="Module1+_Closure$__" name="_Lambda$__0-0" parameterNames="a">
             <sequencePoints>
-                <entry offset="0x0" startLine="8" startColumn="25" endLine="8" endColumn="30"/>
+                <entry offset="0x0" startLine="8" startColumn="25" endLine="8" endColumn="30" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xa">
                 <importsforward declaringType="Module1" methodName="Main"/>

@@ -4,26 +4,35 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
-    /// builder to create custom asset which is not part of solution but want to participate in ISolutionSynchronizationService
+    /// builder to create custom asset which is not part of solution but want to participate in <see cref="IRemotableDataService"/>
     /// </summary>
     internal class CustomAssetBuilder
     {
         private readonly Serializer _serializer;
 
-        public CustomAssetBuilder(Solution solution)
+        public CustomAssetBuilder(Solution solution) : this(solution.Workspace)
         {
-            _serializer = new Serializer(solution.Workspace.Services);
+        }
+
+        public CustomAssetBuilder(Workspace workspace) : this(workspace.Services)
+        {
+        }
+
+        public CustomAssetBuilder(HostWorkspaceServices services)
+        {
+            _serializer = new Serializer(services);
         }
 
         public CustomAsset Build(OptionSet options, string language, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            return new SimpleCustomAsset(WellKnownSynchronizationKinds.OptionSet,
+            return new SimpleCustomAsset(WellKnownSynchronizationKind.OptionSet,
                 (writer, cancellationTokenOnStreamWriting) =>
                     _serializer.SerializeOptionSet(options, language, writer, cancellationTokenOnStreamWriting));
         }

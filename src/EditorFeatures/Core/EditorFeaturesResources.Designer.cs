@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class EditorFeaturesResources {
@@ -70,6 +70,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; declarations.
+        /// </summary>
+        internal static string _0_declarations {
+            get {
+                return ResourceManager.GetString("_0_declarations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; does not support the &apos;{1}&apos; operation. However, it may contain nested &apos;{2}&apos;s (see &apos;{2}.{3}&apos;) that support this operation..
         /// </summary>
         internal static string _0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation {
@@ -80,11 +89,29 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; implementations.
+        /// </summary>
+        internal static string _0_implementations {
+            get {
+                return ResourceManager.GetString("_0_implementations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} - (Line {1}).
         /// </summary>
         internal static string _0_Line_1 {
             get {
                 return ResourceManager.GetString("_0_Line_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; references.
+        /// </summary>
+        internal static string _0_references {
+            get {
+                return ResourceManager.GetString("_0_references", resourceCulture);
             }
         }
         
@@ -162,6 +189,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An inline rename session is active.
+        /// </summary>
+        internal static string An_inline_rename_session_is_active {
+            get {
+                return ResourceManager.GetString("An_inline_rename_session_is_active", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Apply.
         /// </summary>
         internal static string Apply1 {
@@ -234,6 +270,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Automatic Line Ender Command Handler.
+        /// </summary>
+        internal static string Automatic_Line_Ender_Command_Handler {
+            get {
+                return ResourceManager.GetString("Automatic_Line_Ender_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Automatic Pair Completion.
         /// </summary>
         internal static string Automatic_Pair_Completion {
@@ -257,6 +302,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Automatically_completing {
             get {
                 return ResourceManager.GetString("Automatically_completing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Block Comment Editing Command Handler.
+        /// </summary>
+        internal static string Block_Comment_Editing_Command_Handler {
+            get {
+                return ResourceManager.GetString("Block_Comment_Editing_Command_Handler", resourceCulture);
             }
         }
         
@@ -396,6 +450,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Change Signature Command Handler.
+        /// </summary>
+        internal static string Change_Signature_Command_Handler {
+            get {
+                return ResourceManager.GetString("Change_Signature_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changes.
         /// </summary>
         internal static string Changes {
@@ -441,6 +504,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Comment/Uncomment Selection Command Handler.
+        /// </summary>
+        internal static string Comment_Uncomment_Selection_Command_Handler {
+            get {
+                return ResourceManager.GetString("Comment_Uncomment_Selection_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Commenting currently selected text....
         /// </summary>
         internal static string Commenting_currently_selected_text {
@@ -455,6 +527,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Completing_Tag {
             get {
                 return ResourceManager.GetString("Completing_Tag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code Completion Command Handler.
+        /// </summary>
+        internal static string Completion_Command_Handler {
+            get {
+                return ResourceManager.GetString("Completion_Command_Handler", resourceCulture);
             }
         }
         
@@ -549,6 +630,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Documentation Comment Command Handler.
+        /// </summary>
+        internal static string Documentation_Comment_Command_Handler {
+            get {
+                return ResourceManager.GetString("Documentation_Comment_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Encapsulate Field.
         /// </summary>
         internal static string Encapsulate_Field {
@@ -567,6 +657,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Encapsulate Field Command Handler.
+        /// </summary>
+        internal static string Encapsulate_Field_Command_Handler {
+            get {
+                return ResourceManager.GetString("Encapsulate_Field_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Engine must be attached to an Interactive Window..
         /// </summary>
         internal static string Engine_must_be_attached_to_an_Interactive_Window {
@@ -576,11 +675,38 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Execute In Interactive Command Handler.
+        /// </summary>
+        internal static string Execute_In_Interactive_Command_Handler {
+            get {
+                return ResourceManager.GetString("Execute_In_Interactive_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extract Interface Command Handler.
+        /// </summary>
+        internal static string Extract_Interface_Command_Handler {
+            get {
+                return ResourceManager.GetString("Extract_Interface_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extract Method.
         /// </summary>
         internal static string Extract_Method {
             get {
                 return ResourceManager.GetString("Extract_Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extract Method Command Handler.
+        /// </summary>
+        internal static string Extract_Method_Command_Handler {
+            get {
+                return ResourceManager.GetString("Extract_Method_Command_Handler", resourceCulture);
             }
         }
         
@@ -599,6 +725,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Find_References {
             get {
                 return ResourceManager.GetString("Find_References", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Find References Command Handler.
+        /// </summary>
+        internal static string Find_References_Command_Handler {
+            get {
+                return ResourceManager.GetString("Find_References_Command_Handler", resourceCulture);
             }
         }
         
@@ -671,6 +806,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Fix_all_occurrences_in {
             get {
                 return ResourceManager.GetString("Fix_all_occurrences_in", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format Command Handler.
+        /// </summary>
+        internal static string Format_Command_Handler {
+            get {
+                return ResourceManager.GetString("Format_Command_Handler", resourceCulture);
             }
         }
         
@@ -765,6 +909,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Go To Adjacent Member Command Handler.
+        /// </summary>
+        internal static string Go_To_Adjacent_Member_Command_Handler {
+            get {
+                return ResourceManager.GetString("Go_To_Adjacent_Member_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Go to Definition.
         /// </summary>
         internal static string Go_to_Definition {
@@ -774,11 +927,29 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Go To Definition Command Handler.
+        /// </summary>
+        internal static string Go_To_Definition_Command_Handler {
+            get {
+                return ResourceManager.GetString("Go_To_Definition_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Go To Implementation.
         /// </summary>
         internal static string Go_To_Implementation {
             get {
                 return ResourceManager.GetString("Go_To_Implementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Go To Implementation Command Handler.
+        /// </summary>
+        internal static string Go_To_Implementation_Command_Handler {
+            get {
+                return ResourceManager.GetString("Go_To_Implementation_Command_Handler", resourceCulture);
             }
         }
         
@@ -900,6 +1071,33 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inline Rename Conflict.
+        /// </summary>
+        internal static string Inline_Rename_Conflict {
+            get {
+                return ResourceManager.GetString("Inline_Rename_Conflict", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inline Rename Field Background and Border.
+        /// </summary>
+        internal static string Inline_Rename_Field_Background_and_Border {
+            get {
+                return ResourceManager.GetString("Inline_Rename_Field_Background_and_Border", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inline Rename Field Text.
+        /// </summary>
+        internal static string Inline_Rename_Field_Text {
+            get {
+                return ResourceManager.GetString("Inline_Rename_Field_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Inline Rename Fixup.
         /// </summary>
         internal static string Inline_Rename_Fixup {
@@ -945,11 +1143,38 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to IntelliSense Command Handler.
+        /// </summary>
+        internal static string IntelliSense_Command_Handler {
+            get {
+                return ResourceManager.GetString("IntelliSense_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IntelliSense Commit Formatting.
         /// </summary>
         internal static string IntelliSense_Commit_Formatting {
             get {
                 return ResourceManager.GetString("IntelliSense_Commit_Formatting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interactive Command Handler.
+        /// </summary>
+        internal static string Interactive_Command_Handler {
+            get {
+                return ResourceManager.GetString("Interactive_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interactive Paste Command Handler.
+        /// </summary>
+        internal static string Interactive_Paste_Command_Handler {
+            get {
+                return ResourceManager.GetString("Interactive_Paste_Command_Handler", resourceCulture);
             }
         }
         
@@ -995,6 +1220,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Modify_any_highlighted_location_to_begin_renaming {
             get {
                 return ResourceManager.GetString("Modify_any_highlighted_location_to_begin_renaming", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Navigate To Highlighted Reference Command Handler.
+        /// </summary>
+        internal static string Navigate_To_Highlight_Reference_Command_Handler {
+            get {
+                return ResourceManager.GetString("Navigate_To_Highlight_Reference_Command_Handler", resourceCulture);
             }
         }
         
@@ -1098,11 +1332,29 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Organize Document Command Handler.
+        /// </summary>
+        internal static string Organize_Document_Command_Handler {
+            get {
+                return ResourceManager.GetString("Organize_Document_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organizing document....
         /// </summary>
         internal static string Organizing_document {
             get {
                 return ResourceManager.GetString("Organizing_document", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Outlining Command Handler.
+        /// </summary>
+        internal static string Outlining_Command_Handler {
+            get {
+                return ResourceManager.GetString("Outlining_Command_Handler", resourceCulture);
             }
         }
         
@@ -1332,6 +1584,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rename Command Handler.
+        /// </summary>
+        internal static string Rename_Command_Handler {
+            get {
+                return ResourceManager.GetString("Rename_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Rename operation was cancelled or is not valid.
         /// </summary>
         internal static string Rename_operation_was_cancelled_or_is_not_valid {
@@ -1365,6 +1626,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Rename_Tracking {
             get {
                 return ResourceManager.GetString("Rename_Tracking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename Tracking Cancellation Command Handler.
+        /// </summary>
+        internal static string Rename_Tracking_Cancellation_Command_Handler {
+            get {
+                return ResourceManager.GetString("Rename_Tracking_Cancellation_Command_Handler", resourceCulture);
             }
         }
         
@@ -1423,11 +1693,29 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Signature Help Command Handler.
+        /// </summary>
+        internal static string Signature_Help_Command_Handler {
+            get {
+                return ResourceManager.GetString("Signature_Help_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Smart Indenting.
         /// </summary>
         internal static string Smart_Indenting {
             get {
                 return ResourceManager.GetString("Smart_Indenting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Smart Token Formatter Command Handler.
+        /// </summary>
+        internal static string Smart_Token_Formatter_Command_Handler {
+            get {
+                return ResourceManager.GetString("Smart_Token_Formatter_Command_Handler", resourceCulture);
             }
         }
         
@@ -1792,6 +2080,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to View Call Hierarchy Command Handler.
+        /// </summary>
+        internal static string View_Call_Hierarchy_Command_Handler {
+            get {
+                return ResourceManager.GetString("View_Call_Hierarchy_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to We can fix the error by not making struct &quot;out/ref&quot; parameter(s). 
         ///Do you want to proceed?.
         /// </summary>
@@ -1898,6 +2195,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string XML_End_Tag_Completion {
             get {
                 return ResourceManager.GetString("XML_End_Tag_Completion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XML Tag Completion Command Handler.
+        /// </summary>
+        internal static string Xml_Tag_Completion_Command_Handler {
+            get {
+                return ResourceManager.GetString("Xml_Tag_Completion_Command_Handler", resourceCulture);
             }
         }
         

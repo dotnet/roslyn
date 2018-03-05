@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -75,7 +75,7 @@ namespace System
         public TRest Rest;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             Assert.Equal("T1 System.ValueTuple<T1>.Item1",
                 comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T1__Item1).ToTestDisplayString());
 
@@ -160,7 +160,7 @@ namespace System
         [Fact]
         public void TestMissingWellKnownMembersForValueTuple()
         {
-            var comp = CreateCompilationWithMscorlib("");
+            var comp = CreateStandardCompilation("");
             Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T1).IsErrorType());
             Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T1__Item1));
 

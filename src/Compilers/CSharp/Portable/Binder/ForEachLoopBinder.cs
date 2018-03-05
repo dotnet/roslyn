@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 
@@ -99,7 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IdentifierName:
                     break;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(declaration.Kind());
+                    // In broken code, we can have an arbitrary expression here. Collect its expression variables.
+                    ExpressionVariableFinder.FindExpressionVariables(this, locals, declaration);
+                    break;
             }
         }
 
@@ -136,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     }
-                case SyntaxKind.DiscardedDesignation:
+                case SyntaxKind.DiscardDesignation:
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(designation.Kind());
@@ -165,14 +168,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
 
             ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;
-            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, inferredType ?? CreateErrorType("var"));
+
+            // Tracking narrowest safe-to-escape scope by default, the proper val escape will be set when doing full binding of the foreach statement
+            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, this.LocalScopeDepth, inferredType ?? CreateErrorType("var"));
+
+            DeclarationExpressionSyntax declaration = null;
+            ExpressionSyntax expression = null;
             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
-                                                                    variables,
-                                                                    variables,
-                                                                    right: null,
-                                                                    diagnostics: diagnostics,
-                                                                    isDeclaration: true,
-                                                                    rightPlaceholder: valuePlaceholder);
+                                                        variables,
+                                                        variables,
+                                                        right: _syntax.Expression,
+                                                        diagnostics: diagnostics,
+                                                        rightPlaceholder: valuePlaceholder,
+                                                        declaration: ref declaration,
+                                                        expression: ref expression);
 
             return new BoundExpressionStatement(_syntax, deconstruction);
         }
@@ -196,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundTypeExpression boundIterationVariableType;
             bool hasNameConflicts = false;
             BoundForEachDeconstructStep deconstructStep = null;
+            uint collectionEscape = GetValEscape(collectionExpr, this.LocalScopeDepth);
             switch (_syntax.Kind())
             {
                 case SyntaxKind.ForEachStatement:
@@ -224,7 +234,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
-                        this.IterationVariable.SetType(iterationVariableType);
+
+                        SourceLocalSymbol local = this.IterationVariable;
+                        local.SetType(iterationVariableType);
+                        local.SetValEscape(collectionEscape);
+
                         break;
                     }
                 case SyntaxKind.ForEachVariableStatement:
@@ -233,17 +247,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         iterationVariableType = inferredType ?? CreateErrorType("var");
 
                         var variables = node.Variable;
-                        var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
-                        BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
-                                                                                variables,
-                                                                                variables,
-                                                                                right: null,
-                                                                                diagnostics: diagnostics,
-                                                                                isDeclaration: true,
-                                                                                rightPlaceholder: valuePlaceholder);
+                        if (variables.IsDeconstructionLeft())
+                        {
+                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, collectionEscape, iterationVariableType).MakeCompilerGenerated();
+                            DeclarationExpressionSyntax declaration = null;
+                            ExpressionSyntax expression = null;
+                            BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
+                                                                                    variables,
+                                                                                    variables,
+                                                                                    right: _syntax.Expression,
+                                                                                    diagnostics: diagnostics,
+                                                                                    rightPlaceholder: valuePlaceholder,
+                                                                                    declaration: ref declaration,
+                                                                                    expression: ref expression);
 
-                        deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder);
-                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType);
+                            if (expression != null)
+                            {
+                                // error: must declare foreach loop iteration variables.
+                                Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
+                                hasErrors = true;
+                            }
+
+                            deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder).MakeCompilerGenerated();
+                        }
+                        else if (!node.HasErrors)
+                        {
+                            // error: must declare foreach loop iteration variables.
+                            Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
+                            hasErrors = true;
+                        }
+
+                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType).MakeCompilerGenerated();
                         break;
                     }
                 default:
@@ -252,7 +286,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement body = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
 
-            hasErrors = hasErrors || iterationVariableType.IsErrorType();
+            // NOTE: in error cases, binder may collect all kind of variables, not just formally declared iteration variables.
+            //       As a matter of error recovery, we will treat such variables the same as the iteration variables.
+            //       I.E. - they will be considered declared and assigned in each iteration step. 
+            ImmutableArray<LocalSymbol> iterationVariables = this.Locals;
+
+            Debug.Assert(hasErrors ||
+                _syntax.HasErrors ||
+                iterationVariables.All(local => local.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable),
+                "Should not have iteration variables that are not ForEachIterationVariable in valid code");
+
+            hasErrors = hasErrors || boundIterationVariableType.HasErrors || iterationVariableType.IsErrorType();
 
             // Skip the conversion checks and array/enumerator differentiation if we know we have an error (except local name conflicts).
             if (hasErrors)
@@ -262,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     null, // can't be sure that it's complete
                     default(Conversion),
                     boundIterationVariableType,
-                    this.IterationVariable,
+                    iterationVariables,
                     collectionExpr,
                     deconstructStep,
                     body,
@@ -291,12 +335,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<MethodSymbol> originalUserDefinedConversions = elementConversion.OriginalUserDefinedConversions;
                 if (originalUserDefinedConversions.Length > 1)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AmbigUDConv, _syntax.ForEachKeyword.GetLocation(), originalUserDefinedConversions[0], originalUserDefinedConversions[1], inferredType, iterationVariableType);
+                    diagnostics.Add(ErrorCode.ERR_AmbigUDConv, foreachKeyword.GetLocation(), originalUserDefinedConversions[0], originalUserDefinedConversions[1], inferredType, iterationVariableType);
                 }
                 else
                 {
                     SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, inferredType, iterationVariableType);
-                    diagnostics.Add(ErrorCode.ERR_NoExplicitConv, _syntax.ForEachKeyword.GetLocation(), distinguisher.First, distinguisher.Second);
+                    diagnostics.Add(ErrorCode.ERR_NoExplicitConv, foreachKeyword.GetLocation(), distinguisher.First, distinguisher.Second);
                 }
                 hasErrors = true;
             }
@@ -311,7 +355,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.CollectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteDiagnostics);
             builder.CurrentConversion = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType, builder.ElementType, ref useSiteDiagnostics);
 
-            builder.EnumeratorConversion = this.Conversions.ClassifyConversionFromType(builder.GetEnumeratorMethod.ReturnType, GetSpecialType(SpecialType.System_Object, diagnostics, _syntax), ref useSiteDiagnostics);
+            var getEnumeratorType = builder.GetEnumeratorMethod.ReturnType;
+            // we never convert struct enumerators to object - it is done only for null-checks.
+            builder.EnumeratorConversion = getEnumeratorType.IsValueType ?
+                                                Conversion.Identity :
+                                                this.Conversions.ClassifyConversionFromType(getEnumeratorType, GetSpecialType(SpecialType.System_Object, diagnostics, _syntax), ref useSiteDiagnostics);
+
+            if (getEnumeratorType.IsRestrictedType() && (IsDirectlyInIterator || IsInAsyncMethod()))
+            {
+                diagnostics.Add(ErrorCode.ERR_BadSpecialByRefIterator, foreachKeyword.GetLocation(), getEnumeratorType);
+            }
 
             diagnostics.Add(_syntax.ForEachKeyword.GetLocation(), useSiteDiagnostics);
 
@@ -354,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Build(this.Flags),
                 elementConversion,
                 boundIterationVariableType,
-                this.IterationVariable,
+                iterationVariables,
                 convertedCollectionExpression,
                 deconstructStep,
                 body,
@@ -433,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         exprSyntax,
                         LookupResultKind.Empty,
                         ImmutableArray<Symbol>.Empty,
-                        ImmutableArray.Create<BoundNode>(collectionExpr),
+                        ImmutableArray.Create(collectionExpr),
                         collectionExprType.GetNullableUnderlyingType())
                     { WasCompilerGenerated = true }; // Don't affect the type in the SemanticModel.
                 }
@@ -465,21 +518,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol collectionExprType = collectionExpr.Type;
 
-            if (collectionExpr.ConstantValue != null && collectionExpr.ConstantValue.IsNull)
+            if (collectionExpr.ConstantValue != null)
             {
-                // Spec seems to refer to null literals, but Dev10 reports anything known to be null.
-                Debug.Assert(collectionExpr.ConstantValue.IsNull); // only constant value with no type
-                diagnostics.Add(ErrorCode.ERR_NullNotValid, _syntax.Expression.Location);
-
-                return false;
+                if (collectionExpr.ConstantValue.IsNull)
+                {
+                    // Spec seems to refer to null literals, but Dev10 reports anything known to be null.
+                    diagnostics.Add(ErrorCode.ERR_NullNotValid, _syntax.Expression.Location);
+                    return false;
+                }
             }
 
             if ((object)collectionExprType == null) // There's no way to enumerate something without a type.
             {
-                // The null literal was caught above, so anything else with a null type is a method group or anonymous function
-                diagnostics.Add(ErrorCode.ERR_AnonMethGrpInForEach, _syntax.Expression.Location, collectionExpr.Display);
-                // CONSIDER: dev10 also reports ERR_ForEachMissingMember (i.e. failed pattern match).
-
+                if (collectionExpr.Kind == BoundKind.DefaultExpression)
+                {
+                    diagnostics.Add(ErrorCode.ERR_DefaultLiteralNotValid, _syntax.Expression.Location);
+                }
+                else
+                {
+                    // The null and default literals were caught above, so anything else with a null type is a method group or anonymous function
+                    diagnostics.Add(ErrorCode.ERR_AnonMethGrpInForEach, _syntax.Expression.Location, collectionExpr.Display);
+                    // CONSIDER: dev10 also reports ERR_ForEachMissingMember (i.e. failed pattern match).
+                }
                 return false;
             }
 
@@ -607,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!string.IsNullOrEmpty(collectionExprType.Name) || !collectionExpr.HasErrors)
             {
-                diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, _syntax.Expression.Location, collectionExprType.ToDisplayString(), GetEnumeratorMethodName);
+                diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, _syntax.Expression.Location, collectionExprType, GetEnumeratorMethodName);
             }
             return false;
         }

@@ -1,24 +1,29 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal class DefinitionTreeItem : AbstractTreeItem
     {
+        private readonly Workspace _workspace;
         private readonly DefinitionItem _definitionItem;
 
         public DefinitionTreeItem(
+            Workspace workspace,
             DefinitionItem definitionItem,
             ImmutableArray<SourceReferenceTreeItem> referenceItems)
             : base(definitionItem.Tags.GetGlyph().GetGlyphIndex())
         {
+            _workspace = workspace;
             _definitionItem = definitionItem;
 
             this.Children.AddRange(referenceItems);
@@ -49,14 +54,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
         public override int GoToSource()
         {
-            return _definitionItem.TryNavigateTo()
+            return _definitionItem.TryNavigateTo(_workspace, isPreview: true)
                 ? VSConstants.S_OK
                 : VSConstants.E_FAIL;
         }
 
         public override bool CanGoToDefinition()
         {
-            return _definitionItem.CanNavigateTo();
+            return _definitionItem.CanNavigateTo(_workspace);
         }
     }
 }

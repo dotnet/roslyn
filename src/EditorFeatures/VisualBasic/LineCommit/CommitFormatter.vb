@@ -1,14 +1,15 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 
@@ -23,13 +24,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                        p.Name <> PredefinedCodeCleanupProviderNames.Format
             End Function
 
-        Public Async Function CommitRegionAsync(spanToFormat As SnapshotSpan,
+        Public Sub CommitRegion(spanToFormat As SnapshotSpan,
                                 isExplicitFormat As Boolean,
                                 useSemantics As Boolean,
                                 dirtyRegion As SnapshotSpan,
                                 baseSnapshot As ITextSnapshot,
                                 baseTree As SyntaxTree,
-                                cancellationToken As CancellationToken) As Task Implements ICommitFormatter.CommitRegionAsync
+                                cancellationToken As CancellationToken) Implements ICommitFormatter.CommitRegion
 
             Using (Logger.LogBlock(FunctionId.LineCommit_CommitRegion, cancellationToken))
                 Dim buffer = spanToFormat.Snapshot.TextBuffer
@@ -44,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
+                Dim documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken)
                 If Not (isExplicitFormat OrElse documentOptions.GetOption(FeatureOnOffOptions.PrettyListing)) Then
                     Return
                 End If
@@ -63,7 +64,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                 dirtyRegion, document.GetSyntaxTreeSynchronously(cancellationToken),
                                                 cancellationToken)
 
-                Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).Where(s_codeCleanupPredicate).Concat(commitFormattingCleanup)
+                Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
+                                               WhereAsArray(s_codeCleanupPredicate).
+                                               Concat(commitFormattingCleanup)
 
                 Dim finalDocument As Document
                 If useSemantics OrElse isExplicitFormat Then
@@ -73,7 +76,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                              cancellationToken).WaitAndGetResult(cancellationToken)
                 Else
                     Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
-                    Dim newRoot = Await CodeCleaner.CleanupAsync(root, textSpanToFormat, document.Project.Solution.Workspace, codeCleanups, cancellationToken).ConfigureAwait(False)
+                    Dim newRoot = CodeCleaner.CleanupAsync(root,
+                                                           textSpanToFormat,
+                                                           document.Project.Solution.Workspace,
+                                                           codeCleanups,
+                                                           cancellationToken).WaitAndGetResult(cancellationToken)
                     If root Is newRoot Then
                         finalDocument = document
                     Else
@@ -88,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                 finalDocument.Project.Solution.Workspace.ApplyDocumentChanges(finalDocument, cancellationToken)
             End Using
-        End Function
+        End Sub
 
         Private Function AbortForDiagnostics(document As Document, textSpanToFormat As TextSpan, cancellationToken As CancellationToken) As Boolean
             Const UnterminatedStringId = "BC30648"
@@ -124,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                  Function(r, spans, w, c) Format(r, spans, w, document.GetOptionsAsync(c).WaitAndGetResult(c), rules, c))
         End Function
 
-        Private Async Function FormatAsync(document As Document, spans As IEnumerable(Of TextSpan), rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
+        Private Async Function FormatAsync(document As Document, spans As ImmutableArray(Of TextSpan), rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
@@ -139,14 +146,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return Await Formatter.FormatAsync(document, spans, documentOptions, rules, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Function Format(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
+        Private Function Format(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
             If root.SyntaxTree IsNot Nothing AndAlso root.SyntaxTree.TryGetText(oldText) Then
                 Dim changes = Formatter.GetFormattedTextChanges(root, spans, workspace, options, rules, cancellationToken)
 
-                ' no change 
+                ' no change
                 If changes.Count = 0 Then
                     Return root
                 End If
@@ -199,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             '                 Dim a = 1
             ' if the [] is changed, when line commit runs, it sees indentation right after the commit (|If .. Then|) is same, so formatter will run without anchor operations,
             ' meaning, "False Then" will stay as it is even if "If True And" is moved due to change in []
-            ' 
+            '
             ' if the [] is changed to
             '[       If True Then
             '      ]|If True And
@@ -242,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 node = node.Parent
             End While
 
-            ' get number of indent operation that affects the token. 
+            ' get number of indent operation that affects the token.
             Return operations.Where(Function(o) o.TextSpan.Contains(token.SpanStart)).Count()
         End Function
 

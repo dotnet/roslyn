@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             where TSymbol : ISymbol
         {
             var symbolToParameterTypeNames = new ConcurrentDictionary<TSymbol, string[]>();
-            Func<TSymbol, string[]> getParameterTypeNames = s => GetParameterTypeNames(s, symbolDisplayService, semanticModel, position);
+            string[] getParameterTypeNames(TSymbol s) => GetParameterTypeNames(s, symbolDisplayService, semanticModel, position);
 
             return symbols.OrderBy((s1, s2) => Compare(s1, s2, symbolToParameterTypeNames, getParameterTypeNames))
                           .ToImmutableArray();
@@ -29,10 +29,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static INamedTypeSymbol GetNamedType(ITypeSymbol type)
         {
-            return type.TypeSwitch(
-                (INamedTypeSymbol namedType) => namedType,
-                (IArrayTypeSymbol arrayType) => GetNamedType(arrayType.ElementType),
-                (IPointerTypeSymbol pointerType) => GetNamedType(pointerType.PointedAtType));
+            switch (type)
+            {
+                case INamedTypeSymbol namedType: return namedType;
+                case IArrayTypeSymbol arrayType: return GetNamedType(arrayType.ElementType);
+                case IPointerTypeSymbol pointerType: return GetNamedType(pointerType.PointedAtType);
+                default: return null;
+            }
         }
 
         private static int CompareParameters(
@@ -131,9 +134,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static ImmutableArray<IParameterSymbol> GetMethodOrIndexerOrEventParameters(ISymbol symbol)
         {
-            if (symbol is IEventSymbol)
+            if (symbol is IEventSymbol ev)
             {
-                var ev = (IEventSymbol)symbol;
                 var type = ev.Type as INamedTypeSymbol;
                 if (type.IsDelegateType())
                 {

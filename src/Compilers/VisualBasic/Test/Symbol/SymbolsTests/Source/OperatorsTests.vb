@@ -406,7 +406,7 @@ BC33011: Operators must be declared 'Public'.
 BC33011: Operators must be declared 'Public'.
     Private Protected Shared Operator IsFalse(x As A1) As Boolean 'BIND5:"A1"
     ~~~~~~~
-BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', or 'Protected Friend' can be specified.
+BC36716: Visual Basic 15.0 does not support Private Protected.
     Private Protected Shared Operator IsFalse(x As A1) As Boolean 'BIND5:"A1"
             ~~~~~~~~~
 BC33012: Operators must be declared 'Shared'.

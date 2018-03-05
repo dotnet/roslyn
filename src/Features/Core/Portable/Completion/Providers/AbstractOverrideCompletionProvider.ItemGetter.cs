@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -79,15 +81,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 var semanticModel = await _document.GetSemanticModelForNodeAsync(startToken.Parent, _cancellationToken).ConfigureAwait(false);
-
-                ITypeSymbol returnType;
-                DeclarationModifiers modifiers;
-                Accessibility seenAccessibility;
-                SyntaxToken tokenAfterReturnType;
-                ISet<ISymbol> overridableMembers;
-                if (!_provider.TryDetermineReturnType(startToken, semanticModel, _cancellationToken, out returnType, out tokenAfterReturnType) ||
-                    !_provider.TryDetermineModifiers(tokenAfterReturnType, _text, _startLineNumber, out seenAccessibility, out modifiers) ||
-                    !TryDetermineOverridableMembers(semanticModel, startToken, seenAccessibility, out overridableMembers))
+                if (!_provider.TryDetermineReturnType(startToken, semanticModel, _cancellationToken, out var returnType, out var tokenAfterReturnType) ||
+                    !_provider.TryDetermineModifiers(tokenAfterReturnType, _text, _startLineNumber, out var seenAccessibility, out var modifiers) ||
+                    !TryDetermineOverridableMembers(semanticModel, startToken, seenAccessibility, out var overridableMembers))
                 {
                     return null;
                 }
@@ -95,8 +91,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 overridableMembers = _provider.FilterOverrides(overridableMembers, returnType);
                 var symbolDisplayService = _document.GetLanguageService<ISymbolDisplayService>();
 
+                var resolvableMembers = overridableMembers.Where(m => CanResolveSymbolKey(m, semanticModel.Compilation));
+
                 return overridableMembers.Select(m => CreateItem(
                     m, symbolDisplayService, semanticModel, startToken, modifiers)).ToList();
+            }
+
+            private bool CanResolveSymbolKey(ISymbol m, Compilation compilation)
+            {
+                // SymbolKey doesn't guarantee roundtrip-ability, which we need in order to generate overrides.
+                // Preemptively filter out those methods whose SymbolKeys we won't be able to round trip.
+                var key = SymbolKey.Create(m, _cancellationToken);
+                var result = key.Resolve(compilation, cancellationToken: _cancellationToken);
+                return result.Symbol != null;
             }
 
             private CompletionItem CreateItem(
@@ -109,7 +116,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 return  MemberInsertionCompletionItem.Create(
                     displayString,
-                    symbol.GetGlyph(),
                     modifiers,
                     _startLineNumber,
                     symbol,
@@ -119,67 +125,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             private bool TryDetermineOverridableMembers(
-                SemanticModel semanticModel, SyntaxToken startToken, Accessibility seenAccessibility, out ISet<ISymbol> overridableMembers)
+                SemanticModel semanticModel, SyntaxToken startToken,
+                Accessibility seenAccessibility, out ImmutableArray<ISymbol> overridableMembers)
             {
-                var result = new HashSet<ISymbol>();
-
                 var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(startToken.SpanStart, _cancellationToken);
-                if (containingType != null && !containingType.IsScriptClass && !containingType.IsImplicitClass)
-                {
-                    if (containingType.TypeKind == TypeKind.Class || containingType.TypeKind == TypeKind.Struct)
-                    {
-                        var baseTypes = containingType.GetBaseTypes().Reverse();
-                        foreach (var type in baseTypes)
-                        {
-                            _cancellationToken.ThrowIfCancellationRequested();
-
-                            // Prefer overrides in derived classes
-                            RemoveOverriddenMembers(result, type);
-
-                            // Retain overridable methods
-                            AddOverridableMembers(result, containingType, type);
-                        }
-
-                        // Don't suggest already overridden members
-                        RemoveOverriddenMembers(result, containingType);
-                    }
-                }
+                var result = containingType.GetOverridableMembers(_cancellationToken);
 
                 // Filter based on accessibility
                 if (seenAccessibility != Accessibility.NotApplicable)
                 {
-                    result.RemoveWhere(m => m.DeclaredAccessibility != seenAccessibility);
+                    result = result.WhereAsArray(m => m.DeclaredAccessibility == seenAccessibility);
                 }
 
                 overridableMembers = result;
-                return overridableMembers.Count > 0;
-            }
-
-            private void AddOverridableMembers(HashSet<ISymbol> result, INamedTypeSymbol containingType, INamedTypeSymbol type)
-            {
-                foreach (var member in type.GetMembers())
-                {
-                    _cancellationToken.ThrowIfCancellationRequested();
-
-                    if (_provider.IsOverridable(member, containingType))
-                    {
-                        result.Add(member);
-                    }
-                }
-            }
-
-            private void RemoveOverriddenMembers(HashSet<ISymbol> result, INamedTypeSymbol containingType)
-            {
-                foreach (var member in containingType.GetMembers())
-                {
-                    _cancellationToken.ThrowIfCancellationRequested();
-
-                    var overriddenMember = member.OverriddenMember();
-                    if (overriddenMember != null)
-                    {
-                        result.Remove(overriddenMember);
-                    }
-                }
+                return overridableMembers.Length > 0;
             }
 
             private bool TryCheckForTrailingTokens(int position)

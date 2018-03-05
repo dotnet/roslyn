@@ -271,11 +271,11 @@
         <summary>Gets the type of the tuple element.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Name" Type="IdentifierNameSyntax" Optional="true">
+    <Field Name="Identifier" Type="SyntaxToken" Optional="true">
       <PropertyComment>
         <summary>Gets the name of the tuple element.</summary>
       </PropertyComment>
-      <Kind Name="IdentifierName"/>
+      <Kind Name="IdentifierToken"/>
     </Field>
   </Node>
   <Node Name="OmittedTypeArgumentSyntax" Base="TypeSyntax">
@@ -300,6 +300,12 @@
     <Kind Name="RefType"/>
     <Field Name="RefKeyword" Type="SyntaxToken">
       <Kind Name="RefKeyword"/>
+    </Field>
+    <Field Name="ReadOnlyKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="ReadOnlyKeyword"/>
+      <PropertyComment>
+        <summary>Gets the optional "readonly" keyword.</summary>
+      </PropertyComment>
     </Field>
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>
@@ -726,6 +732,7 @@
     <Kind Name="TrueLiteralExpression"/>
     <Kind Name="FalseLiteralExpression"/>
     <Kind Name="NullLiteralExpression"/>
+    <Kind Name="DefaultLiteralExpression"/>
     <Field Name="Token" Type="SyntaxToken">
       <Kind Name="ArgListKeyword"/>
       <Kind Name="NumericLiteralToken"/>
@@ -734,6 +741,7 @@
       <Kind Name="TrueKeyword"/>
       <Kind Name="FalseKeyword"/>
       <Kind Name="NullKeyword"/>
+      <Kind Name="DefaultKeyword"/>
       <PropertyComment>
         <summary>SyntaxToken representing the keyword corresponding to the kind of the literal expression.</summary>
       </PropertyComment>
@@ -1089,9 +1097,10 @@
         <summary>NameColonSyntax node representing the optional name arguments.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="RefOrOutKeyword" Type="SyntaxToken" Optional="true">
+    <Field Name="RefKindKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="RefKeyword"/>
       <Kind Name="OutKeyword"/>
+      <Kind Name="InKeyword"/>
       <PropertyComment>
         <summary>SyntaxToken representing the optional ref or out keyword.</summary>
       </PropertyComment>
@@ -1688,7 +1697,7 @@
       </PropertyComment>
     </Field>
     <TypeComment>
-      <summary>Class which represents a simple pattern-maching expresion using the "is" keyword.</summary>
+      <summary>Class which represents a simple pattern-matching expression using the "is" keyword.</summary>
     </TypeComment>
     <FactoryComment>
       <summary>Creates an IsPatternExpressionSyntax node.</summary>
@@ -1714,7 +1723,7 @@
     <Field Name="Type" Type="TypeSyntax" />
     <Field Name="Designation" Type="VariableDesignationSyntax">
       <Kind Name="SingleVariableDesignation"/>
-      <Kind Name="DiscardedDesignation"/>
+      <Kind Name="DiscardDesignation"/>
     </Field>
   </Node>
   <Node Name="ConstantPatternSyntax" Base="PatternSyntax">
@@ -1851,8 +1860,8 @@
       <Kind Name="IdentifierToken"/>
     </Field>
   </Node>
-  <Node Name="DiscardedDesignationSyntax" Base="VariableDesignationSyntax">
-    <Kind Name="DiscardedDesignation"/>
+  <Node Name="DiscardDesignationSyntax" Base="VariableDesignationSyntax">
+    <Kind Name="DiscardDesignation"/>
     <Field Name="UnderscoreToken" Type="SyntaxToken">
       <Kind Name="UnderscoreToken"/>
     </Field>
@@ -2118,8 +2127,14 @@
       <Kind Name="OpenParenToken"/>
     </Field>
     <Field Name="Variable" Type="ExpressionSyntax">
-      <Kind Name="DeclarationExpression"/>
-      <Kind Name="TupleExpression"/>
+      <PropertyComment>
+        <summary>
+           The variable(s) of the loop. In correct code this is a tuple
+           literal, declaration expression with a tuple designator, or
+           a wildcard syntax in the form of a simple identifier. In broken
+           code it could be something else.
+        </summary>
+      </PropertyComment>
     </Field>
     <Field Name="InKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="InKeyword"/>
@@ -3830,9 +3845,10 @@
       </summary>
     </TypeComment>
     <Kind Name="CrefParameter"/>
-    <Field Name="RefOrOutKeyword" Type="SyntaxToken" Optional="true">
+    <Field Name="RefKindKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="RefKeyword"/>
       <Kind Name="OutKeyword"/>
+      <Kind Name="InKeyword"/>
     </Field>
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>

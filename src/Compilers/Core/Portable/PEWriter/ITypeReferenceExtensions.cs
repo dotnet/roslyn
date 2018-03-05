@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using System.Text;
 
 namespace Microsoft.Cci
@@ -21,18 +22,18 @@ namespace Microsoft.Cci
             }
         }
 
-        internal static ITypeReference GetUninstantiatedGenericType(this ITypeReference typeReference)
+        internal static ITypeReference GetUninstantiatedGenericType(this ITypeReference typeReference, EmitContext context)
         {
             IGenericTypeInstanceReference genericTypeInstanceReference = typeReference.AsGenericTypeInstanceReference;
             if (genericTypeInstanceReference != null)
             {
-                return genericTypeInstanceReference.GenericType;
+                return genericTypeInstanceReference.GetGenericType(context);
             }
 
             ISpecializedNestedTypeReference specializedNestedType = typeReference.AsSpecializedNestedTypeReference;
             if (specializedNestedType != null)
             {
-                return specializedNestedType.UnspecializedVersion;
+                return specializedNestedType.GetUnspecializedVersion(context);
             }
 
             return typeReference;

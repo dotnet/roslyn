@@ -1,6 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -43,11 +44,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         }
 
         protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
+            => AdjustSnapshotSpan(span, minimumLength, int.MaxValue);
+
+        protected SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength, int maximumLength)
         {
             var snapshot = span.Snapshot;
 
             // new length
-            var length = Math.Max(span.Length, minimumLength);
+            var length = Math.Min(Math.Max(span.Length, minimumLength), maximumLength);
 
             // make sure start + length is smaller than snapshot.Length and start is >= 0
             var start = Math.Max(0, Math.Min(span.Start, snapshot.Length - length));

@@ -225,9 +225,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var caseSensitive = builder.KeyComparer == StringComparer.Ordinal;
             Contract.Requires(builder.KeyComparer == StringComparer.Ordinal || builder.KeyComparer == StringComparer.OrdinalIgnoreCase);
-
-            string aliasWithoutAttribute;
-            if (alias.TryGetWithoutAttributeSuffix(caseSensitive, out aliasWithoutAttribute))
+            if (alias.TryGetWithoutAttributeSuffix(caseSensitive, out var aliasWithoutAttribute))
             {
                 builder.Add(aliasWithoutAttribute);
                 return;

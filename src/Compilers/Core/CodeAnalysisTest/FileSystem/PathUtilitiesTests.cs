@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         [Fact]
         public void TestGetDirectoryName_WindowsPaths_Absolute()
         {
-            TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\foo.txt");
-            TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\foo");
+            TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\goo.txt");
+            TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\goo");
             TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\");
             TestGetDirectoryNameAndCompareToDotnet(@"C:\", @"C:\temp");
             TestGetDirectoryNameAndCompareToDotnet(null, @"C:\");
@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         [Fact]
         public void TestGetDirectoryName_WindowsPaths_Relative()
         {
-            TestGetDirectoryNameAndCompareToDotnet(@"foo\temp", @"foo\temp\foo.txt");
-            TestGetDirectoryNameAndCompareToDotnet(@"foo\temp", @"foo\temp\foo");
-            TestGetDirectoryNameAndCompareToDotnet(@"foo\temp", @"foo\temp\");
-            TestGetDirectoryNameAndCompareToDotnet(@"foo", @"foo\temp");
-            TestGetDirectoryNameAndCompareToDotnet(@"foo", @"foo\");
-            TestGetDirectoryNameAndCompareToDotnet("", @"foo");
+            TestGetDirectoryNameAndCompareToDotnet(@"goo\temp", @"goo\temp\goo.txt");
+            TestGetDirectoryNameAndCompareToDotnet(@"goo\temp", @"goo\temp\goo");
+            TestGetDirectoryNameAndCompareToDotnet(@"goo\temp", @"goo\temp\");
+            TestGetDirectoryNameAndCompareToDotnet(@"goo", @"goo\temp");
+            TestGetDirectoryNameAndCompareToDotnet(@"goo", @"goo\");
+            TestGetDirectoryNameAndCompareToDotnet("", @"goo");
         }
 
         [Fact]
@@ -54,11 +54,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         {
             Assert.Equal(
                 @"/temp",
-                PathUtilities.GetDirectoryName(@"/temp/foo.txt", isUnixLike: true));
+                PathUtilities.GetDirectoryName(@"/temp/goo.txt", isUnixLike: true));
 
             Assert.Equal(
                 @"/temp",
-                PathUtilities.GetDirectoryName(@"/temp/foo", isUnixLike: true));
+                PathUtilities.GetDirectoryName(@"/temp/goo", isUnixLike: true));
 
             Assert.Equal(
                 @"/temp",
@@ -85,28 +85,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         public void TestGetDirectoryName_UnixPaths_Relative()
         {
             Assert.Equal(
-                @"foo/temp",
-                PathUtilities.GetDirectoryName(@"foo/temp/foo.txt", isUnixLike: true));
+                @"goo/temp",
+                PathUtilities.GetDirectoryName(@"goo/temp/goo.txt", isUnixLike: true));
 
             Assert.Equal(
-                @"foo/temp",
-                PathUtilities.GetDirectoryName(@"foo/temp/foo", isUnixLike: true));
+                @"goo/temp",
+                PathUtilities.GetDirectoryName(@"goo/temp/goo", isUnixLike: true));
 
             Assert.Equal(
-                @"foo/temp",
-                PathUtilities.GetDirectoryName(@"foo/temp/", isUnixLike: true));
+                @"goo/temp",
+                PathUtilities.GetDirectoryName(@"goo/temp/", isUnixLike: true));
 
             Assert.Equal(
-                @"foo",
-                PathUtilities.GetDirectoryName(@"foo/temp", isUnixLike: true));
+                @"goo",
+                PathUtilities.GetDirectoryName(@"goo/temp", isUnixLike: true));
 
             Assert.Equal(
-                @"foo",
-                PathUtilities.GetDirectoryName(@"foo/", isUnixLike: true));
+                @"goo",
+                PathUtilities.GetDirectoryName(@"goo/", isUnixLike: true));
 
             Assert.Equal(
                 "",
-                PathUtilities.GetDirectoryName(@"foo", isUnixLike: true));
+                PathUtilities.GetDirectoryName(@"goo", isUnixLike: true));
 
             Assert.Equal(
                 null,
@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         [Fact]
         public void TestGetDirectoryName_WindowsSharePaths()
         {
-            TestGetDirectoryNameAndCompareToDotnet(@"\\server\temp", @"\\server\temp\foo.txt");
-            TestGetDirectoryNameAndCompareToDotnet(@"\\server\temp", @"\\server\temp\foo");
+            TestGetDirectoryNameAndCompareToDotnet(@"\\server\temp", @"\\server\temp\goo.txt");
+            TestGetDirectoryNameAndCompareToDotnet(@"\\server\temp", @"\\server\temp\goo");
             TestGetDirectoryNameAndCompareToDotnet(@"\\server\temp", @"\\server\temp\");
             TestGetDirectoryNameAndCompareToDotnet(null, @"\\server\temp");
             TestGetDirectoryNameAndCompareToDotnet(null, @"\\server\");
@@ -133,13 +133,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         [Fact]
         public void TestGetDirectoryName_EsotericCases()
         {
-            TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\\foo.txt");
-            TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\\\foo.txt");
+            TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\\goo.txt");
+            TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\\\goo.txt");
 
             // Dotnet does normalization of dots, so we can't compare against it here.
             Assert.Equal(
                 @"C:\temp\..",
-                PathUtilities.GetDirectoryName(@"C:\temp\..\foo.txt", isUnixLike: false));
+                PathUtilities.GetDirectoryName(@"C:\temp\..\goo.txt", isUnixLike: false));
 
             Assert.Equal(
                 @"C:\temp",
@@ -147,18 +147,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
 
             Assert.Equal(
                 @"C:\temp\.",
-                PathUtilities.GetDirectoryName(@"C:\temp\.\foo.txt", isUnixLike: false));
+                PathUtilities.GetDirectoryName(@"C:\temp\.\goo.txt", isUnixLike: false));
 
             Assert.Equal(
                 @"C:\temp",
                 PathUtilities.GetDirectoryName(@"C:\temp\.", isUnixLike: false));
 
-            TestGetDirectoryNameAndCompareToDotnet(@"C:temp", @"C:temp\\foo.txt");
-            TestGetDirectoryNameAndCompareToDotnet(@"C:temp", @"C:temp\\\foo.txt");
+            TestGetDirectoryNameAndCompareToDotnet(@"C:temp", @"C:temp\\goo.txt");
+            TestGetDirectoryNameAndCompareToDotnet(@"C:temp", @"C:temp\\\goo.txt");
 
             Assert.Equal(
                 @"C:temp\..",
-                PathUtilities.GetDirectoryName(@"C:temp\..\foo.txt", isUnixLike: false));
+                PathUtilities.GetDirectoryName(@"C:temp\..\goo.txt", isUnixLike: false));
 
             Assert.Equal(
                 @"C:temp",
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
 
             Assert.Equal(
                 @"C:temp\.",
-                PathUtilities.GetDirectoryName(@"C:temp\.\foo.txt", isUnixLike: false));
+                PathUtilities.GetDirectoryName(@"C:temp\.\goo.txt", isUnixLike: false));
 
             Assert.Equal(
                 @"C:temp",

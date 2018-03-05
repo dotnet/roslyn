@@ -3,24 +3,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
-using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal sealed partial class VisualStudioProjectTracker : ForegroundThreadAffinitizedObject, IDisposable, IVisualStudioHostProjectContainer
+    internal sealed partial class VisualStudioProjectTracker : ForegroundThreadAffinitizedObject
     {
         #region Readonly fields
         private static readonly ConditionalWeakTable<SolutionId, string> s_workingFolderPathMap = new ConditionalWeakTable<SolutionId, string>();
@@ -34,7 +31,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         #region Mutable fields accessed only from foreground thread - don't need locking for access (all accessing methods must have AssertIsForeground).
         private readonly List<WorkspaceHostState> _workspaceHosts;
 
-        private readonly HostWorkspaceServices _workspaceServices;
+        /// <summary>
+        /// Set to true while we're batching project loads. That is, between
+        /// <see cref="IVsSolutionLoadEvents.OnBeforeLoadProjectBatch" /> and
+        /// <see cref="IVsSolutionLoadEvents.OnAfterLoadProjectBatch"/>.
+        /// </summary>
+        private bool _batchingProjectLoads = false;
 
         /// <summary>
         /// The list of projects loaded in this batch between <see cref="IVsSolutionLoadEvents.OnBeforeLoadProjectBatch" /> and
@@ -54,8 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// being pushed to a particular host if <see cref="WorkspaceHostState.HostReadyForEvents"/> isn't true yet.
         /// </summary>
         private bool _solutionLoadComplete = false;
-
-        private uint? _solutionEventsCookie;
         #endregion
 
         #region Mutable fields accessed from foreground or background threads - need locking for access.
@@ -64,13 +64,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// the same output path. It makes state tracking notably easier.
         /// </summary>
         private readonly Dictionary<string, ImmutableArray<AbstractProject>> _projectsByBinPath = new Dictionary<string, ImmutableArray<AbstractProject>>(StringComparer.OrdinalIgnoreCase);
-
-        /// <summary>
-        /// Holds the task with continuations to sequentially execute all the foreground affinitized actions on the foreground task scheduler.
-        /// More specifically, all the notifications to workspace hosts are executed on the foreground thread. However, the project system might make project state changes
-        /// and request notifications to workspace hosts on background thread. So we queue up all the notifications for project state changes onto this task and execute them on the foreground thread.
-        /// </summary>
-        private Task _taskForForegroundAffinitizedActions = Task.CompletedTask;
 
         private readonly Dictionary<ProjectId, AbstractProject> _projectMap;
         private readonly Dictionary<string, ProjectId> _projectPathToIdMap;
@@ -97,9 +90,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        IReadOnlyList<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects() => this.ImmutableProjects;
+        internal HostWorkspaceServices WorkspaceServices { get; }
 
-        void IVisualStudioHostProjectContainer.NotifyNonDocumentOpenedForProject(IVisualStudioHostProject project)
+        internal void NotifyNonDocumentOpenedForProject(AbstractProject project)
         {
             AssertIsForeground();
 
@@ -115,55 +108,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _serviceProvider = serviceProvider;
             _workspaceHosts = new List<WorkspaceHostState>(capacity: 1);
-            _workspaceServices = workspaceServices;
+            WorkspaceServices = workspaceServices;
 
             _vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
 
-            uint solutionEventsCookie;
-            _vsSolution.AdviseSolutionEvents(this, out solutionEventsCookie);
-            _solutionEventsCookie = solutionEventsCookie;
-
             // It's possible that we're loading after the solution has already fully loaded, so see if we missed the event
             var shellMonitorSelection = (IVsMonitorSelection)serviceProvider.GetService(typeof(SVsShellMonitorSelection));
-
-            uint fullyLoadedContextCookie;
-            if (ErrorHandler.Succeeded(shellMonitorSelection.GetCmdUIContextCookie(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, out fullyLoadedContextCookie)))
+            if (ErrorHandler.Succeeded(shellMonitorSelection.GetCmdUIContextCookie(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, out var fullyLoadedContextCookie)))
             {
-                int fActive;
-                if (ErrorHandler.Succeeded(shellMonitorSelection.IsCmdUIContextActive(fullyLoadedContextCookie, out fActive)) && fActive != 0)
+                if (ErrorHandler.Succeeded(shellMonitorSelection.IsCmdUIContextActive(fullyLoadedContextCookie, out var fActive)) && fActive != 0)
                 {
                     _solutionLoadComplete = true;
                 }
-            }
-        }
-
-        private void ScheduleForegroundAffinitizedAction(Action action)
-        {
-            AssertIsBackground();
-
-            lock (_gate)
-            {
-                _taskForForegroundAffinitizedActions = _taskForForegroundAffinitizedActions.SafeContinueWith(_ => action(), ForegroundTaskScheduler);
-            }
-        }
-
-        /// <summary>
-        /// If invoked on the foreground thread, the action is executed right away.
-        /// Otherwise, the action is scheduled on foreground task scheduler.
-        /// </summary>
-        /// <param name="action">Action that needs to be executed on a foreground thread.</param>
-        private void ExecuteOrScheduleForegroundAffinitizedAction(Action action)
-        {
-            if (IsForeground())
-            {
-                // We are already on the foreground thread, execute the given action.
-                action();
-            }
-            else
-            {
-                // Schedule the update on the foreground task scheduler.
-                ScheduleForegroundAffinitizedAction(action);
             }
         }
 
@@ -174,12 +131,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             try
             {
                 var solutionWorkingFolder = (IVsSolutionWorkingFolders)_vsSolution;
-
-                bool temporary;
-                string workingFolderPath;
                 solutionWorkingFolder.GetFolder(
                     (uint)__SolutionWorkingFolder.SlnWF_StatePersistence, Guid.Empty, fVersionSpecific: true, fEnsureCreated: true,
-                    pfIsTemporary: out temporary, pszBstrFullPath: out workingFolderPath);
+                    pfIsTemporary: out var temporary, pszBstrFullPath: out var workingFolderPath);
 
                 if (!temporary && !string.IsNullOrWhiteSpace(workingFolderPath))
                 {
@@ -203,8 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public string GetWorkingFolderPath(Solution solution)
         {
-            string workingFolderPath;
-            if (s_workingFolderPathMap.TryGetValue(solution.Id, out workingFolderPath))
+            if (s_workingFolderPathMap.TryGetValue(solution.Id, out var workingFolderPath))
             {
                 return workingFolderPath;
             }
@@ -213,12 +166,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public void RegisterWorkspaceHost(IVisualStudioWorkspaceHost host)
-        {
-            ExecuteOrScheduleForegroundAffinitizedAction(
-                () => RegisterWorkspaceHostOnForeground(host));
-        }
-
-        private void RegisterWorkspaceHostOnForeground(IVisualStudioWorkspaceHost host)
         {
             this.AssertIsForeground();
 
@@ -274,26 +221,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public VisualStudioMetadataReferenceManager MetadataReferenceProvider { get; private set; }
         public VisualStudioRuleSetManager RuleSetFileProvider { get; private set; }
 
-        public void Dispose()
-        {
-            if (_solutionEventsCookie.HasValue)
-            {
-                _vsSolution.UnadviseSolutionEvents(_solutionEventsCookie.Value);
-                _solutionEventsCookie = null;
-            }
-
-            if (this.RuleSetFileProvider != null)
-            {
-                this.RuleSetFileProvider.Dispose();
-            }
-        }
-
         internal AbstractProject GetProject(ProjectId id)
         {
             lock (_gate)
             {
-                AbstractProject project;
-                _projectMap.TryGetValue(id, out project);
+                _projectMap.TryGetValue(id, out var project);
                 return project;
             }
         }
@@ -308,16 +240,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// Add a project to the workspace.
-        /// If invoked on the foreground thread, the add is executed right away.
-        /// Otherwise, the add is scheduled on foreground task scheduler.
         /// </summary>
-        /// <remarks>This method may be called on a background thread.</remarks>
+        /// <remarks>This method must be called on the foreground thread.</remarks>
         internal void AddProject(AbstractProject project)
-        {
-            ExecuteOrScheduleForegroundAffinitizedAction(() => AddProject_Foreground(project));
-        }
-
-        private void AddProject_Foreground(AbstractProject project)
         {
             AssertIsForeground();
 
@@ -327,13 +252,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // UpdateProjectBinPath is defensively executed on the foreground thread as it calls back into referencing projects to perform metadata to P2P reference conversions.
-            UpdateProjectBinPath_Foreground(project, null, project.BinOutputPath);
+            UpdateProjectBinPath(project, null, project.BinOutputPath);
 
             if (_solutionLoadComplete)
             {
-                StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(SpecializedCollections.SingletonEnumerable(project));
+                StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(project));
             }
-            else
+            else if (_batchingProjectLoads)
             {
                 _projectsLoadedThisBatch.Add(project);
             }
@@ -341,24 +266,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// Starts pushing events from the given projects to the workspace hosts and notifies about open documents.
-        /// If invoked on the foreground thread, it is executed right away.
-        /// Otherwise, it is scheduled on foreground task scheduler.
         /// </summary>
-        /// <remarks>This method may be called on a background thread.</remarks>
+        /// <remarks>This method must be called on the foreground thread.</remarks>
         internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects)
         {
-            ExecuteOrScheduleForegroundAffinitizedAction(() => StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(projects));
-        }
-
-        private void StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(IEnumerable<AbstractProject> projects)
-        {
             AssertIsForeground();
-
-            // StartPushingToWorkspaceAndNotifyOfOpenDocuments might be invoked from a background thread,
-            // and hence StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground scheduled to be executed later on the foreground task scheduler.
-            // By the time it gets scheduled, we might have removed some project(s) from the tracker on the UI thread.
-            // So, we filter out the projects that have been removed from the tracker.
-            projects = projects.Where(p => this.ContainsProject(p));
 
             using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
@@ -374,14 +286,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         internal void RemoveProject(AbstractProject project)
         {
-            ExecuteOrScheduleForegroundAffinitizedAction(() => RemoveProject_Foreground(project));
-        }
-
-        /// <summary>
-        /// Remove a project from the workspace.
-        /// </summary>
-        private void RemoveProject_Foreground(AbstractProject project)
-        {
             AssertIsForeground();
 
             lock (_gate)
@@ -389,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 Contract.ThrowIfFalse(_projectMap.Remove(project.Id));
             }
 
-            UpdateProjectBinPath_Foreground(project, project.BinOutputPath, null);
+            UpdateProjectBinPath(project, project.BinOutputPath, null);
 
             using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
@@ -402,16 +306,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// Updates the project tracker and referencing projects for binary output path change for the given project.
-        /// If invoked on the foreground thread, the update is executed right away.
-        /// Otherwise, update is scheduled on foreground task scheduler.
         /// </summary>
-        /// <remarks>This method may be called on a background thread.</remarks>
         internal void UpdateProjectBinPath(AbstractProject project, string oldBinPathOpt, string newBinPathOpt)
-        {
-            ExecuteOrScheduleForegroundAffinitizedAction(() => UpdateProjectBinPath_Foreground(project, oldBinPathOpt, newBinPathOpt));
-        }
-
-        internal void UpdateProjectBinPath_Foreground(AbstractProject project, string oldBinPathOpt, string newBinPathOpt)
         {
             // UpdateProjectBinPath is defensively executed on the foreground thread as it calls back into referencing projects to perform metadata to P2P reference conversions.
             AssertIsForeground();
@@ -430,16 +326,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void UpdateReferencesForBinPathChange(string path, Action updateProjects)
         {
             AssertIsForeground();
-
             // If we already have a single project that points to this path, we'll either be:
             // 
             // (1) removing it, where it no longer exists, or
             // (2) adding another path, where it's now ambiguous
             //
             // in either case, we want to undo file-to-P2P reference conversion
-            ImmutableArray<AbstractProject> existingProjects;
 
-            if (TryGetProjectsByBinPath(path, out existingProjects))
+            if (TryGetProjectsByBinPath(path, out var existingProjects))
             {
                 if (existingProjects.Length == 1)
                 {
@@ -473,8 +367,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 string key = projectPath + projectSystemName;
-                ProjectId id;
-                if (!_projectPathToIdMap.TryGetValue(key, out id))
+                if (!_projectPathToIdMap.TryGetValue(key, out var id))
                 {
                     id = ProjectId.CreateNewId(debugName: projectPath);
                     _projectPathToIdMap[key] = id;
@@ -486,16 +379,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// Notifies the workspace host about the given action.
-        /// If invoked on the foreground thread, the action is executed right away.
-        /// Otherwise, the action is scheduled on foreground task scheduler.
         /// </summary>
-        /// <remarks>This method may be called on a background thread.</remarks>
+        /// <remarks>This method must be called on the foreground thread.</remarks>
         internal void NotifyWorkspaceHosts(Action<IVisualStudioWorkspaceHost> action)
-        {
-            ExecuteOrScheduleForegroundAffinitizedAction(() => NotifyWorkspaceHosts_Foreground(action));
-        }
-
-        internal void NotifyWorkspaceHosts_Foreground(Action<IVisualStudioWorkspaceHost> action)
         {
             AssertIsForeground();
 
@@ -521,20 +407,64 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 project = null;
-
-                ImmutableArray<AbstractProject> projects;
-                if (_projectsByBinPath.TryGetValue(filePath, out projects))
+                if (!_projectsByBinPath.TryGetValue(filePath, out var projects))
                 {
-                    // If for some reason we have more than one referencing project, it's ambiguous so bail
-                    if (projects.Length == 1)
+                    // Workaround https://github.com/dotnet/roslyn/issues/20412 by checking to see if */ref/A.dll can be
+                    // adjusted to */A.dll - only handles the default location for reference assemblies during a build.
+                    if (!HACK_StripRefDirectoryFromPath(filePath, out string binFilePath)
+                        || !_projectsByBinPath.TryGetValue(binFilePath, out projects))
                     {
-                        project = projects[0];
-                        return true;
+                        return false;
                     }
+                }
+
+                // If for some reason we have more than one referencing project, it's ambiguous so bail
+                if (projects.Length == 1)
+                {
+                    project = projects[0];
+                    return true;
                 }
 
                 return false;
             }
+        }
+
+        private static readonly char[] s_directorySeparatorChars = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
+        private bool HACK_StripRefDirectoryFromPath(string filePath, out string binFilePath)
+        {
+            const string refDirectoryName = "ref";
+
+            // looking for "/ref/" where:
+            // 1. the first / is a directory separator
+            // 2. 'ref' matches in a case-insensitive comparison
+            // 3. the second / is the last directory separator
+            var lastSeparator = filePath.LastIndexOfAny(s_directorySeparatorChars);
+            var secondToLastSeparator = lastSeparator - refDirectoryName.Length - 1;
+            if (secondToLastSeparator < 0)
+            {
+                // Failed condition 3
+                binFilePath = null;
+                return false;
+            }
+
+            if (filePath[secondToLastSeparator] != Path.DirectorySeparatorChar
+                && filePath[secondToLastSeparator] != Path.AltDirectorySeparatorChar)
+            {
+                // Failed condition 1
+                binFilePath = null;
+                return false;
+            }
+
+            if (string.Compare(refDirectoryName, 0, filePath, secondToLastSeparator + 1, lastSeparator - secondToLastSeparator - 1, StringComparison.OrdinalIgnoreCase) != 0)
+            {
+                // Failed condition 2
+                binFilePath = null;
+                return false;
+            }
+
+            binFilePath = filePath.Remove(secondToLastSeparator, lastSeparator - secondToLastSeparator);
+            return true;
         }
 
         /// <summary>
@@ -559,8 +489,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                ImmutableArray<AbstractProject> projects;
-                if (!_projectsByBinPath.TryGetValue(filePath, out projects))
+                if (!_projectsByBinPath.TryGetValue(filePath, out var projects))
                 {
                     projects = ImmutableArray<AbstractProject>.Empty;
                 }
@@ -573,8 +502,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                ImmutableArray<AbstractProject> projects;
-                if (_projectsByBinPath.TryGetValue(filePath, out projects) && projects.Contains(project))
+                if (_projectsByBinPath.TryGetValue(filePath, out var projects) && projects.Contains(project))
                 {
                     if (projects.Length == 1)
                     {
@@ -588,31 +516,97 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void TryDisconnectExistingDeferredProject(IVsHierarchy hierarchy, string projectName)
+        public void OnBeforeCloseSolution()
         {
-            var projectPath = AbstractLegacyProject.GetProjectFilePath(hierarchy);
-            var projectId = GetOrCreateProjectIdForPath(projectPath, projectName);
+            AssertIsForeground();
 
-            // If we created a project for this while in deferred project load mode, let's close it
-            // now that we're being asked to make a "real" project for it, so that we'll prefer the
-            // "real" project
-            if (IsDeferredSolutionLoadEnabled())
+            _solutionIsClosing = true;
+
+            foreach (var p in this.ImmutableProjects)
             {
-                var existingProject = GetProject(projectId);
-                if (existingProject != null)
-                {
-                    Debug.Assert(existingProject is IWorkspaceProjectContext);
-                    existingProject.Disconnect();
-                }
+                p.StopPushingToWorkspaceHosts();
             }
+
+            _solutionLoadComplete = false;
         }
 
-        private bool IsDeferredSolutionLoadEnabled()
+        public void OnAfterCloseSolution()
         {
-            // NOTE: It is expected that the "as" will fail on Dev14, as IVsSolution7 was
-            // introduced in Dev15.  Be sure to handle the null result here.
-            var solution7 = _serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution7;
-            return solution7?.IsSolutionLoadDeferred() == true;
+            AssertIsForeground();
+
+            lock (_gate)
+            {
+                Contract.ThrowIfFalse(_projectMap.Count == 0);
+            }
+
+            NotifyWorkspaceHosts(host => host.OnSolutionRemoved());
+            NotifyWorkspaceHosts(host => host.ClearSolution());
+
+            lock (_gate)
+            {
+                _projectPathToIdMap.Clear();
+            }
+
+            RuleSetFileProvider.ClearCachedRuleSetFiles();
+
+            foreach (var workspaceHost in _workspaceHosts)
+            {
+                workspaceHost.SolutionClosed();
+            }
+
+            _solutionIsClosing = false;
+        }
+
+        private void FinishLoad()
+        {
+            // We are now completely done, so let's simply ensure all projects are added.
+            StartPushingToWorkspaceAndNotifyOfOpenDocuments(this.ImmutableProjects);
+
+            // Also, all remaining project adds need to immediately pushed as well, since we're now "interactive"
+            _solutionLoadComplete = true;
+
+            // Check that the set of analyzers is complete and consistent.
+            GetAnalyzerDependencyCheckingService()?.CheckForConflictsAsync();
+        }
+
+        private AnalyzerDependencyCheckingService GetAnalyzerDependencyCheckingService()
+        {
+            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
+
+            return componentModel.GetService<AnalyzerDependencyCheckingService>();
+        }
+
+        internal void OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
+        {
+            AssertIsForeground();
+
+            _batchingProjectLoads = true;
+            _projectsLoadedThisBatch.Clear();
+        }
+
+        internal void OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
+        {
+            AssertIsForeground();
+
+            if (!fIsBackgroundIdleBatch)
+            {
+                // This batch was loaded eagerly. This might be because the user is force expanding the projects in the
+                // Solution Explorer, or they had some files open in an .suo we need to push.
+                StartPushingToWorkspaceAndNotifyOfOpenDocuments(_projectsLoadedThisBatch);
+            }
+
+            _batchingProjectLoads = false;
+            _projectsLoadedThisBatch.Clear();
+        }
+
+        internal void OnAfterBackgroundSolutionLoadComplete()
+        {
+            AssertIsForeground();
+
+            // In Non-DPL scenarios, this indicates that ASL is complete, and we should push any
+            // remaining information we have to the Workspace.  If DPL is enabled, this is never
+            // called.
+            FinishLoad();
         }
     }
 }

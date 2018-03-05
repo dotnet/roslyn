@@ -1,5 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 Imports Microsoft.CodeAnalysis.Text
@@ -64,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             Return ClassificationBuilder.VBXmlEntityReference(value)
         End Function
 
-        Friend MustOverride Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Task(Of IEnumerable(Of ClassifiedSpan))
+        Friend MustOverride Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Task(Of ImmutableArray(Of ClassifiedSpan))
 
         Protected Function GetText(tuple As Tuple(Of String, String)) As String
             Return "(" & tuple.Item1 & ", " & tuple.Item2 & ")"

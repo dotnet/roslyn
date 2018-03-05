@@ -31,14 +31,9 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        public override bool CanOpenDocuments
-        {
-            get
-            {
+        public override bool CanOpenDocuments =>
                 // enables simulation of having documents open.
-                return true;
-            }
-        }
+                true;
 
         /// <summary>
         /// Clears all projects and documents from the workspace.

@@ -5,12 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.VisualStudio.Composition;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
@@ -24,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var types = new[]
             {
                 // ROSLYN
-                typeof(Microsoft.CodeAnalysis.Editor.Implementation.Workspaces.WorkspaceTaskSchedulerFactoryFactory),
-                typeof(Microsoft.CodeAnalysis.Host.WorkspaceTaskSchedulerFactoryFactory),
+                typeof(Microsoft.CodeAnalysis.Editor.Implementation.Workspaces.EditorTaskSchedulerFactory),
+                typeof(Microsoft.CodeAnalysis.Host.WorkspaceTaskSchedulerFactory),
                 typeof(Microsoft.CodeAnalysis.Formatting.Rules.DefaultFormattingRuleFactoryServiceFactory),
                 typeof(Microsoft.CodeAnalysis.Host.PersistentStorageServiceFactory),
                 typeof(Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService.TextBufferCloneServiceFactory),
@@ -36,13 +33,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Solution), // ServicesCore
                 typeof(Microsoft.CodeAnalysis.Options.GlobalOptionService),
                 typeof(Microsoft.CodeAnalysis.Options.OptionServiceFactory),
-                typeof(Microsoft.CodeAnalysis.Options.Providers.ExportedOptionProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification.ForegroundNotificationService),
                 typeof(Microsoft.CodeAnalysis.Editor.UnitTests.TestOptionsServiceFactory),
-                typeof(SymbolMapping.SymbolMappingServiceFactory),
+                typeof(Implementation.Classification.ClassificationTypeFormatDefinitions), // to include EditorFeatures.Wpf
+                typeof(DefaultSymbolMappingService),
                 typeof(TestWaitIndicator),
-                typeof(TestExtensionErrorHandler)
+                typeof(TestExtensionErrorHandler),
+                typeof(TestExportJoinableTaskContext), // Needed by editor components, but not actually exported anywhere else
+                typeof(TestObscuringTipManager) // Needed by editor components, but only exported in editor VS layer. Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569.
             };
 
             return types//.Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(InternalSolutionCrawlerOptions).Assembly, typeof(Microsoft.CodeAnalysis.Options.IOption)))
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 // EDITOR
 
                 // Microsoft.VisualStudio.Platform.VSEditor.dll:
-                typeof(Microsoft.VisualStudio.Platform.VSEditor.EventArgsHelper).Assembly,
+                Assembly.LoadFrom("Microsoft.VisualStudio.Platform.VSEditor.dll"),
 
                 // Microsoft.VisualStudio.Text.Logic.dll:
                 //   Must include this because several editor options are actually stored as exported information 
@@ -126,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public static ExportProvider CreateExportProvider(ComposableCatalog catalog)
         {
-            var configuration = CompositionConfiguration.Create(catalog.WithDesktopSupport().WithCompositionService());
+            var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
             var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
             return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();
         }

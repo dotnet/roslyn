@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax, 
             Binder enclosing, 
             ArrayBuilder<SyntaxNode> methodsWithYields,
-            Func<Binder, SyntaxNode, Binder> rootBinderAdjusterOpt = null)
+            Action<Binder, SyntaxNode> binderUpdatedHandler = null)
         {
             var builder = new LocalBinderFactory(containingMemberOrLambda, syntax, enclosing, methodsWithYields);
 
@@ -65,9 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 enclosing = new ExpressionVariableBinder(syntax, enclosing);
 
-                if ((object)rootBinderAdjusterOpt != null)
+                if ((object)binderUpdatedHandler != null)
                 {
-                    enclosing = rootBinderAdjusterOpt(enclosing, syntax);
+                    binderUpdatedHandler(enclosing, syntax);
                 }
 
                 builder.AddToMap(syntax, enclosing);
@@ -78,9 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode embeddedScopeDesignator;
                 enclosing = builder.GetBinderForPossibleEmbeddedStatement(statement, enclosing, out embeddedScopeDesignator);
 
-                if ((object)rootBinderAdjusterOpt != null)
+                if ((object)binderUpdatedHandler != null)
                 {
-                    enclosing = rootBinderAdjusterOpt(enclosing, embeddedScopeDesignator);
+                    binderUpdatedHandler(enclosing, embeddedScopeDesignator);
                 }
 
                 if (embeddedScopeDesignator != null)
@@ -92,9 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if ((object)rootBinderAdjusterOpt != null)
+                if ((object)binderUpdatedHandler != null)
                 {
-                    enclosing = rootBinderAdjusterOpt(enclosing, null);
+                    binderUpdatedHandler(enclosing, null);
                 }
 
                 builder.Visit((CSharpSyntaxNode)syntax, enclosing);
@@ -229,6 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Binder binder = match.IsGenericMethod
                         ? new WithMethodTypeParametersBinder(match, _enclosing)
                         : _enclosing;
+
+                    binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers);
 
                     Visit(body, new InMethodBinder(match, binder));
                 }
@@ -383,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForStatement(ForStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var binder = new ForLoopBinder(_enclosing, node);
+            Binder binder = new ForLoopBinder(_enclosing, node);
             AddToMap(node, binder);
 
             var declaration = node.Declaration;
@@ -402,14 +405,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 } 
             }
 
-            if (node.Condition != null)
+            ExpressionSyntax condition = node.Condition;
+            if (condition != null)
             {
-                Visit(node.Condition, binder);
+                binder = new ExpressionVariableBinder(condition, binder);
+                AddToMap(condition, binder);
+                Visit(condition, binder);
             }
 
-            foreach (var incrementor in node.Incrementors)
+            SeparatedSyntaxList<ExpressionSyntax> incrementors = node.Incrementors;
+            if (incrementors.Count > 0)
             {
-                Visit(incrementor, binder);
+                var incrementorsBinder = new ExpressionListVariableBinder(incrementors, binder);
+                AddToMap(incrementors.First(), incrementorsBinder);
+                foreach (var incrementor in incrementors)
+                {
+                    Visit(incrementor, incrementorsBinder);
+                }
             }
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);
@@ -740,8 +752,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // but we still want to bind it.  
 
                 case SyntaxKind.ExpressionStatement:
-                case SyntaxKind.WhileStatement:
-                case SyntaxKind.DoStatement:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:

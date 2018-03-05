@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -16,21 +16,21 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
+    internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer 
+        : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
     {
-        private static readonly SyntaxKind[] s_kindsOfInterest = new[]
-        {
-            SyntaxKind.QualifiedName,
-            SyntaxKind.AliasQualifiedName,
-            SyntaxKind.GenericName,
-            SyntaxKind.IdentifierName,
-            SyntaxKind.SimpleMemberAccessExpression,
-            SyntaxKind.QualifiedCref
-        };
+        private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
+            ImmutableArray.Create(
+                SyntaxKind.QualifiedName,
+                SyntaxKind.AliasQualifiedName,
+                SyntaxKind.GenericName,
+                SyntaxKind.IdentifierName,
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxKind.QualifiedCref);
 
-        public override void Initialize(AnalysisContext analysisContext)
+        public CSharpSimplifyTypeNamesDiagnosticAnalyzer()
+            : base(s_kindsOfInterest)
         {
-            analysisContext.RegisterSyntaxNodeAction(AnalyzeNode, s_kindsOfInterest);
         }
 
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             Diagnostic diagnostic;
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
-            Func<SyntaxNode, bool> descendIntoChildren = n =>
+            bool descendIntoChildren(SyntaxNode n)
             {
                 if (!IsRegularCandidate(n) ||
                     !TrySimplifyTypeNameExpression(context.SemanticModel, n, options, out diagnostic, cancellationToken))
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
                 context.ReportDiagnostic(diagnostic);
                 return false;
-            };
+            }
 
             // find regular node first - search from top to down. once found one, don't get into its children
             foreach (var candidate in context.Node.DescendantNodesAndSelf(descendIntoChildren))
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         internal static bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken)
         {
-            issueSpan = default(TextSpan);
+            issueSpan = default;
             diagnosticId = IDEDiagnosticIds.SimplifyNamesDiagnosticId;
 
             // For Crefs, currently only Qualified Crefs needs to be handled separately
@@ -114,9 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 }
 
                 var crefSyntax = (CrefSyntax)node;
-
-                CrefSyntax replacementNode;
-                if (!crefSyntax.TryReduceOrSimplifyExplicitName(model, out replacementNode, out issueSpan, optionSet, cancellationToken))
+                if (!crefSyntax.TryReduceOrSimplifyExplicitName(model, out var replacementNode, out issueSpan, optionSet, cancellationToken))
                 {
                     return false;
                 }
@@ -134,9 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 var expressionToCheck = expression.Kind() == SyntaxKind.AsExpression || expression.Kind() == SyntaxKind.IsExpression
                     ? ((BinaryExpressionSyntax)expression).Right
                     : expression;
-
-                ExpressionSyntax replacementSyntax;
-                if (!expressionToCheck.TryReduceOrSimplifyExplicitName(model, out replacementSyntax, out issueSpan, optionSet, cancellationToken))
+                if (!expressionToCheck.TryReduceOrSimplifyExplicitName(model, out var replacementSyntax, out issueSpan, optionSet, cancellationToken))
                 {
                     return false;
                 }

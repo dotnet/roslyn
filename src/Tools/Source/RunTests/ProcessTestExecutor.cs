@@ -81,7 +81,23 @@ namespace RunTests
                 // an empty log just in case, so our runner will still fail.
                 File.Create(resultsFilePath).Close();
 
-                var dumpOutputFilePath = Path.Combine(resultsDir, $"{assemblyInfo.DisplayName}.dmp");
+                // Define environment variables for processes started via ProcessRunner.
+                var environmentVariables = new Dictionary<string, string>();
+                _options.ProcDumpInfo?.WriteEnvironmentVariables(environmentVariables);
+
+                var outputDirectory = _options.LogFilePath != null
+                    ? Path.GetDirectoryName(_options.LogFilePath)
+                    : Directory.GetCurrentDirectory();
+
+                // Attach procDump to processes when the are started so we can watch for 
+                // unexepected crashes.
+                void onProcessStart(Process process)
+                {
+                    if (_options.ProcDumpInfo != null)
+                    {
+                        ProcDumpUtil.AttachProcDump(_options.ProcDumpInfo.Value, process.Id);
+                    }
+                }
 
                 var start = DateTime.UtcNow;
                 var xunitPath = _options.XunitPath;
@@ -92,7 +108,8 @@ namespace RunTests
                     displayWindow: false,
                     captureOutput: true,
                     cancellationToken: cancellationToken,
-                    processMonitor: p => CrashDumps.TryMonitorProcess(p, dumpOutputFilePath)).ConfigureAwait(false);
+                    environmentVariables: environmentVariables,
+                    onProcessStartHandler: onProcessStart);
                 var span = DateTime.UtcNow - start;
 
                 if (processOutput.ExitCode != 0)
@@ -123,17 +140,19 @@ namespace RunTests
                 Logger.Log($"Command line {assemblyInfo.DisplayName}: {commandLine}");
                 var standardOutput = string.Join(Environment.NewLine, processOutput.OutputLines) ?? "";
                 var errorOutput = string.Join(Environment.NewLine, processOutput.ErrorLines) ?? "";
-
-                return new TestResult(
+                var testResultInfo = new TestResultInfo(
                     exitCode: processOutput.ExitCode,
-                    assemblyInfo: assemblyInfo,
-                    resultDir: resultsDir,
+                    resultsDirectory: resultsDir,
                     resultsFilePath: resultsFilePath,
-                    commandLine: commandLine,
                     elapsed: span,
                     standardOutput: standardOutput,
-                    errorOutput: errorOutput,
-                    isResultFromCache: false);
+                    errorOutput: errorOutput);
+
+                return new TestResult(
+                    assemblyInfo,
+                    testResultInfo,
+                    commandLine,
+                    isFromCache: false);
             }
             catch (Exception ex)
             {

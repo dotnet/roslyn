@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.valueText = reader.ReadString();
             }
 
-            internal override Func<ObjectReader, object> GetReader()
+            static SyntaxIdentifierExtended()
             {
-                return r => new SyntaxIdentifierExtended(r);
+                ObjectBinder.RegisterTypeReader(typeof(SyntaxIdentifierExtended), r => new SyntaxIdentifierExtended(r));
             }
 
             internal override void WriteTo(ObjectWriter writer)

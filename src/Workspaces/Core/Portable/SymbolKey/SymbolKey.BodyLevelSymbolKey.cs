@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -20,17 +21,15 @@ namespace Microsoft.CodeAnalysis
                     containingSymbol = containingSymbol.ContainingSymbol;
                 }
 
+                var compilation = ((ISourceAssemblySymbol)symbol.ContainingAssembly).Compilation;
                 var kind = symbol.Kind;
                 var localName = symbol.Name;
-                Contract.ThrowIfNull(
-                    visitor.Compilation,
-                    message: $"visitor cannot be created with a null compilation and visit a {nameof(BodyLevelSymbolKey)}.");
                 var ordinal = 0;
-                foreach (var possibleSymbol in EnumerateSymbols(visitor.Compilation, containingSymbol, kind, localName, visitor.CancellationToken))
+                foreach (var possibleSymbol in EnumerateSymbols(compilation, containingSymbol, kind, localName, visitor.CancellationToken))
                 {
-                    if (possibleSymbol.Item1.Equals(symbol))
+                    if (possibleSymbol.symbol.Equals(symbol))
                     {
-                        ordinal = possibleSymbol.Item2;
+                        ordinal = possibleSymbol.ordinal;
                         break;
                     }
                 }
@@ -54,9 +53,9 @@ namespace Microsoft.CodeAnalysis
                     foreach (var symbol in EnumerateSymbols(
                         reader.Compilation, containingSymbol, kind, localName, reader.CancellationToken))
                     {
-                        if (symbol.Item2 == ordinal)
+                        if (symbol.ordinal == ordinal)
                         {
-                            return new SymbolKeyResolution(symbol.Item1);
+                            return new SymbolKeyResolution(symbol.symbol);
                         }
                     }
                 }
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis
                 return new SymbolKeyResolution();
             }
 
-            private static IEnumerable<ValueTuple<ISymbol, int>> EnumerateSymbols(
+            private static IEnumerable<(ISymbol symbol, int ordinal)> EnumerateSymbols(
                 Compilation compilation, ISymbol containingSymbol,
                 SymbolKind kind, string localName,
                 CancellationToken cancellationToken)
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                     // a SpeculativeSemanticModel, containingSymbol.ContainingAssembly.Compilation
                     // may not have been rebuilt to reflect the trees used by the 
                     // SpeculativeSemanticModel to produce containingSymbol. In that case,
-                    // asking the ContainingAssembly's complation for a SemanticModel based
+                    // asking the ContainingAssembly's compilation for a SemanticModel based
                     // on trees for containingSymbol with throw an ArgumentException.
                     // Unfortunately, the best way to avoid this (currently) is to see if
                     // we're asking for a model for a tree that's part of the compilation.
@@ -109,7 +108,7 @@ namespace Microsoft.CodeAnalysis
                             symbol.Kind == kind &&
                             SymbolKey.Equals(compilation, symbol.Name, localName))
                         {
-                            yield return ValueTuple.Create(symbol, ordinal++);
+                            yield return (symbol, ordinal++);
                         }
                     }
                 }

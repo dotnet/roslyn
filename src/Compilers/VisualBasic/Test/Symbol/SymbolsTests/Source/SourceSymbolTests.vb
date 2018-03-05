@@ -68,7 +68,7 @@ BC30203: Identifier expected.
                 <compilation name="TST">
                     <file name="a.vb">
 Class Program
-    Public Delegate Sub Foo(Of R)(r1 As R)
+    Public Delegate Sub Goo(Of R)(r1 As R)
     Public Delegate Function Bar(Of R)(r2 As R) As Integer
 End Class
                     </file>
@@ -421,7 +421,7 @@ option Compare <![CDATA[qqqqqq]]>
 
 Namespace Misc003aErr
     Friend Module Misc003aErrmod
-        Function foo(x as Integer) as Boolean
+        Function goo(x as Integer) as Boolean
             return x = 42
         End Function 
     End Module
@@ -521,7 +521,7 @@ End Module
                     <file name="a.vb">
 Module Program
     Sub Main()
-        Dim [foo as integer : Dim [goo As Char
+        Dim [goo as integer : Dim [goo As Char
     End Sub
 End Module
                     </file>
@@ -530,7 +530,7 @@ End Module
 
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
-                Diagnostic(ERRID.ERR_MissingEndBrack, "[foo"),
+                Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"),
                 Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
                 Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"))
 

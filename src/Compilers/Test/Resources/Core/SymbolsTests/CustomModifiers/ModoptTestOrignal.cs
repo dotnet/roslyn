@@ -40,7 +40,7 @@ namespace Metadata
         public virtual string /*modreq*/ P2 { get { return "1 modreq"; } }
     }
     // 
-    public interface IFooAmbiguous<T, R>
+    public interface IGooAmbiguous<T, R>
     {
         // not in
         R M(T /*modreq*/ t);
@@ -50,7 +50,7 @@ namespace Metadata
         R M2(T /*modopt*/ t);
     }
 
-    public interface IFoo
+    public interface IGoo
     {
         // 2
         string /*modopt*/ M<T>(T /*modopt*/ t);

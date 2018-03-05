@@ -5,6 +5,7 @@ using System.Linq;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we don't analyze synthesized void methods.
                 if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) || Analyze(compilation, method, block, diagnostics))
                 {
-                    block = AppendImplicitReturn(block, method, (CSharpSyntaxNode)(method as SourceMethodSymbol)?.BodySyntax, originalBodyNested);
+                    block = AppendImplicitReturn(block, method, (CSharpSyntaxNode)(method as SourceMemberMethodSymbol)?.BodySyntax, originalBodyNested);
                 }
             }
             else if (Analyze(compilation, method, block, diagnostics))
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(submissionResultType.SpecialType != SpecialType.System_Void);
 
-                    var trailingExpression = new BoundDefaultOperator(method.GetNonNullSyntaxNode(), submissionResultType);
+                    var trailingExpression = new BoundDefaultExpression(method.GetNonNullSyntaxNode(), submissionResultType);
                     var newStatements = block.Statements.Add(new BoundReturnStatement(trailingExpression.Syntax, RefKind.None, trailingExpression));
                     block = new BoundBlock(block.Syntax, ImmutableArray<LocalSymbol>.Empty, newStatements) { WasCompilerGenerated = true };
 #if DEBUG

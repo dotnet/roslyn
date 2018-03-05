@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             If container Is Nothing Then
-                Return Nothing
+                Return ImmutableArray(Of ISymbol).Empty
             End If
             Dim symbols = semanticModel.LookupSymbols(position, container)
 
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Dim interfaceWithUnimplementedMembers = containingType.GetAllUnimplementedMembersInThis(containingType.Interfaces, AddressOf interfaceMemberGetter, cancellationToken) _
-                                                .Where(Function(i) i.Item2.Any(Function(s) MatchesMemberKind(s, kind))) _
+                                                .Where(Function(i) i.Item2.Any(Function(interfaceOrContainer) MatchesMemberKind(interfaceOrContainer, kind))) _
                                                 .Select(Function(i) i.Item1)
 
             Dim interfacesAndContainers = New HashSet(Of ISymbol)(interfaceWithUnimplementedMembers)
@@ -170,9 +170,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 AddAliasesAndContainers(i, interfacesAndContainers, node, semanticModel)
             Next
 
-            Dim symbols = semanticModel.LookupSymbols(position)
+            Dim symbols = New HashSet(Of ISymbol)(semanticModel.LookupSymbols(position))
+            Dim availableInterfacesAndContainers = interfacesAndContainers.Where(
+                Function(interfaceOrContainer) symbols.Contains(interfaceOrContainer.OriginalDefinition)).ToImmutableArray()
 
-            Dim result = TryAddGlobalTo(interfacesAndContainers.Intersect(symbols.ToArray()).ToImmutableArray())
+            Dim result = TryAddGlobalTo(availableInterfacesAndContainers)
 
             ' Even if there's not anything left to implement, we'll show the list of interfaces, 
             ' the global namespace, and the project root namespace (if any), as long as the class implements something.
@@ -239,9 +241,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return parent IsNot Nothing AndAlso parent.IsKind(SyntaxKind.ImplementsClause)
         End Function
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As ValueTuple(Of String, String)
+        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, insertionText As String)
             If IsGlobal(symbol) Then
-                Return ValueTuple.Create("Global", "Global")
+                Return ("Global", "Global")
             End If
 
             Dim displayText As String = Nothing
@@ -257,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 insertionText = displayAndInsertionText.Item2
             End If
 
-            Return ValueTuple.Create(displayText, insertionText)
+            Return (displayText, insertionText)
         End Function
 
         Private Shared Function IsGenericType(symbol As ISymbol) As Boolean
@@ -274,16 +276,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
-            Return CompletionItemRules.Default
-        End Function
-
         Protected Overrides Function CreateItem(displayText As String, insertionText As String, symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
             Dim item = MyBase.CreateItem(displayText, insertionText, symbols, context, preselect, supportedPlatformData)
 
             If IsGenericType(symbols(0)) Then
                 Dim text = symbols(0).ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)
-                item = item.WithProperties(ImmutableDictionary(Of String, String).Empty.Add(InsertionTextOnOpenParen, text))
+                item = item.AddProperty(InsertionTextOnOpenParen, text)
             End If
 
             Return item

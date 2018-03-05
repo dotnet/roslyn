@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal abstract class SolutionAsset : RemotableData
     {
-        protected SolutionAsset(Checksum checksum, string kind) : base(checksum, kind)
+        protected SolutionAsset(Checksum checksum, WellKnownSynchronizationKind kind) 
+            : base(checksum, kind)
         {
         }
 
@@ -26,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Execution
             // one makes us to have a lot of unnecessary allocations due to Task and overall slow down of several seconds.
             //
             // all calls used to be all async and converted back to synchronous due to all those unnecessary overhead of tasks.
-            if (value is TextDocumentState)
+            if (value is TextDocumentState state)
             {
-                return new SourceTextAsset(checksum, (TextDocumentState)value, serializer);
+                return new SourceTextAsset(checksum, state, serializer);
             }
 
             return new SimpleSolutionAsset(checksum, value, serializer);
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Execution
             private readonly Serializer _serializer;
 
             public SourceTextAsset(Checksum checksum, TextDocumentState state, Serializer serializer) :
-                base(checksum, WellKnownSynchronizationKinds.SourceText)
+                base(checksum, WellKnownSynchronizationKind.SourceText)
             {
                 _state = state;
                 _serializer = serializer;

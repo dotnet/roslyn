@@ -16,7 +16,7 @@ namespace ObjectFormatterFixtures
         {
             public readonly int A = 1;
             public readonly int B = 2;
-            public static readonly int S = 3;
+            public const int S = 3;
         }
     }
 
@@ -109,7 +109,7 @@ namespace ObjectFormatterFixtures
 
     internal class ComplexProxyBase
     {
-        private int Foo()
+        private int Goo()
         {
             return 1;
         }
@@ -221,13 +221,13 @@ namespace ObjectFormatterFixtures
         [DebuggerDisplay("{F1(1)}")]
         public readonly int _26_4;
 
-        [DebuggerDisplay("{Foo}")]
+        [DebuggerDisplay("{Goo}")]
         public readonly int _26_5;
 
-        [DebuggerDisplay("{foo}")]
+        [DebuggerDisplay("{goo}")]
         public readonly int _26_6;
 
-        private int foo()
+        private int goo()
         {
             return 2;
         }

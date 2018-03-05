@@ -23,7 +23,7 @@ class C
         get => x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("C.X.get", @"
 {

@@ -15,22 +15,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static SyntaxTokenList GenerateParameterModifiers(this ArgumentSyntax argument)
         {
-            // If the argument was marked with ref or out, then do the same for the parameter.
-            if (argument.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword ||
-                argument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword)
+            if (argument.RefKindKeyword != default)
             {
-                return SyntaxFactory.TokenList(SyntaxFactory.Token(argument.RefOrOutKeyword.Kind()));
+                return SyntaxFactory.TokenList(SyntaxFactory.Token(argument.RefKindKeyword.Kind()));
             }
 
-            return default(SyntaxTokenList);
+            return default;
         }
 
         public static RefKind GetRefKind(this ArgumentSyntax argument)
         {
-            var refSyntaxKind = argument.RefOrOutKeyword.Kind();
-            return
-                refSyntaxKind == SyntaxKind.RefKeyword ? RefKind.Ref :
-                refSyntaxKind == SyntaxKind.OutKeyword ? RefKind.Out : RefKind.None;
+            switch (argument?.RefKindKeyword.Kind())
+            {
+                case SyntaxKind.RefKeyword:
+                    return RefKind.Ref;
+                case SyntaxKind.OutKeyword:
+                    return RefKind.Out;
+                case SyntaxKind.InKeyword:
+                    return RefKind.In;
+                default:
+                    return RefKind.None;
+            }
         }
 
         /// <summary>
@@ -42,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this ArgumentSyntax argument,
             SemanticModel semanticModel,
             bool allowParams = false,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var argumentList = argument.Parent as BaseArgumentListSyntax;
             if (argumentList == null)

@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -57,9 +59,22 @@ namespace Microsoft.CodeAnalysis
 
         public static string JoinText(this ImmutableArray<TaggedText> values)
         {
+            
             return values.IsDefault
                 ? null
-                : string.Join("", values.Select(t => t.Text));
+                : Join(values);
+        }
+
+        private static string Join(ImmutableArray<TaggedText> values)
+        {
+            var pooled = PooledStringBuilder.GetInstance();
+            var builder = pooled.Builder;
+            foreach (var val in values)
+            {
+                builder.Append(val.Text);
+            }
+
+            return pooled.ToStringAndFree();
         }
 
         public static string ToClassificationTypeName(this string taggedTextTag)
@@ -125,7 +140,7 @@ namespace Microsoft.CodeAnalysis
                     return ClassificationTypeNames.Text;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(taggedTextTag);
             }
         }
 

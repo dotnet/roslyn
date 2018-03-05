@@ -11,8 +11,10 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -90,18 +92,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             var spanToTag = context.SpansToTag.Single();
 
+            var task1 = ProduceTagsAsync(context, spanToTag, WorkspaceClassificationDelegationService.Instance);
+            var task2 = ProduceTagsAsync(context, spanToTag, EditorClassificationDelegationService.Instance);
+
+            return Task.WhenAll(task1, task2);
+        }
+
+        private Task ProduceTagsAsync<TClassificationService>(
+            TaggerContext<IClassificationTag> context, 
+            DocumentSnapshotSpan spanToTag,
+            IClassificationDelegationService<TClassificationService> delegationService)
+            where TClassificationService : class, ILanguageService
+        {
+            var document = spanToTag.Document;
+
             // Attempt to get a classification service which will actually produce the results.
             // If we can't (because we have no Document, or because the language doesn't support
             // this service), then bail out immediately.
-            var document = spanToTag.Document;
-            var classificationService = document?.Project.LanguageServices.GetService<IEditorClassificationService>();
-
+            var classificationService = document?.GetLanguageService<TClassificationService>();
             if (classificationService == null)
             {
                 return SpecializedTasks.EmptyTask;
             }
 
-            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
+            return SemanticClassificationUtilities.ProduceTagsAsync(
+                context, spanToTag, delegationService, classificationService, _typeMap);
         }
     }
 }

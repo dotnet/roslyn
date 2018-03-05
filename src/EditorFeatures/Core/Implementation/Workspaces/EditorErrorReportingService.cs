@@ -13,7 +13,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             Logger.Log(FunctionId.Extension_Exception, exception.StackTrace);
         }
 
-        public void ShowErrorInfo(string message, params ErrorReportingUI[] items)
+        public void ShowErrorInfoInActiveView(string message, params InfoBarUI[] items)
+        {
+            ShowGlobalErrorInfo(message, items);
+        }
+
+        public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
         {
             Logger.Log(FunctionId.Extension_Exception, message);
         }

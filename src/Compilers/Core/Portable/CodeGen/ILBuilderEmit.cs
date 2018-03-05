@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitGreatestMethodToken()
         {
-            // A magic value indicates that the token value is to be the literal value of the greatest method defnition token.
+            // A magic value indicates that the token value is to be the literal value of the greatest method definition token.
             this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.LiteralGreatestMethodDefinitionToken);
         }
 
@@ -424,18 +424,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         EmitInt32(slot);
                     }
                     break;
-            }
-
-            // As in ILGENREC::dumpLocal
-            // CONSIDER: this is somewhat C# specific - it might be better to incorporate this
-            // into the bound tree as a conversion to int.
-            // VSADOV: pinned locals are used in C# to represent pointers in "fixed" statements.
-            // in the user's code they are used as pointers (*), however in their implementation
-            // they hold pinned references (O or &) to the fixed data so they need to be converted 
-            // them to unmanaged pointer type when loaded.
-            if (local.IsPinned)
-            {
-                EmitOpCode(ILOpCode.Conv_i);
             }
         }
 

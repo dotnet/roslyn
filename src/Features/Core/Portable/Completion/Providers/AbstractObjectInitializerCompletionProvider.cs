@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             foreach (var uninitializedMember in uninitializedMembers)
             {
-                context.AddItem(SymbolCompletionItem.Create(
+                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: uninitializedMember.Name,
                     insertionText: null,
-                    symbol: uninitializedMember,
+                    symbols: ImmutableArray.Create(uninitializedMember),
                     contextPosition: initializerLocation.SourceSpan.Start,
                     rules: s_rules));
             }

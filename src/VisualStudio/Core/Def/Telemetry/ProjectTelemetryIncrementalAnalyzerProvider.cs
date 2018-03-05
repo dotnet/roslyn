@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
     [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host), Shared]
     internal sealed class ProjectTelemetryIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Microsoft.CodeAnalysis.Workspace workspace)
         {
             return new Analyzer();
         }
@@ -91,9 +91,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
                             metadataReferencesCount,
                             documentsCount,
                             additionalDocumentsCount);
-
-                        Inputs existingInputs;
-                        if (!_items.TryGetValue(projectId, out existingInputs) ||
+                        if (!_items.TryGetValue(projectId, out var existingInputs) ||
                             !existingInputs.Equals(newInputs))
                         {
                             _items[projectId] = newInputs;
@@ -169,7 +167,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
 
                         var telemetryEvent = TelemetryHelper.TelemetryService.CreateEvent(TelemetryEventPath);
                         telemetryEvent.SetStringProperty(TelemetryProjectIdName, projectId.Id.ToString());
-                        telemetryEvent.SetStringProperty(TelemetryProjectGuidName, vsProject.Guid.ToString());
+                        telemetryEvent.SetStringProperty(TelemetryProjectGuidName, vsProject?.Guid.ToString() ?? Guid.Empty.ToString());
                         telemetryEvent.SetStringProperty(TelemetryLanguageName, language);
                         telemetryEvent.SetIntProperty(TelemetryAnalyzerReferencesCountName, analyzerReferencesCount);
                         telemetryEvent.SetIntProperty(TelemetryProjectReferencesCountName, projectReferencesCount);

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.Differencing
     {
         private const double ExactMatchDistance = 0.0;
         private const double EpsilonDistance = 0.00001;
-        private const double MatchingDistance1 = 0.5;
-        private const double MatchingDistance2 = 1.0;
-        private const double MatchingDistance3 = 1.5;
-        private const double MaxDistance = 2.0;
+        private const double MatchingDistance1 = 0.25;
+        private const double MatchingDistance2 = 0.5;
+        private const double MatchingDistance3 = 0.75;
+        private const double MaxDistance = 1.0;
 
         private readonly TreeComparer<TNode> _comparer;
         private readonly TNode _root1;
@@ -31,12 +31,8 @@ namespace Microsoft.CodeAnalysis.Differencing
             _comparer = comparer;
 
             int labelCount = comparer.LabelCount;
-
-            // Calculate chains (not including root node):
-            int count1, count2;
-            List<TNode>[] nodes1, nodes2;
-            CategorizeNodesByLabels(comparer, root1, labelCount, out nodes1, out count1);
-            CategorizeNodesByLabels(comparer, root2, labelCount, out nodes2, out count2);
+            CategorizeNodesByLabels(comparer, root1, labelCount, out var nodes1, out var count1);
+            CategorizeNodesByLabels(comparer, root2, labelCount, out var nodes2, out var count2);
 
             _oneToTwo = new Dictionary<TNode, TNode>();
             _twoToOne = new Dictionary<TNode, TNode>();
@@ -158,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             ComputeMatchForLabel(s1, s2, tiedToAncestor, EpsilonDistance);     // almost exact match
             ComputeMatchForLabel(s1, s2, tiedToAncestor, MatchingDistance1);   // ok match
             ComputeMatchForLabel(s1, s2, tiedToAncestor, MatchingDistance2);   // ok match
-            ComputeMatchForLabel(s1, s2, tiedToAncestor, MatchingDistance3);   // ok match 
+            ComputeMatchForLabel(s1, s2, tiedToAncestor, MatchingDistance3);   // ok match
             ComputeMatchForLabel(s1, s2, tiedToAncestor, MaxDistance);         // any match
         }
 
@@ -172,6 +168,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             // So in the case of totally matching sequences, we process them in O(n) - 
             // both node1 and firstNonMatch2 will be advanced simultaneously.
 
+            Debug.Assert(maxAcceptableDistance >= ExactMatchDistance && maxAcceptableDistance <= MaxDistance);
             int count1 = s1.Count;
             int count2 = s2.Count;
             int firstNonMatch2 = 0;
@@ -188,8 +185,8 @@ namespace Microsoft.CodeAnalysis.Differencing
 
                 // Find node2 that matches node1 the best, i.e. has minimal distance.
 
-                double bestDistance = MaxDistance;
-                TNode bestMatch = default(TNode);
+                double bestDistance = MaxDistance * 2;
+                TNode bestMatch = default;
                 bool matched = false;
                 int i2;
                 for (i2 = firstNonMatch2; i2 < count2; i2++)
@@ -262,6 +259,11 @@ namespace Microsoft.CodeAnalysis.Differencing
                     {
                         firstNonMatch2 = i2 + 1;
                     }
+
+                    if (firstNonMatch2 == count2)
+                    {
+                        return;
+                    }
                 }
             }
         }
@@ -312,34 +314,14 @@ namespace Microsoft.CodeAnalysis.Differencing
         internal bool Contains(TNode node1, TNode node2)
         {
             Debug.Assert(_comparer.TreesEqual(node2, _root2));
-
-            TNode partner2;
-            return TryGetPartnerInTree2(node1, out partner2) && node2.Equals(partner2);
+            return TryGetPartnerInTree2(node1, out var partner2) && node2.Equals(partner2);
         }
 
-        public TreeComparer<TNode> Comparer
-        {
-            get
-            {
-                return _comparer;
-            }
-        }
+        public TreeComparer<TNode> Comparer => _comparer;
 
-        public TNode OldRoot
-        {
-            get
-            {
-                return _root1;
-            }
-        }
+        public TNode OldRoot => _root1;
 
-        public TNode NewRoot
-        {
-            get
-            {
-                return _root2;
-            }
-        }
+        public TNode NewRoot => _root2;
 
         public IReadOnlyDictionary<TNode, TNode> Matches
         {

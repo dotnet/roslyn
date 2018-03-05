@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -37,9 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
         internal void CheckBackspace(IBraceCompletionSession session)
         {
             session.TextView.TryMoveCaretToAndEnsureVisible(session.OpeningPoint.GetPoint(session.SubjectBuffer.CurrentSnapshot).Add(1));
-
-            bool handled;
-            session.PreBackspace(out handled);
+            session.PreBackspace(out var handled);
             if (!handled)
             {
                 session.PostBackspace();
@@ -51,8 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
         internal void CheckTab(IBraceCompletionSession session, bool allowTab = true)
         {
-            bool handled;
-            session.PreTab(out handled);
+            session.PreTab(out var handled);
             if (!handled)
             {
                 session.PostTab();
@@ -71,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
         internal void CheckReturn(IBraceCompletionSession session, int indentation, string result = null)
         {
-            bool handled;
-            session.PreReturn(out handled);
+            session.PreReturn(out var handled);
 
             Type(session, Environment.NewLine);
 
@@ -92,8 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
         internal void CheckReturnOnNonEmptyLine(IBraceCompletionSession session, int expectedVirtualSpace)
         {
-            bool handled;
-            session.PreReturn(out handled);
+            session.PreReturn(out var handled);
 
             Type(session, Environment.NewLine);
 
@@ -110,9 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
         {
             var preClosingPoint = session.ClosingPoint.GetPoint(session.SubjectBuffer.CurrentSnapshot);
             Assert.Equal(session.ClosingBrace, preClosingPoint.Subtract(1).GetChar());
-
-            bool handled;
-            session.PreOverType(out handled);
+            session.PreOverType(out var handled);
             if (!handled)
             {
                 session.PostOverType();
@@ -164,9 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
             var provider = new BraceCompletionSessionProvider(undoManager, editorOperationsFactoryService);
             var openingPoint = new SnapshotPoint(document.GetTextBuffer().CurrentSnapshot, document.CursorPosition.Value);
-
-            IBraceCompletionSession session;
-            if (provider.TryCreateSession(document.GetTextView(), openingPoint, opening, closing, out session))
+            if (provider.TryCreateSession(document.GetTextView(), openingPoint, opening, closing, out var session))
             {
                 return new Holder(workspace, session);
             }

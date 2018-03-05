@@ -2,18 +2,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Remote;
-using Microsoft.VisualStudio.Text.Editor;
 using Moq;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.Remote;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
@@ -22,30 +27,30 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
     public class RemoteHostClientServiceFactoryTests
     {
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14380"), Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void Creation()
         {
             var service = CreateRemoteHostClientService();
             Assert.NotNull(service);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14380"), Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task Enable_Disable()
         {
             var service = CreateRemoteHostClientService();
 
             service.Enable();
 
-            var enabledClient = await service.GetRemoteHostClientAsync(CancellationToken.None);
+            var enabledClient = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
             Assert.NotNull(enabledClient);
 
             service.Disable();
 
-            var disabledClient = await service.GetRemoteHostClientAsync(CancellationToken.None);
+            var disabledClient = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
             Assert.Null(disabledClient);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14380"), Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task GlobalAssets()
         {
             var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
@@ -56,9 +61,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             service.Enable();
 
             // make sure client is ready
-            var client = await service.GetRemoteHostClientAsync(CancellationToken.None);
+            var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            var checksumService = workspace.Services.GetService<ISolutionSynchronizationService>();
+            var checksumService = workspace.Services.GetService<IRemotableDataService>();
             var asset = checksumService.GetGlobalAsset(analyzerReference, CancellationToken.None);
             Assert.NotNull(asset);
 
@@ -68,11 +73,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Null(noAsset);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14380"), Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task UpdaterService()
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task SynchronizeGlobalAssets()
         {
             var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
 
             var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
             var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference));
@@ -80,23 +84,132 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             service.Enable();
 
             // make sure client is ready
-            var client = await service.GetRemoteHostClientAsync(CancellationToken.None);
+            var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None) as InProcRemoteHostClient;
 
-            // add solution
-            workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
-
-            // TODO: use waiter to make sure workspace events and updater is ready.
-            //       this delay is temporary until I set all .Next unit test hardness to setup correctly
-            await Task.Delay(TimeSpan.FromSeconds(1));
-
-            // checksum should already exist
-            SolutionStateChecksums checksums;
-            Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out checksums));
+            Assert.Equal(1, client.AssetStorage.GetGlobalAssetsOfType<AnalyzerReference>(CancellationToken.None).Count());
 
             service.Disable();
         }
 
-        private RemoteHostClientServiceFactory.RemoteHostClientService CreateRemoteHostClientService(Workspace workspace = null, IEnumerable<AnalyzerReference> hostAnalyzerReferences = null)
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task UpdaterService()
+        {
+            var exportProvider = TestHostServices.CreateMinimalExportProvider();
+
+            var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices(exportProvider));
+            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
+
+            var listener = new Listener();
+            var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
+
+            var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference), listener);
+
+            service.Enable();
+
+            // make sure client is ready
+            var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+
+            // add solution
+            workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
+
+            var listeners = exportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>();
+            var workspaceListener = listeners.First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
+
+            // wait for listener
+            await workspaceListener.CreateWaitTask();
+            await listener.CreateWaitTask();
+
+            // checksum should already exist
+            Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out var checksums));
+
+            service.Disable();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestSessionWithNoSolution()
+        {
+            var service = CreateRemoteHostClientService();
+
+            service.Enable();
+
+            var mock = new MockLogAndProgressService();
+            var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+
+            var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, mock, CancellationToken.None);
+            var result = await session.TryInvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), new object[] { "emptySource", Path.GetTempPath() }, CancellationToken.None);
+
+            Assert.True(result);
+
+            session.Shutdown();
+
+            service.Disable();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestSessionClosed()
+        {
+            // enable local remote host service
+            var service = CreateRemoteHostClientService();
+            service.Enable();
+
+            var client = (InProcRemoteHostClient)(await service.TryGetRemoteHostClientAsync(CancellationToken.None));
+
+            // register local service
+            TestService testService = null;
+            client.RegisterService("Test", (s, p) =>
+            {
+                testService = new TestService(s, p);
+                return testService;
+            });
+
+            // create session that stay alive until client alive (ex, SymbolSearchUpdateEngine)
+            var session = await client.TryCreateKeepAliveSessionAsync("Test", CancellationToken.None);
+
+            // mimic unfortunate call that happens to be in the middle of communication.
+            var task = session.TryInvokeAsync("TestMethodAsync", SpecializedCollections.EmptyReadOnlyList<object>(), CancellationToken.None);
+
+            // make client to go away
+            service.Disable();
+
+            // let the service to return
+            testService.Event.Set();
+
+            // make sure task finished gracefully
+            await task;
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestRequestNewRemoteHost()
+        {
+            var service = CreateRemoteHostClientService();
+
+            service.Enable();
+
+            var completionTask = new TaskCompletionSource<bool>();
+
+            var client1 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+            client1.StatusChanged += (s, connected) =>
+            {
+                // mark done
+                completionTask.SetResult(connected);
+            };
+
+            await service.RequestNewRemoteHostAsync(CancellationToken.None);
+
+            var result = await completionTask.Task;
+            Assert.False(result);
+
+            var client2 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+
+            Assert.NotEqual(client1, client2);
+
+            service.Disable();
+        }
+
+        private RemoteHostClientServiceFactory.RemoteHostClientService CreateRemoteHostClientService(
+            Workspace workspace = null,
+            IEnumerable<AnalyzerReference> hostAnalyzerReferences = null,
+            IAsynchronousOperationListener listener = null)
         {
             workspace = workspace ?? new AdhocWorkspace(TestHostServices.CreateHostServices());
             workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
@@ -105,11 +218,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var analyzerService = GetDiagnosticAnalyzerService(hostAnalyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
 
-            var optionMock = new Mock<IEditorOptions>(MockBehavior.Strict);
-            var optionFactoryMock = new Mock<IEditorOptionsFactoryService>(MockBehavior.Strict);
-            optionFactoryMock.SetupGet(i => i.GlobalOptions).Returns(optionMock.Object);
+            var listeners = AsynchronousOperationListener.CreateListeners(FeatureAttribute.RemoteHostClient, listener ?? new Listener());
 
-            var factory = new RemoteHostClientServiceFactory(analyzerService, optionFactoryMock.Object);
+            var factory = new RemoteHostClientServiceFactory(listeners, analyzerService);
             return factory.CreateService(workspace.Services) as RemoteHostClientServiceFactory.RemoteHostClientService;
         }
 
@@ -119,6 +230,28 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             mock.Setup(a => a.GetHostAnalyzerReferences()).Returns(references);
             return mock.Object;
         }
+
+        private class TestService : ServiceHubServiceBase
+        {
+            public TestService(Stream stream, IServiceProvider serviceProvider) :
+                base(serviceProvider, stream)
+            {
+                Event = new ManualResetEvent(false);
+
+                Rpc.StartListening();
+            }
+
+            public readonly ManualResetEvent Event;
+
+            public Task TestMethodAsync()
+            {
+                Event.WaitOne();
+
+                return SpecializedTasks.EmptyTask;
+            }
+        }
+
+        private class Listener : AsynchronousOperationListener { }
 
         private class NullAssemblyAnalyzerLoader : IAnalyzerAssemblyLoader
         {
@@ -131,6 +264,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 // doesn't matter what it returns
                 return typeof(object).Assembly;
             }
+        }
+
+        private class MockLogAndProgressService : ISymbolSearchLogService, ISymbolSearchProgressService
+        {
+            public Task LogExceptionAsync(string exception, string text) => SpecializedTasks.EmptyTask;
+            public Task LogInfoAsync(string text) => SpecializedTasks.EmptyTask;
+
+            public Task OnDownloadFullDatabaseStartedAsync(string title) => SpecializedTasks.EmptyTask;
+            public Task OnDownloadFullDatabaseSucceededAsync() => SpecializedTasks.EmptyTask;
+            public Task OnDownloadFullDatabaseCanceledAsync() => SpecializedTasks.EmptyTask;
+            public Task OnDownloadFullDatabaseFailedAsync(string message) => SpecializedTasks.EmptyTask;
         }
     }
 }

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -36,8 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public override AssemblyMetadata GetValue(CancellationToken cancellationToken)
             {
-                AssemblyMetadata value;
-                if (_weakValue.TryGetTarget(out value))
+                if (_weakValue.TryGetTarget(out var value))
                 {
                     return value;
                 }
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return true;
                 }
 
-                value = default(AssemblyMetadata);
+                value = default;
                 return false;
             }
 

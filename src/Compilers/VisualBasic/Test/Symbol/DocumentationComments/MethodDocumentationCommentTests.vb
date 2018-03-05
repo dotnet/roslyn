@@ -53,6 +53,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
                             Public Sub M5(ParamArray args() As Object)
                             End Sub
+
+                            Public Sub M7(z As (x1 As Integer, x2 As Integer, x3 As Integer, x4 As Integer, x5 As Integer, x6 As Integer, x7 As Short))
+                            End Sub
+
+                            Public Sub M10(y As (x1 As Integer, x2 As Short), z As System.Tuple(Of Integer, Short))
+                            End Sub
                         End Class
 
                         Class MyList(Of T)
@@ -130,6 +136,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub TestMethod6()
             Assert.Equal("M:Acme.Widget.M5(System.Object[])",
                          _widgetClass.GetMembers("M5").Single().GetDocumentationCommentId())
+        End Sub
+
+        <Fact>
+        Public Sub TestMethod7()
+            Assert.Equal("M:Acme.Widget.M7(System.ValueTuple{System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16})",
+                         _widgetClass.GetMembers("M7").Single().GetDocumentationCommentId())
+        End Sub
+
+        <Fact>
+        Public Sub TestMethod10()
+            Assert.Equal("M:Acme.Widget.M10(System.ValueTuple{System.Int32,System.Int16},System.Tuple{System.Int32,System.Int16})",
+                         _widgetClass.GetMembers("M10").Single().GetDocumentationCommentId())
         End Sub
 
         <Fact>

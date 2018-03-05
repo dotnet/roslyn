@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -62,6 +62,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch (Exception e) when (true) $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(24113, "https://github.com/dotnet/roslyn/issues/24113")]
+        public async Task TestInCasePattern()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"switch (1) { case int i $$ }"));
         }
     }
 }

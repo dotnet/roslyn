@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,10 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var cancellationToken = context.CancellationToken;
 
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-            DeclarationModifiers modifiers;
-            SyntaxToken token;
-            if (!IsPartialMethodCompletionContext(tree, position, cancellationToken, out modifiers, out token))
+            if (!IsPartialMethodCompletionContext(tree, position, cancellationToken, out var modifiers, out var token))
             {
                 return;
             }
@@ -64,14 +62,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxFactory = document.GetLanguageService<SyntaxGenerator>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            return CodeGenerationSymbolFactory.CreateMethodSymbol(attributes: new List<AttributeData>(),
+            var method = (IMethodSymbol)member;
+            return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                attributes: ImmutableArray<AttributeData>.Empty,
                 accessibility: Accessibility.NotApplicable,
                 modifiers: MemberInsertionCompletionItem.GetModifiers(item),
                 returnType: semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
-                explicitInterfaceSymbol: null,
+                refKind: method.RefKind,
+                explicitInterfaceImplementations: default,
                 name: member.Name,
-                typeParameters: ((IMethodSymbol)member).TypeParameters,
-                parameters: member.GetParameters().Select(p => CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.Type, p.Name)).ToList(),
+                typeParameters: method.TypeParameters,
+                parameters: method.Parameters.SelectAsArray(p => CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.Type, p.Name)),
                 statements: syntaxFactory.CreateThrowNotImplementedStatementBlock(semanticModel.Compilation));
         }
 
@@ -104,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return MemberInsertionCompletionItem.Create(
                 displayText,
-                Glyph.MethodPrivate,
                 modifiers,
                 line,
                 method,

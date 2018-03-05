@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -593,13 +593,20 @@ result.ReadOutside().Any(Function(s) s Is local) Then
                 Return False
             End If
 
-            If Not container.TypeSwitch(Function(m As MethodBlockBaseSyntax) m.EndBlockStatement.EndKeyword = nextToken,
-                                        Function(m As MultiLineLambdaExpressionSyntax) m.EndSubOrFunctionStatement.EndKeyword = nextToken) Then
+            Dim match = (TryCast(container, MethodBlockBaseSyntax)?.EndBlockStatement.EndKeyword = nextToken).GetValueOrDefault() OrElse
+                        (TryCast(container, MultiLineLambdaExpressionSyntax)?.EndSubOrFunctionStatement.EndKeyword = nextToken).GetValueOrDefault()
+
+            If Not match Then
                 Return False
             End If
 
-            Return container.TypeSwitch(Function(m As MethodBlockBaseSyntax) m.BlockStatement.Kind = SyntaxKind.SubStatement,
-                                        Function(m As MultiLineLambdaExpressionSyntax) m.SubOrFunctionHeader.Kind = SyntaxKind.SubLambdaHeader)
+            If TryCast(container, MethodBlockBaseSyntax)?.BlockStatement.Kind = SyntaxKind.SubStatement Then
+                Return True
+            ElseIf TryCast(container, MultiLineLambdaExpressionSyntax)?.SubOrFunctionHeader.Kind = SyntaxKind.SubLambdaHeader Then
+                Return True
+            Else
+                Return False
+            End If
         End Function
 
         Private Shared Function GetAdjustedSpan(root As SyntaxNode, textSpan As TextSpan) As TextSpan

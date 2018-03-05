@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 .Add(typeof(CSharp.CodeLens.CSharpCodeLensDisplayInfoService).Assembly)
                 .Add(typeof(VisualBasic.CodeLens.VisualBasicDisplayInfoService).Assembly));
 
-        private readonly int _sessionId;
+        private readonly int _scopeId;
 
-        public RoslynServices(int sessionId, AssetStorage storage)
+        public RoslynServices(int scopeId, AssetStorage storage)
         {
-            _sessionId = sessionId;
+            _scopeId = scopeId;
 
-            AssetService = new AssetService(_sessionId, storage);
+            AssetService = new AssetService(_scopeId, storage);
             SolutionService = new SolutionService(AssetService);
             CompilationService = new CompilationService(SolutionService);
         }

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.OLE.Interop
@@ -22,11 +22,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Private ReadOnly _eventSinks As New Dictionary(Of UInteger, IVsHierarchyEvents)
         Private ReadOnly _hierarchyItems As New Dictionary(Of UInteger, String)
 
-        Public Sub New(projectName As String, projectBinPath As String, projectCapabilities As String)
+        Public Sub New(projectName As String,
+                       projectFilePath As String,
+                       projectBinPath As String,
+                       projectCapabilities As String)
             _projectName = projectName
             _projectBinPath = projectBinPath
             _projectCapabilities = projectCapabilities
-            _hierarchyItems.Add(CType(VSConstants.VSITEMID.Root, UInteger), projectName)
+            _hierarchyItems.Add(CType(VSConstants.VSITEMID.Root, UInteger), projectFilePath)
         End Sub
 
         Public Sub RenameProject(projectName As String)

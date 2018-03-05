@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute()>  _
     Friend Class BasicVSResources
@@ -137,15 +137,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Enable full solution _analysis.
-        '''</summary>
-        Friend Shared ReadOnly Property Enable_full_solution_analysis() As String
-            Get
-                Return ResourceManager.GetString("Enable_full_solution_analysis", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Enter key behavior:.
         '''</summary>
         Friend Shared ReadOnly Property Enter_key_behavior_colon() As String
@@ -169,6 +160,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Extract_Method() As String
             Get
                 Return ResourceManager.GetString("Extract_Method", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Fade out unused imports.
+        '''</summary>
+        Friend Shared ReadOnly Property Fade_out_unused_imports() As String
+            Get
+                Return ResourceManager.GetString("Fade_out_unused_imports", resourceCulture)
             End Get
         End Property
         
@@ -380,6 +380,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Prefer &apos;Is Nothing&apos; over &apos;Object.ReferenceEquals(..., Nothing)&apos;.
+        '''</summary>
+        Friend Shared ReadOnly Property Prefer_Is_Nothing_over_ReferenceEquals() As String
+            Get
+                Return ResourceManager.GetString("Prefer_Is_Nothing_over_ReferenceEquals", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Prefer &apos;Me.&apos;.
         '''</summary>
         Friend Shared ReadOnly Property Prefer_Me() As String
@@ -439,6 +448,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Regular() As String
             Get
                 Return ResourceManager.GetString("Regular", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Report invalid placeholders in &apos;String.Format&apos; calls.
+        '''</summary>
+        Friend Shared ReadOnly Property Report_invalid_placeholders_in_string_dot_format_calls() As String
+            Get
+                Return ResourceManager.GetString("Report_invalid_placeholders_in_string_dot_format_calls", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Separate import directive groups.
+        '''</summary>
+        Friend Shared ReadOnly Property Separate_import_directive_groups() As String
+            Get
+                Return ResourceManager.GetString("Separate_import_directive_groups", resourceCulture)
             End Get
         End Property
         

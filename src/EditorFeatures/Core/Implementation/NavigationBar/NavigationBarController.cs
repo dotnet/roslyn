@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _modelTask = Task.FromResult(
                 new NavigationBarModel(
                     SpecializedCollections.EmptyList<NavigationBarItem>(),
-                    default(VersionStamp),
+                    default,
                     null));
 
             _selectedItemInfoTask = Task.FromResult(new NavigationBarSelectedTypeAndMember(null, null));
@@ -236,9 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 _selectedItemInfoTask.Wait(cancellationToken);
             }
 
-            IList<NavigationBarProjectItem> projectItems;
-            NavigationBarProjectItem selectedProjectItem;
-            GetProjectItems(out projectItems, out selectedProjectItem);
+            GetProjectItems(out var projectItems, out var selectedProjectItem);
 
             _presenter.PresentItems(
                 projectItems,
@@ -328,9 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 listOfLeft.Add(newLeft);
             }
 
-            IList<NavigationBarProjectItem> projectItems;
-            NavigationBarProjectItem selectedProjectItem;
-            GetProjectItems(out projectItems, out selectedProjectItem);
+            GetProjectItems(out var projectItems, out var selectedProjectItem);
 
             _presenter.PresentItems(
                 projectItems,
@@ -361,8 +357,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             AssertIsForeground();
 
-            var presentedItem = item as NavigationBarPresentedItem;
-            if (presentedItem != null)
+            if (item is NavigationBarPresentedItem presentedItem)
             {
                 // Presented items are not navigable, but they may be selected due to a race
                 // documented in Bug #1174848. Protect all INavigationBarItemService implementers
@@ -370,8 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 return;
             }
 
-            var projectItem = item as NavigationBarProjectItem;
-            if (projectItem != null)
+            if (item is NavigationBarProjectItem projectItem)
             {
                 projectItem.SwitchToContext();
 

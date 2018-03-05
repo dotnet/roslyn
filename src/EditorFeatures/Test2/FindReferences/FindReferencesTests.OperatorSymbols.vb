@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -30,7 +30,7 @@ End Module
         <Document>
 class A
 {
-    void Foo()
+    void Goo()
     {
         A a;
         var x = $$[|-|]a;
@@ -51,7 +51,7 @@ class A
         <Document>
 class A
 {
-    void Foo()
+    void Goo()
     {
         A a;
         var x = [|-|]a;
@@ -72,7 +72,7 @@ class A
         <Document>
 class A
 {
-    void Foo()
+    void Goo()
     {
         var x = new A() [|$$+|] new A();
     }
@@ -92,7 +92,7 @@ class A
         <Document>
 class A
 {
-    void Foo()
+    void Goo()
     {
         var x = new A() [|+|] new A();
     }
@@ -115,7 +115,7 @@ Class A
         Return x
     End Operator
 
-    Sub Foo()
+    Sub Goo()
         Dim a As A
         Dim b = $$[|-|]a
     End Sub
@@ -137,7 +137,7 @@ Class A
         Return x
     End Operator
 
-    Sub Foo()
+    Sub Goo()
         Dim a As A
         Dim b = [|-|]a
     End Sub
@@ -159,7 +159,7 @@ Class A
         Return y
     End Operator
 
-    Sub Foo()
+    Sub Goo()
         Dim a = New A [|^$$|] New A
     End Sub
 End Class
@@ -180,7 +180,7 @@ Class A
         Return y
     End Operator
 
-    Sub Foo()
+    Sub Goo()
         Dim a = New A [|^|] New A
     End Sub
 End Class

@@ -1253,13 +1253,13 @@ Public Class MyClass1
     End Property
     Public Shared Sub Main()
     End Sub
-    Public Sub Foo()
+    Public Sub Goo()
         For i As Integer = P1(30 + i) To 30
         Next
     End Sub
 End Class
     </file>
-</compilation>, expectedOutput:="").VerifyIL("MyClass1.Foo", <![CDATA[
+</compilation>, expectedOutput:="").VerifyIL("MyClass1.Goo", <![CDATA[
 {
   // Code size       24 (0x18)
   .maxstack  3
@@ -1334,17 +1334,17 @@ Public Class MyClass1
     Public y As Integer
     Public Shared Sub Main()
     End Sub
-    Function Foo()
+    Function Goo()
         For Me.y = 1 To 10
         Next
     End Function
 End Class
     </file>
-</compilation>, expectedOutput:="").VerifyIL("MyClass1.Foo", <![CDATA[
+</compilation>, expectedOutput:="").VerifyIL("MyClass1.Goo", <![CDATA[
 {
   // Code size       33 (0x21)
   .maxstack  3
-  .locals init (Object V_0) //Foo
+  .locals init (Object V_0) //Goo
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.1
   IL_0002:  stfld      "MyClass1.y As Integer"
@@ -1379,24 +1379,24 @@ Public Class MyClass1
     Const global_y As Long = 20
     Public Shared Sub Main()
     End Sub
-    Function foo(ByRef x As Integer) As Integer
+    Function goo(ByRef x As Integer) As Integer
         x = x + 10
         Return x + 10
     End Function
-    sub Foo1()
-        For global_y As Integer = foo(global_y) To 30
+    sub Goo1()
+        For global_y As Integer = goo(global_y) To 30
         Next
     End sub
 End Class
     </file>
-</compilation>, expectedOutput:="").VerifyIL("MyClass1.Foo1", <![CDATA[
+</compilation>, expectedOutput:="").VerifyIL("MyClass1.Goo1", <![CDATA[
 {
   // Code size       21 (0x15)
   .maxstack  2
   .locals init (Integer V_0) //global_y
   IL_0000:  ldarg.0
   IL_0001:  ldloca.s   V_0
-  IL_0003:  call       "Function MyClass1.foo(ByRef Integer) As Integer"
+  IL_0003:  call       "Function MyClass1.goo(ByRef Integer) As Integer"
   IL_0008:  stloc.0
   IL_0009:  br.s       IL_000f
   IL_000b:  ldloc.0
@@ -1871,12 +1871,12 @@ Module Program
     End Enum
 
     Sub main()
-        For i As e1 = e1.a To e1.c Step foo()
+        For i As e1 = e1.a To e1.c Step goo()
             Console.WriteLine(i)
         Next
     End Sub
 
-    Function foo() As e1
+    Function goo() As e1
         Return 1
     End Function
 End Module
@@ -1893,7 +1893,7 @@ End Module
   .maxstack  3
   .locals init (Program.e1 V_0,
   Program.e1 V_1) //i
-  IL_0000:  call       "Function Program.foo() As Program.e1"
+  IL_0000:  call       "Function Program.goo() As Program.e1"
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
@@ -1936,12 +1936,12 @@ Module Program
     End Enum
 
     Sub main()
-        For i As e1 = e1.a To e1.c Step foo()
+        For i As e1 = e1.a To e1.c Step goo()
             Console.WriteLine(i)
         Next
     End Sub
 
-    Function foo() As e1
+    Function goo() As e1
         Return 1
     End Function
 End Module
@@ -1958,7 +1958,7 @@ End Module
   .maxstack  2
   .locals init (Program.e1 V_0,
   Program.e1 V_1) //i
-  IL_0000:  call       "Function Program.foo() As Program.e1"
+  IL_0000:  call       "Function Program.goo() As Program.e1"
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1

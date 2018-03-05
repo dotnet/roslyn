@@ -154,13 +154,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Called when visiting a <see cref="DiscardedSymbol" />; Override this with specific
+        /// Called when visiting a <see cref="DiscardSymbol" />; Override this with specific
         /// implementation; Calling <see cref="DefaultVisit" /> if it's not overridden 
         /// </summary>
         /// <param name="symbol">The visited symbol</param>
         /// <param name="argument">Additional argument</param>
         /// <returns></returns>
-        public virtual TResult VisitDiscarded(DiscardedSymbol symbol, TArgument argument)
+        public virtual TResult VisitDiscard(DiscardSymbol symbol, TArgument argument)
         {
             return DefaultVisit(symbol, argument);
         }

@@ -1,30 +1,80 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Globalization
-Imports System.Linq
-Imports System.Text
-Imports System.Threading
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Shared.Collections
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
-    Friend Partial Class ImportsOrganizer
+    Partial Friend Class ImportsOrganizer
+        Private Shared ReadOnly s_newLine As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
+
         Public Shared Function Organize([imports] As SyntaxList(Of ImportsStatementSyntax),
-                                        placeSystemNamespaceFirst As Boolean) As SyntaxList(Of ImportsStatementSyntax)
+                                        placeSystemNamespaceFirst As Boolean,
+                                        separateGroups As Boolean) As SyntaxList(Of ImportsStatementSyntax)
+
+            [imports] = OrganizeWorker([imports], placeSystemNamespaceFirst)
+
+            If separateGroups Then
+                For i = 1 To [imports].Count - 1
+                    Dim lastImport = [imports](i - 1)
+                    Dim currentImport = [imports](i)
+
+                    If NeedsGrouping(lastImport, currentImport) AndAlso
+                       Not currentImport.GetLeadingTrivia().Any(Function(t) t.IsEndOfLine()) Then
+                        [imports] = [imports].Replace(
+                        currentImport, currentImport.WithPrependedLeadingTrivia(s_newLine))
+                    End If
+                Next
+            End If
+
+            Return [imports]
+        End Function
+
+        Private Shared Function NeedsGrouping(import1 As ImportsStatementSyntax,
+                                              import2 As ImportsStatementSyntax) As Boolean
+            If import1.ImportsClauses.Count = 0 OrElse import2.ImportsClauses.Count = 0 Then
+                Return False
+            End If
+
+            Dim importClause1 = import1.ImportsClauses(0)
+            Dim importClause2 = import2.ImportsClauses(0)
+
+            Dim simpleClause1 = TryCast(importClause1, SimpleImportsClauseSyntax)
+            Dim simpleClause2 = TryCast(importClause2, SimpleImportsClauseSyntax)
+
+            If simpleClause1 Is Nothing AndAlso simpleClause2 Is Nothing Then
+                Return False
+            End If
+
+            If simpleClause1 IsNot Nothing AndAlso simpleClause2 IsNot Nothing Then
+                Dim isAlias1 = simpleClause1.Alias IsNot Nothing
+                Dim isAlias2 = simpleClause2.Alias IsNot Nothing
+
+                If isAlias1 AndAlso isAlias2 Then
+                    Return False
+                End If
+
+                If Not isAlias1 AndAlso Not isAlias2 Then
+                    ' named imports
+                    Dim name1 = simpleClause1.Name.GetFirstToken().ValueText
+                    Dim name2 = simpleClause2.Name.GetFirstToken().ValueText
+
+                    Return Not VisualBasicSyntaxFactsService.Instance.StringComparer.Equals(name1, name2)
+                End If
+            End If
+
+            ' Different kinds of imports.  Definitely place into separate groups.
+            Return True
+        End Function
+
+        Public Shared Function OrganizeWorker([imports] As SyntaxList(Of ImportsStatementSyntax),
+                                              placeSystemNamespaceFirst As Boolean) As SyntaxList(Of ImportsStatementSyntax)
             If [imports].Count > 1 Then
                 Dim initialList = New List(Of ImportsStatementSyntax)([imports])
                 If Not [imports].SpansPreprocessorDirective() Then
                     ' If there is a banner comment that precedes the nodes,
                     ' then remove it and store it for later.
-                    Dim leadingTrivia As IEnumerable(Of SyntaxTrivia) = Nothing
+                    Dim leadingTrivia As ImmutableArray(Of SyntaxTrivia) = Nothing
                     initialList(0) = initialList(0).GetNodeWithoutLeadingBannerAndPreprocessorDirectives(leadingTrivia)
 
                     Dim comparer = If(placeSystemNamespaceFirst, ImportsStatementComparer.SystemFirstInstance, ImportsStatementComparer.NormalInstance)
@@ -50,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
         Private Shared Sub EnsureNewLines(list As List(Of ImportsStatementSyntax))
             Dim endOfLine = GetExistingEndOfLineTrivia(list)
-            endOfLine = If(endOfLine.Kind = SyntaxKind.None, SyntaxFactory.CarriageReturnLineFeed, endOfLine)
+            endOfLine = If(endOfLine.Kind = SyntaxKind.None, s_newLine, endOfLine)
 
             For i = 0 To list.Count - 1
                 If Not list(i).GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia) Then

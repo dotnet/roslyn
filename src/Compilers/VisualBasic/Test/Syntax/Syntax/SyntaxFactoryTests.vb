@@ -22,6 +22,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         <Fact>
+        Public Sub TestSpacingOnNullableDatetimeType()
+            Dim node =
+                SyntaxFactory.CompilationUnit().WithMembers(
+                    SyntaxFactory.List(Of Syntax.StatementSyntax)(
+                    {
+                        SyntaxFactory.ClassBlock(SyntaxFactory.ClassStatement("C")).WithMembers(
+                            SyntaxFactory.List(Of Syntax.StatementSyntax)(
+                            {
+                                SyntaxFactory.PropertyStatement("P").WithAsClause(
+                                    SyntaxFactory.SimpleAsClause(
+                                        SyntaxFactory.NullableType(
+                                            SyntaxFactory.PredefinedType(
+                                                SyntaxFactory.Token(SyntaxKind.IntegerKeyword)))))
+                            }))
+                    })).NormalizeWhitespace()
+
+            Dim expected = "Class C" & vbCrLf & vbCrLf & "    Property P As Integer?" & vbCrLf & "End Class" & vbCrLf
+            Assert.Equal(expected, node.ToFullString())
+        End Sub
+
+        <Fact>
         <WorkItem(720708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720708")>
         Public Sub TestLiteralDefaultStringValues()
 

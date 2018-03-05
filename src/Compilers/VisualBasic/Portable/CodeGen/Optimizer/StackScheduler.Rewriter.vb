@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -181,7 +182,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 ' indirect local store is not special. (operands still could be rewritten) 
                 ' NOTE: if Lhs is a stack local, it will be handled as a read and possibly duped.
-                If Analyzer.IsIndirectAssignment(node) Then
+                Dim isIndirectLocalStore = left.LocalSymbol.IsByRef
+                If isIndirectLocalStore Then
                     Return VisitAssignmentOperatorDefault(node)
                 End If
 

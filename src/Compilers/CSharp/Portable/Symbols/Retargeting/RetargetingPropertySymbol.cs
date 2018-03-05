@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         //we want to compute this lazily since it may be expensive for the underlying symbol
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private ImmutableArray<CustomModifier> _lazyTypeCustomModifiers;
+        private CustomModifiersTuple _lazyCustomModifiers;
 
         /// <summary>
         /// Retargeted custom attributes
@@ -77,9 +78,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
+                return CustomModifiersTuple.TypeCustomModifiers;
+            }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                return CustomModifiersTuple.RefCustomModifiers;
+            }
+        }
+
+        private CustomModifiersTuple CustomModifiersTuple
+        {
+            get
+            {
                 return RetargetingTranslator.RetargetModifiers(
-                    _underlyingProperty.TypeCustomModifiers,
-                    ref _lazyTypeCustomModifiers);
+                    _underlyingProperty.TypeCustomModifiers, _underlyingProperty.RefCustomModifiers,
+                    ref _lazyCustomModifiers);
             }
         }
 
@@ -216,9 +233,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.GetRetargetedAttributes(_underlyingProperty.GetAttributes(), ref _lazyCustomAttributes);
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            return this.RetargetingTranslator.RetargetAttributes(_underlyingProperty.GetCustomAttributesToEmit(compilationState));
+            return this.RetargetingTranslator.RetargetAttributes(_underlyingProperty.GetCustomAttributesToEmit(moduleBuilder));
         }
 
         internal override bool MustCallMethodsDirectly

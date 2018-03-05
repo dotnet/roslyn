@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.InternalUtilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer

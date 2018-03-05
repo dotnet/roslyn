@@ -99,7 +99,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var parentRuntimeType = parent.Value.Type;
                 if (!parent.DeclaredTypeAndInfo.Type.Equals(parentRuntimeType.GetLmrType()))
                 {
-                    parentFullName = fullNameProvider.GetClrCastExpression(inspectionContext, parentFullName, parentRuntimeType, customTypeInfo: null, parenthesizeArgument: false, parenthesizeEntireExpression: true);
+                    parentFullName = fullNameProvider.GetClrCastExpression(
+                        inspectionContext,
+                        parentFullName,
+                        parentRuntimeType,
+                        customTypeInfo: null,
+                        castExpressionOptions: DkmClrCastExpressionOptions.ParenthesizeEntireExpression);
                 }
             }
 
@@ -192,11 +197,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 fullNameProvider.GetClrMemberName(
                     inspectionContext,
                     parentFullName,
-                    declaringType: field.DeclaringTypeAndInfo.ClrType,
-                    declaringTypeInfo: null,
+                    clrType: field.DeclaringTypeAndInfo.ClrType,
+                    customTypeInfo: null,
                     memberName: fieldName,
-                    memberAccessRequiresExplicitCast: false,
-                    memberIsStatic: false);
+                    requiresExplicitCast: false,
+                    isStatic: false);
             return value.GetFieldValue(fieldName, inspectionContext);
         }
 

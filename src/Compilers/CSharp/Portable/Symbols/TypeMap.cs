@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -194,20 +195,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mapping;
         }
 
-        public ImmutableArray<ImmutableArray<CustomModifier>> GetTypeArgumentsCustomModifiersFor(NamedTypeSymbol originalDefinition)
+        public ImmutableArray<CustomModifier> GetTypeArgumentsCustomModifiersFor(TypeParameterSymbol originalDefinition)
         {
             Debug.Assert((object)originalDefinition != null);
             Debug.Assert(originalDefinition.IsDefinition);
-            Debug.Assert(originalDefinition.Arity > 0);
-
-            var result = ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(originalDefinition.Arity);
-
-            foreach (TypeParameterSymbol tp in originalDefinition.TypeArguments)
-            {
-                result.Add(SubstituteTypeParameter(tp).CustomModifiers);
-            }
-
-            return result.ToImmutableAndFree();
+            return SubstituteTypeParameter(originalDefinition).CustomModifiers;
         }
     }
 }

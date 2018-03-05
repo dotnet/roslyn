@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -189,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If instrument Then
                 ' first sequence point to highlight the for statement
-                rewrittenInitializer = _instrumenter.InstrumentForLoopInitialization(forStatement, rewrittenInitializer)
+                rewrittenInitializer = _instrumenterOpt.InstrumentForLoopInitialization(forStatement, rewrittenInitializer)
             End If
 
             Dim rewrittenBody = DirectCast(Visit(forStatement.Body), BoundStatement)
@@ -205,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If instrument Then
-                rewrittenIncrement = _instrumenter.InstrumentForLoopIncrement(forStatement, rewrittenIncrement)
+                rewrittenIncrement = _instrumenterOpt.InstrumentForLoopIncrement(forStatement, rewrittenIncrement)
             End If
 
             Dim rewrittenCondition = RewriteForLoopCondition(rewrittenControlVariable, rewrittenLimit, rewrittenStep,
@@ -444,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     suppressObjectClone:=True)
             Else
                 rewrittenInitCondition = New BoundBadExpression(rewrittenLimit.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty,
-                                                                StaticCast(Of BoundNode).From(arguments), Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
+                                                                arguments, Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
             End If
 
             ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
@@ -453,7 +454,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim instrument = Me.Instrument(forStatement)
 
             If instrument Then
-                rewrittenInitCondition = _instrumenter.InstrumentObjectForLoopInitCondition(forStatement, rewrittenInitCondition, _currentMethodOrLambda)
+                rewrittenInitCondition = _instrumenterOpt.InstrumentObjectForLoopInitCondition(forStatement, rewrittenInitCondition, _currentMethodOrLambda)
             End If
 
             Dim ifNotInitObjExit As BoundStatement = New BoundConditionalGoto(
@@ -468,7 +469,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If instrument Then
                 ' first sequence point to highlight the for statement
-                ifNotInitObjExit = _instrumenter.InstrumentForLoopInitialization(forStatement, ifNotInitObjExit)
+                ifNotInitObjExit = _instrumenterOpt.InstrumentForLoopInitialization(forStatement, ifNotInitObjExit)
             End If
 
             '### body
@@ -499,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     suppressObjectClone:=True)
             Else
                 rewrittenLoopCondition = New BoundBadExpression(rewrittenLimit.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty,
-                                                                StaticCast(Of BoundNode).From(arguments), Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
+                                                                arguments, Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
             End If
 
             Dim startLabel = GenerateLabel("start")
@@ -508,7 +509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' the containing method is edited while the invoked function is being executed.
             Debug.Assert(rewrittenLoopCondition IsNot Nothing)
             If instrument Then
-                rewrittenLoopCondition = _instrumenter.InstrumentObjectForLoopCondition(forStatement, rewrittenLoopCondition, _currentMethodOrLambda)
+                rewrittenLoopCondition = _instrumenterOpt.InstrumentObjectForLoopCondition(forStatement, rewrittenLoopCondition, _currentMethodOrLambda)
             End If
 
             Dim ifConditionGotoStart As BoundStatement = New BoundConditionalGoto(
@@ -522,7 +523,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If instrument Then
-                ifConditionGotoStart = _instrumenter.InstrumentForLoopIncrement(forStatement, ifConditionGotoStart)
+                ifConditionGotoStart = _instrumenterOpt.InstrumentForLoopIncrement(forStatement, ifConditionGotoStart)
             End If
 
             Dim label As BoundStatement = New BoundLabelStatement(blockSyntax, forStatement.ContinueLabel)

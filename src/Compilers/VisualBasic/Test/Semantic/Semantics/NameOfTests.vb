@@ -3544,5 +3544,51 @@ TP
 ]]>).VerifyDiagnostics()
         End Sub
 
+        <Fact, WorkItem(10839, "https://github.com/dotnet/roslyn/issues/10839")>
+        Public Sub NameOfByRefInLambda()
+            Dim compilationDef =
+                <compilation>
+                    <file name="a.vb">
+Module Program
+    Sub DoSomething(ByRef x As Integer)
+        Dim f = Function()
+                    Return NameOf(x)
+                End Function
+        System.Console.WriteLine(f())
+    End Sub
+    Sub Main()
+        Dim x =  5
+        DoSomething(x)
+    End Sub
+End Module
+                </file>
+                </compilation>
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            CompileAndVerify(comp, expectedOutput:="x").VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem(10839, "https://github.com/dotnet/roslyn/issues/10839")>
+        Public Sub NameOfByRefInQuery()
+            Dim compilationDef =
+                <compilation>
+                    <file name="a.vb">
+Imports System.Linq
+
+Module Program
+    Sub DoSomething(ByRef x As Integer)
+        Dim f = from y in {1, 2, 3}
+                select nameof(x)
+        System.Console.WriteLine(f.Aggregate("", Function(a, b) a + b))
+    End Sub
+    Sub Main()
+        Dim x =  5
+        DoSomething(x)
+    End Sub
+End Module
+                </file>
+                </compilation>
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.DebugExe, additionalRefs:={LinqAssemblyRef})
+            CompileAndVerify(comp, expectedOutput:="xxx").VerifyDiagnostics()
+        End Sub
     End Class
 End Namespace

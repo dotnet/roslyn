@@ -128,14 +128,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             cancellationToken.ThrowIfCancellationRequested();
 
             // Read the full request
-            var responseBuffer = new byte[length];
-            await ReadAllAsync(inStream, responseBuffer, length, cancellationToken).ConfigureAwait(false);
+            var requestBuffer = new byte[length];
+            await ReadAllAsync(inStream, requestBuffer, length, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             Log("Parsing request");
             // Parse the request into the Request data structure.
-            using (var reader = new BinaryReader(new MemoryStream(responseBuffer), Encoding.Unicode))
+            using (var reader = new BinaryReader(new MemoryStream(requestBuffer), Encoding.Unicode))
             {
                 var protocolVersion = reader.ReadUInt32();
                 var language = (RequestLanguage)reader.ReadUInt32();

@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             registrationService.Register(this);
         }
 
-        public override Workspace Workspace
+        public override Microsoft.CodeAnalysis.Workspace Workspace
         {
             get
             {
@@ -110,8 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var raiseEvent = false;
             lock (_gate)
             {
-                HashSet<object> projectDiagnosticKeys;
-                if (_diagnosticMap.TryGetValue(projectId, out projectDiagnosticKeys))
+                if (_diagnosticMap.TryGetValue(projectId, out var projectDiagnosticKeys))
                 {
                     raiseEvent = projectDiagnosticKeys.Remove(key);
                 }

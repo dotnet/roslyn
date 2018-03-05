@@ -24,14 +24,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         [Fact]
         public void GetBufferTextFromTextContainerDoesNotThrow()
         {
-            var textSnapshotMock = new Mock<VisualStudio.Text.ITextSnapshot>();
+            var textImageMock = new Mock<VisualStudio.Text.ITextImage>();
+            var textSnapshotMock = new Mock<VisualStudio.Text.ITextSnapshot2>();
             var bufferMock = new Mock<VisualStudio.Text.ITextBuffer>();
+
+            textSnapshotMock.Setup(s => s.TextImage).Returns(textImageMock.Object);
             bufferMock.SetupGet(x => x.CurrentSnapshot).Returns(textSnapshotMock.Object);
             bufferMock.SetupGet(x => x.Properties).Returns(new VisualStudio.Utilities.PropertyCollection());
 
-            var textContainer = Microsoft.CodeAnalysis.Text.Extensions.TextBufferContainer.From(bufferMock.Object);
+            var textContainer = Text.Extensions.TextBufferContainer.From(bufferMock.Object);
 
-            Microsoft.CodeAnalysis.Text.Extensions.GetTextBuffer(textContainer);
+            Text.Extensions.GetTextBuffer(textContainer);
         }
     }
 }

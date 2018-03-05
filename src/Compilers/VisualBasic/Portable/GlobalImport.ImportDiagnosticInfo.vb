@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class ImportDiagnosticInfo
             Inherits DiagnosticInfo
 
+            Shared Sub New()
+                ObjectBinder.RegisterTypeReader(GetType(ImportDiagnosticInfo), Function(r) New ImportDiagnosticInfo(r))
+            End Sub
+
             Private ReadOnly _importText As String
             Private ReadOnly _startIndex As Integer
             Private ReadOnly _length As Integer
@@ -23,10 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._length = reader.ReadInt32()
                 Me._wrappedDiagnostic = DirectCast(reader.ReadValue(), DiagnosticInfo)
             End Sub
-
-            Protected Overrides Function GetReader() As Func(Of ObjectReader, Object)
-                Return Function(r) New ImportDiagnosticInfo(r)
-            End Function
 
             Protected Overrides Sub WriteTo(writer As ObjectWriter)
                 MyBase.WriteTo(writer)

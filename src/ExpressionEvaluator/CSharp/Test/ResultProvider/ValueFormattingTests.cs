@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Globalization;
@@ -213,9 +213,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             Assert.Equal("\"\\uffff\"", FormatValue(s));
             Assert.Equal("\"\\uffff\"", FormatValue(s, useHexadecimal: true));
 
-            string multiByte = "\ud83c\udfc8";
+            string multiByte = "\ud83c\udfc8"; // unicode surrogates properly paired representing a printable Unicode codepoint
             Assert.Equal(string.Format(format, "🏈"), FormatValue(multiByte));
             Assert.Equal(string.Format(format, "🏈"), FormatValue(multiByte, useHexadecimal: true));
+            Assert.Equal(multiByte, "🏈");
+
+            multiByte = "\udbff\udfff"; // unicode surrogates representing an unprintable Unicode codepoint
+            Assert.Equal(string.Format(format, "\\U0010ffff"), FormatValue(multiByte));
+            Assert.Equal(string.Format(format, "\\U0010ffff"), FormatValue(multiByte, useHexadecimal: true));
+
+            multiByte = "\udfc8\ud83c"; // unicode surrogates not properly paired (in the wrong order in this case)
+            Assert.Equal(string.Format(format, "\\udfc8\\ud83c"), FormatValue(multiByte));
+            Assert.Equal(string.Format(format, "\\udfc8\\ud83c"), FormatValue(multiByte, useHexadecimal: true));
         }
 
         private static string FormatStringChar(char c)

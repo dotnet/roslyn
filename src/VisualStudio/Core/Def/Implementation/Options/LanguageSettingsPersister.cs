@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             CompletionOptions.TriggerOnTyping,
             SignatureHelpOptions.ShowSignatureHelp,
             NavigationBarOptions.ShowNavigationBar,
-            BraceCompletionOptions.EnableBraceCompletion,
+            BraceCompletionOptions.Enable,
         };
 
         int IVsTextManagerEvents4.OnUserPreferencesChanged4(
@@ -105,9 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private void RefreshLanguageSettings(LANGPREFERENCES3[] langPrefs)
         {
             this.AssertIsForeground();
-
-            string languageName;
-            if (_languageMap.TryGetKey(Tuple.Create(langPrefs[0].guidLang), out languageName))
+            if (_languageMap.TryGetKey(Tuple.Create(langPrefs[0].guidLang), out var languageName))
             {
                 foreach (var option in _supportedOptions)
                 {
@@ -161,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 return languagePreference.fDropdownBar != 0;
             }
-            else if (option == BraceCompletionOptions.EnableBraceCompletion)
+            else if (option == BraceCompletionOptions.Enable)
             {
                 return languagePreference.fBraceCompletion != 0;
             }
@@ -216,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 languagePreference.fDropdownBar = Convert.ToUInt32((bool)value ? 1 : 0);
             }
-            else if (option == BraceCompletionOptions.EnableBraceCompletion)
+            else if (option == BraceCompletionOptions.Enable)
             {
                 languagePreference.fBraceCompletion = Convert.ToUInt32((bool)value ? 1 : 0);
             }
@@ -245,9 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return false;
             }
 
-            Tuple<Guid> languageServiceGuid;
-
-            if (!_languageMap.TryGetValue(optionKey.Language, out languageServiceGuid))
+            if (!_languageMap.TryGetValue(optionKey.Language, out var languageServiceGuid))
             {
                 value = null;
                 return false;

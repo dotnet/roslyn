@@ -100,6 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                 }
 
+                if (symbol.IsTupleType && symbol.TupleUnderlyingType != null && !symbol.Equals(symbol.TupleUnderlyingType))
+                {
+                    return CreateSimpleTypeSyntax(symbol.TupleUnderlyingType);
+                }
+
                 if (symbol.Name == string.Empty || symbol.IsAnonymousType)
                 {
                     return CreateSystemObject();
@@ -145,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
                 }
 
-                if (symbol.IsTupleType)
+                if (symbol.IsTupleType && symbol.TupleElements.Length >= 2)
                 {
                     return CreateTupleTypeSyntax(symbol);
                 }
@@ -167,14 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private TupleTypeSyntax CreateTupleTypeSyntax(INamedTypeSymbol symbol)
             {
                 var list = new SeparatedSyntaxList<TupleElementSyntax>();
-                var types = symbol.TupleElementTypes;
-                var names = symbol.TupleElementNames;
-                bool hasNames = !names.IsDefault;
 
-                for (int i = 0; i < types.Length; i++)
-                {
-                    var name = (hasNames && names[i] != null) ? SyntaxFactory.IdentifierName(names[i]) : null;
-                    list = list.Add(SyntaxFactory.TupleElement(types[i].GenerateTypeSyntax(), name));
+                foreach (var element in symbol.TupleElements)
+                {   
+                    var name = element.IsImplicitlyDeclared ? default : SyntaxFactory.Identifier(element.Name);
+                    list = list.Add(SyntaxFactory.TupleElement(element.Type.GenerateTypeSyntax(), name));
                 }
 
                 return AddInformationTo(SyntaxFactory.TupleType(list), symbol);
@@ -198,10 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     else
                     {
                         var containingTypeSyntax = symbol.ContainingType.Accept(this);
-                        if (containingTypeSyntax is NameSyntax)
+                        if (containingTypeSyntax is NameSyntax name)
                         {
                             return AddInformationTo(
-                                SyntaxFactory.QualifiedName((NameSyntax)containingTypeSyntax, simpleNameSyntax),
+                                SyntaxFactory.QualifiedName(name, simpleNameSyntax),
                                 symbol);
                         }
                         else

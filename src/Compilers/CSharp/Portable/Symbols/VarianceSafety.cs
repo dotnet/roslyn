@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             IsVarianceUnsafe(
                 method.ReturnType,
                 requireOutputSafety: true,
-                requireInputSafety: false,
+                requireInputSafety: method.RefKind != RefKind.None,
                 context: method,
                 locationProvider: returnTypeLocationProvider,
                 locationArg: method,
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 IsVarianceUnsafe(
                     property.Type,
                     requireOutputSafety: hasGetter,
-                    requireInputSafety: hasSetter,
+                    requireInputSafety: hasSetter || !(property.GetMethod?.RefKind == RefKind.None),
                     context: property,
                     locationProvider: p =>
                         {

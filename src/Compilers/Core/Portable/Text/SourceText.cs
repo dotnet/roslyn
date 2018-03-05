@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -659,7 +660,7 @@ namespace Microsoft.CodeAnalysis.Text
                 changeRanges.Add(new TextChangeRange(change.Span, newTextLength));
             }
 
-            // no changes actually happend?
+            // no changes actually happened?
             if (position == 0 && segments.Count == 0)
             {
                 changeRanges.Free();

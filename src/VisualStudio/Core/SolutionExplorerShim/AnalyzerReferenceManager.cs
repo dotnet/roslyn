@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -58,13 +58,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             // The items selected in Solution Explorer should correspond to exactly one
             // IVsHierarchy, otherwise we shouldn't have even tried to show the dialog.
             Debug.Assert(_tracker.SelectedHierarchy != null);
-
-            EnvDTE.Project project = null;
-            if (_tracker.SelectedHierarchy.TryGetProject(out project))
+            if (_tracker.SelectedHierarchy.TryGetProject(out var project))
             {
-                var vsproject = project.Object as VSProject3;
 
-                if (vsproject != null)
+                if (project.Object is VSProject3 vsproject)
                 {
                     foreach (IVsReference reference in changedContext.References)
                     {

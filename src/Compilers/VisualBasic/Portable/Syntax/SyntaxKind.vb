@@ -3193,6 +3193,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Represents an element of a tuple type supplying element name and optionally a type.
         ''' </summary>
         NamedTupleElement = 791
-    End Enum
 
+        ''' <summary>
+        ''' Trivia created when merge conflict markers (like "&lt;&lt;&lt;&lt;&lt;&lt;&lt;") are detected in source code
+        ''' </summary>
+        ConflictMarkerTrivia = 792
+
+    End Enum
 End Namespace

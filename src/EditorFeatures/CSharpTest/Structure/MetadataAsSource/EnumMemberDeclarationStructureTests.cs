@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
             const string code = @"
 enum E
 {
-    $$Foo,
+    $$Goo,
     Bar
 }";
 
@@ -35,7 +35,7 @@ enum E
 enum E
 {
     {|hint:{|textspan:[Blah]
-    |}$$Foo|},
+    |}$$Goo|},
     Bar
 }";
 
@@ -52,7 +52,7 @@ enum E
     {|hint:{|textspan:// Summary:
     //     This is a summary.
     [Blah]
-    |}$$Foo|},
+    |}$$Goo|},
     Bar
 }";
 

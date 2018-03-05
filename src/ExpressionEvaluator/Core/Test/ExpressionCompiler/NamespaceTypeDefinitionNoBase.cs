@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         ISpecializedNestedTypeReference ITypeReference.AsSpecializedNestedTypeReference => UnderlyingType.AsSpecializedNestedTypeReference;
 
-        IEnumerable<IEventDefinition> ITypeDefinition.Events => UnderlyingType.Events;
+        IEnumerable<IEventDefinition> ITypeDefinition.GetEvents(EmitContext context) => UnderlyingType.GetEvents(context);
 
         ushort INamedTypeReference.GenericParameterCount => 0;
 
@@ -113,6 +113,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         IEnumerable<TypeReferenceWithAttributes> ITypeDefinition.Interfaces(EmitContext context) => UnderlyingType.Interfaces(context);
 
-        Cci.PrimitiveTypeCode ITypeReference.TypeCode(EmitContext context) => UnderlyingType.TypeCode(context);
+        Cci.PrimitiveTypeCode ITypeReference.TypeCode => UnderlyingType.TypeCode;
     }
 }

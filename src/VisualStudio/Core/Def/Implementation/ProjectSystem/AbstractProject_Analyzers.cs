@@ -21,6 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void AddAnalyzerReference(string analyzerAssemblyFullPath)
         {
+            AssertIsForeground();
+
             if (CurrentProjectAnalyzersContains(analyzerAssemblyFullPath))
             {
                 return;
@@ -70,8 +72,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RemoveAnalyzerReference(string analyzerAssemblyFullPath)
         {
-            VisualStudioAnalyzer analyzer;
-            if (!TryGetAnalyzer(analyzerAssemblyFullPath, out analyzer))
+            AssertIsForeground();
+
+            if (!TryGetAnalyzer(analyzerAssemblyFullPath, out var analyzer))
             {
                 return;
             }
@@ -101,6 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void SetRuleSetFile(string ruleSetFileFullPath)
         {
+            AssertIsForeground();
+
             if (ruleSetFileFullPath == null)
             {
                 ruleSetFileFullPath = string.Empty;
@@ -124,6 +129,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void AddAdditionalFile(string additionalFilePath, Func<IVisualStudioHostDocument, bool> getIsInCurrentContext)
         {
+            AssertIsForeground();
+
             var document = this.DocumentProvider.TryGetDocumentForFile(
                 this,
                 filePath: additionalFilePath,
@@ -181,6 +188,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // internal for testing purpose.
         internal void OnRuleSetFileUpdateOnDisk(object sender, EventArgs e)
         {
+            AssertIsForeground();
+
             var filePath = this.RuleSetFile.FilePath;
 
             ResetAnalyzerRuleSet(filePath);

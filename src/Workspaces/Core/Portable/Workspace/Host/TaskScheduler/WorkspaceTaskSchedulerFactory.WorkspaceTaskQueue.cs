@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal partial class WorkspaceTaskSchedulerFactory
     {
-        internal sealed class WorkspaceTaskQueue : IWorkspaceTaskScheduler
+        protected sealed class WorkspaceTaskQueue : IWorkspaceTaskScheduler
         {
             private readonly WorkspaceTaskSchedulerFactory _factory;
             private readonly SimpleTaskQueue _queue;
@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis.Host
                 return ScheduleTask((t, c) => _queue.ScheduleTask(t, c), taskName, taskFunc, cancellationToken);
             }
 
-            public Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
+            public Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default)
             {
                 return ScheduleTask((t, c) => _queue.ScheduleTask(t, c), taskName, taskFunc, cancellationToken);
             }
 
-            public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
+            public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default)
             {
                 return ScheduleTask((t, c) => _queue.ScheduleTask(t, c), taskName, taskFunc, cancellationToken);
             }

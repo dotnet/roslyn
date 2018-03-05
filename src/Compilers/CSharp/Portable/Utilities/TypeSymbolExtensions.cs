@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -64,9 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 if (namedType.HasTypeArgumentsCustomModifiers)
                                 {
-                                    foreach (var modifiers in namedType.TypeArgumentsCustomModifiers)
+                                    for (int i = 0; i < namedType.Arity; i++)
                                     {
-                                        count += modifiers.Length;
+                                        count += namedType.GetTypeArgumentCustomModifiers(i).Length;
                                     }
                                 }
 

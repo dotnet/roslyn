@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -75,7 +76,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var changes = CreateTextChangesWorker(cancellationToken);
 
                 // formatted spans and formatting spans are different, filter returns to formatting span
-                return _formattingSpans == null ? changes : changes.Where(s => _formattingSpans.IntersectsWith(s.Span)).ToList();
+                return _formattingSpans == null 
+                    ? changes
+                    : changes.Where(s => _formattingSpans.HasIntervalThatIntersectsWith(s.Span)).ToList();
             }
         }
 

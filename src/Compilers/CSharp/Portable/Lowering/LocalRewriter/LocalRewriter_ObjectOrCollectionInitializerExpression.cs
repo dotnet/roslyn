@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -238,6 +239,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 memberInit.Expanded,
                                 memberInit.ArgsToParamsOpt,
                                 memberInit.ResultKind,
+                                memberInit.ReceiverType,
+                                memberInit.BinderOpt,
                                 memberInit.Type);
                         }
 
@@ -279,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // Rewrite simple assignment to field/property.
                                 var rewrittenRight = VisitExpression(assignment.Right);
-                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, RefKind.None, assignment.Type, used: false));
+                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, assignment.Type, used: false));
                                 return;
                             }
                         }
@@ -320,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Rewrite simple assignment to field/property.
                             var rewrittenRight = VisitExpression(assignment.Right);
-                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, RefKind.None, assignment.Type, used: false));
+                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, assignment.Type, used: false));
                             return;
                         }
 
@@ -353,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Rewrite as simple assignment.
                             var rewrittenRight = VisitExpression(assignment.Right);
-                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, RefKind.None, assignment.Type, used: false));
+                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, assignment.Type, used: false));
                             return;
                         }
 

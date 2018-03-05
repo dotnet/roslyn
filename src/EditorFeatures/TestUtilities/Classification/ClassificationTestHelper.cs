@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             return "(" + tuple.TextSpan + ", " + tuple.ClassificationType + ")";
         }
 
-        internal static void Verify(
+        internal static void VerifyTextAndClassifications(
             string expectedText,
             IEnumerable<Tuple<string, string>> expectedClassifications,
             string actualText,
@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             }
         }
 
-        internal static void Verify(
+        internal static void VerifyTextAndClassifications(
             string expectedText,
             IEnumerable<Tuple<string, string>> expectedClassifications,
             IList<TaggedText> actualContent)
         {
-            Verify(
+            VerifyTextAndClassifications(
                 expectedText,
                 expectedClassifications,
                 actualText: actualContent.GetFullText(),

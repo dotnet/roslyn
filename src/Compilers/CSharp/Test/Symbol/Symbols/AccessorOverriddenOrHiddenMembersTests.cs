@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -33,7 +33,7 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
 
             var global = compilation.GlobalNamespace;
 
@@ -95,7 +95,7 @@ class Derived2 : Derived1
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
 
             var global = compilation.GlobalNamespace;
 
@@ -150,7 +150,7 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
 
             var global = compilation.GlobalNamespace;
 
@@ -201,14 +201,14 @@ class Derived : Base
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(text1);
+            var comp1 = CreateStandardCompilation(text1);
             var comp1ref = new CSharpCompilationReference(comp1);
             var refs = new System.Collections.Generic.List<MetadataReference>() { comp1ref };
 
-            var comp2 = CreateCompilationWithMscorlib(text2, references: refs, assemblyName: "Test2");
+            var comp2 = CreateStandardCompilation(text2, references: refs, assemblyName: "Test2");
             var comp2ref = new CSharpCompilationReference(comp2);
             refs.Add(comp2ref);
-            var compilation = CreateCompilationWithMscorlib(text3, refs, assemblyName: "Test3");
+            var compilation = CreateStandardCompilation(text3, refs, assemblyName: "Test3");
 
             var global = compilation.GlobalNamespace;
 
@@ -262,7 +262,7 @@ abstract public class TestClass2 : TestClass1
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (8,29): error CS0533: 'TestClass2.P2' hides inherited abstract member 'TestClass1.P2'
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "P2").WithArguments("TestClass2.P2", "TestClass1.P2"));
         }
@@ -291,7 +291,7 @@ public class TestClass3 : TestClass2
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (8,29): error CS0533: 'TestClass2.P2' hides inherited abstract member 'TestClass1.P2'
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "P2").WithArguments("TestClass2.P2", "TestClass1.P2"),
                 // (15,9): error CS0545: 'TestClass3.P2.get': cannot override because 'TestClass2.P2' does not have an overridable get accessor
@@ -420,7 +420,7 @@ class Derived : Base, I
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
 
             compilation.VerifyDiagnostics(
                 // (14,16): error CS0470: Method 'Derived.get_P()' cannot implement interface accessor 'I.P.get' for type 'Derived'. Use an explicit interface implementation.
@@ -473,7 +473,7 @@ class Derived : Base, I
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
 
             compilation.VerifyDiagnostics(
                 // (17,20): error CS0686: Accessor 'Derived.P.get' cannot implement interface member 'I.get_P()' for type 'Derived'. Use an explicit interface implementation.
@@ -516,7 +516,7 @@ class Derived : Base, I //CS0535
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
 
             compilation.VerifyDiagnostics(
                 // (12,7): error CS0535: 'Derived' does not implement interface member 'I.P.set'
@@ -586,7 +586,7 @@ class Derived3 : Derived2, I
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
 
             compilation.VerifyDiagnostics();
 
@@ -642,7 +642,7 @@ interface I4 : I3
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
 
             compilation.VerifyDiagnostics(
                 // (14,9): warning CS0108: 'I3.P' hides inherited member 'I1.P'. Use the new keyword if hiding was intended.
@@ -786,7 +786,7 @@ public class CSIPropImpl : VBIPropImpl, IProp
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
-            var comp = CreateCompilationWithMscorlib(text1, references: refs, assemblyName: "OHI_ExpImpPropGetSetMismatch001",
+            var comp = CreateStandardCompilation(text1, references: refs, assemblyName: "OHI_ExpImpPropGetSetMismatch001",
                             options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
@@ -815,13 +815,13 @@ public class CSIPropImpl : VBIPropImpl, IProp
         [Fact]
         public void AccessorWithImportedGenericType()
         {
-            var comp0 = CreateCompilationWithMscorlib(@"
+            var comp0 = CreateStandardCompilation(@"
 public class MC<T> { }
 public delegate void MD<T>(T t);
 ");
 
             var compref = new CSharpCompilationReference(comp0);
-            var comp1 = CreateCompilationWithMscorlib(@"
+            var comp1 = CreateStandardCompilation(@"
 using System;
 public class G<T>
 {
@@ -833,7 +833,7 @@ public class G<T>
 
             var mtdata = comp1.EmitToArray(options: new EmitOptions(metadataOnly: true));
             var mtref = MetadataReference.CreateFromImage(mtdata);
-            var comp2 = CreateCompilationWithMscorlib(@"", references: new MetadataReference[] { mtref }, assemblyName: "META");
+            var comp2 = CreateStandardCompilation(@"", references: new MetadataReference[] { mtref }, assemblyName: "META");
 
             var tsym = comp2.GetReferencedAssemblySymbol(mtref).GlobalNamespace.GetMember<NamedTypeSymbol>("G");
             Assert.NotNull(tsym);
@@ -931,7 +931,7 @@ class Derived : Base
             const string sourceFromReproSteps = @"
 class A
 {
-    void Foo()
+    void Goo()
     {
         var d = new Disposable();
         d.Dispose();
@@ -963,7 +963,7 @@ using System;
                 var source = testCase.Item1;
                 var expectedResult = testCase.Item2;
 
-                var compilation = CreateCompilationWithMscorlib(source);
+                var compilation = CreateStandardCompilation(source);
                 var syntaxTree = compilation.SyntaxTrees.Single();
                 var nodes = syntaxTree.GetRoot().DescendantNodes();
 

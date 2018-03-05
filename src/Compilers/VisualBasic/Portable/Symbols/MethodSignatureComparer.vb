@@ -4,6 +4,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Enum SymbolComparisonResults
@@ -338,9 +339,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim origDef2 = method2.OriginalDefinition
                 results = results Or DetailedReturnTypeCompare(origDef1.ReturnsByRef,
                                                                New TypeWithModifiers(origDef1.ReturnType, origDef1.ReturnTypeCustomModifiers),
+                                                               origDef1.RefCustomModifiers,
                                                                typeSubstitution1.Value,
                                                                origDef2.ReturnsByRef,
                                                                New TypeWithModifiers(origDef2.ReturnType, origDef2.ReturnTypeCustomModifiers),
+                                                               origDef2.RefCustomModifiers,
                                                                typeSubstitution2.Value,
                                                                comparisons,
                                                                stopIfAny)
@@ -430,9 +433,11 @@ Done:
         Public Shared Function DetailedReturnTypeCompare(
             returnsByRef1 As Boolean,
             type1 As TypeWithModifiers,
+            refCustomModifiers1 As ImmutableArray(Of CustomModifier),
             typeSubstitution1 As TypeSubstitution,
             returnsByRef2 As Boolean,
             type2 As TypeWithModifiers,
+            refCustomModifiers2 As ImmutableArray(Of CustomModifier),
             typeSubstitution2 As TypeSubstitution,
             comparisons As SymbolComparisonResults,
             Optional stopIfAny As SymbolComparisonResults = 0
@@ -459,7 +464,8 @@ Done:
             End If
 
             If (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
-                   Not type1.IsSameType(type2, TypeCompareKind.AllIgnoreOptionsForVB And Not TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
+                   (Not type1.IsSameType(type2, TypeCompareKind.AllIgnoreOptionsForVB And Not TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) OrElse
+                    Not SubstituteModifiers(typeSubstitution1, refCustomModifiers1).SequenceEqual(SubstituteModifiers(typeSubstitution2, refCustomModifiers2))) Then
                 result = result Or SymbolComparisonResults.CustomModifierMismatch
                 If (stopIfAny And SymbolComparisonResults.CustomModifierMismatch) <> 0 Then
                     GoTo Done
@@ -468,6 +474,14 @@ Done:
 
 Done:
             Return result
+        End Function
+
+        Private Shared Function SubstituteModifiers(typeSubstitution As TypeSubstitution, customModifiers As ImmutableArray(Of CustomModifier)) As ImmutableArray(Of CustomModifier)
+            If typeSubstitution IsNot Nothing Then
+                Return typeSubstitution.SubstituteCustomModifiers(customModifiers)
+            Else
+                Return customModifiers
+            End If
         End Function
 
         Public Shared Function DetailedParameterCompare(
@@ -548,19 +562,8 @@ Done:
                     End If
 
                     If checkTypes Then
-                        Dim type1 As TypeWithModifiers
-                        If typeSubstitution1 IsNot Nothing Then
-                            type1 = SubstituteType(typeSubstitution1, New TypeWithModifiers(param1.OriginalDefinition.Type, param1.OriginalDefinition.CustomModifiers))
-                        Else
-                            type1 = New TypeWithModifiers(param1.Type, param1.CustomModifiers)
-                        End If
-
-                        Dim type2 As TypeWithModifiers
-                        If typeSubstitution2 IsNot Nothing Then
-                            type2 = SubstituteType(typeSubstitution2, New TypeWithModifiers(param2.OriginalDefinition.Type, param2.OriginalDefinition.CustomModifiers))
-                        Else
-                            type2 = New TypeWithModifiers(param2.Type, param2.CustomModifiers)
-                        End If
+                        Dim type1 As TypeWithModifiers = GetTypeWithModifiers(typeSubstitution1, param1)
+                        Dim type2 As TypeWithModifiers = GetTypeWithModifiers(typeSubstitution2, param2)
 
                         If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.AllIgnoreOptionsForVB) Then
                             If bothOptional Then
@@ -588,8 +591,7 @@ Done:
                             If (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
                                        (Not type1.IsSameType(type2, TypeCompareKind.AllIgnoreOptionsForVB And
                                                     Not TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) OrElse
-                                           param1.CountOfCustomModifiersPrecedingByRef <> param2.CountOfCustomModifiersPrecedingByRef) Then
-
+                                           Not GetRefModifiers(typeSubstitution1, param1).SequenceEqual(GetRefModifiers(typeSubstitution2, param2))) Then
                                 results = results Or SymbolComparisonResults.CustomModifierMismatch
                                 If (stopIfAny And SymbolComparisonResults.CustomModifierMismatch) <> 0 Then
                                     GoTo Done
@@ -655,6 +657,22 @@ Done:
             Return results
         End Function
 
+        Private Shared Function GetTypeWithModifiers(typeSubstitution As TypeSubstitution, param As ParameterSymbol) As TypeWithModifiers
+            If typeSubstitution IsNot Nothing Then
+                Return SubstituteType(typeSubstitution, New TypeWithModifiers(param.OriginalDefinition.Type, param.OriginalDefinition.CustomModifiers))
+            Else
+                Return New TypeWithModifiers(param.Type, param.CustomModifiers)
+            End If
+        End Function
+
+        Private Shared Function GetRefModifiers(typeSubstitution As TypeSubstitution, param As ParameterSymbol) As ImmutableArray(Of CustomModifier)
+            If typeSubstitution IsNot Nothing Then
+                Return typeSubstitution.SubstituteCustomModifiers(param.OriginalDefinition.RefCustomModifiers)
+            Else
+                Return param.RefCustomModifiers
+            End If
+        End Function
+
         Private Shared Function ParameterDefaultValueMismatch(param1 As ParameterSymbol, param2 As ParameterSymbol) As Boolean
             Dim constValue1 As ConstantValue = param1.ExplicitDefaultConstantValue
             Dim constValue2 As ConstantValue = param2.ExplicitDefaultConstantValue
@@ -703,19 +721,8 @@ Done:
                 Dim param1 = params1(i)
                 Dim param2 = params2(i)
 
-                Dim type1 As TypeWithModifiers
-                If typeSubstitution1 IsNot Nothing Then
-                    type1 = SubstituteType(typeSubstitution1, New TypeWithModifiers(param1.OriginalDefinition.Type, param1.OriginalDefinition.CustomModifiers))
-                Else
-                    type1 = New TypeWithModifiers(param1.Type, param1.CustomModifiers)
-                End If
-
-                Dim type2 As TypeWithModifiers
-                If typeSubstitution2 IsNot Nothing Then
-                    type2 = SubstituteType(typeSubstitution2, New TypeWithModifiers(param2.OriginalDefinition.Type, param2.OriginalDefinition.CustomModifiers))
-                Else
-                    type2 = New TypeWithModifiers(param2.Type, param2.CustomModifiers)
-                End If
+                Dim type1 As TypeWithModifiers = GetTypeWithModifiers(typeSubstitution1, param1)
+                Dim type2 As TypeWithModifiers = GetTypeWithModifiers(typeSubstitution2, param2)
 
                 Dim comparison As TypeCompareKind = MakeTypeCompareKind(considerCustomModifiers, considerTupleNames)
                 If Not type1.IsSameType(type2, comparison) Then
@@ -723,7 +730,7 @@ Done:
                 End If
 
                 If considerCustomModifiers Then
-                    If param1.CountOfCustomModifiersPrecedingByRef <> param2.CountOfCustomModifiersPrecedingByRef Then
+                    If Not GetRefModifiers(typeSubstitution1, param1).SequenceEqual(GetRefModifiers(typeSubstitution2, param2)) Then
                         Return False
                     End If
                 End If
@@ -771,14 +778,15 @@ Done:
 
             ' the runtime compares custom modifiers using (effectively) SequenceEqual
             Dim comparison As TypeCompareKind = MakeTypeCompareKind(considerCustomModifiers, considerTupleNames)
-            Return returnType1.IsSameType(returnType2, comparison)
+            Return returnType1.IsSameType(returnType2, comparison) AndAlso
+                   (Not considerCustomModifiers OrElse SubstituteModifiers(typeSubstitution1, origDef1.RefCustomModifiers).SequenceEqual(SubstituteModifiers(typeSubstitution2, origDef2.RefCustomModifiers)))
         End Function
 
         ' If this method is generic, get a TypeSubstitution that substitutes IndexedTypeParameterSymbols
         ' for each method type parameter. This allows correctly comparing parameter and return types
         ' between two signatures:
-        '    Function foo(Of T)(p As T) As IEnumerable(Of T)
-        '    Function foo(Of U)(p As U) As IEnumerable(Of U)
+        '    Function goo(Of T)(p As T) As IEnumerable(Of T)
+        '    Function goo(Of U)(p As U) As IEnumerable(Of U)
         '
         ' The substitution returned is to be applied to the ORIGINAL definition of the method.
         Private Shared Function GetTypeSubstitution(method As MethodSymbol) As TypeSubstitution

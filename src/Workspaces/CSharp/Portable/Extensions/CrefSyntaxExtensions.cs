@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             // Currently Qualified Cref is the only CrefSyntax We are handling separately
             if (crefSyntax.Kind() != SyntaxKind.QualifiedCref)
@@ -43,14 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return false;
                 }
 
-                if (symbol is INamespaceOrTypeSymbol)
+                if (symbol is INamespaceOrTypeSymbol namespaceOrTypeSymbol)
                 {
-                    var namespaceOrTypeSymbol = (INamespaceOrTypeSymbol)symbol;
-
                     // 1. Check for Predefined Types
-                    if (symbol is INamedTypeSymbol)
+                    if (symbol is INamedTypeSymbol namedSymbol)
                     {
-                        var namedSymbol = (INamedTypeSymbol)symbol;
                         var keywordKind = ExpressionSyntaxExtensions.GetPredefinedKeywordKind(namedSymbol.SpecialType);
 
                         if (keywordKind != SyntaxKind.None)

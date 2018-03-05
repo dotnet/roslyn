@@ -689,10 +689,10 @@ End Module
 
         Module Program
             Sub Main()
-                Dim L As New List(Of Foo)
+                Dim L As New List(Of Goo)
 
                 For i As Integer = 1 To 10
-                    Dim F As New Foo
+                    Dim F As New Goo
                     F.Id = i
                     F.Name = "some text"
                     L.Add(F)
@@ -703,7 +703,7 @@ End Module
                           End Function).ToList 
             End Sub
 
-            Public Class Foo
+            Public Class Goo
                 Public Property Name As String
                 Public Property Id As Integer
             End Class
@@ -713,7 +713,7 @@ End Module
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC36646: Data type(s) of the type parameter(s) in extension method 'Public Function Zip(Of TSecond, TResult)(second As IEnumerable(Of TSecond), resultSelector As Func(Of Program.Foo, TSecond, TResult)) As IEnumerable(Of TResult)' defined in 'Enumerable' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+BC36646: Data type(s) of the type parameter(s) in extension method 'Public Function Zip(Of TSecond, TResult)(second As IEnumerable(Of TSecond), resultSelector As Func(Of Program.Goo, TSecond, TResult)) As IEnumerable(Of TResult)' defined in 'Enumerable' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Dim L2 = L.Zip(L, Function(x, y) 
                    ~~~
 BC30203: Identifier expected.
@@ -723,13 +723,13 @@ BC30203: Identifier expected.
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Equal("Program.Foo", semanticInfo.Type.ToTestDisplayString())
+            Assert.Equal("Program.Goo", semanticInfo.Type.ToTestDisplayString())
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind)
-            Assert.Equal("Program.Foo", semanticInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal("Program.Goo", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("x As Program.Foo", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("x As Program.Goo", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Notification
                 // now it runs for all workspace, make sure we get rid of entry from the map
                 // as soon as it is not needed.
                 // this whole thing will go away when workspace disable itself from solution crawler.
-                VersionStamp unused;
-                _map.TryRemove(documentId, out unused);
+                _map.TryRemove(documentId, out var unused);
             }
 
             public void RemoveProject(ProjectId projectId)
@@ -82,10 +81,8 @@ namespace Microsoft.CodeAnalysis.Notification
 
                 // get semantic version for the project this document belongs to
                 var newVersion = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
                 // check whether we already saw semantic version change
-                VersionStamp oldVersion;
-                if (_map.TryGetValue(document.Id, out oldVersion) && oldVersion == newVersion)
+                if (_map.TryGetValue(document.Id, out var oldVersion) && oldVersion == newVersion)
                 {
                     return;
                 }

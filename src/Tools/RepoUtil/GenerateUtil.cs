@@ -24,11 +24,17 @@ namespace RepoUtil
         /// </summary>
         internal static List<NuGetPackage> GetFilteredPackages(GenerateData generateData, RepoData repoData)
         {
-            // Fixed packages are never included in generated output.  Doing so would create conflicts because it's
-            // possible for two versions to exist for the same package.  Take for example System.Collections.Immuatble
-            // which is both fixed and floating in Roslyn.
+            // Only fixed packages with 'generate names' are included in generated output. Doing
+            // otherwise would create conflicts because it's possible for two versions to exist
+            // for the same package.  Take for example System.Collections.Immuatble which is both
+            // fixed and floating in Roslyn.
+            var fixedWithGenerate = repoData
+                .FixedPackages
+                .Where(x => x.GenerateNameOpt != null);
             return repoData
                 .FloatingPackages
+                .Concat(fixedWithGenerate)
+                .OrderBy(x => x.Name)
                 .Where(x => generateData.Packages.Any(y => y.IsMatch(x.Name)))
                 .ToList();
         }
@@ -89,7 +95,7 @@ namespace RepoUtil
             var group = new XElement(ns + "PropertyGroup");
             foreach (var package in allPackages)
             {
-                var name = PackageNameToXElementName(package.Name);
+                var name = PackageNameToXElementName(package.GenerateNameOpt ?? package.Name);
                 var elem = new XElement(ns + name);
                 elem.Value = package.Version;
                 group.Add(elem);

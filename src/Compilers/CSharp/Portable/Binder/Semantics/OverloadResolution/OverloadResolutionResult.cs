@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 #if DEBUG
@@ -87,16 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(_bestResultState == ThreeState.True);
                 return _bestResult;
-            }
-        }
-
-        private bool HasBestResult
-        {
-            get
-            {
-                EnsureBestResultLoaded();
-
-                return _bestResultState.Value();
             }
         }
 
@@ -347,11 +338,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<TMember> firstSupported = default(MemberResolutionResult<TMember>);
             MemberResolutionResult<TMember> firstUnsupported = default(MemberResolutionResult<TMember>);
 
-            var supportedInPriorityOrder = new MemberResolutionResult<TMember>[4]; // from highest to lowest priority
+            var supportedInPriorityOrder = new MemberResolutionResult<TMember>[5]; // from highest to lowest priority
             const int requiredParameterMissingPriority = 0;
             const int nameUsedForPositionalPriority = 1;
             const int noCorrespondingNamedParameterPriority = 2;
             const int noCorrespondingParameterPriority = 3;
+            const int badNonTrailingNamedArgument = 4;
 
             foreach (MemberResolutionResult<TMember> result in this.ResultsBuilder)
             {
@@ -392,6 +384,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[nameUsedForPositionalPriority].Result.BadArgumentsOpt[0])
                         {
                             supportedInPriorityOrder[nameUsedForPositionalPriority] = result;
+                        }
+                        break;
+                    case MemberResolutionKind.BadNonTrailingNamedArgument:
+                        if (supportedInPriorityOrder[badNonTrailingNamedArgument].IsNull ||
+                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[badNonTrailingNamedArgument].Result.BadArgumentsOpt[0])
+                        {
+                            supportedInPriorityOrder[badNonTrailingNamedArgument] = result;
                         }
                         break;
                     default:
@@ -443,6 +442,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // NOTE: For some reason, there is no specific handling for this result kind.
                         case MemberResolutionKind.NoCorrespondingParameter:
                             break;
+
+                        // Otherwise, if there is any such method that has a named argument was used out-of-position
+                        // and followed by unnamed arguments.
+                        case MemberResolutionKind.BadNonTrailingNamedArgument:
+                            ReportBadNonTrailingNamedArgument(firstSupported, diagnostics, arguments, symbols);
+                            return;
                     }
                 }
             }
@@ -592,6 +597,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 ErrorCode.ERR_NamedArgumentUsedInPositional,
+                new object[] { badName.Identifier.ValueText },
+                symbols), location);
+        }
+
+        private static void ReportBadNonTrailingNamedArgument(
+            MemberResolutionResult<TMember> bad,
+            DiagnosticBag diagnostics,
+            AnalyzedArguments arguments,
+            ImmutableArray<Symbol> symbols)
+        {
+            int badArg = bad.Result.BadArgumentsOpt[0];
+            // We would not have gotten this error had there not been a named argument.
+            Debug.Assert(arguments.Names.Count > badArg);
+            IdentifierNameSyntax badName = arguments.Names[badArg];
+            Debug.Assert(badName != null);
+
+            // Named argument 'x' is used out-of-position but is followed by an unnamed argument.
+            Location location = new SourceLocation(badName);
+
+            diagnostics.Add(new DiagnosticInfoWithSymbols(
+                ErrorCode.ERR_BadNonTrailingNamedArgument,
                 new object[] { badName.Identifier.ValueText },
                 symbols), location);
         }
@@ -894,6 +920,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             int arg)
         {
             BoundExpression argument = arguments.Argument(arg);
+            if (argument.HasAnyErrors)
+            {
+                // If the argument had an error reported then do not report further errors for 
+                // overload resolution failure.
+                return;
+            }
+
             int parm = badArg.Result.ParameterFromArgument(arg);
             SourceLocation sourceLocation = new SourceLocation(argument.Syntax);
 
@@ -915,8 +948,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ParameterSymbol parameter = method.GetParameters()[parm];
+            bool isLastParameter = method.GetParameterCount() == parm + 1; // This is used to later decide if we need to try to unwrap a params array
             RefKind refArg = arguments.RefKind(arg);
-            RefKind refParm = parameter.RefKind;
+            RefKind refParameter = parameter.RefKind;
+
+            if (arguments.IsExtensionMethodThisArgument(arg))
+            {
+                Debug.Assert(refArg == RefKind.None);
+                if (refParameter == RefKind.Ref || refParameter == RefKind.In)
+                {
+                    // For ref and ref-readonly extension methods, we omit the "ref" modifier on receiver arguments.
+                    // Setting the correct RefKind for finding the correct diagnostics message.
+                    // For other ref kinds, keeping it as it is to find mismatch errors. 
+                    refArg = refParameter;
+                }
+            }
 
             // If the expression is untyped because it is a lambda, anonymous method, method group or null
             // then we never want to report the error "you need a ref on that thing". Rather, we want to
@@ -924,11 +970,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!argument.HasExpressionType() &&
                 argument.Kind != BoundKind.OutDeconstructVarPendingInference &&
                 argument.Kind != BoundKind.OutVariablePendingInference &&
-                argument.Kind != BoundKind.DiscardedExpression)
+                argument.Kind != BoundKind.DiscardExpression)
             {
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 // The argument and parameter type might match, but may not have same in/out modifiers
-                if (argument.Kind == BoundKind.UnboundLambda && refArg == refParm)
+                if (argument.Kind == BoundKind.UnboundLambda && refArg == refParameter)
                 {
                     ((UnboundLambda)argument).GenerateAnonymousFunctionConversionError(diagnostics, parameter.Type);
                 }
@@ -943,12 +989,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbols,
                         arg + 1,
                         argument.Display, //'<null>' doesn't need refkind
-                        UnwrapIfParamsArray(parameter));
+                        UnwrapIfParamsArray(parameter, isLastParameter));
                 }
             }
-            else if (refArg != refParm)
+            else if (refArg != refParameter && !(refArg == RefKind.None && refParameter == RefKind.In))
             {
-                if (refParm == RefKind.None)
+                if (refParameter == RefKind.None || refParameter == RefKind.In)
                 {
                     //  Argument {0} should not be passed with the {1} keyword
                     diagnostics.Add(
@@ -956,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sourceLocation,
                         symbols,
                         arg + 1,
-                        refArg.ToDisplayString());
+                        refArg.ToArgumentDisplayString());
                 }
                 else
                 {
@@ -966,45 +1012,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sourceLocation,
                         symbols,
                         arg + 1,
-                        refParm.ToDisplayString());
+                        refParameter.ToParameterDisplayString());
                 }
             }
             else
             {
                 Debug.Assert(argument.Kind != BoundKind.OutDeconstructVarPendingInference);
                 Debug.Assert(argument.Kind != BoundKind.OutVariablePendingInference);
-                Debug.Assert(argument.Kind != BoundKind.DiscardedExpression || argument.HasExpressionType());
+                Debug.Assert(argument.Kind != BoundKind.DiscardExpression || argument.HasExpressionType());
                 Debug.Assert(argument.Display != null);
 
                 if (arguments.IsExtensionMethodThisArgument(arg))
                 {
                     Debug.Assert((arg == 0) && (parm == arg));
-                    var conversion = badArg.Result.ConversionForArg(parm);
+                    Debug.Assert(!badArg.Result.ConversionForArg(parm).IsImplicit);
 
-                    if (conversion.IsImplicit)
-                    {
-                        // CS1928: '{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' has some invalid arguments
-                        diagnostics.Add(
-                            ErrorCode.ERR_BadExtensionArgTypes,
-                            location,
-                            symbols,
-                            argument.Display,
-                            name,
-                            method);
-                    }
-                    else
-                    {
-                        // CS1929: '{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' requires a receiver of type '{3}'
-                        diagnostics.Add(
-                            ErrorCode.ERR_BadInstanceArgType,
-                            sourceLocation,
-                            symbols,
-                            argument.Display,
-                            name,
-                            method,
-                            parameter);
-                        Debug.Assert((object)parameter == UnwrapIfParamsArray(parameter), "If they ever differ, just call the method when constructing the diagnostic.");
-                    }
+                    // CS1929: '{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' requires a receiver of type '{3}'
+                    diagnostics.Add(
+                        ErrorCode.ERR_BadInstanceArgType,
+                        sourceLocation,
+                        symbols,
+                        argument.Display,
+                        name,
+                        method,
+                        parameter);
+                    Debug.Assert((object)parameter == UnwrapIfParamsArray(parameter, isLastParameter), "If they ever differ, just call the method when constructing the diagnostic.");
                 }
                 else
                 {
@@ -1012,16 +1044,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // object that contains both values, so we have to construct our own.
                     // NOTE: since this is a symbol, it will use the SymbolDisplay options for parameters (i.e. will
                     // have the same format as the display value of the parameter).
-                    var argType = argument.Display as TypeSymbol;
-                    if (argType != null)
+                    if (argument.Display is TypeSymbol argType)
                     {
                         SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
                             argType,
                             ImmutableArray<CustomModifier>.Empty,
+                            ImmutableArray<CustomModifier>.Empty,
                             isParams: false,
                             refKind: refArg);
 
-                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, displayArg, UnwrapIfParamsArray(parameter));
+                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, displayArg, UnwrapIfParamsArray(parameter, isLastParameter));
 
                         // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
                         diagnostics.Add(
@@ -1040,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             symbols,
                             arg + 1,
                             argument.Display,
-                            UnwrapIfParamsArray(parameter));
+                            UnwrapIfParamsArray(parameter, isLastParameter));
                     }
                 }
             }
@@ -1051,9 +1083,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// parameter is a params array, then the error message should reflect the element type
         /// of the params array - not the array type.
         /// </summary>
-        private static Symbol UnwrapIfParamsArray(ParameterSymbol parameter)
+        private static Symbol UnwrapIfParamsArray(ParameterSymbol parameter, bool isLastParameter)
         {
-            if (parameter.IsParams)
+            // We only try to unwrap parameters if they are a parameter array and are on the last position
+            if (parameter.IsParams && isLastParameter)
             {
                 ArrayTypeSymbol arrayType = parameter.Type as ArrayTypeSymbol;
                 if ((object)arrayType != null && arrayType.IsSZArray)

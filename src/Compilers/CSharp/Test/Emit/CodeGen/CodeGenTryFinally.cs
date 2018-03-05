@@ -2442,6 +2442,281 @@ class C
 ");
         }
 
+        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
+        [Fact]
+        public void TryCatchConstantFalseFilter1()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            throw new Exception();
+        }
+        catch (Exception) when (false)
+        {
+            Console.Write(""Catch"");
+        }
+    }
+}";
+            var comp = CompileAndVerify(src);
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""System.Exception..ctor()""
+  IL_0005:  throw
+}");
+        }
+
+        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
+        [Fact]
+        public void TryCatchConstantFalseFilter2()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            throw new Exception();
+        }
+        catch (NullReferenceException) when (false)
+        {
+            Console.Write(""Catch1"");
+        }
+        catch (Exception) when (false)
+        {
+            Console.Write(""Catch2"");
+        }
+        catch when (false)
+        {
+            Console.Write(""Catch"");
+        }
+    }
+}";
+            var comp = CompileAndVerify(src);
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""System.Exception..ctor()""
+  IL_0005:  throw
+}");
+        }
+
+        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
+        [Fact]
+        public void TryCatchConstantFalseFilter3()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            throw new Exception();
+        }
+        catch (NullReferenceException) when ((1+1) == 2)
+        {
+            Console.Write(""Catch1"");
+        }
+        catch (Exception) when (true == false)
+        {
+            Console.Write(""Catch2"");
+        }
+        catch when ((1+1) != 2)
+        {
+            Console.Write(""Catch"");
+        }
+    }
+}";
+            var comp = CompileAndVerify(src);
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .try
+  {
+    IL_0000:  newobj     ""System.Exception..ctor()""
+    IL_0005:  throw
+  }
+  filter
+  {
+    IL_0006:  isinst     ""System.NullReferenceException""
+    IL_000b:  dup
+    IL_000c:  brtrue.s   IL_0012
+    IL_000e:  pop
+    IL_000f:  ldc.i4.0
+    IL_0010:  br.s       IL_0017
+    IL_0012:  pop
+    IL_0013:  ldc.i4.1
+    IL_0014:  ldc.i4.0
+    IL_0015:  cgt.un
+    IL_0017:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0019:  pop
+    IL_001a:  ldstr      ""Catch1""
+    IL_001f:  call       ""void System.Console.Write(string)""
+    IL_0024:  leave.s    IL_0026
+  }
+  IL_0026:  ret
+}");
+        }
+
+        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
+        [Fact]
+        public void TryCatchConstantFalseFilterCombined()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        var message = ""ExceptionMessage"";
+        try
+        {
+            throw new Exception(message);
+        }
+        catch (NullReferenceException) when (false)
+        {
+            Console.Write(""NullReferenceCatch"");
+        }
+        catch (Exception e) when (e.Message == message)
+        {
+            Console.Write(""ExceptionFilter"");
+        }
+        catch (Exception)
+        {
+            Console.Write(""ExceptionCatch"");
+        }
+        catch when (false)
+        {
+            Console.Write(""Catch"");
+        }
+    }
+}";
+            var comp = CompileAndVerify(src, expectedOutput: "ExceptionFilter");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       68 (0x44)
+  .maxstack  2
+  .locals init (string V_0) //message
+  IL_0000:  ldstr      ""ExceptionMessage""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  ldloc.0
+    IL_0007:  newobj     ""System.Exception..ctor(string)""
+    IL_000c:  throw
+  }
+  filter
+  {
+    IL_000d:  isinst     ""System.Exception""
+    IL_0012:  dup
+    IL_0013:  brtrue.s   IL_0019
+    IL_0015:  pop
+    IL_0016:  ldc.i4.0
+    IL_0017:  br.s       IL_0027
+    IL_0019:  callvirt   ""string System.Exception.Message.get""
+    IL_001e:  ldloc.0
+    IL_001f:  call       ""bool string.op_Equality(string, string)""
+    IL_0024:  ldc.i4.0
+    IL_0025:  cgt.un
+    IL_0027:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0029:  pop
+    IL_002a:  ldstr      ""ExceptionFilter""
+    IL_002f:  call       ""void System.Console.Write(string)""
+    IL_0034:  leave.s    IL_0043
+  }
+  catch System.Exception
+  {
+    IL_0036:  pop
+    IL_0037:  ldstr      ""ExceptionCatch""
+    IL_003c:  call       ""void System.Console.Write(string)""
+    IL_0041:  leave.s    IL_0043
+  }
+  IL_0043:  ret
+}");
+        }
+
+        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
+        [Fact]
+        public void TryCatchFinallyConstantFalseFilter()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        try
+        {
+
+            try
+            {
+                throw new Exception();
+            }
+            catch (NullReferenceException) when (false)
+            {
+                Console.Write(""Catch1"");
+            }
+            catch (Exception) when (false)
+            {
+                Console.Write(""Catch2"");
+            }
+            finally
+            {
+                Console.Write(""Finally"");
+            }
+        }
+        catch
+        {
+            Console.Write(""OuterCatch"");
+        }
+    }
+}";
+            var comp = CompileAndVerify(src, expectedOutput: "FinallyOuterCatch");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .try
+  {
+    .try
+    {
+      IL_0000:  newobj     ""System.Exception..ctor()""
+      IL_0005:  throw
+    }
+    finally
+    {
+      IL_0006:  ldstr      ""Finally""
+      IL_000b:  call       ""void System.Console.Write(string)""
+      IL_0010:  endfinally
+    }
+  }
+  catch object
+  {
+    IL_0011:  pop
+    IL_0012:  ldstr      ""OuterCatch""
+    IL_0017:  call       ""void System.Console.Write(string)""
+    IL_001c:  leave.s    IL_001e
+  }
+  IL_001e:  ret
+}");
+        }
+
         [Fact]
         public void TryCatchWithReturnValue()
         {
@@ -2700,7 +2975,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (9,9): warning CS1058: A previous catch clause already catches all exceptions. All non-exceptions thrown will be wrapped in a System.Runtime.CompilerServices.RuntimeWrappedException.
                 //         catch when (a == 1) { }
                 Diagnostic(ErrorCode.WRN_UnreachableGeneralCatch, "catch").WithLocation(9, 9));
@@ -2722,7 +2997,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(540666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540666")]

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -32,8 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public static void SetDefaultFilter(IWpfTableControl tableControl)
         {
             // We want only the active diagnostics to show up in the error list by default.
-            var suppressionStateColumn = tableControl.ColumnDefinitionManager.GetColumnDefinition(ColumnName) as SuppressionStateColumnDefinition;
-            if (suppressionStateColumn != null)
+            if (tableControl.ColumnDefinitionManager.GetColumnDefinition(ColumnName) is SuppressionStateColumnDefinition suppressionStateColumn)
             {
                 tableControl.SetFilter(ColumnName, new ColumnHashSetFilter(suppressionStateColumn, excluded: ServicesVSResources.Suppressed));
             }
@@ -41,8 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public override bool TryCreateToolTip(ITableEntryHandle entry, out object toolTip)
         {
-            object content;
-            if (entry.TryGetValue(ColumnName, out content) &&
+            if (entry.TryGetValue(ColumnName, out var content) &&
                 content as string == ServicesVSResources.NotApplicable)
             {
                 toolTip = ServicesVSResources.SuppressionNotSupportedToolTip;

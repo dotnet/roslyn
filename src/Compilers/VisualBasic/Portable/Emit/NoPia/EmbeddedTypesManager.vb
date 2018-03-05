@@ -194,6 +194,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                     TypeKind.Enum,
                     TypeKind.Delegate
 
+                    If type.IsTupleType Then
+                        type = type.TupleUnderlyingType
+                    End If
+
                     If type.ContainingType IsNot Nothing Then
                         ' We do not support nesting for embedded types.
                         ' ERRID.ERR_InvalidInteropType/ERR_NoPIANestedType
@@ -274,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             ' We do not expect this method to be called on a different thread once GetTypes is called.
             VerifyNotFrozen()
 
-            Dim noPiaIndexer = New Cci.NoPiaReferenceIndexer(New EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics))
+            Dim noPiaIndexer = New Cci.NoPiaReferenceIndexer(New EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics, metadataOnly:=False, includePrivateMembers:=True))
 
             ' Make sure we embed all types referenced by the type declaration: implemented interfaces, etc.
             noPiaIndexer.VisitTypeDefinitionNoMembers(embedded)
@@ -482,6 +486,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Friend Shared Function EmbedParameters(containingPropertyOrMethod As CommonEmbeddedMember, underlyingParameters As ImmutableArray(Of ParameterSymbol)) As ImmutableArray(Of EmbeddedParameter)
             Return underlyingParameters.SelectAsArray(Function(parameter, container) New EmbeddedParameter(container, parameter), containingPropertyOrMethod)
+        End Function
+
+        Protected Overrides Function CreateCompilerGeneratedAttribute() As VisualBasicAttributeData
+            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
+            Dim compilation = ModuleBeingBuilt.Compilation
+            Return compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor)
         End Function
 
     End Class

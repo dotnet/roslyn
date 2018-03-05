@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         protected override ISyntaxFactsService GetSyntaxFactsService()
             => CSharpSyntaxFactsService.Instance;
 
+        protected override ISemanticFactsService GetSemanticFactsService()
+            => CSharpSemanticFactsService.Instance;
+
         protected override SyntaxKind GetSyntaxKindToAnalyze()
             => SyntaxKind.ConditionalExpression;
 
@@ -34,5 +37,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
 
         protected override bool IsNotEquals(BinaryExpressionSyntax condition)
             => condition.Kind() == SyntaxKind.NotEqualsExpression;
+
+        protected override bool TryAnalyzePatternCondition(
+            ISyntaxFactsService syntaxFacts, SyntaxNode conditionNode, 
+            out SyntaxNode conditionPartToCheck, out bool isEquals)
+        {
+            conditionPartToCheck = null;
+            isEquals = true;
+
+            var patternExpression = conditionNode as IsPatternExpressionSyntax;
+            if (patternExpression == null)
+            {
+                return false;
+            }
+
+            var constantPattern = patternExpression.Pattern as ConstantPatternSyntax;
+            if (constantPattern == null)
+            {
+                return false;
+            }
+
+            if (!syntaxFacts.IsNullLiteralExpression(constantPattern.Expression))
+            {
+                return false;
+            }
+
+            conditionPartToCheck = patternExpression.Expression;
+            return true;
+        }
     }
 }

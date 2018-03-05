@@ -138,7 +138,7 @@ constant_pattern
 
 ### Var Pattern
 
-An expression *e* matches the pattern `var identifier` always. In other words, a match to a *var pattern* always succeeds. At runtime the value of *e* is bounds to a newly introduced local variable. The type of the local variable is the static type of *e*.
+An expression *e* matches the pattern `var identifier` always. In other words, a match to a *var pattern* always succeeds. At runtime the value of *e* is bound to a newly introduced local variable. The type of the local variable is the static type of *e*.
 
 If the name `var` binds to a type, then we instead treat the pattern as a *type_pattern*.
 

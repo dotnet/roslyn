@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static MemberDeclarationSyntax GenerateEventFieldDeclaration(
             IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 AddAnnotationsTo(@event,
                     SyntaxFactory.EventFieldDeclaration(
                         AttributeGenerator.GenerateAttributeLists(@event.GetAttributes(), options),
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(@event.ExplicitInterfaceImplementations);
 
-            return AddCleanupAnnotationsTo(SyntaxFactory.EventDeclaration(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(SyntaxFactory.EventDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(@event.GetAttributes(), options),
                 modifiers: GenerateModifiers(@event, destination, options),
                 type: @event.Type.GenerateTypeSyntax(),
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return AddAnnotationsTo(accessor, SyntaxFactory.AccessorDeclaration(kind)
                                 .WithBody(hasBody ? GenerateBlock(accessor) : null)
-                                .WithSemicolonToken(hasBody ? default(SyntaxToken) : SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+                                .WithSemicolonToken(hasBody ? default : SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
         }
 
         private static BlockSyntax GenerateBlock(IMethodSymbol accessor)

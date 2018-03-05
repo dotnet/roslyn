@@ -60,8 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
             AnalyzerService = analyzerService;
 
-            uint solutionEventsCookie;
-            if (ErrorHandler.Succeeded(_vsSolution.AdviseSolutionEvents(this, out solutionEventsCookie)))
+            if (ErrorHandler.Succeeded(_vsSolution.AdviseSolutionEvents(this, out var solutionEventsCookie)))
             {
                 _solutionEventsCookie = solutionEventsCookie;
             }
@@ -76,8 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 throw new ArgumentNullException(nameof(vsTextView));
             }
 
-            IVsTextLines textLines;
-            if (ErrorHandler.Failed(vsTextView.GetBuffer(out textLines)))
+            if (ErrorHandler.Failed(vsTextView.GetBuffer(out var textLines)))
             {
                 return;
             }
@@ -88,24 +86,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 return;
             }
 
-            object monikerObj;
             Guid monikerGuid = typeof(IVsUserData).GUID;
-            if (ErrorHandler.Failed(userData.GetData(ref monikerGuid, out monikerObj)))
+            if (ErrorHandler.Failed(userData.GetData(ref monikerGuid, out var monikerObj)))
             {
                 return;
             }
 
             string filePath = monikerObj as string;
-            uint itemId;
-            uint docCookie;
-            IVsHierarchy hierarchy;
 
-            _rdt.Value.FindDocument(filePath, out hierarchy, out itemId, out docCookie);
+            _rdt.Value.FindDocument(filePath, out var hierarchy, out var itemId, out var docCookie);
 
             AbstractProject project = GetXamlProject(hierarchy);
             if (project == null)
             {
-                project = new XamlProject(_vsWorkspace.ProjectTracker, hierarchy, _serviceProvider, _vsWorkspace);
+                project = new XamlProject(
+                    _vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(_serviceProvider),
+                    hierarchy,
+                    _serviceProvider,
+                    _vsWorkspace);
             }
 
             IVisualStudioHostDocument vsDocument = project.GetCurrentDocumentFromPath(filePath);
@@ -136,12 +134,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         private AbstractProject GetXamlProject(IVsHierarchy hierarchy)
         {
-            return _vsWorkspace.ProjectTracker.ImmutableProjects.FirstOrDefault(p => p.Language == StringConstants.XamlLanguageName && p.Hierarchy == hierarchy);
+            var projects = _vsWorkspace.DeferredState?.ProjectTracker.ImmutableProjects ?? ImmutableArray<AbstractProject>.Empty;
+
+            return projects.FirstOrDefault(p => p.Language == StringConstants.XamlLanguageName && p.Hierarchy == hierarchy);
         }
 
         private bool TryCreateXamlDocument(AbstractProject project, string filePath, out IVisualStudioHostDocument vsDocument)
         {
-            vsDocument = _vsWorkspace.ProjectTracker.DocumentProvider.TryGetDocumentForFile(
+            // We already have an AbstractProject, so the workspace has been created
+            vsDocument = _vsWorkspace.DeferredState.ProjectTracker.DocumentProvider.TryGetDocumentForFile(
                 project, filePath, SourceCodeKind.Regular,
                 tb => tb.ContentType.IsOfType(ContentTypeNames.XamlContentType),
                 _ => SpecializedCollections.EmptyReadOnlyList<string>());

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
         private static void TryDetermineTypeToGenerateInWorker(
             SemanticDocument document,
             INamedTypeSymbol containingType,
-            TExpressionSyntax simpleNameOrMemberAccessExpression,
+            TExpressionSyntax expression,
             CancellationToken cancellationToken,
             out INamedTypeSymbol typeToGenerateIn,
             out bool isStatic)
@@ -88,33 +88,40 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             typeToGenerateIn = null;
             isStatic = false;
 
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = document.SemanticModel;
-            var isMemberAccessExpression = syntaxFacts.IsSimpleMemberAccessExpression(simpleNameOrMemberAccessExpression);
-            if (isMemberAccessExpression ||
-                syntaxFacts.IsConditionalMemberAccessExpression(simpleNameOrMemberAccessExpression))
+            if (syntaxFacts.IsSimpleMemberAccessExpression(expression))
             {
-                var beforeDotExpression = isMemberAccessExpression ?
-                    syntaxFacts.GetExpressionOfMemberAccessExpression(simpleNameOrMemberAccessExpression) :
-                    syntaxFacts.GetExpressionOfConditionalAccessExpression(simpleNameOrMemberAccessExpression);
+                // Figure out what's before the dot.  For VB, that also means finding out 
+                // what ".X" might mean, even when there's nothing before the dot itself.
+                var beforeDotExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(
+                    expression, allowImplicitTarget: true);
+
                 if (beforeDotExpression != null)
                 {
-                    var typeInfo = semanticModel.GetTypeInfo(beforeDotExpression, cancellationToken);
-                    var semanticInfo = semanticModel.GetSymbolInfo(beforeDotExpression, cancellationToken);
-
-                    typeToGenerateIn = typeInfo.Type is ITypeParameterSymbol
-                        ? ((ITypeParameterSymbol)typeInfo.Type).GetNamedTypeSymbolConstraint()
-                        : typeInfo.Type as INamedTypeSymbol;
-
-                    isStatic = semanticInfo.Symbol is INamedTypeSymbol;
+                    DetermineTypeToGenerateInWorker(
+                        semanticModel, beforeDotExpression, out typeToGenerateIn, out isStatic, cancellationToken);
                 }
 
                 return;
             }
 
-            if (syntaxFacts.IsPointerMemberAccessExpression(simpleNameOrMemberAccessExpression))
+            if (syntaxFacts.IsConditionalMemberAccessExpression(expression))
             {
-                var beforeArrowExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(simpleNameOrMemberAccessExpression);
+                var beforeDotExpression = syntaxFacts.GetExpressionOfConditionalAccessExpression(expression);
+
+                if (beforeDotExpression != null)
+                {
+                    DetermineTypeToGenerateInWorker(
+                        semanticModel, beforeDotExpression, out typeToGenerateIn, out isStatic, cancellationToken);
+                }
+
+                return;
+            }
+
+            if (syntaxFacts.IsPointerMemberAccessExpression(expression))
+            {
+                var beforeArrowExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(expression);
                 if (beforeArrowExpression != null)
                 {
                     var typeInfo = semanticModel.GetTypeInfo(beforeArrowExpression, cancellationToken);
@@ -129,9 +136,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 return;
             }
 
-            if (syntaxFacts.IsAttributeNamedArgumentIdentifier(simpleNameOrMemberAccessExpression))
+            if (syntaxFacts.IsAttributeNamedArgumentIdentifier(expression))
             {
-                var attributeNode = simpleNameOrMemberAccessExpression.GetAncestors().FirstOrDefault(syntaxFacts.IsAttribute);
+                var attributeNode = expression.GetAncestors().FirstOrDefault(syntaxFacts.IsAttribute);
                 var attributeName = syntaxFacts.GetNameOfAttribute(attributeNode);
                 var attributeType = semanticModel.GetTypeInfo(attributeName, cancellationToken);
 
@@ -140,9 +147,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 return;
             }
 
-            SyntaxNode initializedObject;
             if (syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(
-                    simpleNameOrMemberAccessExpression, out initializedObject))
+                    expression, out var initializedObject))
             {
                 typeToGenerateIn = semanticModel.GetTypeInfo(initializedObject, cancellationToken).Type as INamedTypeSymbol;
                 isStatic = false;
@@ -151,7 +157,24 @@ namespace Microsoft.CodeAnalysis.GenerateMember
 
             // Generating into the containing type.
             typeToGenerateIn = containingType;
-            isStatic = syntaxFacts.IsInStaticContext(simpleNameOrMemberAccessExpression);
+            isStatic = syntaxFacts.IsInStaticContext(expression);
+        }
+
+        private static void DetermineTypeToGenerateInWorker(
+            SemanticModel semanticModel,
+            SyntaxNode expression,
+            out INamedTypeSymbol typeToGenerateIn, 
+            out bool isStatic, 
+            CancellationToken cancellationToken)
+        {
+            var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
+            var semanticInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+
+            typeToGenerateIn = typeInfo.Type is ITypeParameterSymbol
+                ? ((ITypeParameterSymbol)typeInfo.Type).GetNamedTypeSymbolConstraint()
+                : typeInfo.Type as INamedTypeSymbol;
+
+            isStatic = semanticInfo.Symbol is INamedTypeSymbol;
         }
     }
 }

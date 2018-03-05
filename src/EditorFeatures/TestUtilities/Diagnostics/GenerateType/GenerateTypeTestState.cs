@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -35,17 +35,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
         public Project TriggeredProject { get; }
         public string TypeName { get; }
 
-        public static async Task<GenerateTypeTestState> CreateAsync(
+        public static GenerateTypeTestState Create(
             string initial,
-            bool isLine,
             string projectToBeModified,
             string typeName,
             string existingFileName,
             string languageName)
         {
-            var workspace = languageName == LanguageNames.CSharp
-                  ? isLine ? await TestWorkspace.CreateCSharpAsync(initial, exportProvider: s_exportProvider) : await TestWorkspace.CreateAsync(initial, exportProvider: s_exportProvider)
-                  : isLine ? await TestWorkspace.CreateVisualBasicAsync(initial, exportProvider: s_exportProvider) : await TestWorkspace.CreateAsync(initial, exportProvider: s_exportProvider);
+            var workspace = TestWorkspace.IsWorkspaceElement(initial)
+                ? TestWorkspace.Create(initial, exportProvider: s_exportProvider)
+                : languageName == LanguageNames.CSharp
+                  ? TestWorkspace.CreateCSharp(initial, exportProvider: s_exportProvider)
+                  : TestWorkspace.CreateVisualBasic(initial, exportProvider: s_exportProvider);
 
             return new GenerateTypeTestState(projectToBeModified, typeName, existingFileName, workspace);
         }

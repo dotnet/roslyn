@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             // Therefore, the following check can be as simple as:
             Debug.Assert(!IsFrozen, "Set of embedded types is frozen.");
 
-            var noPiaIndexer = new Cci.NoPiaReferenceIndexer(new EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics));
+            var noPiaIndexer = new Cci.NoPiaReferenceIndexer(new EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics, metadataOnly: false, includePrivateMembers: true));
 
             // Make sure we embed all types referenced by the type declaration: implemented interfaces, etc.
             noPiaIndexer.VisitTypeDefinitionNoMembers(embedded);
@@ -564,6 +564,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             ImmutableArray<ParameterSymbol> underlyingParameters)
         {
             return underlyingParameters.SelectAsArray((p, c) => new EmbeddedParameter(c, p), containingPropertyOrMethod);
+        }
+
+        protected override CSharpAttributeData CreateCompilerGeneratedAttribute()
+        {
+            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            var compilation = ModuleBeingBuilt.Compilation;
+            return compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor);
         }
     }
 }

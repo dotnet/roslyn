@@ -27,9 +27,10 @@ namespace Microsoft.CodeAnalysis
     internal enum SynthesizedLocalKind
     {
         /// <summary>
-        /// Temp created for pattern matching by type.
+        /// Temp created for caching "this".
+        /// Technically it is long-lived, but will happen only in optimized code.
         /// </summary>
-        PatternMatchingTemp = -4,
+        FrameCache = -5,
 
         /// <summary>
         /// Temp variable created by the optimizer.
@@ -47,7 +48,9 @@ namespace Microsoft.CodeAnalysis
         EmitterTemp = -1,
 
         /// <summary>
-        /// The variable is not synthesized (C#, VB).
+        /// The variable is not synthesized (C#, VB). Note that SynthesizedLocalKind values
+        /// greater than or equal to this are considered long-lived;
+        /// see <see cref="SynthesizedLocalKindExtensions.IsLongLived"/>.
         /// </summary>
         UserDefined = 0,
 
@@ -95,9 +98,9 @@ namespace Microsoft.CodeAnalysis
         ForEachArrayIndex = 8,
 
         /// <summary>
-        /// Local variable that holds a pinned handle of a string passed to a fixed statement (C#).
+        /// Local variable that holds a pinned handle of a managed reference passed to a fixed statement (C#).
         /// </summary>
-        FixedString = 9,
+        FixedReference = 9,
 
         /// <summary>
         /// Local variable that holds the object passed to With statement (VB). 
@@ -199,6 +202,12 @@ namespace Microsoft.CodeAnalysis
         /// synthesized mehtod prologue code and referred to throughout the method body.
         /// </summary>
         InstrumentationPayload = 34,
+
+        /// <summary>
+        /// Temp created for pattern matching by type. This holds the value of an input value provisionally
+        /// converted to the type against which it is being matched.
+        /// </summary>
+        SwitchCasePatternMatching = 35,
 
         /// <summary>
         /// All values have to be less than or equal to <see cref="MaxValidValueForLocalVariableSerializedToDebugInformation"/> 

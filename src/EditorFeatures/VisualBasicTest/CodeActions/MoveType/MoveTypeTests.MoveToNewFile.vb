@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.MoveType
     Partial Public Class MoveTypeTests
@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
 End Class
 "
 
-            Await TestMissingAsync(code)
+            Await TestMissingInRegularAndScriptAsync(code)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
@@ -25,12 +25,12 @@ Class Outer
 End Class
 "
 
-            Await TestMissingAsync(code)
-    End Function
+            Await TestMissingInRegularAndScriptAsync(code)
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
-    Public Async Function MultipleTypesInFileWithNoContainerNamespace() As Task
-        Dim code =
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function MultipleTypesInFileWithNoContainerNamespace() As Task
+            Dim code =
 "
 [||]Class Class1
 End Class
@@ -46,8 +46,7 @@ End Class
             Dim expectedDocumentName = "Class1.vb"
 
             Dim destinationDocumentText =
-"
-Class Class1
+"Class Class1
 End Class
 "
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
@@ -99,7 +98,6 @@ End Class
 "
 Public Partial Class Class1
     Class Class2
-
     End Class
 End Class
 "
@@ -136,7 +134,7 @@ End Class
 "
             Await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                index:=1, compareTokens:=False)
+                index:=1)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
@@ -158,6 +156,8 @@ End Class
 "
             Dim codeAfterMove =
 "
+' Used only by inner
+
 ' Not used
 Imports System.Collections
 
@@ -171,6 +171,8 @@ End Class
 ' Used only by inner
 Imports System
 
+' Not used
+
 Partial Class Outer
     Class Inner
         Sub M(d as DateTime)
@@ -179,6 +181,136 @@ Partial Class Outer
 End Class
 "
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
+        End Function
+
+        <WorkItem(16282, "https://github.com/dotnet/roslyn/issues/16282")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function TestTypeInheritance() As Task
+            Dim code =
+"
+Class Outer
+    Inherits Something
+    Implements ISomething
+
+    [||]Class Inner
+        Inherits Other
+        Implements IOther
+
+        Sub M(d as DateTime)
+        End Sub
+    End Class
+End Class
+"
+            Dim codeAfterMove =
+"
+Partial Class Outer
+    Inherits Something
+    Implements ISomething
+End Class
+"
+            Dim expectedDocumentName = "Inner.vb"
+
+            Dim destinationDocumentText =
+"
+Partial Class Outer
+    Class Inner
+        Inherits Other
+        Implements IOther
+
+        Sub M(d as DateTime)
+        End Sub
+    End Class
+End Class
+"
+            Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
+        End Function
+
+        <WorkItem(21456, "https://github.com/dotnet/roslyn/issues/21456")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function TestLeadingBlankLines1() As Task
+            Dim code =
+"' Banner Text
+imports System
+
+[||]class Class1
+    sub Foo()
+        Console.WriteLine()
+    end sub
+end class
+
+class Class2
+    sub Foo()
+        Console.WriteLine()
+    end sub
+end class
+"
+            Dim codeAfterMove = "' Banner Text
+imports System
+
+class Class2
+    sub Foo()
+        Console.WriteLine()
+    end sub
+end class
+"
+
+            Dim expectedDocumentName = "Class1.vb"
+            Dim destinationDocumentText = "' Banner Text
+imports System
+
+class Class1
+    sub Foo()
+        Console.WriteLine()
+    end sub
+end class
+"
+
+            Await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText)
+        End Function
+
+        <WorkItem(21456, "https://github.com/dotnet/roslyn/issues/21456")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function TestLeadingBlankLines2() As Task
+            Dim code =
+"' Banner Text
+imports System
+
+class Class1
+    sub Foo()
+        Console.WriteLine()
+    end sub
+end class
+
+[||]class Class2
+    sub Foo()
+        Console.WriteLine()
+    end sub
+end class
+"
+            Dim codeAfterMove = "' Banner Text
+imports System
+
+class Class1
+    sub Foo()
+        Console.WriteLine()
+    end sub
+end class
+"
+
+            Dim expectedDocumentName = "Class2.vb"
+            Dim destinationDocumentText = "' Banner Text
+imports System
+
+class Class2
+    sub Foo()
+        Console.WriteLine()
+    end sub
+end class
+"
+
+            Await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
     End Class
 End Namespace

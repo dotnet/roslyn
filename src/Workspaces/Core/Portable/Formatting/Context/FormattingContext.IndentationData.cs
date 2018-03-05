@@ -44,10 +44,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _indentation = indentation;
             }
 
-            public override int Indentation
-            {
-                get { return _indentation; }
-            }
+            public override int Indentation => _indentation;
         }
 
         private class LazyIndentationData : IndentationData
@@ -59,10 +56,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _indentationGetter = indentationGetter;
             }
 
-            public override int Indentation
-            {
-                get { return _indentationGetter.Value; }
-            }
+            public override int Indentation => _indentationGetter.Value;
         }
 
         private class RelativeIndentationData : LazyIndentationData

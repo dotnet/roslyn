@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.Cci
 {
@@ -75,7 +76,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IEventDefinition eventDefinition)
         {
-            this.Visit(eventDefinition.Accessors);
+            this.Visit(eventDefinition.GetAccessors(Context));
             this.Visit(eventDefinition.GetType(Context));
         }
 
@@ -198,20 +199,16 @@ namespace Microsoft.Cci
             this.Visit(localDefinition.Type);
         }
 
-        public virtual void Visit(IManagedPointerTypeReference managedPointerTypeReference)
-        {
-        }
-
         public virtual void Visit(IMarshallingInformation marshallingInformation)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public virtual void Visit(IMetadataConstant constant)
+        public virtual void Visit(MetadataConstant constant)
         {
         }
 
-        public virtual void Visit(IMetadataCreateArray createArray)
+        public virtual void Visit(MetadataCreateArray createArray)
         {
             this.Visit(createArray.ElementType);
             this.Visit(createArray.Elements);
@@ -244,7 +241,7 @@ namespace Microsoft.Cci
             this.Visit(namedArgument.ArgumentValue);
         }
 
-        public virtual void Visit(IMetadataTypeOf typeOf)
+        public virtual void Visit(MetadataTypeOf typeOf)
         {
             if (typeOf.TypeToGet != null)
             {
@@ -274,7 +271,8 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IMethodDefinition method)
         {
-            this.Visit(method.ReturnValueAttributes);
+            this.Visit(method.GetReturnValueAttributes(Context));
+            this.Visit(method.RefCustomModifiers);
             this.Visit(method.ReturnValueCustomModifiers);
 
             if (method.HasDeclarativeSecurity)
@@ -415,9 +413,10 @@ namespace Microsoft.Cci
             Debug.Assert((marshalling != null || !parameterDefinition.MarshallingDescriptor.IsDefaultOrEmpty) == parameterDefinition.IsMarshalledExplicitly);
 
             this.Visit(parameterDefinition.GetAttributes(Context));
+            this.Visit(parameterDefinition.RefCustomModifiers);
             this.Visit(parameterDefinition.CustomModifiers);
 
-            IMetadataConstant defaultValue = parameterDefinition.GetDefaultValue(Context);
+            MetadataConstant defaultValue = parameterDefinition.GetDefaultValue(Context);
             if (defaultValue != null)
             {
                 this.Visit((IMetadataExpression)defaultValue);
@@ -444,6 +443,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IParameterTypeInformation parameterTypeInformation)
         {
+            this.Visit(parameterTypeInformation.RefCustomModifiers);
             this.Visit(parameterTypeInformation.CustomModifiers);
             this.Visit(parameterTypeInformation.GetType(Context));
         }
@@ -467,7 +467,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IPropertyDefinition propertyDefinition)
         {
-            this.Visit(propertyDefinition.Accessors);
+            this.Visit(propertyDefinition.GetAccessors(Context));
             this.Visit(propertyDefinition.Parameters);
         }
 

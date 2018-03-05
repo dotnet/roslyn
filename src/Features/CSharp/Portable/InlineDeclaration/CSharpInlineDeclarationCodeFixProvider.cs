@@ -9,13 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -24,12 +24,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal partial class CSharpInlineDeclarationCodeFixProvider : CodeFixProvider
+    internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId);
-
-        public override FixAllProvider GetFixAllProvider() => new InlineDeclarationFixAllProvider(this);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -39,44 +37,31 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return SpecializedTasks.EmptyTask;
         }
 
-        private Task<Document> FixAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
-            => FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-
-        private async Task<Document> FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            // Create an editor to do all the transformations.  This allows us to fix all
-            // the diagnostics in a clean manner.  If we used the normal batch fix provider
-            // then it might fail to apply all the individual text changes as many of the 
-            // changes produced by the diff might end up overlapping others.
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-            var options = document.Project.Solution.Workspace.Options;
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // Attempt to use an out-var declaration if that's the style the user prefers.
             // Note: if using 'var' would cause a problem, we will use the actual type
-            // of hte local.  This is necessary in some cases (for example, when the
+            // of the local.  This is necessary in some cases (for example, when the
             // type of the out-var-decl affects overload resolution or generic instantiation).
-            var useVarWhenDeclaringLocals = options.GetOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals);
-            var useImplicitTypeForIntrinsicTypes = options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
 
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await AddEditsAsync(document, editor, diagnostic, 
-                    useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes, 
-                    cancellationToken).ConfigureAwait(false);
+                await AddEditsAsync(
+                    document, editor, diagnostic, 
+                    options, cancellationToken).ConfigureAwait(false);
             }
-
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
         }
 
         private async Task AddEditsAsync(
             Document document, SyntaxEditor editor, Diagnostic diagnostic, 
-            bool useVarWhenDeclaringLocals, bool useImplicitTypeForIntrinsicTypes, CancellationToken cancellationToken)
+            OptionSet options, CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Recover the nodes we care about.
@@ -102,7 +87,33 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // the entire local declaration statement.  Note that comments belonging to
                 // this local statement will be moved to be above the statement containing
                 // the out-var. 
-                editor.RemoveNode(declaration.Parent);
+                var localDeclarationStatement = (LocalDeclarationStatementSyntax)declaration.Parent;
+                var block = (BlockSyntax)localDeclarationStatement.Parent;
+                var declarationIndex = block.Statements.IndexOf(localDeclarationStatement);
+
+                if (declarationIndex > 0 &&
+                    sourceText.AreOnSameLine(block.Statements[declarationIndex - 1].GetLastToken(), localDeclarationStatement.GetFirstToken()))
+                {
+                    // There's another statement on the same line as this declaration statement.
+                    // i.e.   int a; int b;
+                    //
+                    // Just move all trivia from our statement to be trailing trivia of the previous
+                    // statement
+                    editor.ReplaceNode(
+                        block.Statements[declarationIndex - 1],
+                        (s, g) => s.WithAppendedTrailingTrivia(localDeclarationStatement.GetTrailingTrivia()));
+                }
+                else
+                {
+                    // Trivia on the local declaration will move to the next statement.
+                    // use the callback form as the next statement may be the place where we're 
+                    // inlining the declaration, and thus need to see the effects of that change.
+                    editor.ReplaceNode(
+                        block.Statements[declarationIndex + 1],
+                        (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclarationStatement));
+                }
+
+                editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
             }
             else
             {
@@ -123,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     // to the previous token.  We're going to move it along with this declarator.
                     // If we don't, then the comment will stay with the previous token.
                     //
-                    // Note that hte moving of the comment happens later on when we make the
+                    // Note that the moving of the comment happens later on when we make the
                     // declaration expression.
                     if (sourceText.AreOnSameLine(declarator.GetFirstToken(), declarator.GetFirstToken().GetPreviousToken(includeSkipped: true)))
                     {
@@ -135,8 +146,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             // get the type that we want to put in the out-var-decl based on the user's options.
-            // i.e. prefer 'out var' if that is what the user wants.
-            var newType = this.GetDeclarationType(declaration.Type, useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes);
+            // i.e. prefer 'out var' if that is what the user wants.  Note: if we have:
+            //
+            //      Method(out var x)
+            //
+            // Then the type is not-apparent, and we should not use var if the user only wants
+            // it for apparent types
+
+            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+            var newType = local.Type.GenerateTypeSyntaxOrVar(options, typeIsApparent: false);
 
             var declarationExpression = GetDeclarationExpression(
                 sourceText, identifier, newType, singleDeclarator ? null : declarator);
@@ -145,11 +163,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var semanticsChanged = await SemanticsChangedAsync(
                 document, declaration, invocationOrCreation, newType,
                 identifier, declarationExpression, cancellationToken).ConfigureAwait(false);
-            if (semanticsChanged)
+            if (semanticsChanged && newType.IsVar)
             {
                 // Switching to 'var' changed semantics.  Just use the original type of the local.
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
 
                 // If the user originally wrote it something other than 'var', then use what they
                 // wrote.  Otherwise, synthesize the actual type of the local.
@@ -159,22 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             editor.ReplaceNode(identifier, declarationExpression);
-
-            if (declaration.Variables.Count == 1)
-            {
-                // If we're removing the declaration entirely, move the leading/trailing comments it 
-                // had to sit above the statement containing the out-var declaration.
-                var comments = declaration.Parent.GetLeadingTrivia().Concat(declaration.Parent.GetTrailingTrivia())
-                                                                    .Where(t => t.IsSingleOrMultiLineComment())
-                                                                    .SelectMany(t => ImmutableArray.Create(t, SyntaxFactory.ElasticCarriageReturnLineFeed))
-                                                                    .ToImmutableArray();
-                if (comments.Length > 0)
-                {
-                    editor.ReplaceNode(
-                        outArgumentContainingStatement,
-                        (s, g) => s.WithPrependedLeadingTrivia(comments).WithAdditionalAnnotations(Formatter.Annotation));
-                }
-            }
         }
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 // We're removing a single declarator.  Copy any comments it has to the out-var.
                 //
-                // Note: this is tricky due to comment ownership.  We want hte comments that logically
+                // Note: this is tricky due to comment ownership.  We want the comments that logically
                 // belong to the declarator, even if our syntax model attaches them to other tokens.
                 var precedingTrivia = declaratorOpt.GetAllPrecedingTriviaToPreviousToken(
                     sourceText, includePreviousTokenTrailingTriviaOnlyIfOnSameLine: true);
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 else if (trivia.IsWhitespace())
                 {
                     // Condense whitespace down to single spaces. We don't want things like
-                    // indentation spaces to be inserted in the out-var location.  It is appropraite
+                    // indentation spaces to be inserted in the out-var location.  It is appropriate
                     // though to have single spaces to help separate out things like comments and
                     // tokens though.
                     yield return SyntaxFactory.Space;
@@ -237,37 +237,76 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             if (newType.IsVar)
             {
                 // Options want us to use 'var' if we can.  Make sure we didn't change
-                // the semantics of teh call by doing this.
+                // the semantics of the call by doing this.
 
                 // Find the symbol that the existing invocation points to.
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var previousSymbol = semanticModel.GetSymbolInfo(invocationOrCreation).Symbol;
 
+                // Now, create a speculative model in which we make the change.  Make sure
+                // we still point to the same symbol afterwards.
+
+                var topmostContainer = GetTopmostContainer(invocationOrCreation);
+                if (topmostContainer == null)
+                {
+                    // Couldn't figure out what we were contained in.  Have to assume that semantics
+                    // Are changing.
+                    return true;
+                }
+
                 var annotation = new SyntaxAnnotation();
-                var updatedInvocationOrCreation = invocationOrCreation.ReplaceNode(
-                    identifier, declarationExpression).WithAdditionalAnnotations(annotation);
+                var updatedTopmostContainer = topmostContainer.ReplaceNode(
+                    invocationOrCreation, invocationOrCreation.ReplaceNode(identifier, declarationExpression)
+                                                              .WithAdditionalAnnotations(annotation));
 
-                // Note(cyrusn): "https://github.com/dotnet/roslyn/issues/14384" prevents us from just
-                // speculatively binding the new expression.  So, instead, we fork things and see if
-                // the new symbol we bind to is equivalent to the previous one.
-                var newDocument = document.WithSyntaxRoot(
-                    root.ReplaceNode(invocationOrCreation, updatedInvocationOrCreation));
+                if (!TryGetSpeculativeSemanticModel(semanticModel,
+                        topmostContainer.SpanStart, updatedTopmostContainer, out var speculativeModel))
+                {
+                    // Couldn't figure out the new semantics.  Assume semantics changed.
+                    return true;
+                }
 
-                var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var newSemanticModel = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var updatedInvocationOrCreation = updatedTopmostContainer.GetAnnotatedNodes(annotation).Single();
+                var updatedSymbolInfo = speculativeModel.GetSymbolInfo(updatedInvocationOrCreation);
 
-                updatedInvocationOrCreation = (ExpressionSyntax)newRoot.GetAnnotatedNodes(annotation).Single();
-
-                var updatedSymbol = newSemanticModel.GetSymbolInfo(updatedInvocationOrCreation).Symbol;
-
-                if (!SymbolEquivalenceComparer.Instance.Equals(previousSymbol, updatedSymbol))
+                if (!SymbolEquivalenceComparer.Instance.Equals(previousSymbol, updatedSymbolInfo.Symbol))
                 {
                     // We're pointing at a new symbol now.  Semantic have changed.
                     return true;
                 }
             }
 
+            return false;
+        }
+
+        private SyntaxNode GetTopmostContainer(ExpressionSyntax expression)
+        {
+            return expression.GetAncestorsOrThis(
+                a => a is StatementSyntax ||
+                     a is EqualsValueClauseSyntax ||
+                     a is ArrowExpressionClauseSyntax ||
+                     a is ConstructorInitializerSyntax).LastOrDefault();
+        }
+
+        private bool TryGetSpeculativeSemanticModel(
+            SemanticModel semanticModel, 
+            int position, SyntaxNode topmostContainer,
+            out SemanticModel speculativeModel)
+        {
+            switch (topmostContainer)
+            {
+                case StatementSyntax statement:
+                    return semanticModel.TryGetSpeculativeSemanticModel(position, statement, out speculativeModel);
+                case EqualsValueClauseSyntax equalsValue:
+                    return semanticModel.TryGetSpeculativeSemanticModel(position, equalsValue, out speculativeModel);
+                case ArrowExpressionClauseSyntax arrowExpression:
+                    return semanticModel.TryGetSpeculativeSemanticModel(position, arrowExpression, out speculativeModel);
+                case ConstructorInitializerSyntax constructorInitializer:
+                    return semanticModel.TryGetSpeculativeSemanticModel(position, constructorInitializer, out speculativeModel);
+            }
+
+            speculativeModel = null;
             return false;
         }
 
@@ -289,7 +328,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
-                : base(FeaturesResources.Inline_variable_declaration, createChangedDocument)
+                : base(FeaturesResources.Inline_variable_declaration,
+                       createChangedDocument,
+                       FeaturesResources.Inline_variable_declaration)
             {
             }
         }

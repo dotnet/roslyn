@@ -86,13 +86,13 @@ namespace Microsoft.CodeAnalysis
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
-            writer.WriteValue(Id.ToByteArray());
+            writer.WriteGuid(Id);
             writer.WriteString(DebugName);
         }
 
         internal static ProjectId ReadFrom(ObjectReader reader)
         {
-            var guid = new Guid((byte[])reader.ReadValue());
+            var guid = reader.ReadGuid();
             var debugName = reader.ReadString();
 
             return CreateFromSerialized(guid, debugName);

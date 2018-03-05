@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -65,6 +65,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // the cancellation token might be passed out to other service
                         // so don't call cancel on the source only because we are done using it.
                         _cancellationMap.Remove(key);
+
+                        if (!HasAnyWork_NoLock)
+                        {
+                            Contract.Requires(_cancellationMap.Count == 0);
+
+                            // last work is done.
+                            _progressReporter.Stop();
+                        }
                     }
                 }
 
@@ -75,14 +83,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public bool AddOrReplace(WorkItem item)
                 {
-                    if (!HasAnyWork)
-                    {
-                        // first work is added.
-                        _progressReporter.Start();
-                    }
-
                     lock (_gate)
                     {
+                        // we need to check both work enqueued and work sent
+                        // out that are still running before start new progress
+                        // report otherwise, we can start progress again
+                        // while last work item is still running causing
+                        // progress bar to be broken
+                        if (!HasAnyWork_NoLock && _cancellationMap.Count == 0)
+                        {
+                            // first work is added.
+                            _progressReporter.Start();
+                        }
+
                         if (AddOrReplace_NoLock(item))
                         {
                             // increase count 
@@ -155,8 +168,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected void Cancel_NoLock(object key)
                 {
-                    CancellationTokenSource source;
-                    if (_cancellationMap.TryGetValue(key, out source))
+                    if (_cancellationMap.TryGetValue(key, out var source))
                     {
                         source.Cancel();
                         _cancellationMap.Remove(key);
@@ -169,12 +181,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         if (TryTake_NoLock(key, out workInfo))
                         {
-                            if (!HasAnyWork_NoLock)
-                            {
-                                // last work is done.
-                                _progressReporter.Stop();
-                            }
-
                             source = GetNewCancellationSource_NoLock(key);
                             workInfo.AsyncToken.Dispose();
                             return true;
@@ -198,12 +204,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // there must be at least one item in the map when this is called unless host is shutting down.
                         if (TryTakeAnyWork_NoLock(preferableProjectId, dependencyGraph, analyzerService, out workItem))
                         {
-                            if (!HasAnyWork_NoLock)
-                            {
-                                // last work is done.
-                                _progressReporter.Stop();
-                            }
-
                             source = GetNewCancellationSource_NoLock(workItem.Key);
                             workItem.AsyncToken.Dispose();
                             return true;

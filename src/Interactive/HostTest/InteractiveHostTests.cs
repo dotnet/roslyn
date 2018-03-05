@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -118,14 +118,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             return ReadOutputToEnd(isError: true);
         }
 
-        public void ClearOutput()
+        private void ClearOutput()
         {
             _outputReadPosition = new int[] { 0, 0 };
             _synchronizedOutput.Clear();
             _synchronizedErrorOutput.Clear();
         }
 
-        public void RestartHost(string rspFile = null)
+        private void RestartHost(string rspFile = null)
         {
             ClearOutput();
 
@@ -229,11 +229,11 @@ System.Console.Error.WriteLine(""error-\u7890!"");
             var process = _host.TryGetProcess();
 
             Execute(@"
-int foo(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9) 
+int goo(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9) 
 { 
-    return foo(0,1,2,3,4,5,6,7,8,9) + foo(0,1,2,3,4,5,6,7,8,9); 
+    return goo(0,1,2,3,4,5,6,7,8,9) + goo(0,1,2,3,4,5,6,7,8,9); 
 } 
-foo(0,1,2,3,4,5,6,7,8,9)
+goo(0,1,2,3,4,5,6,7,8,9)
             ");
 
             Assert.Equal("", ReadOutputToEnd());
@@ -248,7 +248,7 @@ foo(0,1,2,3,4,5,6,7,8,9)
         }
 
         private const string MethodWithInfiniteLoop = @"
-void foo() 
+void goo() 
 { 
     int i = 0;
     while (true) 
@@ -386,10 +386,10 @@ using static System.Console;
 public class C 
 { 
    public int field = 4; 
-   public int Foo(int i) { return i; } 
+   public int Goo(int i) { return i; } 
 }
 
-public int Foo(int i) { return i; }
+public int Goo(int i) { return i; }
 
 WriteLine(5);
 ").Path;
@@ -399,10 +399,10 @@ WriteLine(5);
             Assert.True(task.Result.Success);
             Assert.Equal("5", ReadOutputToEnd().Trim());
 
-            Execute("Foo(2)");
+            Execute("Goo(2)");
             Assert.Equal("2", ReadOutputToEnd().Trim());
 
-            Execute("new C().Foo(3)");
+            Execute("new C().Goo(3)");
             Assert.Equal("3", ReadOutputToEnd().Trim());
 
             Execute("new C().field");
@@ -658,19 +658,19 @@ WriteLine(5);
             var dir = Temp.CreateDirectory();
 
             var source1 = "public class C { public int X = 1; }";
-            var c1 = CreateCompilationWithMscorlib(source1, assemblyName: "C");
+            var c1 = CreateStandardCompilation(source1, assemblyName: "C");
             var file = dir.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
 
             // use:
             Execute($@"
 #r ""{file.Path}""
-C foo() => new C();
+C goo() => new C();
 new C().X
 ");
 
             // update:
             var source2 = "public class D { public int Y = 2; }";
-            var c2 = CreateCompilationWithMscorlib(source2, assemblyName: "C");
+            var c2 = CreateStandardCompilation(source2, assemblyName: "C");
             file.WriteAllBytes(c2.EmitToArray());
 
             // add the reference again:
@@ -697,11 +697,11 @@ new D().Y
             var dir2 = dir.CreateDirectory("2");
 
             var source1 = "public class C1 { }";
-            var c1 = CreateCompilationWithMscorlib(source1, assemblyName: "C");
+            var c1 = CreateStandardCompilation(source1, assemblyName: "C");
             var file1 = dir1.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
 
             var source2 = "public class C2 { }";
-            var c2 = CreateCompilationWithMscorlib(source2, assemblyName: "C");
+            var c2 = CreateStandardCompilation(source2, assemblyName: "C");
             var file2 = dir2.CreateFile("c.dll").WriteAllBytes(c2.EmitToArray());
 
             Execute($@"
@@ -731,11 +731,11 @@ new D().Y
             var dir2 = dir.CreateDirectory("2");
 
             var source1 = @"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C1 { }";
-            var c1 = CreateCompilationWithMscorlib(source1, assemblyName: "C");
+            var c1 = CreateStandardCompilation(source1, assemblyName: "C");
             var file1 = dir1.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
 
             var source2 = @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C2 { }";
-            var c2 = CreateCompilationWithMscorlib(source2, assemblyName: "C");
+            var c2 = CreateStandardCompilation(source2, assemblyName: "C");
             var file2 = dir2.CreateFile("c.dll").WriteAllBytes(c2.EmitToArray());
 
             Execute($@"
@@ -1056,9 +1056,9 @@ new object[] { new Class1(), new Class2(), new Class3() }
             var dll = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01);
             var srcDir = Temp.CreateDirectory();
             var dllDir = Path.GetDirectoryName(dll.Path);
-            srcDir.CreateFile("foo.csx").WriteAllText("ReferencePaths.Add(@\"" + dllDir + "\");");
+            srcDir.CreateFile("goo.csx").WriteAllText("ReferencePaths.Add(@\"" + dllDir + "\");");
 
-            Func<string, string> normalizeSeparatorsAndFrameworkFolders = (s) => s.Replace("\\", "\\\\").Replace("Framework64", "Framework");
+            string normalizeSeparatorsAndFrameworkFolders(string s) => s.Replace("\\", "\\\\").Replace("Framework64", "Framework");
 
             // print default:
             _host.ExecuteAsync(@"ReferencePaths").Wait();
@@ -1078,7 +1078,7 @@ new object[] { new Class1(), new Class2(), new Class3() }
             Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", new[] { s_homeDir, srcDir.Path })) + "\" }\r\n", output);
 
             // execute file (uses modified search paths), the file adds a reference path
-            _host.ExecuteFileAsync("foo.csx").Wait();
+            _host.ExecuteFileAsync("goo.csx").Wait();
 
             _host.ExecuteAsync(@"ReferencePaths").Wait();
 
@@ -1193,8 +1193,8 @@ s
             Assert.Equal("2\r\n", output);
 
             Execute(@"
-void foo() { } 
-foo()
+void goo() { } 
+goo()
 ");
 
             output = ReadOutputToEnd();

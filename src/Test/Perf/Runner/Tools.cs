@@ -13,6 +13,29 @@ namespace Roslyn.Test.Performance.Runner
 {
     public static class Tools
     {
+        public static async Task<ScriptState<object>> RunFileInItsDirectory(string fileName)
+        {
+            var workingDirectory = Environment.CurrentDirectory;
+            try
+            {
+                var scriptDirectory = Path.GetDirectoryName(Path.GetFullPath(fileName));
+                Environment.CurrentDirectory = scriptDirectory;
+                var result = await RunFile(fileName).ConfigureAwait(false);
+                return result;
+            }
+            catch(Exception e)
+            {
+                Log($"Encountered exception collecting tests from {fileName}");
+                Log(e.Message);
+                Log(e.StackTrace);
+                return null;
+            }
+            finally
+            {
+                Environment.CurrentDirectory = workingDirectory;
+            }
+        }
+
         /// Runs the script at fileName and returns a task containing the
         /// state of the script.
         public static async Task<ScriptState<object>> RunFile(string fileName)
@@ -34,7 +57,7 @@ namespace Roslyn.Test.Performance.Runner
         {
             foreach (var fileName in Directory.EnumerateFiles(directoryName, "*.csx"))
             {
-                yield return fileName;
+                yield return Path.GetFullPath(fileName); ;
             }
 
 
@@ -42,7 +65,7 @@ namespace Roslyn.Test.Performance.Runner
             {
                 foreach (var fileName in GetAllCsxRecursive(childDir))
                 {
-                    yield return fileName;
+                    yield return Path.GetFullPath(fileName);
                 }
             }
         }

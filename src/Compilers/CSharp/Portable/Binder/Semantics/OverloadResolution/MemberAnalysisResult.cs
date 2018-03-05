@@ -153,6 +153,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return RequiredParameterMissing(argAnalysis.ParameterPosition);
                 case ArgumentAnalysisResultKind.NameUsedForPositional:
                     return NameUsedForPositional(argAnalysis.ArgumentPosition);
+                case ArgumentAnalysisResultKind.BadNonTrailingNamedArgument:
+                    return BadNonTrailingNamedArgument(argAnalysis.ArgumentPosition);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(argAnalysis.Kind);
             }
@@ -162,6 +164,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.NameUsedForPositional,
+                ImmutableArray.Create<int>(argumentPosition),
+                default(ImmutableArray<int>),
+                default(ImmutableArray<Conversion>));
+        }
+
+        public static MemberAnalysisResult BadNonTrailingNamedArgument(int argumentPosition)
+        {
+            return new MemberAnalysisResult(
+                MemberResolutionKind.BadNonTrailingNamedArgument,
                 ImmutableArray.Create<int>(argumentPosition),
                 default(ImmutableArray<int>),
                 default(ImmutableArray<Conversion>));

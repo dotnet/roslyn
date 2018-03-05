@@ -233,9 +233,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
-        {
-            return HasTextSpan ? TextSpan : GetTextSpan(this.DataLocation, text);
-        }
+            => HasTextSpan ? EnsureInBounds(TextSpan, text) : GetTextSpan(this.DataLocation, text);
+
+        private static TextSpan EnsureInBounds(TextSpan textSpan, SourceText text)
+            => TextSpan.FromBounds(
+                Math.Min(textSpan.Start, text.Length),
+                Math.Min(textSpan.End, text.Length));
 
         public DiagnosticData WithCalculatedSpan(SourceText text)
         {
@@ -267,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var lines = text.Lines;
             if (lines.Count == 0)
             {
-                return default(TextSpan);
+                return default;
             }
 
             var originalStartLine = dataLocation?.OriginalStartLine ?? 0;
@@ -276,15 +279,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return new TextSpan(text.Length, 0);
             }
 
-            int startLine, startColumn, endLine, endColumn;
-            AdjustBoundaries(dataLocation, lines, out startLine, out startColumn, out endLine, out endColumn);
+            AdjustBoundaries(dataLocation, lines, 
+                out var startLine, out var startColumn, out var endLine, out var endColumn);
 
             var startLinePosition = new LinePosition(startLine, startColumn);
             var endLinePosition = new LinePosition(endLine, endColumn);
             SwapIfNeeded(ref startLinePosition, ref endLinePosition);
 
             var span = text.Lines.GetTextSpan(new LinePositionSpan(startLinePosition, endLinePosition));
-            return TextSpan.FromBounds(Math.Min(Math.Max(span.Start, 0), text.Length), Math.Min(Math.Max(span.End, 0), text.Length));
+            return EnsureInBounds(TextSpan.FromBounds(Math.Max(span.Start, 0), Math.Max(span.End, 0)), text);
         }
 
         private static void AdjustBoundaries(DiagnosticDataLocation dataLocation,
@@ -379,10 +382,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
             }
 
-            TextSpan sourceSpan;
-            FileLinePositionSpan mappedLineInfo;
-            FileLinePositionSpan originalLineInfo;
-            GetLocationInfo(document, location, out sourceSpan, out originalLineInfo, out mappedLineInfo);
+            GetLocationInfo(document, location, out var sourceSpan, out var originalLineInfo, out var mappedLineInfo);
 
             var mappedStartLine = mappedLineInfo.StartLinePosition.Line;
             var mappedStartColumn = mappedLineInfo.StartLinePosition.Character;
@@ -410,6 +410,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                 .WhereNotNull()
                                                 .ToReadOnlyCollection();
 
+            var properties = GetProperties(document, diagnostic);
+
             return new DiagnosticData(
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
@@ -420,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
-                diagnostic.Properties,
+                properties,
                 document.Project.Solution.Workspace,
                 document.Project.Id,
                 location,
@@ -431,7 +433,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isSuppressed: diagnostic.IsSuppressed);
         }
 
-        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, out DiagnosticData diagnosticData, CancellationToken cancellationToken = default(CancellationToken))
+        private static ImmutableDictionary<string, string> GetProperties(
+            Document document, Diagnostic diagnostic)
+        {
+            var properties = diagnostic.Properties;
+            var service = document.GetLanguageService<IDiagnosticPropertiesService>();
+            var additionalProperties = service?.GetAdditionalProperties(diagnostic);
+
+            return additionalProperties == null
+                ? properties
+                : properties.AddRange(additionalProperties);
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Create a host/VS specific diagnostic with the given descriptor and message arguments for the given project.
+        /// Note that diagnostic created through this API cannot be suppressed with in-source suppression due to performance reasons (see the PERF remark below for details).
+        /// </summary>
+        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, out DiagnosticData diagnosticData, CancellationToken cancellationToken = default)
         {
             diagnosticData = null;
             var project = workspace.CurrentSolution.GetProject(projectId);
@@ -440,24 +459,52 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            var diagnostic = Diagnostic.Create(descriptor, Location.None, messageArguments);
+            DiagnosticSeverity effectiveSeverity;
             if (project.SupportsCompilation)
             {
-                // Get diagnostic with effective severity.
-                // Additionally, if the diagnostic was suppressed by a source suppression, effectiveDiagnostics will have a diagnostic with IsSuppressed = true.
-                var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                var effectiveDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(SpecializedCollections.SingletonEnumerable(diagnostic), compilation);
-                if (effectiveDiagnostics == null || effectiveDiagnostics.IsEmpty())
+                // Get the effective severity of the diagnostic from the compilation options.
+                // PERF: We do not check if the diagnostic was suppressed by a source suppression, as this requires us to force complete the assembly attributes, which is very expensive.
+                ReportDiagnostic reportDiagnostic = descriptor.GetEffectiveSeverity(project.CompilationOptions);
+                if (reportDiagnostic == ReportDiagnostic.Suppress)
                 {
                     // Rule is disabled by compilation options.
                     return false;
                 }
 
-                diagnostic = effectiveDiagnostics.Single();
+                effectiveSeverity = GetEffectiveSeverity(reportDiagnostic, descriptor.DefaultSeverity);
+            }
+            else
+            {
+                effectiveSeverity = descriptor.DefaultSeverity;
             }
 
+            var diagnostic = Diagnostic.Create(descriptor, Location.None, effectiveSeverity, additionalLocations: null, properties: null, messageArgs: messageArguments);
             diagnosticData = diagnostic.ToDiagnosticData(project);
             return true;
+        }
+
+        private static DiagnosticSeverity GetEffectiveSeverity(ReportDiagnostic effectiveReportDiagnostic, DiagnosticSeverity defaultSeverity)
+        {
+            switch (effectiveReportDiagnostic)
+            {
+                case ReportDiagnostic.Default:
+                    return defaultSeverity;
+
+                case ReportDiagnostic.Error:
+                    return DiagnosticSeverity.Error;
+
+                case ReportDiagnostic.Hidden:
+                    return DiagnosticSeverity.Hidden;
+
+                case ReportDiagnostic.Info:
+                    return DiagnosticSeverity.Info;
+
+                case ReportDiagnostic.Warn:
+                    return DiagnosticSeverity.Warning;
+
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private static void GetLocationInfo(Document document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
@@ -485,8 +532,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <returns></returns>
         internal bool IsBuildDiagnostic()
         {
-            string value;
-            return this.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out value) &&
+            return this.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out var value) &&
                 value == WellKnownDiagnosticTags.Build;
         }
     }

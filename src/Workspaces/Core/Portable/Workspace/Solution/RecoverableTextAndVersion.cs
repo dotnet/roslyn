@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis
 
         public override bool TryGetValue(out TextAndVersion value)
         {
-            SourceText text;
-            if (_text != null && _text.TryGetValue(out text))
+            if (_text != null && _text.TryGetValue(out var text))
             {
                 value = TextAndVersion.Create(text, _version, _filePath);
                 return true;
@@ -56,19 +55,18 @@ namespace Microsoft.CodeAnalysis
 
             // if the TextAndVersion has not been stored yet, but it has been observed
             // then try to get version from cached value.
-            if (version == default(VersionStamp))
+            if (version == default)
             {
-                TextAndVersion textAndVersion;
-                if (this.TryGetValue(out textAndVersion))
+                if (this.TryGetValue(out var textAndVersion))
                 {
                     version = textAndVersion.Version;
                 }
             }
 
-            return version != default(VersionStamp);
+            return version != default;
         }
 
-        public override TextAndVersion GetValue(CancellationToken cancellationToken = default(CancellationToken))
+        public override TextAndVersion GetValue(CancellationToken cancellationToken = default)
         {
             if (_text == null)
             {
@@ -84,7 +82,7 @@ namespace Microsoft.CodeAnalysis
             return TextAndVersion.Create(_text.GetValue(cancellationToken), _version, _filePath);
         }
 
-        public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default)
         {
             if (_text == null)
             {
@@ -119,10 +117,6 @@ namespace Microsoft.CodeAnalysis
             public RecoverableText(RecoverableTextAndVersion parent, SourceText text)
                 : base(new ConstantValueSource<SourceText>(text))
             {
-                // TODO: refactor recoverable text like recoverable tree so that
-                //       we can have tree/node concept in recoverable text as well.
-                //       basically tree is handle that can live in memory and node is
-                //       data that come and go.
                 _parent = parent;
             }
 

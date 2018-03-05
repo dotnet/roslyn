@@ -2,19 +2,21 @@
 
 using System;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<ReturnKeyCommandArgs>.GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        VSCommanding.CommandState IChainedCommandHandler<ReturnKeyCommandArgs>.GetCommandState(ReturnKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             AssertIsForeground();
             return nextHandler();
         }
 
-        void ICommandHandler<ReturnKeyCommandArgs>.ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
+        void IChainedCommandHandler<ReturnKeyCommandArgs>.ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             AssertIsForeground();
 
@@ -25,15 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            // We are computing a model.  Commit it if we compute any selected item.
-            bool sendThrough, committed;
-            CommitOnEnter(out sendThrough, out committed);
+            CommitOnEnter(out var sendThrough, out var committed);
 
-            // We did not commit based on enter.  So our computation will still be running.  Stop it now.
-            if (!committed)
-            {
-                this.StopModelComputation();
-            }
+            // Always stop completion after enter has been typed.
+            DismissSessionIfActive();
 
             // Enter has different behavior amongst languages, so we need to actually defer to
             // the individual language item to determine what to do.  For example, in VB, enter
@@ -50,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             AssertIsForeground();
 
-            var model = sessionOpt.WaitForModel();
+            var model = WaitForModel();
 
             // If there's no model, then there's nothing to commit.
             if (model == null)

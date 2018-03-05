@@ -11,34 +11,34 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "FullName tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName1() As Task
+        Public Sub TestFullName1()
             Dim code =
 <Code>
 Class C
-    Sub $$Foo(string s)
+    Sub $$Goo(string s)
     End Sub
 End Class
 </Code>
 
-            Await TestFullName(code, "C.Foo")
-        End Function
+            TestFullName(code, "C.Goo")
+        End Sub
 
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        Public Sub TestName1()
             Dim code =
 <Code>
 Class C
-    Sub $$Foo(string s)
+    Sub $$Goo(string s)
     End Sub
 End Class
 </Code>
 
-            Await TestName(code, "Foo")
-        End Function
+            TestName(code, "Goo")
+        End Sub
 
 #End Region
 

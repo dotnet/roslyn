@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -783,7 +784,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return SpecializedCollections.EmptyEnumerable(Of FieldSymbol)()
                 End Function
 
-                Friend Overrides ReadOnly Property HasEmbeddedAttribute As Boolean
+                Friend Overrides ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
+                    Get
+                        Throw ExceptionUtilities.Unreachable
+                    End Get
+                End Property
+
+                Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
                     Get
                         Throw ExceptionUtilities.Unreachable
                     End Get
@@ -929,11 +936,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend NotOverridable Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-                    Get
-                        Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
-                    End Get
-                End Property
+                Public NotOverridable Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+                    Return GetEmptyTypeArgumentCustomModifiers(ordinal)
+                End Function
 
                 Friend NotOverridable Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
                     Get
@@ -1266,6 +1271,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+                    Get
+                        Return ClonedFrom.RefCustomModifiers
+                    End Get
+                End Property
+
                 Friend Overrides ReadOnly Property Syntax As SyntaxNode
                     Get
                         Throw ExceptionUtilities.Unreachable
@@ -1408,6 +1419,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+                    Get
+                        Return _clonedFrom.RefCustomModifiers
+                    End Get
+                End Property
+
                 Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                     Get
                         Throw ExceptionUtilities.Unreachable
@@ -1539,12 +1556,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
 
                         Return _clonedFrom.IsCallerFilePath
-                    End Get
-                End Property
-
-                Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
-                    Get
-                        Return _clonedFrom.CountOfCustomModifiersPrecedingByRef
                     End Get
                 End Property
 
@@ -1801,6 +1812,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Public Overrides ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
                     Get
                         Return _clonedFrom.TypeCustomModifiers
+                    End Get
+                End Property
+
+                Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+                    Get
+                        Return _clonedFrom.RefCustomModifiers
                     End Get
                 End Property
 

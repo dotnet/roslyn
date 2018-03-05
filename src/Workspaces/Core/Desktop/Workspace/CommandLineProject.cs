@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -36,8 +36,10 @@ namespace Microsoft.CodeAnalysis
             var metadataService = tmpWorkspace.Services.GetRequiredService<IMetadataService>();
 
             // we only support file paths in /r command line arguments
+            var relativePathResolver =
+                new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
             var commandLineMetadataReferenceResolver = new WorkspaceMetadataFileReferenceResolver(
-                metadataService, new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory));
+                metadataService, relativePathResolver);
 
             var analyzerLoader = tmpWorkspace.Services.GetRequiredService<IAnalyzerService>().GetLoader();
             var xmlFileResolver = new XmlFileResolver(commandLineArguments.BaseDirectory);
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis
             // resolve all analyzer references.
             foreach (var path in commandLineArguments.AnalyzerReferences.Select(r => r.FilePath))
             {
-                analyzerLoader.AddDependencyLocation(path);
+                analyzerLoader.AddDependencyLocation(relativePathResolver.ResolvePath(path, baseFilePath: null));
             }
 
             var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences(analyzerLoader);
@@ -94,8 +96,8 @@ namespace Microsoft.CodeAnalysis
                     ? Path.GetFullPath(fileArg.Path)
                     : Path.GetFullPath(Path.Combine(projectDirectory, fileArg.Path));
 
-                var relativePath = FilePathUtilities.GetRelativePath(projectDirectory, absolutePath);
-                var isWithinProject = FilePathUtilities.IsNestedPath(projectDirectory, absolutePath);
+                var relativePath = PathUtilities.GetRelativePath(projectDirectory, absolutePath);
+                var isWithinProject = PathUtilities.IsChildPath(projectDirectory, absolutePath);
 
                 var folderRoot = isWithinProject ? Path.GetDirectoryName(relativePath) : "";
                 var folders = isWithinProject ? GetFolders(relativePath) : null;
@@ -121,8 +123,8 @@ namespace Microsoft.CodeAnalysis
                         ? Path.GetFullPath(fileArg.Path)
                         : Path.GetFullPath(Path.Combine(projectDirectory, fileArg.Path));
 
-                var relativePath = FilePathUtilities.GetRelativePath(projectDirectory, absolutePath);
-                var isWithinProject = FilePathUtilities.IsNestedPath(projectDirectory, absolutePath);
+                var relativePath = PathUtilities.GetRelativePath(projectDirectory, absolutePath);
+                var isWithinProject = PathUtilities.IsChildPath(projectDirectory, absolutePath);
 
                 var folderRoot = isWithinProject ? Path.GetDirectoryName(relativePath) : "";
                 var folders = isWithinProject ? GetFolders(relativePath) : null;

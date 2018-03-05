@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -18,18 +18,20 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
+using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
+using SVsUIShell = Microsoft.VisualStudio.Shell.Interop.SVsUIShell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
     [ExportWorkspaceServiceFactory(typeof(IPreviewPaneService), ServiceLayer.Host), Shared]
     internal class PreviewPaneService : ForegroundThreadAffinitizedObject, IPreviewPaneService, IWorkspaceServiceFactory
     {
-        private readonly EnvDTE.DTE _dte;
+        private readonly IVsUIShell _uiShell;
 
         [ImportingConstructor]
         public PreviewPaneService(SVsServiceProvider serviceProvider)
         {
-            _dte = serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
+            _uiShell = serviceProvider.GetService(typeof(SVsUIShell)) as IVsUIShell;
         }
 
         IWorkspaceService IWorkspaceServiceFactory.CreateService(HostWorkspaceServices workspaceServices)
@@ -71,9 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         {
             var isBing = false;
             helpLinkToolTipText = string.Empty;
-
-            Uri helpLink;
-            if (!BrowserHelper.TryGetUri(diagnostic.HelpLink, out helpLink))
+            if (!BrowserHelper.TryGetUri(diagnostic.HelpLink, out var helpLink))
             {
                 // We use the ENU version of the message for bing search.
                 helpLink = BrowserHelper.CreateBingQueryUri(diagnostic.Id, diagnostic.ENUMessageForBingSearch, language, projectType);
@@ -83,9 +83,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url displayed in the tooltip stays human readable.
             if (helpLink != null)
             {
-                helpLinkToolTipText =
-                    string.Format(ServicesVSResources.Get_help_for_0_1_2_3, diagnostic.Id,
-                        isBing ? ServicesVSResources.from_Bing : null, Environment.NewLine, helpLink);
+                var prefix = isBing
+                    ? string.Format(ServicesVSResources.Get_help_for_0_from_Bing, diagnostic.Id)
+                    : string.Format(ServicesVSResources.Get_help_for_0, diagnostic.Id);
+
+                helpLinkToolTipText = $"{prefix}\r\n{helpLink}";
             }
 
             return helpLink;
@@ -107,18 +109,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
                 return new PreviewPane(
                     severityIcon: null, id: null, title: null, description: null, helpLink: null, helpLinkToolTipText: null,
-                    previewContent: previewContent, logIdVerbatimInTelemetry: false, dte: _dte);
+                    previewContent: previewContent, logIdVerbatimInTelemetry: false, uiShell: _uiShell);
             }
 
             var helpLinkToolTipText = string.Empty;
             Uri helpLink = GetHelpLink(diagnostic, language, projectType, out helpLinkToolTipText);
 
-            Guid optionPageGuid = default(Guid);
-            string optionName;
-            if (diagnostic.Properties.TryGetValue("OptionName", out optionName))
+            Guid optionPageGuid = default;
+            if (diagnostic.Properties.TryGetValue("OptionName", out var optionName))
             {
-                string optionLanguage = null;
-                diagnostic.Properties.TryGetValue("OptionLanguage", out optionLanguage);
+                diagnostic.Properties.TryGetValue("OptionLanguage", out var optionLanguage);
                 optionPageGuid = GetOptionPageGuidForOptionName(optionName, optionLanguage);
             }
 
@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 helpLinkToolTipText: helpLinkToolTipText,
                 previewContent: previewContent,
                 logIdVerbatimInTelemetry: diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
-                dte: _dte,
+                uiShell: _uiShell,
                 optionPageGuid: optionPageGuid);
         }
 
@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 }
             }
 
-            return default(Guid);
+            return default;
         }
     }
 }

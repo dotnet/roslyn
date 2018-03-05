@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -110,6 +111,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return this.LocalSymbol; }
         }
+
+        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors)
+            : this(syntax, localSymbol, false, constantValueOpt, type, hasErrors)
+        {
+        }
+
+        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
+            : this(syntax, localSymbol, false, constantValueOpt, type)
+        {
+        }
+
+        public BoundLocal Update(LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
+        {
+            return this.Update(localSymbol, this.IsDeclaration, constantValueOpt, type);
+        }
     }
 
     internal partial class BoundFieldAccess
@@ -150,6 +166,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
         public ImmutableArray<PropertySymbol> OriginalIndexersOpt { get; private set; }
+
+        public BoundIndexerAccess Update(bool useSetterForDefaultArgumentGeneration)
+        {
+            if (useSetterForDefaultArgumentGeneration != this.UseSetterForDefaultArgumentGeneration)
+            {
+                var result = new BoundIndexerAccess(
+                   this.Syntax,
+                   this.ReceiverOpt,
+                   this.Indexer,
+                   this.Arguments,
+                   this.ArgumentNamesOpt,
+                   this.ArgumentRefKindsOpt,
+                   this.Expanded,
+                   this.ArgsToParamsOpt,
+                   this.BinderOpt,
+                   useSetterForDefaultArgumentGeneration,
+                   this.Type,
+                   this.HasErrors)
+                {
+                    WasCompilerGenerated = this.WasCompilerGenerated,
+                    OriginalIndexersOpt = this.OriginalIndexersOpt
+                };
+
+                return result;
+            }
+
+            return this;
+        }
 
         public override LookupResultKind ResultKind
         {
@@ -396,6 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundObjectCreationExpression UpdateArgumentsAndInitializer(
             ImmutableArray<BoundExpression> newArguments,
+            ImmutableArray<RefKind> newRefKinds,
             BoundExpression newInitializerExpression,
             TypeSymbol changeTypeOpt = null)
         {
@@ -403,11 +448,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructor: Constructor,
                 arguments: newArguments,
                 argumentNamesOpt: default(ImmutableArray<string>),
-                argumentRefKindsOpt: ArgumentRefKindsOpt,
+                argumentRefKindsOpt: newRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 constantValueOpt: ConstantValueOpt,
                 initializerExpressionOpt: newInitializerExpression,
+                binderOpt: BinderOpt,
                 type: changeTypeOpt ?? Type);
         }
     }
@@ -444,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultOperator
+    internal partial class BoundDefaultExpression
     {
         public override ConstantValue ConstantValue
         {
@@ -614,6 +660,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool System.IEquatable<BoundTypeOrValueData>.Equals(BoundTypeOrValueData b)
         {
             return b == this;
+        }
+    }
+
+    internal partial class BoundTupleExpression
+    {
+        /// <summary>
+        /// Applies action to all the nested elements of this tuple.
+        /// </summary>
+        internal void VisitAllElements<T>(Action<BoundExpression, T> action, T args)
+        {
+            foreach (var argument in this.Arguments)
+            {
+                if (argument.Kind == BoundKind.TupleLiteral)
+                {
+                    ((BoundTupleExpression)argument).VisitAllElements(action, args);
+                }
+                else
+                {
+                    action(argument, args);
+                }
+            }
         }
     }
 }

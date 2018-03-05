@@ -1,11 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Roslyn.Utilities;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
@@ -98,30 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return pooled.ToStringAndFree();
         }
 
-        internal override string GetArrayIndexExpression(int[] indices)
+        internal override string GetArrayIndexExpression(string[] indices)
         {
-            Debug.Assert(indices != null);
-
-            var pooled = PooledStringBuilder.GetInstance();
-            var builder = pooled.Builder;
-
-            builder.Append('[');
-            bool any = false;
-            foreach (var index in indices)
-            {
-                if (any)
-                {
-                    builder.Append(", ");
-                }
-                builder.Append(index);
-                any = true;
-            }
-            builder.Append(']');
-
-            return pooled.ToStringAndFree();
+            return indices.ToCommaSeparatedString('[', ']');
         }
 
-        internal override string GetCastExpression(string argument, string type, bool parenthesizeArgument, bool parenthesizeEntireExpression)
+        internal override string GetCastExpression(string argument, string type, DkmClrCastExpressionOptions options)
         {
             Debug.Assert(!string.IsNullOrEmpty(argument));
             Debug.Assert(!string.IsNullOrEmpty(type));
@@ -129,15 +111,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
 
-            if (parenthesizeEntireExpression)
+            if ((options & DkmClrCastExpressionOptions.ParenthesizeEntireExpression) != 0)
             {
                 builder.Append('(');
             }
-
-            var castExpressionFormat = parenthesizeArgument ? "({0})({1})" : "({0}){1}";
-            builder.AppendFormat(castExpressionFormat, type, argument);
-
-            if (parenthesizeEntireExpression)
+            if ((options & DkmClrCastExpressionOptions.ParenthesizeArgument) != 0)
+            {
+                argument = $"({argument})";
+            }
+            if ((options & DkmClrCastExpressionOptions.ConditionalCast) != 0)
+            {
+                builder.Append(argument);
+                builder.Append(" as ");
+                builder.Append(type);
+            }
+            else
+            {
+                builder.Append('(');
+                builder.Append(type);
+                builder.Append(')');
+                builder.Append(argument);
+            }
+            if ((options & DkmClrCastExpressionOptions.ParenthesizeEntireExpression) != 0)
             {
                 builder.Append(')');
             }
@@ -147,25 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override string GetTupleExpression(string[] values)
         {
-            Debug.Assert(values != null);
-
-            var pooled = PooledStringBuilder.GetInstance();
-            var builder = pooled.Builder;
-
-            builder.Append('(');
-            bool any = false;
-            foreach (var value in values)
-            {
-                if (any)
-                {
-                    builder.Append(", ");
-                }
-                builder.Append(value);
-                any = true;
-            }
-            builder.Append(')');
-
-            return pooled.ToStringAndFree();
+            return values.ToCommaSeparatedString('(', ')');
         }
 
         internal override string GetNamesForFlagsEnumValue(ArrayBuilder<EnumField> fields, object value, ulong underlyingValue, ObjectDisplayOptions options, Type typeToDisplayOpt)
@@ -215,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return null;
         }
 
-        internal override string GetObjectCreationExpression(string type, string arguments)
+        internal override string GetObjectCreationExpression(string type, string[] arguments)
         {
             Debug.Assert(!string.IsNullOrEmpty(type));
 
@@ -225,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             builder.Append("new ");
             builder.Append(type);
             builder.Append('(');
-            builder.Append(arguments);
+            builder.AppendCommaSeparatedList(arguments);
             builder.Append(')');
 
             return pooled.ToStringAndFree();

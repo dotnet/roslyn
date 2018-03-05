@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -59,9 +61,9 @@ namespace Microsoft.CodeAnalysis
             private readonly Dictionary<ISymbol, int> _symbolToId = new Dictionary<ISymbol, int>();
             private readonly StringBuilder _stringBuilder = new StringBuilder();
 
-            public Compilation Compilation { get; private set; }
             public CancellationToken CancellationToken { get; private set; }
-            public bool WritingSignature;
+
+            private List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
 
             internal int _nestingCount;
             private int _nextId;
@@ -80,8 +82,8 @@ namespace Microsoft.CodeAnalysis
             {
                 _symbolToId.Clear();
                 _stringBuilder.Clear();
-                Compilation = null;
-                CancellationToken = default(CancellationToken);
+                _methodSymbolStack.Clear();
+                CancellationToken = default;
                 _nestingCount = 0;
                 _nextId = 0;
 
@@ -89,16 +91,15 @@ namespace Microsoft.CodeAnalysis
                 s_writerPool.Free(this);
             }
 
-            public static SymbolKeyWriter GetWriter(Compilation compilation, CancellationToken cancellationToken)
+            public static SymbolKeyWriter GetWriter(CancellationToken cancellationToken)
             {
                 var visitor = s_writerPool.Allocate();
-                visitor.Initialize(compilation, cancellationToken);
+                visitor.Initialize(cancellationToken);
                 return visitor;
             }
 
-            private void Initialize(Compilation compilation, CancellationToken cancellationToken)
+            private void Initialize(CancellationToken cancellationToken)
             {
-                Compilation = compilation;
                 CancellationToken = cancellationToken;
             }
 
@@ -148,8 +149,8 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
-                var shouldWriteOrdinal = ShouldWriteTypeParameterOrdinal(symbol);
                 int id;
+                var shouldWriteOrdinal = ShouldWriteTypeParameterOrdinal(symbol, out var methodIndex);
                 if (!shouldWriteOrdinal)
                 {
                     if (_symbolToId.TryGetValue(symbol, out id))
@@ -173,24 +174,23 @@ namespace Microsoft.CodeAnalysis
                     // Note: it is possible in some situations to hit the same symbol 
                     // multiple times.  For example, if you have:
                     //
-                    //      Foo<Z>(List<Z> list)
+                    //      Goo<Z>(List<Z> list)
                     //
                     // If we start with the symbol for "list" then we'll see the following
                     // chain of symbols hit:
                     //
                     //      List<Z>     
                     //          Z
-                    //              Foo<Z>(List<Z>)
+                    //              Goo<Z>(List<Z>)
                     //                  List<Z>
                     //
-                    // The recursion is prevented because when we hit 'Foo' we mark that
+                    // The recursion is prevented because when we hit 'Goo' we mark that
                     // we're writing out a signature.  And, in signature mode we only write
                     // out the ordinal for 'Z' without recursing.  However, even though
                     // we prevent the recursion, we still hit List<Z> twice.  After writing
                     // the innermost one out, we'll give it a reference ID.  When we
                     // then hit the outermost one, we want to just reuse that one.
-                    int existingId;
-                    if (_symbolToId.TryGetValue(symbol, out existingId))
+                    if (_symbolToId.TryGetValue(symbol, out var existingId))
                     {
                         // While we recursed, we already hit this symbol.  Use its ID as our
                         // ID.
@@ -385,20 +385,30 @@ namespace Microsoft.CodeAnalysis
                     WriteType(SymbolKeyType.ConstructedMethod);
                     ConstructedMethodSymbolKey.Create(methodSymbol, this);
                 }
-                else if (methodSymbol.MethodKind == MethodKind.ReducedExtension)
-                {
-                    WriteType(SymbolKeyType.ReducedExtensionMethod);
-                    ReducedExtensionMethodSymbolKey.Create(methodSymbol, this);
-                }
-                else if (methodSymbol.MethodKind == MethodKind.AnonymousFunction)
-                {
-                    WriteType(SymbolKeyType.AnonymousFunctionOrDelegate);
-                    AnonymousFunctionOrDelegateSymbolKey.Create(methodSymbol, this);
-                }
                 else
                 {
-                    WriteType(SymbolKeyType.Method);
-                    MethodSymbolKey.Create(methodSymbol, this);
+                    switch (methodSymbol.MethodKind)
+                    {
+                        case MethodKind.ReducedExtension:
+                            WriteType(SymbolKeyType.ReducedExtensionMethod);
+                            ReducedExtensionMethodSymbolKey.Create(methodSymbol, this);
+                            break;
+
+                        case MethodKind.AnonymousFunction:
+                            WriteType(SymbolKeyType.AnonymousFunctionOrDelegate);
+                            AnonymousFunctionOrDelegateSymbolKey.Create(methodSymbol, this);
+                            break;
+
+                        case MethodKind.LocalFunction:
+                            WriteType(SymbolKeyType.BodyLevel);
+                            BodyLevelSymbolKey.Create(methodSymbol, this);
+                            break;
+
+                        default:
+                            WriteType(SymbolKeyType.Method);
+                            MethodSymbolKey.Create(methodSymbol, this);
+                            break;
+                    }
                 }
 
                 return null;
@@ -484,11 +494,11 @@ namespace Microsoft.CodeAnalysis
             {
                 // If it's a reference to a method type parameter, and we're currently writing
                 // out a signture, then only write out the ordinal of type parameter.  This 
-                // helps prevent recursion problems in cases like "Foo<T>(T t).
-                if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol))
+                // helps prevent recursion problems in cases like "Goo<T>(T t).
+                if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol, out int methodIndex))
                 {
                     WriteType(SymbolKeyType.TypeParameterOrdinal);
-                    TypeParameterOrdinalSymbolKey.Create(typeParameterSymbol, this);
+                    TypeParameterOrdinalSymbolKey.Create(typeParameterSymbol, methodIndex, this);
                 }
                 else
                 {
@@ -498,11 +508,37 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            private bool ShouldWriteTypeParameterOrdinal(ISymbol symbol)
+            public bool ShouldWriteTypeParameterOrdinal(ISymbol symbol, out int methodIndex)
             {
-                return WritingSignature &&
-                    symbol.Kind == SymbolKind.TypeParameter &&
-                    ((ITypeParameterSymbol)symbol).TypeParameterKind != TypeParameterKind.Type;
+                if (symbol.Kind == SymbolKind.TypeParameter)
+                {
+                    var typeParameter = (ITypeParameterSymbol)symbol;
+                    if (typeParameter.TypeParameterKind == TypeParameterKind.Method)
+                    {
+                        for (int i = 0, n = _methodSymbolStack.Count; i < n; i++)
+                        {
+                            var method = _methodSymbolStack[i];
+                            if (typeParameter.DeclaringMethod.Equals(method))
+                            {
+                                methodIndex = i;
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                methodIndex = -1;
+                return false;
+            }
+
+            public void PushMethod(IMethodSymbol method)
+                => _methodSymbolStack.Add(method);
+
+            public void PopMethod(IMethodSymbol method)
+            {
+                Contract.ThrowIfTrue(_methodSymbolStack.Count == 0);
+                Contract.ThrowIfFalse(method.Equals(_methodSymbolStack.Last()));
+                _methodSymbolStack.RemoveAt(_methodSymbolStack.Count - 1);
             }
         }
     }

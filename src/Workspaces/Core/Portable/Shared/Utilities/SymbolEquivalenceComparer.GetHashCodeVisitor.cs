@@ -169,13 +169,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 currentHash = CombineNamedTypeHashCode(x, currentHash);
 
-                var errorType = x as IErrorTypeSymbol;
-                if (errorType != null)
+                if (x is IErrorTypeSymbol errorType)
                 {
                     foreach (var candidate in errorType.CandidateSymbols)
                     {
-                        var candidateNamedType = candidate as INamedTypeSymbol;
-                        if (candidateNamedType != null)
+                        if (candidate is INamedTypeSymbol candidateNamedType)
                         {
                             currentHash = CombineNamedTypeHashCode(candidateNamedType, currentHash);
                         }
@@ -189,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 if (x.IsTupleType)
                 {
-                    return CombineHashCodes(x.TupleElementTypes, currentHash, _symbolAggregator);
+                    return Hash.Combine(currentHash, Hash.CombineValues(x.TupleElements));
                 }
 
                 // If we want object and dynamic to be the same, and this is 'object', then return

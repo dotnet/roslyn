@@ -6,12 +6,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionParsingTests : ParsingTests
     {
+        public LocalFunctionParsingTests(ITestOutputHelper output) : base(output) { }
+
         [Fact]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public void IncompleteLocalFunc()
@@ -49,7 +52,7 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -78,8 +81,8 @@ class C
                                     {
                                         N(SyntaxKind.IdentifierToken, "L");
                                     }
-                                    M(SyntaxKind.SemicolonToken);
                                 }
+                                M(SyntaxKind.SemicolonToken);
                             }
                             N(SyntaxKind.ExpressionStatement);
                             {
@@ -94,8 +97,8 @@ class C
                                     {
                                         M(SyntaxKind.IdentifierToken);
                                     }
-                                    M(SyntaxKind.SemicolonToken);
                                 }
+                                M(SyntaxKind.SemicolonToken);
                             }
                             N(SyntaxKind.CloseBraceToken);
                         }
@@ -126,7 +129,9 @@ class C
                                 {
                                     N(SyntaxKind.LessThanToken);
                                     M(SyntaxKind.TypeParameter);
-                                    M(SyntaxKind.IdentifierToken);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
                                     M(SyntaxKind.GreaterThanToken);
                                 }
                                 M(SyntaxKind.ParameterList);
@@ -169,7 +174,9 @@ class C
                                 {
                                     N(SyntaxKind.LessThanToken);
                                     M(SyntaxKind.TypeParameter);
-                                    M(SyntaxKind.IdentifierToken);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
                                     M(SyntaxKind.GreaterThanToken);
                                 }
                                 M(SyntaxKind.ParameterList);
@@ -208,26 +215,14 @@ class C
                                     N(SyntaxKind.VariableDeclarator);
                                     {
                                         N(SyntaxKind.IdentifierToken, "L");
-                                    }
-                                    N(SyntaxKind.BracketedArgumentList);
-                                    {
-                                        M(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.Argument);
+                                        M(SyntaxKind.BracketedArgumentList);
                                         {
-                                            N(SyntaxKind.ParenthesizedExpression);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                M(SyntaxKind.IdentifierName);
-                                                {
-                                                    M(SyntaxKind.IdentifierToken);
-                                                }
-                                                M(SyntaxKind.CloseParenToken);
-                                            }
+                                            M(SyntaxKind.OpenBracketToken);
+                                            M(SyntaxKind.CloseBracketToken);
                                         }
-                                        M(SyntaxKind.CloseBracketToken);
                                     }
-                                    M(SyntaxKind.SemicolonToken);
                                 }
+                                M(SyntaxKind.SemicolonToken);
                             }
                             N(SyntaxKind.CloseBraceToken);
                         }
@@ -252,14 +247,14 @@ class C
                                 N(SyntaxKind.PredefinedType);
                                 {
                                     N(SyntaxKind.IntKeyword);
-                                    N(SyntaxKind.IdentifierToken, "L");
-                                    N(SyntaxKind.ParameterList);
-                                    {
-                                        N(SyntaxKind.OpenParenToken);
-                                        M(SyntaxKind.CloseParenToken);
-                                    }
-                                    M(SyntaxKind.SemicolonToken);
                                 }
+                                N(SyntaxKind.IdentifierToken, "L");
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    M(SyntaxKind.CloseParenToken);
+                                }
+                                M(SyntaxKind.SemicolonToken);
                             }
                             N(SyntaxKind.CloseBraceToken);
                         }
@@ -300,8 +295,11 @@ class C
                             N(SyntaxKind.CloseBraceToken);
                         }
                     }
+                    N(SyntaxKind.CloseBraceToken);
                 }
+                N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -314,50 +312,70 @@ class C
     void Main()
     {
         int
-            foo() => 5;
+            goo() => 5;
 
         int
-            foo() { return 5; }
+            goo() { return 5; }
 
         int
-            foo<T>() => 5;
+            goo<T>() => 5;
 
         int
-            foo<T>() { return 5; }
+            goo<T>() { return 5; }
 
         int
-            foo<T>() where T : IFace => 5;
+            goo<T>() where T : IFace => 5;
 
         int
-            foo<T>() where T : IFace { return 5; }
+            goo<T>() where T : IFace { return 5; }
     }
 }");
             Assert.NotNull(file);
             file.SyntaxTree.GetDiagnostics().Verify();
 
-            file = ParseFile(@"
+            var errorText = @"
 class C
 {
     void M()
     {
         int
-            foo() where T : IFace => 5;
+            goo() where T : IFace => 5;
         int
-            foo() where T : IFace { return 5; }
+            goo() where T : IFace { return 5; }
         int
-            foo<T>) { }
+            goo<T>) { }
     }
-}");
-            file.SyntaxTree.GetDiagnostics().Verify(
-                // (7,19): error CS0080: Constraints are not allowed on non-generic declarations
-                //             foo() where T : IFace => 5;
-                Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(7, 19),
-                // (9,19): error CS0080: Constraints are not allowed on non-generic declarations
-                //             foo() where T : IFace { return 5; }
-                Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(9, 19),
+}";
+            file = ParseFile(errorText);
+
+            CreateStandardCompilation(errorText).VerifyDiagnostics(
                 // (11,19): error CS1003: Syntax error, '(' expected
-                //             foo<T>) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(11, 19));
+                //             goo<T>) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(11, 19),
+                // (7,19): error CS0080: Constraints are not allowed on non-generic declarations
+                //             goo() where T : IFace => 5;
+                Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(7, 19),
+                // (9,13): error CS0128: A local variable or function named 'goo' is already defined in this scope
+                //             goo() where T : IFace { return 5; }
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "goo").WithArguments("goo").WithLocation(9, 13),
+                // (9,19): error CS0080: Constraints are not allowed on non-generic declarations
+                //             goo() where T : IFace { return 5; }
+                Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(9, 19),
+                // (11,13): error CS0128: A local variable or function named 'goo' is already defined in this scope
+                //             goo<T>) { }
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "goo").WithArguments("goo").WithLocation(11, 13),
+                // (11,13): error CS0161: 'goo<T>()': not all code paths return a value
+                //             goo<T>) { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "goo").WithArguments("goo<T>()").WithLocation(11, 13),
+                // (7,13): warning CS8321: The local function 'goo' is declared but never used
+                //             goo() where T : IFace => 5;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "goo").WithArguments("goo").WithLocation(7, 13),
+                // (9,13): warning CS8321: The local function 'goo' is declared but never used
+                //             goo() where T : IFace { return 5; }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "goo").WithArguments("goo").WithLocation(9, 13),
+                // (11,13): warning CS8321: The local function 'goo' is declared but never used
+                //             goo<T>) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "goo").WithArguments("goo").WithLocation(11, 13));
 
             var m = Assert.IsType<MethodDeclarationSyntax>(file.DescendantNodes()
                 .Where(n => n.Kind() == SyntaxKind.MethodDeclaration)
@@ -397,21 +415,6 @@ class C
                 // (3,22): error CS1513: } expected
                 //         async public virtual M() {}
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "virtual").WithLocation(3, 22),
-                // (3,30): error CS1520: Method must have a return type
-                //         async public virtual M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(3, 30),
-                // (4,23): error CS1520: Method must have a return type
-                //         unsafe public M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(4, 23),
-                // (5,24): error CS1520: Method must have a return type
-                //         async override M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(5, 24),
-                // (6,39): error CS1520: Method must have a return type
-                //         unsafe private async override M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(6, 39),
-                // (7,39): error CS1520: Method must have a return type
-                //         async virtual override sealed M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(7, 39),
                 // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1));
@@ -438,12 +441,12 @@ class c
             Assert.False(file.DescendantNodes().Any(n => n.Kind() == SyntaxKind.LocalFunctionStatement && !n.ContainsDiagnostics));
             Assert.True(file.HasErrors);
             file.SyntaxTree.GetDiagnostics().Verify(
-                // (6,13): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int local() => 0;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7").WithLocation(6, 13),
-                // (10,13): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7.0").WithLocation(6, 13),
+                // (10,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int local() { return 0; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7").WithLocation(10, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7.0").WithLocation(10, 13)
                 );
 
             Assert.Equal(0, file.SyntaxTree.Options.Features.Count);

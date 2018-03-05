@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -47,45 +48,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
 
         /// <summary>
-        /// Returns the type arguments that have been substituted for the type parameters. 
-        /// If nothing has been substituted for a give type parameters,
-        /// then the type parameter itself is consider the type argument.
+        /// Returns custom modifiers for the type argument that has been substituted for the type parameter. 
+        /// The modifiers correspond to the type argument at the same ordinal within the <see cref="TypeArgumentsNoUseSiteDiagnostics"/>
+        /// array.
         /// </summary>
-        public ImmutableArray<TypeSymbol> TypeArguments
+        public abstract ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal);
+
+        internal ImmutableArray<CustomModifier> GetEmptyTypeArgumentCustomModifiers(int ordinal)
         {
-            get
+            if (ordinal < 0 || ordinal >= Arity)
             {
-                return TypeArgumentsNoUseSiteDiagnostics;
+                throw new System.IndexOutOfRangeException();
             }
-        }
 
-        /// <summary>
-        /// Returns custom modifiers for the type arguments that have been substituted for the type parameters. 
-        /// </summary>
-        internal abstract ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers { get; }
-
-        internal ImmutableArray<ImmutableArray<CustomModifier>> CreateEmptyTypeArgumentsCustomModifiers()
-        {
-            var arity = this.Arity;
-
-            if (arity > 0)
-            {
-                return CreateEmptyTypeArgumentsCustomModifiers(arity);
-            }
-            else
-            {
-                return ImmutableArray<ImmutableArray<CustomModifier>>.Empty;
-            }
-        }
-
-        internal static ImmutableArray<ImmutableArray<CustomModifier>> CreateEmptyTypeArgumentsCustomModifiers(int arity)
-        {
-            Debug.Assert(arity > 0);
-            return ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(arity, ImmutableArray<CustomModifier>.Empty).ToImmutableAndFree();
+            return ImmutableArray<CustomModifier>.Empty;
         }
 
         internal abstract bool HasTypeArgumentsCustomModifiers { get; }
 
+        /// <summary>
+        /// Returns the type arguments that have been substituted for the type parameters. 
+        /// If nothing has been substituted for a give type parameters,
+        /// then the type parameter itself is consider the type argument.
+        /// </summary>
         internal abstract ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics { get; }
 
         internal ImmutableArray<TypeSymbol> TypeArgumentsWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -382,6 +367,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (method.IsExtensionMethod &&
                         ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
                     {
+                        var thisParam = method.Parameters.First();
+
+                        if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
+                            (thisParam.RefKind == RefKind.In && thisParam.Type.TypeKind != TypeKind.Struct))
+                        {
+                            // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
+                            continue;
+                        }
+
                         Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
                         methods.Add(method);
                     }
@@ -772,12 +766,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0 && hasTypeArgumentsCustomModifiers)
             {
                 Debug.Assert(other.HasTypeArgumentsCustomModifiers);
-                var modifiers = this.TypeArgumentsCustomModifiers;
-                var otherModifiers = other.TypeArgumentsCustomModifiers;
 
                 for (int i = 0; i < count; i++)
                 {
-                    if (!modifiers[i].SequenceEqual(otherModifiers[i])) return false;
+                    if (!this.GetTypeArgumentCustomModifiers(i).SequenceEqual(other.GetTypeArgumentCustomModifiers(i)))
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -830,6 +825,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return this.ConstructUnboundGenericType();
         }
+
+        /// <summary>
+        /// Gets a value indicating whether this type has an EmbeddedAttribute or not.
+        /// </summary>
+        internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
 
         internal static readonly Func<TypeWithModifiers, bool> TypeSymbolIsNullFunction = type => (object)type.Type == null;
 
@@ -971,11 +971,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var modifiers = TypeArgumentsCustomModifiers;
-
                 for (int i = 0; i < types.Length; i++)
                 {
-                    builder.Add(new TypeWithModifiers(types[i], modifiers[i]));
+                    builder.Add(new TypeWithModifiers(types[i], GetTypeArgumentCustomModifiers(i)));
                 }
             }
         }
@@ -1064,9 +1062,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.HasTypeArgumentsCustomModifiers)
             {
-                foreach (var modifiers in this.TypeArgumentsCustomModifiers)
+                for (int i = 0; i < this.Arity; i++)
                 {
-                    if (DeriveUseSiteDiagnosticFromCustomModifiers(ref result, modifiers))
+                    if (DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.GetTypeArgumentCustomModifiers(i)))
                     {
                         return true;
                     }
@@ -1134,10 +1132,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // problems with constraints. We recurse into type *arguments* in the overload
             // in ConstructedNamedTypeSymbol.
             //
-            // When we are binding a name with a nested type, Foo.Bar, then we ask for
-            // use-site errors to be reported on both Foo and Foo.Bar. Therefore we should
+            // When we are binding a name with a nested type, Goo.Bar, then we ask for
+            // use-site errors to be reported on both Goo and Goo.Bar. Therefore we should
             // not recurse into the containing type here; doing so will result in errors
-            // being reported twice if Foo is bad.
+            // being reported twice if Goo is bad.
 
             var @base = this.BaseTypeNoUseSiteDiagnostics;
             if ((object)@base != null && @base.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))
@@ -1150,6 +1148,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         #endregion
+
+        /// <summary>
+        /// True if the type itself is excluded from code coverage instrumentation.
+        /// True for source types marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
+        /// </summary>
+        internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
 
         /// <summary>
         /// True if this symbol has a special name (metadata flag SpecialName is set).
@@ -1470,20 +1474,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If this symbol represents a tuple type, get the types of the tuple's elements.
+        /// Returns fields that represent tuple elements for types that are tuples.
+        ///
+        /// If this type is not a tuple, then returns default.
         /// </summary>
-        ImmutableArray<ITypeSymbol> INamedTypeSymbol.TupleElementTypes => StaticCast<ITypeSymbol>.From(this.TupleElementTypes);
-
-        /// <summary>
-        /// If this symbol represents a tuple type, get the names of the tuple's elements.
-        /// </summary>
-        ImmutableArray<string> INamedTypeSymbol.TupleElementNames => this.TupleElementNames;
+        ImmutableArray<IFieldSymbol> INamedTypeSymbol.TupleElements => StaticCast<IFieldSymbol>.From(this.TupleElements);
 
         /// <summary>
         /// If this is a tuple type symbol, returns the symbol for its underlying type.
         /// Otherwise, returns null.
         /// </summary>
         INamedTypeSymbol INamedTypeSymbol.TupleUnderlyingType => this.TupleUnderlyingType;
+
+        bool INamedTypeSymbol.IsComImport => IsComImport;
 
         #endregion
 

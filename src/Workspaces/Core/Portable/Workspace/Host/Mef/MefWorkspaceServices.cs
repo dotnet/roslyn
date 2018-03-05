@@ -38,26 +38,19 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             get { return (HostServices)_exportProvider; }
         }
 
-        internal IMefHostExportProvider HostExportProvider
-        {
-            get { return _exportProvider; }
-        }
+        internal IMefHostExportProvider HostExportProvider => _exportProvider;
 
-        public override Workspace Workspace
-        {
-            get { return _workspace; }
-        }
+        public override Workspace Workspace => _workspace;
 
         public override TWorkspaceService GetService<TWorkspaceService>()
         {
-            Lazy<IWorkspaceService, WorkspaceServiceMetadata> service;
-            if (TryGetService(typeof(TWorkspaceService), out service))
+            if (TryGetService(typeof(TWorkspaceService), out var service))
             {
                 return (TWorkspaceService)service.Value;
             }
             else
             {
-                return default(TWorkspaceService);
+                return default;
             }
         }
 
@@ -79,10 +72,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         private Lazy<IWorkspaceService, WorkspaceServiceMetadata> PickWorkspaceService(IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
         {
-            Lazy<IWorkspaceService, WorkspaceServiceMetadata> service;
 
             // workspace specific kind is best
-            if (TryGetServiceByLayer(_workspace.Kind, services, out service))
+            if (TryGetServiceByLayer(_workspace.Kind, services, out var service))
             {
                 return service;
             }
@@ -112,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 
             // no service.
-            return default(Lazy<IWorkspaceService, WorkspaceServiceMetadata>);
+            return default;
         }
 
         private static bool TryGetServiceByLayer(string layer, IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services, out Lazy<IWorkspaceService, WorkspaceServiceMetadata> service)
@@ -151,9 +143,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         public override HostLanguageServices GetLanguageServices(string languageName)
         {
             var currentServicesMap = _languageServicesMap;
-
-            MefLanguageServices languageServices;
-            if (!currentServicesMap.TryGetValue(languageName, out languageServices))
+            if (!currentServicesMap.TryGetValue(languageName, out var languageServices))
             {
                 languageServices = ImmutableInterlocked.GetOrAdd(ref _languageServicesMap, languageName, _ => new MefLanguageServices(this, languageName));
             }
@@ -174,9 +164,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             foreach (var language in this.SupportedLanguages)
             {
                 var services = (MefLanguageServices)this.GetLanguageServices(language);
-
-                Lazy<ILanguageService, LanguageServiceMetadata> service;
-                if (services.TryGetService(typeof(TLanguageService), out service))
+                if (services.TryGetService(typeof(TLanguageService), out var service))
                 {
                     if (filter(service.Metadata.Data))
                     {

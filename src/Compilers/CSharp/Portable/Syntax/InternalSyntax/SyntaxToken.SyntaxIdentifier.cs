@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal class SyntaxIdentifier : SyntaxToken
         {
+            static SyntaxIdentifier()
+            {
+                ObjectBinder.RegisterTypeReader(typeof(SyntaxIdentifier), r => new SyntaxIdentifier(r));
+            }
+
             protected readonly string TextField;
 
             internal SyntaxIdentifier(string text)
@@ -34,11 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 base.WriteTo(writer);
                 writer.WriteString(this.TextField);
-            }
-
-            internal override Func<ObjectReader, object> GetReader()
-            {
-                return r => new SyntaxIdentifier(r);
             }
 
             public override string Text

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -29,31 +31,34 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             RenameFile
         }
 
-        protected virtual SyntaxNode GetNodeToAnalyze(SyntaxNode root, TextSpan span) => root.FindNode(span);
-
-        public async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(
+            Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!ShouldAnalyze(root, textSpan))
+            if (textSpan.IsEmpty)
             {
-                return default(ImmutableArray<CodeAction>);
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var nodeToAnalyze = root.FindToken(textSpan.Start).GetAncestor<TTypeDeclarationSyntax>();
+                if (nodeToAnalyze != null)
+                {
+                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                    if (syntaxFacts.IsOnTypeHeader(root, textSpan.Start))
+                    {
+                        var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+                        var state = State.Generate(
+                            semanticDocument, textSpan, nodeToAnalyze, cancellationToken);
+                        if (state != null)
+                        {
+                            var actions = CreateActions(state, cancellationToken);
+
+                            Debug.Assert(actions.Count() != 0, "No code actions found for MoveType Refactoring");
+                            return actions;
+                        }
+                    }
+                }
             }
 
-            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
-            if (state == null)
-            {
-                return default(ImmutableArray<CodeAction>);
-            }
-
-            var actions = CreateActions(state, cancellationToken);
-
-            Debug.Assert(actions.Count() != 0, "No code actions found for MoveType Refactoring");
-            return actions;
+            return ImmutableArray<CodeAction>.Empty;
         }
-
-        private bool ShouldAnalyze(SyntaxNode root, TextSpan span) =>
-            GetNodeToAnalyze(root, span) is TTypeDeclarationSyntax;
 
         private ImmutableArray<CodeAction> CreateActions(State state, CancellationToken cancellationToken)
         {
@@ -95,7 +100,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // offer to rename type with document name
                 if (state.IsDocumentNameAValidIdentifier)
                 {
-                    actions.Add(GetCodeAction(state, fileName: state.DocumentName, operationKind: OperationKind.RenameType));
+                    actions.Add(GetCodeAction(
+                        state, fileName: state.DocumentNameWithoutExtension,
+                        operationKind: OperationKind.RenameType));
                 }
             }
 
@@ -130,7 +137,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 typeDeclaration =>
                 {
                     var typeName = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken).Name;
-                    return TypeMatchesDocumentName(typeDeclaration, typeName, state.DocumentName, semanticModel, cancellationToken);
+                    return TypeMatchesDocumentName(
+                        typeDeclaration, typeName, state.DocumentNameWithoutExtension, 
+                        semanticModel, cancellationToken);
                 });
         }
 
@@ -141,23 +150,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         /// Note: For a nested type, a matching document name could be just the type name or a
         /// dotted qualified name of its type hierarchy.
         /// </remarks>
-        protected bool TypeMatchesDocumentName(
+        protected static bool TypeMatchesDocumentName(
             TTypeDeclarationSyntax typeNode,
             string typeName,
-            string documentName,
+            string documentNameWithoutExtension,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            // trim extensions, if present.
-            documentName = Path.GetFileNameWithoutExtension(documentName);
-
             // If it is not a nested type, we compare the unqualified type name with the document name.
             // If it is a nested type, the type name `Outer.Inner` matches file names `Inner.cs` and `Outer.Inner.cs`
-            var namesMatch = typeName.Equals(documentName, StringComparison.CurrentCulture);
+            var namesMatch = typeName.Equals(documentNameWithoutExtension, StringComparison.CurrentCulture);
             if (!namesMatch)
             {
                 var typeNameParts = GetTypeNamePartsForNestedTypeNode(typeNode, semanticModel, cancellationToken);
-                var fileNameParts = documentName.Split('.');
+                var fileNameParts = documentNameWithoutExtension.Split('.');
 
                 // qualified type name `Outer.Inner` matches file names `Inner.cs` and `Outer.Inner.cs`
                 return typeNameParts.SequenceEqual(fileNameParts, StringComparer.CurrentCulture);

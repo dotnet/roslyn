@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -101,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(thisParam.Type.IsSameType(overriddenParam.Type, TypeCompareKind.AllIgnoreOptionsForVB))
 
             If Not overriddenParam.CustomModifiers.SequenceEqual(thisParam.CustomModifiers) OrElse
-               (overriddenParam.IsByRef AndAlso thisParam.IsByRef AndAlso overriddenParam.CountOfCustomModifiersPrecedingByRef <> thisParam.CountOfCustomModifiersPrecedingByRef) OrElse
+               (overriddenParam.IsByRef AndAlso thisParam.IsByRef AndAlso Not overriddenParam.RefCustomModifiers.SequenceEqual(thisParam.RefCustomModifiers)) OrElse
                Not thisParam.Type.IsSameType(overriddenParam.Type, TypeCompareKind.AllIgnoreOptionsForVB And Not TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
 
                 Dim thisParamType As TypeSymbol = thisParam.Type
@@ -115,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 thisParam = DirectCast(thisParam, SourceParameterSymbolBase).WithTypeAndCustomModifiers(
                     overriddenParamType,
                     overriddenParam.CustomModifiers,
-                    If(thisParam.IsByRef, overriddenParam.CountOfCustomModifiersPrecedingByRef, 0US))
+                    If(thisParam.IsByRef, overriddenParam.RefCustomModifiers, ImmutableArray(Of CustomModifier).Empty))
 
                 Return True
             End If

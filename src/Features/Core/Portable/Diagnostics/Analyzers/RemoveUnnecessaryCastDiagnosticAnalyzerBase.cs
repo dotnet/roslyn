@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,25 +14,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Cast_is_redundant), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
         private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId,
-                                                                    s_localizableTitle,
-                                                                    s_localizableMessage,
-                                                                    DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Hidden,
-                                                                    isEnabledByDefault: true,
-                                                                    customTags: DiagnosticCustomTags.Unnecessary);
+            s_localizableTitle,
+            s_localizableMessage,
+            DiagnosticCategory.Style,
+            DiagnosticSeverity.Hidden,
+            isEnabledByDefault: true,
+            customTags: DiagnosticCustomTags.Unnecessary);
 
         #region Interface methods
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        public override void Initialize(AnalysisContext context)
+        public sealed override void Initialize(AnalysisContext context)
         {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+
             context.RegisterSyntaxNodeAction(
-                (nodeContext) =>
+                nodeContext =>
                     {
-                        Diagnostic diagnostic;
-                        if (TryRemoveCastExpression(nodeContext.SemanticModel, nodeContext.Node, out diagnostic, nodeContext.CancellationToken))
+                        if (TryRemoveCastExpression(nodeContext.SemanticModel, nodeContext.Node, out var diagnostic, nodeContext.CancellationToken))
                         {
                             nodeContext.ReportDiagnostic(diagnostic);
                         }
@@ -50,7 +52,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
         private bool TryRemoveCastExpression(
             SemanticModel model, SyntaxNode node, out Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            diagnostic = default(Diagnostic);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            diagnostic = default;
 
             if (!IsUnnecessaryCast(model, node, cancellationToken))
             {
@@ -69,8 +73,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-        }
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

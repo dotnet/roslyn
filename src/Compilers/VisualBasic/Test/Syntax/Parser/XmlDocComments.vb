@@ -203,9 +203,9 @@ Public Class ParseXmlDocComments
     <WorkItem(900384, "DevDiv/Personal")>
     <Fact>
     Public Sub InvalidCastExceptionWithEvent()
-        ParseAndVerify(<![CDATA[Class Foo
+        ParseAndVerify(<![CDATA[Class Goo
     ''' <summary>
-    ''' Foo
+    ''' Goo
     ''' </summary>
     Custom Event eventName As EventHandler
         AddHandler(ByVal value As EventHandler)
@@ -236,7 +236,7 @@ End Module
 Module M2
 '''</root>
 '''<!--* Missing start tag and no content -->
-Sub Foo()
+Sub Goo()
 End Sub
 End Module
 ]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
@@ -289,7 +289,7 @@ End Module]]>, VisualBasicParseOptions.Default.WithDocumentationMode(Documentati
 Sub Main()
 End Sub
 '''<doc></doc/>
-Sub Foo()
+Sub Goo()
 End Sub
 End Module
 ]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
@@ -308,7 +308,7 @@ Sub Main()
 End Sub
 End Module
 '''<?pi
-Sub Foo()
+Sub Goo()
 End Sub
 End Module
 ]]>,
@@ -322,7 +322,7 @@ Sub Main()
 End Sub
 End Module
 '''<?pi
-Sub Foo()
+Sub Goo()
 End Sub
 End Module
 ]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
@@ -339,7 +339,7 @@ End Module
     <Fact>
     Public Sub ParseDTDInXmlDoc()
         ParseAndVerify(<![CDATA[Module Module1
-    '''<!DOCTYPE Foo []>
+    '''<!DOCTYPE Goo []>
     '''<summary>
     '''</summary>
     Sub Main()
@@ -348,7 +348,7 @@ End Module
 ]]>)
 
         ParseAndVerify(<![CDATA[Module Module1
-    '''<!DOCTYPE Foo []>
+    '''<!DOCTYPE Goo []>
     '''<summary>
     '''</summary>
     Sub Main()

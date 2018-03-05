@@ -59,12 +59,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public override bool Equals(object obj)
         {
-            if (obj is TokenData)
-            {
-                return this.Equals((TokenData)obj);
-            }
-
-            return false;
+            return obj is TokenData data &&
+                   this.Equals(data);
         }
 
         public bool Equals(TokenData other)

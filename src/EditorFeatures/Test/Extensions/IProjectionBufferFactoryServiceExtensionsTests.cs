@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
   line 2
   line 3", contentTypeRegistryService.GetContentType("text"));
 
-            var elisionBuffer = IProjectionBufferFactoryServiceExtensions.CreateElisionBufferWithoutIndentation(
+            var elisionBuffer = IProjectionBufferFactoryServiceExtensions.CreateProjectionBufferWithoutIndentation(
                 exportProvider.GetExportedValue<IProjectionBufferFactoryService>(),
                 exportProvider.GetExportedValue<IEditorOptionsFactoryService>().GlobalOptions,
                 contentType: null,

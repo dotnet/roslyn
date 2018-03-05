@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -24,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             [Protected] = CUShort(Accessibility.Protected)
             [Friend] = CUShort(Accessibility.Friend)
             ProtectedFriend = CUShort(Accessibility.ProtectedOrFriend)
+            PrivateProtected = CUShort(Accessibility.ProtectedAndFriend)
             [Public] = CUShort(Accessibility.Public)
             AccessibilityMask = &H7
 
@@ -187,7 +189,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Else
                 ' Nested types (including types in modules) can be any accessibility, and the default is public
-                If (modifiers And DeclarationModifiers.Private) <> 0 Then
+                If (modifiers And (DeclarationModifiers.Private Or DeclarationModifiers.Protected)) =
+                                      (DeclarationModifiers.Private Or DeclarationModifiers.Protected) Then
+                    flags = flags Or SourceTypeFlags.PrivateProtected
+                ElseIf (modifiers And DeclarationModifiers.Private) <> 0 Then
                     flags = flags Or SourceTypeFlags.Private
                 ElseIf (modifiers And (DeclarationModifiers.Protected Or DeclarationModifiers.Friend)) =
                                       (DeclarationModifiers.Protected Or DeclarationModifiers.Friend) Then
@@ -416,7 +421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '  * the interface is either invariant or it lacks nested classes and structs, and
             '  * every nested type is valid.
             '
-            ' A property "Property Foo as T" is valid if and only if either
+            ' A property "Property Goo as T" is valid if and only if either
             '  * The property is read-only and T is valid covariantly, or
             '  * The property is write-only and T is valid invariantly, or
             '  * The property is readable and writable and T is invariant.
@@ -518,12 +523,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Variance spec $2
-            ' A delegate "Delegate Function/Sub Foo(Of T1, ... Tn)Signature" is valid if and only if
+            ' A delegate "Delegate Function/Sub Goo(Of T1, ... Tn)Signature" is valid if and only if
             '  * the signature is valid.
             '
-            ' That delegate becomes "Class Foo(Of T1, ... Tn) : Function Invoke(...) As ... : End Class
+            ' That delegate becomes "Class Goo(Of T1, ... Tn) : Function Invoke(...) As ... : End Class
             ' So we just need to pick up the "Invoke" method and check that it's valid.
-            ' NB. that delegates can have variance in their generic params, and hence so can e.g. "Class Foo(Of Out T1)"
+            ' NB. that delegates can have variance in their generic params, and hence so can e.g. "Class Goo(Of Out T1)"
             ' This is the only place in the CLI where a class can have variant generic params.
             '
             ' Note: delegates that are synthesized from events are already dealt with in
@@ -1342,16 +1347,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Although namespaces unify based on case-insensitive name, VB uses the casing the namespace
         ''' declaration surround the class definition for the name emitted to metadata. 
         ''' 
-        ''' Namespace FOO
+        ''' Namespace GOO
         '''    Class X
         '''    End Class
         ''' ENd Namespace
-        ''' Namespace foo
+        ''' Namespace goo
         '''    Class Y
         '''    End Class
         ''' ENd Namespace
         ''' 
-        ''' In metadata, these are classes "FOO.X" and "foo.Y" (and thus appear in different namespaces
+        ''' In metadata, these are classes "GOO.X" and "goo.Y" (and thus appear in different namespaces
         ''' when imported into C#.) This function determines the casing of the namespace part of a class, if needed
         ''' to override the namespace name.
         ''' </summary>
@@ -1538,7 +1543,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Property StaticInitializers As ArrayBuilder(Of ImmutableArray(Of FieldOrPropertyInitializer))
             Friend Property InstanceInitializers As ArrayBuilder(Of ImmutableArray(Of FieldOrPropertyInitializer))
 
-            Friend ReadOnly DeferredMemberDiagnostic As ArrayBuilder(Of ValueTuple(Of Symbol, Binder)) = ArrayBuilder(Of ValueTuple(Of Symbol, Binder)).GetInstance()
+            Friend ReadOnly DeferredMemberDiagnostic As ArrayBuilder(Of Symbol) = ArrayBuilder(Of Symbol).GetInstance()
 
             Friend StaticSyntaxLength As Integer = 0
             Friend InstanceSyntaxLength As Integer = 0
@@ -2608,17 +2613,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     CreateEvent(eventDecl.EventStatement, eventDecl, binder, diagBag, members)
 
                 Case Else
-                    If binder.BindingTopLevelScriptCode Then
-                        If memberSyntax.Kind = SyntaxKind.EmptyStatement OrElse TypeOf memberSyntax Is ExecutableStatementSyntax Then
-
-                            If reportAsInvalid Then
-                                diagBag.Add(ERRID.ERR_InvalidInNamespace, memberSyntax.GetLocation())
-                            End If
+                    If memberSyntax.Kind = SyntaxKind.EmptyStatement OrElse TypeOf memberSyntax Is ExecutableStatementSyntax Then
+                        If binder.BindingTopLevelScriptCode Then
+                            Debug.Assert(Not reportAsInvalid)
 
                             Dim initializer = Function(precedingInitializersLength As Integer)
                                                   Return New FieldOrPropertyInitializer(binder.GetSyntaxReference(memberSyntax), precedingInitializersLength)
                                               End Function
                             SourceNamedTypeSymbol.AddInitializer(instanceInitializers, initializer, members.InstanceSyntaxLength)
+                        ElseIf reportAsInvalid Then
+                            diagBag.Add(ERRID.ERR_InvalidInNamespace, memberSyntax.GetLocation())
                         End If
                     End If
             End Select
@@ -2922,9 +2926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
-            For Each pair In members.DeferredMemberDiagnostic
-                Dim sym As Symbol = pair.Item1
-                Dim binder As Binder = pair.Item2
+            For Each sym As Symbol In members.DeferredMemberDiagnostic
 
                 ' Check name for duplicate type declarations
                 ' First check if the member name conflicts with a type declaration in the container then
@@ -2960,7 +2962,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                              omitDiagnostics As Boolean)
 
             If Not omitDiagnostics Then
-                members.DeferredMemberDiagnostic.Add(ValueTuple.Create(sym, binder))
+                members.DeferredMemberDiagnostic.Add(sym)
             End If
 
             AddSymbolToMembers(sym, members.Members)
@@ -3105,7 +3107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Else
                     ' the formatting of this error message is quite special and needs special treatment
-                    ' e.g. 'foo' is already declared as 'Class Foo' in this class.
+                    ' e.g. 'goo' is already declared as 'Class Goo' in this class.
 
                     ' "'{0}' is already declared as '{1}' in this {2}."
                     Binder.ReportDiagnostic(

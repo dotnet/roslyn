@@ -23,8 +23,8 @@ Class C1
 End Class
         ]]>.Value,
             LanguageVersion.VisualBasic9,
-            Diagnostic(ERRID.ERR_LanguageVersion, "Async").WithArguments("9.0", "async methods or lambdas").WithLocation(3, 5),
-            Diagnostic(ERRID.ERR_LanguageVersion, "Async").WithArguments("9.0", "async methods or lambdas").WithLocation(7, 5))
+            Diagnostic(ERRID.ERR_LanguageVersion, "Async").WithArguments("9.0", "async methods or lambdas", "11").WithLocation(3, 5),
+            Diagnostic(ERRID.ERR_LanguageVersion, "Async").WithArguments("9.0", "async methods or lambdas", "11").WithLocation(7, 5))
     End Sub
 
     <[Fact]>
@@ -40,10 +40,10 @@ Module M1
 End Module
         ]]>.Value,
             LanguageVersion.VisualBasic9,
-            Diagnostic(ERRID.ERR_LanguageVersion, "Iterator").WithArguments("9.0", "iterators").WithLocation(3, 13),
-            Diagnostic(ERRID.ERR_LanguageVersion, "Yield").WithArguments("9.0", "iterators").WithLocation(4, 9),
-            Diagnostic(ERRID.ERR_LanguageVersion, "Yield").WithArguments("9.0", "iterators").WithLocation(5, 9),
-            Diagnostic(ERRID.ERR_LanguageVersion, "Yield").WithArguments("9.0", "iterators").WithLocation(6, 9))
+            Diagnostic(ERRID.ERR_LanguageVersion, "Iterator").WithArguments("9.0", "iterators", "11").WithLocation(3, 13),
+            Diagnostic(ERRID.ERR_LanguageVersion, "Yield").WithArguments("9.0", "iterators", "11").WithLocation(4, 9),
+            Diagnostic(ERRID.ERR_LanguageVersion, "Yield").WithArguments("9.0", "iterators", "11").WithLocation(5, 9),
+            Diagnostic(ERRID.ERR_LanguageVersion, "Yield").WithArguments("9.0", "iterators", "11").WithLocation(6, 9))
     End Sub
 
     <[Fact]>
@@ -57,7 +57,7 @@ Module M1
 End Module
         ]]>.Value,
             LanguageVersion.VisualBasic9,
-            Diagnostic(ERRID.ERR_LanguageVersion, "From").WithArguments("9.0", "collection initializers").WithLocation(4, 51))
+            Diagnostic(ERRID.ERR_LanguageVersion, "From").WithArguments("9.0", "collection initializers", "10").WithLocation(4, 51))
     End Sub
 
     <[Fact]>
@@ -71,8 +71,8 @@ Interface IVariant(Of Out R, In A)
 End Interface
         ]]>.Value,
             LanguageVersion.VisualBasic9,
-            Diagnostic(ERRID.ERR_LanguageVersion, "Out").WithArguments("9.0", "variance").WithLocation(2, 23),
-            Diagnostic(ERRID.ERR_LanguageVersion, "In").WithArguments("9.0", "variance").WithLocation(2, 30))
+            Diagnostic(ERRID.ERR_LanguageVersion, "Out").WithArguments("9.0", "variance", "10").WithLocation(2, 23),
+            Diagnostic(ERRID.ERR_LanguageVersion, "In").WithArguments("9.0", "variance", "10").WithLocation(2, 30))
     End Sub
 
     <[Fact]>
@@ -95,7 +95,7 @@ Module M1
 End Module
         ]]>.Value,
             LanguageVersion.VisualBasic9,
-            Diagnostic(ERRID.ERR_LanguageVersion, "Async").WithArguments("9.0", "async methods or lambdas").WithLocation(3, 13))
+            Diagnostic(ERRID.ERR_LanguageVersion, "Async").WithArguments("9.0", "async methods or lambdas", "11").WithLocation(3, 13))
     End Sub
 
     <[Fact]>
@@ -137,8 +137,8 @@ Class C1
 End Class
         ]]>.Value,
             LanguageVersion.VisualBasic9,
-            Diagnostic(ERRID.ERR_LanguageVersion, "Public Property Name As String").WithArguments("9.0", "auto-implemented properties").WithLocation(3, 5),
-            Diagnostic(ERRID.ERR_LanguageVersion, "Public Property Owner As String = ""DefaultName""").WithArguments("9.0", "auto-implemented properties").WithLocation(4, 5))
+            Diagnostic(ERRID.ERR_LanguageVersion, "Public Property Name As String").WithArguments("9.0", "auto-implemented properties", "10").WithLocation(3, 5),
+            Diagnostic(ERRID.ERR_LanguageVersion, "Public Property Owner As String = ""DefaultName""").WithArguments("9.0", "auto-implemented properties", "10").WithLocation(4, 5))
     End Sub
 
     <[Fact]>
@@ -215,7 +215,7 @@ Class C1
 End Class
         ]]>.Value,
             LanguageVersion.VisualBasic9,
-            Diagnostic(ERRID.ERR_LanguageVersion, "NameOf").WithArguments("9.0", "'nameof' expressions").WithLocation(5, 41))
+            Diagnostic(ERRID.ERR_LanguageVersion, "NameOf").WithArguments("9.0", "'nameof' expressions", "14").WithLocation(5, 41))
     End Sub
 
     <[Fact]>
@@ -231,8 +231,8 @@ Class C1
 End Class
         ]]>.Value,
             LanguageVersion.VisualBasic9,
-            Diagnostic(ERRID.ERR_LanguageVersion, "?").WithArguments("9.0", "null conditional operations").WithLocation(4, 31),
-            Diagnostic(ERRID.ERR_LanguageVersion, "?").WithArguments("9.0", "null conditional operations").WithLocation(5, 22))
+            Diagnostic(ERRID.ERR_LanguageVersion, "?").WithArguments("9.0", "null conditional operations", "14").WithLocation(4, 31),
+            Diagnostic(ERRID.ERR_LanguageVersion, "?").WithArguments("9.0", "null conditional operations", "14").WithLocation(5, 22))
     End Sub
 
     <[Fact]>
@@ -251,7 +251,7 @@ End Namespace"
 
         For Each version In {LanguageVersion.VisualBasic9, LanguageVersion.VisualBasic10}
             ParseAndVerify(source, version,
-                Diagnostic(ERRID.ERR_LanguageVersion, "Global").WithArguments($"{CInt(version)}.0", "declaring a Global namespace").WithLocation(4, 11))
+                Diagnostic(ERRID.ERR_LanguageVersion, "Global").WithArguments($"{CInt(version)}.0", "declaring a Global namespace", "11").WithLocation(4, 11))
         Next
 
         For Each version In {LanguageVersion.VisualBasic11, LanguageVersion.VisualBasic12, LanguageVersion.VisualBasic14, VisualBasicParseOptions.Default.LanguageVersion}
@@ -292,7 +292,7 @@ End Namespace"
 
         For Each version In {LanguageVersion.VisualBasic9, LanguageVersion.VisualBasic10}
             ParseAndVerify(source, version,
-                Diagnostic(ERRID.ERR_LanguageVersion, "Global").WithArguments($"{CInt(version)}.0", "declaring a Global namespace").WithLocation(4, 11))
+                Diagnostic(ERRID.ERR_LanguageVersion, "Global").WithArguments($"{CInt(version)}.0", "declaring a Global namespace", "11").WithLocation(4, 11))
         Next
 
         For Each version In {LanguageVersion.VisualBasic11, LanguageVersion.VisualBasic12, LanguageVersion.VisualBasic14, LanguageVersion.VisualBasic15,
@@ -315,8 +315,8 @@ Module Module1
 End Module
         ]]>.Value,
             LanguageVersion.VisualBasic12,
-            Diagnostic(ERRID.ERR_LanguageVersion, "$""world""").WithArguments("12.0", "interpolated strings").WithLocation(4, 18),
-            Diagnostic(ERRID.ERR_LanguageVersion, "$""hello {x1}""").WithArguments("12.0", "interpolated strings").WithLocation(5, 18))
+            Diagnostic(ERRID.ERR_LanguageVersion, "$""world""").WithArguments("12.0", "interpolated strings", "14").WithLocation(4, 18),
+            Diagnostic(ERRID.ERR_LanguageVersion, "$""hello {x1}""").WithArguments("12.0", "interpolated strings", "14").WithLocation(5, 18))
     End Sub
 
     <Fact>
@@ -334,8 +334,8 @@ Module Module1
 End Module
         ]]>.Value,
             LanguageVersion.VisualBasic14,
-            Diagnostic(ERRID.ERR_LanguageVersion, "(1, 2)").WithArguments("14.0", "tuples").WithLocation(4, 18),
-            Diagnostic(ERRID.ERR_LanguageVersion, "(A:=1, B:=2)").WithArguments("14.0", "tuples").WithLocation(5, 18))
+            Diagnostic(ERRID.ERR_LanguageVersion, "(1, 2)").WithArguments("14.0", "tuples", "15").WithLocation(4, 18),
+            Diagnostic(ERRID.ERR_LanguageVersion, "(A:=1, B:=2)").WithArguments("14.0", "tuples", "15").WithLocation(5, 18))
     End Sub
 
     <Fact>
@@ -353,7 +353,7 @@ Module Module1
 End Module
         ]]>.Value,
             LanguageVersion.VisualBasic14,
-            Diagnostic(ERRID.ERR_LanguageVersion, "(Integer, Integer)").WithArguments("14.0", "tuples").WithLocation(4, 19),
-            Diagnostic(ERRID.ERR_LanguageVersion, "(A As Integer, B As Integer)").WithArguments("14.0", "tuples").WithLocation(5, 19))
+            Diagnostic(ERRID.ERR_LanguageVersion, "(Integer, Integer)").WithArguments("14.0", "tuples", "15").WithLocation(4, 19),
+            Diagnostic(ERRID.ERR_LanguageVersion, "(A As Integer, B As Integer)").WithArguments("14.0", "tuples", "15").WithLocation(5, 19))
     End Sub
 End Class

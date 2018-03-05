@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
@@ -25,8 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
-            TupleExpressionSyntax expression;
-            if (GetOuterMostTupleExpressionInSpan(root, position, syntaxFacts, currentSpan, cancellationToken, out expression))
+            if (GetOuterMostTupleExpressionInSpan(root, position, syntaxFacts, currentSpan, cancellationToken, out var expression))
             {
                 return CommonSignatureHelpUtilities.GetSignatureHelpState(expression, position,
                    getOpenToken: s_getOpenToken,
@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                    getArgumentNames: s_getArgumentNames);
             }
 
-            ParenthesizedExpressionSyntax parenthesizedExpression = null;
-            if (GetOuterMostParenthesizedExpressionInSpan(root, position, syntaxFacts, currentSpan, cancellationToken, out parenthesizedExpression))
+            if (GetOuterMostParenthesizedExpressionInSpan(root, position, syntaxFacts, currentSpan, cancellationToken, out var parenthesizedExpression))
             {
                 if (currentSpan.Start == parenthesizedExpression.SpanStart)
                 {
@@ -55,10 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken, out TupleExpressionSyntax result)
         {
             result = null;
-
-            TupleExpressionSyntax expression;
             while (TryGetTupleExpression(SignatureHelpTriggerReason.InvokeSignatureHelpCommand,
-                root, position, syntaxFacts, cancellationToken, out expression))
+                root, position, syntaxFacts, cancellationToken, out var expression))
             {
                 if (!currentSpan.Contains(expression.Span))
                 {
@@ -76,10 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
          ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken, out ParenthesizedExpressionSyntax result)
         {
             result = null;
-
-            ParenthesizedExpressionSyntax expression;
             while (TryGetParenthesizedExpression(SignatureHelpTriggerReason.InvokeSignatureHelpCommand,
-                root, position, syntaxFacts, cancellationToken, out expression))
+                root, position, syntaxFacts, cancellationToken, out var expression))
             {
                 if (!currentSpan.Contains(expression.Span))
                 {
@@ -110,10 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             var typeInferrer = document.Project.LanguageServices.GetService<ITypeInferenceService>();
-
-            ExpressionSyntax targetExpression;
             var inferredTypes = FindNearestTupleConstructionWithInferrableType(root, semanticModel, position, triggerInfo,
-                typeInferrer, syntaxFacts, cancellationToken, out targetExpression);
+                typeInferrer, syntaxFacts, cancellationToken, out var targetExpression);
 
             if (inferredTypes == null || !inferredTypes.Any())
             {
@@ -128,10 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             // Walk upward through TupleExpressionSyntax/ParenthsizedExpressionSyntax looking for a 
             // place where we can infer a tuple type. 
-            TupleExpressionSyntax tupleExpression = null;
             ParenthesizedExpressionSyntax parenthesizedExpression = null;
-            while (TryGetTupleExpression(triggerInfo.TriggerReason, root, position, syntaxFacts, cancellationToken, out tupleExpression) ||
-                TryGetParenthesizedExpression(triggerInfo.TriggerReason, root, position, syntaxFacts, cancellationToken, out parenthesizedExpression))
+            while (TryGetTupleExpression(triggerInfo.TriggerReason, root, position, syntaxFacts, cancellationToken, out var tupleExpression) ||
+                   TryGetParenthesizedExpression(triggerInfo.TriggerReason, root, position, syntaxFacts, cancellationToken, out parenthesizedExpression))
             {
                 targetExpression = (ExpressionSyntax)tupleExpression ?? parenthesizedExpression;
                 var inferredTypes = typeInferrer.InferTypes(semanticModel, targetExpression.SpanStart, cancellationToken);
@@ -182,10 +174,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             var spacePart = Space();
             var result = new List<SignatureHelpParameter>();
-            for (int i = 0; i < tupleType.TupleElementTypes.Length; i++)
+            foreach (var element in tupleType.TupleElements)
             {
-                var type = tupleType.TupleElementTypes[i];
-                var elementName = GetElementName(tupleType.TupleElementNames, i);
+                var type = element.Type;
+
+                // The display name for each element. 
+                // Empty strings for elements not explicitly declared
+                var elementName = element.IsImplicitlyDeclared? string.Empty: element.Name;
 
                 var typeParts = type.ToMinimalDisplayParts(semanticModel, position).ToList();
                 if (!string.IsNullOrEmpty(elementName))
@@ -198,18 +193,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             return result;
-        }
-
-        // The display name for each parameter. Empty strings are allowed for
-        // parameters without names.
-        private string GetElementName(ImmutableArray<string> tupleElementNames, int i)
-        {
-            if (tupleElementNames == default(ImmutableArray<string>))
-            {
-                return string.Empty;
-            }
-
-            return tupleElementNames[i] ?? string.Empty;
         }
 
         private bool TryGetTupleExpression(SignatureHelpTriggerReason triggerReason, SyntaxNode root, int position, 

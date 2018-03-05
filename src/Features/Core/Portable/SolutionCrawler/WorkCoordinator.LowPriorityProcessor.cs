@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -50,11 +50,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             await WaitForHigherPriorityOperationsAsync().ConfigureAwait(false);
 
                             // process any available project work, preferring the active project.
-                            WorkItem workItem;
-                            CancellationTokenSource projectCancellation;
                             if (_workItemQueue.TryTakeAnyWork(
                                 this.Processor.GetActiveProject(), this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService,
-                                out workItem, out projectCancellation))
+                                out var workItem, out var projectCancellation))
                             {
                                 await ProcessProjectAsync(this.Analyzers, workItem, projectCancellation).ConfigureAwait(false);
                             }
@@ -152,9 +150,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                                     RemoveProject(projectId);
                                 }
-                            }
 
-                            processedEverything = true;
+                                if (!cancellationToken.IsCancellationRequested)
+                                {
+                                    processedEverything = true;
+                                }
+                            }
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {

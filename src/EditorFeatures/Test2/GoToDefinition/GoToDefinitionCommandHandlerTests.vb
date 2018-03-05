@@ -1,34 +1,35 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
+Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
+Imports Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionCancellationTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Async Function TestCancellation() As Tasks.Task
+        Public Sub TestCancellation()
             ' Run without cancelling.
-            Dim updates As Integer = Await Me.CancelAsync(Integer.MaxValue, False)
+            Dim updates As Integer = Me.Cancel(Integer.MaxValue, False)
             Assert.InRange(updates, 0, Integer.MaxValue)
             Dim i As Integer = 0
             While i < updates
-                Dim n As Integer = Await Me.CancelAsync(i, True)
+                Dim n As Integer = Me.Cancel(i, True)
                 Assert.Equal(n, i + 1)
                 i = i + 1
             End While
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Async Function TestInLinkedFiles() As Tasks.Task
+        Public Sub TestInLinkedFiles()
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
@@ -53,7 +54,7 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                     definition,
                     exportProvider:=MinimalTestExportProvider.CreateExportProvider(GoToTestHelpers.Catalog.WithPart(GetType(CSharpGoToDefinitionService))))
 
@@ -64,20 +65,20 @@ class C
                 Dim mockDocumentNavigationService =
                     DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
 
-                Dim commandHandler = New GoToDefinitionCommandHandler(New TestWaitIndicator(New TestWaitContext(100)))
-                commandHandler.TryExecuteCommand(view.TextSnapshot, baseDocument.CursorPosition.Value)
+                Dim commandHandler = New GoToDefinitionCommandHandler()
+                commandHandler.TryExecuteCommand(view.TextSnapshot, baseDocument.CursorPosition.Value, TestCommandExecutionContext.Create())
                 Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
                 Assert.Equal(New TextSpan(78, 2), mockDocumentNavigationService._span)
 
                 workspace.SetDocumentContext(linkDocument.Id)
 
-                commandHandler.TryExecuteCommand(view.TextSnapshot, baseDocument.CursorPosition.Value)
+                commandHandler.TryExecuteCommand(view.TextSnapshot, baseDocument.CursorPosition.Value, TestCommandExecutionContext.Create())
                 Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
                 Assert.Equal(New TextSpan(121, 2), mockDocumentNavigationService._span)
             End Using
-        End Function
+        End Sub
 
-        Private Async Function CancelAsync(updatesBeforeCancel As Integer, expectedCancel As Boolean) As Tasks.Task(Of Integer)
+        Private Function Cancel(updatesBeforeCancel As Integer, expectedCancel As Boolean) As Integer
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -87,26 +88,25 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(definition, exportProvider:=GoToTestHelpers.ExportProvider)
+            Using workspace = TestWorkspace.Create(definition, exportProvider:=GoToTestHelpers.ExportProvider)
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 
                 Dim mockDocumentNavigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
 
                 Dim navigatedTo = False
-                Dim presenter = New MockNavigableItemsPresenter(Sub(i) navigatedTo = True)
-                Dim presenters = {New Lazy(Of INavigableItemsPresenter)(Function() presenter)}
+                Dim presenter = New MockStreamingFindUsagesPresenter(Sub() navigatedTo = True)
+                Dim presenters = {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)}
 
                 Dim cursorBuffer = cursorDocument.TextBuffer
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim goToDefService = New CSharpGoToDefinitionService(presenters, {})
+                Dim goToDefService = New CSharpGoToDefinitionService(presenters)
 
-                Dim waitContext = New TestWaitContext(updatesBeforeCancel)
-                Dim waitIndicator = New TestWaitIndicator(waitContext)
-                Dim commandHandler = New GoToDefinitionCommandHandler(waitIndicator)
+                Dim waitContext = New TestUIThreadOperationContext(updatesBeforeCancel)
+                Dim commandHandler = New GoToDefinitionCommandHandler()
 
-                commandHandler.TryExecuteCommand(document, cursorPosition, goToDefService)
+                commandHandler.TryExecuteCommand(document, cursorPosition, goToDefService, New CommandExecutionContext(waitContext))
 
                 Assert.Equal(navigatedTo OrElse mockDocumentNavigationService._triedNavigationToSpan, Not expectedCancel)
 

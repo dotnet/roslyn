@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Completion
@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public SelectedItem As CompletionItem
         Public IsSoftSelected As Boolean
         Public SuggestionModeItem As CompletionItem
+        Public SuggestionMode As Boolean
 
         Public Event Dismissed As EventHandler(Of EventArgs) Implements ICompletionPresenterSession.Dismissed
         Public Event ItemSelected As EventHandler(Of CompletionItemEventArgs) Implements ICompletionPresenterSession.ItemSelected
@@ -40,6 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.SelectedItem = selectedItem
             Me.IsSoftSelected = isSoftSelected
             Me.SuggestionModeItem = suggestionModeItem
+            Me.SuggestionMode = suggestionMode
             Me._completionFilters = completionItemFilters
         End Sub
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -19,6 +20,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
         protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticData>
@@ -142,25 +145,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                if (_workspace != e.Workspace)
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, GetDiagnosticUpdatedMessage, e, CancellationToken.None))
                 {
-                    return;
-                }
+                    if (_workspace != e.Workspace)
+                    {
+                        return;
+                    }
 
-                if (e.Diagnostics.Length == 0)
-                {
-                    OnDataRemoved(e);
-                    return;
-                }
+                    if (e.Diagnostics.Length == 0)
+                    {
+                        OnDataRemoved(e);
+                        return;
+                    }
 
-                var count = e.Diagnostics.Where(ShouldInclude).Count();
-                if (count <= 0)
-                {
-                    OnDataRemoved(e);
-                    return;
-                }
+                    var count = e.Diagnostics.Where(ShouldInclude).Count();
+                    if (count <= 0)
+                    {
+                        OnDataRemoved(e);
+                        return;
+                    }
 
-                OnDataAddedOrChanged(e);
+                    OnDataAddedOrChanged(e);
+                }
             }
 
             public override AbstractTableEntriesSource<DiagnosticData> CreateTableEntriesSource(object data)
@@ -366,8 +372,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 private ErrorRank GetErrorRank(DiagnosticData item)
                 {
-                    string value;
-                    if (!item.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out value))
+                    if (!item.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out var value))
                     {
                         return ErrorRank.Other;
                     }
@@ -448,7 +453,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var item = GetItem(index)?.Primary;
                     if (item == null)
                     {
-                        expandedContent = default(FrameworkElement);
+                        expandedContent = default;
                         return false;
                     }
 
@@ -461,13 +466,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var item = GetItem(index)?.Primary;
                     if (item == null)
                     {
-                        content = default(string);
+                        content = default;
                         return false;
                     }
 
                     if (string.IsNullOrWhiteSpace(item.Description))
                     {
-                        content = default(string);
+                        content = default;
                         return false;
                     }
 
@@ -505,36 +510,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // unused ones                    
                 public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, out FrameworkElement content)
                 {
-                    content = default(FrameworkElement);
+                    content = default;
                     return false;
                 }
 
                 public bool TryCreateImageContent(int index, string columnName, bool singleColumnView, out ImageMoniker content)
                 {
-                    content = default(ImageMoniker);
+                    content = default;
                     return false;
                 }
 
                 public bool TryCreateStringContent(int index, string columnName, bool truncatedText, bool singleColumnView, out string content)
                 {
-                    content = default(string);
+                    content = default;
                     return false;
                 }
 
                 public bool TryCreateToolTip(int index, string columnName, out object toolTip)
                 {
-                    toolTip = default(object);
+                    toolTip = default;
                     return false;
                 }
 
                 // remove this once we moved to new drop
                 public bool TryCreateStringContent(int index, string columnName, bool singleColumnView, out string content)
                 {
-                    content = default(string);
+                    content = default;
                     return false;
                 }
 
                 #endregion
+            }
+
+            private static string GetDiagnosticUpdatedMessage(DiagnosticsUpdatedArgs e)
+            {
+                var id = e.Id.ToString();
+                if (e.Id is AnalyzerUpdateArgsId analyzer)
+                {
+                    id = analyzer.Analyzer.ToString();
+                }
+
+                return $"{e.Workspace.Kind} {id} {e.Kind} {(object)e.DocumentId ?? e.ProjectId} {e.Diagnostics.Length}";
             }
         }
     }

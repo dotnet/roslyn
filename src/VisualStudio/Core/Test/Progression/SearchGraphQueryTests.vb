@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class SearchGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForType() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -42,7 +42,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545474")>
         Public Async Function SearchForNestedType() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -76,7 +76,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForMember() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -110,13 +110,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForPartialType() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
 Namespace N
     Partial Class C
-        Sub Foo()
+        Sub Goo()
         End Sub
     End Class
 End Namespace
@@ -158,13 +158,13 @@ End Namespace
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForMethodInPartialType() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
 Namespace N
     Partial Class C
-        Sub Foo()
+        Sub Goo()
         End Sub
     End Class
 End Namespace
@@ -180,19 +180,19 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="Foo"), GraphContextDirection.Custom)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="Goo"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.vb"/>
-                            <Node Id="(@3 Namespace=N Type=C Member=Foo)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="Foo" Icon="Microsoft.VisualStudio.Method.Public" Label="Foo"/>
+                            <Node Id="(@3 Namespace=N Type=C Member=Goo)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="Goo" Icon="Microsoft.VisualStudio.Method.Public" Label="Goo"/>
                             <Node Id="(@3 Namespace=N Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
                             <Link Source="(@1 @2)" Target="(@3 Namespace=N Type=C)" Category="Contains"/>
-                            <Link Source="(@3 Namespace=N Type=C)" Target="(@3 Namespace=N Type=C Member=Foo)" Category="Contains"/>
+                            <Link Source="(@3 Namespace=N Type=C)" Target="(@3 Namespace=N Type=C Member=Goo)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.vbproj"/>
@@ -205,13 +205,13 @@ End Namespace
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchWithResultsAcrossMultipleTypeParts() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
 Namespace N
     Partial Class C
-        Sub ZFoo()
+        Sub ZGoo()
         End Sub
     End Class
 End Namespace
@@ -236,14 +236,14 @@ End Namespace
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project2.vb"/>
                             <Node Id="(@1 @3)" Category="CodeSchema_ProjectItem" Label="Project.vb"/>
                             <Node Id="(@4 Namespace=N Type=C Member=ZBar)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="ZBar" Icon="Microsoft.VisualStudio.Method.Public" Label="ZBar"/>
-                            <Node Id="(@4 Namespace=N Type=C Member=ZFoo)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="ZFoo" Icon="Microsoft.VisualStudio.Method.Public" Label="ZFoo"/>
+                            <Node Id="(@4 Namespace=N Type=C Member=ZGoo)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="ZGoo" Icon="Microsoft.VisualStudio.Method.Public" Label="ZGoo"/>
                             <Node Id="(@4 Namespace=N Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
                             <Link Source="(@1 @2)" Target="(@4 Namespace=N Type=C)" Category="Contains"/>
                             <Link Source="(@1 @3)" Target="(@4 Namespace=N Type=C)" Category="Contains"/>
                             <Link Source="(@4 Namespace=N Type=C)" Target="(@4 Namespace=N Type=C Member=ZBar)" Category="Contains"/>
-                            <Link Source="(@4 Namespace=N Type=C)" Target="(@4 Namespace=N Type=C Member=ZFoo)" Category="Contains"/>
+                            <Link Source="(@4 Namespace=N Type=C)" Target="(@4 Namespace=N Type=C Member=ZGoo)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.vbproj"/>
@@ -257,7 +257,7 @@ End Namespace
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForDottedName1() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -291,7 +291,7 @@ End Namespace
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForDottedName2() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -313,7 +313,7 @@ End Namespace
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForDottedName3() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -347,7 +347,7 @@ End Namespace
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForDottedName4() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -381,7 +381,7 @@ End Namespace
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchWithNullFilePathsOnProject() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath=<%= TestWorkspace.NullFilePath %>>
                             <Document FilePath="Z:\SomeVenusDocument.aspx.cs">

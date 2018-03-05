@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             End,
             Identifier,
             Keyword,
-            ColonColon,
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]

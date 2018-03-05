@@ -8,78 +8,59 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal static class SymbolCompletionItem
+    internal static partial class SymbolCompletionItem
     {
-        public static CompletionItem Create(
+        private static CompletionItem CreateWorker(
             string displayText,
             IReadOnlyList<ISymbol> symbols,
-            int contextPosition = -1,
+            CompletionItemRules rules,
+            int contextPosition,
+            Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> symbolEncoder,
             string sortText = null,
             string insertionText = null,
-            Glyph? glyph = null,
             string filterText = null,
-            int? matchPriority = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>),
-            CompletionItemRules rules = null)
+            ImmutableArray<string> tags = default)
         {
             var props = properties ?? ImmutableDictionary<string, string>.Empty;
-
-            props = props.Add("Symbols", EncodeSymbols(symbols));
 
             if (insertionText != null)
             {
                 props = props.Add("InsertionText", insertionText);
             }
 
-            if (contextPosition >= 0)
-            {
-                props = props.Add("ContextPosition", contextPosition.ToString());
-            }
+            props = props.Add("ContextPosition", contextPosition.ToString());
 
+            var firstSymbol = symbols[0];
             var item = CommonCompletionItem.Create(
                 displayText: displayText,
-                filterText: filterText ?? (displayText.Length > 0 && displayText[0] == '@' ? displayText : symbols[0].Name),
-                sortText: sortText ?? symbols[0].Name,
-                glyph: glyph ?? symbols[0].GetGlyph(),
-                matchPriority: matchPriority.GetValueOrDefault(),
+                rules: rules,
+                filterText: filterText ?? (displayText.Length > 0 && displayText[0] == '@' ? displayText : firstSymbol.Name),
+                sortText: sortText ?? firstSymbol.Name,
+                glyph: firstSymbol.GetGlyph(),
                 showsWarningIcon: supportedPlatforms != null,
                 properties: props,
-                tags: tags,
-                rules: rules);
+                tags: tags);
 
-            return WithSupportedPlatforms(item, supportedPlatforms);
+            item = WithSupportedPlatforms(item, supportedPlatforms);
+            return symbolEncoder(symbols, item);
         }
 
-        public static CompletionItem Create(
-            string displayText,
-            ISymbol symbol,
-            int contextPosition = -1,
-            string sortText = null,
-            string insertionText = null,
-            Glyph? glyph = null,
-            string filterText = null,
-            int? matchPriority = null,
-            SupportedPlatformData supportedPlatforms = null,
-            ImmutableDictionary<string, string> properties = null,
-            CompletionItemRules rules = null)
+        public static CompletionItem AddSymbolEncoding(IReadOnlyList<ISymbol> symbols, CompletionItem item)
         {
-            return Create(
-                displayText: displayText,
-                symbols: ImmutableArray.Create(symbol),
-                contextPosition: contextPosition,
-                sortText: sortText,
-                insertionText: insertionText,
-                glyph: glyph,
-                filterText: filterText,
-                matchPriority: matchPriority.GetValueOrDefault(),
-                supportedPlatforms: supportedPlatforms,
-                properties: properties,
-                rules: rules);
+            return item.AddProperty("Symbols", EncodeSymbols(symbols));
+        }
+
+        public static CompletionItem AddSymbolNameAndKind(IReadOnlyList<ISymbol> symbols, CompletionItem item)
+        {
+            var symbol = symbols[0];
+            return item.AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
+                       .AddProperty("SymbolName", symbol.Name);
         }
 
         public static string EncodeSymbols(IReadOnlyList<ISymbol> symbols)
@@ -112,8 +93,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static async Task<ImmutableArray<ISymbol>> GetSymbolsAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
         {
-            string symbolIds;
-            if (item.Properties.TryGetValue("Symbols", out symbolIds))
+            if (item.Properties.TryGetValue("Symbols", out var symbolIds))
             {
                 var idList = symbolIds.Split(s_symbolSplitters, StringSplitOptions.RemoveEmptyEntries).ToList();
                 var symbols = new List<ISymbol>();
@@ -165,7 +145,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SymbolKey.Resolve(id, compilation).GetAnySymbol();
         }
 
-        public static async Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
+        public static async Task<CompletionDescription> GetDescriptionAsync(
+            CompletionItem item, Document document, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
@@ -177,16 +158,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var supportedPlatforms = GetSupportedPlatforms(item, workspace);
 
-            // find appropriate document for descripton context
-            var contextDocument = document;
-            if (supportedPlatforms != null && supportedPlatforms.InvalidProjects.Contains(document.Id.ProjectId))
-            {
-                var contextId = document.GetLinkedDocumentIds().FirstOrDefault(id => !supportedPlatforms.InvalidProjects.Contains(id.ProjectId));
-                if (contextId != null)
-                {
-                    contextDocument = document.Project.Solution.GetDocument(contextId);
-                }
-            }
+            var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
 
             var semanticModel = await contextDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbols = await GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
@@ -198,6 +170,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 return CompletionDescription.Empty;
             }
+        }
+
+        private static Document FindAppropriateDocumentForDescriptionContext(Document document, SupportedPlatformData supportedPlatforms)
+        {
+            var contextDocument = document;
+            if (supportedPlatforms != null && supportedPlatforms.InvalidProjects.Contains(document.Id.ProjectId))
+            {
+                var contextId = document.GetLinkedDocumentIds().FirstOrDefault(id => !supportedPlatforms.InvalidProjects.Contains(id.ProjectId));
+                if (contextId != null)
+                {
+                    contextDocument = document.Project.Solution.GetDocument(contextId);
+                }
+            }
+
+            return contextDocument;
         }
 
         private static CompletionItem WithSupportedPlatforms(CompletionItem completionItem, SupportedPlatformData supportedPlatforms)
@@ -217,11 +204,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly char[] projectSeperators = new[] { ';' };
         public static SupportedPlatformData GetSupportedPlatforms(CompletionItem item, Workspace workspace)
         {
-            string invalidProjects;
-            string candidateProjects;
-
-            if (item.Properties.TryGetValue("InvalidProjects", out invalidProjects) 
-                && item.Properties.TryGetValue("CandidateProjects", out candidateProjects))
+            if (item.Properties.TryGetValue("InvalidProjects", out var invalidProjects)
+                && item.Properties.TryGetValue("CandidateProjects", out var candidateProjects))
             {
                 return new SupportedPlatformData(
                     invalidProjects.Split(projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s))).ToList(),
@@ -234,9 +218,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static int GetContextPosition(CompletionItem item)
         {
-            string text;
-            int number;
-            if (item.Properties.TryGetValue("ContextPosition", out text) && int.TryParse(text, out number))
+            if (item.Properties.TryGetValue("ContextPosition", out var text) &&
+                int.TryParse(text, out var number))
             {
                 return number;
             }
@@ -247,15 +230,88 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public static int GetDescriptionPosition(CompletionItem item)
-        {
-            return GetContextPosition(item);
-        }
+            => GetContextPosition(item);
 
         public static string GetInsertionText(CompletionItem item)
         {
-            string text;
-            item.Properties.TryGetValue("InsertionText", out text);
+            item.Properties.TryGetValue("InsertionText", out var text);
             return text;
+        }
+
+        public static CompletionItem CreateWithSymbolId(
+            string displayText,
+            IReadOnlyList<ISymbol> symbols,
+            CompletionItemRules rules,
+            int contextPosition,
+            string sortText = null,
+            string insertionText = null,
+            string filterText = null,
+            SupportedPlatformData supportedPlatforms = null,
+            ImmutableDictionary<string, string> properties = null,
+            ImmutableArray<string> tags = default)
+        {
+            return CreateWorker(
+                displayText, symbols, rules, contextPosition, 
+                AddSymbolEncoding, sortText, insertionText,
+                filterText, supportedPlatforms, properties, tags);
+        }
+
+        public static CompletionItem CreateWithNameAndKind(
+            string displayText,
+            IReadOnlyList<ISymbol> symbols,
+            CompletionItemRules rules,
+            int contextPosition,
+            string sortText = null,
+            string insertionText = null,
+            string filterText = null,
+            SupportedPlatformData supportedPlatforms = null,
+            ImmutableDictionary<string, string> properties = null,
+            ImmutableArray<string> tags = default)
+        {
+            return CreateWorker(
+                displayText, symbols, rules, contextPosition, 
+                AddSymbolNameAndKind, sortText, insertionText,
+                filterText, supportedPlatforms, properties, tags);
+        }
+
+        internal static string GetSymbolName(CompletionItem item)
+        {
+            if (item.Properties.TryGetValue("SymbolName", out var name))
+            {
+                return name;
+            }
+
+            return null;
+        }
+
+        internal static SymbolKind? GetKind(CompletionItem item)
+        {
+            if (item.Properties.TryGetValue("SymbolKind", out var kind))
+            {
+                return (SymbolKind)int.Parse(kind);
+            }
+
+            return null;
+        }
+
+        public static async Task<CompletionDescription> GetDescriptionAsync(
+            CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var workspace = document.Project.Solution.Workspace;
+
+            var position = GetDescriptionPosition(item);
+            var supportedPlatforms = GetSupportedPlatforms(item, workspace);
+
+            var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
+
+            if (symbols.Length != 0)
+            {
+                return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                return CompletionDescription.Empty;
+            }
         }
     }
 }

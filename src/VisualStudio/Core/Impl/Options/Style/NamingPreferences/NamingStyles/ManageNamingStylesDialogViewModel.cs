@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         public string DialogTitle => "Manage Naming Styles";
 
         public ManageNamingStylesDialogViewModel(
-            ObservableCollection<NamingStyle> namingStyles, 
+            ObservableCollection<MutableNamingStyle> namingStyles, 
             List<NamingStyleOptionPageViewModel.NamingRuleViewModel> namingRules, 
             INotificationService notificationService)
         {
@@ -37,11 +37,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         public void AddItem()
         {
-            var style = new NamingStyle();
+            var style = new MutableNamingStyle();
             var viewModel = new NamingStyleViewModel(style, canBeDeleted: true, notificationService: _notificationService);
             var dialog = new NamingStyleDialog(viewModel);
 
-            if (dialog.ShowDialog().Value == true)
+            if (dialog.ShowModal().Value == true)
             {
                 Items.Add(viewModel);
             }
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             var viewModel = new NamingStyleViewModel(style, context.CanBeDeleted, notificationService: _notificationService);
             var dialog = new NamingStyleDialog(viewModel);
 
-            if (dialog.ShowDialog().Value == true)
+            if (dialog.ShowModal().Value == true)
             {
                 context.ItemName = viewModel.ItemName;
                 context.RequiredPrefix = viewModel.RequiredPrefix;

@@ -23,6 +23,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveType_MissingNotOnHeader1()
+        {
+            var code =
+@"namespace N1
+{
+    [||]
+    class Class1
+    {
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveType_MissingNotOnHeader2()
+        {
+            var code =
+@"namespace N1
+{
+    [||][X]
+    class Class1
+    {
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveType_MissingNotOnHeader3()
+        {
+            var code =
+@"namespace N1
+{
+    class Class1
+    [||]{
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveType_ActionCounts_MoveOnly()
         {
             var code =

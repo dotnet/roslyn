@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
@@ -67,9 +68,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         protected abstract bool IsPredefinedTypeReplaceableWithFrameworkType(TPredefinedTypeSyntax node);
         protected abstract bool IsInMemberAccessOrCrefReferenceContext(TExpressionSyntax node);
 
-        public override void Initialize(AnalysisContext context)
+        public sealed override void Initialize(AnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest);
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
         }
 
         protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             {
                 return;
             }
-            
+
             var semanticModel = context.SemanticModel;
             var language = semanticModel.Language;
 
@@ -106,12 +109,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             {
                 return;
             }
-
             // earlier we did a context insensitive check to see if this style was preferred in *any* context at all.
             // now, we have to make a context sensitive check to see if options settings for our context requires us to report a diagnostic.
-            string diagnosticId;
-            DiagnosticSeverity diagnosticSeverity;
-            if (ShouldReportDiagnostic(predefinedTypeNode, optionSet, language, out diagnosticId, out diagnosticSeverity))
+            if (ShouldReportDiagnostic(predefinedTypeNode, optionSet, language, out var diagnosticId, out var diagnosticSeverity))
             {
                 var descriptor = new DiagnosticDescriptor(diagnosticId,
                         s_preferFrameworkTypeTitle,

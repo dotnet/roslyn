@@ -165,12 +165,12 @@ class Program
     {
     }
 
-    static void Foo(S1 s = new S1())
+    static void Goo(S1 s = new S1())
     {
 
     }
 
-    static void Foo(S2 s = new S2())
+    static void Goo(S2 s = new S2())
     {
 
     }
@@ -182,7 +182,7 @@ class Program
     //     public S2()
     Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S2").WithLocation(10, 12),
     // (26,28): error CS1736: Default parameter value for 's' must be a compile-time constant
-    //     static void Foo(S2 s = new S2())
+    //     static void Goo(S2 s = new S2())
     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new S2()").WithArguments("s").WithLocation(26, 28)
 );
         }
@@ -772,7 +772,7 @@ class C
         F(U64.Min - 2); // overflows at compile time in checked mode
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (32,11): error CS0221: Constant value '128' cannot be converted to a 'S8' (use 'unchecked' syntax to override)
                 //         F(S8.Max + 1); // 128 cannot be converted to ...
                 Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "S8.Max + 1").WithArguments("128", "S8").WithLocation(32, 11),
@@ -1697,7 +1697,7 @@ class C
         ulong ulongUnderflow = ulong.MinValue - 1;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
     // (7,15): error CS0283: The type 'C.S' cannot be declared const
     //         const S s = new S();
     Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("C.S").WithLocation(7, 15),
@@ -1796,7 +1796,7 @@ class C
     const int d2 = (int)(dynamic)1;
     const int d3 = 1 + (int)(dynamic)1;
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,20): error CS0133: The expression being assigned to 'C.d0' must be constant
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "default(dynamic)").WithArguments("C.d0"),
                 // (5,20): error CS0133: The expression being assigned to 'C.d1' must be constant
@@ -1825,7 +1825,7 @@ class C
     const long unchecked_long = unchecked(-Int64.MinValue);
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,30): error CS0220: The operation overflows at compile time in checked mode
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "-Int32.MinValue"),
                 // (7,32): error CS0220: The operation overflows at compile time in checked mode
@@ -1860,7 +1860,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,34): error CS0220: The operation overflows at compile time in checked mode
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MinValue / (-1)"),
                 // (15,36): error CS0220: The operation overflows at compile time in checked mode
@@ -1928,7 +1928,7 @@ cdivl --> BAD";
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (8,18): error CS0220: The operation overflows at compile time in checked mode
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "x * y"));
         }
@@ -1939,7 +1939,7 @@ cdivl --> BAD";
             string text =
 @"enum E : uint { A, B = A - 1 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (1,24): error CS0220: The operation overflows at compile time in checked mode
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "A - 1"));
         }
@@ -1956,7 +1956,7 @@ class C
     const uint H = checked((uint)(E.A + 3)); // CS0220
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (4,27): error CS0220: The operation overflows at compile time in checked mode
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "E.A + 1"),
                 // (6,35): error CS0220: The operation overflows at compile time in checked mode
@@ -1969,7 +1969,7 @@ class C
             // multiplying constants in checked statement that causes overflow behaves like unchecked
 
             var source = @"
-public class foo
+public class goo
 {
     const int i = 1000000;
     const int j = 1000000;
@@ -1983,7 +1983,7 @@ public class foo
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,21): error CS0220: The operation overflows at compile time in checked mode
                 //             int k = i * j;
@@ -2009,7 +2009,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0220: The operation overflows at compile time in checked mode
                 //         r = int.MaxValue + 1;
@@ -2050,7 +2050,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                     // (6,17): error CS0220: The operation overflows at compile time in checked mode
                     //         int r = int.MaxValue + 1;
@@ -2124,7 +2124,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,13): error CS0220: The operation overflows at compile time in checked mode
                 //         r = int.MaxValue + 1;
@@ -2179,7 +2179,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,17): error CS0220: The operation overflows at compile time in checked mode
                 //             r = int.MaxValue + 1;
@@ -2366,7 +2366,7 @@ b --> BAD
 {
     const string F = F;
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.GetDeclarationDiagnostics().Verify(
                 // (3,18): error CS0110: The evaluation of the constant value for 'C.F' involves a circular definition
                 Diagnostic(CSharp.ErrorCode.ERR_CircConstValue, "F").WithArguments("C.F").WithLocation(3, 18));
@@ -2397,8 +2397,8 @@ public class E
 {
     public const string E1 = C.C1;
 }";
-            var compilation1 = CreateCompilationWithMscorlib(source1);
-            var compilation2 = CreateCompilationWithMscorlib(source2, new MetadataReference[] { new CSharpCompilationReference(compilation1) });
+            var compilation1 = CreateStandardCompilation(source1);
+            var compilation2 = CreateStandardCompilation(source2, new MetadataReference[] { new CSharpCompilationReference(compilation1) });
             compilation2.VerifyDiagnostics();
             compilation1.VerifyDiagnostics();
         }
@@ -2438,13 +2438,13 @@ public class F
 {
     public const string G1 = F.F1 + D.D1;
 }";
-            var compilation1 = CreateCompilationWithMscorlib(source1);
+            var compilation1 = CreateStandardCompilation(source1);
             var reference1 = new CSharpCompilationReference(compilation1);
-            var compilation2 = CreateCompilationWithMscorlib(source2);
+            var compilation2 = CreateStandardCompilation(source2);
             var reference2 = new CSharpCompilationReference(compilation2);
-            var compilation3 = CreateCompilationWithMscorlib(source3, new MetadataReference[] { reference1 });
+            var compilation3 = CreateStandardCompilation(source3, new MetadataReference[] { reference1 });
             var reference3 = new CSharpCompilationReference(compilation3);
-            var compilation4 = CreateCompilationWithMscorlib(source4, new MetadataReference[] { reference2, reference3 });
+            var compilation4 = CreateStandardCompilation(source4, new MetadataReference[] { reference2, reference3 });
             compilation4.VerifyDiagnostics();
             compilation3.VerifyDiagnostics();
             compilation2.VerifyDiagnostics(
@@ -2472,12 +2472,12 @@ class c1
     }
 
     [MyAttribute(A + B + 3)]
-    void Foo()
+    void Goo()
     {
     }
 }");
             var expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var constantValue = comp.GetSemanticModel(tree).GetConstantValue(expr);
             Assert.True(constantValue.HasValue);
             Assert.Equal(constantValue.Value, 6);
@@ -2494,7 +2494,7 @@ class c1
     const byte Z2 = (byte)300;
 }");
 
-            var compilation = CreateCompilationWithMscorlib(tree);
+            var compilation = CreateStandardCompilation(tree);
             compilation.VerifyDiagnostics(
                 // (4,21): error CS0031: Constant value '300' cannot be converted to a 'byte'
                 //     const byte Z1 = 300;
@@ -2527,7 +2527,7 @@ class C{0}
             var source = string.Join(Environment.NewLine, range.Select(i =>
                 string.Format(template, i, (i + 1) % numConstants)));
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var global = compilation.GlobalNamespace;
 
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("C" + i));
@@ -2559,7 +2559,7 @@ class C{0}
                 i == (numConstants - 1) ? string.Format(template, i, i - 1, i - 1) :
                 string.Format(template, i, i - 1, i + 1)));
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var global = compilation.GlobalNamespace;
 
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("C" + i));
@@ -2614,7 +2614,7 @@ enum E{0}
             var source = string.Join(Environment.NewLine, range.Select(i =>
                 string.Format(template, i, (i + 1) % numConstants)));
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var global = compilation.GlobalNamespace;
 
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
@@ -2646,7 +2646,7 @@ enum E{0}
                 i == (numConstants - 1) ? string.Format(template, i, i - 1, i - 1) :
                 string.Format(template, i, i - 1, i + 1)));
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var global = compilation.GlobalNamespace;
 
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
@@ -2704,7 +2704,7 @@ enum E{0}
             var source = string.Join(Environment.NewLine, range.Select(i =>
                 string.Format(template, i, (i + 1) % numEnums)));
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var global = compilation.GlobalNamespace;
 
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
@@ -2739,7 +2739,7 @@ enum E{0}
                 i == (numEnums - 1) ? string.Format(template, i, i - 1, i - 1) :
                 string.Format(template, i, i - 1, i + 1)));
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var global = compilation.GlobalNamespace;
 
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
@@ -2793,7 +2793,7 @@ class MyClass
         return bb ? 1 : 0;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         // We used to return constant zero in unchecked conversion from a floating-point type to an integral type
@@ -2838,10 +2838,10 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         void f() { if () const int i = 0; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7.0").WithLocation(6, 14),
                 // (6,24): error CS1525: Invalid expression term ')'
                 //         void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 24),
@@ -2851,9 +2851,9 @@ class Program
                 // (6,36): warning CS0219: The variable 'i' is assigned but its value is never used
                 //         void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 36),
-                // (6,14): warning CS0168: The variable 'f' is declared but never used
+                // (6,14): warning CS8321: The local function 'f' is declared but never used
                 //         void f() { if () const int i = 0; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(6, 14)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(6, 14)
                 );
         }
 
@@ -2869,7 +2869,7 @@ class C
         const Func<int> a = () => { const int b = a(); return 1; };
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
     // (6,51): error CS0133: The expression being assigned to 'b' must be constant
     //         const Func<int> a = () => { const int b = a(); return 1; };
     Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51)
@@ -2887,7 +2887,7 @@ class C
         const int z = 1 + z + 1;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
     // (5,27): error CS0110: The evaluation of the constant value for 'z' involves a circular definition
     //         const int z = 1 + z + 1;
     Diagnostic(ErrorCode.ERR_CircConstValue, "z").WithArguments("z").WithLocation(5, 27)
@@ -2901,7 +2901,7 @@ class C
 @"
 void f() { if () const int i = 0; }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
     // (2,16): error CS1525: Invalid expression term ')'
     // void f() { if () const int i = 0; }
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 16),
@@ -2948,7 +2948,7 @@ void f() { if () const int i = 0; }
         }
     }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,27): error CS0133: The expression being assigned to 'y1' must be constant
                 //         const string y1 = (string)(object)"y";
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"(string)(object)""y""").WithArguments("y1").WithLocation(7, 27),
@@ -2967,9 +2967,15 @@ void f() { if () const int i = 0; }
                 // (21,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //             case (object)null:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(21, 18),
+                // (21,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
+                //             case (object)null:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (object)null:").WithArguments("null").WithLocation(21, 13),
                 // (23,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //             case (object)"b":
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""b""").WithArguments("object", "string").WithLocation(23, 18));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""b""").WithArguments("object", "string").WithLocation(23, 18),
+                // (23,18): error CS0150: A constant value is expected
+                //             case (object)"b":
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"(object)""b""").WithLocation(23, 18));
         }
     }
 

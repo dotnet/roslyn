@@ -111,11 +111,11 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-    BC30112: 'System' is a namespace and cannot be used as an expression.
+BC30112: 'System' is a namespace and cannot be used as an expression.
     System.Console.WriteLine((System).String.Equals("", ""))
                               ~~~~~~
 BC30203: Identifier expected.
@@ -138,10 +138,13 @@ BC30451: 'C2' is not declared. It may be inaccessible due to its protection leve
                                  ~~
 BC37259: Tuple must contain at least two elements.
     System.Console.WriteLine(GetType((System.String)))
-                                     ~~~~~~~~~~~~~~~
+                                                   ~
+BC30456: 'C2' is not a member of 'Type'.
+    System.Console.WriteLine(GetType((C1).C2)))
+                             ~~~~~~~~~~~~~~~
 BC37259: Tuple must contain at least two elements.
     System.Console.WriteLine(GetType((C1).C2)))
-                                     ~~~~
+                                        ~
 BC30198: ')' expected.
     System.Console.WriteLine(GetType((C1).C2)))
                                          ~

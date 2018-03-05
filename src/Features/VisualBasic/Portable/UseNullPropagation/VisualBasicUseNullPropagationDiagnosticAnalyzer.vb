@@ -26,6 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             Return VisualBasicSyntaxFactsService.Instance
         End Function
 
+        Protected Overrides Function GetSemanticFactsService() As ISemanticFactsService
+            Return VisualBasicSemanticFactsService.instance
+        End Function
+
         Protected Overrides Function GetSyntaxKindToAnalyze() As SyntaxKind
             Return SyntaxKind.TernaryConditionalExpression
         End Function
@@ -36,6 +40,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
 
         Protected Overrides Function IsNotEquals(condition As BinaryExpressionSyntax) As Boolean
             Return condition.Kind() = SyntaxKind.IsNotExpression
+        End Function
+
+        Protected Overrides Function TryAnalyzePatternCondition(syntaxFacts As ISyntaxFactsService, conditionNode As SyntaxNode, ByRef conditionPartToCheck As SyntaxNode, ByRef isEquals As Boolean) As Boolean
+            conditionPartToCheck = Nothing
+            isEquals = False
+            Return False
         End Function
     End Class
 End Namespace

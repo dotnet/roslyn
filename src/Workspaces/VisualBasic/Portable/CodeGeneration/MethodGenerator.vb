@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim declaration = GenerateMethodDeclarationWorker(method, destination, options)
 
             Return AddAnnotationsTo(method,
-                AddCleanupAnnotationsTo(
+                AddFormatterAndCodeGeneratorAnnotationsTo(
                     ConditionallyAddDocumentationCommentTo(declaration, method, options)))
         End Function
 

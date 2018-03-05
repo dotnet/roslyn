@@ -7,6 +7,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -78,13 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        public SourceText Text
-        {
-            get
-            {
-                return _text;
-            }
-        }
+        public SourceText Text => _text;
 
         /// <summary>
         /// The current absolute position in the text file.
@@ -672,6 +667,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (_characterWindow[offset] == ' ')
                     {
                         return " ";
+                    }
+                    if (_characterWindow[offset] == '\n')
+                    {
+                        return "\n";
                     }
                     break;
 

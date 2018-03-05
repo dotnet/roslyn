@@ -1,13 +1,13 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -109,18 +109,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _highPriorityProcessor.Shutdown();
                     _normalPriorityProcessor.Shutdown();
                     _lowPriorityProcessor.Shutdown();
-                }
-
-                // TODO: delete this once prototyping is done
-                public void ChangeDiagnosticsEngine(bool useV2Engine)
-                {
-                    var diagnosticAnalyzer = Analyzers.FirstOrDefault(a => a is BaseDiagnosticIncrementalAnalyzer) as DiagnosticAnalyzerService.IncrementalAnalyzerDelegatee;
-                    if (diagnosticAnalyzer == null)
-                    {
-                        return;
-                    }
-
-                    diagnosticAnalyzer.TurnOff(useV2Engine);
                 }
 
                 public ImmutableArray<IIncrementalAnalyzer> Analyzers => _normalPriorityProcessor.Analyzers;
@@ -242,11 +230,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                     catch (OperationCanceledException)
                     {
-                        return default(TResult);
+                        return default;
                     }
                     catch (AggregateException e) when (CrashUnlessCanceled(e))
                     {
-                        return default(TResult);
+                        return default;
                     }
                     catch (Exception e) when (FatalError.Report(e))
                     {
@@ -262,8 +250,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return null;
                     }
 
-                    SyntaxNode memberNode;
-                    if (!memberPath.TryResolve(root, out memberNode))
+                    if (!memberPath.TryResolve(root, out SyntaxNode memberNode))
                     {
                         return null;
                     }
@@ -334,13 +321,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         lock (_analyzerMap)
                         {
-                            ImmutableArray<ValueTuple<IIncrementalAnalyzer, bool>> analyzers;
-                            if (!_analyzerMap.TryGetValue(workspace, out analyzers))
+                            if (!_analyzerMap.TryGetValue(workspace, out var analyzers))
                             {
-                                // Sort list so BaseDiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
+                                // Sort list so DiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
                                 analyzers = _analyzerProviders.Select(p => ValueTuple.Create(p.Value.CreateIncrementalAnalyzer(workspace), p.Metadata.HighPriorityForActiveFile))
                                                 .Where(t => t.Item1 != null)
-                                                .OrderBy(t => !(t.Item1 is BaseDiagnosticIncrementalAnalyzer))
+                                                .OrderBy(t => !(t.Item1 is DiagnosticIncrementalAnalyzer))
                                                 .ToImmutableArray();
 
                                 _analyzerMap[workspace] = analyzers;

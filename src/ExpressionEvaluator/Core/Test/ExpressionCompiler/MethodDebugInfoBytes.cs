@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using Microsoft.DiaSymReader;
 using Xunit;
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
                 // Record header
                 _bytesBuilder.Add(Version);
-                _bytesBuilder.Add((byte)CustomDebugInfoKind.UsingInfo);
+                _bytesBuilder.Add((byte)CustomDebugInfoKind.UsingGroups);
                 _bytesBuilder.Add(Padding);
                 _bytesBuilder.Add(Padding);
                 _bytesBuilder.Add4(recordSize);
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             {
                 // Record header
                 _bytesBuilder.Add(Version);
-                _bytesBuilder.Add((byte)(isModuleLevel ? CustomDebugInfoKind.ForwardToModuleInfo : CustomDebugInfoKind.ForwardInfo));
+                _bytesBuilder.Add((byte)(isModuleLevel ? CustomDebugInfoKind.ForwardModuleInfo : CustomDebugInfoKind.ForwardMethodInfo));
                 _bytesBuilder.Add(Padding);
                 _bytesBuilder.Add(Padding);
                 _bytesBuilder.Add4(12); // Record size, including header.

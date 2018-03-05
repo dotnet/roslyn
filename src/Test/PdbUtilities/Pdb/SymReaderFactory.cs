@@ -15,15 +15,18 @@ namespace Roslyn.Test.PdbUtilities
 {
     public static class SymReaderFactory
     {
-        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory)]
+        public static void Dispose(this ISymUnmanagedReader symReader) 
+            => ((ISymUnmanagedDispose)symReader)?.Destroy();
+
+        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport("Microsoft.DiaSymReader.Native.x86.dll", EntryPoint = "CreateSymReader")]
         private extern static void CreateSymReader32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symReader);
 
-        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymReader")]
         private extern static void CreateSymReader64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symReader);
 
-        private static ISymUnmanagedReader3 CreateNativeSymReader(Stream pdbStream, object metadataImporter)
+        private static ISymUnmanagedReader5 CreateNativeSymReader(Stream pdbStream, object metadataImporter)
         {
             object symReader = null;
 
@@ -37,42 +40,42 @@ namespace Roslyn.Test.PdbUtilities
                 CreateSymReader64(ref guid, out symReader);
             }
 
-            var reader = (ISymUnmanagedReader3)symReader;
+            var reader = (ISymUnmanagedReader5)symReader;
             reader.Initialize(pdbStream, metadataImporter);
             return reader;
         }
 
-        private static ISymUnmanagedReader3 CreatePortableSymReader(Stream pdbStream, object metadataImporter)
+        private static ISymUnmanagedReader5 CreatePortableSymReader(Stream pdbStream, object metadataImporter)
         {
-            return (ISymUnmanagedReader3)new PortablePdb.SymBinder().GetReaderFromStream(pdbStream, metadataImporter);
+            return (ISymUnmanagedReader5)new PortablePdb.SymBinder().GetReaderFromStream(pdbStream, metadataImporter);
         }
 
-        public static ISymUnmanagedReader3 CreateReader(byte[] pdbImage, byte[] peImageOpt = null)
+        public static ISymUnmanagedReader5 CreateReader(byte[] pdbImage, byte[] peImageOpt = null)
         {
             return CreateReader(new MemoryStream(pdbImage), (peImageOpt != null) ? new PEReader(new MemoryStream(peImageOpt)) : null);
         }
 
-        public static ISymUnmanagedReader3 CreateReader(ImmutableArray<byte> pdbImage, ImmutableArray<byte> peImageOpt = default(ImmutableArray<byte>))
+        public static ISymUnmanagedReader5 CreateReader(ImmutableArray<byte> pdbImage, ImmutableArray<byte> peImageOpt = default(ImmutableArray<byte>))
         {
             return CreateReader(new MemoryStream(pdbImage.ToArray()), (peImageOpt.IsDefault) ? null : new PEReader(peImageOpt));
         }
 
-        public static ISymUnmanagedReader3 CreateReader(Stream pdbStream, Stream peStreamOpt = null)
+        public static ISymUnmanagedReader5 CreateReader(Stream pdbStream, Stream peStreamOpt = null)
         {
             return CreateReader(pdbStream, (peStreamOpt != null) ? new PEReader(peStreamOpt) : null);
         }
 
-        public static ISymUnmanagedReader3 CreateReader(Stream pdbStream, PEReader peReaderOpt)
+        public static ISymUnmanagedReader5 CreateReader(Stream pdbStream, PEReader peReaderOpt)
         {
             return CreateReader(pdbStream, peReaderOpt?.GetMetadataReader(), peReaderOpt);
         }
 
-        public static ISymUnmanagedReader3 CreateReader(Stream pdbStream, MetadataReader metadataReaderOpt, IDisposable metadataMemoryOwnerOpt)
+        public static ISymUnmanagedReader5 CreateReader(Stream pdbStream, MetadataReader metadataReaderOpt, IDisposable metadataMemoryOwnerOpt)
         {
             return CreateReaderImpl(pdbStream, metadataImporter: new DummyMetadataImport(metadataReaderOpt, metadataMemoryOwnerOpt));
         }
 
-        public static ISymUnmanagedReader3 CreateReaderImpl(Stream pdbStream, object metadataImporter)
+        public static ISymUnmanagedReader5 CreateReaderImpl(Stream pdbStream, object metadataImporter)
         {
             pdbStream.Position = 0;
             bool isPortable = pdbStream.ReadByte() == 'B' && pdbStream.ReadByte() == 'S' && pdbStream.ReadByte() == 'J' && pdbStream.ReadByte() == 'B';

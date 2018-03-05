@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
     {
         protected abstract string LanguageName { get; }
 
-        protected virtual string WorkspaceKind => TestWorkspace.WorkspaceName;
+        protected virtual string WorkspaceKind => CodeAnalysis.WorkspaceKind.Test;
 
         private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, int position)
         {
@@ -28,9 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
         protected async Task VerifyBlockSpansAsync(string markupCode, params Tuple<string, string, string, bool, bool>[] expectedRegionData)
         {
-            using (var workspace = await TestWorkspace.CreateAsync(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
+            using (var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
             {
                 var hostDocument = workspace.Documents.Single();
+                workspace.Options = workspace.Options.WithChangedOption(
+                    BlockStructureOptions.MaximumBannerLength, LanguageName, 120);
                 Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
                 var position = hostDocument.CursorPosition.Value;
 
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
         protected async Task VerifyNoBlockSpansAsync(string markupCode)
         {
-            using (var workspace = await TestWorkspace.CreateAsync(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
+            using (var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
             {
                 var hostDocument = workspace.Documents.Single();
                 Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
@@ -73,7 +75,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             return Tuple.Create(textSpanName, textSpanName, bannerText, autoCollapse, isDefaultCollapsed);
         }
 
-        private static BlockSpan CreateBlockSpan(Tuple<string, string, string, bool, bool> regionData, IDictionary<string, IList<TextSpan>> spans)
+        private static BlockSpan CreateBlockSpan(
+            Tuple<string, string, string, bool, bool> regionData,
+            IDictionary<string, ImmutableArray<TextSpan>> spans)
         {
             var textSpanName = regionData.Item1;
             var hintSpanName = regionData.Item2;
@@ -81,8 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             var autoCollapse = regionData.Item4;
             var isDefaultCollapsed = regionData.Item5;
 
-            Assert.True(spans.ContainsKey(textSpanName) && spans[textSpanName].Count == 1, $"Test did not specify '{textSpanName}' span.");
-            Assert.True(spans.ContainsKey(hintSpanName) && spans[hintSpanName].Count == 1, $"Test did not specify '{hintSpanName}' span.");
+            Assert.True(spans.ContainsKey(textSpanName) && spans[textSpanName].Length == 1, $"Test did not specify '{textSpanName}' span.");
+            Assert.True(spans.ContainsKey(hintSpanName) && spans[hintSpanName].Length == 1, $"Test did not specify '{hintSpanName}' span.");
 
             var textSpan = spans[textSpanName][0];
             var hintSpan = spans[hintSpanName][0];

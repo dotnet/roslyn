@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
@@ -27,15 +27,16 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 ? document.SemanticModel.GetDeclaredSymbol(oldTypeDeclaration, cancellationToken) as INamedTypeSymbol
                 : document.SemanticModel.Compilation.ScriptClass;
             var newNameToken = GenerateUniqueFieldName(document, expression, isConstant, cancellationToken);
+            var typeDisplayString = oldType.ToMinimalDisplayString(document.SemanticModel, expression.SpanStart);
 
             var newQualifiedName = oldTypeDeclaration != null
-                ? SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.ParseName(oldType.ToNameDisplayString()), SyntaxFactory.IdentifierName(newNameToken))
+                ? SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.ParseName(typeDisplayString), SyntaxFactory.IdentifierName(newNameToken))
                 : (ExpressionSyntax)SyntaxFactory.IdentifierName(newNameToken);
 
             newQualifiedName = newQualifiedName.WithAdditionalAnnotations(Simplifier.Annotation);
 
             var newFieldDeclaration = SyntaxFactory.FieldDeclaration(
-                default(SyntaxList<AttributeListSyntax>),
+                default,
                 MakeFieldModifiers(isConstant, inScript: oldType.IsScriptClass),
                 SyntaxFactory.VariableDeclaration(
                     GetTypeSymbol(document, expression, cancellationToken).GenerateTypeSyntax(),
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                         SyntaxFactory.VariableDeclarator(
                             newNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                             null,
-                            SyntaxFactory.EqualsValueClause(expression))))).WithAdditionalAnnotations(Formatter.Annotation);
+                            SyntaxFactory.EqualsValueClause(expression.WithoutTrivia()))))).WithAdditionalAnnotations(Formatter.Annotation);
 
             if (oldTypeDeclaration != null)
             {

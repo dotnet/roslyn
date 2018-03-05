@@ -28,19 +28,17 @@ namespace Microsoft.CodeAnalysis.Execution
             // additional assets that is not part of solution but added explicitly
             private ConcurrentDictionary<Checksum, CustomAsset> _additionalAssets;
 
-            public Storage(AssetStorages owner, SolutionState solutionState)
+            public Storage(SolutionState solutionState)
             {
                 SolutionState = solutionState;
 
-                _serializer = new Serializer(SolutionState.Workspace.Services);
+                _serializer = new Serializer(SolutionState.Workspace);
             }
 
             public SolutionState SolutionState { get; }
 
-            public void AddAdditionalAsset(CustomAsset asset, CancellationToken cancellationToken)
+            public void AddAdditionalAsset(CustomAsset asset)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 LazyInitialization.EnsureInitialized(ref _additionalAssets, s_additionalAssetsCreator);
 
                 _additionalAssets.TryAdd(asset.Checksum, asset);
@@ -123,8 +121,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             private RemotableData GetRemotableDataFromAdditionalAssets(Checksum checksum)
             {
-                CustomAsset asset;
-                if (_additionalAssets.TryGetValue(checksum, out asset))
+                if (_additionalAssets.TryGetValue(checksum, out var asset))
                 {
                     return asset;
                 }
@@ -147,22 +144,14 @@ namespace Microsoft.CodeAnalysis.Execution
 
             private static string GetLogInfo<T>(T key)
             {
-                var solutionState = key as SolutionState;
-                if (solutionState != null)
+                switch (key)
                 {
-                    return solutionState.FilePath;
-                }
-
-                var projectState = key as ProjectState;
-                if (projectState != null)
-                {
-                    return projectState.FilePath;
-                }
-
-                var documentState = key as DocumentState;
-                if (documentState != null)
-                {
-                    return documentState.FilePath;
+                    case SolutionState solutionState:
+                        return solutionState.FilePath;
+                    case ProjectState projectState:
+                        return projectState.FilePath;
+                    case DocumentState documentState:
+                        return documentState.FilePath;
                 }
 
                 return "no detail";
@@ -217,8 +206,7 @@ namespace Microsoft.CodeAnalysis.Execution
             private void Append(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, object> result)
             {
                 // only solution with checksum can be in asset storage
-                SolutionStateChecksums stateChecksums;
-                Contract.ThrowIfFalse(_state.TryGetStateChecksums(out stateChecksums));
+                Contract.ThrowIfFalse(_state.TryGetStateChecksums(out var stateChecksums));
 
                 stateChecksums.Find(_state, searchingChecksumsLeft, result, _cancellationToken);
             }

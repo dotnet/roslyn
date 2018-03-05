@@ -35,23 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BinderFlags GetFlags(MethodSymbol owner, Binder enclosing)
-        {
-            var flags = enclosing.Flags;
-
-            var isUnsafe = (owner as LocalFunctionSymbol)?.IsUnsafe;
-            if (isUnsafe.HasValue)
-            {
-                // only modify unsafe flag if owner has an explicit way of specifying unsafe-ness
-                // (i.e. lambdas retain the unsafe-ness of the containing block)
-                flags = (flags & ~BinderFlags.UnsafeRegion) | (isUnsafe.Value ? BinderFlags.UnsafeRegion : 0);
-            }
-
-            return flags;
-        }
-
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
-            : base(enclosing, GetFlags(owner, enclosing))
+            : base(enclosing)
         {
             Debug.Assert((object)owner != null);
             _methodSymbol = owner;
@@ -77,6 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
+
+        internal override uint LocalScopeDepth => Binder.TopLevelScope;
 
         internal override Symbol ContainingMemberOrLambda
         {
@@ -239,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var parameter in _methodSymbol.Parameters)
                 {
-                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, null))
+                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
                     {
                         result.AddSymbol(parameter, parameter.Name, 0);
                     }

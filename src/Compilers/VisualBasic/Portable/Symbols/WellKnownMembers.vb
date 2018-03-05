@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -136,15 +137,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If the well-known member does Not exist in the compilation then no attribute
         ''' will be synthesized.
         ''' </param>
+        ''' <param name="isOptionalUse">
+        ''' Indicates if this particular attribute application should be considered optional.
+        ''' </param>
         Friend Function TrySynthesizeAttribute(
             constructor As WellKnownMember,
             Optional arguments As ImmutableArray(Of TypedConstant) = Nothing,
-            Optional namedArguments As ImmutableArray(Of KeyValuePair(Of WellKnownMember, TypedConstant)) = Nothing) As SynthesizedAttributeData
+            Optional namedArguments As ImmutableArray(Of KeyValuePair(Of WellKnownMember, TypedConstant)) = Nothing,
+            Optional isOptionalUse As Boolean = False
+        ) As SynthesizedAttributeData
 
             Dim constructorSymbol = TryCast(GetWellKnownTypeMember(constructor), MethodSymbol)
             If constructorSymbol Is Nothing OrElse
                Binder.GetUseSiteErrorForWellKnownTypeMember(constructorSymbol, constructor, False) IsNot Nothing Then
-                Return ReturnNothingOrThrowIfAttributeNonOptional(constructor)
+                Return ReturnNothingOrThrowIfAttributeNonOptional(constructor, isOptionalUse)
             End If
 
             If arguments.IsDefault Then
@@ -172,8 +178,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New SynthesizedAttributeData(constructorSymbol, arguments, namedStringArguments)
         End Function
 
-        Private Function ReturnNothingOrThrowIfAttributeNonOptional(constructor As WellKnownMember) As SynthesizedAttributeData
-            If WellKnownMembers.IsSynthesizedAttributeOptional(constructor) Then
+        Private Shared Function ReturnNothingOrThrowIfAttributeNonOptional(constructor As WellKnownMember, Optional isOptionalUse As Boolean = False) As SynthesizedAttributeData
+            If isOptionalUse OrElse WellKnownMembers.IsSynthesizedAttributeOptional(constructor) Then
                 Return Nothing
             Else
                 Throw ExceptionUtilities.Unreachable
@@ -340,6 +346,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(type, NamedTypeSymbol).IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute, Me, useSiteDiagnostics:=Nothing)
         End Function
 
+        ''' <summary>
+        ''' In case duplicate types are encountered, returns an error type.
+        ''' But if the IgnoreCorLibraryDuplicatedTypes compilation option is set, any duplicate type found in corlib is ignored and doesn't count as a duplicate.
+        ''' </summary>
         Friend Function GetWellKnownType(type As WellKnownType) As NamedTypeSymbol
             Debug.Assert(type.IsWellKnownType())
             Dim index As Integer = type - WellKnownType.First
@@ -352,19 +362,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim mdName As String = WellKnownTypes.GetMetadataName(type)
                 Dim result As NamedTypeSymbol
+                Dim conflicts As (AssemblySymbol, AssemblySymbol) = Nothing
 
                 If IsTypeMissing(type) Then
                     result = Nothing
                 Else
-                    result = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, useCLSCompliantNameArityEncoding:=True)
+                    result = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, useCLSCompliantNameArityEncoding:=True, conflicts:=conflicts,
+                                                               ignoreCorLibraryDuplicatedTypes:=Me.Options.IgnoreCorLibraryDuplicatedTypes)
                 End If
 
                 If result Is Nothing Then
                     Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding:=True)
 
                     If type.IsValueTupleType() Then
-                        result = New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Assembly.Modules(0), emittedName,
-                                       Function(t) ErrorFactory.ErrorInfo(ERRID.ERR_ValueTupleTypeRefResolutionError1, t))
+
+                        Dim delayedErrorInfo As Func(Of MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo, DiagnosticInfo)
+                        If conflicts.Item1 Is Nothing Then
+                            Debug.Assert(conflicts.Item2 Is Nothing)
+
+                            delayedErrorInfo = Function(t) ErrorFactory.ErrorInfo(ERRID.ERR_ValueTupleTypeRefResolutionError1, t)
+                        Else
+                            Dim capturedConflicts = conflicts
+                            delayedErrorInfo = Function(t) ErrorFactory.ErrorInfo(ERRID.ERR_ValueTupleResolutionAmbiguous3, t, capturedConflicts.Item1, capturedConflicts.Item2)
+                        End If
+
+                        result = New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Assembly.Modules(0), emittedName, delayedErrorInfo)
                     Else
                         result = New MissingMetadataTypeSymbol.TopLevel(Assembly.Modules(0), emittedName)
                     End If
@@ -600,6 +622,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Protected Overrides Function IsByRefParam(ByVal parameter As ParameterSymbol) As Boolean
                 Return parameter.IsByRef
+            End Function
+
+            Protected Overrides Function IsByRefMethod(ByVal method As MethodSymbol) As Boolean
+                Return method.ReturnsByRef
             End Function
 
             Protected Overrides Function IsGenericMethodTypeParam(type As TypeSymbol, paramPosition As Integer) As Boolean

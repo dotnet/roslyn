@@ -121,8 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 if (_encoding)
                 {
-                    var userData = textBuffer as IVsUserData;
-                    if (userData != null)
+                    if (textBuffer is IVsUserData userData)
                     {
                         // The editor shims require that the boxed value when setting the PromptOnLoad flag is a uint
                         int hresult = userData.SetData(
@@ -140,8 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // If the text buffer is marked as read-only, ensure that the padlock icon is displayed
             // next the new window's title and that [Read Only] is appended to title.
             READONLYSTATUS readOnlyStatus = READONLYSTATUS.ROSTATUS_NotReadOnly;
-            uint textBufferFlags;
-            if (ErrorHandler.Succeeded(textBuffer.GetStateFlags(out textBufferFlags)) &&
+            if (ErrorHandler.Succeeded(textBuffer.GetStateFlags(out var textBufferFlags)) &&
                 0 != (textBufferFlags & ((uint)BUFFERSTATEFLAGS.BSF_FILESYS_READONLY | (uint)BUFFERSTATEFLAGS.BSF_USER_READONLY)))
             {
                 readOnlyStatus = READONLYSTATUS.ROSTATUS_ReadOnly;

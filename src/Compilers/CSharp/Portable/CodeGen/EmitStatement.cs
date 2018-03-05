@@ -9,6 +9,7 @@ using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,6 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 case BoundKind.Block:
                     EmitBlock((BoundBlock)statement);
+                    break;
+
+                case BoundKind.Scope:
+                    EmitScope((BoundScope)statement);
                     break;
 
                 case BoundKind.SequencePoint:
@@ -87,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.AssertStackEmpty();
             }
 #endif
+
+            ReleaseExpressionTemps();
         }
 
         private int EmitStatementAndCountInstructions(BoundStatement statement)
@@ -483,7 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             object fallThrough = null;
 
                             EmitCondBranch(receiver, ref fallThrough, sense: false);
-                            EmitReceiverRef(receiver, isAccessConstrained: false);
+                            // receiver is a reference type, and we only intend to read it
+                            EmitReceiverRef(receiver, AddressKind.ReadOnly);
                             EmitCondBranch(ca.WhenNotNull, ref dest, sense: true);
 
                             if (fallThrough != null)
@@ -496,7 +504,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             // gotoif(receiver == null) labDest
                             // gotoif(!receiver.Access) labDest
                             EmitCondBranch(receiver, ref dest, sense: false);
-                            EmitReceiverRef(receiver, isAccessConstrained: false);
+                            // receiver is a reference type, and we only intend to read it
+                            EmitReceiverRef(receiver, AddressKind.ReadOnly);
                             condition = ca.WhenNotNull;
                             goto oneMoreTime;
                         }
@@ -558,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitCondBranch(sequence.Value, ref dest, sense);
 
             // sequence is used as a value, can release all locals
-            FreeLocals(sequence, doNotRelease: null);
+            FreeLocals(sequence);
         }
 
         private void EmitLabelStatement(BoundLabelStatement boundLabelStatement)
@@ -604,15 +613,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 foreach (var local in block.Locals)
                 {
+                    Debug.Assert(local.RefKind == RefKind.None || local.SynthesizedKind.IsLongLived(), 
+                        "A ref local ended up in a block and claims it is shortlived. That is dangerous. Are we sure it is short lived?");
+
                     var declaringReferences = local.DeclaringSyntaxReferences;
                     DefineLocal(local, !declaringReferences.IsEmpty ? (CSharpSyntaxNode)declaringReferences[0].GetSyntax() : block.Syntax);
                 }
             }
 
-            foreach (var statement in block.Statements)
-            {
-                EmitStatement(statement);
-            }
+            EmitStatements(block.Statements);
 
             if (_indirectReturnState == IndirectReturnState.Needed &&
                 IsLastBlockInMethod(block))
@@ -631,16 +640,46 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        private void EmitStatements(ImmutableArray<BoundStatement> statements)
+        {
+            foreach (var statement in statements)
+            {
+                EmitStatement(statement);
+            }
+        }
+
+        private void EmitScope(BoundScope block)
+        {
+            Debug.Assert(!block.Locals.IsEmpty);
+
+            _builder.OpenLocalScope();
+
+            foreach (var local in block.Locals)
+            {
+                Debug.Assert(local.Name != null);
+                Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
+                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection);
+                if (!local.IsConst && !IsStackLocal(local))
+                {
+                    _builder.AddLocalToScope(_builder.LocalSlotManager.GetLocal(local));
+                }
+            }
+
+            EmitStatements(block.Statements);
+
+            _builder.CloseLocalScope();
+        }
+
         private void EmitStateMachineScope(BoundStateMachineScope scope)
         {
-            _builder.OpenStateMachineScope();
+            _builder.OpenLocalScope(ScopeType.StateMachineVariable);
             foreach (var field in scope.Fields)
             {
                 _builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
             }
 
             EmitStatement(scope.Statement);
-            _builder.CloseStateMachineScope();
+            _builder.CloseLocalScope();
         }
 
         // There are two ways a value can be returned from a function:
@@ -685,7 +724,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                this.EmitAddress(expressionOpt, AddressKind.Writeable);
+                // NOTE: passing "ReadOnlyStrict" here. 
+                //       we should never return an address of a copy
+                var unexpectedTemp = this.EmitAddress(expressionOpt, this._method.RefKind == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
+                Debug.Assert(unexpectedTemp == null, "ref-returning a temp?");
             }
 
             if (ShouldUseIndirectReturn())
@@ -726,13 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         // Ensure the return type has been translated. (Necessary
                         // for cases of untranslated anonymous types.)
-                        var returnType = expressionOpt.Type;
-                        var byRefType = returnType as ByRefReturnErrorTypeSymbol;
-                        if ((object)byRefType != null)
-                        {
-                            returnType = byRefType.ReferencedType;
-                        }
-                        _module.Translate(returnType, boundReturnStatement.Syntax, _diagnostics);
+                        _module.Translate(expressionOpt.Type, boundReturnStatement.Syntax, _diagnostics);
                     }
                     _builder.EmitRet(expressionOpt == null);
                 }
@@ -987,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var temp = AllocateTemp(exceptionSource.Type, exceptionSource.Syntax);
                         _builder.EmitLocalStore(temp);
 
-                        var receiverTemp = EmitReceiverRef(left.ReceiverOpt);
+                        var receiverTemp = EmitReceiverRef(left.ReceiverOpt, AddressKind.Writeable);
                         Debug.Assert(receiverTemp == null);
 
                         _builder.EmitLocalLoad(temp);
@@ -1081,11 +1117,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSwitchBody(switchStatement.InnerLocals, switchSections, breakLabel, switchStatement.Syntax);
         }
 
-        private static KeyValuePair<ConstantValue, object>[] GetSwitchCaseLabels(ImmutableArray<BoundSwitchSection> sections, ref LabelSymbol fallThroughLabel)
+        private KeyValuePair<ConstantValue, object>[] GetSwitchCaseLabels(ImmutableArray<BoundSwitchSection> sections, ref LabelSymbol fallThroughLabel)
         {
             var labelsBuilder = ArrayBuilder<KeyValuePair<ConstantValue, object>>.GetInstance();
             foreach (var section in sections)
             {
+                // all labels in a section are labeling the same region of code, 
+                // so we could use just the first one for a better codegen
+                object firstLabelInSection = null;
+
                 foreach (BoundSwitchLabel boundLabel in section.SwitchLabels)
                 {
                     var label = boundLabel.Label;
@@ -1098,7 +1138,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var value = boundLabel.ConstantValueOpt;
                         Debug.Assert(value != null
                             && SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(value));
-                        labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, label));
+
+                        if (firstLabelInSection == null)
+                        {
+                            firstLabelInSection = label;
+                        }
+
+                        labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, firstLabelInSection));
                     }
                 }
             }
@@ -1189,7 +1235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (sequence != null)
             {
-                FreeLocals(sequence, doNotRelease: null);
+                // sequence was used as a value, can release all its locals.
+                FreeLocals(sequence);
             }
         }
 
@@ -1390,11 +1437,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private LocalDefinition DefineLocal(LocalSymbol local, SyntaxNode syntaxNode)
         {
             var dynamicTransformFlags = !local.IsCompilerGenerated && local.Type.ContainsDynamic() ?
-                CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, _module.Compilation.GetSpecialType(SpecialType.System_Boolean), 0, RefKind.None) :
-                ImmutableArray<TypedConstant>.Empty;
+                CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, RefKind.None, 0) :
+                ImmutableArray<bool>.Empty;
             var tupleElementNames = !local.IsCompilerGenerated && local.Type.ContainsTupleNames() ?
-                CSharpCompilation.TupleNamesEncoder.Encode(local.Type, _module.Compilation.GetSpecialType(SpecialType.System_String)) :
-                ImmutableArray<TypedConstant>.Empty;
+                CSharpCompilation.TupleNamesEncoder.Encode(local.Type) :
+                ImmutableArray<string>.Empty;
 
             if (local.IsConst)
             {
@@ -1460,7 +1507,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 isSlotReusable: local.SynthesizedKind.IsSlotReusable(_ilEmitStyle != ILEmitStyle.Release));
 
             // If named, add it to the local debug scope.
-            if (localDef.Name != null)
+            if (localDef.Name != null &&
+                !(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
+                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection)) // Visibility scope of such locals is represented by BoundScope node.
             {
                 _builder.AddLocalToScope(localDef);
             }
@@ -1498,7 +1547,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var syntax = local.GetDeclaratorSyntax();
                 int syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
 
-                int ordinal = _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset);
+                // Synthesized locals emitted for switch case patterns are all associated with the switch statement 
+                // and have distinct types. We use their types to match them, not the ordinal as the ordinal might
+                // change if switch cases are reordered.
+                int ordinal = (localKind != SynthesizedLocalKind.SwitchCasePatternMatching) ?
+                    _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset) : 0;
 
                 // user-defined locals should have 0 ordinal:
                 Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);

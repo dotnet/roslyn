@@ -45,8 +45,7 @@ namespace RepoUtil
                         continue;
                     }
 
-                    List<FileName> nameList;
-                    if (!map.TryGetValue(package, out nameList))
+                    if (!map.TryGetValue(package, out var nameList))
                     {
                         nameList = new List<FileName>();
                         map[package] = nameList;
@@ -77,8 +76,7 @@ namespace RepoUtil
         {
             writer.WriteLine($"Verifying project.json contents");
 
-            List<NuGetPackageConflict> conflicts;
-            repoData = RepoData.Create(_repoConfig, _sourcesPath, out conflicts);
+            repoData = RepoData.Create(_repoConfig, _sourcesPath, out var conflicts);
             if (conflicts?.Count > 0)
             { 
                 foreach (var conflict in conflicts)
@@ -106,7 +104,7 @@ namespace RepoUtil
             var packages = ProjectJsonUtil
                 .GetProjectJsonFiles(_sourcesPath)
                 .SelectMany(x => ProjectJsonUtil.GetDependencies(x));
-            var set = new HashSet<NuGetPackage>(packages);
+            var set = new HashSet<NuGetPackage>(packages, default(Constants.IgnoreGenerateNameComparer));
             var allGood = true;
 
             foreach (var package in _repoConfig.FixedPackages)
@@ -131,7 +129,7 @@ namespace RepoUtil
                 var packages = GenerateUtil.GetFilteredPackages(data, repoData);
 
                 // Need to verify the contents of the generated file are correct.
-                var fileName = new FileName(_sourcesPath, data.RelativeFileName);
+                var fileName = new FileName(_sourcesPath, data.RelativeFilePath);
                 var actualContent = File.ReadAllText(fileName.FullPath, GenerateUtil.Encoding);
                 var expectedContent = GenerateUtil.GenerateMSBuildContent(packages);
                 if (actualContent != expectedContent)

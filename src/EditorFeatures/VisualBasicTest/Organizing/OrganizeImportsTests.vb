@@ -1,38 +1,45 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.OrganizeImports
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
     Public Class OrganizeImportsTests
-        Private Async Function CheckAsync(initial As XElement, final As XElement, specialCaseSystem As Boolean) As Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initial.NormalizedValue)
+        Private Async Function CheckAsync(initial As XElement, final As XElement,
+                                          Optional placeSystemNamespaceFirst As Boolean = False,
+                                          Optional separateImportGroups As Boolean = False) As Task
+            Using workspace = TestWorkspace.CreateVisualBasic(initial.NormalizedValue)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
-                Dim newRoot = Await (Await OrganizeImportsService.OrganizeImportsAsync(document, specialCaseSystem)).GetSyntaxRootAsync()
+                workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
+                workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
 
+                Dim newRoot = Await (Await OrganizeImportsService.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync()
                 Assert.Equal(final.NormalizedValue, newRoot.ToFullString())
             End Using
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestEmptyFile() As Task
-            Await CheckAsync(<content></content>, <content></content>, True)
+            Await CheckAsync(<content></content>, <content></content>)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestSingleImportsStatement() As Task
             Dim initial = <content>Imports A</content>
             Dim final = initial
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestMultipleClauses() As Task
             Dim initial = <content>Imports C, B, A</content>
             Dim final = <content>Imports A, B, C</content>
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -50,7 +57,7 @@ Imports A = B
 Imports D = E
 </content>
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -65,7 +72,7 @@ Imports D
 Imports E
 Imports F
 </content>
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -82,7 +89,7 @@ Imports System.Linq
 Imports M1
 Imports M2
 </content>
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -100,7 +107,7 @@ Imports System
 Imports System.Linq
 </content>
 
-            Await CheckAsync(initial, final, False)
+            Await CheckAsync(initial, final, placeSystemNamespaceFirst:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -115,7 +122,7 @@ Imports A</content>
 Imports A
 Imports B
 </content>
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -140,7 +147,7 @@ Imports B
 namespace A { }
 namespace B { }</content>
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -165,7 +172,7 @@ Imports B
 namespace A { }
 namespace B { }</content>
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -194,7 +201,7 @@ end namespace
 namespace B
 end namespace</content>
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
@@ -218,7 +225,7 @@ Imports B
 namespace A { }
 namespace B { }</content>
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
@@ -242,7 +249,7 @@ Imports B
 namespace A { }
 namespace B { }</content>
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
@@ -266,7 +273,7 @@ Imports B
 namespace A { }
 namespace B { }</content>
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -286,7 +293,7 @@ namespace C { }
 namespace D { }</content>
 
             Dim final = initial
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -297,7 +304,7 @@ Imports A</content>
 
             Dim final = initial
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -316,7 +323,7 @@ Imports C '/*07*/
 Imports D '/*03*/
 </content>
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -336,7 +343,7 @@ Imports C
 #endregion
 </content>
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -350,7 +357,7 @@ Imports B</content>
 
             Dim final = initial
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -366,7 +373,7 @@ Imports B
 
             Dim final = initial
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -389,7 +396,7 @@ Imports C
 class D
 end class</content>
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -408,7 +415,7 @@ Imports B
 Imports C
 #end if</content>
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -424,7 +431,7 @@ Imports A
 Imports E</content>
 
             Dim final = initial
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -443,7 +450,7 @@ Imports E
 Imports G</content>
 
             Dim final = initial
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -459,7 +466,7 @@ Imports F
 #end if</content>
 
             Dim final = initial
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -497,7 +504,7 @@ Imports 파
 Imports 하
 </content>
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -525,7 +532,7 @@ Imports System.Collections.Generic
 Imports SystemZ
 </content>
 
-            Await CheckAsync(initial, final, False)
+            Await CheckAsync(initial, final, placeSystemNamespaceFirst:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -548,7 +555,7 @@ Imports <xmlns:ab="http://NewNamespace">
 Imports <xmlns:zz="http://NextNamespace">
 ]]></content>
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -640,7 +647,7 @@ Imports ああ
 
 // If Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
 // If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.</content>
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
@@ -674,7 +681,92 @@ Imports あｱ
 Imports ああ
 </content>
 
-            Await CheckAsync(initial, final, True)
+            Await CheckAsync(initial, final)
+        End Function
+
+        <WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestGrouping() As Task
+            Dim initial =
+<content><![CDATA[' Banner
+
+Imports Microsoft.CodeAnalysis.CSharp.Extensions
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports System.Collections.Generic
+Imports System.Linq
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports <xmlns:ab="http://NewNamespace">
+Imports <xmlns="http://DefaultNamespace">
+Imports Roslyn.Utilities
+Imports IntList = System.Collections.Generic.List(Of Integer)
+Imports <xmlns:zz="http://NextNamespace">
+]]></content>
+
+            Dim final =
+<content><![CDATA[' Banner
+
+Imports System.Collections.Generic
+Imports System.Linq
+
+Imports Microsoft.CodeAnalysis.CSharp.Extensions
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+
+Imports Roslyn.Utilities
+
+Imports IntList = System.Collections.Generic.List(Of Integer)
+
+Imports <xmlns:ab="http://NewNamespace">
+Imports <xmlns="http://DefaultNamespace">
+Imports <xmlns:zz="http://NextNamespace">
+]]></content>
+
+            Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True)
+        End Function
+
+        <WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestGrouping2() As Task
+            ' Make sure we don't insert extra newlines if they're already there.
+            Dim initial =
+<content><![CDATA[' Banner
+
+Imports System.Collections.Generic
+Imports System.Linq
+
+Imports Microsoft.CodeAnalysis.CSharp.Extensions
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+
+Imports Roslyn.Utilities
+
+Imports IntList = System.Collections.Generic.List(Of Integer)
+
+Imports <xmlns:ab="http://NewNamespace">
+Imports <xmlns="http://DefaultNamespace">
+Imports <xmlns:zz="http://NextNamespace">
+]]></content>
+
+            Dim final =
+<content><![CDATA[' Banner
+
+Imports System.Collections.Generic
+Imports System.Linq
+
+Imports Microsoft.CodeAnalysis.CSharp.Extensions
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+
+Imports Roslyn.Utilities
+
+Imports IntList = System.Collections.Generic.List(Of Integer)
+
+Imports <xmlns:ab="http://NewNamespace">
+Imports <xmlns="http://DefaultNamespace">
+Imports <xmlns:zz="http://NextNamespace">
+]]></content>
+
+            Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True)
         End Function
     End Class
 End Namespace

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias Scripting;
 
 using System;
@@ -172,9 +172,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 return new RuntimeMetadataReferenceResolver(
                     new RelativePathResolver(searchPaths, baseDirectory),
-                    null,
-                    GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                    (path, properties) => new ShadowCopyReference(_metadataFileProvider, path, properties));
+                    packageResolver: null,
+                    gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
+                    useCoreResolver: !GacFileResolver.IsAvailable,
+                    fileReferenceProvider: (path, properties) => new ShadowCopyReference(_metadataFileProvider, path, properties));
             }
 
             private SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
@@ -676,11 +677,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             private string ResolveRelativePath(string path, string baseDirectory, ImmutableArray<string> searchPaths, bool displayPath)
             {
                 List<string> attempts = new List<string>();
-                Func<string, bool> fileExists = file =>
+                bool fileExists(string file)
                 {
                     attempts.Add(file);
                     return File.Exists(file);
-                };
+                }
 
                 string fullPath = FileUtilities.ResolveRelativePath(path, null, baseDirectory, searchPaths, fileExists);
                 if (fullPath == null)

@@ -93,9 +93,17 @@ namespace Microsoft.Cci
     internal interface IParameterTypeInformation : IParameterListEntry
     {
         /// <summary>
-        /// The list of custom modifiers, if any, associated with the parameter. Evaluate this property only if IsModified is true.
+        /// The list of custom modifiers, if any, associated with the parameter type. 
         /// </summary>
         ImmutableArray<ICustomModifier> CustomModifiers
+        {
+            get;
+        }
+
+        /// <summary>
+        /// The list of custom modifiers, if any, associated with the ref modifier. 
+        /// </summary>
+        ImmutableArray<ICustomModifier> RefCustomModifiers
         {
             get;
         }
@@ -104,13 +112,6 @@ namespace Microsoft.Cci
         /// True if the parameter is passed by reference (using a managed pointer).
         /// </summary>
         bool IsByReference { get; }
-
-        /// <summary>
-        /// The CLI spec says that custom modifiers must precede the ByRef type code in the encoding of a parameter.
-        /// Unfortunately, the managed C++ compiler emits them in the reverse order.  In order to avoid breaking
-        /// interop scenarios, we need to support such signatures. 
-        /// </summary>
-        ushort CountOfCustomModifiersPrecedingByRef { get; }
 
         /// <summary>
         /// The type of argument value that corresponds to this parameter.
@@ -208,11 +209,8 @@ namespace Microsoft.Cci
         /// Returns the generic type of which this type is an instance.
         /// Equivalent to Symbol.OriginalDefinition
         /// </summary>
-        INamedTypeReference GenericType
-        {
-            get;
-            // ^ ensures result.ResolvedType.IsGeneric;
-        }
+        INamedTypeReference GetGenericType(EmitContext context);
+        // ^ ensures result.ResolvedType.IsGeneric;
     }
 
     /// <summary>
@@ -322,10 +320,7 @@ namespace Microsoft.Cci
         /// type of a generic type instance), then the unspecialized member refers to a member from the unspecialized containing type. (I.e. the unspecialized member always
         /// corresponds to a definition that is not obtained via specialization.)
         /// </summary>
-        INestedTypeReference/*!*/ UnspecializedVersion
-        {
-            get;
-        }
+        INestedTypeReference/*!*/ GetUnspecializedVersion(EmitContext context);
     }
 
     /// <summary>
@@ -364,7 +359,7 @@ namespace Microsoft.Cci
     internal interface IModifiedTypeReference : ITypeReference
     {
         /// <summary>
-        /// Returns the list of custom modifiers associated with the type reference. Evaluate this property only if IsModified is true.
+        /// Returns the list of custom modifiers associated with the type reference.
         /// </summary>
         ImmutableArray<ICustomModifier> CustomModifiers { get; }
 
@@ -378,19 +373,6 @@ namespace Microsoft.Cci
     /// This interface models the metadata representation of a pointer to a location in unmanaged memory.
     /// </summary>
     internal interface IPointerTypeReference : ITypeReference
-    {
-        /// <summary>
-        /// The type of value stored at the target memory location.
-        /// </summary>
-        ITypeReference GetTargetType(EmitContext context);
-    }
-
-    /// <summary>
-    /// This interface models the metadata representation of a managed pointer.
-    /// Remark: This should be only used in attributes. For other objects like Local variables etc
-    /// there is explicit IsReference field that should be used.
-    /// </summary>
-    internal interface IManagedPointerTypeReference : ITypeReference
     {
         /// <summary>
         /// The type of value stored at the target memory location.
@@ -451,7 +433,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Zero or more events defined by this type.
         /// </summary>
-        IEnumerable<IEventDefinition> Events { get; }
+        IEnumerable<IEventDefinition> GetEvents(EmitContext context);
 
         /// <summary>
         /// Zero or more implementation overrides provided by the class.
@@ -610,7 +592,7 @@ namespace Microsoft.Cci
         /// Unless the value of TypeCode is PrimitiveTypeCode.NotPrimitive, the type corresponds to a "primitive" CLR type (such as System.Int32) and
         /// the type code identifies which of the primitive types it corresponds to.
         /// </summary>
-        PrimitiveTypeCode TypeCode(EmitContext context);
+        PrimitiveTypeCode TypeCode { get; }
 
         /// <summary>
         /// TypeDefs defined in modules linked to the assembly being emitted are listed in the ExportedTypes table.

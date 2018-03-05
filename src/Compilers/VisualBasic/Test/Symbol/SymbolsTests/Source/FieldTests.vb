@@ -62,8 +62,7 @@ End Class
             Dim fieldType = DirectCast(field.Type, INamedTypeSymbol)
 
             Assert.False(fieldType.IsTupleType)
-            Assert.True(fieldType.TupleElementTypes.IsDefault)
-            Assert.True(fieldType.TupleElementNames.IsDefault)
+            Assert.True(fieldType.TupleElements.IsDefault)
         End Sub
 
         <Fact>
@@ -492,7 +491,7 @@ End Module
             compilation.AssertNoErrors()
 
             ' PEVerify should not report "Field value__ ... is not marked RTSpecialName".
-            Dim verifier = New CompilationVerifier(Me, compilation)
+            Dim verifier = New CompilationVerifier(compilation)
             verifier.EmitAndVerify(
                 "Error: Field name value__ is reserved for Enums only.")
         End Sub

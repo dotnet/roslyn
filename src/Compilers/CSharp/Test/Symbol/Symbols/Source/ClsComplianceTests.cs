@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -44,7 +45,7 @@ public struct S { }
 public delegate void D();
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (5,14): warning CS3014: 'C' cannot be marked as CLS-compliant because the assembly does not have a CLSCompliant attribute
                 // public class C
                 Diagnostic(ErrorCode.WRN_CLS_AssemblyNotCLS, "C").WithArguments("C"),
@@ -117,7 +118,7 @@ public struct S { }
 public delegate void D();
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (5,14): warning CS3021: 'C' does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute
                 // public class C
                 Diagnostic(ErrorCode.WRN_CLS_AssemblyNotCLS2, "C").WithArguments("C"),
@@ -201,7 +202,7 @@ public class Levels
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,39): warning CS3019: CLS compliance checking will not be performed on 'Outer1.Inner1' because it is not visible from outside this assembly
                 //     [CLSCompliant(true)] public class Inner1 { }
                 Diagnostic(ErrorCode.WRN_CLS_MeaninglessOnPrivateType, "Inner1").WithArguments("Outer1.Inner1"),
@@ -275,7 +276,7 @@ public class Kinds
     [CLSCompliant(true)] public delegate void ND();
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,38): warning CS3018: 'Kinds.M()' cannot be marked as CLS-compliant because it is a member of non-CLS-compliant type 'Kinds'
                 //     [CLSCompliant(true)] public void M() { }
                 Diagnostic(ErrorCode.WRN_CLS_IllegalTrueInFalse, "M").WithArguments("Kinds.M()", "Kinds"),
@@ -324,7 +325,7 @@ public class Kinds
 }
 ";
             // No warnings, since assembly is marked false.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -356,7 +357,7 @@ public class A
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (13,22): warning CS3018: 'A.B.C' cannot be marked as CLS-compliant because it is a member of non-CLS-compliant type 'A.B'
                 //         public class C
                 Diagnostic(ErrorCode.WRN_CLS_IllegalTrueInFalse, "C").WithArguments("A.B.C", "A.B"),
@@ -390,7 +391,7 @@ public class Generic<T>
 {
 }
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (6,14): warning CS3009: 'A': base type 'Bad' is not CLS-compliant
                 // public class A : Bad
                 Diagnostic(ErrorCode.WRN_CLS_BadBase, "A").WithArguments("A", "Bad"),
@@ -443,11 +444,11 @@ public class B2 : Generic<Bad2> { }
 
 public class Generic<T> { }
 ";
-            var lib1 = CreateCompilationWithMscorlib(libSource1, assemblyName: "lib1").EmitToImageReference();
-            var lib2 = CreateCompilationWithMscorlib(libSource2, assemblyName: "lib2").EmitToImageReference();
-            var lib3 = CreateCompilationWithMscorlib(libSource3, assemblyName: "lib3").EmitToImageReference();
+            var lib1 = CreateStandardCompilation(libSource1, assemblyName: "lib1").EmitToImageReference();
+            var lib2 = CreateStandardCompilation(libSource2, assemblyName: "lib2").EmitToImageReference();
+            var lib3 = CreateStandardCompilation(libSource3, assemblyName: "lib3").EmitToImageReference();
 
-            CreateCompilationWithMscorlib(source, new[] { lib1, lib2, lib3 }, TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(source, new[] { lib1, lib2, lib3 }, TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (6,14): warning CS3009: 'A1': base type 'Bad1' is not CLS-compliant
                 // public class A1 : Bad1 { }
                 Diagnostic(ErrorCode.WRN_CLS_BadBase, "A1").WithArguments("A1", "Bad1"),
@@ -501,16 +502,16 @@ public class C
 [CLSCompliant(false)]
 public class Bad { }
 ";
-            var libCompliant = CreateCompilationWithMscorlib(libCompliant_cs).EmitToImageReference();
-            var compCompliant = CreateCompilationWithMscorlib(source, new[] { libCompliant }, TestOptions.ReleaseDll);
+            var libCompliant = CreateStandardCompilation(libCompliant_cs).EmitToImageReference();
+            var compCompliant = CreateStandardCompilation(source, new[] { libCompliant }, TestOptions.ReleaseDll);
             compCompliant.VerifyDiagnostics(
                 // (8,23): warning CS3002: Return type of 'C.Method2()' is not CLS-compliant
                 //     public (Bad, Bad) Method2() { throw new Exception(); }
                 Diagnostic(ErrorCode.WRN_CLS_BadReturnType, "Method2").WithArguments("C.Method2()").WithLocation(8, 23)
                 );
 
-            var libNotCompliant = CreateCompilationWithMscorlib(libNotCompliant_cs).EmitToImageReference();
-            var compNotCompliant = CreateCompilationWithMscorlib(source, new[] { libNotCompliant }, TestOptions.ReleaseDll);
+            var libNotCompliant = CreateStandardCompilation(libNotCompliant_cs).EmitToImageReference();
+            var compNotCompliant = CreateStandardCompilation(source, new[] { libNotCompliant }, TestOptions.ReleaseDll);
             compNotCompliant.VerifyDiagnostics(
                 // (8,23): warning CS3002: Return type of 'C.Method2()' is not CLS-compliant
                 //     public (Bad, Bad) Method2() { throw new Exception(); }
@@ -547,7 +548,7 @@ public interface Bad { }
 
 public interface Generic<T> { }
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (6,18): warning CS3027: 'A' is not CLS-compliant because base interface 'Bad' is not CLS-compliant
                 // public interface A : Bad { }
                 Diagnostic(ErrorCode.WRN_CLS_BadInterface, "A").WithArguments("A", "Bad"),
@@ -595,7 +596,7 @@ public interface Bad { }
 public interface Generic<T> { }
 ";
             // Implemented interfaces are not required to be compliant - only inherited ones.
-            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            CreateStandardCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -625,7 +626,7 @@ public interface Kinds
 public interface Bad { }
 ";
             // NOTE: only reported for member DECLARED to be non-compliant.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,10): warning CS3010: 'A.M2()': CLS-compliant interfaces must have only CLS-compliant members
                 //     void M2();
                 Diagnostic(ErrorCode.WRN_CLS_BadInterfaceMember, "M2").WithArguments("A.M2()"),
@@ -674,7 +675,7 @@ public abstract class Kinds
 [CLSCompliant(false)]
 public interface Bad { }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,26): warning CS3011: 'A.M2()': only CLS-compliant members can be abstract
                 //     public abstract void M2();
                 Diagnostic(ErrorCode.WRN_CLS_NoAbstractMembers, "M2").WithArguments("A.M2()"),
@@ -709,7 +710,7 @@ public class A
     public volatile int F2;
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,25): warning CS3026: CLS-compliant field 'A.F1' cannot be volatile
                 //     public volatile int F1;
                 Diagnostic(ErrorCode.WRN_CLS_VolatileField, "F1").WithArguments("A.F1"));
@@ -770,7 +771,7 @@ public interface Bad { }
 
             // NOTE: Dev11 reports all of these on the declaration of Bad, which seems
             // less than helpful.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,17): warning CS3024: Constraint type 'Bad' is not CLS-compliant
                 // public class C1<T, U>
                 Diagnostic(ErrorCode.WRN_CLS_BadTypeVar, "T").WithArguments("Bad"),
@@ -814,7 +815,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,17): warning CS3000: Methods with variable arguments are not CLS-compliant
                 //     public void M1(__arglist) { }
                 Diagnostic(ErrorCode.WRN_CLS_NoVarArgs, "M1"),
@@ -868,7 +869,7 @@ public interface Bad { }
 public delegate void BadD();
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,16): warning CS3003: Type of 'Kinds1.P' is not CLS-compliant
                 //     public Bad P { get; set; }
                 Diagnostic(ErrorCode.WRN_CLS_BadFieldPropType, "P").WithArguments("Kinds1.P"),
@@ -927,7 +928,7 @@ public class Generic<T> { }
 public interface Bad { }
 ";
 
-            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,16): warning CS3002: Return type of 'C1.M1()' is not CLS-compliant
                 //     public Bad M1() { throw null; }
                 Diagnostic(ErrorCode.WRN_CLS_BadReturnType, "M1").WithArguments("C1.M1()"),
@@ -974,7 +975,7 @@ public unsafe class C2
 public interface Bad { }
 ";
 
-            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,25): warning CS3002: Return type of 'C1.D' is not CLS-compliant
                 //     public delegate Bad D();
                 Diagnostic(ErrorCode.WRN_CLS_BadReturnType, "D").WithArguments("C1.D"));
@@ -1017,7 +1018,7 @@ public class Generic<T> { }
 public interface Bad { }
 ";
 
-            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,23): warning CS3001: Argument type 'Bad' is not CLS-compliant
                 //     public void M1(Bad b) { }
                 Diagnostic(ErrorCode.WRN_CLS_BadArgType, "b").WithArguments("Bad"),
@@ -1068,7 +1069,7 @@ public class C2
 public interface Bad { }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,23): warning CS3001: Argument type 'Bad' is not CLS-compliant
                 //     public void M(Bad b) { }
                 Diagnostic(ErrorCode.WRN_CLS_BadArgType, "b").WithArguments("Bad"),
@@ -1109,7 +1110,7 @@ public class D : C<long>
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,32): warning CS3001: Argument type 'C<int>.N' is not CLS-compliant
                 //     protected void M1(C<int>.N n) { }	// Not CLS-compliant - C<int>.N not 
                 Diagnostic(ErrorCode.WRN_CLS_BadArgType, "n").WithArguments("C<int>.N"),
@@ -1143,7 +1144,7 @@ public class C1<T>
 ";
 
             // BREAK: dev11 incorrectly accepts the second method.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,44): warning CS3001: Argument type 'C1<int>.C2<U>' is not CLS-compliant
                 //             public void M<W>(C1<int>.C2<U> p) { } // CS3001
                 Diagnostic(ErrorCode.WRN_CLS_BadArgType, "p").WithArguments("C1<int>.C2<U>"),
@@ -1185,7 +1186,7 @@ public class C1
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,20): warning CS3022: CLSCompliant attribute has no meaning when applied to parameters. Try putting it on the method instead.
                 //     public void M([CLSCompliant(true)]int b) { }
                 Diagnostic(ErrorCode.WRN_CLS_MeaninglessOnParam, "CLSCompliant(true)"),
@@ -1243,7 +1244,7 @@ public class C1
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,20): warning CS3022: CLSCompliant attribute has no meaning when applied to parameters. Try putting it on the method instead.
                 //     public void M([CLSCompliant(true)]int b) { }
                 Diagnostic(ErrorCode.WRN_CLS_MeaninglessOnParam, "CLSCompliant(true)"),
@@ -1303,7 +1304,7 @@ public class C1
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,13): warning CS3023: CLSCompliant attribute has no meaning when applied to return types. Try putting it on the method instead.
                 //     [return:CLSCompliant(true)]
                 Diagnostic(ErrorCode.WRN_CLS_MeaninglessOnReturn, "CLSCompliant(true)"),
@@ -1367,7 +1368,7 @@ public class C1
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,13): warning CS3023: CLSCompliant attribute has no meaning when applied to return types. Try putting it on the method instead.
                 //     [return:CLSCompliant(true)]
                 Diagnostic(ErrorCode.WRN_CLS_MeaninglessOnReturn, "CLSCompliant(true)"),
@@ -1442,7 +1443,7 @@ public class NotAnAttribute
     public NotAnAttribute(int[] array) { }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,14): warning CS3015: 'PublicAttribute' has no accessible constructors which use only CLS-compliant types
                 // public class PublicAttribute : Attribute
                 Diagnostic(ErrorCode.WRN_CLS_BadAttributeType, "PublicAttribute").WithArguments("PublicAttribute"));
@@ -1462,7 +1463,7 @@ public class MyAttribute : Attribute
 }
 ";
             // CLS only allows System.Type, string, char, bool, byte, short, int, long, float, double, and enums.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,14): warning CS3015: 'MyAttribute' has no accessible constructors which use only CLS-compliant types
                 // public class MyAttribute : Attribute
                 Diagnostic(ErrorCode.WRN_CLS_BadAttributeType, "MyAttribute").WithArguments("MyAttribute"));
@@ -1509,7 +1510,7 @@ public class C { }
 [NamedArgument(O = new int[] { 1 })] // Applies to named arguments.
 public class D { }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (27,2): warning CS3016: Arrays as attribute arguments is not CLS-compliant
                 // [Array(new int[] { 1 })]
                 Diagnostic(ErrorCode.WRN_CLS_ArrayArgumentToAttribute, "Array(new int[] { 1 })"),
@@ -1609,7 +1610,7 @@ public class Kinds
     public delegate void ND();
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // Assembly:
 
                 // (6,12): warning CS3016: Arrays as attribute arguments is not CLS-compliant
@@ -1716,7 +1717,7 @@ public class C_ { }
 public class D\u005F { }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,14): warning CS3008: Identifier '_A' is not CLS-compliant
                 // public class _A { }
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifier, "_A").WithArguments("_A"),
@@ -1753,7 +1754,7 @@ namespace _NS1 { }
 namespace NS1._NS2 { }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (22,11): warning CS3008: Identifier '_NS1' is not CLS-compliant
                 // namespace _NS1 { }
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifier, "_NS1").WithArguments("_NS1"),
@@ -1812,7 +1813,7 @@ public class Derived : Base
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,25): warning CS3008: Identifier '_M' is not CLS-compliant
                 //     public virtual void _M() { }
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifier, "_M").WithArguments("_M"));
@@ -1874,7 +1875,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1887,7 +1888,7 @@ public class A { }
 public class a { }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (5,14): warning CS3005: Identifier 'a' differing only in case is not CLS-compliant
                 // public class a { }
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "a").WithArguments("a"));
@@ -1906,7 +1907,7 @@ public class B { }
 public class B<T> { } //Fine (since identical name)
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (5,14): warning CS3005: Identifier 'a<T>' differing only in case is not CLS-compliant
                 // public class a<T> { } //CS3005
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "a").WithArguments("a<T>"));
@@ -1927,7 +1928,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,17): warning CS3005: Identifier 'C.m()' differing only in case is not CLS-compliant
                 //     public void m() { }
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "m").WithArguments("C.m()"));
@@ -1948,7 +1949,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,16): warning CS3005: Identifier 'C.p' differing only in case is not CLS-compliant
                 //     public int p { get; set; }
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "p").WithArguments("C.p"),
@@ -1984,7 +1985,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,17): warning CS3005: Identifier 'C.finalize()' differing only in case is not CLS-compliant
                 //     public void finalize() { }
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "finalize").WithArguments("C.finalize()"),
@@ -2019,7 +2020,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,17): warning CS3005: Identifier 'C.get_item()' differing only in case is not CLS-compliant
                 //     public void get_item() { } // NOTE: signature doesn't match
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "get_item").WithArguments("C.get_item()"),
@@ -2052,7 +2053,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2070,7 +2071,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,17): warning CS3005: Identifier 'C.p(int)' differing only in case is not CLS-compliant
                 //     public void p(int x) { } // NOTE: signature doesn't match
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "p").WithArguments("C.p(int)"));
@@ -2079,12 +2080,12 @@ public class C
         [Fact]
         public void WRN_CLS_NotOnModules()
         {
-            CreateCompilationWithMscorlib("[module:System.CLSCompliant(true)]").VerifyDiagnostics(
+            CreateStandardCompilation("[module:System.CLSCompliant(true)]").VerifyDiagnostics(
                 // (1,9): warning CS3012: You must specify the CLSCompliant attribute on the assembly, not the module, to enable CLS compliance checking
                 // [module:System.CLSCompliant(true)]
                 Diagnostic(ErrorCode.WRN_CLS_NotOnModules, "System.CLSCompliant(true)"));
 
-            CreateCompilationWithMscorlib("[module:System.CLSCompliant(false)]").VerifyDiagnostics(
+            CreateStandardCompilation("[module:System.CLSCompliant(false)]").VerifyDiagnostics(
                 // (1,9): warning CS3012: You must specify the CLSCompliant attribute on the assembly, not the module, to enable CLS compliance checking
                 // [module:System.CLSCompliant(false)]
                 Diagnostic(ErrorCode.WRN_CLS_NotOnModules, "System.CLSCompliant(false)"));
@@ -2098,103 +2099,103 @@ public class C
 [module:System.CLSCompliant({1})]
 ";
 
-            CreateCompilationWithMscorlib(string.Format(sourceTemplate, "true", "true")).VerifyDiagnostics();
-            CreateCompilationWithMscorlib(string.Format(sourceTemplate, "false", "false")).VerifyDiagnostics();
+            CreateStandardCompilation(string.Format(sourceTemplate, "true", "true")).VerifyDiagnostics();
+            CreateStandardCompilation(string.Format(sourceTemplate, "false", "false")).VerifyDiagnostics();
 
-            CreateCompilationWithMscorlib(string.Format(sourceTemplate, "true", "false")).VerifyDiagnostics(
+            CreateStandardCompilation(string.Format(sourceTemplate, "true", "false")).VerifyDiagnostics(
                 // (3,9): warning CS3017: You cannot specify the CLSCompliant attribute on a module that differs from the CLSCompliant attribute on the assembly
                 // [module:System.CLSCompliant(false)]
                 Diagnostic(ErrorCode.WRN_CLS_NotOnModules2, "System.CLSCompliant(false)"));
-            CreateCompilationWithMscorlib(string.Format(sourceTemplate, "false", "true")).VerifyDiagnostics(); // No warnings, since false.
+            CreateStandardCompilation(string.Format(sourceTemplate, "false", "true")).VerifyDiagnostics(); // No warnings, since false.
         }
 
         [Fact]
         public void WRN_CLS_ModuleMissingCLS()
         {
-            var trueModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)][module:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
-            var falseModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)][module:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
-            var noneModuleRef = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseModule, assemblyName: "none").EmitToImageReference();
+            var trueModuleRef = CreateStandardCompilation("[assembly:System.CLSCompliant(true)][module:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
+            var falseModuleRef = CreateStandardCompilation("[assembly:System.CLSCompliant(false)][module:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
+            var noneModuleRef = CreateStandardCompilation("", options: TestOptions.ReleaseModule, assemblyName: "none").EmitToImageReference();
 
             // Assembly is marked compliant.
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef }).VerifyDiagnostics();
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { falseModuleRef }).VerifyDiagnostics(
+            CreateStandardCompilation("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef }).VerifyDiagnostics();
+            CreateStandardCompilation("[assembly:System.CLSCompliant(true)]", new[] { falseModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
                 // error CS7061: Duplicate 'CLSCompliantAttribute' attribute in 'false.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("CLSCompliantAttribute", "false.netmodule"),
                 // false.netmodule: warning CS3017: You cannot specify the CLSCompliant attribute on a module that differs from the CLSCompliant attribute on the assembly
                 Diagnostic(ErrorCode.WRN_CLS_NotOnModules2));
 
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { noneModuleRef }).VerifyDiagnostics(
+            CreateStandardCompilation("[assembly:System.CLSCompliant(true)]", new[] { noneModuleRef }).VerifyDiagnostics(
                 // none.netmodule: warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
                 Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS));
 
             // Assembly is marked non-compliant.
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { trueModuleRef }).VerifyDiagnostics(
+            CreateStandardCompilation("[assembly:System.CLSCompliant(false)]", new[] { trueModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
                 // error CS7061: Duplicate 'CLSCompliantAttribute' attribute in 'true.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("CLSCompliantAttribute", "true.netmodule"));
 
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { falseModuleRef }).VerifyDiagnostics(); //CONSIDER: dev11 reports WRN_CLS_NotOnModules (don't know why)
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { noneModuleRef }).VerifyDiagnostics();
+            CreateStandardCompilation("[assembly:System.CLSCompliant(false)]", new[] { falseModuleRef }).VerifyDiagnostics(); //CONSIDER: dev11 reports WRN_CLS_NotOnModules (don't know why)
+            CreateStandardCompilation("[assembly:System.CLSCompliant(false)]", new[] { noneModuleRef }).VerifyDiagnostics();
 
             // Assembly is unmarked.
-            CreateCompilationWithMscorlib("", new[] { trueModuleRef }).VerifyDiagnostics();
-            CreateCompilationWithMscorlib("", new[] { falseModuleRef }).VerifyDiagnostics();
-            CreateCompilationWithMscorlib("", new[] { noneModuleRef }).VerifyDiagnostics();
+            CreateStandardCompilation("", new[] { trueModuleRef }).VerifyDiagnostics();
+            CreateStandardCompilation("", new[] { falseModuleRef }).VerifyDiagnostics();
+            CreateStandardCompilation("", new[] { noneModuleRef }).VerifyDiagnostics();
         }
 
         [Fact]
         public void WRN_CLS_ModuleMissingCLS_AssemblyLevelOnly()
         {
-            var trueModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
-            var falseModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
-            var noneModuleRef = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseModule, assemblyName: "none").EmitToImageReference();
+            var trueModuleRef = CreateStandardCompilation("[assembly:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
+            var falseModuleRef = CreateStandardCompilation("[assembly:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
+            var noneModuleRef = CreateStandardCompilation("", options: TestOptions.ReleaseModule, assemblyName: "none").EmitToImageReference();
 
             // Assembly is marked compliant.
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef }).VerifyDiagnostics();
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { falseModuleRef }).VerifyDiagnostics(
+            CreateStandardCompilation("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef }).VerifyDiagnostics();
+            CreateStandardCompilation("[assembly:System.CLSCompliant(true)]", new[] { falseModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
                 // error CS7061: Duplicate 'CLSCompliantAttribute' attribute in 'false.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("CLSCompliantAttribute", "false.netmodule"));
 
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { noneModuleRef }).VerifyDiagnostics(
+            CreateStandardCompilation("[assembly:System.CLSCompliant(true)]", new[] { noneModuleRef }).VerifyDiagnostics(
                 // none.netmodule: warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
                 Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS));
 
             // Assembly is marked non-compliant.
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { trueModuleRef }).VerifyDiagnostics(
+            CreateStandardCompilation("[assembly:System.CLSCompliant(false)]", new[] { trueModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
                 // error CS7061: Duplicate 'CLSCompliantAttribute' attribute in 'true.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("CLSCompliantAttribute", "true.netmodule"));
 
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { falseModuleRef }).VerifyDiagnostics(); //CONSIDER: dev11 reports WRN_CLS_NotOnModules (don't know why)
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { noneModuleRef }).VerifyDiagnostics();
+            CreateStandardCompilation("[assembly:System.CLSCompliant(false)]", new[] { falseModuleRef }).VerifyDiagnostics(); //CONSIDER: dev11 reports WRN_CLS_NotOnModules (don't know why)
+            CreateStandardCompilation("[assembly:System.CLSCompliant(false)]", new[] { noneModuleRef }).VerifyDiagnostics();
 
             // Assembly is unmarked.
-            CreateCompilationWithMscorlib("", new[] { trueModuleRef }).VerifyDiagnostics();
-            CreateCompilationWithMscorlib("", new[] { falseModuleRef }).VerifyDiagnostics();
-            CreateCompilationWithMscorlib("", new[] { noneModuleRef }).VerifyDiagnostics();
+            CreateStandardCompilation("", new[] { trueModuleRef }).VerifyDiagnostics();
+            CreateStandardCompilation("", new[] { falseModuleRef }).VerifyDiagnostics();
+            CreateStandardCompilation("", new[] { noneModuleRef }).VerifyDiagnostics();
         }
 
         [Fact]
         public void MultipleDisagreeingModules()
         {
-            var trueModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)][module:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
-            var falseModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)][module:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
+            var trueModuleRef = CreateStandardCompilation("[assembly:System.CLSCompliant(true)][module:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
+            var falseModuleRef = CreateStandardCompilation("[assembly:System.CLSCompliant(false)][module:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
 
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef, falseModuleRef }).VerifyDiagnostics(
+            CreateStandardCompilation("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef, falseModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
                 // error CS7061: Duplicate 'CLSCompliantAttribute' attribute in 'false.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("CLSCompliantAttribute", "false.netmodule"),
                 // false.netmodule: warning CS3017: You cannot specify the CLSCompliant attribute on a module that differs from the CLSCompliant attribute on the assembly
                 Diagnostic(ErrorCode.WRN_CLS_NotOnModules2));
 
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { trueModuleRef, falseModuleRef }).VerifyDiagnostics(
+            CreateStandardCompilation("[assembly:System.CLSCompliant(false)]", new[] { trueModuleRef, falseModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
                 // error CS7061: Duplicate 'CLSCompliantAttribute' attribute in 'true.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("CLSCompliantAttribute", "true.netmodule"));
 
-            CreateCompilationWithMscorlib("", new[] { trueModuleRef, falseModuleRef }).VerifyDiagnostics(
+            CreateStandardCompilation("", new[] { trueModuleRef, falseModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
                 // error CS7061: Duplicate 'CLSCompliantAttribute' attribute in 'true.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("CLSCompliantAttribute", "true.netmodule"),
@@ -2240,7 +2241,7 @@ public class NonCompliant
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,17): warning CS3006: Overloaded method 'Compliant.M1(ref int)' differing only in ref or out, or in array rank, is not CLS-compliant
                 //     public void M1(ref int x) { } //CS3006
                 Diagnostic(ErrorCode.WRN_CLS_OverloadRefOut, "M1").WithArguments("Compliant.M1(ref int)"),
@@ -2287,7 +2288,7 @@ public class NonCompliant
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,17): warning CS3006: Overloaded method 'Compliant.M1(int[*,*])' differing only in ref or out, or in array rank, is not CLS-compliant
                 //     public void M1(int[,] x) { } //CS3006
                 Diagnostic(ErrorCode.WRN_CLS_OverloadRefOut, "M1").WithArguments("Compliant.M1(int[*,*])"),
@@ -2343,7 +2344,7 @@ public class NonCompliant
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,17): warning CS3007: Overloaded method 'Compliant.M1(char[][])' differing only by unnamed array types is not CLS-compliant
                 //     public void M1(char[][] x) { } //CS3007
                 Diagnostic(ErrorCode.WRN_CLS_OverloadUnnamed, "M1").WithArguments("Compliant.M1(char[][])"),
@@ -2397,7 +2398,7 @@ public class Compliant
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,17): warning CS3007: Overloaded method 'Compliant.M1(char[][], int)' differing only by unnamed array types is not CLS-compliant
                 //     public void M1(char[][] x, int y) { } //CS3007
                 Diagnostic(ErrorCode.WRN_CLS_OverloadUnnamed, "M1").WithArguments("Compliant.M1(char[][], int)"),
@@ -2440,7 +2441,7 @@ public class Compliant
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,16): warning CS3007: Overloaded method 'Compliant.this[char[][]]' differing only by unnamed array types is not CLS-compliant
                 //     public int this[char[][] x] { get { return 0; } }
                 Diagnostic(ErrorCode.WRN_CLS_OverloadUnnamed, "this").WithArguments("Compliant.this[char[][]]"),
@@ -2478,7 +2479,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,12): warning CS3007: Overloaded method 'C.C(char[][])' differing only by unnamed array types is not CLS-compliant
                 //     public C(char[][] p) { } //CS3007
                 Diagnostic(ErrorCode.WRN_CLS_OverloadUnnamed, "C").WithArguments("C.C(char[][])"),
@@ -2508,7 +2509,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2552,7 +2553,7 @@ public class Derived2 : Base
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (14,17): warning CS3007: Overloaded method 'Implicit.M(char[][])' differing only by unnamed array types is not CLS-compliant
                 //     public void M(char[][] p) { } //CS3007
                 Diagnostic(ErrorCode.WRN_CLS_OverloadUnnamed, "M").WithArguments("Implicit.M(char[][])"),
@@ -2607,7 +2608,7 @@ public class Derived2 : Derived1
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (14,17): warning CS3007: Overloaded method 'Derived_Overload.M(char[][])' differing only by unnamed array types is not CLS-compliant
                 //     public void M(char[][] p) { } //CS3007
                 Diagnostic(ErrorCode.WRN_CLS_OverloadUnnamed, "M").WithArguments("Derived_Overload.M(char[][])"),
@@ -2641,7 +2642,7 @@ public class C<T>
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(717146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/717146")]
@@ -2712,20 +2713,20 @@ public interface I
 ";
 
             // Interface empty - report conflict (with base type).
-            CreateCompilationWithMscorlib(string.Format(sourceTemplate, "")).VerifyDiagnostics(
+            CreateStandardCompilation(string.Format(sourceTemplate, "")).VerifyDiagnostics(
                 // (13,25): warning CS3005: Identifier 'Derived.m()' differing only in case is not CLS-compliant
                 //     public virtual void m() { }
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "m").WithArguments("Derived.m()"));
 
             // Interface has conflict - report conflict.
-            CreateCompilationWithMscorlib(string.Format(sourceTemplate, "void M();")).VerifyDiagnostics(
+            CreateStandardCompilation(string.Format(sourceTemplate, "void M();")).VerifyDiagnostics(
                 // (13,25): warning CS3005: Identifier 'Derived.m()' differing only in case is not CLS-compliant
                 //     public virtual void m() { }
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "m").WithArguments("Derived.m()"));
 
             // Interface has identical method - report conflict (with base type).
             // BREAK: Dev11 does not report this - it sees that there is no conflict with the interface method and stops.
-            CreateCompilationWithMscorlib(string.Format(sourceTemplate, "void m();")).VerifyDiagnostics(
+            CreateStandardCompilation(string.Format(sourceTemplate, "void m();")).VerifyDiagnostics(
                 // (13,25): warning CS3005: Identifier 'Derived.m()' differing only in case is not CLS-compliant
                 //     public virtual void m() { }
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "m").WithArguments("Derived.m()"));
@@ -2741,7 +2742,7 @@ using System;
 public void M() { }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (5,13): error CS0116: A namespace does not directly contain members such as fields or methods
                 // public void M() { }
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "M"));
@@ -2759,7 +2760,7 @@ using System;
 public void M() { }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (5,13): error CS0116: A namespace does not directly contain members such as fields or methods
                 // public void M() { }
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "M"));
@@ -2777,7 +2778,7 @@ using System;
 public void M() { }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,13): error CS0116: A namespace does not directly contain members such as fields or methods
                 // public void M() { }
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "M"));
@@ -2802,7 +2803,7 @@ public interface I
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2826,7 +2827,7 @@ public class Bad
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2844,7 +2845,7 @@ public abstract class Bad
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2866,7 +2867,7 @@ internal class C
 [assembly:System.CLSCompliant(true)]
 ";
 
-            var moduleRef = CreateCompilationWithMscorlib(moduleSource, assemblyName: "module").EmitToImageReference(expectedWarnings: new[]
+            var moduleRef = CreateStandardCompilation(moduleSource, assemblyName: "module").EmitToImageReference(expectedWarnings: new[]
             {
                 // (8,16): warning CS3019: CLS compliance checking will not be performed on 'C' because it is not visible from outside this assembly
                 // internal class C
@@ -2874,7 +2875,7 @@ internal class C
             });
 
             // No diagnostics about added module.
-            CreateCompilationWithMscorlib(source, new[] { moduleRef }).VerifyDiagnostics();
+            CreateStandardCompilation(source, new[] { moduleRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2951,7 +2952,7 @@ public class Test
 ";
             // BREAK: Dev11 doesn't inspect the type parameters of special types.
             // Presumably, when the code was written, there were no generic special types.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,29): warning CS3002: Return type of 'Test.M()' is not CLS-compliant
                 //     public IEnumerable<Bad> M() { throw null; }
                 Diagnostic(ErrorCode.WRN_CLS_BadReturnType, "M").WithArguments("Test.M()"));
@@ -2977,7 +2978,7 @@ public class Test1 { }
 [ParamArray(1, 2)] // pass array of parameters
 public class Test2 { }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,2): warning CS3016: Arrays as attribute arguments is not CLS-compliant
                 // [ParamArray(null)] // pass null to array parameter
                 Diagnostic(ErrorCode.WRN_CLS_ArrayArgumentToAttribute, "ParamArray(null)"),
@@ -3003,7 +3004,7 @@ public class ArrayAttribute : Attribute
 class Test { }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,2): warning CS3016: Arrays as attribute arguments is not CLS-compliant
                 // [Array(new int[] { 1 })]
                 Diagnostic(ErrorCode.WRN_CLS_ArrayArgumentToAttribute, "Array(new int[] { 1 })"));
@@ -3021,7 +3022,7 @@ using System;
 public class Test { }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,2): error CS0246: The type or namespace name 'MissingAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 // [Missing]
@@ -3047,7 +3048,7 @@ public sealed class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, WinRtRefs, options: TestOptions.ReleaseWinMD);
+            var comp = CreateCompilation(source, WinRtRefs, options: TestOptions.ReleaseWinMD);
 
             // CONSIDER: The CLS spec requires that event accessors have a certain shape and WinRT event
             // accessors do not.  However, dev11 does not report a diagnostic.
@@ -3099,7 +3100,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,4): error CS1667: Attribute 'CLSCompliantAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
                 // 		[CLSCompliant(false)]//CS1667
                 Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "CLSCompliant(false)").WithArguments("CLSCompliantAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter"),
@@ -3153,7 +3154,7 @@ internal class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,4): error CS1667: Attribute 'CLSCompliantAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
                 // 		[CLSCompliant(false)]//CS1667
                 Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "CLSCompliant(false)").WithArguments("CLSCompliantAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter"),
@@ -3192,8 +3193,8 @@ public class D
     public C M() { return null; }
 }
 ";
-            var libRef = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib(source, new[] { libRef });
+            var libRef = CreateStandardCompilation(libSource).EmitToImageReference();
+            var comp = CreateStandardCompilation(source, new[] { libRef });
             var tree = comp.SyntaxTrees.Single();
             comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree, null, includeEarlierStages: false, cancellationToken: CancellationToken.None);
         }
@@ -3232,7 +3233,7 @@ namespace N{0}
 
             var tree1 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 1), path: "a.cs");
             var tree2 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 2), path: "b.cs");
-            var comp = CreateCompilationWithMscorlib(new[] { tree1, tree2 });
+            var comp = CreateStandardCompilation(new[] { tree1, tree2 });
 
             comp.VerifyDiagnostics(
                 // (21,6): warning CS3016: Arrays as attribute arguments is not CLS-compliant
@@ -3332,7 +3333,7 @@ public class C
 ";
 
             // No assembly-level attribute: warn about absence of assembly-level attribute.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (3,14): warning CS3021: 'C' does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute
                 // public class C
                 Diagnostic(ErrorCode.WRN_CLS_AssemblyNotCLS2, "C").WithArguments("C"),
@@ -3341,7 +3342,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_CLS_AssemblyNotCLS, "M").WithArguments("C.M()"));
 
             // Assembly-level true: warn about non-compliance.
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]" + source).VerifyDiagnostics(
+            CreateStandardCompilation("[assembly:System.CLSCompliant(true)]" + source).VerifyDiagnostics(
                 // (7,17): warning CS3018: 'C.M()' cannot be marked as CLS-compliant because it is a member of non-CLS-compliant type 'C'
                 //     public void M() {} 
                 Diagnostic(ErrorCode.WRN_CLS_IllegalTrueInFalse, "M").WithArguments("C.M()", "C"),
@@ -3350,7 +3351,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_CLS_MeaninglessOnReturn, "System.CLSCompliant(true)"));
 
             // Assembly-level true: suppress all warnings.
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]" + source).VerifyDiagnostics();
+            CreateStandardCompilation("[assembly:System.CLSCompliant(false)]" + source).VerifyDiagnostics();
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -3379,8 +3380,8 @@ public class C
 }
 ";
             // NOTE: As in dev11, we ignore the fact that Derived inherits CLSCompliantAttribute from Base.
-            var libRef = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
-            CreateCompilationWithMscorlib(source, new[] { libRef }).VerifyDiagnostics(
+            var libRef = CreateStandardCompilation(libSource).EmitToImageReference();
+            CreateStandardCompilation(source, new[] { libRef }).VerifyDiagnostics(
                 // (9,17): warning CS3003: Type of 'C.d' is not CLS-compliant
                 // 	public Derived d;
                 Diagnostic(ErrorCode.WRN_CLS_BadFieldPropType, "d").WithArguments("C.d"));
@@ -3441,8 +3442,8 @@ public class C
 }
 ";
             // NOTE: As in dev11, we ignore the fact that Derived inherits CLSCompliantAttribute from Base.
-            var libRef = CompileIL(libIL, appendDefaultHeader: false);
-            CreateCompilationWithMscorlib(source, new[] { libRef }).VerifyDiagnostics(
+            var libRef = CompileIL(libIL, prependDefaultHeader: false);
+            CreateStandardCompilation(source, new[] { libRef }).VerifyDiagnostics(
                 // (8,14): warning CS3003: Type of 'C.b' is not CLS-compliant
                 // 	public Base b;
                 Diagnostic(ErrorCode.WRN_CLS_BadFieldPropType, "b").WithArguments("C.b"));
@@ -3461,7 +3462,7 @@ public class C : object, IError
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,26): error CS0246: The type or namespace name 'IError' could not be found (are you missing a using directive or an assembly reference?)
                 // public class C : object, IError
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IError").WithArguments("IError"));
@@ -3489,7 +3490,7 @@ namespace A
     }
 }
 ";
-            var libRef = CreateCompilationWithMscorlib(libSource, assemblyName: "lib").EmitToImageReference();
+            var libRef = CreateStandardCompilation(libSource, assemblyName: "lib").EmitToImageReference();
 
             CreateCompilationWithMscorlibAndSystemCore(source, new[] { libRef }).GetDiagnostics();
         }
@@ -3509,7 +3510,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (5,14): warning CS3023: CLSCompliant attribute has no meaning when applied to return types. Try putting it on the method instead.
                 //     [return: System.CLSCompliant(true)] // CS3023
                 Diagnostic(ErrorCode.WRN_CLS_MeaninglessOnReturn, "System.CLSCompliant(true)"));
@@ -3533,7 +3534,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (5,29): warning CS3022: CLSCompliant attribute has no meaning when applied to parameters. Try putting it on the method instead.
                 //     public int Func([param: System.CLSCompliant(true)] int i) // CS3022
                 Diagnostic(ErrorCode.WRN_CLS_MeaninglessOnParam, "System.CLSCompliant(true)"));
@@ -3562,7 +3563,7 @@ class MyAttribute : Attribute
 }
 
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,2): warning CS3016: Arrays as attribute arguments is not CLS-compliant
                 // [My(new int[] { 1, 2 })]
                 Diagnostic(ErrorCode.WRN_CLS_ArrayArgumentToAttribute, "My(new int[] { 1, 2 })"));
@@ -3584,7 +3585,7 @@ public class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,19): error CS0836: Cannot use anonymous type in a constant expression
                 //     [CLSCompliant(new { field = false }.field)]
                 Diagnostic(ErrorCode.ERR_AnonymousTypeNotAvailable, "new"));
@@ -3599,7 +3600,7 @@ namespace N1
     public class A { }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseModule);
+            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseModule);
 
             var source2 = @"
 using System;
@@ -3612,7 +3613,7 @@ namespace N1
     public class B { }
 }
 ";
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { comp1.EmitToImageReference() }, TestOptions.ReleaseDll.WithConcurrentBuild(false));
+            var comp2 = CreateStandardCompilation(source2, new[] { comp1.EmitToImageReference() }, TestOptions.ReleaseDll.WithConcurrentBuild(false));
             comp2.VerifyDiagnostics(
     // warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
     Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS).WithLocation(1, 1)

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _undoHistoryRegistry = undoHistoryRegistry;
             }
 
-            public override string Title { get { return _title; } }
+            public override string Title => _title;
 
             protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
@@ -64,16 +64,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             private bool TryInitializeRenameTrackingCommitter(CancellationToken cancellationToken)
             {
-                SourceText text;
-                StateMachine stateMachine;
-
-                if (_document.TryGetText(out text))
+                if (_document.TryGetText(out var text))
                 {
                     var textBuffer = text.Container.GetTextBuffer();
-                    if (textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine))
+                    if (textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
                     {
-                        TrackingSession trackingSession;
-                        if (!stateMachine.CanInvokeRename(out trackingSession, cancellationToken: cancellationToken))
+                        if (!stateMachine.CanInvokeRename(out var trackingSession, cancellationToken: cancellationToken))
                         {
                             // The rename tracking could be dismissed while a codefix is still cached
                             // in the lightbulb. If this happens, do not perform the rename requested

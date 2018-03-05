@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
@@ -39,6 +40,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// The compiler-generated implementation type for each fixed-size buffer.
         /// </summary>
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
+
+        private bool _needsGeneratedIsReadOnlyAttribute_Value;
+
+        private bool _needsGeneratedAttributes_IsFrozen;
+
+        /// <summary>
+        /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
+        /// The value is set during lowering the symbols that need that attribute, and is frozen on first trial to get it.
+        /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
+        /// </summary>
+        internal bool NeedsGeneratedIsReadOnlyAttribute
+        {
+            get
+            {
+                _needsGeneratedAttributes_IsFrozen = true;
+                return Compilation.NeedsGeneratedIsReadOnlyAttribute || _needsGeneratedIsReadOnlyAttribute_Value;
+            }
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether this builder has a symbol that needs IsByRefLikeAttribute to be generated during emit phase.
+        /// </summary>
+        internal bool NeedsGeneratedIsByRefLikeAttribute
+        {
+            get
+            {
+                return Compilation.NeedsGeneratedIsByRefLikeAttribute;
+            }
+        }
 
         internal PEModuleBuilder(
             SourceModuleSymbol sourceModule,
@@ -83,9 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(attributeConstructor);
         }
 
-        public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes()
+        public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes(bool isRefAssembly)
         {
-            return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(this.CompilationState, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
+            return SourceModule.ContainingSourceAssembly
+                .GetCustomAttributesToEmit(this, isRefAssembly, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
         }
 
         public sealed override IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes()
@@ -95,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes()
         {
-            return SourceModule.GetCustomAttributesToEmit(this.CompilationState);
+            return SourceModule.GetCustomAttributesToEmit(this);
         }
 
         internal sealed override AssemblySymbol CorLibrary
@@ -109,12 +140,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public sealed override IEnumerable<string> LinkedAssembliesDebugInfo => SpecializedCollections.EmptyEnumerable<string>();
 
         // C# currently doesn't emit compilation level imports (TODO: scripting).
-        public override ImmutableArray<Cci.UsedNamespaceOrType> GetImports() => ImmutableArray<Cci.UsedNamespaceOrType>.Empty;
+        public sealed override ImmutableArray<Cci.UsedNamespaceOrType> GetImports() => ImmutableArray<Cci.UsedNamespaceOrType>.Empty;
 
         // C# doesn't allow to define default namespace for compilation.
-        public override string DefaultNamespace => null;
+        public sealed override string DefaultNamespace => null;
 
-        protected override IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics)
+        protected sealed override IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics)
         {
             ImmutableArray<ModuleSymbol> modules = SourceModule.ContainingAssembly.Modules;
 
@@ -178,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        public override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
+        public sealed override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
         {
             var result = new MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation>();
 
@@ -329,7 +360,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <summary>
         /// Override the dynamic operation context type for all dynamic calls in the module.
         /// </summary>
-        internal virtual NamedTypeSymbol DynamicOperationContextType => null;
+        internal virtual NamedTypeSymbol GetDynamicOperationContextType(NamedTypeSymbol contextType)
+        {
+            return contextType;
+        }
 
         internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
@@ -355,9 +389,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return false;
         }
 
-        internal override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
+        internal sealed override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes(EmitContext context)
         {
-            if (EmitOptions.EmitMetadataOnly)
+            if (context.MetadataOnly)
             {
                 return ImmutableArray<Cci.INamespaceTypeDefinition>.Empty;
             }
@@ -373,9 +407,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return false; }
         }
 
-        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(CodeAnalysis.Emit.EmitContext context)
+        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
         {
-            foreach (var type in GetAdditionalTopLevelTypes())
+            foreach (var type in GetAdditionalTopLevelTypes(context.Diagnostics))
+            {
+                yield return type;
+            }
+
+            foreach (var type in GetEmbeddedTypes(context.Diagnostics))
             {
                 yield return type;
             }
@@ -402,7 +441,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal virtual ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+        internal virtual ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
+        {
+            return ImmutableArray<NamedTypeSymbol>.Empty;
+        }
+
+        internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -436,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        public override ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics)
+        public sealed override ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics)
         {
             Debug.Assert(HaveDeterminedTopLevelTypes);
 
@@ -555,9 +599,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (wellKnownAttributeData?.ForwardedTypes?.Count > 0)
             {
                 // (type, index of the parent exported type in builder, or -1 if the type is a top-level type)
-                var stack = ArrayBuilder<ValueTuple<NamedTypeSymbol, int>>.GetInstance();
+                var stack = ArrayBuilder<(NamedTypeSymbol type, int parentIndex)>.GetInstance();
 
-                foreach (NamedTypeSymbol forwardedType in wellKnownAttributeData.ForwardedTypes)
+                // Hashset enumeration is not guaranteed to be deterministic. Emitting in the order of fully qualified names.
+                var orderedForwardedTypes = wellKnownAttributeData.ForwardedTypes.OrderBy(t => t.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
+
+                foreach (NamedTypeSymbol forwardedType in orderedForwardedTypes)
                 {
                     NamedTypeSymbol originalDefinition = forwardedType.OriginalDefinition;
                     Debug.Assert((object)originalDefinition.ContainingType == null, "How did a nested type get forwarded?");
@@ -569,13 +616,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     // Return all nested types.
                     // Note the order: depth first, children in reverse order (to match dev10, not a requirement).
                     Debug.Assert(stack.Count == 0);
-                    stack.Push(ValueTuple.Create(originalDefinition, -1));
+                    stack.Push((originalDefinition, -1));
 
                     while (stack.Count > 0)
                     {
-                        var entry = stack.Pop();
-                        NamedTypeSymbol type = entry.Item1;
-                        int parentIndex = entry.Item2;
+                        var (type, parentIndex) = stack.Pop();
 
                         // In general, we don't want private types to appear in the ExportedTypes table.
                         // BREAK: dev11 emits these types.  The problem was discovered in dev10, but failed
@@ -595,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         ImmutableArray<NamedTypeSymbol> nested = type.GetTypeMembers(); // Ordered.
                         for (int i = nested.Length - 1; i >= 0; i--)
                         {
-                            stack.Push(ValueTuple.Create(nested[i], index));
+                            stack.Push((nested[i], index));
                         }
                     }
                 }
@@ -790,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert(!needDeclaration);
                 namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType;
-                CheckTupleUnderlying(namedTypeSymbol, syntaxNodeOpt, diagnostics);
+                CheckTupleUnderlyingType(namedTypeSymbol, syntaxNodeOpt, diagnostics);
             }
 
             // Substitute error types with a special singleton object.
@@ -891,21 +936,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return namedTypeSymbol;
         }
 
-        private void CheckTupleUnderlying(NamedTypeSymbol namedTypeSymbol, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        private void CheckTupleUnderlyingType(NamedTypeSymbol namedTypeSymbol, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             // check that underlying type of a ValueTuple is indeed a value type (or error)
             // this should never happen, in theory,
             // but if it does happen we should make it a failure.
             // NOTE: declaredBase could be null for interfaces
             var declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
-            if (declaredBase == null || declaredBase.SpecialType != SpecialType.System_ValueType)
+            if ((object)declaredBase != null && declaredBase.SpecialType == SpecialType.System_ValueType)
             {
-                // Try to decrease noise by not complaining about the same type over and over again.
-                if (_reportedErrorTypesMap.Add(namedTypeSymbol))
+                return;
+            }
+
+            // Try to decrease noise by not complaining about the same type over and over again.
+            if (!_reportedErrorTypesMap.Add(namedTypeSymbol))
+            {
+                return;
+            }
+
+            var location = syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location;
+            if ((object)declaredBase != null)
+            {
+                var diagnosticInfo = declaredBase.GetUseSiteDiagnostic();
+                if (diagnosticInfo != null && diagnosticInfo.Severity == DiagnosticSeverity.Error)
                 {
-                    diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, namedTypeSymbol.MetadataName), syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location));
+                    diagnostics.Add(diagnosticInfo, location);
+                    return;
                 }
             }
+
+            diagnostics.Add(
+                new CSDiagnostic(
+                    new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, namedTypeSymbol.MetadataName),
+                    location));
         }
 
         public static bool IsGenericType(NamedTypeSymbol toCheck)
@@ -1055,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         return Cci.TypeMemberVisibility.Family;
                     }
 
-                case Accessibility.ProtectedAndInternal: // Not supported by language, but we should be able to import it.
+                case Accessibility.ProtectedAndInternal:
                     Debug.Assert(symbol.ContainingType.TypeKind != TypeKind.Submission);
                     return Cci.TypeMemberVisibility.FamilyAndAssembly;
 
@@ -1075,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal override Cci.IMethodReference Translate(MethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
+        internal sealed override Cci.IMethodReference Translate(MethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
         {
             return Translate(symbol, null, diagnostics, null, needDeclaration);
         }
@@ -1362,6 +1425,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected override Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
             return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics));
+        }
+
+        internal abstract SynthesizedAttributeData SynthesizeEmbeddedAttribute();
+
+        internal SynthesizedAttributeData SynthesizeIsReadOnlyAttribute(Symbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeIsReadOnlyAttribute();
+        }
+
+        internal SynthesizedAttributeData SynthesizeIsByRefLikeAttribute(Symbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeIsByRefLikeAttribute();
+        }
+
+        protected virtual SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
+        }
+
+        protected virtual SynthesizedAttributeData TrySynthesizeIsByRefLikeAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
+        }
+
+        internal void EnsureIsReadOnlyAttributeExists()
+        {
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+
+            if (_needsGeneratedIsReadOnlyAttribute_Value || Compilation.NeedsGeneratedIsReadOnlyAttribute)
+            {
+                return;
+            }
+
+            // Don't report any errors. They should be reported during binding.
+            if (Compilation.CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
+            {
+                _needsGeneratedIsReadOnlyAttribute_Value = true;
+            }
         }
     }
 }

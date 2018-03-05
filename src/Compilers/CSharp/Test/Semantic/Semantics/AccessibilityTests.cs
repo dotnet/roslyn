@@ -79,7 +79,7 @@ public class G<T>
 
     protected G<int>.N P { get; set; }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -96,7 +96,7 @@ class C : G<int>
 {
     protected G<long>.N P { get; set; }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -110,7 +110,7 @@ public class G<T>
 
     protected G<int>.N this[int x] { get { throw null; } }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -127,7 +127,7 @@ class C : G<int>
 {
     protected G<long>.N this[int x] { get { throw null; } }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -141,7 +141,7 @@ public class G<T>
 
     protected G<int>.N M() { throw null; }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -158,7 +158,7 @@ class C : G<int>
 {
     protected G<long>.N M() { throw null; }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -172,7 +172,7 @@ public class G<T>
 
     protected event G<int>.N E;
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,30): warning CS0067: The event 'G<T>.E' is never used
                 //     protected event G<int>.N E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("G<T>.E"));
@@ -192,7 +192,7 @@ class C : G<int>
 {
     protected event G<long>.N E;
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,31): warning CS0067: The event 'C.E' is never used
                 //     protected event G<long>.N E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
@@ -212,12 +212,12 @@ public class RuleE<T>
 
     protected class Z : RuleE<int>.N
     { 
-        protected RuleE<int>.N Foo;    
+        protected RuleE<int>.N Goo;    
     }
 
     private class Z1
     {
-        protected RuleE<int>.N Foo;    
+        protected RuleE<int>.N Goo;    
     }
 
     protected class z4<S> where S : RuleE<int>.N { }
@@ -252,10 +252,10 @@ class Test
     {
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (16,32): warning CS0649: Field 'RuleE<T>.Z1.Foo' is never assigned to, and will always have its default value null
-                //         protected RuleE<int>.N Foo;    
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Foo").WithArguments("RuleE<T>.Z1.Foo", "null"),
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (16,32): warning CS0649: Field 'RuleE<T>.Z1.Goo' is never assigned to, and will always have its default value null
+                //         protected RuleE<int>.N Goo;    
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Goo").WithArguments("RuleE<T>.Z1.Goo", "null"),
                 // (23,26): warning CS0169: The field 'RuleE<T>.Fld3' is never used
                 //     private RuleE<int>.N Fld3;    
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Fld3").WithArguments("RuleE<T>.Fld3"),
@@ -289,7 +289,7 @@ class Test
         public C " + brackets + @" x;
     }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("P.x", "P.C" + brackets)
 );
         }

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -99,6 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
         {
             get { return _underlyingMethod.ReturnValueCustomModifiers; }
+        }
+
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
+        {
+            get { return _underlyingMethod.RefCustomModifiers; }
         }
 
         bool Cci.ISignature.ReturnValueIsByRef

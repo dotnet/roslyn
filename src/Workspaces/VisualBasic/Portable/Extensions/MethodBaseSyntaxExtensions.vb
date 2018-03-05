@@ -38,5 +38,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Throw ExceptionUtilities.Unreachable
         End Function
     End Module
-
 End Namespace

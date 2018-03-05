@@ -2,14 +2,13 @@
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal class WellKnownRemoteHostServices
+    internal static class WellKnownRemoteHostServices
     {
-        public const string RemoteHostService = "remoteHostService";
-        public const string RemoteHostService_Connect = "Connect";
-        public const string RemoteHostService_SynchronizeAsync = "SynchronizeAsync";
+        public static void Set64bit(bool x64)
+        {
+            RemoteHostService = "remoteHostService" + (x64 ? "64" : "");
+        }
 
-        public const string RemoteHostService_PersistentStorageService_RegisterPrimarySolutionId = "PersistentStorageService_RegisterPrimarySolutionId";
-        public const string RemoteHostService_PersistentStorageService_UnregisterPrimarySolutionId = "PersistentStorageService_UnregisterPrimarySolutionId";
-        public const string RemoteHostService_PersistentStorageService_UpdateSolutionIdStorageLocation = "PersistentStorageService_UpdateSolutionIdStorageLocation";
+        public static string RemoteHostService { get; private set; } = "remoteHostService";
     }
 }

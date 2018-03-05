@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 : identifier;
 
             var token = SyntaxFactory.Identifier(
-                default(SyntaxTriviaList), SyntaxKind.None, "@" + unescaped, unescaped, default(SyntaxTriviaList));
+                default, SyntaxKind.None, "@" + unescaped, unescaped, default);
 
             if (!identifier.StartsWith("@", StringComparison.Ordinal))
             {

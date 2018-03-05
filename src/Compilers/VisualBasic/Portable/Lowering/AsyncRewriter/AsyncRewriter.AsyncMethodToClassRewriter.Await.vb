@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -73,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     builder.AddStatement(
                         Me.F.If(
                             condition:=Me.F.Convert(Me.F.SpecialType(SpecialType.System_Boolean), rewrittenIsCompleted),
-                            thenClause:=Me.F.Block(),
+                            thenClause:=Me.F.StatementList(),
                             elseClause:=awaitForIncompleteTask))
                 Else
                     ' regular case

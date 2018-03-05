@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             _language = language;
         }
 
-        protected OptionSet OptionSet { get { return _optionSet; } }
-        protected string Language { get { return _language; } }
+        protected OptionSet OptionSet => _optionSet;
+        protected string Language => _language;
 
         public int LineBreaks { get; protected set; }
         public int Spaces { get; protected set; }

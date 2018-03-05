@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         protected void AddFile(string filename, SourceCodeKind sourceCodeKind)
         {
-            Func<IVisualStudioHostDocument, bool> getIsCurrentContext = document => LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable);
+            bool getIsCurrentContext(IVisualStudioHostDocument document) => LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable);
             AddFile(filename, sourceCodeKind, getIsCurrentContext, GetFolderNamesFromHierarchy);
         }
 
@@ -76,10 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             // Update the objOutputPath and related data.
             SetObjOutputPathAndRelatedData(objOutputPath);
-
             // Also fetch and update the new binOutputPath.
-            string binOutputPath;
-            if (TryGetOutputPathFromHierarchy(this.Hierarchy, this.ContainingDirectoryPathOpt, out binOutputPath))
+            if (TryGetOutputPathFromHierarchy(this.Hierarchy, this.ContainingDirectoryPathOpt, out var binOutputPath))
             {
                 SetBinOutputPathAndRelatedData(binOutputPath);
             }
@@ -88,18 +86,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         private static bool TryGetOutputPathFromHierarchy(IVsHierarchy hierarchy, string containingDirectoryPathOpt, out string binOutputPath)
         {
             binOutputPath = null;
-
-            string outputDirectory;
-            string targetFileName;
-
             var storage = hierarchy as IVsBuildPropertyStorage;
             if (storage == null)
             {
                 return false;
             }
 
-            if (ErrorHandler.Failed(storage.GetPropertyValue("OutDir", null, (uint)_PersistStorageType.PST_PROJECT_FILE, out outputDirectory)) ||
-                ErrorHandler.Failed(storage.GetPropertyValue("TargetFileName", null, (uint)_PersistStorageType.PST_PROJECT_FILE, out targetFileName)))
+            if (ErrorHandler.Failed(storage.GetPropertyValue("OutDir", null, (uint)_PersistStorageType.PST_PROJECT_FILE, out var outputDirectory)) ||
+                ErrorHandler.Failed(storage.GetPropertyValue("TargetFileName", null, (uint)_PersistStorageType.PST_PROJECT_FILE, out var targetFileName)))
             {
                 return false;
             }
@@ -115,20 +109,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 outputDirectory = FileUtilities.ResolveRelativePath(outputDirectory, containingDirectoryPathOpt);
             }
 
+            if (outputDirectory == null || targetFileName == null)
+            {
+                return false;
+            }
+
             binOutputPath = FileUtilities.NormalizeAbsolutePath(Path.Combine(outputDirectory, targetFileName));
             return true;
         }
 
         private static string GetProjectDisplayName(IVsHierarchy hierarchy)
         {
-            string name;
-            return hierarchy.TryGetName(out name) ? name : null;
+            return hierarchy.TryGetName(out var name) ? name : null;
         }
 
         internal static string GetProjectFilePath(IVsHierarchy hierarchy)
         {
-            string filePath;
-            return ErrorHandler.Succeeded(((IVsProject3)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out filePath)) ? filePath : null;
+            return ErrorHandler.Succeeded(((IVsProject3)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out var filePath)) ? filePath : null;
         }
 
         private static string GetProjectType(IVsHierarchy hierarchy)
@@ -139,8 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 return string.Empty;
             }
 
-            string projectType;
-            if (ErrorHandler.Succeeded(aggregatableProject.GetAggregateProjectTypeGuids(out projectType)))
+            if (ErrorHandler.Succeeded(aggregatableProject.GetAggregateProjectTypeGuids(out var projectType)))
             {
                 return projectType;
             }
@@ -150,8 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         private static Guid GetProjectIDGuid(IVsHierarchy hierarchy)
         {
-            Guid guid;
-            if (hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out guid))
+            if (hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out var guid))
             {
                 return guid;
             }
@@ -161,10 +156,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         private static bool GetIsWebsiteProject(IVsHierarchy hierarchy)
         {
-            EnvDTE.Project project;
             try
             {
-                if (hierarchy.TryGetProject(out project))
+                if (hierarchy.TryGetProject(out var project))
                 {
                     return project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
                 }
@@ -190,8 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 return;
             }
 
-            object property = null;
-            if (ErrorHandler.Failed(Hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out property)))
+            if (ErrorHandler.Failed(Hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out var property)))
             {
                 return;
             }
@@ -210,24 +203,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
             var noReferenceOutputAssemblies = new List<string>();
             var factory = this.ServiceProvider.GetService(typeof(SVsEnumHierarchyItemsFactory)) as IVsEnumHierarchyItemsFactory;
-
-            IEnumHierarchyItems items;
-            if (ErrorHandler.Failed(factory.EnumHierarchyItems(Hierarchy, (uint)__VSEHI.VSEHI_Leaf, (uint)VSConstants.VSITEMID.Root, out items)))
+            if (ErrorHandler.Failed(factory.EnumHierarchyItems(Hierarchy, (uint)__VSEHI.VSEHI_Leaf, (uint)VSConstants.VSITEMID.Root, out var items)))
             {
                 return;
             }
 
-            uint fetched;
             VSITEMSELECTION[] item = new VSITEMSELECTION[1];
-            while (ErrorHandler.Succeeded(items.Next(1, item, out fetched)) && fetched == 1)
+            while (ErrorHandler.Succeeded(items.Next(1, item, out var fetched)) && fetched == 1)
             {
                 // ignore ReferenceOutputAssembly=false references since those will not be added to us in design time.
                 var storage = Hierarchy as IVsBuildPropertyStorage;
-                string value;
-                storage.GetItemAttribute(item[0].itemid, "ReferenceOutputAssembly", out value);
-
-                object caption;
-                Hierarchy.GetProperty(item[0].itemid, (int)__VSHPROPID.VSHPROPID_Caption, out caption);
+                storage.GetItemAttribute(item[0].itemid, "ReferenceOutputAssembly", out var value);
+                Hierarchy.GetProperty(item[0].itemid, (int)__VSHPROPID.VSHPROPID_Caption, out var caption);
 
                 if (string.Equals(value, "false", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(value, "off", StringComparison.OrdinalIgnoreCase) ||

@@ -201,7 +201,7 @@ End Class
 Imports System
 
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim a = 1, b = 2
         Dim d As Func(Of Integer, Integer, Integer) = Function(x, y) a*x+b*y 
     End Sub
@@ -251,7 +251,7 @@ End Class
 Imports System
 
 Class C
-    Function Foo() As MultiCastDelegate
+    Function Goo() As MultiCastDelegate
         Dim a = 1, b = 2
         Return Function(x As Integer, y As Integer) a*x + b*x
     End Function
@@ -298,7 +298,7 @@ Imports System.Linq
 Class C
     Event e As Action(Of Integer)
 
-    Sub Foo() Handles Me.e
+    Sub Goo() Handles Me.e
         Dim f = Function() As Long
                     Return 9
                 End Function
@@ -359,7 +359,7 @@ End Class
 <compilation>
     <file>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = New With { .X = 1, .Y = 2 }
     End Sub
 End Class
@@ -417,7 +417,7 @@ End Class
 <compilation>
     <file>
 Public Class C
-    Public Sub Foo()
+    Public Sub Goo()
         Dim _1 = New With {.X0 = 1}
         Dim _2 = New With {.X0 = 1, .X1 = 1}
         Dim _3 = New With {.X0 = 1, .X1 = 1, .X2 = 1}
@@ -934,7 +934,7 @@ BC35000: Requested operation is not available because the runtime library functi
                 ' NYI: /addmodule support
                 ' TODO: PEVerify currently fails for netmodules with error: "The module X was expected to contain an assembly manifest".
                 ' TODO: Remove the 'verify' named argument once /addmodule support has been added.
-                CompileAndVerify(comp, verify:=outputKindFlag <> OutputKind.NetModule)
+                CompileAndVerify(comp, verify:=If(outputKindFlag <> OutputKind.NetModule, Verification.Passes, Verification.Skipped))
             End If
         End Sub
 

@@ -3,13 +3,16 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseCollectionInitializer), [Shared]>
     Friend Class VisualBasicUseCollectionInitializerCodeFixProvider
         Inherits AbstractUseCollectionInitializerCodeFixProvider(Of
+            SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
             ObjectCreationExpressionSyntax,
@@ -18,23 +21,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax)
 
-        Protected Overrides Function GetNewObjectCreation(
+        Protected Overrides Function GetNewStatement(
+                statement As StatementSyntax, objectCreation As ObjectCreationExpressionSyntax,
+                matches As ImmutableArray(Of ExpressionStatementSyntax)) As StatementSyntax
+            Dim newStatement = statement.ReplaceNode(
+                objectCreation,
+                GetNewObjectCreation(objectCreation, matches))
+
+            Dim totalTrivia = ArrayBuilder(Of SyntaxTrivia).GetInstance()
+            totalTrivia.AddRange(statement.GetLeadingTrivia())
+            totalTrivia.Add(SyntaxFactory.ElasticMarker)
+
+            For Each match In matches
+                For Each trivia In match.GetLeadingTrivia()
+                    If trivia.Kind = SyntaxKind.CommentTrivia Then
+                        totalTrivia.Add(trivia)
+                        totalTrivia.Add(SyntaxFactory.ElasticMarker)
+                    End If
+                Next
+            Next
+
+            Return newStatement.WithLeadingTrivia(totalTrivia)
+        End Function
+
+        Private Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
                 matches As ImmutableArray(Of ExpressionStatementSyntax)) As ObjectCreationExpressionSyntax
 
-            Dim initializer = SyntaxFactory.ObjectCollectionInitializer(
-                CreateCollectionInitializer(matches))
-
-            If objectCreation.ArgumentList IsNot Nothing AndAlso
-               objectCreation.ArgumentList.Arguments.Count = 0 Then
-
-                objectCreation = objectCreation.WithType(objectCreation.Type.WithTrailingTrivia(objectCreation.ArgumentList.GetTrailingTrivia())).
-                                                WithArgumentList(Nothing)
-            End If
-
-            Return objectCreation.WithoutTrailingTrivia().
-                                  WithInitializer(initializer).
-                                  WithTrailingTrivia(objectCreation.GetTrailingTrivia())
+            Return UseInitializerHelpers.GetNewObjectCreation(
+                objectCreation,
+                SyntaxFactory.ObjectCollectionInitializer(
+                    CreateCollectionInitializer(matches)))
         End Function
 
         Private Function CreateCollectionInitializer(

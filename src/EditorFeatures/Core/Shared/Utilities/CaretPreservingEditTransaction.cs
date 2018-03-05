@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.VisualStudio.Text.Editor;
@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
-            ITextUndoHistory unused;
-            if (undoHistoryRegistry.TryGetHistory(textView.TextBuffer, out unused))
+            if (undoHistoryRegistry.TryGetHistory(textView.TextBuffer, out var unused))
             {
                 return new CaretPreservingEditTransaction(description, textView, undoHistoryRegistry, editorOperationsFactoryService);
             }

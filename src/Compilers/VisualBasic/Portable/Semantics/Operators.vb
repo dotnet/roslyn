@@ -5,6 +5,7 @@ Imports System.Diagnostics
 Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -3301,6 +3302,12 @@ Next_i:
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+                Get
+                    Return _parameterToLift.RefCustomModifiers
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
                     Return ImmutableArray(Of SyntaxReference).Empty
@@ -3389,12 +3396,6 @@ Next_i:
             Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
                 Get
                     Return _parameterToLift.IsCallerFilePath
-                End Get
-            End Property
-
-            Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
-                Get
-                    Return _parameterToLift.CountOfCustomModifiersPrecedingByRef
                 End Get
             End Property
 

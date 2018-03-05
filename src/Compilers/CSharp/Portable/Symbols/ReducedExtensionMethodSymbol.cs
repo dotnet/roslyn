@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _reducedFrom.IsVararg; }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _reducedFrom.RefKind; }
         }
@@ -344,6 +344,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
         {
             get { return _typeMap.SubstituteCustomModifiers(_reducedFrom.ReturnType, _reducedFrom.ReturnTypeCustomModifiers); }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return _typeMap.SubstituteCustomModifiers(_reducedFrom.RefCustomModifiers); }
         }
 
         internal override int ParameterCount
@@ -459,6 +464,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get
                 {
                     return _containingMethod._typeMap.SubstituteCustomModifiers(this._underlyingParameter.Type, this._underlyingParameter.CustomModifiers);
+                }
+            }
+
+            public override ImmutableArray<CustomModifier> RefCustomModifiers
+            {
+                get
+                {
+                    return _containingMethod._typeMap.SubstituteCustomModifiers(this._underlyingParameter.RefCustomModifiers);
                 }
             }
 

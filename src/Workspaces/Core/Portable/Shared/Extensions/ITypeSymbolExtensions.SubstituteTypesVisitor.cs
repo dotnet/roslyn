@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             private ITypeSymbol VisitType(ITypeSymbol symbol)
             {
-                TType2 converted;
-                if (symbol is TType1 && _map.TryGetValue((TType1)symbol, out converted))
+                if (symbol is TType1 && _map.TryGetValue((TType1)symbol, out var converted))
                 {
                     return converted;
                 }

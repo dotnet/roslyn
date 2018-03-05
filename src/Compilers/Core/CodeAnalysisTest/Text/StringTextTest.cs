@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FromString()
         {
-            var data = SourceText.From("foo", Encoding.UTF8);
+            var data = SourceText.From("goo", Encoding.UTF8);
             Assert.Equal(1, data.Lines.Count);
             Assert.Equal(3, data.Lines[0].Span.Length);
         }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FromString_DefaultEncoding()
         {
-            var data = SourceText.From("foo");
+            var data = SourceText.From("goo");
             Assert.Null(data.Encoding);
         }
 
@@ -145,9 +145,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void NewLines1()
         {
-            var data = SourceText.From("foo" + Environment.NewLine + " bar");
+            var data = SourceText.From("goo" + Environment.NewLine + " bar");
             Assert.Equal(2, data.Lines.Count);
-            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "foo");
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "goo");
             CheckLine(data, lineNumber: 1, start: 5, length: 4, newlineLength: 0, lineText: " bar");
         }
 
@@ -155,12 +155,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void NewLines2()
         {
             var text =
-@"foo
+@"goo
 bar
 baz";
             var data = SourceText.From(text);
             Assert.Equal(3, data.Lines.Count);
-            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "foo");
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "goo");
             CheckLine(data, lineNumber: 1, start: 5, length: 3, newlineLength: 2, lineText: "bar");
             CheckLine(data, lineNumber: 2, start: 10, length: 3, newlineLength: 0, lineText: "baz");
         }
@@ -168,18 +168,18 @@ baz";
         [Fact]
         public void NewLines3()
         {
-            var data = SourceText.From("foo\r\nbar");
+            var data = SourceText.From("goo\r\nbar");
             Assert.Equal(2, data.Lines.Count);
-            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "foo");
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "goo");
             CheckLine(data, lineNumber: 1, start: 5, length: 3, newlineLength: 0, lineText: "bar");
         }
 
         [Fact]
         public void NewLines4()
         {
-            var data = SourceText.From("foo\n\rbar\u2028");
+            var data = SourceText.From("goo\n\rbar\u2028");
             Assert.Equal(4, data.Lines.Count);
-            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 1, lineText: "foo");
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 1, lineText: "goo");
             CheckLine(data, lineNumber: 1, start: 4, length: 0, newlineLength: 1, lineText: "");
             CheckLine(data, lineNumber: 2, start: 5, length: 3, newlineLength: 1, lineText: "bar");
             CheckLine(data, lineNumber: 3, start: 9, length: 0, newlineLength: 0, lineText: "");
@@ -197,20 +197,20 @@ baz";
         public void LinesGetText1()
         {
             var text =
-@"foo
+@"goo
 bar baz";
             var data = SourceText.From(text);
             Assert.Equal(2, data.Lines.Count);
-            Assert.Equal("foo", data.Lines[0].ToString());
+            Assert.Equal("goo", data.Lines[0].ToString());
             Assert.Equal("bar baz", data.Lines[1].ToString());
         }
 
         [Fact]
         public void LinesGetText2()
         {
-            var text = "foo";
+            var text = "goo";
             var data = SourceText.From(text);
-            Assert.Equal("foo", data.Lines[0].ToString());
+            Assert.Equal("goo", data.Lines[0].ToString());
         }
 
         [Fact]

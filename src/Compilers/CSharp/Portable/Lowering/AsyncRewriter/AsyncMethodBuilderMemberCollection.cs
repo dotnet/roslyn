@@ -74,6 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal readonly PropertySymbol Task;
 
+        /// <summary>
+        /// True if generic method constraints should be checked at the call-site.
+        /// </summary>
+        internal readonly bool CheckGenericMethodConstraints;
+
         private AsyncMethodBuilderMemberCollection(
             NamedTypeSymbol builderType,
             TypeSymbol resultType,
@@ -84,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol awaitUnsafeOnCompleted,
             MethodSymbol start,
             MethodSymbol setStateMachine,
-            PropertySymbol task)
+            PropertySymbol task,
+            bool checkGenericMethodConstraints)
         {
             BuilderType = builderType;
             ResultType = resultType;
@@ -96,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Start = start;
             SetStateMachine = setStateMachine;
             Task = task;
+            CheckGenericMethodConstraints = checkGenericMethodConstraints;
         }
 
         internal static bool TryCreate(SyntheticBoundNodeFactory F, MethodSymbol method, TypeMap typeMap, out AsyncMethodBuilderMemberCollection collection)
@@ -147,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric:false);
                     if ((object)builderType != null)
                     {
-                        taskProperty = GetCustomTaskProperty(F, builderType);
+                        taskProperty = GetCustomTaskProperty(F, builderType, returnType);
                         createBuilderMethod = GetCustomCreateMethod(F, builderType);
                     }
                 }
@@ -216,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((object)builderType != null)
                     {
                         builderType = builderType.ConstructedFrom.Construct(resultType);
-                        taskProperty = GetCustomTaskProperty(F, builderType);
+                        taskProperty = GetCustomTaskProperty(F, builderType, returnType);
                         createBuilderMethod = GetCustomCreateMethod(F, builderType);
                     }
                 }
@@ -274,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  builderType.DeclaredAccessibility == desiredAccessibility)
             {
                 bool isArityOk = isGeneric
-                                 ? builderType.IsUnboundGenericType && builderType.ContainingType?.IsGenericType != true
+                                 ? builderType.IsUnboundGenericType && builderType.ContainingType?.IsGenericType != true && builderType.Arity == 1
                                  : !builderType.IsGenericType;
                 if (isArityOk)
                 {
@@ -325,7 +332,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     awaitUnsafeOnCompletedMethod,
                     startMethod,
                     setStateMachineMethod,
-                    taskProperty);
+                    taskProperty,
+                    checkGenericMethodConstraints: customBuilder);
 
                 return true;
             }
@@ -345,7 +353,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (customBuilder)
             {
                 var descriptor = WellKnownMembers.GetDescriptor(member);
-                // Should check constraints (see https://github.com/dotnet/roslyn/issues/12616).
                 var sym = CSharpCompilation.GetRuntimeMember(
                     builderType.OriginalDefinition,
                     ref descriptor,
@@ -396,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method.IsStatic &&
                     method.ParameterCount == 0 &&
                     !method.IsGenericMethod &&
-                    method.ReturnType == builderType) 
+                    method.ReturnType.Equals(builderType, TypeCompareKind.AllIgnoreOptions))
                 {
                     return method;
                 }
@@ -407,7 +414,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static PropertySymbol GetCustomTaskProperty(
             SyntheticBoundNodeFactory F,
-            NamedTypeSymbol builderType)
+            NamedTypeSymbol builderType,
+            NamedTypeSymbol returnType)
         {
             const string propertyName = "Task";
             var members = builderType.GetMembers(propertyName);
@@ -422,6 +430,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !property.IsStatic &&
                     (property.ParameterCount == 0))
                 {
+                    if (!property.Type.Equals(returnType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        var badTaskProperty = new CSDiagnostic(
+                            new CSDiagnosticInfo(ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty, builderType, returnType, property.Type),
+                            F.Syntax.Location);
+                        F.Diagnostics.Add(badTaskProperty);
+                        return null;
+                    }
+
                     return property;
                 }
             }

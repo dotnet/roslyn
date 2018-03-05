@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "Deterministic",
                 "EnableEditAndContinue",
                 "Errors",
-                "ExtendedCustomDebugInformation",
                 "DebugPlusMode",
                 "Features",
                 "GeneralDiagnosticOption",

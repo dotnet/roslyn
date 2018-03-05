@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMemberOptions.IncludeParameters |
                     SymbolDisplayMemberOptions.IncludeAccessibility |
                     SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeRef |
                     SymbolDisplayMemberOptions.IncludeModifiers,
                 kindOptions:
                     SymbolDisplayKindOptions.IncludeMemberKeyword,
@@ -103,6 +104,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMemberOptions.IncludeParameters |
                     SymbolDisplayMemberOptions.IncludeAccessibility |
                     SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeRef |
                     SymbolDisplayMemberOptions.IncludeModifiers,
                 kindOptions:
                     SymbolDisplayKindOptions.IncludeMemberKeyword,
@@ -141,6 +143,7 @@ namespace Microsoft.CodeAnalysis
                 memberOptions:
                     SymbolDisplayMemberOptions.IncludeParameters |
                     SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeRef |
                     SymbolDisplayMemberOptions.IncludeContainingType,
                 kindOptions:
                     SymbolDisplayKindOptions.IncludeMemberKeyword,

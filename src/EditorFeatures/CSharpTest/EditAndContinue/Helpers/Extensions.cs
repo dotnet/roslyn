@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -58,7 +59,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             this EditScript<SyntaxNode> editScript,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            VerifySemantics(editScript, ActiveStatementsDescription.Empty, null, expectedDiagnostics);
+            VerifySemanticDiagnostics(editScript, null, expectedDiagnostics);
+        }
+
+        internal static void VerifySemanticDiagnostics(
+            this EditScript<SyntaxNode> editScript,
+            DiagnosticDescription expectedDeclarationError,
+            params RudeEditDiagnosticDescription[] expectedDiagnostics)
+        {
+            VerifySemantics(editScript, ActiveStatementsDescription.Empty, null, expectedDeclarationError, expectedDiagnostics);
         }
 
         internal static void VerifySemantics(
@@ -67,7 +76,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             SemanticEditDescription[] expectedSemanticEdits,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            VerifySemantics(editScript, activeStatements, null, null, expectedSemanticEdits, expectedDiagnostics);
+            VerifySemantics(editScript, activeStatements, expectedSemanticEdits, null, expectedDiagnostics);
+        }
+
+        internal static void VerifySemantics(
+            this EditScript<SyntaxNode> editScript,
+            ActiveStatementsDescription activeStatements,
+            SemanticEditDescription[] expectedSemanticEdits,
+            DiagnosticDescription expectedDeclarationError,
+            params RudeEditDiagnosticDescription[] expectedDiagnostics)
+        {
+            VerifySemantics(editScript, activeStatements, null, null, expectedSemanticEdits, expectedDeclarationError, expectedDiagnostics);
         }
 
         internal static void VerifySemantics(
@@ -76,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             IEnumerable<string> additionalOldSources,
             IEnumerable<string> additionalNewSources,
             SemanticEditDescription[] expectedSemanticEdits,
+            DiagnosticDescription expectedDeclarationError,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
             CSharpEditAndContinueTestHelpers.Instance.VerifySemantics(
@@ -84,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 additionalOldSources,
                 additionalNewSources,
                 expectedSemanticEdits,
+                expectedDeclarationError,
                 expectedDiagnostics);
         }
     }

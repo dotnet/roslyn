@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<SyntaxToken>> GetConstructorInitializerTokensAsync(this Document document, CancellationToken cancellationToken)
         {
             // model should exist already
-            SemanticModel model;
-            if (!document.TryGetSemanticModel(out model))
+            if (!document.TryGetSemanticModel(out var model))
             {
                 return Contract.FailWithReturn<IEnumerable<SyntaxToken>>("we should never reach here");
             }
@@ -38,15 +37,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this Document document, string identifier, CancellationToken cancellationToken)
         {
             // model should exist already
-            SemanticModel model;
-            if (!document.TryGetSemanticModel(out model))
+            if (!document.TryGetSemanticModel(out var model))
             {
                 return Contract.FailWithReturn<ImmutableArray<SyntaxToken>>("we should never reach here");
             }
 
             // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
             // any unicode escapes in it, then we do simple string matching to find the tokens.
-            var info = await SyntaxTreeInfo.GetIdentifierInfoAsync(document, cancellationToken).ConfigureAwait(false);
+            var info = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
             if (!info.ProbablyContainsIdentifier(identifier))
             {
                 return ImmutableArray<SyntaxToken>.Empty;
@@ -71,8 +69,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static bool TextMatch(this ISyntaxFactsService syntaxFacts, string text1, string text2)
-        {
-            return syntaxFacts.IsCaseSensitive ? text1 == text2 : string.Equals(text1, text2, StringComparison.OrdinalIgnoreCase);
-        }
+            => syntaxFacts.StringComparer.Equals(text1, text2);
     }
 }

@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -24,8 +26,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 _suppressionFixProvider = suppressionFixProvider;
             }
 
-            public override async Task AddDocumentFixesAsync(
-                Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix,
+            protected override async Task AddDocumentFixesAsync(
+                Document document, ImmutableArray<Diagnostic> diagnostics, 
+                ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
                 FixAllState fixAllState, CancellationToken cancellationToken)
             {
                 var pragmaActionsBuilder = ArrayBuilder<IPragmaBasedCodeAction>.GetInstance();
@@ -58,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         pragmaDiagnosticsBuilder.ToImmutableAndFree(), 
                         fixAllState, cancellationToken);
 
-                    addFix(pragmaBatchFix);
+                    fixes.Add((diagnostic: null, pragmaBatchFix));
                 }
             }
         }

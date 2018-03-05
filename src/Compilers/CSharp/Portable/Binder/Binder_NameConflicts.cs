@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -46,13 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (tpNames.Contains(name))
+                    if (!tpNames.Add(name))
                     {
                         // Type parameter declaration name conflicts are detected elsewhere
                     }
                     else
                     {
-                        tpNames.Add(name);
                         ValidateDeclarationNameConflictsInScope(tp, diagnostics);
                     }
                 }
@@ -76,14 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, GetLocation(p), name);
                     }
 
-                    if (pNames.Contains(name))
+                    if (!pNames.Add(name))
                     {
                         // The parameter name '{0}' is a duplicate
                         diagnostics.Add(ErrorCode.ERR_DuplicateParamName, GetLocation(p), name);
                     }
                     else
                     {
-                        pNames.Add(name);
                         ValidateDeclarationNameConflictsInScope(p, diagnostics);
                     }
                 }

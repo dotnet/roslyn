@@ -139,8 +139,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return True
                 ElseIf allowGenericsWithoutOf Then
                     ' // To enable a better user experience in some common generics'
-                    ' // error scenarios, we special case foo(Integer) and
-                    ' // foo(Integer, garbage).
+                    ' // error scenarios, we special case goo(Integer) and
+                    ' // goo(Integer, garbage).
                     ' //
                     ' // "(Integer" indicates possibly type parameters with missing "of",
                     ' // but not "(Integer." and "Integer!" because they could possibly

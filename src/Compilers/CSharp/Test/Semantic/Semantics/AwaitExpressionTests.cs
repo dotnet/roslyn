@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
 class C
 {
-    async void Foo(Task<int> t)
+    async void Goo(Task<int> t)
     {
         int c = 1 + await t;
     }
@@ -118,16 +118,15 @@ class Driver
 ";
             var comp = CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
-                // (16,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                // (16,62): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         dynamic f = (await GetVal((Func<Task<int>>)(async () => 1)))();
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "async () => 1").WithLocation(16, 53),
-                // (20,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(16, 62),
+                // (20,69): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         dynamic ff = new Func<Task<int>>((Func<Task<int>>)(async () => 1));
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "async () => 1").WithLocation(20, 60),
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(20, 69),
                 // (17,13): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
                 //         if (await f == 1)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await f").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(17, 13)
-                );
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await f").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create"));
         }
 
         [Fact]
@@ -140,7 +139,7 @@ using System.Threading.Tasks;
  
 class C
 {
-    static async Task Foo()
+    static async Task Goo()
     {
         Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));
     }
@@ -161,7 +160,7 @@ class C
 
 class C
 {
-    void Foo(Task<int> t)
+    void Goo(Task<int> t)
     {
         var v = await t;
     }

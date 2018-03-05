@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                         oldImports(i) = Nothing
 
                         Dim leadingTrivia = oldImport.GetLeadingTrivia()
-                        If leadingTrivia.Any(Function(t) Not t.IsWhitespace()) Then
+                        If leadingTrivia.Any(Function(t) Not t.IsWhitespaceOrEndOfLine()) Then
                             ' This import had trivia we want to preserve. If we're the last import,
                             ' then copy this trivia out so that our caller can place it on the next token.
                             ' If there is any import following us, then place it on that.

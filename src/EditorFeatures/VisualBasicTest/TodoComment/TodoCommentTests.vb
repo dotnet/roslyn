@@ -1,5 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
@@ -7,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.SolutionCrawler
+Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
@@ -168,11 +170,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
         End Function
 
         Private Shared Async Function TestAsync(codeWithMarker As XElement) As Tasks.Task
+            Await TestAsync(codeWithMarker, remote:=False)
+            Await TestAsync(codeWithMarker, remote:=True)
+        End Function
+
+        Private Shared Async Function TestAsync(codeWithMarker As XElement, remote As Boolean) As Task
             Dim code As String = Nothing
-            Dim list As IList(Of TextSpan) = Nothing
+            Dim list As ImmutableArray(Of TextSpan) = Nothing
             MarkupTestFile.GetSpans(codeWithMarker.NormalizedValue, code, list)
 
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
+            Using workspace = TestWorkspace.CreateVisualBasic(code, openDocuments:=False)
+                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, remote)
+
                 Dim commentTokens = New TodoCommentTokens()
                 Dim provider = New TodoCommentIncrementalAnalyzerProvider(commentTokens)
                 Dim worker = DirectCast(provider.CreateIncrementalAnalyzer(workspace), TodoCommentIncrementalAnalyzer)

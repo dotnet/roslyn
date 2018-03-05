@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -161,14 +162,6 @@ namespace Microsoft.CodeAnalysis
         internal DateTime CurrentLocalTime_internal_protected_set { set { CurrentLocalTime = value; } }
 
         /// <summary>
-        /// Emit extended custom debug information to the PDB file.
-        /// </summary>
-        internal bool ExtendedCustomDebugInformation { get; private set; }
-
-        // TODO: change visibility of the ExtendedCustomDebugInformation setter to internal & protected
-        internal bool ExtendedCustomDebugInformation_internal_protected_set { set { ExtendedCustomDebugInformation = value; } }
-
-        /// <summary>
         /// Emit mode that favors debuggability. 
         /// </summary>
         internal bool DebugPlusMode { get; private set; }
@@ -278,7 +271,6 @@ namespace Microsoft.CodeAnalysis
             bool concurrentBuild,
             bool deterministic,
             DateTime currentLocalTime,
-            bool extendedCustomDebugInformation,
             bool debugPlusMode,
             XmlReferenceResolver xmlReferenceResolver,
             SourceReferenceResolver sourceReferenceResolver,
@@ -293,7 +285,7 @@ namespace Microsoft.CodeAnalysis
             this.MainTypeName = mainTypeName;
             this.ScriptClassName = scriptClassName ?? WellKnownMemberNames.DefaultScriptClassName;
             this.CryptoKeyContainer = cryptoKeyContainer;
-            this.CryptoKeyFile = cryptoKeyFile;
+            this.CryptoKeyFile = string.IsNullOrEmpty(cryptoKeyFile) ? null : cryptoKeyFile;
             this.CryptoPublicKey = cryptoPublicKey.NullToEmpty();
             this.DelaySign = delaySign;
             this.CheckOverflow = checkOverflow;
@@ -306,7 +298,6 @@ namespace Microsoft.CodeAnalysis
             this.ConcurrentBuild = concurrentBuild;
             this.Deterministic = deterministic;
             this.CurrentLocalTime = currentLocalTime;
-            this.ExtendedCustomDebugInformation = extendedCustomDebugInformation;
             this.DebugPlusMode = debugPlusMode;
             this.XmlReferenceResolver = xmlReferenceResolver;
             this.SourceReferenceResolver = sourceReferenceResolver;
@@ -512,6 +503,8 @@ namespace Microsoft.CodeAnalysis
             return CommonWithCheckOverflow(checkOverflow);
         }
 
+        internal CompilationOptions WithMetadataImportOptions(MetadataImportOptions value) => CommonWithMetadataImportOptions(value);
+
         protected abstract CompilationOptions CommonWithConcurrentBuild(bool concurrent);
         protected abstract CompilationOptions CommonWithDeterministic(bool deterministic);
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
@@ -535,6 +528,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey);
         protected abstract CompilationOptions CommonWithDelaySign(bool? delaySign);
         protected abstract CompilationOptions CommonWithCheckOverflow(bool checkOverflow);
+        internal abstract CompilationOptions CommonWithMetadataImportOptions(MetadataImportOptions value);
 
         [Obsolete]
         protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);
@@ -607,7 +601,6 @@ namespace Microsoft.CodeAnalysis
                    this.ConcurrentBuild == other.ConcurrentBuild &&
                    this.Deterministic == other.Deterministic &&
                    this.CurrentLocalTime == other.CurrentLocalTime &&
-                   this.ExtendedCustomDebugInformation == other.ExtendedCustomDebugInformation &&
                    this.DebugPlusMode == other.DebugPlusMode &&
                    string.Equals(this.CryptoKeyContainer, other.CryptoKeyContainer, StringComparison.Ordinal) &&
                    string.Equals(this.CryptoKeyFile, other.CryptoKeyFile, StringComparison.Ordinal) &&
@@ -643,7 +636,6 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.ConcurrentBuild,
                    Hash.Combine(this.Deterministic,
                    Hash.Combine(this.CurrentLocalTime.GetHashCode(),
-                   Hash.Combine(this.ExtendedCustomDebugInformation,
                    Hash.Combine(this.DebugPlusMode,
                    Hash.Combine(this.CryptoKeyContainer != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyContainer) : 0,
                    Hash.Combine(this.CryptoKeyFile != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyFile) : 0,
@@ -665,7 +657,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
-                   Hash.Combine(this.PublicSign, 0)))))))))))))))))))))))))));
+                   Hash.Combine(this.PublicSign, 0))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

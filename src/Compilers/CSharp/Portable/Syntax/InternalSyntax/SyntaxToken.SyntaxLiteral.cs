@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.ValueField = (T)reader.ReadValue();
             }
 
-            internal override Func<ObjectReader, object> GetReader()
+            static SyntaxTokenWithValue()
             {
-                return r => new SyntaxTokenWithValue<T>(r);
+                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithValue<T>), r => new SyntaxTokenWithValue<T>(r));
             }
 
             internal override void WriteTo(ObjectWriter writer)

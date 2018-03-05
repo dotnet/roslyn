@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -43,14 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
         private static string GetDefaultContentTypeName(HostWorkspaceServices workspaceServices, string language)
         {
-            Dictionary<string, string> contentTypeMap;
-            if (!s_hostServicesToContentTypeMap.TryGetValue(workspaceServices, out contentTypeMap))
+            if (!s_hostServicesToContentTypeMap.TryGetValue(workspaceServices, out var contentTypeMap))
             {
                 contentTypeMap = s_hostServicesToContentTypeMap.GetValue(workspaceServices, CreateContentTypeMap);
             }
 
-            string contentTypeName;
-            contentTypeMap.TryGetValue(language, out contentTypeName);
+            contentTypeMap.TryGetValue(language, out var contentTypeName);
             return contentTypeName;
         }
 

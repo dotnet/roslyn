@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -125,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bodyBuilder.Add(F.HiddenSequencePoint());
             bodyBuilder.Add(F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField)));
+            bodyBuilder.Add(CacheThisIfNeeded());
 
             var exceptionLocal = F.SynthesizedLocal(F.WellKnownType(WellKnownType.System_Exception));
             bodyBuilder.Add(
@@ -194,13 +196,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             locals.Add(cachedState);
+            if ((object)cachedThis != null)
+            {
+                locals.Add(cachedThis);
+            }
+
             if ((object)_exprRetValue != null) locals.Add(_exprRetValue);
 
             var newBody =
                 F.SequencePoint(
                     body.Syntax,
                     F.Block(
-                        locals.ToImmutableAndFree(), 
+                        locals.ToImmutableAndFree(),
                         newStatements));
 
             if (rootScopeHoistedLocals.Length > 0)
@@ -242,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression expr = (BoundExpression)this.Visit(node.Expression);
-            return (expr != null) ? node.Update(expr) : (BoundStatement)F.Block();
+            return (expr != null) ? node.Update(expr) : (BoundStatement)F.StatementList();
         }
 
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
@@ -292,30 +299,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WellKnownMemberNames.GetResult,
                 resultsDiscarded: resultPlace == null);
 
-            var nullAwaiter = F.AssignmentExpression(F.Local(awaiterTemp), F.NullOrDefault(awaiterTemp.Type));
-            if (resultPlace != null && type.SpecialType != SpecialType.System_Void)
-            {
-                // $resultTemp = $awaiterTemp.GetResult();
-                // $awaiterTemp = null;
-                // $resultTemp
-                LocalSymbol resultTemp = F.SynthesizedLocal(type);
-                return F.Block(
-                    ImmutableArray.Create(awaiterTemp, resultTemp),
-                    awaitIfIncomplete,
-                    F.Assignment(F.Local(resultTemp), getResultCall),
-                    F.ExpressionStatement(nullAwaiter),
-                    F.Assignment(resultPlace, F.Local(resultTemp)));
-            }
-            else
-            {
-                // $awaiterTemp.GetResult();
-                // $awaiterTemp = null;
-                return F.Block(
-                    ImmutableArray.Create(awaiterTemp),
-                    awaitIfIncomplete,
-                    F.ExpressionStatement(getResultCall),
-                    F.ExpressionStatement(nullAwaiter));
-            }
+            // [$resultPlace = ] $awaiterTemp.GetResult();
+            BoundStatement getResultStatement = resultPlace != null && type.SpecialType != SpecialType.System_Void ?
+                F.Assignment(resultPlace, getResultCall):
+                F.ExpressionStatement(getResultCall);
+
+            return F.Block(
+                ImmutableArray.Create(awaiterTemp),
+                awaitIfIncomplete,
+                getResultStatement);
         }
 
         private BoundExpression MakeCallMaybeDynamic(
@@ -525,6 +517,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var onCompleted = (useUnsafeOnCompleted ?
                 _asyncMethodBuilderMemberCollection.AwaitUnsafeOnCompleted :
                 _asyncMethodBuilderMemberCollection.AwaitOnCompleted).Construct(loweredAwaiterType, F.This().Type);
+            if (_asyncMethodBuilderMemberCollection.CheckGenericMethodConstraints)
+            {
+                onCompleted.CheckConstraints(F.Compilation.Conversions, F.Syntax, F.Compilation, this.Diagnostics);
+            }
 
             BoundExpression result =
                 F.Call(

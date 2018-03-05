@@ -259,6 +259,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Does the top level type containing this symbol have 'Microsoft.CodeAnalysis.Embedded' attribute?
+        /// </summary>
+        public static bool IsHiddenByCodeAnalysisEmbeddedAttribute(this Symbol symbol)
+        {
+            // Only upper-level types should be checked 
+            var upperLevelType = symbol.Kind == SymbolKind.NamedType ? (NamedTypeSymbol)symbol : symbol.ContainingType;
+            if ((object)upperLevelType == null)
+            {
+                return false;
+            }
+
+            while ((object)upperLevelType.ContainingType != null)
+            {
+                upperLevelType = upperLevelType.ContainingType;
+            }
+
+            return upperLevelType.HasCodeAnalysisEmbeddedAttribute;
+        }
+
         public static bool MustCallMethodsDirectly(this Symbol symbol)
         {
             switch (symbol.Kind)
@@ -336,12 +356,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             RefKind refKind;
             TypeSymbol returnType;
-            ImmutableArray<CustomModifier> returnTypeCustomModifiers;
-            GetTypeOrReturnType(symbol, out refKind, out returnType, out returnTypeCustomModifiers);
+            ImmutableArray<CustomModifier> customModifiers_Ignored;
+            GetTypeOrReturnType(symbol, out refKind, out returnType, out customModifiers_Ignored, out customModifiers_Ignored);
             return returnType;
         }
 
-        internal static void GetTypeOrReturnType(this Symbol symbol, out RefKind refKind, out TypeSymbol returnType, out ImmutableArray<CustomModifier> returnTypeCustomModifiers)
+        internal static void GetTypeOrReturnType(this Symbol symbol, out RefKind refKind, out TypeSymbol returnType, 
+                                                 out ImmutableArray<CustomModifier> returnTypeCustomModifiers,
+                                                 out ImmutableArray<CustomModifier> refCustomModifiers)
         {
             switch (symbol.Kind)
             {
@@ -350,30 +372,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     refKind = RefKind.None;
                     returnType = field.Type;
                     returnTypeCustomModifiers = field.CustomModifiers;
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     break;
                 case SymbolKind.Method:
                     MethodSymbol method = (MethodSymbol)symbol;
                     refKind = method.RefKind;
                     returnType = method.ReturnType;
                     returnTypeCustomModifiers = method.ReturnTypeCustomModifiers;
+                    refCustomModifiers = method.RefCustomModifiers;
                     break;
                 case SymbolKind.Property:
                     PropertySymbol property = (PropertySymbol)symbol;
                     refKind = property.RefKind;
                     returnType = property.Type;
                     returnTypeCustomModifiers = property.TypeCustomModifiers;
+                    refCustomModifiers = property.RefCustomModifiers;
                     break;
                 case SymbolKind.Event:
                     EventSymbol @event = (EventSymbol)symbol;
                     refKind = RefKind.None;
                     returnType = @event.Type;
                     returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     break;
                 case SymbolKind.Local:
                     LocalSymbol local = (LocalSymbol)symbol;
                     refKind = local.RefKind;
                     returnType = local.Type;
                     returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);

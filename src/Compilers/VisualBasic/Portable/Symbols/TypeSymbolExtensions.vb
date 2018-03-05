@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Module TypeSymbolExtensions
@@ -355,7 +356,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Both have modifiers, let's compare them
-            Return type1.TypeArgumentsCustomModifiers.SequenceEqual(type2.TypeArgumentsCustomModifiers, AddressOf AreSameCustomModifiers)
+            For i As Integer = 0 To type1.Arity - 1
+                If Not type1.GetTypeArgumentCustomModifiers(i).AreSameCustomModifiers(type2.GetTypeArgumentCustomModifiers(i)) Then
+                    Return False
+                End If
+            Next
+
+            Return True
         End Function
 
         <Extension()>
@@ -1322,19 +1329,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         <Extension>
         Public Function GetAllTypeArgumentsWithModifiers(type As NamedTypeSymbol) As ImmutableArray(Of TypeWithModifiers)
-            Dim typeArguments = type.TypeArgumentsNoUseSiteDiagnostics
-            Dim typeArgumentsCustomModifiers = type.TypeArgumentsCustomModifiers
+            Dim builder = ArrayBuilder(Of TypeWithModifiers).GetInstance()
 
-            While True
+            Do
+                Dim typeArguments = type.TypeArgumentsNoUseSiteDiagnostics
+
+                For i As Integer = typeArguments.Length - 1 To 0 Step -1
+                    builder.Add(New TypeWithModifiers(typeArguments(i), type.GetTypeArgumentCustomModifiers(i)))
+                Next
+
                 type = type.ContainingType
-                If type Is Nothing Then
-                    Exit While
-                End If
-                typeArguments = type.TypeArgumentsNoUseSiteDiagnostics.Concat(typeArguments)
-                typeArgumentsCustomModifiers = type.TypeArgumentsCustomModifiers.Concat(typeArgumentsCustomModifiers)
-            End While
+            Loop While type IsNot Nothing
 
-            Return typeArguments.ZipAsArray(typeArgumentsCustomModifiers, Function(a, m) New TypeWithModifiers(a, m))
+            builder.ReverseContents()
+            Return builder.ToImmutableAndFree()
         End Function
 
         ''' <summary>

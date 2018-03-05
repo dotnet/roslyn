@@ -8,12 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion
     Public Class CompletionServiceTests
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AcquireCompletionService()
-            Dim hostServices = MefHostServices.Create(
-                MefHostServices.DefaultAssemblies.Concat({
-                    GetType(CompletionService).Assembly,
-                    GetType(VisualBasicCompletionService).Assembly}))
-
-            Dim workspace = New AdhocWorkspace(hostServices)
+            Dim workspace = New AdhocWorkspace()
 
             Dim document = workspace _
                 .AddProject("TestProject", LanguageNames.VisualBasic) _

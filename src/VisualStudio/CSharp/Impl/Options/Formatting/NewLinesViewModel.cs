@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -20,7 +20,14 @@ class C {
 
         private static string s_methodPreview = @"class c {
 //[
-    void Foo(){
+    void Goo(){
+        Console.WriteLine();
+
+        int LocalFunction(int x) {
+            return 2 * x;
+        }
+
+        Console.ReadLine();
     }
 //]
 }";
@@ -37,9 +44,9 @@ class C {
 //]
 }";
 
-        private static readonly string s_tryCatchFinallyPreview = @"using System;
+        private const string s_tryCatchFinallyPreview = @"using System;
 class C {
-    void Foo() {
+    void Goo() {
 //[
         try {
         }
@@ -51,8 +58,8 @@ class C {
     }
 }";
 
-        private static readonly string s_ifElsePreview = @"class C {
-    void Foo() {
+        private const string s_ifElsePreview = @"class C {
+    void Goo() {
 //[
         if (false) {
         }
@@ -62,8 +69,8 @@ class C {
     }
 }";
 
-        private static readonly string s_forBlockPreview = @"class C {
-    void Foo() {
+        private const string s_forBlockPreview = @"class C {
+    void Goo() {
 //[
         for (int i; i < 10; i++){
         }
@@ -71,22 +78,22 @@ class C {
     }
 }";
 
-        private static readonly string s_lambdaPreview = @"using System;
+        private const string s_lambdaPreview = @"using System;
 class C {
-    void Foo() {
+    void Goo() {
 //[
-        Func<int, int> f = (x) => {
+        Func<int, int> f = x => {
             return 2 * x;
         };
 //]
     }
 }";
-        private static readonly string s_anonymousMethodPreview = @"using System;
+        private const string s_anonymousMethodPreview = @"using System;
 
 delegate int D(int x);
 
 class C {
-    void Foo() {
+    void Goo() {
 //[
         D d = delegate(int x) {
             return 2 * x;
@@ -95,9 +102,9 @@ class C {
     }
 }";
 
-        private static readonly string s_anonymousTypePreview = @"using System;
+        private const string s_anonymousTypePreview = @"using System;
 class C {
-    void Foo() {
+    void Goo() {
 //[
         var z = new {
             A = 3, B = 4
@@ -105,11 +112,11 @@ class C {
 //]
     }
 }";
-        private static readonly string s_InitializerPreviewTrue = @"using System;
+        private const string s_InitializerPreviewTrue = @"using System;
 using System.Collections.Generic;
 
 class C {
-    void Foo() {
+    void Goo() {
 //[
         var z = new B()
         {
@@ -133,11 +140,11 @@ class B {
     public int A { get; set; }
     public int B { get; set; }
 }";
-        private static readonly string s_InitializerPreviewFalse = @"using System;
+        private const string s_InitializerPreviewFalse = @"using System;
 using System.Collections.Generic;
 
 class C {
-    void Foo() {
+    void Goo() {
 //[
         var z = new B() {
             A = 3, B = 4
@@ -158,9 +165,9 @@ class B {
     public int A { get; set; }
     public int B { get; set; }
 }";
-        private static readonly string s_objectInitializerPreview = @"using System;
+        private const string s_objectInitializerPreview = @"using System;
 class C {
-    void Foo() {
+    void Goo() {
 //[
         var z = new B() {
             A = 3, B = 4
@@ -173,11 +180,11 @@ class B {
     public int A { get; set; }
     public int B { get; set; }
 }";
-        private static readonly string s_queryExpressionPreview = @"using System;
+        private const string s_queryExpressionPreview = @"using System;
 using System.Linq;
 using System.Collections.Generic;
 class C {
-    void Foo(IEnumerable<int> e) {
+    void Goo(IEnumerable<int> e) {
 //[
         var q = from a in e from b in e
                 select a * b;
@@ -192,7 +199,7 @@ class B {
         {
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.New_line_options_for_braces });
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInTypes, CSharpVSResources.Place_open_brace_on_new_line_for_types, s_previewText, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInMethods, CSharpVSResources.Place_open_brace_on_new_line_for_methods, s_methodPreview, this, options));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInMethods, CSharpVSResources.Place_open_brace_on_new_line_for_methods_local_functions, s_methodPreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInProperties, CSharpVSResources.Place_open_brace_on_new_line_for_properties_indexers_and_events, s_propertyPreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInAccessors, CSharpVSResources.Place_open_brace_on_new_line_for_property_indexer_and_event_accessors, s_propertyPreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, CSharpVSResources.Place_open_brace_on_new_line_for_anonymous_methods, s_anonymousMethodPreview, this, options));

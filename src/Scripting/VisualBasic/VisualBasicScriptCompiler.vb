@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
 
         Public Shared ReadOnly Instance As ScriptCompiler = New VisualBasicScriptCompiler()
 
-        Private Shared ReadOnly s_defaultOptions As VisualBasicParseOptions = New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
+        Private Shared ReadOnly s_defaultOptions As VisualBasicParseOptions = New VisualBasicParseOptions(kind:=SourceCodeKind.Script, languageVersion:=LanguageVersion.Latest)
         Private Shared ReadOnly s_vbRuntimeReference As MetadataReference = MetadataReference.CreateFromAssemblyInternal(GetType(CompilerServices.NewLateBinding).GetTypeInfo().Assembly)
 
         Private Sub New()
@@ -86,7 +86,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
                     xmlReferenceResolver:=Nothing, ' don't support XML file references in interactive (permissions & doc comment includes)
                     sourceReferenceResolver:=SourceFileResolver.Default,
                     metadataReferenceResolver:=script.Options.MetadataResolver,
-                    assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default),
+                    assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default).
+                    WithIgnoreCorLibraryDuplicatedTypes(True),
                 previousSubmission,
                 script.ReturnType,
                 script.GlobalsType)

@@ -19,18 +19,18 @@ Delegate function FuncDel2(p As String) as UnknownErrorType
 
 Class C2
 
-    Public Shared Sub foo(p as string)
+    Public Shared Sub goo(p as string)
     end sub
 
-    Public Shared Sub foo2(p as string, p2 as integer)
+    Public Shared Sub goo2(p as string, p2 as integer)
     end sub
 
     Public Sub AssignDelegates()
         Dim v5 as subdel = addressof 
         Dim v6 as subdel = addressof nothing
         Dim v7 as subdel = addressof C2
-        Dim v8 as subdel = addressof C2.foo2
-        Dim v9 as FuncDel = addressof C2.foo
+        Dim v8 as subdel = addressof C2.goo2
+        Dim v9 as FuncDel = addressof C2.goo
     End Sub
 End Class
                     </file>
@@ -55,11 +55,11 @@ BC30577: 'AddressOf' operand must be the name of a method (without parentheses).
 BC30577: 'AddressOf' operand must be the name of a method (without parentheses).
         Dim v7 as subdel = addressof C2
                                      ~~
-BC31143: Method 'Public Shared Sub foo2(p As String, p2 As Integer)' does not have a signature compatible with delegate 'Delegate Sub SubDel(p As String)'.
-        Dim v8 as subdel = addressof C2.foo2
+BC31143: Method 'Public Shared Sub goo2(p As String, p2 As Integer)' does not have a signature compatible with delegate 'Delegate Sub SubDel(p As String)'.
+        Dim v8 as subdel = addressof C2.goo2
                                      ~~~~~~~
-BC31143: Method 'Public Shared Sub foo(p As String)' does not have a signature compatible with delegate 'Delegate Function FuncDel(p As String) As Integer'.
-        Dim v9 as FuncDel = addressof C2.foo
+BC31143: Method 'Public Shared Sub goo(p As String)' does not have a signature compatible with delegate 'Delegate Function FuncDel(p As String) As Integer'.
+        Dim v9 as FuncDel = addressof C2.goo
                                       ~~~~~~
 </expected>)
 
@@ -130,15 +130,15 @@ Delegate function FuncDel(p As String) as Integer
 
 Class C2
 
-    Public Shared Sub foo(p as string)
+    Public Shared Sub goo(p as string)
     end sub
 
-    Public Shared Sub foo2(p as string, p2 as integer)
+    Public Shared Sub goo2(p as string, p2 as integer)
     end sub
 
     Public Sub AssignDelegates()
-        Dim v1 As C2 = AddressOf C2.foo
-        Dim v2 As Object = AddressOf C2.foo
+        Dim v1 As C2 = AddressOf C2.goo
+        Dim v2 As Object = AddressOf C2.goo
     End Sub
 End Class
                     </file>
@@ -149,10 +149,10 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
 BC30581: 'AddressOf' expression cannot be converted to 'C2' because 'C2' is not a delegate type.
-        Dim v1 As C2 = AddressOf C2.foo
+        Dim v1 As C2 = AddressOf C2.goo
                        ~~~~~~~~~~~~~~~~
 BC30581: 'AddressOf' expression cannot be converted to 'Object' because 'Object' is not a delegate type.
-        Dim v2 As Object = AddressOf C2.foo
+        Dim v2 As Object = AddressOf C2.goo
                            ~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
@@ -177,10 +177,10 @@ Module Program
     Sub Main(args As String())
 
         Dim metaSubDel as DelegateWithoutInvoke.DelegateSubWithoutInvoke = addressof C1.ds3
-        metaSubDel("foo")
+        metaSubDel("goo")
 
         Dim metaFuncDel as DelegateWithoutInvoke.DelegateFunctionWithoutInvoke = addressof C1.df3
-        Console.WriteLine(metaFuncDel("foo"))
+        Console.WriteLine(metaFuncDel("goo"))
 
     End Sub
 End Module
@@ -194,13 +194,13 @@ BC30657: 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has a return type that
         Dim metaSubDel as DelegateWithoutInvoke.DelegateSubWithoutInvoke = addressof C1.ds3
                                                                            ~~~~~~~~~~~~~~~~
 BC30220: Delegate class 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no Invoke method, so an expression of this type cannot be the target of a method call.
-        metaSubDel("foo")
+        metaSubDel("goo")
         ~~~~~~~~~~
 BC30657: 'DelegateWithoutInvoke.DelegateFunctionWithoutInvoke' has a return type that is not supported or parameter types that are not supported.
         Dim metaFuncDel as DelegateWithoutInvoke.DelegateFunctionWithoutInvoke = addressof C1.df3
                                                                                  ~~~~~~~~~~~~~~~~
 BC30220: Delegate class 'DelegateWithoutInvoke.DelegateFunctionWithoutInvoke' has no Invoke method, so an expression of this type cannot be the target of a method call.
-        Console.WriteLine(metaFuncDel("foo"))
+        Console.WriteLine(metaFuncDel("goo"))
                           ~~~~~~~~~~~
 </errors>)
         End Sub
@@ -220,26 +220,26 @@ End Class
 
 Class C2
     ' no match because of too many args / one candidate
-    Public Shared sub foo1(p as integer, p2 as string)
+    Public Shared sub goo1(p as integer, p2 as string)
     end sub
 
     ' no match because of too few args / one candidate
-    Public Shared sub foo2()
+    Public Shared sub goo2()
     end sub
 
     ' no match because of no conversion
-    Public Shared sub foo3(p as C1)
+    Public Shared sub goo3(p as C1)
     end sub
 
     ' no match because of no conversion
-    Public Shared sub foo4(byref p as C1)
+    Public Shared sub goo4(byref p as C1)
     end sub
 
     Public Sub AssignDelegates()
-        Dim v1 As SubDel = AddressOf C2.foo1
-        Dim v2 As SubDel = AddressOf C2.foo2
-        Dim v3 As SubDel = AddressOf C2.foo3
-        Dim v4 As SubDel = AddressOf C2.foo4
+        Dim v1 As SubDel = AddressOf C2.goo1
+        Dim v2 As SubDel = AddressOf C2.goo2
+        Dim v3 As SubDel = AddressOf C2.goo3
+        Dim v4 As SubDel = AddressOf C2.goo4
     end sub
 End Class
                              </file>
@@ -249,17 +249,17 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
-BC31143: Method 'Public Shared Sub foo1(p As Integer, p2 As String)' does not have a signature compatible with delegate 'Delegate Sub SubDel(p As Integer)'.
-        Dim v1 As SubDel = AddressOf C2.foo1
+BC31143: Method 'Public Shared Sub goo1(p As Integer, p2 As String)' does not have a signature compatible with delegate 'Delegate Sub SubDel(p As Integer)'.
+        Dim v1 As SubDel = AddressOf C2.goo1
                                      ~~~~~~~
-BC36663: Option Strict On does not allow narrowing in implicit type conversions between method 'Public Shared Sub foo2()' and delegate 'Delegate Sub SubDel(p As Integer)'.
-        Dim v2 As SubDel = AddressOf C2.foo2
+BC36663: Option Strict On does not allow narrowing in implicit type conversions between method 'Public Shared Sub goo2()' and delegate 'Delegate Sub SubDel(p As Integer)'.
+        Dim v2 As SubDel = AddressOf C2.goo2
                                      ~~~~~~~
-BC31143: Method 'Public Shared Sub foo3(p As C1)' does not have a signature compatible with delegate 'Delegate Sub SubDel(p As Integer)'.
-        Dim v3 As SubDel = AddressOf C2.foo3
+BC31143: Method 'Public Shared Sub goo3(p As C1)' does not have a signature compatible with delegate 'Delegate Sub SubDel(p As Integer)'.
+        Dim v3 As SubDel = AddressOf C2.goo3
                                      ~~~~~~~
-BC31143: Method 'Public Shared Sub foo4(ByRef p As C1)' does not have a signature compatible with delegate 'Delegate Sub SubDel(p As Integer)'.
-        Dim v4 As SubDel = AddressOf C2.foo4
+BC31143: Method 'Public Shared Sub goo4(ByRef p As C1)' does not have a signature compatible with delegate 'Delegate Sub SubDel(p As Integer)'.
+        Dim v4 As SubDel = AddressOf C2.goo4
                                      ~~~~~~~
 </expected>)
         End Sub
@@ -277,43 +277,43 @@ Delegate sub SubDel2(p As Integer, p as Integer, p as Integer)
 
 Class C2
     ' no match because of too many args / multiple candidates
-    Public Shared sub foo1(p as integer, p2 as string)
+    Public Shared sub goo1(p as integer, p2 as string)
     end sub
 
     ' no match because of too many args / multiple candidates
-    Public Shared sub foo1(p as integer, p2 as integer)
+    Public Shared sub goo1(p as integer, p2 as integer)
     end sub
 
     ' no match because of too few many args / multiple candidates
-    Public Shared sub foo2(p as integer, p2 as integer)
+    Public Shared sub goo2(p as integer, p2 as integer)
     end sub
 
     ' no match because of too few args / multiple candidates
-    Public Shared sub foo2(p as integer)
+    Public Shared sub goo2(p as integer)
     end sub
 
     ' no match because of too many args / multiple candidates
-    Public Shared sub foo3(p as integer, byref p2 as string)
+    Public Shared sub goo3(p as integer, byref p2 as string)
     end sub
 
     ' no match because of too many args / multiple candidates
-    Public Shared sub foo3(p as integer, byref p2 as integer)
+    Public Shared sub goo3(p as integer, byref p2 as integer)
     end sub
 
     ' no match because of too few many args / multiple candidates
-    Public Shared sub foo4(p as integer, byref p2 as integer)
+    Public Shared sub goo4(p as integer, byref p2 as integer)
     end sub
 
     ' no match because of too few args / multiple candidates
-    Public Shared sub foo4(byref p as integer)
+    Public Shared sub goo4(byref p as integer)
     end sub
 
 
     Public Sub AssignDelegates()
-        Dim v1 As SubDel = AddressOf C2.foo1
-        Dim v2 As SubDel2 = AddressOf C2.foo2
-        Dim v3 As SubDel = AddressOf C2.foo3
-        Dim v4 As SubDel2 = AddressOf C2.foo4
+        Dim v1 As SubDel = AddressOf C2.goo1
+        Dim v2 As SubDel2 = AddressOf C2.goo2
+        Dim v3 As SubDel = AddressOf C2.goo3
+        Dim v4 As SubDel2 = AddressOf C2.goo4
     end sub
 End Class
                              </file>
@@ -323,17 +323,17 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
-BC30516: Overload resolution failed because no accessible 'foo1' accepts this number of arguments.
-        Dim v1 As SubDel = AddressOf C2.foo1
+BC30516: Overload resolution failed because no accessible 'goo1' accepts this number of arguments.
+        Dim v1 As SubDel = AddressOf C2.goo1
                                      ~~~~~~~
-BC30516: Overload resolution failed because no accessible 'foo2' accepts this number of arguments.
-        Dim v2 As SubDel2 = AddressOf C2.foo2
+BC30516: Overload resolution failed because no accessible 'goo2' accepts this number of arguments.
+        Dim v2 As SubDel2 = AddressOf C2.goo2
                                       ~~~~~~~
-BC30516: Overload resolution failed because no accessible 'foo3' accepts this number of arguments.
-        Dim v3 As SubDel = AddressOf C2.foo3
+BC30516: Overload resolution failed because no accessible 'goo3' accepts this number of arguments.
+        Dim v3 As SubDel = AddressOf C2.goo3
                                      ~~~~~~~
-BC30516: Overload resolution failed because no accessible 'foo4' accepts this number of arguments.
-        Dim v4 As SubDel2 = AddressOf C2.foo4
+BC30516: Overload resolution failed because no accessible 'goo4' accepts this number of arguments.
+        Dim v4 As SubDel2 = AddressOf C2.goo4
                                       ~~~~~~~
 </expected>)
         End Sub
@@ -349,14 +349,14 @@ Imports System
 Delegate Sub SubDel(p As Byte)
 
 Class C2(of T, S)
-    Public Shared Sub foo(p as T)
+    Public Shared Sub goo(p as T)
     end sub
 
-    Public Shared Sub foo(p as S)
+    Public Shared Sub goo(p as S)
     end sub
 
     Public Sub AssignDelegates()
-        Dim v1 As SubDel = AddressOf C2(of integer, integer).foo
+        Dim v1 As SubDel = AddressOf C2(of integer, integer).goo
     End Sub
 End Class
                     </file>
@@ -366,10 +366,10 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
-BC30794: No accessible 'foo' is most specific: 
-    Public Shared Sub foo(p As Integer)
-    Public Shared Sub foo(p As Integer)
-        Dim v1 As SubDel = AddressOf C2(of integer, integer).foo
+BC30794: No accessible 'goo' is most specific: 
+    Public Shared Sub goo(p As Integer)
+    Public Shared Sub goo(p As Integer)
+        Dim v1 As SubDel = AddressOf C2(of integer, integer).goo
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
@@ -385,14 +385,14 @@ Imports System
 Delegate Sub SubDel(p As Byte)
 
 Class C2(of T, S)
-    Public Shared Sub foo(byref p as T)
+    Public Shared Sub goo(byref p as T)
     end sub
 
-    Public Shared Sub foo(byref p as S)
+    Public Shared Sub goo(byref p as S)
     end sub
 
     Public Sub AssignDelegates()
-        Dim v1 As SubDel = AddressOf C2(of integer, integer).foo
+        Dim v1 As SubDel = AddressOf C2(of integer, integer).goo
     End Sub
 End Class
                     </file>
@@ -402,10 +402,10 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
-BC30794: No accessible 'foo' is most specific: 
-    Public Shared Sub foo(ByRef p As Integer)
-    Public Shared Sub foo(ByRef p As Integer)
-        Dim v1 As SubDel = AddressOf C2(of integer, integer).foo
+BC30794: No accessible 'goo' is most specific: 
+    Public Shared Sub goo(ByRef p As Integer)
+    Public Shared Sub goo(ByRef p As Integer)
+        Dim v1 As SubDel = AddressOf C2(of integer, integer).goo
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
@@ -421,14 +421,14 @@ Imports System
 Delegate Sub SubDel(p As Byte)
 
 Class C2(of T, S)
-    Public Shared Sub foo(byref p as T)
+    Public Shared Sub goo(byref p as T)
     end sub
 
-    Public Shared Sub foo(byref p as S)
+    Public Shared Sub goo(byref p as S)
     end sub
 
     Public Sub AssignDelegates()
-        Dim v1 As SubDel = AddressOf C2(of integer, integer).foo
+        Dim v1 As SubDel = AddressOf C2(of integer, integer).goo
     End Sub
 End Class
                     </file>
@@ -438,10 +438,10 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
-BC30794: No accessible 'foo' is most specific: 
-    Public Shared Sub foo(ByRef p As Integer)
-    Public Shared Sub foo(ByRef p As Integer)
-        Dim v1 As SubDel = AddressOf C2(of integer, integer).foo
+BC30794: No accessible 'goo' is most specific: 
+    Public Shared Sub goo(ByRef p As Integer)
+    Public Shared Sub goo(ByRef p As Integer)
+        Dim v1 As SubDel = AddressOf C2(of integer, integer).goo
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
@@ -459,50 +459,50 @@ Delegate Sub SubDel2(p As Integer, p As Integer)
 Delegate Function FuncDel() as Byte
 
 Class C2
-    Public Shared Sub foo(p as string)
+    Public Shared Sub goo(p as string)
     end sub
 
-    Public Shared Sub foo2(p as string)
+    Public Shared Sub goo2(p as string)
     end sub
-    Public Shared Sub foo2(p as Byte)
-    end sub
-
-    Public Shared Sub foo3(p as string, p2 as string)
-    end sub
-    Public Shared Sub foo3(p as Byte, p2 as byte)
-    end sub
-    Public Shared Sub foo3(p as integer, p2 as byte)
+    Public Shared Sub goo2(p as Byte)
     end sub
 
-    Public Shared Sub foo4(p as string)
+    Public Shared Sub goo3(p as string, p2 as string)
+    end sub
+    Public Shared Sub goo3(p as Byte, p2 as byte)
+    end sub
+    Public Shared Sub goo3(p as integer, p2 as byte)
     end sub
 
-    Public Shared Sub foo5(p as string)
-    end sub
-    Public Shared Sub foo5(p as Byte)
+    Public Shared Sub goo4(p as string)
     end sub
 
-    Public Shared Sub foo6(p as string, p2 as string)
+    Public Shared Sub goo5(p as string)
     end sub
-    Public Shared Sub foo6(p as Byte, p2 as byte)
-    end sub
-    Public Shared Sub foo6(p as integer, p2 as byte)
+    Public Shared Sub goo5(p as Byte)
     end sub
 
-    Public Shared Function foo7() as Integer
+    Public Shared Sub goo6(p as string, p2 as string)
+    end sub
+    Public Shared Sub goo6(p as Byte, p2 as byte)
+    end sub
+    Public Shared Sub goo6(p as integer, p2 as byte)
+    end sub
+
+    Public Shared Function goo7() as Integer
         return 23
     end function
 
     Public shared Sub Main()
-        Dim v1 As SubDel = AddressOf C2.foo
-        Dim v2 As SubDel = AddressOf C2.foo2
-        Dim v3 As SubDel2 = AddressOf C2.foo3
+        Dim v1 As SubDel = AddressOf C2.goo
+        Dim v2 As SubDel = AddressOf C2.goo2
+        Dim v3 As SubDel2 = AddressOf C2.goo3
 
-        Dim v4 As SubDel = AddressOf C2.foo4
-        Dim v5 As SubDel = AddressOf C2.foo5
-        Dim v6 As SubDel2 = AddressOf C2.foo6
+        Dim v4 As SubDel = AddressOf C2.goo4
+        Dim v5 As SubDel = AddressOf C2.goo5
+        Dim v6 As SubDel2 = AddressOf C2.goo6
 
-        Dim v7 as FuncDel = AddressOf C2.foo7
+        Dim v7 as FuncDel = AddressOf C2.goo7
     End Sub
 End Class
                     </file>
@@ -512,36 +512,36 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
-BC36663: Option Strict On does not allow narrowing in implicit type conversions between method 'Public Shared Sub foo(p As String)' and delegate 'Delegate Sub SubDel(p As Integer)'.
-        Dim v1 As SubDel = AddressOf C2.foo
+BC36663: Option Strict On does not allow narrowing in implicit type conversions between method 'Public Shared Sub goo(p As String)' and delegate 'Delegate Sub SubDel(p As Integer)'.
+        Dim v1 As SubDel = AddressOf C2.goo
                                      ~~~~~~
-BC30950: No accessible method 'foo2' has a signature compatible with delegate 'Delegate Sub SubDel(p As Integer)':
-    'Public Shared Sub foo2(p As String)': Argument matching parameter 'p' narrows from 'Integer' to 'String'.
-    'Public Shared Sub foo2(p As Byte)': Argument matching parameter 'p' narrows from 'Integer' to 'Byte'.
-        Dim v2 As SubDel = AddressOf C2.foo2
+BC30950: No accessible method 'goo2' has a signature compatible with delegate 'Delegate Sub SubDel(p As Integer)':
+    'Public Shared Sub goo2(p As String)': Argument matching parameter 'p' narrows from 'Integer' to 'String'.
+    'Public Shared Sub goo2(p As Byte)': Argument matching parameter 'p' narrows from 'Integer' to 'Byte'.
+        Dim v2 As SubDel = AddressOf C2.goo2
                                      ~~~~~~~
-BC30950: No accessible method 'foo3' has a signature compatible with delegate 'Delegate Sub SubDel2(p As Integer, p As Integer)':
-    'Public Shared Sub foo3(p As String, p2 As String)': Method does not have a signature compatible with the delegate.
-    'Public Shared Sub foo3(p As Byte, p2 As Byte)': Method does not have a signature compatible with the delegate.
-    'Public Shared Sub foo3(p As Integer, p2 As Byte)': Argument matching parameter 'p2' narrows from 'Integer' to 'Byte'.
-        Dim v3 As SubDel2 = AddressOf C2.foo3
+BC30950: No accessible method 'goo3' has a signature compatible with delegate 'Delegate Sub SubDel2(p As Integer, p As Integer)':
+    'Public Shared Sub goo3(p As String, p2 As String)': Method does not have a signature compatible with the delegate.
+    'Public Shared Sub goo3(p As Byte, p2 As Byte)': Method does not have a signature compatible with the delegate.
+    'Public Shared Sub goo3(p As Integer, p2 As Byte)': Argument matching parameter 'p2' narrows from 'Integer' to 'Byte'.
+        Dim v3 As SubDel2 = AddressOf C2.goo3
                                       ~~~~~~~
-BC36663: Option Strict On does not allow narrowing in implicit type conversions between method 'Public Shared Sub foo4(p As String)' and delegate 'Delegate Sub SubDel(p As Integer)'.
-        Dim v4 As SubDel = AddressOf C2.foo4
+BC36663: Option Strict On does not allow narrowing in implicit type conversions between method 'Public Shared Sub goo4(p As String)' and delegate 'Delegate Sub SubDel(p As Integer)'.
+        Dim v4 As SubDel = AddressOf C2.goo4
                                      ~~~~~~~
-BC30950: No accessible method 'foo5' has a signature compatible with delegate 'Delegate Sub SubDel(p As Integer)':
-    'Public Shared Sub foo5(p As String)': Argument matching parameter 'p' narrows from 'Integer' to 'String'.
-    'Public Shared Sub foo5(p As Byte)': Argument matching parameter 'p' narrows from 'Integer' to 'Byte'.
-        Dim v5 As SubDel = AddressOf C2.foo5
+BC30950: No accessible method 'goo5' has a signature compatible with delegate 'Delegate Sub SubDel(p As Integer)':
+    'Public Shared Sub goo5(p As String)': Argument matching parameter 'p' narrows from 'Integer' to 'String'.
+    'Public Shared Sub goo5(p As Byte)': Argument matching parameter 'p' narrows from 'Integer' to 'Byte'.
+        Dim v5 As SubDel = AddressOf C2.goo5
                                      ~~~~~~~
-BC30950: No accessible method 'foo6' has a signature compatible with delegate 'Delegate Sub SubDel2(p As Integer, p As Integer)':
-    'Public Shared Sub foo6(p As String, p2 As String)': Method does not have a signature compatible with the delegate.
-    'Public Shared Sub foo6(p As Byte, p2 As Byte)': Method does not have a signature compatible with the delegate.
-    'Public Shared Sub foo6(p As Integer, p2 As Byte)': Argument matching parameter 'p2' narrows from 'Integer' to 'Byte'.
-        Dim v6 As SubDel2 = AddressOf C2.foo6
+BC30950: No accessible method 'goo6' has a signature compatible with delegate 'Delegate Sub SubDel2(p As Integer, p As Integer)':
+    'Public Shared Sub goo6(p As String, p2 As String)': Method does not have a signature compatible with the delegate.
+    'Public Shared Sub goo6(p As Byte, p2 As Byte)': Method does not have a signature compatible with the delegate.
+    'Public Shared Sub goo6(p As Integer, p2 As Byte)': Argument matching parameter 'p2' narrows from 'Integer' to 'Byte'.
+        Dim v6 As SubDel2 = AddressOf C2.goo6
                                       ~~~~~~~
-BC36663: Option Strict On does not allow narrowing in implicit type conversions between method 'Public Shared Function foo7() As Integer' and delegate 'Delegate Function FuncDel() As Byte'.
-        Dim v7 as FuncDel = AddressOf C2.foo7
+BC36663: Option Strict On does not allow narrowing in implicit type conversions between method 'Public Shared Function goo7() As Integer' and delegate 'Delegate Function FuncDel() As Byte'.
+        Dim v7 as FuncDel = AddressOf C2.goo7
                                       ~~~~~~~
 </expected>)
         End Sub
@@ -828,7 +828,7 @@ Module M
     d1(23)
   End Sub
 
-  Public Sub SubWithNoParams(foo as integer)
+  Public Sub SubWithNoParams(goo as integer)
     Console.WriteLine("Called SubWithNoParams.")
   End Sub
 
@@ -841,7 +841,7 @@ End Module
                 Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
                 AssertTheseDiagnostics(c1,
 <expected>
-BC31143: Method 'Public Sub SubWithNoParams(foo As Integer)' does not have a signature compatible with delegate 'Delegate Sub DelegateByRefParamArray.DelegateSubWithParamAndParamArrayOfReferenceTypes(A_0 As Integer, ParamArray A_1 As DelegateByRefParamArray_Base())'.
+BC31143: Method 'Public Sub SubWithNoParams(goo As Integer)' does not have a signature compatible with delegate 'Delegate Sub DelegateByRefParamArray.DelegateSubWithParamAndParamArrayOfReferenceTypes(A_0 As Integer, ParamArray A_1 As DelegateByRefParamArray_Base())'.
     Dim d1 as DelegateByRefParamArray.DelegateSubWithParamAndParamArrayOfReferenceTypes = AddressOf SubWithNoParams
                                                                                                     ~~~~~~~~~~~~~~~
 </expected>)
@@ -916,21 +916,21 @@ BC36663: Option Strict On does not allow narrowing in implicit type conversions 
 
     Module Program
 
-        sub foo1(byval p as integer)
+        sub goo1(byval p as integer)
         end sub
 
-        sub foo2(byref p as integer)
+        sub goo2(byref p as integer)
         end sub
 
         Sub Main(args As String())
 
             ' don't work
-            Dim d1 as MyDelegate1 = addressof foo1
-            Dim d2 as MyDelegate2 = addressof foo2
+            Dim d1 as MyDelegate1 = addressof goo1
+            Dim d2 as MyDelegate2 = addressof goo2
 
             ' work
-            'Dim d3 as MyDelegate1 = addressof foo2
-            'Dim d4 as MyDelegate2 = addressof foo1
+            'Dim d3 as MyDelegate1 = addressof goo2
+            'Dim d4 as MyDelegate2 = addressof goo1
 
         End Sub
     End Module
@@ -940,11 +940,11 @@ BC36663: Option Strict On does not allow narrowing in implicit type conversions 
                 Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
                 AssertTheseDiagnostics(c1,
 <expected>
-BC31143: Method 'Public Sub foo1(p As Integer)' does not have a signature compatible with delegate 'Delegate Sub MyDelegate1(ByRef p As Integer)'.
-            Dim d1 as MyDelegate1 = addressof foo1
+BC31143: Method 'Public Sub goo1(p As Integer)' does not have a signature compatible with delegate 'Delegate Sub MyDelegate1(ByRef p As Integer)'.
+            Dim d1 as MyDelegate1 = addressof goo1
                                               ~~~~
-BC31143: Method 'Public Sub foo2(ByRef p As Integer)' does not have a signature compatible with delegate 'Delegate Sub MyDelegate2(p As Integer)'.
-            Dim d2 as MyDelegate2 = addressof foo2
+BC31143: Method 'Public Sub goo2(ByRef p As Integer)' does not have a signature compatible with delegate 'Delegate Sub MyDelegate2(p As Integer)'.
+            Dim d2 as MyDelegate2 = addressof goo2
                                               ~~~~
 </expected>)
             Next
@@ -999,22 +999,22 @@ Option Strict On
 Imports System
 Imports System.Collections.Generic
 Module Test
-    Sub foo(Of TT, UU, VV)(x As Func(Of TT, UU, VV), y As Func(Of UU, VV, TT), z As Func(Of VV, TT, UU))
+    Sub goo(Of TT, UU, VV)(x As Func(Of TT, UU, VV), y As Func(Of UU, VV, TT), z As Func(Of VV, TT, UU))
     End Sub
-    Sub foo(Of TT, UU, VV)(xx As TT, yy As UU, zz As VV)
+    Sub goo(Of TT, UU, VV)(xx As TT, yy As UU, zz As VV)
     End Sub
-    Sub foo(Of TT, UU, VV)(x As Func(Of TT, List(Of TT), UU, Dictionary(Of List(Of TT), UU)), y As Func(Of UU, VV), z As Action(Of VV, List(Of VV), Dictionary(Of List(Of VV), TT)))
+    Sub goo(Of TT, UU, VV)(x As Func(Of TT, List(Of TT), UU, Dictionary(Of List(Of TT), UU)), y As Func(Of UU, VV), z As Action(Of VV, List(Of VV), Dictionary(Of List(Of VV), TT)))
     End Sub
-    Sub foo(Of TT, UU, VV)(x As Func(Of TT, UU), y As Func(Of TT, VV), z As Func(Of UU, VV), a As Func(Of UU, TT), b As Func(Of VV, TT), c As Func(Of VV, UU))
+    Sub goo(Of TT, UU, VV)(x As Func(Of TT, UU), y As Func(Of TT, VV), z As Func(Of UU, VV), a As Func(Of UU, TT), b As Func(Of VV, TT), c As Func(Of VV, UU))
         Console.WriteLine(GetType(TT))
         Console.WriteLine(GetType(UU))
         Console.WriteLine(GetType(VV))
-        Console.WriteLine("foo")
+        Console.WriteLine("goo")
     End Sub
     Sub Main()
         Dim f1 As Func(Of Exception, ArgumentException) = Function(a As Exception) New ArgumentException()
         Dim f2 As Func(Of ArgumentException, Exception) = Function(a As ArgumentException) New ArgumentException()
-        foo(f1, f1, f1, f1, f2, f2)
+        goo(f1, f1, f1, f1, f2, f2)
     End Sub
 End Module
     </file>
@@ -1027,7 +1027,7 @@ End Module
 System.Exception
 System.Exception
 System.ArgumentException
-foo
+goo
 ]]>)
         End Sub
 
@@ -1053,21 +1053,21 @@ Public Class Runner
         y As Del1(Of UU, VV),
         z As Action(Of VV, List(Of VV), Dictionary(Of List(Of VV), TT)))
 
-    Sub foo(Of TT, UU, VV)(
+    Sub goo(Of TT, UU, VV)(
         xx As TT,
         yy As UU,
         zz As VV)
         Console.Write("pass")
     End Sub
 
-    Sub foo(Of TT, UU, VV)(
+    Sub goo(Of TT, UU, VV)(
         x As Func(Of TT, List(Of TT), UU, Dictionary(Of List(Of TT), UU)),
         y As Del1(Of UU, VV),
         z As Action(Of VV, List(Of VV), Dictionary(Of List(Of VV), TT)))
         Console.Write("fail")
     End Sub
 
-    Sub foo(Of TT, UU, VV)(
+    Sub goo(Of TT, UU, VV)(
         x As Func(Of TT, UU, VV),
         y As Func(Of UU, VV, TT),
         z As Func(Of VV, TT, UU))
@@ -1075,8 +1075,8 @@ Public Class Runner
     End Sub
 
     Public Sub Run(Of AA, BB, CC)()
-        Dim d As Del2(Of AA, BB, CC) = AddressOf foo
-        Dim d2 As Del2(Of Long, Long, Long) = AddressOf foo
+        Dim d As Del2(Of AA, BB, CC) = AddressOf goo
+        Dim d2 As Del2(Of Long, Long, Long) = AddressOf goo
         d(Nothing, Nothing, Nothing)
         d2(Nothing, Nothing, Nothing)
     End Sub
@@ -1107,10 +1107,10 @@ Option Strict On
 Imports System
 
 Module Test
-    Function Fooo(p As Double) As Integer
+    Function Gooo(p As Double) As Integer
         Dim f As Func(Of Double, Integer)        
-        f = AddressOf Fooo
-        Dim g As new Func(Of Double, Integer)(AddressOf Fooo)
+        f = AddressOf Gooo
+        Dim g As new Func(Of Double, Integer)(AddressOf Gooo)
         Return 0    
     End Function    
 
@@ -1253,14 +1253,14 @@ Imports System
 
 Module M
     Sub Main()
-        Foo(AddressOf Object.Equals)
+        Goo(AddressOf Object.Equals)
     End Sub
 
-    Sub Foo(x As Func(Of Object, Boolean))
+    Sub Goo(x As Func(Of Object, Boolean))
         Console.WriteLine(1)
     End Sub
 
-    Sub Foo(x As Func(Of Object, Object, Boolean))
+    Sub Goo(x As Func(Of Object, Object, Boolean))
         Console.WriteLine(2)
     End Sub
 End Module
@@ -1282,14 +1282,14 @@ Imports System
 
 Module M
     Sub Main()
-        Foo(AddressOf C1.Boo)
+        Goo(AddressOf C1.Boo)
     End Sub
 
-    Sub Foo(x As Func(Of Object, Boolean))
+    Sub Goo(x As Func(Of Object, Boolean))
         Console.WriteLine(1)
     End Sub
 
-    Sub Foo(x As Func(Of Object, Object, Boolean))
+    Sub Goo(x As Func(Of Object, Object, Boolean))
         Console.WriteLine(2)
     End Sub
 
@@ -1306,10 +1306,10 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30518: Overload resolution failed because no accessible 'Foo' can be called with these arguments:
-    'Public Sub Foo(x As Func(Of Object, Boolean))': Method 'Public Function Boo(a As Object, b As Object) As Boolean' does not have a signature compatible with delegate 'Delegate Function Func(Of Object, Boolean)(arg As Object) As Boolean'.
-    'Public Sub Foo(x As Func(Of Object, Object, Boolean))': Reference to a non-shared member requires an object reference.
-        Foo(AddressOf C1.Boo)
+BC30518: Overload resolution failed because no accessible 'Goo' can be called with these arguments:
+    'Public Sub Goo(x As Func(Of Object, Boolean))': Method 'Public Function Boo(a As Object, b As Object) As Boolean' does not have a signature compatible with delegate 'Delegate Function Func(Of Object, Boolean)(arg As Object) As Boolean'.
+    'Public Sub Goo(x As Func(Of Object, Object, Boolean))': Reference to a non-shared member requires an object reference.
+        Goo(AddressOf C1.Boo)
         ~~~
                                            </expected>)
         End Sub
@@ -1341,15 +1341,15 @@ Module M
             Return False
         End Function
 
-        Function Foo(x As Func(Of Derived, Derived, Boolean)) As Integer
+        Function Goo(x As Func(Of Derived, Derived, Boolean)) As Integer
             Return 1
         End Function
 
-        Function Foo(x As Func(Of Derived, Boolean)) As Integer
+        Function Goo(x As Func(Of Derived, Boolean)) As Integer
             Return 2
         End Function
 
-        Public FLD As Integer = Foo(AddressOf MyClass.F1)
+        Public FLD As Integer = Goo(AddressOf MyClass.F1)
     End Class
 
     Public Class C2

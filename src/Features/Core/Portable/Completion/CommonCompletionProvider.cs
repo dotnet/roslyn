@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var change = (await GetTextChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false))
                 ?? new TextChange(item.Span, item.DisplayText);
@@ -95,6 +96,16 @@ namespace Microsoft.CodeAnalysis.Completion
         protected virtual Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             return Task.FromResult<TextChange?>(null);
+        }
+
+        private static CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
+
+        protected CompletionItem CreateSuggestionModeItem(string displayText, string description)
+        {
+            return CommonCompletionItem.Create(
+                displayText: displayText ?? string.Empty,
+                description: description != null ? description.ToSymbolDisplayParts() : default,
+                rules: s_suggestionItemRules);
         }
     }
 }

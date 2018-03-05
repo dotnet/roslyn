@@ -1,8 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
@@ -59,8 +60,7 @@ namespace Microsoft.CodeAnalysis.Structure
 
         private void GetBlockSpans(SyntaxNode node)
         {
-            ImmutableArray<AbstractSyntaxStructureProvider> providers;
-            if (_nodeProviderMap.TryGetValue(node.GetType(), out providers))
+            if (_nodeProviderMap.TryGetValue(node.GetType(), out var providers))
             {
                 foreach (var provider in providers)
                 {
@@ -82,9 +82,7 @@ namespace Microsoft.CodeAnalysis.Structure
             foreach (var trivia in triviaList)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-
-                ImmutableArray<AbstractSyntaxStructureProvider> providers;
-                if (_triviaProviderMap.TryGetValue(trivia.RawKind, out providers))
+                if (_triviaProviderMap.TryGetValue(trivia.RawKind, out var providers))
                 {
                     foreach (var provider in providers)
                     {

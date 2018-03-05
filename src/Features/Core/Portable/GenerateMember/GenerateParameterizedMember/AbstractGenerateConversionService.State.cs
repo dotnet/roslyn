@@ -53,12 +53,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             private bool TryInitializeExplicitConversion(TService service, SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
             {
                 MethodKind = MethodKind.Conversion;
-                SyntaxToken identifierToken;
-                IMethodSymbol methodSymbol;
-                INamedTypeSymbol typeToGenerateIn;
                 if (!service.TryInitializeExplicitConversionState(
                     document, node, ClassInterfaceModuleStructTypes, cancellationToken,
-                    out identifierToken, out methodSymbol, out typeToGenerateIn))
+                    out var identifierToken, out var methodSymbol, out var typeToGenerateIn))
                 {
                     return false;
                 }
@@ -80,12 +77,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             private bool TryInitializeImplicitConversion(TService service, SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
             {
                 MethodKind = MethodKind.Conversion;
-                SyntaxToken identifierToken;
-                IMethodSymbol methodSymbol;
-                INamedTypeSymbol typeToGenerateIn;
                 if (!service.TryInitializeImplicitConversionState(
                     document, node, ClassInterfaceModuleStructTypes, cancellationToken,
-                    out identifierToken, out methodSymbol, out typeToGenerateIn))
+                    out var identifierToken, out var methodSymbol, out var typeToGenerateIn))
                 {
                     return false;
                 }

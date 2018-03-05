@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -120,7 +120,7 @@ class var<T> { }
         {
             private [|C|] c1, c2;
 
-            void Foo([|C|] c3)
+            void Goo([|C|] c3)
             {
                 [|C|] c4;
             }
@@ -525,13 +525,13 @@ public class Basic : I1<int>
         <Document><![CDATA[
 interface I<X>
 {
-    void {|Definition:$$Foo|}(X x);
+    void {|Definition:$$Goo|}(X x);
 }
 
 class C : I<int>, I<string>
 {
-    public void {|Definition:Foo|}(int x) { }
-    public void {|Definition:Foo|}(string x) { }
+    public void {|Definition:Goo|}(int x) { }
+    public void {|Definition:Goo|}(string x) { }
 }
 ]]>
         </Document>
@@ -549,13 +549,13 @@ class C : I<int>, I<string>
         <Document><![CDATA[
 interface I<X>
 {
-    void {|Definition:Foo|}(X x);
+    void {|Definition:Goo|}(X x);
 }
 
 class C : I<int>, I<string>
 {
-    public void {|Definition:$$Foo|}(int x) { }
-    public void {|Definition:Foo|}(string x) { }
+    public void {|Definition:$$Goo|}(int x) { }
+    public void {|Definition:Goo|}(string x) { }
 }
 ]]>
         </Document>
@@ -573,13 +573,13 @@ class C : I<int>, I<string>
         <Document><![CDATA[
 interface I<X>
 {
-    void {|Definition:Foo|}(X x);
+    void {|Definition:Goo|}(X x);
 }
 
 class C : I<int>, I<string>
 {
-    public void {|Definition:Foo|}(int x) { }
-    public void {|Definition:$$Foo|}(string x) { }
+    public void {|Definition:Goo|}(int x) { }
+    public void {|Definition:$$Goo|}(string x) { }
 }
 ]]>
         </Document>
@@ -639,7 +639,7 @@ class C : I<int>, I<string>
         <Document>
         class {|Definition:$$C|}
         {
-            void Foo()
+            void Goo()
             {
                 new [|C|]();
             }
@@ -660,7 +660,7 @@ class C : I<int>, I<string>
         {
             public {|Definition:C|}() { }
 
-            void Foo()
+            void Goo()
             {
                 new [|C|]();
             }
@@ -926,13 +926,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        myDel = new [|TestDelegate|](Foo);
+        myDel = new [|TestDelegate|](Goo);
     }
 
     private delegate void {|Definition:$$TestDelegate|}(string s);
     private static [|TestDelegate|] myDel;
 
-    static void Foo(string arg) { }
+    static void Goo(string arg) { }
 }
         </Document>
     </Project>
@@ -953,13 +953,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        myDel = new [|$$TestDelegate|](Foo);
+        myDel = new [|$$TestDelegate|](Goo);
     }
 
     private delegate void {|Definition:TestDelegate|}(string s);
     private static [|TestDelegate|] myDel;
 
-    static void Foo(string arg) { }
+    static void Goo(string arg) { }
 }
         </Document>
     </Project>
@@ -980,13 +980,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        myDel = new [|TestDelegate|](Foo);
+        myDel = new [|TestDelegate|](Goo);
     }
 
     private delegate void {|Definition:TestDelegate|}(string s);
     private static [|$$TestDelegate|] myDel;
 
-    static void Foo(string arg) { }
+    static void Goo(string arg) { }
 }
         </Document>
     </Project>
@@ -1074,8 +1074,8 @@ class Program
         {
           public class {|Definition:St$$ring|}
           {
-            void Foo(string s) { }
-            void Foo([|String|] s) { }
+            void Goo(string s) { }
+            void Goo([|String|] s) { }
           }
         }
         </Document>
@@ -1095,8 +1095,8 @@ class Program
         {
           public class String
           {
-            void Foo([|st$$ring|] s) { }
-            void Foo(String s) { }
+            void Goo([|st$$ring|] s) { }
+            void Goo(String s) { }
           }
         }
         </Document>
@@ -1116,8 +1116,8 @@ namespace System
 {
     public class {|Definition:String|}
     {
-        void Foo([|Str$$ing|] s) { }
-        void Foo(params [|String|][] s) { }
+        void Goo([|Str$$ing|] s) { }
+        void Goo(params [|String|][] s) { }
     }
 }
         </Document>
@@ -1136,7 +1136,7 @@ namespace System
 using System;
 public class C
 {
-    void Foo()
+    void Goo()
     {
         [|$$Console|].Write(0);
         [|Console|].Write(0);
@@ -1158,7 +1158,7 @@ public class C
 using System;
 public class C
 {
-    void Foo()
+    void Goo()
     {
         [|Console$$|].Write(0);
         [|Console|].Write(0);
@@ -1179,7 +1179,7 @@ public class C
         <Document>
 Imports System
 Public Class C
-    Sub Foo()
+    Sub Goo()
         [|$$Console|].Write(0)
         [|Console|].Write(0)
     End Sub
@@ -1199,7 +1199,7 @@ End Class
         <Document>
 Imports System
 Public Class C
-    Sub Foo()
+    Sub Goo()
         [|Console$$|].Write(0)
         [|Console|].Write(0)
     End Sub
@@ -1283,7 +1283,7 @@ End Class
         {
             class D
             {
-                void Foo([|str$$ing|] s)
+                void Goo([|str$$ing|] s)
                 {
                 }
             }
@@ -1311,7 +1311,7 @@ End Class
         {
             class D
             {
-                void Foo([|string|] s)
+                void Goo([|string|] s)
                 {
                 }
             }
@@ -1693,9 +1693,9 @@ End Class
         {          
             void M()
             {                    
-                var col = new List<string> {[|Foo|](1), {[|Foo|](2), {[|Foo|](3), {[|Foo|](4) };
+                var col = new List<string> {[|Goo|](1), {[|Goo|](2), {[|Goo|](3), {[|Goo|](4) };
             }
-            string {|Definition:$$Foo|}(int i) { return "1";}
+            string {|Definition:$$Goo|}(int i) { return "1";}
         }]]>
         </Document>
     </Project>
@@ -1711,9 +1711,9 @@ End Class
         <Document>
         Class C                
            sub M()
-               Dim col = New List(Of string) From {[|Foo|](1), [|$$Foo|](2), [|Foo|](3), [|Foo|](4) }
+               Dim col = New List(Of string) From {[|Goo|](1), [|$$Goo|](2), [|Goo|](3), [|Goo|](4) }
            End Sub
-           Function {|Definition:Foo|}(ByVal i as Integer) as string
+           Function {|Definition:Goo|}(ByVal i as Integer) as string
                 return "1"
            End Function
         End Class
@@ -2041,7 +2041,7 @@ class {|Definition:$$A|} {    ~{|Definition:A|}()    {        Console.WriteLine(
 <Workspace>
     <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
         <Document>
-Public Module {|Definition:$$Foo|}
+Public Module {|Definition:$$Goo|}
     Public Sub Bar()
     End Sub
 End Module
@@ -2054,7 +2054,7 @@ class C
 {
     void M()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
         </Document>

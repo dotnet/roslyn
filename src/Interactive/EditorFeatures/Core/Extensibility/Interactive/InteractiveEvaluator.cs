@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias Scripting;
 
 using System;
@@ -11,7 +11,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
     using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
-    internal abstract class InteractiveEvaluator : IInteractiveEvaluator, ICurrentWorkingDirectoryDiscoveryService
+    internal abstract class InteractiveEvaluator : IInteractiveEvaluator
     {
         private const string CommandPrefix = "#";
 
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             _contentType = contentType;
             _responseFilePath = responseFilePath;
-            _workspace = new InteractiveWorkspace(hostServices);
+            _workspace = new InteractiveWorkspace(hostServices, this);
             _contentTypeChangedHandler = new EventHandler<ContentTypeChangedEventArgs>(LanguageBufferContentTypeChanged);
             _classifierAggregator = classifierAggregator;
             _initialWorkingDirectory = initialWorkingDirectory;
@@ -262,11 +261,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private static MetadataReferenceResolver CreateMetadataReferenceResolver(IMetadataService metadataService, ImmutableArray<string> searchPaths, string baseDirectory)
         {
+            // TODO: To support CoreCLR we need to query the remote process for TPA list and pass it to the resolver.
+            // https://github.com/dotnet/roslyn/issues/4788
             return new RuntimeMetadataReferenceResolver(
                 new RelativePathResolver(searchPaths, baseDirectory),
-                null,
-                GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                (path, properties) => metadataService.GetReference(path, properties));
+                packageResolver: null,
+                gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
+                useCoreResolver: false,
+                fileReferenceProvider: (path, properties) => metadataService.GetReference(path, properties));
         }
 
         private static SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
@@ -378,7 +380,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             }
 
             subjectBuffer.ContentTypeChanged += _contentTypeChangedHandler;
-            subjectBuffer.Properties[typeof(ICurrentWorkingDirectoryDiscoveryService)] = this;
 
             _currentSubmissionBuffer = subjectBuffer;
         }

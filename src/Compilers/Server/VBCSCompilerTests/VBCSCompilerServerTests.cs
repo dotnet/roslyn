@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CommandLine;
+using Roslyn.Test.Utilities;
 using System;
-using System.Collections;
 using System.Collections.Specialized;
+using System.IO;
 using System.IO.Pipes;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -14,6 +14,20 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class VBCSCompilerServerTests
     {
+        public class StartupTests : VBCSCompilerServerTests
+        {
+            [Fact]
+            [WorkItem(217709, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/217709")]
+            public async Task ShadowCopyAnalyzerAssemblyLoaderMissingDirectory()
+            {
+                var baseDirectory = Path.Combine(Path.GetTempPath(), TestBase.GetUniqueName());
+                var loader = new ShadowCopyAnalyzerAssemblyLoader(baseDirectory);
+                var task = loader.DeleteLeftoverDirectoriesTask;
+                await task;
+                Assert.False(task.IsFaulted);
+            }
+        }
+
         public class ShutdownTests : VBCSCompilerServerTests
         {
             private static Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))

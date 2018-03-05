@@ -420,6 +420,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// If this field represents a tuple element, returns a corresponding default element field.
+        /// Otherwise returns null.
+        /// </summary>
+        public virtual FieldSymbol CorrespondingTupleField
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// If this is a field representing a tuple element,
         /// returns the index of the element (zero-based).
         /// Otherwise returns -1
@@ -458,6 +470,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         IFieldSymbol IFieldSymbol.OriginalDefinition
         {
             get { return this.OriginalDefinition; }
+        }
+
+        IFieldSymbol IFieldSymbol.CorrespondingTupleField
+        {
+            get { return this.CorrespondingTupleField; }
         }
 
         #endregion

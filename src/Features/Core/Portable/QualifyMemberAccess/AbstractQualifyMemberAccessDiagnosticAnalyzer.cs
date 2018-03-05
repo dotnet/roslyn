@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -6,13 +6,13 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 {
     internal abstract class AbstractQualifyMemberAccessDiagnosticAnalyzer<TLanguageKindEnum> :
-        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+        AbstractCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
     {
         protected AbstractQualifyMemberAccessDiagnosticAnalyzer() 
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         {
         }
 
-        public bool OpenFileOnly(Workspace workspace)
+        public override bool OpenFileOnly(Workspace workspace)
         {
             var qualifyFieldAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyFieldAccess, GetLanguageName()).Notification;
             var qualifyPropertyAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyPropertyAccess, GetLanguageName()).Notification;
@@ -37,22 +37,29 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         protected abstract string GetLanguageName();
 
+        /// <summary>
+        /// Reports on whether the specified member is suitable for qualification. Some member
+        /// access expressions cannot be qualified; for instance if they begin with <c>base.</c>,
+        /// <c>MyBase.</c>, or <c>MyClass.</c>.
+        /// </summary>
+        /// <returns>True if the member access can be qualified; otherwise, False.</returns>
+        protected abstract bool CanMemberAccessBeQualified(ISymbol containingSymbol, SyntaxNode node);
+
         protected abstract bool IsAlreadyQualifiedMemberAccess(SyntaxNode node);
 
-        private static MethodInfo s_registerMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
-
         protected override void InitializeWorker(AnalysisContext context)
-            => s_registerMethod.Invoke(context, new object[]
-               {
-                   new Action<OperationAnalysisContext>(AnalyzeOperation),
-                   ImmutableArray.Create(OperationKind.FieldReferenceExpression, OperationKind.PropertyReferenceExpression, OperationKind.MethodBindingExpression)
-               });
+            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference, OperationKind.PropertyReference, OperationKind.MethodReference);
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            var memberReference = (IMemberReferenceExpression)context.Operation;
+            if (context.ContainingSymbol.IsStatic)
+            {
+                return;
+            }
+
+            var memberReference = (IMemberReferenceOperation)context.Operation;
 
             // this is a static reference so we don't care if it's qualified
             if (memberReference.Instance == null)
@@ -61,13 +68,21 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             }
 
             // if we're not referencing `this.` or `Me.` (e.g., a parameter, local, etc.)
-            if (memberReference.Instance.Kind != OperationKind.InstanceReferenceExpression)
+            if (memberReference.Instance.Kind != OperationKind.InstanceReference)
             {
                 return;
             }
 
-            // if we can't find a member then we can't do anything
-            if (memberReference.Member == null)
+            // If we can't be qualified (e.g., because we're already qualified with `base.`), we're done.
+            if (!CanMemberAccessBeQualified(context.ContainingSymbol, memberReference.Instance.Syntax))
+            {
+                return;
+            }
+
+            // if we can't find a member then we can't do anything.  Also, we shouldn't qualify
+            // accesses to static members.  
+            if (memberReference.Member == null ||
+                memberReference.Member.IsStatic)
             {
                 return;
             }
@@ -92,7 +107,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 if (severity != DiagnosticSeverity.Hidden)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        CreateDescriptorWithSeverity(severity), 
+                        GetDescriptorWithSeverity(severity), 
                         context.Operation.Syntax.GetLocation()));
                 }
             }
@@ -111,7 +126,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 case SymbolKind.Event:
                     return CodeStyleOptions.QualifyEventAccess;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(symbolKind);
             }
         }
     }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -18,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
     {
         public const string SuppressMessageAttributeName = "System.Diagnostics.CodeAnalysis.SuppressMessage";
-        private static readonly string s_globalSuppressionsFileName = "GlobalSuppressions";
-        private static readonly string s_suppressionsFileCommentTemplate =
+        private const string s_globalSuppressionsFileName = "GlobalSuppressions";
+        private const string s_suppressionsFileCommentTemplate =
 @"
 {0} This file is used by Code Analysis to maintain SuppressMessage 
 {0} attributes that are applied to this project.

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (typeArguments.Any(s_typeIsNull))
                 {
-                    return default(SymbolKeyResolution);
+                    return default;
                 }
 
                 var result = constructedFromResolution.GetAllSymbols()
@@ -85,9 +85,8 @@ namespace Microsoft.CodeAnalysis
                 // Mark that we're writing out the signature of a method.  This way if we hit a 
                 // method type parameter in our parameter-list or return type, we won't recurse
                 // into it, but will instead only write out the type parameter ordinal.  This
-                // happens with cases like Foo<T>(T t);
-                Debug.Assert(!visitor.WritingSignature);
-                visitor.WritingSignature = true;
+                // happens with cases like Goo<T>(T t);
+                visitor.PushMethod(symbol);
 
                 visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
 
@@ -100,9 +99,9 @@ namespace Microsoft.CodeAnalysis
                     visitor.WriteSymbolKey(null);
                 }
 
-                // Done writing the signature.  Go back to normal mode.
-                Debug.Assert(visitor.WritingSignature);
-                visitor.WritingSignature = false;
+                // Done writing the signature of this method.  Remove it from the set of methods
+                // we're writing signatures for.
+                visitor.PopMethod(symbol);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
@@ -114,8 +113,8 @@ namespace Microsoft.CodeAnalysis
                 var parameterRefKinds = reader.ReadRefKindArray();
 
                 // For each method that we look at, we'll have to resolve the parameter list and
-                // return type in the context of that method.  i.e. if we have Foo<T>(IList<T> list)
-                // then we'll need to have marked that we're on the Foo<T> method so that we know 
+                // return type in the context of that method.  i.e. if we have Goo<T>(IList<T> list)
+                // then we'll need to have marked that we're on the Goo<T> method so that we know 
                 // 'T' in IList<T> resolves to.
                 //
                 // Because of this, we keep track of where we are in the reader.  Before resolving
@@ -145,8 +144,13 @@ namespace Microsoft.CodeAnalysis
                 {
                     // We didn't find any candidates.  We still need to stream through this
                     // method signature so the reader is in a proper position.
+
+                    // Push an null-method to our stack so that any method-type-parameters
+                    // can at least be read (if not resolved) properly.
+                    reader.PushMethod(methodOpt: null);
                     var parameterTypeResolutions = reader.ReadSymbolKeyArray();
                     var returnType = GetFirstSymbol<ITypeSymbol>(reader.ReadSymbolKey());
+                    reader.PopMethod(methodOpt: null);
                 }
 
                 return CreateSymbolInfo(result);
@@ -185,20 +189,17 @@ namespace Microsoft.CodeAnalysis
                     // the parameters (and possibly the return type).  This is more complicated 
                     // because those symbols might refer to method type parameters.  In order
                     // for resolution to work on those type parameters, we have to keep track
-                    // in the reader that we're on this specific method.
+                    // in the reader that we're resolving this method. 
 
-                    // Restore our position to right before the list of parameters.
-                    // Also set the current method so that we can properly resolve
+                    // Restore our position to right before the list of parameters.  Also, push
+                    // this method into our method-resolution-stack so that we can properly resolve
                     // method type parameter ordinals.
                     reader.Position = beforeParametersPosition;
-
-                    Debug.Assert(reader.CurrentMethod == null);
-                    reader.CurrentMethod = method;
+                    reader.PushMethod(method);
 
                     var result = Resolve(reader, isPartialMethodImplementationPart, method);
 
-                    Debug.Assert(reader.CurrentMethod == method);
-                    reader.CurrentMethod = null;
+                    reader.PopMethod(method);
 
                     if (result != null)
                     {

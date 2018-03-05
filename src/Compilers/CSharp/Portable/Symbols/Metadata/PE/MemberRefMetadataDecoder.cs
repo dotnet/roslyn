@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     case (byte)SignatureCallingConvention.Default:
                     case (byte)SignatureCallingConvention.VarArgs:
                         int typeParamCount;
-                        ParamInfo<TypeSymbol>[] targetParamInfo = this.DecodeSignatureParametersOrThrow(ref signaturePointer, signatureHeader, out typeParamCount, allowByRefReturn: true);
+                        ParamInfo<TypeSymbol>[] targetParamInfo = this.DecodeSignatureParametersOrThrow(ref signaturePointer, signatureHeader, out typeParamCount);
                         return FindMethodBySignature(targetTypeSymbol, memberName, signatureHeader, typeParamCount, targetParamInfo);
 
                     case (byte)SignatureKind.Field:
@@ -242,10 +242,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private static bool ParametersMatch(ParameterSymbol candidateParam, TypeMap candidateMethodTypeMap, ref ParamInfo<TypeSymbol> targetParam)
         {
+            Debug.Assert(candidateMethodTypeMap != null);
+
             // This could be combined into a single return statement with a more complicated expression, but that would
             // be harder to debug.
 
-            if ((candidateParam.RefKind != RefKind.None) != targetParam.IsByRef || candidateParam.CountOfCustomModifiersPrecedingByRef != targetParam.CountOfCustomModifiersPrecedingByRef)
+            if ((candidateParam.RefKind != RefKind.None) != targetParam.IsByRef)
             {
                 return false;
             }
@@ -257,7 +259,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return false;
             }
 
-            if (!CustomModifiersMatch(substituted.CustomModifiers, targetParam.CustomModifiers))
+            if (!CustomModifiersMatch(substituted.CustomModifiers, targetParam.CustomModifiers) ||
+                !CustomModifiersMatch(candidateMethodTypeMap.SubstituteCustomModifiers(candidateParam.RefCustomModifiers), targetParam.RefCustomModifiers))
             {
                 return false;
             }
@@ -267,6 +270,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private static bool ReturnTypesMatch(MethodSymbol candidateMethod, TypeMap candidateMethodTypeMap, ref ParamInfo<TypeSymbol> targetReturnParam)
         {
+            Debug.Assert(candidateMethodTypeMap != null);
+
+            if (candidateMethod.ReturnsByRef != targetReturnParam.IsByRef)
+            {
+                return false;
+            }
+
             TypeSymbol candidateReturnType = candidateMethod.ReturnType;
             TypeSymbol targetReturnType = targetReturnParam.Type;
 
@@ -277,7 +287,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return false;
             }
 
-            if (!CustomModifiersMatch(substituted.CustomModifiers, targetReturnParam.CustomModifiers))
+            if (!CustomModifiersMatch(substituted.CustomModifiers, targetReturnParam.CustomModifiers) ||
+                !CustomModifiersMatch(candidateMethodTypeMap.SubstituteCustomModifiers(candidateMethod.RefCustomModifiers), targetReturnParam.RefCustomModifiers))
             {
                 return false;
             }

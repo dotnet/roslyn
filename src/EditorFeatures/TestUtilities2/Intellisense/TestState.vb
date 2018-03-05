@@ -1,24 +1,26 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
-Imports Microsoft.CodeAnalysis.Editor.Commands
-Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.BraceCompletion
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Roslyn.Utilities
+Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
@@ -30,6 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Friend ReadOnly AsyncCompletionService As IAsyncCompletionService
         Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpCommandHandler
+        Friend ReadOnly FormatCommandHandler As FormatCommandHandler
         Friend ReadOnly CompletionCommandHandler As CompletionCommandHandler
         Friend ReadOnly IntelliSenseCommandHandler As IntelliSenseCommandHandler
 
@@ -47,6 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionProvider, OrderableLanguageAndRoleMetadata)),
                         extraSignatureHelpProviders As IEnumerable(Of Lazy(Of ISignatureHelpProvider, OrderableLanguageMetadata)),
                         Optional extraExportedTypes As List(Of Type) = Nothing,
+                        Optional includeFormatCommandHandler As Boolean = False,
                         Optional workspaceKind As String = Nothing)
             MyBase.New(workspaceElement, CreatePartCatalog(extraExportedTypes), workspaceKind:=workspaceKind)
 
@@ -62,7 +66,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 GetService(Of IEditorOperationsFactoryService)(),
                 UndoHistoryRegistry,
                 GetService(Of IInlineRenameService)(),
-                GetService(Of IWaitIndicator)(),
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
                 {New Lazy(Of IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession), OrderableMetadata)(Function() New TestCompletionPresenter(Me), New OrderableMetadata("Presenter"))},
                 GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
@@ -70,12 +73,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.CompletionCommandHandler = New CompletionCommandHandler(Me.AsyncCompletionService)
 
             Me.SignatureHelpCommandHandler = New SignatureHelpCommandHandler(
-                GetService(Of IInlineRenameService)(),
                 New TestSignatureHelpPresenter(Me),
                 GetExports(Of ISignatureHelpProvider, OrderableLanguageMetadata)().Concat(extraSignatureHelpProviders),
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)())
 
             Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
+
+            Me.FormatCommandHandler = If(includeFormatCommandHandler,
+                New FormatCommandHandler(
+                    GetService(Of ITextUndoHistoryRegistry),
+                    GetService(Of IEditorOperationsFactoryService)),
+                Nothing)
         End Sub
 
         Private Shared Function CreatePartCatalog(types As List(Of Type)) As ComposableCatalog
@@ -109,7 +117,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 documentElement As XElement,
                 Optional extraCompletionProviders As CompletionProvider() = Nothing,
                 Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
-                Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
+                Optional extraExportedTypes As List(Of Type) = Nothing,
+                Optional includeFormatCommandHandler As Boolean = False) As TestState
             Return New TestState(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -120,7 +129,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Workspace>,
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.CSharp, roles:=Nothing),
                 CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.CSharp),
-                extraExportedTypes)
+                extraExportedTypes,
+                includeFormatCommandHandler)
         End Function
 
         Public Shared Function CreateTestStateFromWorkspace(
@@ -134,59 +144,65 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
                 CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.VisualBasic),
                 extraExportedTypes,
-                workspaceKind)
+                workspaceKind:=workspaceKind)
         End Function
 
 #Region "IntelliSense Operations"
 
         Public Overloads Sub SendEscape()
-            MyBase.SendEscape(Sub(a, n) IntelliSenseCommandHandler.ExecuteCommand(a, n), Sub() Return)
+            MyBase.SendEscape(Sub(a, n, c) IntelliSenseCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendDownKey()
-            MyBase.SendDownKey(Sub(a, n) IntelliSenseCommandHandler.ExecuteCommand(a, n), Sub() Return)
+            MyBase.SendDownKey(Sub(a, n, c) IntelliSenseCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendUpKey()
-            MyBase.SendUpKey(Sub(a, n) IntelliSenseCommandHandler.ExecuteCommand(a, n), Sub() Return)
+            MyBase.SendUpKey(Sub(a, n, c) IntelliSenseCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
 #End Region
 
 #Region "Completion Operations"
         Public Overloads Sub SendTab()
-            Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of TabKeyCommandArgs))
-            MyBase.SendTab(Sub(a, n) handler.ExecuteCommand(a, n), Sub() EditorOperations.InsertText(vbTab))
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of TabKeyCommandArgs))
+            MyBase.SendTab(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertText(vbTab))
         End Sub
 
         Public Overloads Sub SendReturn()
-            Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of ReturnKeyCommandArgs))
-            MyBase.SendReturn(Sub(a, n) handler.ExecuteCommand(a, n), Sub() EditorOperations.InsertNewLine())
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of ReturnKeyCommandArgs))
+            MyBase.SendReturn(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertNewLine())
         End Sub
 
         Public Overloads Sub SendPageUp()
-            Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of PageUpKeyCommandArgs))
-            MyBase.SendPageUp(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of PageUpKeyCommandArgs))
+            MyBase.SendPageUp(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendCut()
-            Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of CutCommandArgs))
-            MyBase.SendCut(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of CutCommandArgs))
+            MyBase.SendCut(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendPaste()
-            Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of PasteCommandArgs))
-            MyBase.SendPaste(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of PasteCommandArgs))
+            MyBase.SendPaste(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendInvokeCompletionList()
-            Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of InvokeCompletionListCommandArgs))
-            MyBase.SendInvokeCompletionList(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of InvokeCompletionListCommandArgs))
+            MyBase.SendInvokeCompletionList(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendCommitUniqueCompletionListItem()
-            Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of CommitUniqueCompletionListItemCommandArgs))
-            MyBase.SendCommitUniqueCompletionListItem(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of CommitUniqueCompletionListItemCommandArgs))
+            MyBase.SendCommitUniqueCompletionListItem(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
+        End Sub
+
+        Public Overloads Sub SendSelectCompletionItem(displayText As String)
+            Dim item = CurrentCompletionPresenterSession.CompletionItems.FirstOrDefault(Function(i) i.DisplayText = displayText)
+            Assert.NotNull(item)
+            CurrentCompletionPresenterSession.SetSelectedItem(item)
         End Sub
 
         Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
@@ -194,23 +210,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Overloads Sub SendInsertSnippetCommand()
-            Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of InsertSnippetCommandArgs))
-            MyBase.SendInsertSnippetCommand(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of InsertSnippetCommandArgs))
+            MyBase.SendInsertSnippetCommand(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendSurroundWithCommand()
-            Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of SurroundWithCommandArgs))
-            MyBase.SendSurroundWithCommand(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of SurroundWithCommandArgs))
+            MyBase.SendSurroundWithCommand(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendSave()
-            Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of SaveCommandArgs))
-            MyBase.SendSave(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of SaveCommandArgs))
+            MyBase.SendSave(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendSelectAll()
-            Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of SelectAllCommandArgs))
-            MyBase.SendSelectAll(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of SelectAllCommandArgs))
+            MyBase.SendSelectAll(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Async Function AssertNoCompletionSession(Optional block As Boolean = True) As Task
@@ -225,6 +241,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.NotNull(Me.CurrentCompletionPresenterSession)
         End Function
 
+        Public Async Function AssertLineTextAroundCaret(expectedTextBeforeCaret As String, expectedTextAfterCaret As String) As Task
+            Await WaitForAsynchronousOperationsAsync()
+
+            Dim actual = GetLineTextAroundCaretPosition()
+
+            Assert.Equal(expectedTextBeforeCaret, actual.TextBeforeCaret)
+            Assert.Equal(expectedTextAfterCaret, actual.TextAfterCaret)
+        End Function
+
         Public Function CompletionItemsContainsAll(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
             Return displayText.All(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
@@ -236,6 +261,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return displayText.Any(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
                                        Function(i) i.DisplayText = v))
         End Function
+
+        Public Sub AssertItemsInOrder(expectedOrder As String())
+            AssertNoAsynchronousOperationsRunning()
+            Dim items = CurrentCompletionPresenterSession.CompletionItems
+            Assert.Equal(expectedOrder.Count, items.Count)
+            For i = 0 To expectedOrder.Count - 1
+                Assert.Equal(expectedOrder(i), items(i).DisplayText)
+            Next
+        End Sub
 
         Public Async Function AssertSelectedCompletionItem(
                                Optional displayText As String = Nothing,
@@ -279,31 +313,41 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
 #Region "Signature Help and Completion Operations"
 
-        Private Sub ExecuteCommand(Of TCommandArgs As CommandArgs)(args As TCommandArgs, finalHandler As Action)
-            Dim sigHelpHandler = DirectCast(SignatureHelpCommandHandler, ICommandHandler(Of TCommandArgs))
-            Dim compHandler = DirectCast(DirectCast(CompletionCommandHandler, Object), ICommandHandler(Of TCommandArgs))
+        Private Sub ExecuteTypeCharCommand(args As TypeCharCommandArgs, finalHandler As Action, context As CommandExecutionContext)
+            Dim sigHelpHandler = DirectCast(SignatureHelpCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
+            Dim formatHandler = DirectCast(FormatCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
+            Dim compHandler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
 
-            sigHelpHandler.ExecuteCommand(args, Sub() compHandler.ExecuteCommand(args, finalHandler))
+            If formatHandler Is Nothing Then
+                sigHelpHandler.ExecuteCommand(
+                    args, Sub() compHandler.ExecuteCommand(
+                                    args, finalHandler, context), context)
+            Else
+                formatHandler.ExecuteCommand(
+                    args, Sub() sigHelpHandler.ExecuteCommand(
+                                    args, Sub() compHandler.ExecuteCommand(
+                                                    args, finalHandler, context), context), context)
+            End If
         End Sub
 
         Public Overloads Sub SendTypeChars(typeChars As String)
-            MyBase.SendTypeChars(typeChars, Sub(a, n) ExecuteCommand(a, n))
+            MyBase.SendTypeChars(typeChars, Sub(a, n, c) ExecuteTypeCharCommand(a, n, c))
         End Sub
 
         Public Overloads Sub SendBackspace()
-            Dim compHandler = DirectCast(CompletionCommandHandler, ICommandHandler(Of BackspaceKeyCommandArgs))
-            MyBase.SendBackspace(Sub(a, n) compHandler.ExecuteCommand(a, n), AddressOf MyBase.SendBackspace)
+            Dim compHandler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of BackspaceKeyCommandArgs))
+            MyBase.SendBackspace(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendBackspace)
         End Sub
 
         Public Overloads Sub SendDelete()
-            Dim compHandler = DirectCast(CompletionCommandHandler, ICommandHandler(Of DeleteKeyCommandArgs))
-            MyBase.SendDelete(Sub(a, n) compHandler.ExecuteCommand(a, n), AddressOf MyBase.SendDelete)
+            Dim compHandler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of DeleteKeyCommandArgs))
+            MyBase.SendDelete(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendDelete)
         End Sub
 
         Public Sub SendTypeCharsToSpecificViewAndBuffer(typeChars As String, view As IWpfTextView, buffer As ITextBuffer)
             For Each ch In typeChars
                 Dim localCh = ch
-                ExecuteCommand(New TypeCharCommandArgs(view, buffer, localCh), Sub() EditorOperations.InsertText(localCh.ToString()))
+                ExecuteTypeCharCommand(New TypeCharCommandArgs(view, buffer, localCh), Sub() EditorOperations.InsertText(localCh.ToString()), TestCommandExecutionContext.Create())
             Next
         End Sub
 #End Region
@@ -311,8 +355,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #Region "Signature Help Operations"
 
         Public Overloads Sub SendInvokeSignatureHelp()
-            Dim handler = DirectCast(SignatureHelpCommandHandler, ICommandHandler(Of InvokeSignatureHelpCommandArgs))
-            MyBase.SendInvokeSignatureHelp(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
+            Dim handler = DirectCast(SignatureHelpCommandHandler, VSCommanding.IChainedCommandHandler(Of InvokeSignatureHelpCommandArgs))
+            MyBase.SendInvokeSignatureHelp(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Async Function AssertNoSignatureHelpSession(Optional block As Boolean = True) As Task

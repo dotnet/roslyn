@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -169,6 +170,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property ISignatureReturnValueCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.ISignature.ReturnValueCustomModifiers
             Get
                 Return Me.ReturnTypeCustomModifiers.As(Of Cci.ICustomModifier)
+            End Get
+        End Property
+
+        Private ReadOnly Property ISignatureRefCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.ISignature.RefCustomModifiers
+            Get
+                Return Me.RefCustomModifiers.As(Of Cci.ICustomModifier)
             End Get
         End Property
 
@@ -451,13 +458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionReturnValueAttributes As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IMethodDefinition.ReturnValueAttributes
-            Get
-                Return GetReturnValueCustomAttributesToEmit()
-            End Get
-        End Property
-
-        Private Function GetReturnValueCustomAttributesToEmit() As IEnumerable(Of Cci.ICustomAttribute)
+        Private Function IMethodDefinitionGetReturnValueAttributes(context As EmitContext) As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IMethodDefinition.GetReturnValueAttributes
             CheckDefinitionInvariant()
 
             Dim userDefined As ImmutableArray(Of VisualBasicAttributeData)

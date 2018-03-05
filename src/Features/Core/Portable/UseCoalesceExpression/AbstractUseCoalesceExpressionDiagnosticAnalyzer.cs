@@ -7,6 +7,9 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
+    /// <summary>
+    /// Looks for code of the form "x == null ? y : x" and offers to convert it to "x ?? y";
+    /// </summary>
     internal abstract class AbstractUseCoalesceExpressionDiagnosticAnalyzer<
         TSyntaxKind,
         TExpressionSyntax,
@@ -24,6 +27,9 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         {
         }
 
+        public override bool OpenFileOnly(Workspace workspace) => false;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+
         protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract bool IsEquals(TBinaryExpressionSyntax condition);
@@ -37,8 +43,8 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
             var syntaxTree = context.Node.SyntaxTree;
-            var cancellationTokan = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationTokan).GetAwaiter().GetResult();
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;
@@ -51,10 +57,8 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             var syntaxFacts = this.GetSyntaxFactsService();
-
-            SyntaxNode conditionNode, whenTrueNodeHigh, whenFalseNodeHigh;
             syntaxFacts.GetPartsOfConditionalExpression(
-                conditionalExpression, out conditionNode, out whenTrueNodeHigh, out whenFalseNodeHigh);
+                conditionalExpression, out var conditionNode, out var whenTrueNodeHigh, out var whenFalseNodeHigh);
 
             conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
             var whenTrueNodeLow = syntaxFacts.WalkDownParentheses(whenTrueNodeHigh);
@@ -73,9 +77,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 return;
             }
 
-            SyntaxNode conditionLeftHigh;
-            SyntaxNode conditionRightHigh;
-            syntaxFacts.GetPartsOfBinaryExpression(condition, out conditionLeftHigh, out conditionRightHigh);
+            syntaxFacts.GetPartsOfBinaryExpression(condition, out var conditionLeftHigh, out var conditionRightHigh);
 
             var conditionLeftLow = syntaxFacts.WalkDownParentheses(conditionLeftHigh);
             var conditionRightLow = syntaxFacts.WalkDownParentheses(conditionRightHigh);
@@ -95,9 +97,27 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             if (!syntaxFacts.AreEquivalent(
-                    conditionRightIsNull ? conditionLeftLow : conditionRightLow, 
+                    conditionRightIsNull ? conditionLeftLow : conditionRightLow,
                     isEquals ? whenFalseNodeLow : whenTrueNodeLow))
             {
+                return;
+            }
+
+            var semanticModel = context.SemanticModel;
+            var conditionType = semanticModel.GetTypeInfo(
+                conditionLeftIsNull ? conditionRightLow : conditionLeftLow, cancellationToken).Type;
+            if (conditionType != null &&
+                !conditionType.IsReferenceType)
+            {
+                // Note: it is intentional that we do not support nullable types here.  If you have:
+                //
+                //  int? x;
+                //  var z = x == null ? y : x;
+                //  
+                // then that's not the same as:   x ?? y.   ?? will unwrap the nullable, producing a 
+                // int and not an int? like we have in the above code.  
+                //
+                // Note: we could look for:  x == null ? y : x.Value, and simplify that in the future.
                 return;
             }
 
@@ -109,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 whenPartToCheck.GetLocation());
 
             context.ReportDiagnostic(Diagnostic.Create(
-                this.CreateDescriptorWithSeverity(option.Notification.Value),
+                this.GetDescriptorWithSeverity(option.Notification.Value),
                 conditionalExpression.GetLocation(),
                 locations));
         }

@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourceConstructorSymbol : SourceMethodSymbol
+    internal sealed class SourceConstructorSymbol : SourceMemberMethodSymbol
     {
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeSymbol _lazyReturnType;
@@ -36,6 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, location, diagnostics, out modifierErrors);
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
 
+            if (syntax.Identifier.ValueText != containingType.Name)
+            {
+                // This is probably a method declaration with the type missing.
+                diagnostics.Add(ErrorCode.ERR_MemberNeedsType, location);
+            }
+
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
 
@@ -62,6 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 this.CheckModifiers(methodKind, location, diagnostics);
             }
+
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
@@ -76,7 +85,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var bodyBinder = binderFactory.GetBinder(parameterList, syntax, this).WithContainingMemberOrLambda(this);
 
             SyntaxToken arglistToken;
-            _lazyParameters = ParameterHelpers.MakeParameters(bodyBinder, this, parameterList, true, out arglistToken, diagnostics, false);
+            _lazyParameters = ParameterHelpers.MakeParameters(
+                bodyBinder, this, parameterList, out arglistToken,
+                allowRefOrOut: true,
+                allowThis: false,
+                addRefReadOnlyModifier: false,
+                diagnostics: diagnostics);
+
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             _lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
 
@@ -92,6 +107,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
             }
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
 
         internal ConstructorDeclarationSyntax GetSyntax()
@@ -144,7 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        internal override RefKind RefKind
+        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+
+        public override RefKind RefKind
         {
             get { return RefKind.None; }
         }

@@ -49,9 +49,9 @@ namespace Microsoft.Cci
             return null;
         }
 
-        public IEnumerable<IEventDefinition> Events
+        public IEnumerable<IEventDefinition> GetEvents(EmitContext context)
         {
-            get { return SpecializedCollections.EmptyEnumerable<IEventDefinition>(); }
+            return SpecializedCollections.EmptyEnumerable<IEventDefinition>();
         }
 
         public IEnumerable<MethodImplementation> GetExplicitImplementationOverrides(EmitContext context)
@@ -202,9 +202,9 @@ namespace Microsoft.Cci
             return this;
         }
 
-        PrimitiveTypeCode ITypeReference.TypeCode(EmitContext context)
+        PrimitiveTypeCode ITypeReference.TypeCode
         {
-            throw ExceptionUtilities.Unreachable;
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         ushort INamedTypeReference.GenericParameterCount

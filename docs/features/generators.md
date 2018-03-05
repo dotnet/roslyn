@@ -152,6 +152,7 @@ To redefine members in generated source, there are new language keywords: `repla
     }
 ```
 The following `class` and `struct` members can be replaced:
+
 1. Static and instance methods, properties, and events
 1. Explicit interface implementations of members
 1. User defined operators
@@ -163,6 +164,7 @@ The following `class` and `struct` members can be replaced:
 The default constructor can be added by a generator but not replaced.
 
 The following must match when replacing a member:
+
 1. Signature: name, accessibility, arity, return type, parameter number, parameter types and ref-ness
 1. Parameter names and default values (to prevent changing the interpretation of call-sites)
 1. Type parameters and constraints

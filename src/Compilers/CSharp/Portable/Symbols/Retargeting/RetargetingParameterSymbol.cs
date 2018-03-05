@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
     /// </summary>
     internal abstract class RetargetingParameterSymbol : WrappedParameterSymbol
     {
-        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
+        private CustomModifiersTuple _lazyCustomModifiers;
 
         /// <summary>
         /// Retargeted custom attributes
@@ -47,8 +47,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
+                return CustomModifiersTuple.TypeCustomModifiers;
+            }
+        }
+
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                return CustomModifiersTuple.RefCustomModifiers;
+            }
+        }
+
+        private CustomModifiersTuple CustomModifiersTuple
+        {
+            get
+            {
                 return RetargetingModule.RetargetingTranslator.RetargetModifiers(
-                    _underlyingParameter.CustomModifiers,
+                    _underlyingParameter.CustomModifiers, _underlyingParameter.RefCustomModifiers,
                     ref _lazyCustomModifiers);
             }
         }
@@ -66,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingModule.RetargetingTranslator.GetRetargetedAttributes(_underlyingParameter.GetAttributes(), ref _lazyCustomAttributes);
         }
 
-        internal sealed override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        internal sealed override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            return this.RetargetingModule.RetargetingTranslator.RetargetAttributes(_underlyingParameter.GetCustomAttributesToEmit(compilationState));
+            return this.RetargetingModule.RetargetingTranslator.RetargetAttributes(_underlyingParameter.GetCustomAttributesToEmit(moduleBuilder));
         }
 
         public sealed override AssemblySymbol ContainingAssembly

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.VisualStudio.Text.Projection
@@ -40,7 +40,7 @@ public override void Execute() {
 {|S2:
 class C
 {
-    void Foo()
+    void Goo()
     {
         System$$
     }
@@ -79,7 +79,7 @@ class C
 {|S2:
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s = new$$
     }
@@ -116,7 +116,7 @@ class C
 {|S2:
 class C
 {
-    void Foo()
+    void Goo()
     {
         $$
     }

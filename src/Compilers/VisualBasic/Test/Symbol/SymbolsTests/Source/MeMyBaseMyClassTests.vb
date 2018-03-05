@@ -24,7 +24,7 @@ Structure S1
     End Sub
 End Structure
 Class C1
-    Function Me.foo() As String
+    Function Me.goo() As String
         Return "Hello"
     End Function
 End Class
@@ -269,18 +269,18 @@ End Class
 <compilation name="CallFunctionInBaseClassByMe">
     <file name="a.vb">
 Class BaseClass
-    Private Sub foo()
+    Private Sub goo()
     End Sub
 End Class
 Class DerivedClass
     Inherits BaseClass
     Sub Test()
-        Me.foo()
+        Me.goo()
     End Sub
 End Class
     </file>
 </compilation>)
-            VerifyDiagnostics(comp, Diagnostic(ERRID.ERR_InaccessibleMember3, "Me.foo").WithArguments("BaseClass", "Private Sub foo()", "Private"))
+            VerifyDiagnostics(comp, Diagnostic(ERRID.ERR_InaccessibleMember3, "Me.goo").WithArguments("BaseClass", "Private Sub goo()", "Private"))
 
         End Sub
 
@@ -348,10 +348,10 @@ End Class
     <file name="a.vb">
 Imports System
 Class Class1
-    Sub Foo()
-        Foo(Me)
+    Sub Goo()
+        Goo(Me)
     End Sub
-    Sub Foo(ByVal x As Class1)
+    Sub Goo(ByVal x As Class1)
         x = Nothing
     End Sub
 End Class
@@ -366,13 +366,13 @@ Class MeClass
     End Function
 End Class
     </file>
-</compilation>).VerifyIL("Class1.Foo", <![CDATA[
+</compilation>).VerifyIL("Class1.Goo", <![CDATA[
 {
   // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.0
-  IL_0002:  call       "Sub Class1.Foo(Class1)"
+  IL_0002:  call       "Sub Class1.Goo(Class1)"
   IL_0007:  ret
 }
 ]]>).VerifyIL("MeClass.test", <![CDATA[
@@ -472,14 +472,14 @@ End Class
     <file name="a.vb">
 Structure s1
     Dim x As Integer
-    Sub foo()
+    Sub goo()
         Me.x = 1
         Dim y = Me.x
         System.Console.WriteLine(Me.x)
     End Sub
 End Structure
     </file>
-</compilation>).VerifyIL("s1.foo", <![CDATA[
+</compilation>).VerifyIL("s1.goo", <![CDATA[
 {
   // Code size       19 (0x13)
   .maxstack  2
@@ -726,18 +726,18 @@ End Enum
 <compilation name="AccessPrivateMethodInBase">
     <file name="a.vb">
 Class BaseClass
-    Private Sub foo()
+    Private Sub goo()
     End Sub
 End Class
 Class DerivedClass
     Inherits BaseClass
     Sub Test()
-        MyBase.foo()
+        MyBase.goo()
     End Sub
 End Class
     </file>
 </compilation>)
-            VerifyDiagnostics(comp, Diagnostic(ERRID.ERR_InaccessibleMember3, "MyBase.foo").WithArguments("BaseClass", "Private Sub foo()", "Private"))
+            VerifyDiagnostics(comp, Diagnostic(ERRID.ERR_InaccessibleMember3, "MyBase.goo").WithArguments("BaseClass", "Private Sub goo()", "Private"))
 
         End Sub
 
@@ -748,7 +748,7 @@ End Class
 <compilation name="AccessIndirectMethodInBase">
     <file name="a.vb">
 Class BaseClass
-    Public Sub foo()
+    Public Sub goo()
     End Sub
 End Class
 Class DerivedClass
@@ -757,7 +757,7 @@ End Class
 Class C1
     Inherits DerivedClass
     Sub Test()
-        MyBase.foo()
+        MyBase.goo()
     End Sub
 End Class
     </file>
@@ -766,7 +766,7 @@ End Class
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       "Sub BaseClass.foo()"
+  IL_0001:  call       "Sub BaseClass.goo()"
   IL_0006:  ret
 }
 ]]>)
@@ -779,7 +779,7 @@ End Class
 <compilation name="MyBaseIsKeyWord">
     <file name="a.vb">
 Class BaseClass
-    Private Sub foo()
+    Private Sub goo()
     End Sub
 End Class
 Class DerivedClass
@@ -790,9 +790,9 @@ Class DerivedClass
         MyBase = base
         System.Console.WriteLine(base Is MyBase)
         System.Console.WriteLine(TypeOf (MyBase))
-        foo(MyBase)
+        goo(MyBase)
     End Sub
-    Sub foo(base As BaseClass)
+    Sub goo(base As BaseClass)
     End Sub
 End Class
     </file>
@@ -847,7 +847,7 @@ End Class
 <compilation name="MyBaseCannotUsedInModule">
     <file name="a.vb">
 Module M1
-    Sub FOO()
+    Sub GOO()
         MyBase.ToString()
     End Sub
 End Module
@@ -864,7 +864,7 @@ End Module
 <compilation name="InvalidUseOfMyBase_2">
     <file name="a.vb">
 Public Class Class1
-    Friend Sub foo()
+    Friend Sub goo()
     End Sub
 End Class
     </file>
@@ -876,13 +876,13 @@ End Class
 Class DerivedClass
     Inherits Class1
     Sub test()
-        MyBase.foo()
+        MyBase.goo()
     End Sub
 End Class
     </file>
 </compilation>, additionalRefs:={compRef})
 
-            VerifyDiagnostics(comp2, Diagnostic(ERRID.ERR_InaccessibleMember3, "MyBase.foo").WithArguments("Class1", "Friend Sub foo()", "Friend"))
+            VerifyDiagnostics(comp2, Diagnostic(ERRID.ERR_InaccessibleMember3, "MyBase.goo").WithArguments("Class1", "Friend Sub goo()", "Friend"))
 
         End Sub
 
@@ -896,15 +896,15 @@ MustInherit Class BaseClass
 End Class
 Class DerivedClass
     Inherits BaseClass
-    Friend Sub foo()
+    Friend Sub goo()
     End Sub
     Sub test()
-        MyBase.foo()
+        MyBase.goo()
     End Sub
 End Class
     </file>
 </compilation>)
-            VerifyDiagnostics(comp, Diagnostic(ERRID.ERR_NameNotMember2, "MyBase.foo").WithArguments("foo", "BaseClass"))
+            VerifyDiagnostics(comp, Diagnostic(ERRID.ERR_NameNotMember2, "MyBase.goo").WithArguments("goo", "BaseClass"))
 
         End Sub
 
@@ -918,15 +918,15 @@ MustInherit Class BaseClass
 End Class
 Class DerivedClass
     Inherits BaseClass
-    Friend Sub foo()
+    Friend Sub goo()
     End Sub
     Sub test()
-        MyBase.foo()
+        MyBase.goo()
     End Sub
 End Class
     </file>
 </compilation>)
-            VerifyDiagnostics(comp, Diagnostic(ERRID.ERR_NameNotMember2, "MyBase.foo").WithArguments("foo", "BaseClass"))
+            VerifyDiagnostics(comp, Diagnostic(ERRID.ERR_NameNotMember2, "MyBase.goo").WithArguments("goo", "BaseClass"))
 
         End Sub
 
@@ -1195,7 +1195,7 @@ Class GenParent(Of t)
     Inherits GenBase
     Dim xyz = 1
     Public Property PropXyz = 1
-    Sub foo()
+    Sub goo()
         Dim x = Sub()
                     xyz = 2
                     MyBase.abc = 1
@@ -1206,7 +1206,7 @@ Class GenParent(Of t)
     End Sub
 End Class
     </file>
-</compilation>).VerifyIL("GenParent(Of t).foo", <![CDATA[
+</compilation>).VerifyIL("GenParent(Of t).goo", <![CDATA[
 {
   // Code size       18 (0x12)
   .maxstack  2
@@ -1236,12 +1236,12 @@ Class C1
     Public Function Compare1(ByVal x As Integer, ByVal y As Integer) As Integer Implements System.Collections.Generic.IComparer(Of Integer).Compare
         Return 0
     End Function
-    Sub FOO()
+    Sub GOO()
         Console.WriteLine(MyBase.ToString())
     End Sub
 End Class
     </file>
-</compilation>).VerifyIL("C1.FOO", <![CDATA[
+</compilation>).VerifyIL("C1.GOO", <![CDATA[
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -1259,7 +1259,7 @@ End Class
 <compilation name="InvalidUseOfMyBase">
     <file name="a.vb">
 Class C1
-    Sub FOO()
+    Sub GOO()
         MyBase
         MyBase()
         MyBase!FirstName = "DoDad"
@@ -1287,7 +1287,7 @@ End Class
 <compilation name="InvalidUseOfMyBase">
     <file name="a.vb">
 Class C1
-    Sub FOO()
+    Sub GOO()
         MyBase!()
         MyBase.MyBase.Whatever()
         MyBase.MyClass.Whatever()
@@ -1322,7 +1322,7 @@ End Class
     <file name="a.vb">
 Imports System
 Class BaseClass
-    Private Sub foo()
+    Private Sub goo()
     End Sub
 End Class
 Class DerivedClass
@@ -1333,9 +1333,9 @@ Class DerivedClass
         MyClass = base
         Console.WriteLine(base Is MyClass)
         Console.WriteLine(TypeOf (MyClass))
-        foo(MyClass)
+        goo(MyClass)
     End Sub
-    Sub foo(base As DerivedClass)
+    Sub goo(base As DerivedClass)
     End Sub
 End Class
     </file>
@@ -1363,19 +1363,19 @@ End Class
     <file name="a.vb">
 Class BaseClass
     Sub Test()
-        Dim x = MyClass.foo()
+        Dim x = MyClass.goo()
     End Sub
 End Class
 Class DerivedClass
     Inherits BaseClass
-    Public Function foo()
-        foo = "STRING"
+    Public Function goo()
+        goo = "STRING"
     End Function
 End Class
     </file>
 </compilation>)
 
-            VerifyDiagnostics(comp, Diagnostic(ERRID.ERR_NameNotMember2, "MyClass.foo").WithArguments("foo", "BaseClass"))
+            VerifyDiagnostics(comp, Diagnostic(ERRID.ERR_NameNotMember2, "MyClass.goo").WithArguments("goo", "BaseClass"))
 
         End Sub
 
@@ -1386,7 +1386,7 @@ End Class
 <compilation name="MyClassUsedToQualifierSharedMember">
     <file name="a.vb">
 Class BaseClass
-    Private Sub foo()
+    Private Sub goo()
     End Sub
 End Class
 Class DerivedClass
@@ -1394,10 +1394,10 @@ Class DerivedClass
     Shared age As Integer
     Sub Test()
         Dim x = MyClass.age
-        x = MyClass.foo()
+        x = MyClass.goo()
     End Sub
-    Shared Function foo()
-        foo = "hello"
+    Shared Function goo()
+        goo = "hello"
     End Function
 End Class
     </file>
@@ -1407,7 +1407,7 @@ End Class
   .maxstack  1
   IL_0000:  ldsfld     "DerivedClass.age As Integer"
   IL_0005:  pop
-  IL_0006:  call       "Function DerivedClass.foo() As Object"
+  IL_0006:  call       "Function DerivedClass.goo() As Object"
   IL_000b:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
   IL_0010:  pop
   IL_0011:  ret
@@ -1424,7 +1424,7 @@ End Class
 Imports System.Runtime.CompilerServices
 Imports System
 Class C1
-    Sub Foo()
+    Sub Goo()
         Console.WriteLine(MyClass.Sum())
     End Sub
 End Class
@@ -1436,7 +1436,7 @@ Module MyExtensionModule
     End Function
 End Module
     </file>
-</compilation>, additionalRefs:={SystemCoreRef}).VerifyIL("C1.Foo", <![CDATA[
+</compilation>, additionalRefs:={SystemCoreRef}).VerifyIL("C1.Goo", <![CDATA[
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -1456,12 +1456,12 @@ End Module
     <file name="a.vb">
 Imports System
 Structure s1
-    Sub foo()
+    Sub goo()
         Console.WriteLine(MyClass.ToString())
     End Sub
 End Structure
     </file>
-</compilation>).VerifyIL("s1.foo", <![CDATA[
+</compilation>).VerifyIL("s1.goo", <![CDATA[
 {
   // Code size       18 (0x12)
   .maxstack  1
@@ -1481,14 +1481,14 @@ End Structure
 <compilation name="MyClassOnlyValidInInstanceMethod">
     <file name="a.vb">
 Structure s1
-    Shared Function foo()
+    Shared Function goo()
         Dim x = MyClass.ToString()
     End Function
 End Structure
     </file>
 </compilation>)
             VerifyDiagnostics(comp, Diagnostic(ERRID.ERR_UseOfKeywordNotInInstanceMethod1, "MyClass").WithArguments("MyClass"),
-                                    Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo"))
+                                    Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("goo"))
 
         End Sub
 
@@ -1545,14 +1545,14 @@ End Structure
 <compilation name="MyClassUsedToRefMethodDefinedInBaseClass">
     <file name="a.vb">
 Class BaseClass
-    Public Function foo()
-        foo = "STRING"
+    Public Function goo()
+        goo = "STRING"
     End Function
 End Class
 Class DerivedClass
     Inherits BaseClass
     Sub Test()
-        Dim x = MyClass.foo()
+        Dim x = MyClass.goo()
     End Sub
 End Class
     </file>
@@ -1561,7 +1561,7 @@ End Class
   // Code size       13 (0xd)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       "Function BaseClass.foo() As Object"
+  IL_0001:  call       "Function BaseClass.goo() As Object"
   IL_0006:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_000b:  pop
   IL_000c:  ret
@@ -1579,7 +1579,7 @@ Class Base
 End Class
 Class Class1
     Inherits Base
-    Sub Foo()
+    Sub Goo()
         Dim c1 As New Class1()
         Me = c1
         MyClass = c1
@@ -1588,7 +1588,7 @@ Class Class1
 End Class
 
 Module M1
-    Sub Foo()
+    Sub Goo()
         Me = Nothing
         MyClass = Nothing
         MyBase = Nothing
@@ -1596,7 +1596,7 @@ Module M1
 End Module
 
 Structure S1
-    Sub Foo()
+    Sub Goo()
         Me = Nothing
         MyClass = Nothing
         MyBase = Nothing

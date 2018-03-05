@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -394,14 +394,14 @@ class Program
         <Document>
         namespace N
         {
-            class FooAttribute : System.Attribute
+            class GooAttribute : System.Attribute
             {
-                public {|Definition:$$FooAttribute|}() { }
+                public {|Definition:$$GooAttribute|}() { }
             }
         }
         </Document>
         <Document>
-        using M = N.FooAttribute;
+        using M = N.GooAttribute;
 
         [[|M|]()]
         [[|M|]]
@@ -422,14 +422,14 @@ class Program
         <Document>
         namespace N
         {
-            class FooAttribute : System.Attribute
+            class GooAttribute : System.Attribute
             {
-                public {|Definition:$$FooAttribute|}() { }
+                public {|Definition:$$GooAttribute|}() { }
             }
         }
         </Document>
         <Document>
-        using MAttribute = N.FooAttribute;
+        using MAttribute = N.GooAttribute;
 
         [[|M|]()]
         [[|M|]]
@@ -647,12 +647,12 @@ class Program
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-using FooAttribute = System.[|ObsoleteAttribute|];
+using GooAttribute = System.[|ObsoleteAttribute|];
  
-[$$[|Foo|]]
-[[|Foo|]()]
-[[|FooAttribute|]]
-[[|FooAttribute|]()]
+[$$[|Goo|]]
+[[|Goo|]()]
+[[|GooAttribute|]]
+[[|GooAttribute|]()]
 class C { }
         </Document>
     </Project>
@@ -668,12 +668,12 @@ class C { }
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-using FooAttribute = System.$$[|ObsoleteAttribute|];
+using GooAttribute = System.$$[|ObsoleteAttribute|];
  
-[Foo]
-[Foo()]
-[FooAttribute]
-[FooAttribute()]
+[Goo]
+[Goo()]
+[GooAttribute]
+[GooAttribute()]
 class C { }
         </Document>
     </Project>

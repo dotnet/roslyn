@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Collections;
@@ -230,6 +231,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             constraintDeducedBase = constraintType;
                             break;
 
+                        case TypeKind.Pointer:
+                            // Such a constraint can only be introduced by type substitution,
+                            // in which case it is already reported elsewhere, so we ignore this constraint.
+                            continue;
+
                         case TypeKind.Submission:
                         default:
                             throw ExceptionUtilities.UnexpectedValue(constraintType.TypeKind);
@@ -317,6 +323,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(location, useSiteDiagnostics);
         }
 
+        internal static ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(
+            this SourceMethodSymbol containingSymbol,
+            Binder binder,
+            ImmutableArray<TypeParameterSymbol> typeParameters,
+            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
+            Location location,
+            DiagnosticBag diagnostics)
+        {
+            if (typeParameters.Length == 0 || constraintClauses.Count == 0)
+            {
+                return ImmutableArray<TypeParameterConstraintClause>.Empty;
+            }
+
+            // Wrap binder from factory in a generic constraints specific binder
+            // to avoid checking constraints when binding type names.
+            Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
+            binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+
+            var result = binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, constraintClauses, diagnostics);
+            containingSymbol.CheckConstraintTypesVisibility(location, result, diagnostics);
+            return result;
+        }
+
         // Based on SymbolLoader::SetOverrideConstraints.
         private static void CheckOverrideConstraints(
             TypeParameterSymbol typeParameter,
@@ -389,7 +418,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false; // continue walking types
         }
 
-        public static bool CheckConstraints(
+        public static void CheckConstraints(
+            this TupleTypeSymbol tuple,
+            ConversionsBase conversions,
+            SyntaxNode typeSyntax,
+            ImmutableArray<Location> elementLocations,
+            Compilation currentCompilation,
+            DiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol type = tuple.TupleUnderlyingType;
+            if (!RequiresChecking(type))
+            {
+                return;
+            }
+
+            if (typeSyntax.HasErrors)
+            {
+                return;
+            }
+
+            var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+            var underlyingTupleTypeChain = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            TupleTypeSymbol.GetUnderlyingTypeChain(type, underlyingTupleTypeChain);
+
+            int offset = 0;
+            foreach (var underlyingTuple in underlyingTupleTypeChain)
+            {
+                ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
+                CheckTypeConstraints(underlyingTuple, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+
+                if (useSiteDiagnosticsBuilder != null)
+                {
+                    diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder);
+                }
+
+                foreach (var pair in diagnosticsBuilder)
+                {
+                    var ordinal = pair.TypeParameter.Ordinal;
+
+                    // If this is the TRest type parameter, we report it on 
+                    // the entire type syntax as it does not map to any tuple element.
+                    var location = ordinal == TupleTypeSymbol.RestIndex ? typeSyntax.Location : elementLocations[ordinal + offset];
+                    diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
+                }
+
+                diagnosticsBuilder.Clear();
+
+                offset += TupleTypeSymbol.RestIndex;
+            }
+
+            underlyingTupleTypeChain.Free();
+            diagnosticsBuilder.Free();
+        }
+
+        public static bool CheckConstraintsForNonTuple(
             this NamedTypeSymbol type,
             ConversionsBase conversions,
             SyntaxNode typeSyntax,
@@ -398,6 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConsList<Symbol> basesBeingResolved,
             DiagnosticBag diagnostics)
         {
+            Debug.Assert(!type.IsTupleType);
             Debug.Assert(typeArgumentsSyntax.Count == 0 /*omitted*/ || typeArgumentsSyntax.Count == type.Arity);
             if (!RequiresChecking(type))
             {
@@ -438,6 +521,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             DiagnosticBag diagnostics)
         {
+            // We do not report element locations in method parameters and return types
+            // so we will simply unwrap the type if it was a tuple. We are relying on
+            // TypeSymbolExtensions.VisitType to dig into the "Rest" tuple so that they
+            // will be recursively unwrapped as well.
+            type = (NamedTypeSymbol)type.TupleUnderlyingTypeOrSelf();
+
             if (!RequiresChecking(type))
             {
                 return true;
@@ -511,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     set.Free();
                     return false;
             }
-            
+
             // very rare case. 
             // some implemented interfaces are related
             // will have to instantiate interfaces and check
@@ -728,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // original definition of the type parameters using the map from the constructed symbol.
             var constraintTypes = ArrayBuilder<TypeSymbol>.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            substitution.SubstituteTypesDistinctWithoutModifiers(typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), constraintTypes, 
+            substitution.SubstituteTypesDistinctWithoutModifiers(typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), constraintTypes,
                                                                  ignoreTypeConstraintsDependentOnTypeParametersOpt);
 
             bool hasError = false;

@@ -590,7 +590,7 @@ public static class Module1
 ");
         }
 
-        [WorkItem(217748, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=21774")]
+        [WorkItem(217748, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=217748")]
         [Fact]
         public void BadExpressionConstructor()
         {

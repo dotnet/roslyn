@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 {
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var typeParameters = state.SignatureInfo.DetermineTypeParameters(cancellationToken);
                 var returnType = state.SignatureInfo.DetermineReturnType(cancellationToken);
 
-                if (typeParameters.Count == 0 && returnType.SpecialType != SpecialType.System_Void)
+                if (typeParameters.Length == 0 && returnType.SpecialType != SpecialType.System_Void)
                 {
                     result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, isAbstract: false, generateProperty: true));
 

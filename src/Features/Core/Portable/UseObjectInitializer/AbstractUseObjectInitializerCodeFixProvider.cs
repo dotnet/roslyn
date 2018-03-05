@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -17,24 +18,27 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
     internal abstract class AbstractUseObjectInitializerCodeFixProvider<
+        TSyntaxKind,
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
         TMemberAccessExpressionSyntax,
         TAssignmentStatementSyntax,
-        TVariableDeclarator>
-        : CodeFixProvider
+        TVariableDeclaratorSyntax>
+        : SyntaxEditorBasedCodeFixProvider
+        where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TAssignmentStatementSyntax : TStatementSyntax
-        where TVariableDeclarator : SyntaxNode
+        where TVariableDeclaratorSyntax : SyntaxNode
     {
-        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
-
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId);
+
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -44,37 +48,73 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             return SpecializedTasks.EmptyTask;
         }
 
-        private async Task<Document> FixAsync(
-            Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var objectCreation = (TObjectCreationExpressionSyntax)root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
-
+            // Fix-All for this feature is somewhat complicated.  As Object-Initializers 
+            // could be arbitrarily nested, we have to make sure that any edits we make
+            // to one Object-Initializer are seen by any higher ones.  In order to do this
+            // we actually process each object-creation-node, one at a time, rewriting
+            // the tree for each node.  In order to do this effectively, we use the '.TrackNodes'
+            // feature to keep track of all the object creation nodes as we make edits to
+            // the tree.  If we didn't do this, then we wouldn't be able to find the 
+            // second object-creation-node after we make the edit for the first one.
+            var workspace = document.Project.Solution.Workspace;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var analyzer = new Analyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclarator>(
-                syntaxFacts, objectCreation);
-            var matches = analyzer.Analyze();
 
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-
-            var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
-            var newStatement = statement.ReplaceNode(
-                objectCreation,
-                GetNewObjectCreation(objectCreation, matches)).WithAdditionalAnnotations(Formatter.Annotation);
-
-            editor.ReplaceNode(statement, newStatement);
-            foreach (var match in matches)
+            var originalRoot = editor.OriginalRoot;
+            var originalObjectCreationNodes = new Stack<TObjectCreationExpressionSyntax>();
+            foreach (var diagnostic in diagnostics)
             {
-                editor.RemoveNode(match.Statement);
+                var objectCreation = (TObjectCreationExpressionSyntax)originalRoot.FindNode(
+                    diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
+                originalObjectCreationNodes.Push(objectCreation);
             }
 
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
+            // We're going to be continually editing this tree.  Track all the nodes we
+            // care about so we can find them across each edit.
+            document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes));
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            while (originalObjectCreationNodes.Count > 0)
+            {
+                var originalObjectCreation = originalObjectCreationNodes.Pop();
+                var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
+
+                var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                    semanticModel, syntaxFacts, objectCreation, cancellationToken);
+
+                if (matches == null || matches.Value.Length == 0)
+                {
+                    continue;
+                }
+
+                var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
+                var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
+                    .WithAdditionalAnnotations(Formatter.Annotation);
+
+                var subEditor = new SyntaxEditor(currentRoot, workspace);
+
+                subEditor.ReplaceNode(statement, newStatement);
+                foreach (var match in matches)
+                {
+                    subEditor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                }
+
+                document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
+                semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            editor.ReplaceNode(editor.OriginalRoot, currentRoot);
         }
 
-        protected abstract TObjectCreationExpressionSyntax GetNewObjectCreation(
-            TObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches);
+        protected abstract TStatementSyntax GetNewStatement(
+            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, 
+            ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

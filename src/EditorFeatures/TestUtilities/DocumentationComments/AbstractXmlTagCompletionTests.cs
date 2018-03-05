@@ -1,12 +1,14 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -15,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 {
     public abstract class AbstractXmlTagCompletionTests
     {
-        internal abstract ICommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory);
-        protected abstract Task<TestWorkspace> CreateTestWorkspaceAsync(string initialMarkup);
+        internal abstract IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory);
+        protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
 
-        public async Task VerifyAsync(string initialMarkup, string expectedMarkup, char typeChar)
+        public void Verify(string initialMarkup, string expectedMarkup, char typeChar)
         {
-            using (var workspace = await CreateTestWorkspaceAsync(initialMarkup))
+            using (var workspace = CreateTestWorkspace(initialMarkup))
             {
                 var testDocument = workspace.Documents.Single();
                 var view = testDocument.GetTextView();
@@ -31,11 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                 var args = new TypeCharCommandArgs(view, view.TextBuffer, typeChar);
                 var nextHandler = CreateInsertTextHandler(view, typeChar.ToString());
 
-                commandHandler.ExecuteCommand(args, nextHandler);
-
-                string expectedCode;
-                int expectedPosition;
-                MarkupTestFile.GetPosition(expectedMarkup, out expectedCode, out expectedPosition);
+                commandHandler.ExecuteCommand(args, nextHandler, TestCommandExecutionContext.Create());
+                MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
 
                 Assert.Equal(expectedCode, view.TextSnapshot.GetText());
 

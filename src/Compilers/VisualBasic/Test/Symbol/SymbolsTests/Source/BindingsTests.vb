@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             'inside Global
         End Namespace
     </file>
-      </compilation>, options:=TestOptions.ReleaseExe.WithRootNamespace("Foo.Bar"))
+      </compilation>, options:=TestOptions.ReleaseExe.WithRootNamespace("Goo.Bar"))
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)
@@ -118,27 +118,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             context = GetBinderFromNode(compilation, bindingsA, "a.vb", "field1")
             Assert.IsType(GetType(NamedTypeBinder), context)
             typeContext = DirectCast(context, NamedTypeBinder)
-            Assert.Equal("Foo.Bar.N1.C1", typeContext.ContainingNamespaceOrType.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.C1", typeContext.ContainingNamespaceOrType.ToTestDisplayString())
 
             context = GetBinderFromNode(compilation, bindingsA, "a.vb", "field1")
             Assert.IsType(GetType(NamedTypeBinder), context)
             typeContext = DirectCast(context, NamedTypeBinder)
-            Assert.Equal("Foo.Bar.N1.C1", typeContext.ContainingNamespaceOrType.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.C1", typeContext.ContainingNamespaceOrType.ToTestDisplayString())
 
             context = GetBinderFromNode(compilation, bindingsA, "a.vb", "outside class")
             Assert.IsType(GetType(NamespaceBinder), context)
             nsContext = DirectCast(context, NamespaceBinder)
-            Assert.Equal("Foo.Bar.N1", nsContext.ContainingNamespaceOrType.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1", nsContext.ContainingNamespaceOrType.ToTestDisplayString())
 
             context = GetBinderFromNode(compilation, bindingsA, "a.vb", "top of file")
             Assert.IsType(GetType(NamespaceBinder), context)
             nsContext = DirectCast(context, NamespaceBinder)
-            Assert.Equal("Foo.Bar", nsContext.ContainingNamespaceOrType.ToTestDisplayString())
+            Assert.Equal("Goo.Bar", nsContext.ContainingNamespaceOrType.ToTestDisplayString())
 
             context = GetBinderFromNode(compilation, bindingsB, "b.vb", "field3")
             Assert.IsType(GetType(NamedTypeBinder), context)
             typeContext = DirectCast(context, NamedTypeBinder)
-            Assert.Equal("Foo.Bar.N1.N2.C2", typeContext.ContainingNamespaceOrType.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.C2", typeContext.ContainingNamespaceOrType.ToTestDisplayString())
             Assert.Equal(OptionStrict.Off, context.OptionStrict)
 
             context = GetBinderFromNode(compilation, bindingsB, "b.vb", "inside N3")
@@ -168,20 +168,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             context = GetBinderFromNode(compilation, bindingsA, "a.vb", "field2")
             Assert.IsType(GetType(NamedTypeBinder), context)
             typeContext = DirectCast(context, NamedTypeBinder)
-            Assert.Equal("Foo.Bar.N1.N2.C2", typeContext.ContainingNamespaceOrType.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.C2", typeContext.ContainingNamespaceOrType.ToTestDisplayString())
             Assert.Equal(OptionStrict.On, context.OptionStrict)
 
             context = GetBinderFromNode(compilation, bindingsA, "a.vb", "field4")
             Assert.IsType(GetType(NamedTypeBinder), context)
             typeContext = DirectCast(context, NamedTypeBinder)
-            Assert.Equal("Foo.Bar.N1.N2.Q", typeContext.ContainingNamespaceOrType.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.Q", typeContext.ContainingNamespaceOrType.ToTestDisplayString())
             Assert.Equal(TypeKind.Class, DirectCast(typeContext.ContainingNamespaceOrType, NamedTypeSymbol).TypeKind)
             Assert.Equal(OptionStrict.On, context.OptionStrict)
 
             context = GetBinderFromNode(compilation, bindingsB, "b.vb", "method1")
             Assert.IsType(GetType(NamedTypeBinder), context)
             typeContext = DirectCast(context, NamedTypeBinder)
-            Assert.Equal("Foo.Bar.N1.N2.Q", typeContext.ContainingNamespaceOrType.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.Q", typeContext.ContainingNamespaceOrType.ToTestDisplayString())
             Assert.Equal(TypeKind.Interface, DirectCast(typeContext.ContainingNamespaceOrType, NamedTypeSymbol).TypeKind)
             Assert.Equal(OptionStrict.Off, context.OptionStrict)
 
@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             context = GetBinderFromNode(compilation, bindingsA, "a.vb", "System.DateTime")
             Assert.IsType(GetType(StatementListBinder), context)
             Dim stListContext = DirectCast(context, StatementListBinder)
-            Assert.Equal("Foo.Bar.N1.C1", stListContext.ContainingNamespaceOrType.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.C1", stListContext.ContainingNamespaceOrType.ToTestDisplayString())
 
             context = GetBinderFromNode(compilation, bindingsA, "a.vb", "Generic.IEnumerable(Of TParam2)")
             Assert.IsType(GetType(MethodTypeParametersBinder), context)
@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' Test case where method isn't enclosed in a class.
         <Fact>
         Public Sub GetEnclosingBinderForMembersInsideNamespace()
-            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Foo.Bar")
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -235,40 +235,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.IsType(GetType(NamedTypeBinder), context)
             Dim implicitTypeContext = DirectCast(context, NamedTypeBinder)
             Assert.True(DirectCast(implicitTypeContext.ContainingNamespaceOrType, NamedTypeSymbol).IsImplicitClass)
-            Assert.Equal("Foo.Bar.N1.<invalid-global-code>", implicitTypeContext.ContainingNamespaceOrType.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.<invalid-global-code>", implicitTypeContext.ContainingNamespaceOrType.ToTestDisplayString())
             Assert.Equal(OptionStrict.Off, context.OptionStrict)
 
             context = GetBinderFromNode(compilation, bindingsA, "a.vb", "WriteLine")
             Assert.IsType(GetType(StatementListBinder), context)
             Dim statementBinder = DirectCast(context, StatementListBinder)
-            Assert.Equal("Foo.Bar.N1.<invalid-global-code>", statementBinder.ContainingNamespaceOrType.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.<invalid-global-code>", statementBinder.ContainingNamespaceOrType.ToTestDisplayString())
             Assert.Equal(OptionStrict.Off, context.OptionStrict)
 
             context = GetBinderFromNode(compilation, bindingsA, "a.vb", "MyFieldInitializer")
             Assert.IsType(GetType(DeclarationInitializerBinder), context)
             Dim fInitBinder = DirectCast(context, DeclarationInitializerBinder)
-            Assert.Equal("Foo.Bar.N1.<invalid-global-code>", fInitBinder.ContainingNamespaceOrType.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.<invalid-global-code>", fInitBinder.ContainingNamespaceOrType.ToTestDisplayString())
             Assert.Equal(OptionStrict.Off, context.OptionStrict)
             Assert.Same(implicitTypeContext, context.ContainingBinder)
 
             context = GetBinderFromNode(compilation, bindingsA, "a.vb", "MyPropertyInitializer")
             Assert.IsType(GetType(DeclarationInitializerBinder), context)
             Dim pInitBinder = DirectCast(context, DeclarationInitializerBinder)
-            Assert.Equal("Foo.Bar.N1.<invalid-global-code>", pInitBinder.ContainingNamespaceOrType.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.<invalid-global-code>", pInitBinder.ContainingNamespaceOrType.ToTestDisplayString())
             Assert.Equal(OptionStrict.Off, context.OptionStrict)
             Assert.Same(implicitTypeContext, context.ContainingBinder)
 
             context = GetBinderFromNode(compilation, bindingsA, "a.vb", "MyWithEventInitializer")
             Assert.IsType(GetType(DeclarationInitializerBinder), context)
             Dim weInitBinder = DirectCast(context, DeclarationInitializerBinder)
-            Assert.Equal("Foo.Bar.N1.<invalid-global-code>", weInitBinder.ContainingNamespaceOrType.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.<invalid-global-code>", weInitBinder.ContainingNamespaceOrType.ToTestDisplayString())
             Assert.Equal(OptionStrict.Off, context.OptionStrict)
             Assert.Same(implicitTypeContext, context.ContainingBinder)
         End Sub
 
         <Fact>
         Public Sub TestGetTypeFromDeclaration()
-            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Foo.Bar")
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
       <compilation name="Compilation">
@@ -318,16 +318,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
       </compilation>, options)
 
             Dim expectedErrors = <errors>
-BC30179: class 'Q' and structure 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
+BC30179: class 'Q' and structure 'Q' conflict in namespace 'Goo.Bar.N1.N2'.
                 public partial class Q'first
                                      ~
-BC30179: class 'Q' and structure 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
+BC30179: class 'Q' and structure 'Q' conflict in namespace 'Goo.Bar.N1.N2'.
                 public class Q'second
                              ~
-BC30179: structure 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
+BC30179: structure 'Q' and class 'Q' conflict in namespace 'Goo.Bar.N1.N2'.
                 public structure Q'third
                                  ~
-BC30179: interface 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
+BC30179: interface 'Q' and class 'Q' conflict in namespace 'Goo.Bar.N1.N2'.
             Public Interface Q
                              ~   
     </errors>
@@ -342,33 +342,33 @@ BC30179: interface 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
 
             typeSymbol = CompilationUtils.GetTypeSymbol(compilation, bindingsA, "a.vb", "C1")
             Assert.NotNull(typeSymbol)
-            Assert.Equal("Foo.Bar.N1.C1", typeSymbol.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.C1", typeSymbol.ToTestDisplayString())
 
             typeSymbol = CompilationUtils.GetTypeSymbol(compilation, bindingsA, "a.vb", "C2")
             Assert.NotNull(typeSymbol)
-            Assert.Equal("Foo.Bar.N1.N2.C2", typeSymbol.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.C2", typeSymbol.ToTestDisplayString())
 
             typeSymbol2 = CompilationUtils.GetTypeSymbol(compilation, bindingsB, "b.vb", "C2")
             Assert.NotNull(typeSymbol2)
-            Assert.Equal("Foo.Bar.N1.N2.C2", typeSymbol2.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.C2", typeSymbol2.ToTestDisplayString())
             Assert.Equal(typeSymbol, typeSymbol2)
 
             typeSymbol = CompilationUtils.GetTypeSymbol(compilation, bindingsA, "a.vb", "Q'first")
             Assert.NotNull(typeSymbol)
-            Assert.Equal("Foo.Bar.N1.N2.Q", typeSymbol.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.Q", typeSymbol.ToTestDisplayString())
             Assert.Equal(0, typeSymbol.Arity)
             Assert.Equal(TypeKind.Class, typeSymbol.TypeKind)
 
             typeSymbol2 = CompilationUtils.GetTypeSymbol(compilation, bindingsA, "a.vb", "Q'second")
             Assert.NotNull(typeSymbol2)
-            Assert.Equal("Foo.Bar.N1.N2.Q", typeSymbol2.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.Q", typeSymbol2.ToTestDisplayString())
             Assert.Equal(TypeKind.Class, typeSymbol2.TypeKind)
             Assert.Equal(0, typeSymbol2.Arity)
             Assert.Equal(typeSymbol, typeSymbol2)
 
             typeSymbol3 = CompilationUtils.GetTypeSymbol(compilation, bindingsA, "a.vb", "Q'third")
             Assert.NotNull(typeSymbol3)
-            Assert.Equal("Foo.Bar.N1.N2.Q", typeSymbol3.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.Q", typeSymbol3.ToTestDisplayString())
             Assert.Equal(TypeKind.Structure, typeSymbol3.TypeKind)
             Assert.Equal(0, typeSymbol3.Arity)
             Assert.NotEqual(typeSymbol, typeSymbol3)
@@ -376,7 +376,7 @@ BC30179: interface 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
 
             typeSymbol4 = CompilationUtils.GetTypeSymbol(compilation, bindingsB, "b.vb", "Q")
             Assert.NotNull(typeSymbol4)
-            Assert.Equal("Foo.Bar.N1.N2.Q", typeSymbol4.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.Q", typeSymbol4.ToTestDisplayString())
             Assert.Equal(TypeKind.Interface, typeSymbol4.TypeKind)
             Assert.Equal(0, typeSymbol4.Arity)
             Assert.NotEqual(typeSymbol4, typeSymbol3)
@@ -385,7 +385,7 @@ BC30179: interface 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
 
             typeSymbol5 = CompilationUtils.GetTypeSymbol(compilation, bindingsA, "a.vb", "Q(Of T)")
             Assert.NotNull(typeSymbol5)
-            Assert.Equal("Foo.Bar.N1.N2.Q(Of T)", typeSymbol5.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.Q(Of T)", typeSymbol5.ToTestDisplayString())
             Assert.Equal(TypeKind.Class, typeSymbol5.TypeKind)
             Assert.Equal(1, typeSymbol5.Arity)
             Assert.NotEqual(typeSymbol5, typeSymbol4)
@@ -405,7 +405,7 @@ BC30179: interface 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
 
         <Fact>
         Public Sub TestTypeBinding()
-            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Foo.Bar")
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
       <compilation name="Compilation">
@@ -414,8 +414,8 @@ BC30179: interface 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
         Option Strict On
 
         Imports System.Collections
-        Imports Foo.bar.N1.N2.Orange
-        Imports foo.    Bar.  n1. n2.  yellow%(Of Integer)
+        Imports Goo.bar.N1.N2.Orange
+        Imports goo.    Bar.  n1. n2.  yellow%(Of Integer)
 
         Namespace N1
             Class Class1
@@ -471,7 +471,7 @@ BC30179: interface 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
                 Assert.Equal(TypeKind.Error, sysCollectionsType.TypeKind)
             End If
 
-            ' Bind "Foo.Bar.N1.N2.Orange" in "Imports Foo.Bar.N1.N2.Orange". It binds fine.
+            ' Bind "Goo.Bar.N1.N2.Orange" in "Imports Goo.Bar.N1.N2.Orange". It binds fine.
             Dim importsOrangeTypeSyntax = FindTypeSyntax(CompilationUtils.FindTokenFromText(treeA, "N2.Orange"))
             Dim importsOrangeSymInfo = bindingsA.GetSemanticInfoSummary(importsOrangeTypeSyntax)
             Assert.Equal(TypeKind.Class, importsOrangeSymInfo.Type.TypeKind)
@@ -479,9 +479,9 @@ BC30179: interface 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
             Assert.NotNull(symbol)
             Assert.Equal(SymbolKind.NamedType, symbol.Kind)
             Assert.Same(importsOrangeSymInfo.Type, symbol)
-            Assert.Equal("Foo.Bar.N1.N2.Orange", symbol.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.Orange", symbol.ToTestDisplayString())
 
-            ' Bind "foo.    Bar.  n1. n2.  yellow%" in "Imports foo.    Bar.  n1. n2.  yellow%". It binds fine but has an 
+            ' Bind "goo.    Bar.  n1. n2.  yellow%" in "Imports goo.    Bar.  n1. n2.  yellow%". It binds fine but has an 
             ' error.
             Dim importsYellowTypeSyntax = FindTypeSyntax(CompilationUtils.FindTokenFromText(treeA, "yellow%"))
             Dim importsYellowSymInfo = bindingsA.GetSemanticInfoSummary(importsYellowTypeSyntax)
@@ -490,7 +490,7 @@ BC30179: interface 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
             Assert.NotNull(symbol)
             Assert.Equal(SymbolKind.NamedType, symbol.Kind)
             Assert.Equal(Of ISymbol)(importsYellowSymInfo.Type, symbol)
-            Assert.Equal("Foo.Bar.N1.N2.Yellow(Of System.Int32)", symbol.ToDisplayString(SymbolDisplayFormat.TestFormat))
+            Assert.Equal("Goo.Bar.N1.N2.Yellow(Of System.Int32)", symbol.ToDisplayString(SymbolDisplayFormat.TestFormat))
 
             ' Bind "N2.IAmbig" in "arg1 as N2.IAmbig". It is ambiguous.
             Dim interfaceIAmbigTypeSyntax = FindTypeSyntax(CompilationUtils.FindTokenFromText(treeA, "N2.IAmbig"))
@@ -506,10 +506,10 @@ BC30179: interface 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
             Assert.Equal(CandidateReason.Ambiguous, interfaceIAmbigSymInfo.CandidateReason)
             Assert.Equal(SymbolKind.NamedType, sortedSymbols(0).Kind)
             Assert.Equal(TypeKind.Interface, DirectCast(sortedSymbols(0), NamedTypeSymbol).TypeKind)
-            Assert.Equal("Foo.Bar.N1.N2.M1.IAmbig", sortedSymbols(0).ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.M1.IAmbig", sortedSymbols(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.NamedType, sortedSymbols(1).Kind)
             Assert.Equal(TypeKind.Interface, DirectCast(sortedSymbols(1), NamedTypeSymbol).TypeKind)
-            Assert.Equal("Foo.Bar.N1.N2.M2.IAmbig", sortedSymbols(1).ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.M2.IAmbig", sortedSymbols(1).ToTestDisplayString())
 
             ' Bind "N2.Yellow" in "Dim a As N2.Yellow". It has the wrong arity.
             Dim classYellowTypeSyntax = FindTypeSyntax(CompilationUtils.FindTokenFromText(treeA, "Yellow"))
@@ -522,7 +522,7 @@ BC30179: interface 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
             Assert.Equal(CandidateReason.WrongArity, classYellowSymInfo.CandidateReason)
             Assert.Equal(SymbolKind.NamedType, symbols(0).Kind)
             Assert.Equal(TypeKind.Class, DirectCast(symbols(0), NamedTypeSymbol).TypeKind)
-            Assert.Equal("Foo.Bar.N1.N2.Yellow(Of T)", symbols(0).ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.Yellow(Of T)", symbols(0).ToTestDisplayString())
 
             ' Bind "Elvis" in "Public k as Elvis". It doesn't exist at all.
             Dim elvisTypeSyntax = FindTypeSyntax(CompilationUtils.FindTokenFromText(treeA, "Elvis"))

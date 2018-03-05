@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
         protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
-            Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
+            Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default)
         {
-            if (trigger.Kind == CompletionTriggerKind.Insertion)
+            if (trigger.Kind != CompletionTriggerKind.Snippets)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -37,9 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 
                 var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
                 var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
-
-                TypeDeclarationSyntax typeDeclaration;
-
                 if (IsLambdaExpression(semanticModel, position, token, typeInferrer, cancellationToken))
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.lambda_expression, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_lambda_declaration);
@@ -64,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.namespace_name, CSharpFeaturesResources.Autoselect_disabled_due_to_namespace_declaration);
                 }
-                else if (tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out typeDeclaration))
+                else if (tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out var typeDeclaration))
                 {
                     switch (typeDeclaration.Keyword.Kind())
                     {
@@ -113,6 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 
         private bool IsLambdaExpression(SemanticModel semanticModel, int position, SyntaxToken token, ITypeInferenceService typeInferrer, CancellationToken cancellationToken)
         {
+            // Not after `new`
+            if (token.IsKind(SyntaxKind.NewKeyword) && token.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
+            {
+                return false;
+            }
+
             // Typing a generic type parameter, the tree might look like a binary expression around the < token.
             // If we infer a delegate type here (because that's what on the other side of the binop), 
             // ignore it.
@@ -155,10 +158,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 position = token.Parent.SpanStart;
             }
 
+            // In the following situation, the type inferrer will infer Task to support target type preselection
+            // Action a = Task.$$
+            // We need to explicitly exclude invocation/member access from suggestion mode
+            var previousToken = token.GetPreviousTokenIfTouchingWord(position);
+            if (previousToken.IsKind(SyntaxKind.DotToken) &&
+                previousToken.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            {
+                return false;
+            }
+
+            // async lambda: 
+            //    Goo(async($$
+            //    Goo(async(p1, $$
+            if (token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.ArgumentList)
+                && token.Parent.Parent is InvocationExpressionSyntax invocation
+                && invocation.Expression is IdentifierNameSyntax identifier)
+            {
+                if (identifier.Identifier.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword))
+                {
+                    return true;
+                }
+            }
+
             // If we're an argument to a function with multiple overloads, 
             // open the builder if any overload takes a delegate at our argument position
             var inferredTypeInfo = typeInferrer.GetTypeInferenceInfo(semanticModel, position, cancellationToken: cancellationToken);
-
             return inferredTypeInfo.Any(type => GetDelegateType(type, semanticModel.Compilation).IsDelegateType());
         }
 

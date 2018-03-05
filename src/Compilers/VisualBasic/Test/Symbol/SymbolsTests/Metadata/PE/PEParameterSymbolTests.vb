@@ -1,6 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Reflection
+Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.Desktop
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -14,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' Interface I
             '   Sub M(... As Object, ... As Object)
             ' End Interface
-            Dim reference = CreateReflectionEmitAssembly(
+            Dim reference = DesktopRuntimeUtil.CreateReflectionEmitAssembly(
                 Sub(moduleBuilder)
                     Dim typeBuilder = moduleBuilder.DefineType(
                         "I",

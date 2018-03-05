@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
@@ -25,12 +26,14 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
-    public class ErrorSquiggleProducerTests : AbstractSquiggleProducerTests
+    public class ErrorSquiggleProducerTests 
     {
+        private readonly DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider> _producer = new DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>();
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorTagGeneratedForError()
         {
-            var spans = await GetErrorSpans("class C {");
+            var spans = await GetTagSpansAsync("class C {");
             Assert.Equal(1, spans.Count());
 
             var firstSpan = spans.First();
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorTagGeneratedForWarning()
         {
-            var spans = await GetErrorSpans("class C { long x = 5l; }");
+            var spans = await GetTagSpansAsync("class C { long x = 5l; }");
             Assert.Equal(1, spans.Count());
             Assert.Equal(PredefinedErrorTypeNames.Warning, spans.First().Tag.ErrorType);
         }
@@ -64,9 +67,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
+            using (var workspace = TestWorkspace.Create(workspaceXml))
             {
-                var spans = (await GetDiagnosticsAndErrorSpans(workspace)).Item2;
+                var spans = (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
                 Assert.Equal(1, spans.Count());
                 Assert.Equal(PredefinedErrorTypeNames.SyntaxError, spans.First().Tag.ErrorType);
@@ -98,7 +101,7 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
+            using (var workspace = TestWorkspace.Create(workspaceXml))
             {
                 var options = new Dictionary<OptionKey, object>();
                 var language = workspace.Projects.Single().Language;
@@ -121,7 +124,7 @@ class Program
                 };
 
                 var spans =
-                    (await GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
+                    (await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
                         .OrderBy(s => s.Span.Span.Start).ToImmutableArray();
 
                 Assert.Equal(3, spans.Length);
@@ -149,14 +152,14 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorDoesNotCrashPastEOF()
         {
-            var spans = await GetErrorSpans("class C { int x =");
+            var spans = await GetTagSpansAsync("class C { int x =");
             Assert.Equal(3, spans.Count());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task SemanticErrorReported()
         {
-            var spans = await GetErrorSpans("class C : Bar { }");
+            var spans = await GetTagSpansAsync("class C : Bar { }");
             Assert.Equal(1, spans.Count());
 
             var firstSpan = spans.First();
@@ -167,8 +170,8 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterDocumentRemoved()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync("class"))
-            using (var wrapper = new DiagnosticTaggerWrapper(workspace))
+            using (var workspace = TestWorkspace.CreateCSharp("class"))
+            using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
@@ -197,8 +200,8 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterProjectRemoved()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync("class"))
-            using (var wrapper = new DiagnosticTaggerWrapper(workspace))
+            using (var workspace = TestWorkspace.CreateCSharp("class"))
+            using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
@@ -239,17 +242,17 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
+            using (var workspace = TestWorkspace.Create(workspaceXml))
             {
                 var document = workspace.Documents.First();
 
                 var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
                         ImmutableArray.Create(
-                            CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
-                            CreateDiagnosticData(workspace, document, new TextSpan(0, 1))));
+                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
+                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 1))));
 
-                var spans = await GetErrorsFromUpdateSource(workspace, document, updateArgs);
+                var spans = await _producer.GetErrorsFromUpdateSource(workspace, document, updateArgs);
 
                 Assert.Equal(1, spans.Count());
                 var first = spans.First();
@@ -272,17 +275,17 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
+            using (var workspace = TestWorkspace.Create(workspaceXml))
             {
                 var document = workspace.Documents.First();
 
                 var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
                         ImmutableArray.Create(
-                            CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
-                            CreateDiagnosticData(workspace, document, new TextSpan(0, 1))));
+                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
+                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 1))));
 
-                var spans = await GetErrorsFromUpdateSource(workspace, document, updateArgs);
+                var spans = await _producer.GetErrorsFromUpdateSource(workspace, document, updateArgs);
 
                 Assert.Equal(2, spans.Count());
                 var first = spans.First();
@@ -300,11 +303,11 @@ class Program
             }
         }
 
-        private static async Task<IEnumerable<ITagSpan<IErrorTag>>> GetErrorSpans(string content)
+        private async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(content))
+            using (var workspace = TestWorkspace.CreateCSharp(content))
             {
-                return (await GetDiagnosticsAndErrorSpans(workspace)).Item2;
+                return (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
             }
         }
     }

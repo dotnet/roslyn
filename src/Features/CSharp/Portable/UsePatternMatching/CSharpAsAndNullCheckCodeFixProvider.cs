@@ -19,12 +19,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal partial class CSharpAsAndNullCheckCodeFixProvider : CodeFixProvider
+    internal partial class CSharpAsAndNullCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineAsTypeCheckId);
-
-        public override FixAllProvider GetFixAllProvider() => new InlineTypeCheckFixAllProvider(this);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -34,69 +32,82 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             return SpecializedTasks.EmptyTask;
         }
 
-        private Task<Document> FixAsync(
-            Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-        }
-
-        private async Task<Document> FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(root, editor, diagnostic, cancellationToken);
+                AddEdits(editor, diagnostic, cancellationToken);
             }
 
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
+            return SpecializedTasks.EmptyTask;
         }
 
-        private void AddEdits(
-            SyntaxNode root, 
-            SyntaxEditor editor, 
-            Diagnostic diagnostic, 
+        private static ExpressionSyntax GetCondition(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.WhileStatement:
+                    return ((WhileStatementSyntax)node).Condition;
+                case SyntaxKind.IfStatement:
+                    return ((IfStatementSyntax)node).Condition;
+                case SyntaxKind.ReturnStatement:
+                    return ((ReturnStatementSyntax)node).Expression;
+                case SyntaxKind.LocalDeclarationStatement:
+                    return ((LocalDeclarationStatementSyntax)node).Declaration.Variables[0].Initializer.Value;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
+            }
+        }
+
+        private static void AddEdits(
+            SyntaxEditor editor,
+            Diagnostic diagnostic,
             CancellationToken cancellationToken)
         {
             var localDeclarationLocation = diagnostic.AdditionalLocations[0];
-            var ifStatementLocation = diagnostic.AdditionalLocations[1];
+            var targetStatementLocation = diagnostic.AdditionalLocations[1];
             var conditionLocation = diagnostic.AdditionalLocations[2];
             var asExpressionLocation = diagnostic.AdditionalLocations[3];
 
             var localDeclaration = (LocalDeclarationStatementSyntax)localDeclarationLocation.FindNode(cancellationToken);
-            var ifStatement = (IfStatementSyntax)ifStatementLocation.FindNode(cancellationToken);
-            var condition = (BinaryExpressionSyntax)conditionLocation.FindNode(cancellationToken);
+            var targetStatement = (StatementSyntax)targetStatementLocation.FindNode(cancellationToken);
+            var conditionPart = (BinaryExpressionSyntax)conditionLocation.FindNode(cancellationToken);
             var asExpression = (BinaryExpressionSyntax)asExpressionLocation.FindNode(cancellationToken);
 
-            var updatedCondition = SyntaxFactory.IsPatternExpression(
+            var updatedConditionPart = SyntaxFactory.IsPatternExpression(
                 asExpression.Left, SyntaxFactory.DeclarationPattern(
                     ((TypeSyntax)asExpression.Right).WithoutTrivia(),
                     SyntaxFactory.SingleVariableDesignation(
-                        Extensions.SyntaxTokenExtensions.WithoutTrivia(
-                            localDeclaration.Declaration.Variables[0].Identifier))));
+                        localDeclaration.Declaration.Variables[0].Identifier.WithoutTrivia())));
 
-            var trivia = localDeclaration.GetLeadingTrivia().Concat(localDeclaration.GetTrailingTrivia())
-                                         .Where(t => t.IsSingleOrMultiLineComment())
-                                         .SelectMany(t => ImmutableArray.Create(t, SyntaxFactory.ElasticCarriageReturnLineFeed))
-                                         .ToImmutableArray();
+            var currentCondition = GetCondition(targetStatement);
+            var updatedCondition = currentCondition.ReplaceNode(conditionPart, updatedConditionPart);
 
-            var updatedIfStatement = ifStatement.ReplaceNode(condition, updatedCondition)
-                                                .WithPrependedLeadingTrivia(trivia)
-                                                .WithAdditionalAnnotations(Formatter.Annotation);
+            var block = (BlockSyntax)localDeclaration.Parent;
+            var declarationIndex = block.Statements.IndexOf(localDeclaration);
 
-            editor.RemoveNode(localDeclaration);
-            editor.ReplaceNode(ifStatement, updatedIfStatement);
+            // Trivia on the local declaration will move to the next statement.
+            // use the callback form as the next statement may be the place where we're
+            // inlining the declaration, and thus need to see the effects of that change.
+            editor.ReplaceNode(
+                block.Statements[declarationIndex + 1],
+                (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
+            editor.RemoveNode(localDeclaration, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+
+            editor.ReplaceNode(targetStatement, (currentStatement, g) =>
+            {
+                var updatedStatement = currentStatement.ReplaceNode(GetCondition(currentStatement), updatedCondition);
+                return updatedStatement.WithAdditionalAnnotations(Formatter.Annotation);
+            });
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Inline_temporary_variable, createChangedDocument)
+                : base(FeaturesResources.Use_pattern_matching, createChangedDocument)
             {
             }
         }

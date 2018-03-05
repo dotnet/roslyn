@@ -62,10 +62,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         internal AnalyzerFileWatcherService AnalyzerFileWatcherService { get; private set; }
 
         /// <summary>
-        /// Whether or not we have been torn down.  This is currently only used to make sure we are
-        /// not torn down twice.
+        /// Whether or not we have been set up. This is set once everything is wired up and cleared once tear down has begun.
         /// </summary>
-        private bool _isTornDown;
+        /// <remarks>
+        /// We don't set this until we've completed setup. If something goes sideways during it, we will never register
+        /// with the shell and thus have a floating thing around that can't be safely shut down either. We're in a bad
+        /// state but trying to proceed will only make things worse.
+        /// </remarks>
+        private bool _isSetUp;
 
         protected AbstractLanguageService(
             TPackage package)
@@ -105,6 +109,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // debugging).  We must not assume anything about our initial state and must instead
             // query for all the information we need at this point.
             this.Initialize();
+
+            _isSetUp = true;
         }
 
         private object CreateComAggregate()
@@ -114,14 +120,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         internal void TearDown()
         {
-            if (_isTornDown)
+            if (!_isSetUp)
             {
                 throw new InvalidOperationException();
             }
 
-            _isTornDown = true;
-
+            _isSetUp = false;
             GC.SuppressFinalize(this);
+
             this.Uninitialize();
             this.DisconnectFromServices();
             this.RemoveServices();
@@ -129,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         ~AbstractLanguageService()
         {
-            if (!Environment.HasShutdownStarted)
+            if (!Environment.HasShutdownStarted && _isSetUp)
             {
                 throw new InvalidOperationException("TearDown not called!");
             }
@@ -238,10 +244,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var isOpenMetadataAsSource = openDocument != null && openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
 
             ConditionallyCollapseOutliningRegions(textView, wpfTextView, workspace, isOpenMetadataAsSource);
-
             // If this is a metadata-to-source view, we want to consider the file read-only
-            IVsTextLines vsTextLines;
-            if (isOpenMetadataAsSource && ErrorHandler.Succeeded(textView.GetBuffer(out vsTextLines)))
+            if (isOpenMetadataAsSource && ErrorHandler.Succeeded(textView.GetBuffer(out var vsTextLines)))
             {
                 ((IVsTextBuffer)vsTextLines).SetStateFlags((uint)BUFFERSTATEFLAGS.BSF_USER_READONLY);
 
@@ -256,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
         }
 
-        private void ConditionallyCollapseOutliningRegions(IVsTextView textView, IWpfTextView wpfTextView, Workspace workspace, bool isOpenMetadataAsSource)
+        private void ConditionallyCollapseOutliningRegions(IVsTextView textView, IWpfTextView wpfTextView, Microsoft.CodeAnalysis.Workspace workspace, bool isOpenMetadataAsSource)
         {
             var outliningManagerService = this.Package.ComponentModel.GetService<IOutliningManagerService>();
             var outliningManager = outliningManagerService.GetOutliningManager(wpfTextView);
@@ -271,8 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
             else
             {
-                var viewEx = textView as IVsTextViewEx;
-                if (viewEx != null)
+                if (textView is IVsTextViewEx viewEx)
                 {
                     if (isOpenMetadataAsSource)
                     {

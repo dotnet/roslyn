@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -66,14 +67,17 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
             {
                 var references = new List<InlineRenameLocation>();
 
-                IList<DocumentSpan> renameLocations = await _renameInfo.FindRenameLocationsAsync(
+                var renameLocations = await _renameInfo.FindRenameLocationsAsync(
                     renameInStrings: optionSet.GetOption(RenameOptions.RenameInStrings),
                     renameInComments: optionSet.GetOption(RenameOptions.RenameInComments),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                references.AddRange(renameLocations.Select(ds => new InlineRenameLocation(ds.Document, ds.TextSpan)));
+                references.AddRange(renameLocations.Select(
+                    ds => new InlineRenameLocation(ds.Document, ds.TextSpan)));
 
-                return new InlineRenameLocationSet(_renameInfo, _document.Project.Solution, references);
+                return new InlineRenameLocationSet(
+                    _renameInfo, _document.Project.Solution,
+                    references.ToImmutableArray());
             }
 
             public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken)
@@ -129,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                 private readonly IXamlRenameInfo _renameInfo;
                 private readonly Solution _oldSolution;
 
-                public InlineRenameLocationSet(IXamlRenameInfo renameInfo, Solution solution, IList<InlineRenameLocation> locations)
+                public InlineRenameLocationSet(IXamlRenameInfo renameInfo, Solution solution, ImmutableArray<InlineRenameLocation> locations)
                 {
                     _renameInfo = renameInfo;
                     _oldSolution = solution;

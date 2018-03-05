@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous;
@@ -13,21 +12,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MakeMethodS
 {
     public class MakeMethodSynchronousTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpMakeMethodSynchronousCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new CSharpMakeMethodSynchronousCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestTaskReturnType()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    async Task [|Foo|]()
+    async Task [|Goo|]()
     {
     }
 }",
@@ -36,23 +33,22 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestTaskOfTReturnType()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    async Task<int> [|Foo|]()
+    async Task<int> [|Goo|]()
     {
     }
 }",
@@ -61,23 +57,22 @@ using System.Threading.Tasks;
 
 class C
 {
-    int Foo()
+    int Goo()
     {
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestSecondModifier()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    public async Task [|Foo|]()
+    public async Task [|Goo|]()
     {
     }
 }",
@@ -86,23 +81,22 @@ using System.Threading.Tasks;
 
 class C
 {
-    public void Foo()
+    public void Goo()
     {
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestFirstModifier()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    async public Task [|Foo|]()
+    async public Task [|Goo|]()
     {
     }
 }",
@@ -111,24 +105,23 @@ using System.Threading.Tasks;
 
 class C
 {
-    public void Foo()
+    public void Goo()
     {
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestTrailingTrivia()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
     async // comment
-    Task [|Foo|]()
+    Task [|Goo|]()
     {
     }
 }",
@@ -137,23 +130,22 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestRenameMethod()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 }",
@@ -162,29 +154,28 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestRenameMethod1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     void Bar()
     {
-        FooAsync();
+        GooAsync();
     }
 }",
 @"
@@ -192,31 +183,30 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 
     void Bar()
     {
-        Foo();
+        Goo();
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestParenthesizedLambda()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
-            async [|()|] => { };
+            async () [|=>|] { };
     }
 }",
 @"
@@ -224,28 +214,27 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
             () => { };
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestSimpleLambda()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string, Task> f =
-            async [|a|] => { };
+            async a [|=>|] { };
     }
 }",
 @"
@@ -253,27 +242,27 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string, Task> f =
             a => { };
     }
-}",
-compareTokens: false);
+}");
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestLambdaWithExpressionBody()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string, Task> f =
-            async [|a|] => 1;
+            async a [|=>|] 1;
     }
 }",
 @"
@@ -281,25 +270,24 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string, Task> f =
             a => 1;
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestAnonymousMethod()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
             async [|delegate|] { };
@@ -310,245 +298,352 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
             delegate { };
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestFixAll()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    {|FixAllInDocument:async Task FooAsync()
+    {|FixAllInDocument:async Task GooAsync()
     {
         BarAsync();
     }
 
     async Task<int> BarAsync()
     {
-        FooAsync();
+        GooAsync();
     }|}
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
         Bar();
     }
 
     int Bar()
     {
-        Foo();
+        Goo();
     }
-}", compareTokens: false, fixAllActionEquivalenceKey: AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey);
+}", fixAllActionEquivalenceKey: AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCaller1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     async void BarAsync()
     {
-        await FooAsync();
+        await GooAsync();
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
     }
 
     async void BarAsync()
     {
-        Foo();
+        Goo();
     }
-}", compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCaller2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     async void BarAsync()
     {
-        await FooAsync().ConfigureAwait(false);
+        await GooAsync().ConfigureAwait(false);
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
     }
 
     async void BarAsync()
     {
-        Foo();
+        Goo();
     }
-}", compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCaller3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     async void BarAsync()
     {
-        await this.FooAsync();
+        await this.GooAsync();
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
     }
 
     async void BarAsync()
     {
-        this.Foo();
+        this.Goo();
     }
-}", compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCaller4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     async void BarAsync()
     {
-        await this.FooAsync().ConfigureAwait(false);
+        await this.GooAsync().ConfigureAwait(false);
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
     }
 
     async void BarAsync()
     {
-        this.Foo();
+        this.Goo();
     }
-}", compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCallerNested1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    async Task<int> [|FooAsync|](int i)
+    async Task<int> [|GooAsync|](int i)
     {
     }
 
     async void BarAsync()
     {
-        await this.FooAsync(await this.FooAsync(0));
+        await this.GooAsync(await this.GooAsync(0));
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    int Foo(int i)
+    int Goo(int i)
     {
     }
 
     async void BarAsync()
     {
-        this.Foo(this.Foo(0));
+        this.Goo(this.Goo(0));
     }
-}", compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCallerNested()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    async Task<int> [|FooAsync|](int i)
+    async Task<int> [|GooAsync|](int i)
     {
     }
 
     async void BarAsync()
     {
-        await this.FooAsync(await this.FooAsync(0).ConfigureAwait(false)).ConfigureAwait(false);
+        await this.GooAsync(await this.GooAsync(0).ConfigureAwait(false)).ConfigureAwait(false);
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    int Foo(int i)
+    int Goo(int i)
     {
     }
 
     async void BarAsync()
     {
-        this.Foo(this.Foo(0));
+        this.Goo(this.Goo(0));
     }
-}", compareTokens: false);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
+        public async Task RemoveAsyncInLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        async Task [|M2Async|]()
+        {
+        }
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        void M2()
+        {
+        }
+    }
+}");
+        }
+
+        [Theory]
+        [InlineData("Task<C>", "C")]
+        [InlineData("Task<int>", "int")]
+        [InlineData("Task", "void")]
+        [InlineData("void", "void")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
+        public async Task RemoveAsyncInLocalFunctionKeepsTrivia(string asyncReturn, string expectedReturn)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    public void M1()
+    {{
+        // Leading trivia
+        /*1*/ async {asyncReturn} /*2*/ [|M2Async|]/*3*/() /*4*/
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+}}",
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    public void M1()
+    {{
+        // Leading trivia
+        /*1*/
+        {expectedReturn} /*2*/ M2/*3*/() /*4*/
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+}}");
+        }
+
+        [Theory]
+        [InlineData("", "Task<C>", "\r\n    C")]
+        [InlineData("", "Task<int>", "\r\n    int")]
+        [InlineData("", "Task", "\r\n    void")]
+        [InlineData("", "void", "\r\n    void")]
+        [InlineData("public", "Task<C>", " C")]
+        [InlineData("public", "Task<int>", " int")]
+        [InlineData("public", "Task", " void")]
+        [InlineData("public", "void", " void")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
+        public async Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    // Leading trivia
+    {modifiers}/*1*/ async {asyncReturn} /*2*/ [|M2Async|]/*3*/() /*4*/
+    {{
+        throw new NotImplementedException();
+    }}
+}}",
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    // Leading trivia
+    {modifiers}/*1*/{expectedReturn} /*2*/ M2/*3*/() /*4*/
+    {{
+        throw new NotImplementedException();
+    }}
+}}");
         }
     }
 }

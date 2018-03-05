@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // note we have to compare both index and name because 
             // in nameless tuple there could be fields that differ only by index
-            // and in named tupoles there could be fields that differ only by name
+            // and in named tuples there could be fields that differ only by name
             return (object)other != null &&
                 _tupleElementIndex == other._tupleElementIndex &&
                 _containingTuple == other._containingTuple;
@@ -146,16 +146,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal class TupleElementFieldSymbol : TupleFieldSymbol
     {
         private readonly ImmutableArray<Location> _locations;
+        private readonly TupleElementFieldSymbol _correspondingDefaultField;
 
         // default tuple elements like Item1 or Item20 could be provided by the user or
         // otherwise implicitly declared by compiler
         private readonly bool _isImplicitlyDeclared;
 
-        public TupleElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, int tupleElementIndex, Location location, bool isImplicitlyDeclared)
-            : base(container, underlyingField, tupleElementIndex)
+        public TupleElementFieldSymbol(
+            TupleTypeSymbol container, 
+            FieldSymbol underlyingField, 
+            int tupleElementIndex, 
+            Location location, 
+            bool isImplicitlyDeclared, 
+            TupleElementFieldSymbol correspondingDefaultFieldOpt)
+
+            : base(container, underlyingField, (object)correspondingDefaultFieldOpt == null ? tupleElementIndex << 1 : (tupleElementIndex << 1) + 1)
         {
             _locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(location);
             _isImplicitlyDeclared = isImplicitlyDeclared;
+
+            Debug.Assert((correspondingDefaultFieldOpt == null) == this.IsDefaultTupleElement);
+            Debug.Assert(correspondingDefaultFieldOpt == null || correspondingDefaultFieldOpt.IsDefaultTupleElement);
+
+            _correspondingDefaultField = correspondingDefaultFieldOpt ?? this;
         }
 
         public override ImmutableArray<Location> Locations
@@ -209,6 +222,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return base.AssociatedSymbol;
             }
         }
+
+        public override FieldSymbol CorrespondingTupleField
+        {
+            get
+            {
+                return _correspondingDefaultField;
+            }
+        }
     }
 
     /// <summary>
@@ -229,15 +250,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class TupleVirtualElementFieldSymbol : TupleElementFieldSymbol
     {
         private readonly string _name;
+        private readonly bool _cannotUse; // With LanguageVersion 7, we will produce named elements that should not be used
 
-        public TupleVirtualElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, string name, int tupleElementIndex, Location location, bool isImplicitlyDeclared)
-            : base(container, underlyingField, tupleElementIndex, location, isImplicitlyDeclared)
+        public TupleVirtualElementFieldSymbol(
+            TupleTypeSymbol container, 
+            FieldSymbol underlyingField, 
+            string name,
+            int tupleElementIndex, 
+            Location location, 
+            bool cannotUse,
+            bool isImplicitlyDeclared, 
+            TupleElementFieldSymbol correspondingDefaultFieldOpt)
+
+            : base(container, underlyingField, tupleElementIndex, location, isImplicitlyDeclared, correspondingDefaultFieldOpt)
         {
             Debug.Assert(name != null);
             Debug.Assert(name != underlyingField.Name || !container.UnderlyingNamedType.Equals(underlyingField.ContainingType, TypeCompareKind.IgnoreDynamicAndTupleNames),
                                 "fields that map directly to underlying should not be represented by " + nameof(TupleVirtualElementFieldSymbol));
 
             _name = name;
+            _cannotUse = cannotUse;
+        }
+
+        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        {
+            if (_cannotUse)
+            {
+                return new CSDiagnosticInfo(ErrorCode.ERR_TupleInferredNamesNotAvailable, _name,
+                    new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureInferredTupleNames.RequiredVersion()));
+            }
+
+            return base.GetUseSiteDiagnostic();
         }
 
         public override string Name

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.Shell;
 using Roslyn.VisualStudio.Setup;
@@ -10,6 +10,7 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.EditorFeatures.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.EditorFeatures.Text.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Features.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll")]
@@ -22,36 +23,32 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.VisualBasic.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.CSharp.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.Xaml.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll")]
 
-[assembly: ProvideRoslynBindingRedirection("System.Reflection.Metadata.dll")]
-[assembly: ProvideRoslynBindingRedirection("System.Collections.Immutable.dll")]
-[assembly: ProvideRoslynBindingRedirection("Esent.Interop.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Elfie.dll")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.DiaSymReader.dll")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.DiaSymReader.PortablePdb.dll")]
+
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Remote.ServiceHub.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Remote.Workspaces.dll")]
+
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\SQLitePCLRaw.batteries_green.DLL")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\SQLitePCLRaw.batteries_v2.DLL")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\SQLitePCLRaw.core.DLL")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\SQLitePCLRaw.provider.e_sqlite3.DLL")]
 
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Convention.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Hosting.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.TypedParts.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Humanizer.dll")]
 
-// [assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.AppContext.dll")] - removed because project is not executable.
-// [assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Console.dll")] - removed because project has no dependency.
-[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Diagnostics.FileVersionInfo.dll")]
-// [assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Diagnostics.Process.dll")] - removed because project has no dependency.
-[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.Compression.dll")]
-[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.FileSystem.dll")]
-// [assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.FileSystem.DriveInfo.dll")] - removed because project has no dependency.
-[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.FileSystem.Primitives.dll")]
-//[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.Pipes.dll")] - removed because project has no dependency.
-[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Runtime.InteropServices.RuntimeInformation.dll")]
-//[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.AccessControl.dll")] - removed because project has no dependency.
-//[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Claims.dll")] - removed because project has no dependency.
-[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Cryptography.Algorithms.dll")]
-[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Cryptography.Encoding.dll")]
-[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Cryptography.Primitives.dll")]
-[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Cryptography.X509Certificates.dll")]
-//[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Principal.Windows.dll")] - removed because project has no dependency.
-//[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Text.Encoding.CodePages.dll")] - removed because project has no dependency.
-//[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Threading.Thread.dll")] - removed because project has no dependency.
-[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Xml.XmlDocument.dll")]
-[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Xml.XPath.XDocument.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Mono.Cecil.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\ICSharpCode.Decompiler.dll")]
+
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.VisualStudio.CallHierarchy.Package.Definitions",
+    GenerateCodeBase = false,
+    PublicKeyToken = "31BF3856AD364E35",
+    OldVersionLowerBound = "14.0.0.0",
+    OldVersionUpperBound = "14.9.9.9",
+    NewVersion = "15.0.0.0")]

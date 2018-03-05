@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -11,9 +11,11 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
+#Disable Warning RS1016 ' Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateEndConstruct), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.FixIncorrectExitContinue)>
     Friend Class GenerateEndConstructCodeFixProvider
+#Enable Warning RS1016
         Inherits CodeFixProvider
 
         Friend Const BC30025 As String = "BC30025" ' error BC30025: Property missing 'End Property'.
@@ -107,41 +109,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
         End Function
 
         Private Shared Function GetBeginStatement(node As SyntaxNode) As SyntaxNode
-            Return node.TypeSwitch((Function(n As MultiLineIfBlockSyntax) n.IfStatement),
-                              (Function(n As UsingBlockSyntax) n.UsingStatement),
-                              (Function(n As StructureBlockSyntax) n.BlockStatement),
-                              (Function(n As ModuleBlockSyntax) n.BlockStatement),
-                              (Function(n As NamespaceBlockSyntax) n.NamespaceStatement),
-                              (Function(n As ClassBlockSyntax) n.BlockStatement),
-                              (Function(n As InterfaceBlockSyntax) n.BlockStatement),
-                              (Function(n As EnumBlockSyntax) n.EnumStatement),
-                              (Function(n As WhileBlockSyntax) n.WhileStatement),
-                              (Function(n As WithBlockSyntax) n.WithStatement),
-                              (Function(n As SyncLockBlockSyntax) n.SyncLockStatement),
-                              (Function(n As DoLoopBlockSyntax) n.DoStatement),
-                              (Function(n As ForOrForEachBlockSyntax) n.ForOrForEachStatement),
-                              (Function(n As TryBlockSyntax) DirectCast(n, SyntaxNode)),
-                              (Function(n As MethodBlockBaseSyntax) n.BlockStatement),
-                              (Function(n As PropertyBlockSyntax) n.PropertyStatement))
+            Return node.TypeSwitch(
+                (Function(n As MultiLineIfBlockSyntax) n.IfStatement),
+                (Function(n As UsingBlockSyntax) n.UsingStatement),
+                (Function(n As StructureBlockSyntax) n.BlockStatement),
+                (Function(n As ModuleBlockSyntax) n.BlockStatement),
+                (Function(n As NamespaceBlockSyntax) n.NamespaceStatement),
+                (Function(n As ClassBlockSyntax) n.BlockStatement),
+                (Function(n As InterfaceBlockSyntax) n.BlockStatement),
+                (Function(n As EnumBlockSyntax) n.EnumStatement),
+                (Function(n As WhileBlockSyntax) n.WhileStatement),
+                (Function(n As WithBlockSyntax) n.WithStatement),
+                (Function(n As SyncLockBlockSyntax) n.SyncLockStatement),
+                (Function(n As DoLoopBlockSyntax) n.DoStatement),
+                (Function(n As ForOrForEachBlockSyntax) n.ForOrForEachStatement),
+                (Function(n As TryBlockSyntax) DirectCast(n, SyntaxNode)),
+                (Function(n As MethodBlockBaseSyntax) n.BlockStatement),
+                (Function(n As PropertyBlockSyntax) n.PropertyStatement))
         End Function
 
         Private Shared Function GetEndStatement(node As SyntaxNode) As SyntaxNode
-            Return node.TypeSwitch((Function(n As MultiLineIfBlockSyntax) DirectCast(n.EndIfStatement, SyntaxNode)),
-                              (Function(n As UsingBlockSyntax) n.EndUsingStatement),
-                              (Function(n As StructureBlockSyntax) n.EndBlockStatement),
-                              (Function(n As ModuleBlockSyntax) n.EndBlockStatement),
-                              (Function(n As NamespaceBlockSyntax) n.EndNamespaceStatement),
-                              (Function(n As ClassBlockSyntax) n.EndBlockStatement),
-                              (Function(n As InterfaceBlockSyntax) n.EndBlockStatement),
-                              (Function(n As EnumBlockSyntax) n.EndEnumStatement),
-                              (Function(n As WhileBlockSyntax) n.EndWhileStatement),
-                              (Function(n As WithBlockSyntax) n.EndWithStatement),
-                              (Function(n As SyncLockBlockSyntax) n.EndSyncLockStatement),
-                              (Function(n As DoLoopBlockSyntax) n.LoopStatement),
-                              (Function(n As ForOrForEachBlockSyntax) n.NextStatement),
-                              (Function(n As TryBlockSyntax) n.EndTryStatement),
-                              (Function(n As MethodBlockBaseSyntax) n.EndBlockStatement),
-                              (Function(n As PropertyBlockSyntax) n.EndPropertyStatement))
+            Return node.TypeSwitch(
+                (Function(n As MultiLineIfBlockSyntax) DirectCast(n.EndIfStatement, SyntaxNode)),
+                (Function(n As UsingBlockSyntax) n.EndUsingStatement),
+                (Function(n As StructureBlockSyntax) n.EndBlockStatement),
+                (Function(n As ModuleBlockSyntax) n.EndBlockStatement),
+                (Function(n As NamespaceBlockSyntax) n.EndNamespaceStatement),
+                (Function(n As ClassBlockSyntax) n.EndBlockStatement),
+                (Function(n As InterfaceBlockSyntax) n.EndBlockStatement),
+                (Function(n As EnumBlockSyntax) n.EndEnumStatement),
+                (Function(n As WhileBlockSyntax) n.EndWhileStatement),
+                (Function(n As WithBlockSyntax) n.EndWithStatement),
+                (Function(n As SyncLockBlockSyntax) n.EndSyncLockStatement),
+                (Function(n As DoLoopBlockSyntax) n.LoopStatement),
+                (Function(n As ForOrForEachBlockSyntax) n.NextStatement),
+                (Function(n As TryBlockSyntax) n.EndTryStatement),
+                (Function(n As MethodBlockBaseSyntax) n.EndBlockStatement),
+                (Function(n As PropertyBlockSyntax) n.EndPropertyStatement))
         End Function
 
         Private Async Function GeneratePropertyEndConstructAsync(document As Document, node As PropertyBlockSyntax, cancellationToken As CancellationToken) As Task(Of Document)

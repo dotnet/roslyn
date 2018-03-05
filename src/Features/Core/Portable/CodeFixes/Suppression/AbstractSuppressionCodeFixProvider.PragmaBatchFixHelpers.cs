@@ -58,10 +58,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     var originalpragmaAction = pragmaActions[i];
                     var diagnostic = diagnostics[i];
-
                     // Get the diagnostic span for the diagnostic in latest document snapshot.
-                    TextSpan currentDiagnosticSpan;
-                    if (!currentDiagnosticSpans.TryGetValue(diagnostic, out currentDiagnosticSpan))
+                    if (!currentDiagnosticSpans.TryGetValue(diagnostic, out var currentDiagnosticSpan))
                     {
                         // Diagnostic whose location conflicts with a prior fix.
                         continue;
@@ -133,16 +131,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             private static void UpdateDiagnosticSpans(ImmutableArray<Diagnostic> diagnostics, Dictionary<Diagnostic, TextSpan> currentDiagnosticSpans, IEnumerable<TextChange> textChanges)
             {
-                Func<TextSpan, TextChange, bool> isPriorSpan = (span, textChange) => span.End <= textChange.Span.Start;
-                Func<TextSpan, TextChange, bool> isFollowingSpan = (span, textChange) => span.Start >= textChange.Span.End;
-                Func<TextSpan, TextChange, bool> isEnclosingSpan = (span, textChange) => span.Contains(textChange.Span);
+                bool isPriorSpan(TextSpan span, TextChange textChange) => span.End <= textChange.Span.Start;
+                bool isFollowingSpan(TextSpan span, TextChange textChange) => span.Start >= textChange.Span.End;
+                bool isEnclosingSpan(TextSpan span, TextChange textChange) => span.Contains(textChange.Span);
 
                 foreach (var diagnostic in diagnostics)
                 {
                     // We use 'originalSpan' to identify if the diagnostic is prior/following/enclosing with respect to each text change.
                     // We use 'currentSpan' to track updates made to the originalSpan by each text change.
-                    TextSpan originalSpan;
-                    if (!currentDiagnosticSpans.TryGetValue(diagnostic, out originalSpan))
+                    if (!currentDiagnosticSpans.TryGetValue(diagnostic, out var originalSpan))
                     {
                         continue;
                     }

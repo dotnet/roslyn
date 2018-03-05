@@ -56,6 +56,101 @@ End Class
 
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
 
+            Dim test = compilation.GetTypeByMetadataName("Test1").GetMember(Of MethodSymbol)("Test")
+            Dim type = DirectCast(test.Parameters.First().Type, INamedTypeSymbol)
+            Assert.Equal("System.Nullable(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong))", type.ToTestDisplayString())
+            Assert.Equal("System.Runtime.CompilerServices.IsLong", type.GetTypeArgumentCustomModifiers(0).Single().Modifier.ToTestDisplayString())
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() type.GetTypeArgumentCustomModifiers(1))
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() type.GetTypeArgumentCustomModifiers(-1))
+
+            Dim nullable = type.OriginalDefinition
+            Assert.Equal("System.Nullable(Of T)", nullable.ToTestDisplayString())
+            Assert.True(nullable.GetTypeArgumentCustomModifiers(0).IsEmpty)
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() nullable.GetTypeArgumentCustomModifiers(1))
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() nullable.GetTypeArgumentCustomModifiers(-1))
+
+            Dim i = DirectCast(type.TypeArguments.First(), INamedTypeSymbol)
+            Assert.Equal("System.Int32", i.ToTestDisplayString())
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() i.GetTypeArgumentCustomModifiers(0))
+
+            nullable = nullable.Construct(i)
+            Assert.Equal("System.Nullable(Of System.Int32)", nullable.ToTestDisplayString())
+            Assert.True(nullable.GetTypeArgumentCustomModifiers(0).IsEmpty)
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() nullable.GetTypeArgumentCustomModifiers(1))
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() nullable.GetTypeArgumentCustomModifiers(-1))
+
+            CompileAndVerify(compilation, expectedOutput:="Test")
+        End Sub
+
+        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        Public Sub ModifiedTypeArgument_02()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit Test1
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method Test1::.ctor
+
+  .method public hidebysig static void Test(class [mscorlib] System.Collections.Generic.Dictionary`2<int32, int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong) modopt([mscorlib]System.Runtime.CompilerServices.IsConst)> x) cil managed
+  {
+    // Code size       11 (0xb)
+    .maxstack  1
+    IL_0000:  ldstr      "Test"
+    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000a:  ret
+  } // end of method Test1::Test
+  
+} // end of class Test1
+]]>.Value
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Module1
+    Shared Sub Main()
+        Test1.Test(Nothing)
+    End Sub
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
+
+            Dim test = compilation.GetTypeByMetadataName("Test1").GetMember(Of MethodSymbol)("Test")
+            Dim type = DirectCast(test.Parameters.First().Type, INamedTypeSymbol)
+            Assert.Equal("System.Collections.Generic.Dictionary(Of System.Int32, System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong))",
+                         type.ToTestDisplayString())
+            Assert.True(type.GetTypeArgumentCustomModifiers(0).IsEmpty)
+            Dim modifiers = type.GetTypeArgumentCustomModifiers(1)
+            Assert.Equal(2, modifiers.Length)
+            Assert.Equal("System.Runtime.CompilerServices.IsConst", modifiers.First().Modifier.ToTestDisplayString())
+            Assert.Equal("System.Runtime.CompilerServices.IsLong", modifiers.Last().Modifier.ToTestDisplayString())
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() type.GetTypeArgumentCustomModifiers(2))
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() type.GetTypeArgumentCustomModifiers(-1))
+
+            Dim dictionary = type.OriginalDefinition
+            Assert.Equal("System.Collections.Generic.Dictionary(Of TKey, TValue)", dictionary.ToTestDisplayString())
+            Assert.True(dictionary.GetTypeArgumentCustomModifiers(0).IsEmpty)
+            Assert.True(dictionary.GetTypeArgumentCustomModifiers(1).IsEmpty)
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() dictionary.GetTypeArgumentCustomModifiers(2))
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() dictionary.GetTypeArgumentCustomModifiers(-1))
+
+            Dim i = type.TypeArguments.First()
+            dictionary = dictionary.Construct(i, i)
+            Assert.Equal("System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)", dictionary.ToTestDisplayString())
+            Assert.True(dictionary.GetTypeArgumentCustomModifiers(0).IsEmpty)
+            Assert.True(dictionary.GetTypeArgumentCustomModifiers(1).IsEmpty)
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() dictionary.GetTypeArgumentCustomModifiers(2))
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() dictionary.GetTypeArgumentCustomModifiers(-1))
+
             CompileAndVerify(compilation, expectedOutput:="Test")
         End Sub
 
@@ -479,6 +574,386 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="Overriden")
         End Sub
 
+        <Fact(), WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")>
+        Public Sub ConcatModifiersAndByRefReturn_01()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit CL1`1<T1>
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    } // end of method CL1`1::.ctor
+
+    .field private !T1 f1
+
+    .method public hidebysig newslot virtual
+            instance !T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)& Test() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  8
+      ldstr      "Test"
+      call       void [mscorlib]System.Console::WriteLine(string)
+      ldarg.0
+      ldflda     !0 class CL1`1<!T1>::f1
+      ret
+    } // end of method CL1`1::Test
+
+    .method public hidebysig newslot virtual
+            instance !T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)& get_P() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  8
+      ldstr      "get_P"
+      call       void [mscorlib]System.Console::WriteLine(string)
+      ldarg.0
+      ldflda     !0 class CL1`1<!T1>::f1
+      ret
+    } 
+
+    .property instance !T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)& P()
+    {
+      .get instance !T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)& CL1`1::get_P()
+    } 
+
+} // end of class CL1`1
+
+.class public auto ansi beforefieldinit CL2
+       extends class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call instance void class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>::.ctor()
+      IL_0006:  ret
+    } // end of method CL2::.ctor
+} // end of class CL2
+
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Module1
+    Shared Sub Main()
+        Dim x As CL2 = New CL2()
+
+        x.Test() = 2
+        x.P = 3
+    End Sub
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
+
+            Dim cl2Base = compilation.GetTypeByMetadataName("CL2").BaseType
+            Assert.Equal("ByRef Function CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).Test() As System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef Property CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).P As System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+
+            Dim cl1 = compilation.GetTypeByMetadataName("CL1`1")
+            Assert.Equal("ByRef Function CL1(Of T1).Test() As T1 modopt(System.Runtime.CompilerServices.IsConst)", cl1.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef Property CL1(Of T1).P As T1 modopt(System.Runtime.CompilerServices.IsConst)", cl1.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+
+            CompileAndVerify(compilation, expectedOutput:=
+"Test
+get_P")
+        End Sub
+
+        <Fact(), WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")>
+        Public Sub ConcatModifiersAndByRefReturn_02()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit CL1`1<T1>
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    } // end of method CL1`1::.ctor
+
+    .field private !T1 f1
+
+    .method public hidebysig newslot virtual
+            instance !T1& modopt([mscorlib]System.Runtime.CompilerServices.IsConst) Test() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  8
+      ldstr      "Test"
+      call       void [mscorlib]System.Console::WriteLine(string)
+      ldarg.0
+      ldflda     !0 class CL1`1<!T1>::f1
+      ret
+    } // end of method CL1`1::Test
+
+    .method public hidebysig newslot virtual
+            instance !T1& modopt([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  8
+      ldstr      "get_P"
+      call       void [mscorlib]System.Console::WriteLine(string)
+      ldarg.0
+      ldflda     !0 class CL1`1<!T1>::f1
+      ret
+    } 
+
+    .property instance !T1& modopt([mscorlib]System.Runtime.CompilerServices.IsConst) P()
+    {
+      .get instance !T1& modopt([mscorlib]System.Runtime.CompilerServices.IsConst) CL1`1::get_P()
+    } 
+
+} // end of class CL1`1
+
+.class public auto ansi beforefieldinit CL2
+       extends class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call instance void class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>::.ctor()
+      IL_0006:  ret
+    } // end of method CL2::.ctor
+} // end of class CL2
+
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Module1
+    Shared Sub Main()
+        Dim x As CL2 = New CL2()
+
+        x.Test() = 2
+        x.P = 3
+    End Sub
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
+
+            Dim cl2Base = compilation.GetTypeByMetadataName("CL2").BaseType
+            Assert.Equal("ByRef modopt(System.Runtime.CompilerServices.IsConst) Function CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).Test() As System.Int32 modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef modopt(System.Runtime.CompilerServices.IsConst) Property CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).P As System.Int32 modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+
+            Dim cl1 = compilation.GetTypeByMetadataName("CL1`1")
+            Assert.Equal("ByRef modopt(System.Runtime.CompilerServices.IsConst) Function CL1(Of T1).Test() As T1", cl1.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef modopt(System.Runtime.CompilerServices.IsConst) Property CL1(Of T1).P As T1", cl1.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+
+            CompileAndVerify(compilation, expectedOutput:=
+"Test
+get_P")
+        End Sub
+
+        <Fact(), WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")>
+        Public Sub ConcatModifiersAndByRefReturn_03()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit CL1`1<T1>
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    } // end of method CL1`1::.ctor
+
+    .field private !T1 f1
+
+    .method public hidebysig newslot virtual
+            instance !T1& Test() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  8
+      ldstr      "Test"
+      call       void [mscorlib]System.Console::WriteLine(string)
+      ldarg.0
+      ldflda     !0 class CL1`1<!T1>::f1
+      ret
+    } // end of method CL1`1::Test
+
+    .method public hidebysig newslot virtual
+            instance !T1& get_P() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  8
+      ldstr      "get_P"
+      call       void [mscorlib]System.Console::WriteLine(string)
+      ldarg.0
+      ldflda     !0 class CL1`1<!T1>::f1
+      ret
+    } 
+
+    .property instance !T1& P()
+    {
+      .get instance !T1& CL1`1::get_P()
+    } 
+
+} // end of class CL1`1
+
+.class public auto ansi beforefieldinit CL2
+       extends class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call instance void class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>::.ctor()
+      IL_0006:  ret
+    } // end of method CL2::.ctor
+} // end of class CL2
+
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Module1
+    Shared Sub Main()
+        Dim x As CL2 = New CL2()
+
+        x.Test() = 2
+        x.P = 3
+    End Sub
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
+
+            Dim cl2Base = compilation.GetTypeByMetadataName("CL2").BaseType
+            Assert.Equal("ByRef Function CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).Test() As System.Int32 modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef Property CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).P As System.Int32 modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+
+            Dim cl1 = compilation.GetTypeByMetadataName("CL1`1")
+            Assert.Equal("ByRef Function CL1(Of T1).Test() As T1", cl1.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef Property CL1(Of T1).P As T1", cl1.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+
+            CompileAndVerify(compilation, expectedOutput:=
+"Test
+get_P")
+        End Sub
+
+        <Fact(), WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")>
+        Public Sub ConcatModifiersAndByRefReturn_04()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit CL1`1<T1>
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    } // end of method CL1`1::.ctor
+
+    .field private !T1 f1
+
+    .method public hidebysig newslot virtual
+            instance !T1 modopt([mscorlib]System.Runtime.CompilerServices.IsVolatile) & modopt([mscorlib]System.Runtime.CompilerServices.IsConst) Test() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  8
+      ldstr      "Test"
+      call       void [mscorlib]System.Console::WriteLine(string)
+      ldarg.0
+      ldflda     !0 class CL1`1<!T1>::f1
+      ret
+    } // end of method CL1`1::Test
+
+    .method public hidebysig newslot virtual
+            instance !T1 modopt([mscorlib]System.Runtime.CompilerServices.IsVolatile) & modopt([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  8
+      ldstr      "get_P"
+      call       void [mscorlib]System.Console::WriteLine(string)
+      ldarg.0
+      ldflda     !0 class CL1`1<!T1>::f1
+      ret
+    } 
+
+    .property instance !T1 modopt([mscorlib]System.Runtime.CompilerServices.IsVolatile) & modopt([mscorlib]System.Runtime.CompilerServices.IsConst) P()
+    {
+      .get instance !T1 modopt([mscorlib]System.Runtime.CompilerServices.IsVolatile) & modopt([mscorlib]System.Runtime.CompilerServices.IsConst) CL1`1::get_P()
+    } 
+
+} // end of class CL1`1
+
+.class public auto ansi beforefieldinit CL2
+       extends class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call instance void class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>::.ctor()
+      IL_0006:  ret
+    } // end of method CL2::.ctor
+} // end of class CL2
+
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Module1
+    Shared Sub Main()
+        Dim x As CL2 = New CL2()
+
+        x.Test() = 2
+        x.P = 3
+    End Sub
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
+
+            Dim cl2Base = compilation.GetTypeByMetadataName("CL2").BaseType
+            Assert.Equal("ByRef modopt(System.Runtime.CompilerServices.IsConst) Function CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).Test() As System.Int32 modopt(System.Runtime.CompilerServices.IsVolatile) modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef modopt(System.Runtime.CompilerServices.IsConst) Property CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).P As System.Int32 modopt(System.Runtime.CompilerServices.IsVolatile) modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+
+            Dim cl1 = compilation.GetTypeByMetadataName("CL1`1")
+            Assert.Equal("ByRef modopt(System.Runtime.CompilerServices.IsConst) Function CL1(Of T1).Test() As T1 modopt(System.Runtime.CompilerServices.IsVolatile)", cl1.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef modopt(System.Runtime.CompilerServices.IsConst) Property CL1(Of T1).P As T1 modopt(System.Runtime.CompilerServices.IsVolatile)", cl1.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+
+            CompileAndVerify(compilation, expectedOutput:=
+"Test
+get_P")
+        End Sub
+
         <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub ConcatModifiers_03()
             Dim ilSource = <![CDATA[
@@ -858,7 +1333,7 @@ End Class
             Assert.Equal("Sub Module1.Test(x As System.Nullable(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)))", test.ToTestDisplayString())
 
             Assert.Same(compilation1.SourceModule.CorLibrary(), test.Parameters.First.Type.OriginalDefinition.ContainingAssembly)
-            Assert.Same(compilation1.SourceModule.CorLibrary(), DirectCast(test.Parameters.First.Type, NamedTypeSymbol).TypeArgumentsCustomModifiers.First.First.Modifier.ContainingAssembly)
+            Assert.Same(compilation1.SourceModule.CorLibrary(), DirectCast(test.Parameters.First.Type, NamedTypeSymbol).GetTypeArgumentCustomModifiers(0).First.Modifier.ContainingAssembly)
 
             Dim compilation2 = CreateCompilationWithMscorlib45({}, references:={New VisualBasicCompilationReference(compilation1)})
 
@@ -867,7 +1342,7 @@ End Class
 
             Assert.IsType(Of VisualBasic.Symbols.Retargeting.RetargetingAssemblySymbol)(test.ContainingAssembly)
             Assert.Same(compilation2.SourceModule.CorLibrary(), test.Parameters.First.Type.OriginalDefinition.ContainingAssembly)
-            Assert.Same(compilation2.SourceModule.CorLibrary(), DirectCast(test.Parameters.First.Type, NamedTypeSymbol).TypeArgumentsCustomModifiers.First.First.Modifier.ContainingAssembly)
+            Assert.Same(compilation2.SourceModule.CorLibrary(), DirectCast(test.Parameters.First.Type, NamedTypeSymbol).GetTypeArgumentCustomModifiers(0).First.Modifier.ContainingAssembly)
 
             Assert.NotSame(compilation1.SourceModule.CorLibrary(), compilation2.SourceModule.CorLibrary())
         End Sub
@@ -1533,6 +2008,92 @@ End Class
 Overriden")
         End Sub
 
+        <Fact, WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")>
+        Public Sub ModifiersWithConstructedType_04()
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Module1
+    Shared Sub Main()
+        Dim x As CL1 = new CL2()
+        x.Test(Of Integer)(1)
+    End Sub
+End Class
+
+class CL2 
+    Inherits CL1
+
+    public overrides Function Test(Of U As Structure)(c As System.ValueType) As System.ValueType
+        System.Console.WriteLine("Overriden")
+        return c
+    end Function
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vbSource,
+                                                                                     {TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll},
+                                                                                     options:=TestOptions.ReleaseExe)
+
+            Dim cl2 = compilation.GetTypeByMetadataName("CL2")
+            Dim test = cl2.GetMember(Of MethodSymbol)("Test")
+            Assert.Equal("Function CL2.Test(Of U)(c As System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(System.Nullable(Of U))) As System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(System.Nullable(Of U))", test.ToTestDisplayString())
+            Assert.Equal("Function CL1.Test(Of T)(x As System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(System.Nullable(Of T))) As System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(System.Nullable(Of T))", test.OverriddenMethod.ToTestDisplayString())
+
+            CompileAndVerify(compilation, expectedOutput:="Overriden")
+        End Sub
+
+        <Fact, WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")>
+        Public Sub ModifiersWithConstructedType_05()
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Module1
+    Shared Sub Main()
+        Dim x As I1 = new CL2()
+        x.Test(Of Integer)(1)
+
+        x = new CL3()
+        x.Test(Of Integer)(2)
+    End Sub
+End Class
+
+class CL2 
+    Implements I1
+
+    public Function Test(Of U As Structure)(c As System.ValueType) As System.ValueType Implements I1.Test
+        System.Console.WriteLine("CL2.Test")
+        return c
+    end Function
+End Class
+
+class CL3 
+    Implements I1
+
+    private Function Test(Of U As Structure)(c As System.ValueType) As System.ValueType Implements I1.Test
+        System.Console.WriteLine("CL3.Test")
+        return c
+    end Function
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vbSource,
+                                                                                     {TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll},
+                                                                                     options:=TestOptions.ReleaseExe)
+
+            Dim cl3 = compilation.GetTypeByMetadataName("CL3")
+            Dim test = cl3.GetMember(Of MethodSymbol)("Test")
+            Assert.Equal("Function CL3.Test(Of U)(c As System.ValueType) As System.ValueType", test.ToTestDisplayString())
+            Assert.Equal("Function I1.Test(Of T)(x As System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(System.Nullable(Of T))) As System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(System.Nullable(Of T))", test.ExplicitInterfaceImplementations(0).ToTestDisplayString())
+
+            CompileAndVerify(compilation, expectedOutput:=
+"CL2.Test
+CL3.Test")
+        End Sub
+
         <Fact, WorkItem(5993, "https://github.com/dotnet/roslyn/issues/5993")>
         Public Sub ConcatModifiersAndByRef_05()
             Dim ilSource = <![CDATA[
@@ -1846,12 +2407,7 @@ End Class
 </compilation>
 
             Dim comp2 = CreateCompilationWithCustomILSource(source2, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
-            comp2.AssertTheseDiagnostics(
-<errors>
-BC30402: 'P' cannot implement property 'P' on interface 'I' because the tuple element names in 'Public Property P As (Object, Object)' do not match those in 'Property P As (a As Object, b As Object)'.
-    Public Property P As (Object, Object) Implements I.P
-                                                     ~~~
-</errors>)
+            comp2.AssertTheseDiagnostics()
 
             Dim classProperty2 = comp2.GlobalNamespace.GetMember(Of PropertySymbol)("C.P")
 
@@ -2021,9 +2577,6 @@ End Class
 <errors>
 BC40001: 'Public Overrides Function M(x As (c As Object, d As Object)) As (Object, Object)' cannot override 'Public Overridable Overloads Function M(x As (c As Object, d As Object)) As (a As Object, b As Object)' because they differ by their tuple element names.
     Public Overrides Function M(x As (c As Object, d As Object)) As (Object, Object)
-                              ~
-BC40001: 'Public Overrides Property P As (Object, Object)' cannot override 'Public Overridable Overloads Property P As (a As Object, b As Object)' because they differ by their tuple element names.
-    Public Overrides Property P As (Object, Object)
                               ~
 </errors>)
 

@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
     {
         internal sealed class WithLotsOfChildren : WithManyChildrenBase
         {
+            static WithLotsOfChildren()
+            {
+                ObjectBinder.RegisterTypeReader(typeof(WithLotsOfChildren), r => new WithLotsOfChildren(r));
+            }
+
             private readonly int[] _childOffsets;
 
             internal WithLotsOfChildren(ArrayElement<GreenNode>[] children)
@@ -34,11 +39,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             {
                 base.WriteTo(writer);
                 // don't write offsets out, recompute them on construction
-            }
-
-            internal override Func<ObjectReader, object> GetReader()
-            {
-                return r => new WithLotsOfChildren(r);
             }
 
             public override int GetSlotOffset(int index)

@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using Roslyn.Test.Performance.Utilities;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.IO;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
@@ -18,13 +21,13 @@ namespace Roslyn.Test.Performance.Utilities
             else
             {
                 Log($"WARNING: Could not find CPC at {cpcFullPath} (no traces will be collected)");
-                return new NoOpTraceManager();
+                return new WallClockTraceManager();
             }
         }
 
         public static ITraceManager NoOpTraceManager()
         {
-            return new NoOpTraceManager();
+            return new WallClockTraceManager();
         }
     }
 
@@ -119,9 +122,14 @@ namespace Roslyn.Test.Performance.Utilities
         }
     }
 
-    public class NoOpTraceManager : ITraceManager
+    public class WallClockTraceManager : ITraceManager
     {
-        public NoOpTraceManager()
+        private readonly List<long> _durations = new List<long>();
+        private string _testName = "";
+
+        private Stopwatch _stopwatch;
+
+        public WallClockTraceManager()
         {
         }
 
@@ -131,8 +139,17 @@ namespace Roslyn.Test.Performance.Utilities
         {
         }
 
+        // We have one WallClockTraceManager per test, so we don't
+        // need to worry about other tests showing up
         public void Cleanup()
         {
+            var totalDuration = _durations.Sum(v => v);
+            var average = _durations.Count != 0 ? totalDuration / _durations.Count : 0;
+            var allString = string.Join(",", _durations);
+
+            Log($"Wallclock times for {_testName}");
+            Log($"ALL: [{allString}]");
+            Log($"AVERAGE: {average}");
         }
 
         public void EndEvent()
@@ -141,6 +158,8 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void EndScenario()
         {
+            _stopwatch.Stop();
+            _durations.Add(_stopwatch.ElapsedMilliseconds);
         }
 
         public void EndScenarios()
@@ -169,6 +188,8 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void StartScenario(string scenarioName, string processName)
         {
+            _testName = scenarioName;
+            _stopwatch = Stopwatch.StartNew();
         }
 
         public void Stop()

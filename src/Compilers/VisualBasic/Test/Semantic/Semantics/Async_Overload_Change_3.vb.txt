@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Threading
@@ -742,31 +742,31 @@ Public Module Async_Overload_Change_3
             apInitScenario("Type Inference from an extension method which is called using async or iterator lambda return - and calling subsequent functions - CTI To Implement")
             'Bugs have been found in this area with invalid type inference causing IDE Crashes
             ' when calling a method of a invalid type inferred object so its the second . that causes the problem
-            'ie dim x = await foo()
+            'ie dim x = await goo()
             'dim y1 = x.ExtMethod()
-            'dim y2 = (await foo()).ExtMethod()
+            'dim y2 = (await goo()).ExtMethod()
             'dim y3 = x.ExtMethod().Tostring()  'SubSequent Functions 
             Try
-                Dim foo1 = Async Function()
+                Dim goo1 = Async Function()
                                Await Task.Yield
                                Return "test"
                            End Function
-                Dim foo2 As Func(Of IEnumerable(Of Long)) = Iterator Function()
+                Dim goo2 As Func(Of IEnumerable(Of Long)) = Iterator Function()
                                                                 Yield 1L
                                                             End Function
 
-                Dim x10 = Await foo1()
+                Dim x10 = Await goo1()
                 Dim y1 = x10.ExtensionMethod
                 Dim y2 = x10.ExtensionMethod.ToString()
-                Dim y3 = (Await foo1()).ExtensionMethod.ToString()
+                Dim y3 = (Await goo1()).ExtensionMethod.ToString()
                 apCompare("System.String", y1, "Unexpected Return")
                 apCompare("System.String", y2, "Unexpected Return")
                 apCompare("System.String", y3, "Unexpected Return")
 
-                Dim x110 = foo2()
+                Dim x110 = goo2()
                 Dim y11 = x110.EnumerableExtensionMethod
                 Dim y21 = x110.EnumerableExtensionMethod.ToString()
-                Dim y31 = foo2().EnumerableExtensionMethod.ToString()
+                Dim y31 = goo2().EnumerableExtensionMethod.ToString()
                 apCompare("System.Int64", y11, "Unexpected Return")
                 apCompare("System.Int64", y21, "Unexpected Return")
                 apCompare("System.Int64", y31, "Unexpected Return")
@@ -2555,21 +2555,21 @@ Module AllScenariosInSub
             '**********************************************************************************************
             apInitScenario("Type Inference from an extension method which is called using async or iterator lambda return - ")
             Try
-                Dim foo1 = Async Function()
+                Dim goo1 = Async Function()
                                'Await task.Yield
                                Return "test"
                            End Function
-                Dim foo2 As Func(Of IEnumerable(Of Long)) = Iterator Function()
+                Dim goo2 As Func(Of IEnumerable(Of Long)) = Iterator Function()
                                                                 Yield 1L
                                                             End Function
 
-                Dim x10 = Await foo1()
+                Dim x10 = Await goo1()
                 ResultField = ""
                 x10.ExtensionMethodSub()
                 Dim y1 = ResultField
                 apCompare("System.String", y1, "Unexpected Return")
 
-                Dim x110 = foo2()
+                Dim x110 = goo2()
                 ResultField = ""
                 x110.EnumerableExtensionMethodSub()
                 Dim y11 = ResultField

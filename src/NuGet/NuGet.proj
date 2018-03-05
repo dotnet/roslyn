@@ -1,22 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\build\Targets\Settings.props" />
 
   <Target Name="Build">
     <!-- NuGetPerBuildPreReleaseVersion -->
-    <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetPerBuildPreReleaseVersion) $(OutDir)NuGet\PerBuildPreRelease" Condition="'$(NuGetPerBuildPreReleaseVersion)' != ''" />
+    <Exec Command="$(OutputPath)Exes\csi\net46\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutputPath) $(NuGetPerBuildPreReleaseVersion) $(OutputPath)NuGet\PerBuildPreRelease &quot;$(CommitHashDisplay)&quot;" Condition="'$(SkipBuildPreReleaseVersion)' != 'true'" />
 
     <!-- NuGetPreReleaseVersion -->
-    <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetPreReleaseVersion) $(OutDir)NuGet\PreRelease" Condition="'$(NuGetPreReleaseVersion)' != ''"/>
+    <Exec Command="$(OutputPath)Exes\csi\net46\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutputPath) $(NuGetPreReleaseVersion) $(OutputPath)NuGet\PreRelease &quot;$(CommitHashDisplay)&quot;" Condition="'$(SkipPreReleaseVersion)' != 'true'" />
 
     <!-- NuGetReleaseVersion -->
-    <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetReleaseVersion) $(OutDir)NuGet\Release" Condition="'$(NuGetReleaseVersion)' != ''" />
+    <Exec Command="$(OutputPath)Exes\csi\net46\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutputPath) $(NuGetReleaseVersion) $(OutputPath)NuGet\Release &quot;$(CommitHashDisplay)&quot;" Condition="'$(SkipReleaseVersion)' != 'true'" />
   </Target>
 
   <Target Name="Clean">
-    <MSBuild Projects="@(Project)" Targets="Clean" BuildInParallel="false" />
+    <RemoveDir Directories="$(OutputPath)NuGet" />
   </Target>
-  <Target Name="Rebuild">
-    <MSBuild Projects="@(Project)" Targets="Rebuild" BuildInParallel="false" />
+
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build">
   </Target>
 </Project>

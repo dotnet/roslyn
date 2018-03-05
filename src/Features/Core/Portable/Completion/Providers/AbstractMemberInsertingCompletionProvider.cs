@@ -30,11 +30,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default(char?), CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default, CancellationToken cancellationToken = default)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newDocument = await DetermineNewDocumentAsync(item, text, cancellationToken).ConfigureAwait(false);
-
+            var newDocument = await DetermineNewDocumentAsync(document, item, cancellationToken).ConfigureAwait(false);
             var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -90,14 +88,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return new TextChange(totalOldSpan, newText.ToString(totalNewSpan));
         }
 
-        private async Task<Document> DetermineNewDocumentAsync(CompletionItem completionItem, SourceText sourceText, CancellationToken cancellationToken)
+        private async Task<Document> DetermineNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)
         {
-            // The span we're going to replace
-            var line = sourceText.Lines[MemberInsertionCompletionItem.GetLine(completionItem)];
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            //var sourceText = textSnapshot.AsText();
-            var document = sourceText.GetOpenDocumentInCurrentContextWithChanges();
-            Contract.ThrowIfNull(document);
+            // The span we're going to replace
+            var line = text.Lines[MemberInsertionCompletionItem.GetLine(completionItem)];
 
             // Annotate the line we care about so we can find it after adding usings
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -106,13 +102,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             document = document.WithSyntaxRoot(annotatedRoot);
 
             var memberContainingDocument = await GenerateMemberAndUsingsAsync(document, completionItem, line, cancellationToken).ConfigureAwait(false);
+            if (memberContainingDocument == null)
+            {
+                // Generating the new document failed because we somehow couldn't resolve
+                // the underlying symbol's SymbolKey. At this point, we won't be able to 
+                // make any changes, so just return the document we started with.
+                return document;
+            }
 
             var insertionRoot = await PrepareTreeForMemberInsertionAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
             var insertionText = await GenerateInsertionTextAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
 
             var destinationSpan = ComputeDestinationSpan(insertionRoot, insertionText);
 
-            var finalText = insertionRoot.GetText(sourceText.Encoding).Replace(destinationSpan, insertionText.Trim());
+            var finalText = insertionRoot.GetText(text.Encoding)
+                .Replace(destinationSpan, insertionText.Trim());
 
             document = document.WithText(finalText);
             var newRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -135,7 +139,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(line.Start, cancellationToken);
             var symbols = await SymbolCompletionItem.GetSymbolsAsync(completionItem, document, cancellationToken).ConfigureAwait(false);
-            var overriddenMember = symbols.First();
+            var overriddenMember = symbols.FirstOrDefault();
+
+            if (overriddenMember == null)
+            {
+                // Unfortunately, SymbolKey resolution failed. Bail.
+                return null;
+            }
 
             // CodeGenerationOptions containing before and after
             var options = new CodeGenerationOptions(contextLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start)));
@@ -166,9 +176,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 // In order to produce to correct undo stack, completion lets the commit
                 // character enter the buffer. That means we can get ambiguity.
-                // partial class C { partial void foo() }
-                // partial class C { partial foo($$
-                // Committing with the open paren will create a second, ambiguous foo.
+                // partial class C { partial void goo() }
+                // partial class C { partial goo($$
+                // Committing with the open paren will create a second, ambiguous goo.
                 // We'll try to prefer the symbol whose declaration doesn't intersect our position
                 var nonIntersectingMember = resolution.CandidateSymbols.First(s => s.DeclaringSyntaxReferences.Any(d => !d.Span.IntersectsWith(span)));
                 if (nonIntersectingMember != null)
@@ -191,15 +201,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // DevDiv 958235: 
             //
-            // void foo()
+            // void goo()
             // {
             // }
             // override $$
             //
-            // If our text edit includes the trailing trivia of the close brace of foo(),
+            // If our text edit includes the trailing trivia of the close brace of goo(),
             // that token will be reconstructed. The ensuing tree diff will then count
             // the { } as replaced even though we didn't want it to. If the user
-            // has collapsed the outline for foo, that means we'll edit the outlined 
+            // has collapsed the outline for goo, that means we'll edit the outlined 
             // region and weird stuff will happen. Therefore, we'll start with the first
             // token on the line in order to leave the token and its trivia alone.
             var firstToken = insertionRoot.FindToken(line.GetFirstNonWhitespacePosition().Value);

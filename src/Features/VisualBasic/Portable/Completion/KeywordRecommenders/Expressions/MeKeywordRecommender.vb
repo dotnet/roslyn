@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
@@ -36,8 +36,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                     Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MeKeyword), VBFeaturesResources.Provides_a_way_to_refer_to_the_current_instance_of_a_class_or_structure_that_is_the_instance_in_which_the_code_is_running, matchPriority:=priority))
                 End If
 
-                If targetToken.GetContainingMember().TypeSwitch(Function(fieldInitializer As FieldDeclarationSyntax) Not fieldInitializer.Modifiers.Any(SyntaxKind.SharedKeyword)) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MeKeyword), VBFeaturesResources.Provides_a_way_to_refer_to_the_current_instance_of_a_class_or_structure_that_is_the_instance_in_which_the_code_is_running))
+                Dim containingMember = targetToken.GetContainingMember()
+                If TypeOf containingMember Is FieldDeclarationSyntax Then
+                    Dim fieldDecl = DirectCast(containingMember, FieldDeclarationSyntax)
+                    If Not fieldDecl.Modifiers.Any(SyntaxKind.SharedKeyword) Then
+                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MeKeyword), VBFeaturesResources.Provides_a_way_to_refer_to_the_current_instance_of_a_class_or_structure_that_is_the_instance_in_which_the_code_is_running))
+                    End If
                 End If
             End If
 

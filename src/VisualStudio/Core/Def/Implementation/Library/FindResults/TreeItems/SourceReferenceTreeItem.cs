@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -16,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 {
     internal class SourceReferenceTreeItem : AbstractTreeItem, IComparable<SourceReferenceTreeItem>
     {
-        protected readonly Workspace _workspace;
+        protected readonly Microsoft.CodeAnalysis.Workspace _workspace;
         protected readonly DocumentId _documentId;
         protected readonly string _projectName;
         protected readonly string _filePath;
@@ -51,9 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             _offset = sourceSpan.Start - textLine.Start;
 
             var spanInSecondaryBuffer = text.GetVsTextSpanForLineOffset(_lineNumber, _offset);
-
-            VsTextSpan spanInPrimaryBuffer;
-            var succeeded = spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(_workspace, _documentId, out spanInPrimaryBuffer);
+            var succeeded = spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(_workspace, _documentId, out var spanInPrimaryBuffer);
 
             _mappedLineNumber = succeeded ? spanInPrimaryBuffer.iStartLine : _lineNumber;
             _mappedOffset = succeeded ? spanInPrimaryBuffer.iStartIndex : _offset;

@@ -1,16 +1,14 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -33,20 +31,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
             if (expectedCodeAction)
             {
-                using (var workspace = await CreateWorkspaceFromFileAsync(markup, parseOptions: null, compilationOptions: null))
+                var testOptions = new TestParameters();
+                using (var workspace = CreateWorkspaceFromOptions(markup, testOptions))
                 {
                     var optionsService = workspace.Services.GetService<IChangeSignatureOptionsService>() as TestChangeSignatureOptionsService;
                     optionsService.IsCancelled = isCancelled;
                     optionsService.UpdatedSignature = updatedSignature;
 
-                    var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace);
-                    await TestActionsAsync(workspace, expectedCode, index, codeIssueOrRefactoring.Actions.ToList(),
-                        conflictSpans: null, renameSpans: null, warningSpans: null, compareTokens: true);
+                    var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, testOptions);
+                    await TestActionsAsync(workspace, expectedCode, index, codeIssueOrRefactoring.Actions,
+                        conflictSpans: ImmutableArray<TextSpan>.Empty,
+                        renameSpans: ImmutableArray<TextSpan>.Empty,
+                        warningSpans: ImmutableArray<TextSpan>.Empty, 
+                        navigationSpans: ImmutableArray<TextSpan>.Empty);
                 }
             }
             else
             {
-                await TestMissingAsync(markup, parseOptions: null);
+                await TestMissingAsync(markup);
             }
         }
 
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             bool verifyNoDiagnostics = false,
             ParseOptions parseOptions = null)
         {
-            using (var testState = await ChangeSignatureTestState.CreateAsync(markup, languageName, parseOptions))
+            using (var testState = ChangeSignatureTestState.Create(markup, languageName, parseOptions))
             {
                 testState.TestChangeSignatureOptionsService.IsCancelled = false;
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;

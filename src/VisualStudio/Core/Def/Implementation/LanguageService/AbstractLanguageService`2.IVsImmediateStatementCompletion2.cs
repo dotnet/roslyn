@@ -1,15 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -20,8 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         int IVsImmediateStatementCompletion2.EnableStatementCompletion(int enable, int startIndex, int endIndex, IVsTextView textView)
         {
-            DebuggerIntelliSenseFilter<TPackage, TLanguageService> filter;
-            if (filters.TryGetValue(textView, out filter))
+            if (filters.TryGetValue(textView, out var filter))
             {
                 filter.Enabled = enable != 0;
             }
@@ -50,9 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>(),
                         this.Package.ComponentModel.GetService<ICommandHandlerServiceFactory>());
                     this.filters[textView] = filter;
-
-                    IOleCommandTarget nextFilter;
-                    Marshal.ThrowExceptionForHR(textView.AddCommandFilter(filter, out nextFilter));
+                    Marshal.ThrowExceptionForHR(textView.AddCommandFilter(filter, out var nextFilter));
                     filter.SetNextFilter(nextFilter);
                 }
             }
@@ -75,8 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // The immediate window is always marked read-only and the language service is
             // responsible for asking the buffer to make itself writable. We'll have to do that for
             // commit, so we need to drag the IVsTextLines around, too.
-            IVsTextLines debuggerBuffer;
-            Marshal.ThrowExceptionForHR(textView.GetBuffer(out debuggerBuffer));
+            Marshal.ThrowExceptionForHR(textView.GetBuffer(out var debuggerBuffer));
 
             var view = EditorAdaptersFactoryService.GetWpfTextView(textView);
 
@@ -85,6 +84,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             if (buffer != null)
             {
                 var contextBuffer = EditorAdaptersFactoryService.GetDataBuffer(buffer);
+
+                if (!contextBuffer.ContentType.IsOfType(this.ContentTypeName))
+                {
+                    FatalError.ReportWithoutCrash(
+                        new ArgumentException($"Expected content type {this.ContentTypeName} " +
+                        $"but got buffer of content type {contextBuffer.ContentType}"));
+
+                    return VSConstants.E_FAIL;
+                }
+
                 var context = CreateContext(view, textView, debuggerBuffer, contextBuffer, currentStatementSpan);
                 if (context.TryInitialize())
                 {

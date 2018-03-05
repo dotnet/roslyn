@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return null;
                 }
 
-                CompilationWithAnalyzers analyzerDriverOpt;
-                if (_map.TryGetValue(project, out analyzerDriverOpt))
+                if (_map.TryGetValue(project, out var analyzerDriverOpt))
                 {
                     // we have cached one, return that.
                     AssertAnalyzers(analyzerDriverOpt, stateSets);
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
                 // async being used with syncronous blocking concurrency.
                 return new CompilationWithAnalyzersOptions(
-                    options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Workspace),
+                    options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution),
                     onAnalyzerException: GetOnAnalyzerException(project.Id),
                     analyzerExceptionFilter: GetAnalyzerExceptionFilter(project),
                     concurrentAnalysis: false,
@@ -174,8 +173,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private void AssertCompilation(Project project, Compilation compilation1)
             {
                 // given compilation must be from given project.
-                Compilation compilation2;
-                Contract.ThrowIfFalse(project.TryGetCompilation(out compilation2));
+                Contract.ThrowIfFalse(project.TryGetCompilation(out var compilation2));
                 Contract.ThrowIfFalse(compilation1 == compilation2);
             }
 

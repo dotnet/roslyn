@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
@@ -14,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionInitializer), Shared]
     internal class CSharpUseCollectionInitializerCodeFixProvider :
         AbstractUseCollectionInitializerCodeFixProvider<
+            SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
             ObjectCreationExpressionSyntax,
@@ -22,24 +24,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax>
     {
-        protected override ObjectCreationExpressionSyntax GetNewObjectCreation(
+        protected override StatementSyntax GetNewStatement(
+            StatementSyntax statement,
             ObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
-            var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
-                                         .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
-            var initializer = SyntaxFactory.InitializerExpression(
-                SyntaxKind.CollectionInitializerExpression,
-                CreateExpressions(matches)).WithOpenBraceToken(openBrace);
+            return statement.ReplaceNode(
+                objectCreation,
+                GetNewObjectCreation(objectCreation, matches));
+        }
 
-            if (objectCreation.ArgumentList != null &&
-                objectCreation.ArgumentList.Arguments.Count == 0)
-            {
-                objectCreation = objectCreation.WithType(objectCreation.Type.WithTrailingTrivia(objectCreation.ArgumentList.GetTrailingTrivia()))
-                                               .WithArgumentList(null);
-            }
-
-            return objectCreation.WithInitializer(initializer);
+        private ObjectCreationExpressionSyntax GetNewObjectCreation(
+            ObjectCreationExpressionSyntax objectCreation,
+            ImmutableArray<ExpressionStatementSyntax> matches)
+        {
+            return UseInitializerHelpers.GetNewObjectCreation(
+                objectCreation, CreateExpressions(matches));
         }
 
         private SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
@@ -75,13 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
         private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
         {
-            if (expression is InvocationExpressionSyntax)
+            if (expression is InvocationExpressionSyntax invocation)
             {
-                return ConvertInvocation((InvocationExpressionSyntax)expression);
+                return ConvertInvocation(invocation);
             }
-            else if (expression is AssignmentExpressionSyntax)
+            else if (expression is AssignmentExpressionSyntax assignment)
             {
-                return ConvertAssignment((AssignmentExpressionSyntax)expression);
+                return ConvertAssignment(assignment);
             }
 
             throw new InvalidOperationException();
@@ -100,7 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
             if (arguments.Count == 1)
             {
-                return arguments[0].Expression;
+                // Assignment expressions in a collection initializer will cause the compiler to 
+                // report an error.  This is because { a = b } is teh form for an object initializer,
+                // and the two forms are not allowed to mix/match.  Parenthesize the assignment to
+                // avoid the ambiguity.
+                var expression = arguments[0].Expression;
+                return SyntaxFacts.IsAssignmentExpression(expression.Kind())
+                    ? SyntaxFactory.ParenthesizedExpression(expression)
+                    : expression;
             }
 
             return SyntaxFactory.InitializerExpression(

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -88,10 +88,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Private Function GetTypeFromSymbol(symbol As ISymbol) As ITypeSymbol
-            Dim symbolType = symbol.TypeSwitch(Function(f As IFieldSymbol) f.Type,
-                    Function(l As ILocalSymbol) l.Type,
-                    Function(p As IParameterSymbol) p.Type,
-                    Function(pr As IPropertySymbol) pr.Type)
+            Dim symbolType = If(TryCast(symbol, IFieldSymbol)?.Type,
+                             If(TryCast(symbol, ILocalSymbol)?.Type,
+                             If(TryCast(symbol, IParameterSymbol)?.Type,
+                                TryCast(symbol, IPropertySymbol)?.Type)))
             Return symbolType
         End Function
 
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private _cachedDisplayAndInsertionTextContext As SyntaxContext
         Private _cachedDisplayAndInsertionTextContainingTypeText As String
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As ValueTuple(Of String, String)
+        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, insertionText As String)
             If symbol.ContainingType IsNot Nothing AndAlso symbol.ContainingType.TypeKind = TypeKind.Enum Then
                 If _cachedDisplayAndInsertionTextContainingType IsNot symbol.ContainingType OrElse _cachedDisplayAndInsertionTextContext IsNot context Then
                     Dim displayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType).WithLocalOptions(SymbolDisplayLocalOptions.None)
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
 
                 Dim text As String = _cachedDisplayAndInsertionTextContainingTypeText & "." & symbol.Name
-                Return ValueTuple.Create(text, text)
+                Return (text, text)
             End If
 
             Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
@@ -123,22 +123,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function CreateItem(displayText As String, insertionText As String, symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Return SymbolCompletionItem.Create(
+            Dim rules = GetCompletionItemRules(symbols)
+            rules = rules.WithMatchPriority(If(preselect, MatchPriority.Preselect, MatchPriority.Default))
+
+            Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
                 insertionText:=insertionText,
                 filterText:=GetFilterText(symbols(0), displayText, context),
                 symbols:=symbols,
                 contextPosition:=context.Position,
                 sortText:=insertionText,
-                matchPriority:=If(preselect, MatchPriority.Preselect, MatchPriority.Default),
                 supportedPlatforms:=supportedPlatformData,
-                rules:=GetCompletionItemRules(symbols, context))
+                rules:=rules)
         End Function
 
         Private Shared ReadOnly s_rules As CompletionItemRules =
             CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol)) As CompletionItemRules
             Return s_rules
         End Function
 

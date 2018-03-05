@@ -1,20 +1,28 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Navigation
+Imports Microsoft.CodeAnalysis.FindUsages
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
-    Friend Class MockNavigableItemsPresenter
-        Implements INavigableItemsPresenter
+    Friend Class MockStreamingFindUsagesPresenter
+        Implements IStreamingFindUsagesPresenter
 
-        Private ReadOnly _callback As Action(Of IList(Of INavigableItem))
+        Public ReadOnly Context As New SimpleFindUsagesContext(CancellationToken.None)
+        Private ReadOnly _action As Action
 
-        Public Sub New(callback As Action(Of IList(Of INavigableItem)))
-            _callback = callback
+        Public Sub New(action As Action)
+            _action = action
         End Sub
 
-        Public Sub DisplayResult(title As String, items As IEnumerable(Of INavigableItem)) Implements INavigableItemsPresenter.DisplayResult
-            _callback(items.ToList())
+        Public Sub ClearAll() Implements IStreamingFindUsagesPresenter.ClearAll
+            Throw New NotImplementedException()
         End Sub
+
+        Public Function StartSearch(title As String, alwaysShowDeclarations As Boolean) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearch
+            _action()
+            Return Context
+        End Function
     End Class
 End Namespace

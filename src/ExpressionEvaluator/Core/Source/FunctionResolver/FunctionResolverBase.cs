@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.Debugger.Evaluation;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
@@ -18,9 +19,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract TRequest[] GetRequests(TProcess process);
         internal abstract string GetRequestModuleName(TRequest request);
         internal abstract RequestSignature GetParsedSignature(TRequest request);
+        internal abstract bool IgnoreCase { get; }
+        internal abstract Guid GetLanguageId(TRequest request);
+        internal abstract Guid LanguageId { get; }
 
         internal void EnableResolution(TProcess process, TRequest request, OnFunctionResolvedDelegate<TModule, TRequest> onFunctionResolved)
         {
+            if (!ShouldHandleRequest(request))
+            {
+                return;
+            }
+
             var moduleName = GetRequestModuleName(request);
             var signature = GetParsedSignature(request);
             if (signature == null)
@@ -49,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
-                var resolver = new MetadataResolver<TProcess, TModule, TRequest>(process, module, reader, onFunctionResolved);
+                var resolver = CreateMetadataResolver(process, module, reader, onFunctionResolved);
                 resolver.Resolve(request, signature);
             }
         }
@@ -66,6 +75,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             foreach (var request in requests)
             {
+                if (!ShouldHandleRequest(request))
+                {
+                    continue;
+                }
+
                 var moduleName = GetRequestModuleName(request);
                 if (!ShouldModuleHandleRequest(module, moduleName))
                 {
@@ -85,11 +99,30 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         return;
                     }
-                    resolver = new MetadataResolver<TProcess, TModule, TRequest>(process, module, reader, onFunctionResolved);
+                    resolver = CreateMetadataResolver(process, module, reader, onFunctionResolved);
                 }
 
                 resolver.Resolve(request, signature);
             }
+        }
+
+        private MetadataResolver<TProcess, TModule, TRequest> CreateMetadataResolver(
+            TProcess process,
+            TModule module,
+            MetadataReader reader,
+            OnFunctionResolvedDelegate<TModule, TRequest> onFunctionResolved)
+        {
+            return new MetadataResolver<TProcess, TModule, TRequest>(process, module, reader, IgnoreCase, onFunctionResolved);
+        }
+
+        private bool ShouldHandleRequest(TRequest request)
+        {
+            var languageId = GetLanguageId(request);
+            // Handle requests with no language id, a matching language id,
+            // or causality breakpoint requests (debugging web services).
+            return languageId == Guid.Empty ||
+                languageId == LanguageId ||
+                languageId == DkmLanguageId.CausalityBreakpoint;
         }
 
         private bool ShouldModuleHandleRequest(TModule module, string moduleName)

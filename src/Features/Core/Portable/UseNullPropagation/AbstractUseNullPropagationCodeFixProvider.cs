@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.FixAllOccurrences;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         TInvocationExpression,
         TMemberAccessExpression,
         TConditionalAccessExpression,
-        TElementAccessExpression> : CodeFixProvider
+        TElementAccessExpression> : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
@@ -39,7 +38,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseNullPropagationDiagnosticId);
 
-        public override FixAllProvider GetFixAllProvider() => new UseNullPropagationFixAllProvider(this);
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -49,70 +49,85 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             return SpecializedTasks.EmptyTask;
         }
 
-        private Task<Document> FixAsync(
-            Document document,
-            Diagnostic diagnostic,
-            CancellationToken cancellationToken)
-        {
-            return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-        }
-
-        private async Task<Document> FixAllAsync(
-            Document document,
-            ImmutableArray<Diagnostic> diagnostics,
-            CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
+            var root = editor.OriginalRoot;
 
             foreach (var diagnostic in diagnostics)
             {
                 var conditionalExpression = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-                var conditionalPart = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
-                var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
-
-                SyntaxNode condition, whenTrue, whenFalse;
+                var conditionalPart = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true);
+                var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
                 syntaxFacts.GetPartsOfConditionalExpression(
-                    conditionalExpression, out condition, out whenTrue, out whenFalse);
+                    conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
 
+                var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
                 editor.ReplaceNode(conditionalExpression,
                     (c, g) => {
-                        SyntaxNode currentCondition, currentWhenTrue, currentWhenFalse;
                         syntaxFacts.GetPartsOfConditionalExpression(
-                            c, out currentCondition, out currentWhenTrue, out currentWhenFalse);
+                            c, out var currentCondition, out var currentWhenTrue, out var currentWhenFalse);
 
                         var currentWhenPartToCheck = whenPart == whenTrue ? currentWhenTrue : currentWhenFalse;
 
                         var match = AbstractUseNullPropagationDiagnosticAnalyzer<
                             TSyntaxKind, TExpressionSyntax, TConditionalExpressionSyntax,
                             TBinaryExpressionSyntax, TInvocationExpression, TMemberAccessExpression,
-                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, conditionalPart, currentWhenPartToCheck);
+                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, semanticFacts, semanticModel, conditionalPart, currentWhenPartToCheck);
                         if (match == null)
                         {
                             return c;
                         }
 
                         var newNode = CreateConditionalAccessExpression(
-                            syntaxFacts, g, currentWhenPartToCheck, match, c);
+                            syntaxFacts, g, whenPartIsNullable, currentWhenPartToCheck, match, c);
 
                         newNode = newNode.WithTriviaFrom(c);
                         return newNode;
                     });
             }
+        }
 
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
+        private SyntaxNode CreateConditionalAccessExpression(
+            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, bool whenPartIsNullable,
+            SyntaxNode whenPart, SyntaxNode match, SyntaxNode currentConditional)
+        {
+            if (whenPartIsNullable)
+            {
+                if (match.Parent is TMemberAccessExpression memberAccess)
+                {
+                    var nameNode = syntaxFacts.GetNameOfMemberAccessExpression(memberAccess);
+                    syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
+                    var comparer = syntaxFacts.StringComparer;
+
+                    if (arity == 0 && comparer.Equals(name, nameof(Nullable<int>.Value)))
+                    {
+                        // They're calling ".Value" off of a nullable.  Because we're moving to ?.
+                        // we want to remove the .Value as well.  i.e. we should generate:
+                        //
+                        //      goo?.Bar()  not   goo?.Value.Bar();
+                        return CreateConditionalAccessExpression(
+                            syntaxFacts, generator, whenPart, match,
+                            memberAccess.Parent, currentConditional);
+                    }
+                }
+            }
+
+            return CreateConditionalAccessExpression(
+                syntaxFacts, generator, whenPart, match,
+                match.Parent, currentConditional);
         }
 
         private SyntaxNode CreateConditionalAccessExpression(
             ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, 
-            SyntaxNode whenPart, SyntaxNode match, SyntaxNode currentConditional)
+            SyntaxNode whenPart, SyntaxNode match, SyntaxNode matchParent, SyntaxNode currentConditional)
         {
-            var memberAccess = match.Parent as TMemberAccessExpression;
-            if (memberAccess != null)
+            if (matchParent is TMemberAccessExpression memberAccess)
             {
                 return whenPart.ReplaceNode(memberAccess,
                     generator.ConditionalAccessExpression(
@@ -121,8 +136,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                             syntaxFacts.GetNameOfMemberAccessExpression(memberAccess))));
             }
 
-            var elementAccess = match.Parent as TElementAccessExpression;
-            if (elementAccess != null)
+            if (matchParent is TElementAccessExpression elementAccess)
             {
                 return whenPart.ReplaceNode(elementAccess,
                     generator.ConditionalAccessExpression(
@@ -132,30 +146,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
 
             return currentConditional;
-        }
-
-        private class UseNullPropagationFixAllProvider : DocumentBasedFixAllProvider
-        {
-            private readonly AbstractUseNullPropagationCodeFixProvider<
-                TSyntaxKind, TExpressionSyntax, TConditionalExpressionSyntax,
-                TBinaryExpressionSyntax, TInvocationExpression, TMemberAccessExpression,
-                TConditionalAccessExpression, TElementAccessExpression> _provider;
-
-            public UseNullPropagationFixAllProvider(AbstractUseNullPropagationCodeFixProvider<
-                TSyntaxKind, TExpressionSyntax, TConditionalExpressionSyntax,
-                TBinaryExpressionSyntax, TInvocationExpression, TMemberAccessExpression,
-                TConditionalAccessExpression, TElementAccessExpression> provider)
-            {
-                _provider = provider;
-            }
-
-            protected override Task<Document> FixDocumentAsync(
-                Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
-            {
-                var filteredDiagnostics = diagnostics.WhereAsArray(
-                    d => !d.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary));
-                return _provider.FixAllAsync(document, filteredDiagnostics, cancellationToken);
-            }
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

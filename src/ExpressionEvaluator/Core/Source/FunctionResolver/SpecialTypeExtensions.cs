@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             builder.Add(SpecialType.System_UIntPtr, new QualifiedTypeSignature(systemNamespace, "UIntPtr"));
             builder.Add(SpecialType.System_TypedReference, new QualifiedTypeSignature(systemNamespace, "TypedReference"));
             builder.Add(SpecialType.System_Nullable_T, new QualifiedTypeSignature(systemNamespace, "Nullable"));
+            builder.Add(SpecialType.System_DateTime, new QualifiedTypeSignature(systemNamespace, "DateTime"));
             return builder.ToImmutable();
         }
     }

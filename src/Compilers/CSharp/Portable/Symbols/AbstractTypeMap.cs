@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -64,14 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ImmutableArray<TypeSymbol> oldTypeArguments = previous.TypeArgumentsNoUseSiteDiagnostics;
             bool changed = !ReferenceEquals(oldConstructedFrom, newConstructedFrom);
-
-            ImmutableArray<ImmutableArray<CustomModifier>> modifiers = previous.HasTypeArgumentsCustomModifiers ? previous.TypeArgumentsCustomModifiers : default(ImmutableArray<ImmutableArray<CustomModifier>>);
-
+            bool hasModifiers = previous.HasTypeArgumentsCustomModifiers;
             var newTypeArguments = ArrayBuilder<TypeWithModifiers>.GetInstance(oldTypeArguments.Length);
 
             for (int i = 0; i < oldTypeArguments.Length; i++)
             {
-                var oldArgument = modifiers.IsDefault ? new TypeWithModifiers(oldTypeArguments[i]) : new TypeWithModifiers(oldTypeArguments[i], modifiers[i]);
+                var oldArgument = hasModifiers ? new TypeWithModifiers(oldTypeArguments[i], previous.GetTypeArgumentCustomModifiers(i)) : new TypeWithModifiers(oldTypeArguments[i]);
                 var newArgument = oldArgument.SubstituteTypeWithTupleUnification(this);
 
                 if (!changed && oldArgument != newArgument)
@@ -151,26 +150,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static bool IsPossiblyByRefTypeParameter(TypeSymbol type)
-        {
-            if (type.IsTypeParameter())
-            {
-                return true;
-            }
-
-            if (type.IsErrorType())
-            {
-                var byRefReturnType = type as ByRefReturnErrorTypeSymbol;
-
-                return ((object)byRefReturnType != null) && byRefReturnType.ReferencedType.IsTypeParameter();
-            }
-
-            return false;
-        }
-
         internal ImmutableArray<CustomModifier> SubstituteCustomModifiers(TypeSymbol type, ImmutableArray<CustomModifier> customModifiers)
         {
-            if (IsPossiblyByRefTypeParameter(type))
+            if (type.IsTypeParameter())
             {
                 return new TypeWithModifiers(type, customModifiers).SubstituteType(this).CustomModifiers;
             }

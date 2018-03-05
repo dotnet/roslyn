@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
             // public TypeDeclarationSyntax ContainingTypeDeclaration { get; private set; }
             public INamedTypeSymbol TypeToGenerateIn { get; private set; }
 
-            // Just the name of the method.  i.e. "Foo" in "Foo" or "X.Foo"
+            // Just the name of the method.  i.e. "Goo" in "Goo" or "X.Goo"
             public SyntaxToken IdentifierToken { get; private set; }
             public TSimpleNameSyntax SimpleName { get; private set; }
             public TExpressionSyntax SimpleNameOrMemberAccessExpression { get; private set; }
@@ -86,11 +86,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 CancellationToken cancellationToken)
             {
                 this.SimpleName = identifierName;
-
-                SyntaxToken identifierToken;
-                TExpressionSyntax simpleNameOrMemberAccessExpression;
                 if (!service.TryInitializeIdentifierNameState(document, identifierName, cancellationToken,
-                    out identifierToken, out simpleNameOrMemberAccessExpression))
+                    out var identifierToken, out var simpleNameOrMemberAccessExpression))
                 {
                     return false;
                 }
@@ -126,15 +123,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 {
                     return false;
                 }
-
                 // Either we found no matches, or this was ambiguous. Either way, we might be able
                 // to generate a method here.  Determine where the user wants to generate the method
                 // into, and if it's valid then proceed.
-                INamedTypeSymbol typeToGenerateIn;
-                bool isStatic;
                 if (!service.TryDetermineTypeToGenerateIn(
                     document, containingType, simpleNameOrMemberAccessExpression, cancellationToken,
-                    out typeToGenerateIn, out isStatic))
+                    out var typeToGenerateIn, out var isStatic))
                 {
                     return false;
                 }

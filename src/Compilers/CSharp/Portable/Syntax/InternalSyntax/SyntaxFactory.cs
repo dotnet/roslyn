@@ -97,6 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        internal static SyntaxTrivia ConflictMarker(string text)
+            => SyntaxTrivia.Create(SyntaxKind.ConflictMarkerTrivia, text);
+
         internal static SyntaxTrivia DisabledText(string text)
         {
             return SyntaxTrivia.Create(SyntaxKind.DisabledTextTrivia, text);

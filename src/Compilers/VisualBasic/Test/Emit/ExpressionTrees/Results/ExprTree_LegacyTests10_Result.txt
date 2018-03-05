@@ -1,8 +1,8 @@
-﻿Lambda(
+Lambda(
   body {
     Call(
       <NULL>
-      method: Int32 Foo[Struct1](System.Nullable`1[Form1+Struct1]) in Form1 (
+      method: Int32 Goo[Struct1](System.Nullable`1[Form1+Struct1]) in Form1 (
         Constant(
           null
           type: System.Nullable`1[Form1+Struct1]
@@ -271,7 +271,7 @@ Lambda(
       body {
         Call(
           <NULL>
-          method: Void Foo(Int32) in Form1 (
+          method: Void Goo(Int32) in Form1 (
             Constant(
               0
               type: System.Int32
@@ -288,4 +288,4 @@ Lambda(
   type: System.Func`1[System.Action]
 )
 
-Printed From 'Sub Foo(ByVal x As Integer)'
+Printed From 'Sub Goo(ByVal x As Integer)'

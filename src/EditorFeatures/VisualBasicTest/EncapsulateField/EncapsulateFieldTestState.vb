@@ -1,13 +1,14 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Shared
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
 Imports Microsoft.VisualStudio.Composition
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
@@ -29,15 +30,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
             TargetDocument = workspace.CurrentSolution.GetDocument(_testDocument.Id)
         End Sub
 
-        Public Shared Async Function CreateAsync(markup As String) As System.Threading.Tasks.Task(Of EncapsulateFieldTestState)
-            Dim workspace = Await TestWorkspace.CreateVisualBasicAsync(markup, exportProvider:=s_exportProvider)
+        Public Shared Function Create(markup As String) As EncapsulateFieldTestState
+            Dim workspace = TestWorkspace.CreateVisualBasic(markup, exportProvider:=s_exportProvider)
             Return New EncapsulateFieldTestState(workspace)
         End Function
 
         Public Sub Encapsulate()
             Dim args = New EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer())
-            Dim commandHandler = New EncapsulateFieldCommandHandler(TestWaitIndicator.Default, Workspace.GetService(Of ITextBufferUndoManagerProvider)())
-            commandHandler.ExecuteCommand(args, Nothing)
+            Dim commandHandler = New EncapsulateFieldCommandHandler(Workspace.GetService(Of ITextBufferUndoManagerProvider)(),
+                                                                    Workspace.ExportProvider.GetExportedValues(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata)))
+            commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create())
         End Sub
 
         Public Sub AssertEncapsulateAs(expected As String)

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document><![CDATA[
         class C
         {
-            void Foo<{|Definition:$$T|}>([|T|] x1, t x2)
+            void Goo<{|Definition:$$T|}>([|T|] x1, t x2)
             {
             }
         }]]></Document>
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document><![CDATA[
         partial class C
         {
-            void Foo<{|Definition:$$T|}>(X<[|T|]> t)
+            void Goo<{|Definition:$$T|}>(X<[|T|]> t)
             {
             }
     
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
         partial class C
-            sub Foo(of {|Definition:$$T|})(x as [|T|], x1 as [|t|])
+            sub Goo(of {|Definition:$$T|})(x as [|T|], x1 as [|t|])
             end sub
         end class</Document>
     </Project>
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             public M()
             {
                 GenericClass<string> GCObj = new GenericClass<string>();
-                GCObj.[|$$IntMethod|]<string>("foo");
+                GCObj.[|$$IntMethod|]<string>("goo");
             }
         }]]>
         </Document>
@@ -100,14 +100,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document><![CDATA[
         partial class C
         {
-            partial void Foo<{|Definition:$$T|}>([|T|] t)
+            partial void Goo<{|Definition:$$T|}>([|T|] t)
             {
             }
         }]]></Document>
         <Document><![CDATA[
         partial class C
         {
-            partial void Foo<{|Definition:T|}>([|T|] t);
+            partial void Goo<{|Definition:T|}>([|T|] t);
         }]]></Document>
     </Project>
 </Workspace>
@@ -123,14 +123,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document><![CDATA[
         partial class C
         {
-            partial void Foo<{|Definition:T|}>([|T|] t)
+            partial void Goo<{|Definition:T|}>([|T|] t)
             {
             }
         }]]></Document>
         <Document><![CDATA[
         partial class C
         {
-            partial void Foo<{|Definition:$$T|}>([|T|] t);
+            partial void Goo<{|Definition:$$T|}>([|T|] t);
         }]]></Document>
     </Project>
 </Workspace>
@@ -145,13 +145,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <Project Language="Visual Basic" CommonReferences="true">
         <Document><![CDATA[
             partial class C
-                sub Foo(Of {|Definition:$$T|})(t as [|T|])
+                sub Goo(Of {|Definition:$$T|})(t as [|T|])
                 end sub
             end class]]>
         </Document>
         <Document><![CDATA[
             partial class C
-                partial sub Foo(Of {|Definition:T|})(t as [|T|])
+                partial sub Goo(Of {|Definition:T|})(t as [|T|])
                 end sub
             end class]]>
         </Document>
@@ -168,13 +168,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <Project Language="Visual Basic" CommonReferences="true">
         <Document><![CDATA[
             partial class C
-                sub Foo(Of {|Definition:T|})(t as [|T|])
+                sub Goo(Of {|Definition:T|})(t as [|T|])
                 end sub
             end class]]>
         </Document>
         <Document><![CDATA[
             partial class C
-                partial sub Foo(Of {|Definition:$$T|})(t as [|T|])
+                partial sub Goo(Of {|Definition:$$T|})(t as [|T|])
                 end sub
             end class]]>
         </Document>

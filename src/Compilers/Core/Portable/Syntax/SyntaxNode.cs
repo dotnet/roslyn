@@ -1234,8 +1234,6 @@ namespace Microsoft.CodeAnalysis
             return IsEquivalentToCore(node, topLevel);
         }
 
-        internal static readonly RecordingObjectBinder s_defaultBinder = new ConcurrentRecordingObjectBinder();
-
         public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (stream == null)
@@ -1248,13 +1246,11 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
             }
 
-            using (var writer = new ObjectWriter(stream, GetDefaultObjectWriterData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 writer.WriteValue(this.Green);
             }
         }
-
-        internal abstract ObjectWriterData GetDefaultObjectWriterData();
 
         #region Core Methods
 
@@ -1485,6 +1481,18 @@ namespace Microsoft.CodeAnalysis
         {
             return new Syntax.InternalSyntax.SyntaxDiagnosticInfoList(this.Green).Any(
                 info => info.Severity == DiagnosticSeverity.Error);
+        }
+
+        /// <summary>
+        /// Creates a clone of a red node that can be used as a root of given syntaxTree.
+        /// New node has no parents, position == 0, and syntaxTree as specified.
+        /// </summary>
+        internal static T CloneNodeAsRoot<T>(T node, SyntaxTree syntaxTree) where T : SyntaxNode
+        {
+            var clone = (T)node.Green.CreateRed(null, 0);
+            clone._syntaxTree = syntaxTree;
+
+            return clone;
         }
     }
 }

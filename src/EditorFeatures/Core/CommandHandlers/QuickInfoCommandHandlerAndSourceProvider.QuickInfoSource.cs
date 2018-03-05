@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
+#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     internal partial class QuickInfoCommandHandlerAndSourceProvider
@@ -25,10 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             public void AugmentQuickInfoSession(IQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
             {
                 applicableToSpan = null;
-
-                object eventHookupValue;
                 if (quickInfoContent.Count != 0 ||
-                    session.Properties.TryGetProperty(QuickInfoUtilities.EventHookupKey, out eventHookupValue))
+                    session.Properties.TryGetProperty(QuickInfoUtilities.EventHookupKey, out object eventHookupValue))
                 {
                     // No quickinfo if it's the event hookup popup.
                     return;
@@ -39,11 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 {
                     var textView = session.TextView;
                     var args = new InvokeQuickInfoCommandArgs(textView, _subjectBuffer);
-
-                    Controller controller;
-                    if (_commandHandler.TryGetController(args, out controller))
+                    if (_commandHandler.TryGetController(args, out var controller))
                     {
-                        controller.InvokeQuickInfo(position.Value, trackMouse: true, augmentSession: session);
+                        controller.InvokeQuickInfo(position.Value, trackMouse: session.TrackMouse, augmentSession: session);
                     }
                 }
             }
@@ -54,3 +50,4 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
     }
 }
+#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094

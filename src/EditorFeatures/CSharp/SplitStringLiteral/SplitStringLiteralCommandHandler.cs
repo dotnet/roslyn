@@ -1,30 +1,48 @@
-﻿using System;
+﻿using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
-    [ExportCommandHandler(nameof(SplitStringLiteralCommandHandler), ContentTypeNames.CSharpContentType)]
-    internal partial class SplitStringLiteralCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name(nameof(SplitStringLiteralCommandHandler))]
+    internal partial class SplitStringLiteralCommandHandler : VSCommanding.ICommandHandler<ReturnKeyCommandArgs>
     {
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+
+        [ImportingConstructor]
+        public SplitStringLiteralCommandHandler(
+            ITextUndoHistoryRegistry undoHistoryRegistry,
+            IEditorOperationsFactoryService editorOperationsFactoryService)
         {
-            return nextHandler();
+            _undoHistoryRegistry = undoHistoryRegistry;
+            _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
+        public string DisplayName => CSharpEditorResources.Split_String_Literal_Command_Handler;
+
+        public VSCommanding.CommandState GetCommandState(ReturnKeyCommandArgs args)
         {
-            if (!ExecuteCommandWorker(args))
-            {
-                nextHandler();
-            }
+            return VSCommanding.CommandState.Unspecified;
+        }
+
+        public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
+        {
+            return ExecuteCommandWorker(args);
         }
 
         public bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
@@ -64,23 +82,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
                 if (enabled)
                 {
-                    var cursorPosition = SplitStringLiteral(
-                        subjectBuffer, document, options, caret, CancellationToken.None);
-
-                    if (cursorPosition != null)
+                    using (var transaction = CaretPreservingEditTransaction.TryCreate(
+                        CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
-                        var snapshotPoint = new SnapshotPoint(
-                            subjectBuffer.CurrentSnapshot, cursorPosition.Value);
-                        var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
-                            snapshotPoint, PointTrackingMode.Negative, PositionAffinity.Predecessor,
-                            textView.TextBuffer);
+                        var cursorPosition = SplitStringLiteral(
+                            subjectBuffer, document, options, caret, CancellationToken.None);
 
-                        if (newCaretPoint != null)
+                        if (cursorPosition != null)
                         {
-                            textView.Caret.MoveTo(newCaretPoint.Value);
-                        }
+                            var snapshotPoint = new SnapshotPoint(
+                                subjectBuffer.CurrentSnapshot, cursorPosition.Value);
+                            var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
+                                snapshotPoint, PointTrackingMode.Negative, PositionAffinity.Predecessor,
+                                textView.TextBuffer);
 
-                        return true;
+                            if (newCaretPoint != null)
+                            {
+                                textView.Caret.MoveTo(newCaretPoint.Value);
+                            }
+
+                            transaction.Complete();
+                            return true;
+                        }
                     }
                 }
             }

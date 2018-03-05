@@ -104,9 +104,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property Type As TypeSymbol
 
         ''' <summary>
-        ''' The list of custom modifiers, if any, associated with the parameter.
+        ''' The list of custom modifiers, if any, associated with the parameter type.
         ''' </summary>
         Public MustOverride ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
+
+        ''' <summary>
+        ''' Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        ''' </summary>
+        Public MustOverride ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
 
         ''' <summary>
         ''' Gets the ordinal order of this parameter. The first type parameter has ordinal zero.
@@ -258,14 +263,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend MustOverride ReadOnly Property IsCallerFilePath As Boolean
 
-        ''' <summary>
-        ''' The CLI spec says that custom modifiers must precede the ByRef type code in the encoding of a parameter.
-        ''' Unfortunately, the managed C++ compiler emits them in the reverse order.  In order to avoid breaking
-        ''' interop scenarios, we need to support such signatures. 
-        ''' Should be 0 for non-ref parameters.
-        ''' </summary>
-        Friend MustOverride ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
-
         Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
             Get
                 Return ERRID.ERR_UnsupportedType1
@@ -304,6 +301,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IParameterSymbol_IsThis As Boolean Implements IParameterSymbol.IsThis
             Get
                 Return Me.IsMe
+            End Get
+        End Property
+
+        Private ReadOnly Property IParameterSymbol_RefCustomModifiers As ImmutableArray(Of CustomModifier) Implements IParameterSymbol.RefCustomModifiers
+            Get
+                Return Me.RefCustomModifiers
             End Get
         End Property
 

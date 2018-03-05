@@ -2,9 +2,12 @@
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
+Imports System.IO
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.VisualStudio.Debugger.Clr
@@ -61,6 +64,90 @@ End Class"
   IL_0007:  ret
 }")
                 End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub DuplicateValueTupleBetweenMscorlibAndLibrary()
+            Const versionTemplate = "<Assembly: System.Reflection.AssemblyVersion(""{0}.0.0.0"")>"
+
+            Const corlib_vb = "
+Namespace System
+    Public Class [Object]
+    End Class
+    Public Structure Void
+    End Structure
+    Public Class ValueType
+    End Class
+    Public Structure IntPtr
+    End Structure
+    Public Structure Int32
+    End Structure
+    Public Class [String]
+    End Class
+    Public Class Attribute
+    End Class
+End Namespace
+
+Namespace System.Reflection
+    Public Class AssemblyVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(version As String)
+        End Sub
+    End Class
+End Namespace
+"
+
+            Dim corlibWithoutVT = CreateCompilation({String.Format(versionTemplate, "1") + corlib_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
+            corlibWithoutVT.AssertTheseDiagnostics()
+            Dim corlibWithoutVTRef = corlibWithoutVT.EmitToImageReference()
+
+            Const valuetuple_vb As String = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+        End Sub
+    End Structure
+End Namespace
+"
+
+            Dim corlibWithVT = CreateCompilation({String.Format(versionTemplate, "2") + corlib_vb + valuetuple_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
+            corlibWithVT.AssertTheseDiagnostics()
+
+            Const source As String =
+"Class C
+    Shared Function M() As (Integer, Integer)
+        Dim o = (1, 2)
+        Return o
+    End Function
+End Class"
+
+            Dim app = CreateCompilation(source + valuetuple_vb, references:={corlibWithoutVTRef}, options:=TestOptions.DebugDll)
+            app.AssertTheseDiagnostics()
+
+            Dim runtime = CreateRuntimeInstance({app.ToModuleInstance(), corlibWithVT.ToModuleInstance()})
+            ' Create EE context with app assembly (including ValueTuple) and a more recent corlib (also including ValueTuple)
+            Dim evalContext = CreateMethodContext(runtime, "C.M")
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+
+            Dim compileResult = evalContext.CompileExpression("(1, 2)", errorMessage, testData)
+            Assert.Null(errorMessage)
+
+            Using block As ModuleMetadata = ModuleMetadata.CreateFromStream(New MemoryStream(compileResult.Assembly))
+                Dim reader = block.MetadataReader
+
+                Dim appRef = app.Assembly.Identity.Name
+                AssertEx.SetEqual({"corlib 2.0", appRef + " 0.0"}, reader.DumpAssemblyReferences())
+
+                AssertEx.SetEqual({"Object, System, AssemblyReference:corlib",
+                    "ValueTuple`2, System, AssemblyReference:" + appRef, ' ValueTuple comes from app, not corlib
+                    ", System, AssemblyReference:" + appRef},
+                    reader.DumpTypeReferences())
+            End Using
         End Sub
 
         <Fact>
@@ -232,9 +319,9 @@ End Class"
   .maxstack  2
   .locals init ((Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) V_0) //x
   IL_0000:  ldloc.0
-  IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Item4 As Integer""
+  IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)).Item4 As Integer""
   IL_0006:  ldloc.0
-  IL_0007:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Rest As (Integer)""
+  IL_0007:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)).Rest As ValueTuple(Of Integer)""
   IL_000c:  ldfld      ""System.ValueTuple(Of Integer).Item1 As Integer""
   IL_0011:  add.ovf
   IL_0012:  ret
@@ -269,10 +356,10 @@ End Class"
   .maxstack  2
   .locals init ((Integer, Integer, Three As Integer, Four As Integer, Integer, Integer, Integer, Eight As Integer) V_0) //x
   IL_0000:  ldloc.0
-  IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Rest As (Integer)""
+  IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)).Rest As ValueTuple(Of Integer)""
   IL_0006:  ldfld      ""System.ValueTuple(Of Integer).Item1 As Integer""
   IL_000b:  ldloc.0
-  IL_000c:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Rest As (Integer)""
+  IL_000c:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)).Rest As ValueTuple(Of Integer)""
   IL_0011:  ldfld      ""System.ValueTuple(Of Integer).Item1 As Integer""
   IL_0016:  add.ovf
   IL_0017:  ret
@@ -295,25 +382,25 @@ End Class"
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp, references:={MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
-                validator:= Sub(runtime)
-                    Dim context = CreateMethodContext(runtime, "C.M")
-                    Dim errorMessage As String = Nothing
-                    Dim testData = New CompilationTestData()
-                    Dim result = context.CompileExpression(
-                        "y = DirectCast(x, (A As Integer, B As Integer))",
-                        DkmEvaluationFlags.None,
-                        NoAliases,
-                        errorMessage,
-                        testData)
-                    Assert.Null(errorMessage)
-                    Dim typeInfo As ReadOnlyCollection(Of Byte) = Nothing
-                    Dim typeInfoId = result.GetCustomTypeInfo(typeInfo)
-                    Assert.Null(typeInfo)
-                    Dim methodData = testData.GetMethodData("<>x.<>m0")
-                    Dim method = methodData.Method
-                    Assert.Null(GetTupleElementNamesAttributeIfAny(method))
-                    methodData.VerifyIL(
-"{
+                validator:=Sub(runtime)
+                               Dim context = CreateMethodContext(runtime, "C.M")
+                               Dim errorMessage As String = Nothing
+                               Dim testData = New CompilationTestData()
+                               Dim result = context.CompileExpression(
+                                   "y = DirectCast(x, (A As Integer, B As Integer))",
+                                   DkmEvaluationFlags.None,
+                                   NoAliases,
+                                   errorMessage,
+                                   testData)
+                               Assert.Null(errorMessage)
+                               Dim typeInfo As ReadOnlyCollection(Of Byte) = Nothing
+                               Dim typeInfoId = result.GetCustomTypeInfo(typeInfo)
+                               Assert.Null(typeInfo)
+                               Dim methodData = testData.GetMethodData("<>x.<>m0")
+                               Dim method = methodData.Method
+                               Assert.Null(GetTupleElementNamesAttributeIfAny(method))
+                               methodData.VerifyIL(
+           "{
   // Code size       48 (0x30)
   .maxstack  4
   .locals init ((Integer, Integer) V_0, //x
@@ -333,7 +420,7 @@ End Class"
   IL_002e:  stind.ref
   IL_002f:  ret
 }")
-                            End Sub)
+                           End Sub)
         End Sub
 
         <WorkItem(13589, "https://github.com/dotnet/roslyn/issues/13589")>
