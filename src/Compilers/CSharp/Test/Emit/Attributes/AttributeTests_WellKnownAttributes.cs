@@ -9125,6 +9125,506 @@ public class C
 }");
         }
 
+        [Fact]
+        public void SkipLocalsInitAttributeOnIteratorPropagatesToItsSynthesizedMethods()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public System.Collections.IEnumerable M()
+    {
+        yield return 1;
+        yield return 2;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            comp.VerifyIL("C.<M>d__0.System.Collections.IEnumerator.MoveNext", @"
+{
+  // Code size       92 (0x5c)
+  .maxstack  2
+  .locals (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  switch    (
+        IL_001b,
+        IL_0037,
+        IL_0053)
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldarg.0
+  IL_001c:  ldc.i4.m1
+  IL_001d:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.1
+  IL_0024:  box        ""int""
+  IL_0029:  stfld      ""object C.<M>d__0.<>2__current""
+  IL_002e:  ldarg.0
+  IL_002f:  ldc.i4.1
+  IL_0030:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0035:  ldc.i4.1
+  IL_0036:  ret
+  IL_0037:  ldarg.0
+  IL_0038:  ldc.i4.m1
+  IL_0039:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_003e:  ldarg.0
+  IL_003f:  ldc.i4.2
+  IL_0040:  box        ""int""
+  IL_0045:  stfld      ""object C.<M>d__0.<>2__current""
+  IL_004a:  ldarg.0
+  IL_004b:  ldc.i4.2
+  IL_004c:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0051:  ldc.i4.1
+  IL_0052:  ret
+  IL_0053:  ldarg.0
+  IL_0054:  ldc.i4.m1
+  IL_0055:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_005a:  ldc.i4.0
+  IL_005b:  ret
+}");
+
+        comp.VerifyIL("C.<M>d__0.System.Collections.Generic.IEnumerable<object>.GetEnumerator", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals (C.<M>d__0 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_0022
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      ""int C.<M>d__0.<>l__initialThreadId""
+  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
+  IL_0015:  bne.un.s   IL_0022
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.0
+  IL_0019:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_001e:  ldarg.0
+  IL_001f:  stloc.0
+  IL_0020:  br.s       IL_0029
+  IL_0022:  ldc.i4.0
+  IL_0023:  newobj     ""C.<M>d__0..ctor(int)""
+  IL_0028:  stloc.0
+  IL_0029:  ldloc.0
+  IL_002a:  ret
+}");
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnMethodPropagatesToIteratorLocalFunction()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        System.Collections.IEnumerable F()
+        {
+            yield return 1;
+            yield return 2;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            comp.VerifyIL("C.<<M>g__F|0_0>d.System.Collections.IEnumerator.MoveNext", @"
+{
+  // Code size       92 (0x5c)
+  .maxstack  2
+  .locals (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<<M>g__F|0_0>d.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  switch    (
+        IL_001b,
+        IL_0037,
+        IL_0053)
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldarg.0
+  IL_001c:  ldc.i4.m1
+  IL_001d:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.1
+  IL_0024:  box        ""int""
+  IL_0029:  stfld      ""object C.<<M>g__F|0_0>d.<>2__current""
+  IL_002e:  ldarg.0
+  IL_002f:  ldc.i4.1
+  IL_0030:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
+  IL_0035:  ldc.i4.1
+  IL_0036:  ret
+  IL_0037:  ldarg.0
+  IL_0038:  ldc.i4.m1
+  IL_0039:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
+  IL_003e:  ldarg.0
+  IL_003f:  ldc.i4.2
+  IL_0040:  box        ""int""
+  IL_0045:  stfld      ""object C.<<M>g__F|0_0>d.<>2__current""
+  IL_004a:  ldarg.0
+  IL_004b:  ldc.i4.2
+  IL_004c:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
+  IL_0051:  ldc.i4.1
+  IL_0052:  ret
+  IL_0053:  ldarg.0
+  IL_0054:  ldc.i4.m1
+  IL_0055:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
+  IL_005a:  ldc.i4.0
+  IL_005b:  ret
+}");
+
+            comp.VerifyIL("C.<<M>g__F|0_0>d.System.Collections.Generic.IEnumerable<object>.GetEnumerator()", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals (C.<<M>g__F|0_0>d V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<<M>g__F|0_0>d.<>1__state""
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_0022
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      ""int C.<<M>g__F|0_0>d.<>l__initialThreadId""
+  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
+  IL_0015:  bne.un.s   IL_0022
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.0
+  IL_0019:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
+  IL_001e:  ldarg.0
+  IL_001f:  stloc.0
+  IL_0020:  br.s       IL_0029
+  IL_0022:  ldc.i4.0
+  IL_0023:  newobj     ""C.<<M>g__F|0_0>d..ctor(int)""
+  IL_0028:  stloc.0
+  IL_0029:  ldloc.0
+  IL_002a:  ret
+}");
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnAsyncPropagatesToItsSynthesizedMethods()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public async Task M()
+    {
+        await Task.Yield();
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            comp.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+{
+  // Code size      145 (0x91)
+  .maxstack  3
+  .locals (int V_0,
+           System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+           System.Runtime.CompilerServices.YieldAwaitable V_2,
+           System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0041
+    IL_000a:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_000f:  stloc.2
+    IL_0010:  ldloca.s   V_2
+    IL_0012:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_0017:  stloc.1
+    IL_0018:  ldloca.s   V_1
+    IL_001a:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_001f:  brtrue.s   IL_005d
+    IL_0021:  ldarg.0
+    IL_0022:  ldc.i4.0
+    IL_0023:  dup
+    IL_0024:  stloc.0
+    IL_0025:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_002a:  ldarg.0
+    IL_002b:  ldloc.1
+    IL_002c:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<M>d__0.<>u__1""
+    IL_0031:  ldarg.0
+    IL_0032:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
+    IL_0037:  ldloca.s   V_1
+    IL_0039:  ldarg.0
+    IL_003a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<M>d__0)""
+    IL_003f:  leave.s    IL_0090
+    IL_0041:  ldarg.0
+    IL_0042:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<M>d__0.<>u__1""
+    IL_0047:  stloc.1
+    IL_0048:  ldarg.0
+    IL_0049:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<M>d__0.<>u__1""
+    IL_004e:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_0054:  ldarg.0
+    IL_0055:  ldc.i4.m1
+    IL_0056:  dup
+    IL_0057:  stloc.0
+    IL_0058:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_005d:  ldloca.s   V_1
+    IL_005f:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_0064:  leave.s    IL_007d
+  }
+  catch System.Exception
+  {
+    IL_0066:  stloc.3
+    IL_0067:  ldarg.0
+    IL_0068:  ldc.i4.s   -2
+    IL_006a:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_006f:  ldarg.0
+    IL_0070:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
+    IL_0075:  ldloc.3
+    IL_0076:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_007b:  leave.s    IL_0090
+  }
+  IL_007d:  ldarg.0
+  IL_007e:  ldc.i4.s   -2
+  IL_0080:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0085:  ldarg.0
+  IL_0086:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
+  IL_008b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0090:  ret
+}");
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnMethodPropagatesToAsyncLocalFunction()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        async Task F()
+        {
+            await Task.Yield();
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            comp.VerifyIL("C.<<M>g__F|0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+{
+  // Code size      145 (0x91)
+  .maxstack  3
+  .locals (int V_0,
+           System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+           System.Runtime.CompilerServices.YieldAwaitable V_2,
+           System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<<M>g__F|0_0>d.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0041
+    IL_000a:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_000f:  stloc.2
+    IL_0010:  ldloca.s   V_2
+    IL_0012:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_0017:  stloc.1
+    IL_0018:  ldloca.s   V_1
+    IL_001a:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_001f:  brtrue.s   IL_005d
+    IL_0021:  ldarg.0
+    IL_0022:  ldc.i4.0
+    IL_0023:  dup
+    IL_0024:  stloc.0
+    IL_0025:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
+    IL_002a:  ldarg.0
+    IL_002b:  ldloc.1
+    IL_002c:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<<M>g__F|0_0>d.<>u__1""
+    IL_0031:  ldarg.0
+    IL_0032:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<<M>g__F|0_0>d.<>t__builder""
+    IL_0037:  ldloca.s   V_1
+    IL_0039:  ldarg.0
+    IL_003a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<<M>g__F|0_0>d>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<<M>g__F|0_0>d)""
+    IL_003f:  leave.s    IL_0090
+    IL_0041:  ldarg.0
+    IL_0042:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<<M>g__F|0_0>d.<>u__1""
+    IL_0047:  stloc.1
+    IL_0048:  ldarg.0
+    IL_0049:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<<M>g__F|0_0>d.<>u__1""
+    IL_004e:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_0054:  ldarg.0
+    IL_0055:  ldc.i4.m1
+    IL_0056:  dup
+    IL_0057:  stloc.0
+    IL_0058:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
+    IL_005d:  ldloca.s   V_1
+    IL_005f:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_0064:  leave.s    IL_007d
+  }
+  catch System.Exception
+  {
+    IL_0066:  stloc.3
+    IL_0067:  ldarg.0
+    IL_0068:  ldc.i4.s   -2
+    IL_006a:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
+    IL_006f:  ldarg.0
+    IL_0070:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<<M>g__F|0_0>d.<>t__builder""
+    IL_0075:  ldloc.3
+    IL_0076:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_007b:  leave.s    IL_0090
+  }
+  IL_007d:  ldarg.0
+  IL_007e:  ldc.i4.s   -2
+  IL_0080:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
+  IL_0085:  ldarg.0
+  IL_0086:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<<M>g__F|0_0>d.<>t__builder""
+  IL_008b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0090:  ret
+}");
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnMethodPropagatesToAsyncLambda()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        System.Action L = async () =>
+        {
+            await Task.Yield();
+        };
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            comp.VerifyIL("C.<>c.<<M>b__0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+{
+  // Code size      145 (0x91)
+  .maxstack  3
+  .locals (int V_0,
+           System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+           System.Runtime.CompilerServices.YieldAwaitable V_2,
+           System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c.<<M>b__0_0>d.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0041
+    IL_000a:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_000f:  stloc.2
+    IL_0010:  ldloca.s   V_2
+    IL_0012:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_0017:  stloc.1
+    IL_0018:  ldloca.s   V_1
+    IL_001a:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_001f:  brtrue.s   IL_005d
+    IL_0021:  ldarg.0
+    IL_0022:  ldc.i4.0
+    IL_0023:  dup
+    IL_0024:  stloc.0
+    IL_0025:  stfld      ""int C.<>c.<<M>b__0_0>d.<>1__state""
+    IL_002a:  ldarg.0
+    IL_002b:  ldloc.1
+    IL_002c:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<>c.<<M>b__0_0>d.<>u__1""
+    IL_0031:  ldarg.0
+    IL_0032:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<>c.<<M>b__0_0>d.<>t__builder""
+    IL_0037:  ldloca.s   V_1
+    IL_0039:  ldarg.0
+    IL_003a:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<>c.<<M>b__0_0>d>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<>c.<<M>b__0_0>d)""
+    IL_003f:  leave.s    IL_0090
+    IL_0041:  ldarg.0
+    IL_0042:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<>c.<<M>b__0_0>d.<>u__1""
+    IL_0047:  stloc.1
+    IL_0048:  ldarg.0
+    IL_0049:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<>c.<<M>b__0_0>d.<>u__1""
+    IL_004e:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_0054:  ldarg.0
+    IL_0055:  ldc.i4.m1
+    IL_0056:  dup
+    IL_0057:  stloc.0
+    IL_0058:  stfld      ""int C.<>c.<<M>b__0_0>d.<>1__state""
+    IL_005d:  ldloca.s   V_1
+    IL_005f:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_0064:  leave.s    IL_007d
+  }
+  catch System.Exception
+  {
+    IL_0066:  stloc.3
+    IL_0067:  ldarg.0
+    IL_0068:  ldc.i4.s   -2
+    IL_006a:  stfld      ""int C.<>c.<<M>b__0_0>d.<>1__state""
+    IL_006f:  ldarg.0
+    IL_0070:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<>c.<<M>b__0_0>d.<>t__builder""
+    IL_0075:  ldloc.3
+    IL_0076:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
+    IL_007b:  leave.s    IL_0090
+  }
+  IL_007d:  ldarg.0
+  IL_007e:  ldc.i4.s   -2
+  IL_0080:  stfld      ""int C.<>c.<<M>b__0_0>d.<>1__state""
+  IL_0085:  ldarg.0
+  IL_0086:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<>c.<<M>b__0_0>d.<>t__builder""
+  IL_008b:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
+  IL_0090:  ret
+}");
+        }
+
         #endregion
 
         [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
