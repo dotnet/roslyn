@@ -8,20 +8,15 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.CommandLine.UnitTests</AssemblyName>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
-    <ProjectReference Include="..\..\csc\csc.csproj" >
-      <Aliases>CscExe</Aliases>
-    </ProjectReference>
+    <ProjectReference Include="..\..\csc\csc.csproj" ReferenceOutputAssembly="false" OutputItemType="TaskWithDependencyResolvedProjectReferencePath" />
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Server\VBCSCompiler\VBCSCompiler.csproj">
-      <Aliases>VBCSCompiler</Aliases>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
     <ProjectReference Include="..\..\Portable\CSharpCodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
@@ -46,11 +41,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CommandLineTestResources.resx</DependentUpon>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\csc\csc.rsp">
-      <Link>csc.rsp</Link>
-    </None>
+    <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
+      <_Parameter1>$(CommitHashDisplay)</_Parameter1>
+    </AssemblyVersionAttribute>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
@@ -61,4 +54,26 @@
       <LastGenOutput>CommandLineTestResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+  <Target Name="CopyTestProjects" AfterTargets="ResolveProjectReferences">
+    <!-- In TypeLoader, the following logic is used for loading assemblies on .NET Core:
+            - if the simple name of the assembly exists in the same folder as msbuild.exe, then that assembly gets loaded, indifferent of the user specified path
+            - otherwise, the assembly from the user specified path is loaded, if it exists.
+            
+          So the custom tasks we are testing can't be in test output folder, because on .NET Core that would affect the loading behavior.  So this
+          target puts them in subfolders of the test output folder instead.    
+    -->
+
+    <Error Condition="'@(TaskWithDependencyResolvedProjectReferencePath)' == ''" Text="Couldn't find TaskWithDependencyResolvedProjectReferencePath item for TaskWithDependency" />
+    
+    <PropertyGroup>
+      <TaskWithDependencyOutputPath>@(TaskWithDependencyResolvedProjectReferencePath->'%(RootDir)%(Directory)')</TaskWithDependencyOutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <TaskWithDependencyContentContent Include="$(TaskWithDependencyOutputPath)*.*" />
+      <Content Include="@(TaskWithDependencyContentContent)" Link="csc\%(TaskWithDependencyContentContent.Filename)%(TaskWithDependencyContentContent.Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+    
+  </Target>
+  
 </Project>
