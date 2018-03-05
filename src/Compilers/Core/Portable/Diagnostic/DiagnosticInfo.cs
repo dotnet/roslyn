@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                if (arg is FormattableString)
+                if (arg is IFormattable)
                 {
                     continue;
                 }

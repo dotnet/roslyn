@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -81,20 +79,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var pooledBuilder = PooledStringBuilder.GetInstance();
                 var builder = pooledBuilder.Builder;
                 var arguments = this.Arguments;
-
+                var argumentDisplays = new object[arguments.Length];
 
                 builder.Append('(');
                 builder.Append("{0}");
+                argumentDisplays[0] = arguments[0].Display;
 
                 for (int i = 1; i < arguments.Length; i++)
                 {
                     builder.Append(", {" + i + "}");
+                    argumentDisplays[i] = arguments[i].Display;
                 }
 
                 builder.Append(')');
 
                 var format = pooledBuilder.ToStringAndFree();
-                var argumentDisplays = arguments.Select(a => a.Display).ToArray();
                 return FormattableStringFactory.Create(format, argumentDisplays);
             }
         }
