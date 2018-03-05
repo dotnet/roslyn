@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\');
 
         private const string RoslynItem = nameof(RoslynItem);
-        private const string TriggerSnapshot = nameof(TriggerSnapshot);
+        private const string TriggerBuffer = nameof(TriggerBuffer);
+        private const string MatchPriority = nameof(MatchPriority);
+        private const string SelectionBehavior = nameof(SelectionBehavior);
 
         public async Task<EditorCompletion.CompletionContext> GetCompletionContextAsync(
             EditorCompletion.CompletionTrigger trigger,
@@ -64,15 +66,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 var needsCustomCommit = service.GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider;
 
                 var item = Convert(document, roslynItem, completionService, filterCache, needsCustomCommit);
-                item.Properties.AddProperty(TriggerSnapshot, applicableSpan.Snapshot);
+                item.Properties.AddProperty(TriggerBuffer, triggerLocation.Snapshot.TextBuffer);
                 return item;
             });
 
             return new EditorCompletion.CompletionContext(
                 items,
                 useSoftSelection: false,
-                useSuggestionMode: completionList.SuggestionModeItem != null,
-                suggestionModeDescription: completionList.SuggestionModeItem?.DisplayText);
+                completionList.SuggestionModeItem != null,
+                completionList.SuggestionModeItem?.DisplayText);
         }
 
         private static RoslynTrigger GetRoslynTrigger(EditorCompletion.CompletionTrigger trigger)
@@ -121,13 +123,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                     new AccessibleImageId(
                         warningImage.Guid,
                         warningImage.Id,
-                        "Temporary Automation Name"));
+                        "Temporary Automation Name")); // TODO: There must be some way to get this text
             }
 
             var item = new EditorCompletion.CompletionItem(
                 roslynItem.DisplayText,
                 this,
-                new AccessibleImageId(imageId.Guid, imageId.Id, "Temporary Automation Name"), // TODO
+                new AccessibleImageId(imageId.Guid, imageId.Id, "Temporary Automation Name"), // TODO: There must be some way to get this text
                 filters,
                 suffix: string.Empty,
                 needsCustomCommit,
@@ -137,8 +139,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 attributeImages);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
-            item.Properties.AddProperty("MatchPriority", roslynItem.Rules.MatchPriority);
-            item.Properties.AddProperty("SelectionBehavior", roslynItem.Rules.SelectionBehavior);
+            item.Properties.AddProperty(MatchPriority, roslynItem.Rules.MatchPriority);
+            item.Properties.AddProperty(SelectionBehavior, roslynItem.Rules.SelectionBehavior);
             return item;
         }
 
@@ -159,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                         var itemFilter = new CompletionFilter(
                             filter.DisplayText, 
                             filter.AccessKey.ToString(), 
-                            new AccessibleImageId(imageId.Guid, imageId.Id, "Temporary Automation Name")); // TODO
+                            new AccessibleImageId(imageId.Guid, imageId.Id, "Temporary Automation Name")); // TODO: There must be some way to get this text
                         filterCache[filter.DisplayText] = itemFilter;
                         result.Add(itemFilter);
                     }
@@ -171,18 +173,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         public async Task<object> GetDescriptionAsync(EditorCompletion.CompletionItem item, CancellationToken cancellationToken)
         {
-            item.Properties.TryGetProperty<RoslynCompletionItem>("RoslynItem", out var roslynItem);
-            item.Properties.TryGetProperty<ITextSnapshot>("TriggerSnapshot", out var triggerSnapshot);
+            item.Properties.TryGetProperty<RoslynCompletionItem>(RoslynItem, out var roslynItem);
+            item.Properties.TryGetProperty<ITextBuffer>(TriggerBuffer, out var triggerBuffer);
 
-            Workspace.TryGetWorkspace(triggerSnapshot.TextBuffer.AsTextContainer(), out var workspace);
+            Workspace.TryGetWorkspace(triggerBuffer.AsTextContainer(), out var workspace);
 
-            var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentIdInCurrentContext(triggerSnapshot.TextBuffer.AsTextContainer()));
+            var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentIdInCurrentContext(triggerBuffer.AsTextContainer()));
             var service = document.GetLanguageService<CompletionService>() as CompletionServiceWithProviders;
-            var provider = service.GetProvider(roslynItem);
-
-            var description = await provider.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
-
-            // TODO: Snippet invocation part?
+            var description = await service.GetProvider(roslynItem).GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
 
             return new ClassifiedTextElement(description.TaggedParts.Select(p => new ClassifiedTextRun(p.Tag.ToClassificationTypeName(), p.Text)));
         }
@@ -196,20 +194,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             CancellationToken token)
         {
             var service = GetCompletionService(buffer.CurrentSnapshot) as CompletionServiceWithProviders;
-
-            var roslynItem = item.Properties.GetProperty<RoslynCompletionItem>(RoslynItem); // We're using custom data we deposited in GetCompletionContextAsync
-            var triggerSnapshot = item.Properties.GetProperty<ITextSnapshot>(TriggerSnapshot);
+            var roslynItem = item.Properties.GetProperty<RoslynCompletionItem>(RoslynItem);
 
             using (var edit = buffer.CreateEdit())
             {
                 var provider = service.GetProvider(roslynItem);
-                Workspace.TryGetWorkspace(triggerSnapshot.TextBuffer.AsTextContainer(), out var workspace);
-                var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentIdInCurrentContext(triggerSnapshot.TextBuffer.AsTextContainer()));
+                Workspace.TryGetWorkspace(buffer.AsTextContainer(), out var workspace);
+                var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentIdInCurrentContext(buffer.AsTextContainer()));
 
                 // TODO: We actually want the document from the initial snapshot, not the CurrentSnapshot.
                 edit.Delete(applicableSpan.GetSpan(buffer.CurrentSnapshot));
 
-                var change = ((IFeaturesCustomCommitCompletionProvider)provider).GetChangeAsync(document, roslynItem, commitCharacter, CancellationToken.None).WaitAndGetResult(token);
+                var change = ((IFeaturesCustomCommitCompletionProvider)provider).GetChangeAsync(
+                    document, 
+                    roslynItem, 
+                    commitCharacter, 
+                    CancellationToken.None).WaitAndGetResult(token);
                 edit.Replace(change.TextChange.Span.ToSpan(), change.TextChange.NewText);
                 edit.Apply();
 
