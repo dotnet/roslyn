@@ -321,6 +321,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            public override bool AreLocalsZeroed
+            {
+                get { throw ExceptionUtilities.Unreachable; }
+            }
+
             public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;

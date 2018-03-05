@@ -126,6 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Symbol ContainingSymbol => _topLevelMethod.ContainingSymbol;
 
+        public override bool AreLocalsZeroed => true;
+
         // The lambda method contains user code from the lambda
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;
 

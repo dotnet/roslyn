@@ -240,6 +240,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { return _implementingType.AreLocalsZeroed; }
+        }
+
         public override DllImportData GetDllImportData()
         {
             return null;

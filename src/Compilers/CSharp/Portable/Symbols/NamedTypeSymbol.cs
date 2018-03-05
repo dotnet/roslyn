@@ -1212,6 +1212,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool IsSerializable { get; }
 
         /// <summary>
+        /// Returns true if locals are to be initialized
+        /// </summary>
+        public abstract bool AreLocalsZeroed { get; }
+
+        /// <summary>
         /// Type layout information (ClassLayout metadata and layout kind flags).
         /// </summary>
         internal abstract TypeLayout Layout { get; }

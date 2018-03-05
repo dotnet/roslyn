@@ -233,5 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ContainingAssembly.GetSpecialType(SpecialType.System_ValueType); }
         }
+
+        public override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
     }
 }

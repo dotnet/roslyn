@@ -81,6 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ContainingAssembly.GetSpecialType(SpecialType.System_MulticastDelegate); }
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { return true; }
+        }
+
         private sealed class DelegateConstructor : SynthesizedInstanceConstructor
         {
             private readonly ImmutableArray<ParameterSymbol> _parameters;

@@ -174,7 +174,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingType.IsMetadataSealed;
             }
         }
-        
+
+        public override bool AreLocalsZeroed => _underlyingType.AreLocalsZeroed;
+
         internal override bool HasCodeAnalysisEmbeddedAttribute => _underlyingType.HasCodeAnalysisEmbeddedAttribute;
 
         internal override ObsoleteAttributeData ObsoleteAttributeData

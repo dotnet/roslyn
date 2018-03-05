@@ -531,6 +531,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         #region IErrorTypeSymbol Members
 
         ImmutableArray<ISymbol> IErrorTypeSymbol.CandidateSymbols

@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ContainingType.IsAbstract ? Accessibility.Protected : Accessibility.Public; }
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { return ContainingType.AreLocalsZeroed; }
+        }
+
         internal override bool IsMetadataFinal
         {
             get
