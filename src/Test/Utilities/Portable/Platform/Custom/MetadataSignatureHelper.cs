@@ -542,7 +542,9 @@ namespace Roslyn.Test.Utilities
 
             if (field.IsInitOnly) sb.Append("initonly ");
             if (field.IsLiteral) sb.Append("literal ");
+#if NET46 || NET461
             if (field.IsNotSerialized) sb.Append("notserialized ");
+#endif
             if (field.Attributes.HasFlag(FieldAttributes.SpecialName)) sb.Append("specialname ");
             if (field.Attributes.HasFlag(FieldAttributes.RTSpecialName)) sb.Append("rtspecialname ");
 #if NET46 || NET461
