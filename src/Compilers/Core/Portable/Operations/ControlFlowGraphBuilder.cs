@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private PooledDictionary<BasicBlock, RegionBuilder> _regionMap;
         private BasicBlock _currentBasicBlock;
         private RegionBuilder _currentRegion;
+        private PooledDictionary<ILabelSymbol, BasicBlock> _labeledBlocks;
 
         private IOperation _currentStatement;
         private ArrayBuilder<IOperation> _evalStack;
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Operations
             builder.LeaveRegion();
             Debug.Assert(builder._currentRegion == null);
 
+            CheckUnresolvedBranches(blocks, builder._labeledBlocks);
             Pack(blocks, root, builder._regionMap);
             ControlFlowGraph.Region region = root.ToImmutableRegionAndFree(blocks);
             root = null;
@@ -60,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(builder._evalStack.Count == 0);
             builder._evalStack.Free();
             builder._regionMap.Free();
+            builder._labeledBlocks?.Free();
 
             return new ControlFlowGraph(blocks.ToImmutableAndFree(), region);
         }
@@ -191,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                 {
                                     BasicBlock block = subRegion.FirstBlock;
 
-                                    if (block.Statements.IsEmpty && block.InternalConditional.Condition == null)
+                                    if (block.Statements.IsEmpty && block.InternalConditional.Condition == null && block.InternalNext.ReturnValue == null)
                                     {
                                         // This sub-region has no executable code, merge block into the parent and drop the sub-region
                                         Debug.Assert(regionMap[block] == subRegion);
@@ -425,23 +428,55 @@ namespace Microsoft.CodeAnalysis.Operations
                         Debug.Assert((next.Flags & ~(BasicBlock.BranchFlags.Regular | BasicBlock.BranchFlags.Error | BasicBlock.BranchFlags.Return)) == 0);
 
                         ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
+                        IOperation returnValue = block.InternalNext.ReturnValue;
 
-                        if (block.InternalNext.ReturnValue != null)
+                        RegionBuilder implicitEntryRegion = tryGetImplicitEntryRegion(block, currentRegion);
+
+                        if (implicitEntryRegion != null)
                         {
-                            BasicBlock predecessor;
-                            if (predecessors.Count != 1 || 
-                                (predecessor = predecessors.Single()).InternalConditional.Branch.Destination == block ||
-                                predecessor.Kind == BasicBlockKind.Entry ||
-                                regionMap[predecessor] != currentRegion)
+                            // First blocks in filter/catch/finally do not capture all possible predecessors
+                            // Do not try to merge them, unless they are simply linked to the next block
+                            if (returnValue != null ||
+                                next.Destination != blocks[i + 1])
                             {
-                                // Do not merge return with expression with more than one predecessor
-                                // Do not merge return with expression with conditional branch
-                                // Do not merge return with expression with an entry block
-                                // Do not merge return with expression into a different region
                                 continue;
                             }
 
-                            Debug.Assert(predecessor.InternalNext.Branch.Destination == block);
+                            Debug.Assert(implicitEntryRegion.LastBlock.Ordinal >= next.Destination.Ordinal);
+                        }
+
+                        if (returnValue != null)
+                        {
+                            BasicBlock predecessor;
+                            int predecessorsCount = predecessors.Count;
+
+                            if (predecessorsCount == 0)
+                            {
+                                // Let's drop an unreachable compiler generated return that VB optimistically adds at the end of a method body
+                                if (next.Destination.Kind != BasicBlockKind.Exit ||
+                                    !returnValue.IsImplicit ||
+                                    returnValue.Kind != OperationKind.LocalReference ||
+                                    !((ILocalReferenceOperation)returnValue).Local.IsFunctionValue)
+                                {
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                if (predecessorsCount != 1 ||
+                                  (predecessor = predecessors.Single()).InternalConditional.Branch.Destination == block ||
+                                  predecessor.Kind == BasicBlockKind.Entry ||
+                                  regionMap[predecessor] != currentRegion)
+                                {
+                                    // Do not merge return with expression with more than one predecessor
+                                    // Do not merge return with expression with conditional branch
+                                    // Do not merge return with expression with an entry block
+                                    // Do not merge return with expression into a different region
+                                    continue;
+                                }
+
+                                Debug.Assert(predecessor.InternalNext.Branch.Destination == block);
+                            }
                         }
 
                         RegionBuilder destinationRegion = regionMap[next.Destination];
@@ -463,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         {
                             tryMergeBranch(predecessor, ref predecessor.InternalNext.Branch, block);
                             Debug.Assert(predecessor.InternalNext.ReturnValue == null);
-                            predecessor.InternalNext.ReturnValue = block.InternalNext.ReturnValue; 
+                            predecessor.InternalNext.ReturnValue = returnValue;
                             tryMergeBranch(predecessor, ref predecessor.InternalConditional.Branch, block);
                         }
 
@@ -491,13 +526,22 @@ namespace Microsoft.CodeAnalysis.Operations
                         continue;
                     }
 
+                    RegionBuilder currentRegion = regionMap[block];
+                    if (tryGetImplicitEntryRegion(block, currentRegion) != null)
+                    {
+                        // First blocks in filter/catch/finally do not capture all possible predecessors
+                        // Do not try to merge conditional branches in them
+                        continue;
+                    }
+
                     BasicBlock predecessor = predecessors.Single();
 
                     if (predecessor.Kind != BasicBlockKind.Entry && 
                         predecessor.InternalNext.Branch.Destination == block && 
                         predecessor.InternalConditional.Condition == null &&
-                        regionMap[predecessor] == regionMap[block]) 
+                        regionMap[predecessor] == currentRegion) 
                     {
+                        Debug.Assert(predecessor != block);
                         Debug.Assert(predecessor.InternalNext.ReturnValue == null);
 
                         mergeBranch(predecessor, ref predecessor.InternalNext.Branch, ref next);
@@ -514,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                         i--;
                         count--;
-                        removeBlock(block, regionMap[block]);
+                        removeBlock(block, currentRegion);
                         anyRemoved = true;
                     }
                 }
@@ -528,6 +572,30 @@ namespace Microsoft.CodeAnalysis.Operations
             fromPredecessor?.Free();
 
             return anyRemoved;
+
+            RegionBuilder tryGetImplicitEntryRegion(BasicBlock block, RegionBuilder currentRegion)
+            {
+                do
+                {
+                    if (currentRegion.FirstBlock != block)
+                    {
+                        return null;
+                    }
+
+                    switch (currentRegion.Kind)
+                    {
+                        case ControlFlowGraph.RegionKind.Filter:
+                        case ControlFlowGraph.RegionKind.Catch:
+                        case ControlFlowGraph.RegionKind.Finally:
+                            return currentRegion;
+                    }
+
+                    currentRegion = currentRegion.Enclosing;
+                }
+                while (currentRegion != null);
+
+                return null;
+            }
 
             void removeBlock(BasicBlock block, RegionBuilder region)
             {
@@ -652,6 +720,26 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
 
                 return mismatch;
+            }
+        }
+
+        /// <summary>
+        /// Deal with labeled blocks that were not added to the graph because labels were never found
+        /// </summary>
+        private static void CheckUnresolvedBranches(ArrayBuilder<BasicBlock> blocks, PooledDictionary<ILabelSymbol, BasicBlock> labeledBlocks)
+        {
+            if (labeledBlocks == null)
+            {
+                return;
+            }
+
+            foreach (BasicBlock labeled in labeledBlocks.Values)
+            {
+                if (labeled.Ordinal == -1)
+                {
+                    // Neither VB nor C# produce trees with unresolved branches 
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
         }
 
@@ -1438,8 +1526,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 locals = new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals);
             }
 
-            var @continue = new BasicBlock(BasicBlockKind.Block);
-            var @break = new BasicBlock(BasicBlockKind.Block);
+            var @continue = GetLabeledOrNewBlock(operation.ContinueLabel);
+            var @break = GetLabeledOrNewBlock(operation.ExitLabel);
 
             if (operation.ConditionIsTop)
             {
@@ -1533,7 +1621,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try));
             }
 
-            var afterTryCatchFinally = new BasicBlock(BasicBlockKind.Block);
+            var afterTryCatchFinally = GetLabeledOrNewBlock(operation.ExitLabel);
 
             VisitStatement(operation.Body);
             LinkBlocks(CurrentBasicBlock, afterTryCatchFinally);
@@ -1696,6 +1784,52 @@ namespace Microsoft.CodeAnalysis.Operations
                     throw ExceptionUtilities.UnexpectedValue(operation.Kind);
             }
 
+            return null;
+        }
+
+        public override IOperation VisitLabeled(ILabeledOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            AppendNewBlock(GetLabeledOrNewBlock(operation.Label));
+            VisitStatement(operation.Operation);
+            return null;
+        }
+
+        private BasicBlock GetLabeledOrNewBlock(ILabelSymbol labelOpt)
+        {
+            if (labelOpt == null)
+            {
+                return new BasicBlock(BasicBlockKind.Block);
+            }
+
+            BasicBlock labeledBlock;
+
+            if (_labeledBlocks == null)
+            {
+                _labeledBlocks = PooledDictionary<ILabelSymbol, BasicBlock>.GetInstance();
+            }
+            else if (_labeledBlocks.TryGetValue(labelOpt, out labeledBlock))
+            {
+                return labeledBlock;
+            }
+
+            labeledBlock = new BasicBlock(BasicBlockKind.Block);
+            _labeledBlocks.Add(labelOpt, labeledBlock);
+            return labeledBlock;
+        }
+
+        public override IOperation VisitBranch(IBranchOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+            LinkBlocks(CurrentBasicBlock, GetLabeledOrNewBlock(operation.Target));
+            _currentBasicBlock = null;
+            return null;
+        }
+
+        public override IOperation VisitEmpty(IEmptyOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
             return null;
         }
 
@@ -1966,21 +2100,6 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             // PROTOTYPE(dataflow): note that the loop control variable can be an IVariableDeclarator directly, and this function is expected to handle it without calling Visit(IVariableDeclarator)
             return new ForEachLoopStatement(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable), Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitLabeled(ILabeledOperation operation, int? captureIdForResult)
-        {
-            return new LabeledStatement(operation.Label, Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitBranch(IBranchOperation operation, int? captureIdForResult)
-        {
-            return new BranchStatement(operation.Target, operation.BranchKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitEmpty(IEmptyOperation operation, int? captureIdForResult)
-        {
-            return new EmptyStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitLock(ILockOperation operation, int? captureIdForResult)

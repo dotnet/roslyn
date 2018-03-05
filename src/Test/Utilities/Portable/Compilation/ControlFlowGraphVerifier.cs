@@ -453,10 +453,10 @@ endRegion:
                 case OperationKind.VariableDeclaration:
                 case OperationKind.VariableDeclarator:
                 case OperationKind.VariableInitializer:
-                    return false;
-
+                case OperationKind.Return:
+                case OperationKind.YieldBreak:
                 case OperationKind.Labeled:
-                    return true; // PROTOTYPE(dataflow): should be replaced with the underlying statemen
+                    return false;
 
                 case OperationKind.BinaryOperator:
                     var binary = (IBinaryOperation)n;
@@ -465,8 +465,6 @@ endRegion:
                 case OperationKind.None:
                 case OperationKind.Invalid:
                 case OperationKind.Empty:
-                case OperationKind.Return:
-                case OperationKind.YieldBreak:
                 case OperationKind.YieldReturn:
                 case OperationKind.ExpressionStatement:
                 case OperationKind.LocalFunction:
