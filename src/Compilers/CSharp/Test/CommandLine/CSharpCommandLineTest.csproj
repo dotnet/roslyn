@@ -15,7 +15,7 @@
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
-    <ProjectReference Include="..\..\csc\csc.csproj" ReferenceOutputAssembly="false" OutputItemType="TaskWithDependencyResolvedProjectReferencePath" />
+    <ProjectReference Include="..\..\csc\csc.csproj" ReferenceOutputAssembly="false" OutputItemType="RoslynReferenceToDependencyDirectory" />
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
     <ProjectReference Include="..\..\Portable\CSharpCodeAnalysis.csproj" />
@@ -55,25 +55,4 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <Target Name="CopyTestProjects" AfterTargets="ResolveProjectReferences">
-    <!-- In TypeLoader, the following logic is used for loading assemblies on .NET Core:
-            - if the simple name of the assembly exists in the same folder as msbuild.exe, then that assembly gets loaded, indifferent of the user specified path
-            - otherwise, the assembly from the user specified path is loaded, if it exists.
-            
-          So the custom tasks we are testing can't be in test output folder, because on .NET Core that would affect the loading behavior.  So this
-          target puts them in subfolders of the test output folder instead.    
-    -->
-
-    <Error Condition="'@(TaskWithDependencyResolvedProjectReferencePath)' == ''" Text="Couldn't find TaskWithDependencyResolvedProjectReferencePath item for TaskWithDependency" />
-    
-    <PropertyGroup>
-      <TaskWithDependencyOutputPath>@(TaskWithDependencyResolvedProjectReferencePath->'%(RootDir)%(Directory)')</TaskWithDependencyOutputPath>
-    </PropertyGroup>
-    <ItemGroup>
-      <TaskWithDependencyContentContent Include="$(TaskWithDependencyOutputPath)*.*" />
-      <Content Include="@(TaskWithDependencyContentContent)" Link="csc\%(TaskWithDependencyContentContent.Filename)%(TaskWithDependencyContentContent.Extension)" CopyToOutputDirectory="PreserveNewest" />
-    </ItemGroup>
-    
-  </Target>
-  
 </Project>

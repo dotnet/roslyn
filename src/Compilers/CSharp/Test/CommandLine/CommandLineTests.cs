@@ -37,9 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
     {
         private static readonly string s_CSharpCompilerExecutable = Path.Combine(
             Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
-            @"csc\csc.exe");
+            @"dependency\csc.exe");
         private static readonly string s_defaultSdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
-        private static bool s_haveHookedResolve;
         private readonly string _baseDirectory = TempRoot.Root;
         private static readonly string s_compilerVersion = typeof(CommandLineTests).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
         private static readonly string s_compilerCommitHash = typeof(CommandLineTests).Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
