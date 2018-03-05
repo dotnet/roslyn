@@ -589,6 +589,7 @@ End Namespace
                          WellKnownMember.System_Span_T__ctor,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__ctor,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length
                         ' Not available yet, but will be in upcoming release.
@@ -677,6 +678,7 @@ End Namespace
                          WellKnownMember.System_Span_T__ctor,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__ctor,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length
                         ' Not available yet, but will be in upcoming release.

@@ -1120,7 +1120,7 @@ namespace System
 
             unsafe public Span(void* pointer, int length)
             {
-                this.arr = null;
+                this.arr = Helpers.ToArray<T>(pointer, length);
                 this.Length = length;
             }
 
@@ -1170,6 +1170,8 @@ namespace System
                     get => ref _span[_index];
                 }
             }
+
+            public static implicit operator Span<T>(T[] array) => new Span<T>(array);
         }
 
         public readonly ref struct ReadOnlySpan<T>
@@ -1179,6 +1181,12 @@ namespace System
             public ref readonly T this[int i] => ref arr[i];
             public override int GetHashCode() => 2;
             public int Length { get; }
+
+            unsafe public ReadOnlySpan(void* pointer, int length)
+            {
+                this.arr = Helpers.ToArray<T>(pointer, length);
+                this.Length = length;
+            }
 
             public ReadOnlySpan(T[] arr)
             {
@@ -1226,11 +1234,79 @@ namespace System
                     get => ref _span[_index];
                 }
             }
+
+            public static implicit operator ReadOnlySpan<T>(T[] array) => array == null ? default : new ReadOnlySpan<T>(array);
+
+            public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
         }
 
         public readonly ref struct SpanLike<T>
         {
             public readonly Span<T> field;
+        }
+
+        public enum Color: sbyte
+        {
+            Red,
+            Green,
+            Blue
+        }
+
+        public static unsafe class Helpers
+        {
+            public static T[] ToArray<T>(void* ptr, int count)
+            {
+                if (ptr == null)
+                {
+                    return null;
+                }
+
+                if (typeof(T) == typeof(int))
+                {
+                    var arr = new int[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((int*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(byte))
+                {
+                    var arr = new byte[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((byte*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(char))
+                {
+                    var arr = new char[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((char*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(Color))
+                {
+                    var arr = new Color[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((Color*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                throw new Exception(""add a case for: "" + typeof(T));
+            }
         }
     }";
         #endregion
