@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (!inPlace && !used)
             {
-                // emitting a value that noone will see
+                // emitting a value that no one will see
                 return true;
             }
             
