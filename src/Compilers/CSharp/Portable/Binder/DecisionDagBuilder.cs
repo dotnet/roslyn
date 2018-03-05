@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,13 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly TypeSymbol _booleanType;
         private readonly TypeSymbol _objectType;
         private readonly DiagnosticBag _diagnostics;
+        private readonly LabelSymbol _defaultLabel;
 
-        private DecisionDagBuilder(CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, DiagnosticBag diagnostics)
         {
             this._conversions = compilation.Conversions;
             this._booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
             this._objectType = compilation.GetSpecialType(SpecialType.System_Object);
             _diagnostics = diagnostics;
+            _defaultLabel = defaultLabel;
         }
 
         /// <summary>
@@ -37,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             LabelSymbol defaultLabel,
             DiagnosticBag diagnostics)
         {
-            var builder = new DecisionDagBuilder(compilation, diagnostics);
-            var result = builder.CreateDecisionDag(syntax, switchGoverningExpression, switchSections, defaultLabel);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
+            var result = builder.CreateDecisionDag(syntax, switchGoverningExpression, switchSections);
             return result;
         }
 
@@ -53,8 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             LabelSymbol defaultLabel,
             DiagnosticBag diagnostics)
         {
-            var builder = new DecisionDagBuilder(compilation, diagnostics);
-            var result = builder.CreateDecisionDag(syntax, switchExpressionInput, switchArms, defaultLabel);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
+            var result = builder.CreateDecisionDag(syntax, switchExpressionInput, switchArms);
             return result;
         }
 
@@ -69,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ImmutableArray<BoundDagDecision> decisions,
             out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings)
         {
-            DecisionDagBuilder builder = new DecisionDagBuilder(compilation, diagnostics);
+            DecisionDagBuilder builder = new DecisionDagBuilder(compilation, defaultLabel: null, diagnostics);
             var result = builder.TranslatePattern(loweredInput, pattern, out decisions, out bindings);
             return result;
         }
@@ -88,11 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundDecisionDag CreateDecisionDag(
             SyntaxNode syntax,
             BoundExpression switchGoverningExpression,
-            ImmutableArray<BoundPatternSwitchSection> switchSections,
-            LabelSymbol defaultLabel)
+            ImmutableArray<BoundPatternSwitchSection> switchSections)
         {
             ImmutableArray<PartialCaseDecision> cases = MakeCases(switchGoverningExpression, switchSections);
-            BoundDecisionDag dag = MakeDecisionDag(syntax, cases, defaultLabel);
+            BoundDecisionDag dag = MakeDecisionDag(syntax, cases);
             return dag;
         }
 
@@ -124,19 +126,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Used to create a decision dag for a switch expression.
         /// </summary>
-        /// <param name="syntax"></param>
-        /// <param name="switchExpressionInput"></param>
-        /// <param name="switchArms"></param>
-        /// <param name="defaultLabel"></param>
-        /// <returns></returns>
         private BoundDecisionDag CreateDecisionDag(
             SyntaxNode syntax,
             BoundExpression switchExpressionInput,
-            ImmutableArray<BoundSwitchExpressionArm> switchArms,
-            LabelSymbol defaultLabel)
+            ImmutableArray<BoundSwitchExpressionArm> switchArms)
         {
             ImmutableArray<PartialCaseDecision> arms = MakeArms(switchExpressionInput, switchArms);
-            BoundDecisionDag dag = MakeDecisionDag(syntax, arms, defaultLabel);
+            BoundDecisionDag dag = MakeDecisionDag(syntax, arms);
             return dag;
         }
 
@@ -440,54 +436,184 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundDecisionDag MakeDecisionDag(SyntaxNode syntax, ImmutableArray<PartialCaseDecision> cases, LabelSymbol defaultLabel)
+        private BoundDecisionDag MakeDecisionDag(SyntaxNode syntax, ImmutableArray<PartialCaseDecision> cases)
         {
-            if (cases.IsDefaultOrEmpty)
+            var defaultDecision = new BoundDecision(syntax, _defaultLabel);
+            return MakeDecisionDag(new DagState(cases), defaultDecision);
+        }
+
+        /// <summary>
+        /// Compute and translate the decision tree, given a description of its initial state and a default
+        /// decision when no decision appears to match. This implementation is nonrecursive to avoid
+        /// overflowing the compiler's evaluation stack when compiling a large switch statement.
+        /// </summary>
+        private BoundDecisionDag MakeDecisionDag(DagState initialState, BoundDecision defaultDecision)
+        {
+            // A work list of DagStates whose successors need to be computed
+            var workList = ArrayBuilder<DagState>.GetInstance();
+            // A mapping used to make each DagState unique (i.e. to de-dup identical states)
+            var uniqueState = new Dictionary<DagState, DagState>(DagStateEquivalence.Instance);
+            DagState uniqifyState(DagState state)
             {
-                return new BoundDecision(syntax, defaultLabel);
+                if (uniqueState.TryGetValue(state, out DagState existingState))
+                {
+                    return existingState;
+                }
+                else
+                {
+                    uniqueState.Add(state, state);
+                    workList.Push(state);
+                    return state;
+                }
             }
 
-            PartialCaseDecision first = cases[0];
-            if (first.Decisions.IsDefaultOrEmpty)
+            initialState = uniqifyState(initialState);
+
+            // Go through the worklist, preparing successor states for each dag state
+            while (workList.Count != 0)
             {
-                // The first pattern has fully matched
-                if (first.WhereClause == null || first.WhereClause.ConstantValue == ConstantValue.True)
+                DagState state = workList.Pop();
+                if (state.Cases.IsDefaultOrEmpty)
                 {
-                    // no (or constant true) where clause. The decision is finalized.
-                    if (first.Bindings.IsDefaultOrEmpty)
+                    continue;
+                }
+                PartialCaseDecision first = state.Cases[0];
+                if (first.Decisions.IsDefaultOrEmpty)
+                {
+                    // The first pattern has fully matched.
+                    if (first.WhenClause == null || first.WhenClause.ConstantValue == ConstantValue.True)
                     {
-                        return new BoundDecision(first.Syntax, first.CaseLabel);
+                        // The when clause is satisfied
                     }
                     else
                     {
-                        return new BoundWhenClause(first.Syntax, first.Bindings, null, new BoundDecision(first.Syntax, first.CaseLabel), null);
+                        // in case the when clause fails, we prepare for the remaining cases.
+                        var stateWhenFails = state.Cases.RemoveAt(0);
+                        state.FalseBranch = uniqifyState(stateWhenFails);
                     }
                 }
                 else
                 {
-                    // in case the where clause fails, we prepare for the remaining cases.
-                    ImmutableArray<PartialCaseDecision> remainingCases = cases.RemoveAt(0);
-                    BoundDecisionDag whereFails = MakeDecisionDag(syntax, remainingCases, defaultLabel);
-                    return new BoundWhenClause(first.Syntax, first.Bindings, first.WhereClause,
-                        new BoundDecision(first.Syntax, first.CaseLabel), whereFails);
+                    BoundDagDecision selectDecision(DagState s)
+                    {
+                        // Our simple heuristic is to perform the first test of the first possible matched case
+                        return s.Cases[0].Decisions[0];
+                    }
+
+                    switch (state.SelectedDecision = selectDecision(state))
+                    {
+                        case BoundDagEvaluation e:
+                            state.TrueBranch = uniqifyState(RemoveEvaluation(state.Cases, e));
+                            break;
+                        case BoundDagDecision d:
+                            SplitCases(state.Cases, d, out ImmutableArray<PartialCaseDecision> whenTrueDecisions, out ImmutableArray<PartialCaseDecision> whenFalseDecisions);
+                            state.TrueBranch = uniqifyState(whenTrueDecisions);
+                            state.FalseBranch = uniqifyState(whenFalseDecisions);
+                            break;
+                        case var n:
+                            throw ExceptionUtilities.UnexpectedValue(n.Kind);
+                    }
                 }
             }
-            else
+
+            workList.Free();
+
+            // A successor function used to topologically sort the DagState set.
+            IEnumerable<DagState> succ(DagState state)
             {
-                switch (first.Decisions[0])
+                if (state.TrueBranch != null)
                 {
-                    case BoundDagEvaluation e:
-                        BoundDecisionDag tail = MakeDecisionDag(e.Syntax, RemoveEvaluation(cases, e), defaultLabel);
-                        return new BoundEvaluationPoint(e.Syntax, e, tail);
-                    case BoundDagDecision d:
-                        SplitCases(cases, d, out ImmutableArray<PartialCaseDecision> whenTrueDecisions, out ImmutableArray<PartialCaseDecision> whenFalseDecisions);
-                        BoundDecisionDag whenTrue = MakeDecisionDag(d.Syntax, whenTrueDecisions, defaultLabel);
-                        BoundDecisionDag whenFalse = MakeDecisionDag(d.Syntax, whenFalseDecisions, defaultLabel);
-                        return new BoundDecisionPoint(d.Syntax, d, whenTrue, whenFalse);
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(first.Decisions[0].Kind);
+                    yield return state.TrueBranch;
+                }
+
+                if (state.FalseBranch != null)
+                {
+                    yield return state.FalseBranch;
                 }
             }
+
+            // Now process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
+            ImmutableArray<DagState> sortedStates = TopologicalSort.IterativeSort<DagState>(SpecializedCollections.SingletonEnumerable<DagState>(initialState), succ);
+            Debug.Assert(_defaultLabel != null);
+            var finalStates = PooledDictionary<LabelSymbol, BoundDecisionDag>.GetInstance();
+            finalStates.Add(_defaultLabel, defaultDecision);
+            BoundDecisionDag finalState(SyntaxNode syntax, LabelSymbol label, ImmutableArray<(BoundExpression, BoundDagTemp)> bindings)
+            {
+                if (!finalStates.TryGetValue(label, out BoundDecisionDag final))
+                {
+                    if (bindings.IsDefaultOrEmpty)
+                    {
+                        final = new BoundDecision(syntax, label);
+                    }
+                    else
+                    {
+                        final = new BoundWhenClause(syntax, bindings, null, new BoundDecision(syntax, label), null);
+                    }
+
+                    finalStates.Add(label, final);
+                }
+
+                return final;
+            }
+
+            for (int i = sortedStates.Length - 1; i >= 0; i--)
+            {
+                var state = sortedStates[i];
+                if (state.Cases.IsDefaultOrEmpty)
+                {
+                    state.Dag = defaultDecision;
+                    continue;
+                }
+
+                PartialCaseDecision first = state.Cases[0];
+                if (first.Decisions.IsDefaultOrEmpty)
+                {
+                    // The first case/pattern has fully matched
+                    if (first.WhenClause == null || first.WhenClause.ConstantValue == ConstantValue.True)
+                    {
+                        state.Dag = finalState(first.Syntax, first.CaseLabel, first.Bindings);
+                    }
+                    else
+                    {
+                        // in case the when clause fails, we prepare for the remaining cases.
+                        Debug.Assert(state.TrueBranch == null);
+                        BoundDecisionDag whenTrue = finalState(first.Syntax, first.CaseLabel, default);
+                        BoundDecisionDag whenFails = state.FalseBranch.Dag;
+                        Debug.Assert(whenFails != null);
+                        state.Dag = new BoundWhenClause(first.Syntax, first.Bindings, first.WhenClause, whenTrue, whenFails);
+                    }
+                }
+                else
+                {
+                    switch (state.SelectedDecision)
+                    {
+                        case BoundDagEvaluation e:
+                            {
+                                BoundDecisionDag whenTrue = state.TrueBranch.Dag;
+                                Debug.Assert(whenTrue != null);
+                                Debug.Assert(state.FalseBranch == null);
+                                state.Dag = new BoundEvaluationPoint(e.Syntax, e, whenTrue);
+                            }
+                            break;
+                        case BoundDagDecision d:
+                            {
+                                BoundDecisionDag whenTrue = state.TrueBranch.Dag;
+                                BoundDecisionDag whenFalse = state.FalseBranch.Dag;
+                                Debug.Assert(whenTrue != null);
+                                Debug.Assert(whenFalse != null);
+                                state.Dag = new BoundDecisionPoint(d.Syntax, d, whenTrue, whenFalse);
+                            }
+                            break;
+                        case var n:
+                            throw ExceptionUtilities.UnexpectedValue(n.Kind);
+                    }
+                }
+            }
+
+            finalStates.Free();
+
+            Debug.Assert(initialState.Dag != null);
+            return initialState.Dag;
         }
 
         private void SplitCases(
@@ -555,13 +681,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (trueBuilder != null)
             {
-                var pcd = trueBuilder.Count == c.Decisions.Length ? c : new PartialCaseDecision(c.Index, c.Syntax, trueBuilder.ToImmutableAndFree(), c.Bindings, c.WhereClause, c.CaseLabel);
+                var pcd = trueBuilder.Count == c.Decisions.Length ? c : new PartialCaseDecision(c.Index, c.Syntax, trueBuilder.ToImmutableAndFree(), c.Bindings, c.WhenClause, c.CaseLabel);
                 whenTrueBuilder.Add(pcd);
             }
 
             if (falseBuilder != null)
             {
-                var pcd = falseBuilder.Count == c.Decisions.Length ? c : new PartialCaseDecision(c.Index, c.Syntax, falseBuilder.ToImmutableAndFree(), c.Bindings, c.WhereClause, c.CaseLabel);
+                var pcd = falseBuilder.Count == c.Decisions.Length ? c : new PartialCaseDecision(c.Index, c.Syntax, falseBuilder.ToImmutableAndFree(), c.Bindings, c.WhenClause, c.CaseLabel);
                 whenFalseBuilder.Add(pcd);
             }
         }
@@ -585,10 +711,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool trueDecisionImpliesTrueOther,
             out bool falseDecisionImpliesTrueOther)
         {
-            // PROTOTYPE(patterns2): the names and API shape are confusing. Perhaps
-            // could be renamed to couldBeTrueIfTrue, couldBeFalseIfFalse, isDefinitelyTrueIfTrue, and isDefinitelyFalseIfFalse.
-            // Possibly also use a tuple for returning the result.
-
             // innocent until proven guilty
             trueDecisionPermitsTrueOther = true;
             falseDecisionPermitsTrueOther = true;
@@ -658,6 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundNonNullValueDecision v2:
                             // PROTOTYPE(patterns2): what can knowing that the type is/isn't T1 imply about knowing the value is v2?
+                            // PROTOTYPE(patterns2): specifically, each value requires the input be a particular type, and a known type may indicate that is impossible.
                             break;
                         case BoundNullValueDecision v2:
                             trueDecisionPermitsTrueOther = false; // if v is T1 is true, then v==null cannot succeed
@@ -729,7 +852,69 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Index: c.Index,
                 Syntax: c.Syntax,
                 Decisions: c.Decisions.WhereAsArray(d => !(d is BoundDagEvaluation e2) || e2 != e),
-                Bindings: c.Bindings, WhereClause: c.WhereClause, CaseLabel: c.CaseLabel);
+                Bindings: c.Bindings, WhenClause: c.WhenClause, CaseLabel: c.CaseLabel);
+        }
+
+        private class DagState
+        {
+            public readonly ImmutableArray<PartialCaseDecision> Cases;
+
+            public DagState(ImmutableArray<PartialCaseDecision> cases)
+            {
+                this.Cases = cases;
+            }
+
+            public static implicit operator DagState(ImmutableArray<PartialCaseDecision> cases) => new DagState(cases);
+
+            // We only compute the dag states for the branches after we de-dup this DagState itself.
+            // If all that remains is the `when` clauses, SelectedDecision is left `null` and the
+            // FalseBranch field is populated with the succesor on failure of the when clause (if one exists).
+            public BoundDagDecision SelectedDecision;
+            public DagState TrueBranch, FalseBranch;
+
+            // After the entire graph of DatState objects is complete, we translate each into its Dag.
+            public BoundDecisionDag Dag;
+        }
+
+        /// <summary>
+        /// An equivalence relation between dag states used to dedup the states during dag construction.
+        /// After dag construction is complete we treat a DagState as using object equality as equivalent
+        /// states have been merged.
+        /// </summary>
+        private class DagStateEquivalence : IEqualityComparer<DagState>
+        {
+            public static readonly DagStateEquivalence Instance = new DagStateEquivalence();
+
+            public bool Equals(DagState x, DagState y)
+            {
+                ImmutableArray<PartialCaseDecision> xCases = x.Cases;
+                ImmutableArray<PartialCaseDecision> yCases = y.Cases;
+                if (xCases.Length != yCases.Length)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < xCases.Length; i++)
+                {
+                    if (xCases[i] != yCases[i])
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public int GetHashCode(DagState x)
+            {
+                int result = x.Cases.Length;
+                foreach (var c in x.Cases)
+                {
+                    result = Hash.Combine(c.GetHashCode(), result);
+                }
+
+                return result;
+            }
         }
 
         internal class PartialCaseDecision
@@ -738,22 +923,85 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly SyntaxNode Syntax;
             public readonly ImmutableArray<BoundDagDecision> Decisions;
             public readonly ImmutableArray<(BoundExpression, BoundDagTemp)> Bindings;
-            public readonly BoundExpression WhereClause;
+            public readonly BoundExpression WhenClause;
             public readonly LabelSymbol CaseLabel;
             public PartialCaseDecision(
                 int Index,
                 SyntaxNode Syntax,
                 ImmutableArray<BoundDagDecision> Decisions,
                 ImmutableArray<(BoundExpression, BoundDagTemp)> Bindings,
-                BoundExpression WhereClause,
+                BoundExpression WhenClause,
                 LabelSymbol CaseLabel)
             {
                 this.Index = Index;
                 this.Syntax = Syntax;
                 this.Decisions = Decisions;
                 this.Bindings = Bindings;
-                this.WhereClause = WhereClause;
+                this.WhenClause = WhenClause;
                 this.CaseLabel = CaseLabel;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return Equals(obj as PartialCaseDecision);
+            }
+
+            public bool Equals(PartialCaseDecision other)
+            {
+                // We do not include Syntax, Bindings, WhereClause, or CaseLabel
+                // because once the Index is the same, those must be the same too.
+                if (other == null || this.Index != other.Index || this.Decisions.Length != other.Decisions.Length)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < Decisions.Length; i++)
+                {
+                    if (!SameDecision(Decisions[i], other.Decisions[i]))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            private bool SameDecision(BoundDagDecision x, BoundDagDecision y)
+            {
+                if (x.Input != y.Input || x.Kind != y.Kind)
+                {
+                    return false;
+                }
+
+                switch (x.Kind)
+                {
+                    case BoundKind.TypeDecision:
+                        if (((BoundTypeDecision)x).Type != ((BoundTypeDecision)y).Type)
+                        {
+                            return false;
+                        }
+                        break;
+
+                    case BoundKind.NonNullValueDecision:
+                        if (((BoundNonNullValueDecision)x).Value != ((BoundNonNullValueDecision)y).Value)
+                        {
+                            return false;
+                        }
+                        break;
+                }
+
+                return true;
+            }
+
+            public override int GetHashCode()
+            {
+                int result = Hash.Combine(Decisions.Length, Index);
+                foreach (var d in Decisions)
+                {
+                    result = Hash.Combine((int)d.Kind, result);
+                }
+
+                return result;
             }
         }
     }

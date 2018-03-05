@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -10,6 +11,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class BoundDecisionDag
     {
+        public IEnumerable<BoundDecisionDag> Successors()
+        {
+            switch (this)
+            {
+                case BoundEvaluationPoint p:
+                    yield return p.Next;
+                    yield break;
+                case BoundDecisionPoint p:
+                    Debug.Assert(p.WhenFalse != null);
+                    yield return p.WhenFalse;
+                    Debug.Assert(p.WhenTrue != null);
+                    yield return p.WhenTrue;
+                    yield break;
+                case BoundDecision d:
+                    yield break;
+                case BoundWhenClause w:
+                    if (w.WhenFalse != null)
+                    {
+                        yield return w.WhenFalse;
+                    }
+
+                    Debug.Assert(w.WhenTrue != null);
+                    yield return w.WhenTrue;
+                    yield break;
+            }
+        }
+
         private HashSet<LabelSymbol> _reachableLabels;
 
         public HashSet<LabelSymbol> ReachableLabels

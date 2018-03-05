@@ -923,6 +923,37 @@ namespace System
                 );
         }
 
+        [Fact]
+        public void LongTuples()
+        {
+            var source =
+@"using System;
+
+public class X
+{
+    public static void Main()
+    {
+        var t = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+        {
+            Console.WriteLine(t is (_, _, _, _, _, _, _, _, var t9) ? t9 : 100);
+        }
+        switch (t)
+        {
+            case (_, _, _, _, _, _, _, _, var t9):
+                Console.WriteLine(t9);
+                break;
+        }
+        // PROTOTYPE(patterns2): Lowering and code gen not yet supported for switch expression
+        //Console.WriteLine(t switch { (_, _, _, _, _, _, _, _, var t9) => t9 });
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"9
+9");
+        }
+
         // PROTOTYPE(patterns2): Need to have tests that exercise:
         // PROTOTYPE(patterns2): Building the decision tree for the var-pattern
         // PROTOTYPE(patterns2): Definite assignment for the var-pattern

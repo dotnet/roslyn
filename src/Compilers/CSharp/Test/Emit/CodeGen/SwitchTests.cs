@@ -7638,18 +7638,12 @@ public class Program
                 expectedOutput: "RemoveEmptyEntries");
             compVerifier.VerifyIL("Program.Main",
 @"{
-  // Code size       16 (0x10)
+  // Code size       12 (0xc)
   .maxstack  1
-  .locals init (System.StringSplitOptions V_0,
-                object V_1)
   IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  box        ""System.StringSplitOptions""
-  IL_0008:  stloc.1
-  IL_0009:  ldloc.1
-  IL_000a:  call       ""void System.Console.WriteLine(object)""
-  IL_000f:  ret
+  IL_0001:  box        ""System.StringSplitOptions""
+  IL_0006:  call       ""void System.Console.WriteLine(object)""
+  IL_000b:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,
@@ -7714,24 +7708,21 @@ public class Program
                 expectedOutput: "null1");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size       37 (0x25)
+  // Code size       35 (0x23)
   .maxstack  1
-  .locals init (int? V_0,
-                int V_1)
+  .locals init (int? V_0)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
   IL_0004:  call       ""bool int?.HasValue.get""
-  IL_0009:  brfalse.s  IL_001a
+  IL_0009:  brfalse.s  IL_0018
   IL_000b:  ldloca.s   V_0
-  IL_000d:  call       ""int int?.Value.get""
-  IL_0012:  stloc.1
-  IL_0013:  ldloc.1
-  IL_0014:  call       ""void System.Console.Write(int)""
-  IL_0019:  ret
-  IL_001a:  ldstr      ""null""
-  IL_001f:  call       ""void System.Console.Write(string)""
-  IL_0024:  ret
+  IL_000d:  call       ""int int?.GetValueOrDefault()""
+  IL_0012:  call       ""void System.Console.Write(int)""
+  IL_0017:  ret
+  IL_0018:  ldstr      ""null""
+  IL_001d:  call       ""void System.Console.Write(string)""
+  IL_0022:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,
@@ -7754,7 +7745,7 @@ public class Program
   IL_0007:  call       ""bool int?.HasValue.get""
   IL_000c:  brfalse.s  IL_0025
   IL_000e:  ldloca.s   V_1
-  IL_0010:  call       ""int int?.Value.get""
+  IL_0010:  call       ""int int?.GetValueOrDefault()""
   IL_0015:  stloc.2
   IL_0016:  br.s       IL_0018
   IL_0018:  ldloc.2
@@ -7799,18 +7790,12 @@ public class Program
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size       16 (0x10)
+  // Code size       12 (0xc)
   .maxstack  1
-  .locals init (int V_0,
-                System.IComparable V_1)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  box        ""int""
-  IL_0008:  stloc.1
-  IL_0009:  ldloc.1
-  IL_000a:  call       ""void System.Console.Write(object)""
-  IL_000f:  ret
+  IL_0001:  box        ""int""
+  IL_0006:  call       ""void System.Console.Write(object)""
+  IL_000b:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,
@@ -7872,21 +7857,18 @@ public class Program
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size       25 (0x19)
+  // Code size       23 (0x17)
   .maxstack  1
-  .locals init (int? V_0,
-                System.IComparable V_1)
+  .locals init (int? V_0)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
   IL_0004:  call       ""bool int?.HasValue.get""
-  IL_0009:  brfalse.s  IL_0018
+  IL_0009:  brfalse.s  IL_0016
   IL_000b:  ldloc.0
   IL_000c:  box        ""int?""
-  IL_0011:  stloc.1
-  IL_0012:  ldloc.1
-  IL_0013:  call       ""void System.Console.Write(object)""
-  IL_0018:  ret
+  IL_0011:  call       ""void System.Console.Write(object)""
+  IL_0016:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,
@@ -7954,23 +7936,20 @@ public class Program
             // PROTOTYPE(patterns2): Need to restore code quality
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size       27 (0x1b)
+  // Code size       25 (0x19)
   .maxstack  1
-  .locals init (object V_0,
-                int V_1)
+  .locals init (object V_0)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  brfalse.s  IL_001a
+  IL_0003:  brfalse.s  IL_0018
   IL_0005:  ldloc.0
   IL_0006:  isinst     ""int""
-  IL_000b:  brfalse.s  IL_001a
+  IL_000b:  brfalse.s  IL_0018
   IL_000d:  ldloc.0
   IL_000e:  unbox.any  ""int""
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  call       ""void System.Console.Write(int)""
-  IL_001a:  ret
+  IL_0013:  call       ""void System.Console.Write(int)""
+  IL_0018:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,
@@ -8041,24 +8020,21 @@ public class Program
             // PROTOTYPE(patterns2): Need to restore code quality for this
             compVerifier.VerifyIL("Program.M<T>",
 @"{
-  // Code size       32 (0x20)
+  // Code size       30 (0x1e)
   .maxstack  1
-  .locals init (object V_0,
-                T V_1)
+  .locals init (object V_0)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  brfalse.s  IL_001f
+  IL_0003:  brfalse.s  IL_001d
   IL_0005:  ldloc.0
   IL_0006:  isinst     ""T""
-  IL_000b:  brfalse.s  IL_001f
+  IL_000b:  brfalse.s  IL_001d
   IL_000d:  ldloc.0
   IL_000e:  unbox.any  ""T""
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  box        ""T""
-  IL_001a:  call       ""void System.Console.Write(object)""
-  IL_001f:  ret
+  IL_0013:  box        ""T""
+  IL_0018:  call       ""void System.Console.Write(object)""
+  IL_001d:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,
@@ -8130,24 +8106,21 @@ public class Program
             // PROTOTYPE(patterns2): Need to restore code quality
             compVerifier.VerifyIL("Program.M<T>",
 @"{
-  // Code size       32 (0x20)
+  // Code size       30 (0x1e)
   .maxstack  1
-  .locals init (System.IComparable V_0,
-                T V_1)
+  .locals init (System.IComparable V_0)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  brfalse.s  IL_001f
+  IL_0003:  brfalse.s  IL_001d
   IL_0005:  ldloc.0
   IL_0006:  isinst     ""T""
-  IL_000b:  brfalse.s  IL_001f
+  IL_000b:  brfalse.s  IL_001d
   IL_000d:  ldloc.0
   IL_000e:  unbox.any  ""T""
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  box        ""T""
-  IL_001a:  call       ""void System.Console.Write(object)""
-  IL_001f:  ret
+  IL_0013:  box        ""T""
+  IL_0018:  call       ""void System.Console.Write(object)""
+  IL_001d:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,

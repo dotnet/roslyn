@@ -88,12 +88,18 @@ static class C {
                 // (14,18): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
                 //             case int i: break;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(14, 18),
+                // (14,18): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //             case int i: break;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(14, 18),
                 // (12,17): error CS0656: Missing compiler required member 'System.Nullable`1.get_Value'
                 //         switch (x)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "get_Value").WithLocation(12, 17),
                 // (17,36): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
                 //     static bool M2(int? x) => x is int i;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(17, 36),
+                // (17,36): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //     static bool M2(int? x) => x is int i;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(17, 36),
                 // (17,36): error CS0656: Missing compiler required member 'System.Nullable`1.get_Value'
                 //     static bool M2(int? x) => x is int i;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_Value").WithLocation(17, 36)
@@ -130,19 +136,14 @@ static class C {
                 // (14,18): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
                 //             case int i: break;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(14, 18),
-                // (12,17): error CS0656: Missing compiler required member 'System.Nullable`1.get_Value'
-                //         switch (x)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "get_Value").WithLocation(12, 17),
                 // (17,36): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
                 //     static bool M2(int? x) => x is int i;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(17, 36),
-                // (17,36): error CS0656: Missing compiler required member 'System.Nullable`1.get_Value'
-                //     static bool M2(int? x) => x is int i;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_Value").WithLocation(17, 36)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(17, 36)
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): code quality"), WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
+        // PROTOTYPE(patterns2): code quality has regressed for this test because the lowering strategy reifies the boolean result of the if expression.
+        [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
         public void DoubleEvaluation01()
         {
             var source =
@@ -169,32 +170,39 @@ public class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.Main",
 @"{
-  // Code size       36 (0x24)
+  // Code size       44 (0x2c)
   .maxstack  1
   .locals init (int V_0, //index
                 bool V_1,
-                int? V_2)
+                int? V_2,
+                int V_3)
   IL_0000:  nop
   IL_0001:  call       ""int? C.TryGet()""
   IL_0006:  stloc.2
   IL_0007:  ldloca.s   V_2
-  IL_0009:  call       ""int int?.GetValueOrDefault()""
-  IL_000e:  stloc.0
-  IL_000f:  ldloca.s   V_2
-  IL_0011:  call       ""bool int?.HasValue.get""
-  IL_0016:  stloc.1
-  IL_0017:  ldloc.1
-  IL_0018:  brfalse.s  IL_0023
-  IL_001a:  nop
-  IL_001b:  ldloc.0
-  IL_001c:  call       ""void System.Console.WriteLine(int)""
-  IL_0021:  nop
+  IL_0009:  call       ""bool int?.HasValue.get""
+  IL_000e:  brfalse.s  IL_001d
+  IL_0010:  ldloca.s   V_2
+  IL_0012:  call       ""int int?.GetValueOrDefault()""
+  IL_0017:  stloc.3
+  IL_0018:  ldloc.3
+  IL_0019:  stloc.0
+  IL_001a:  ldc.i4.1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldc.i4.0
+  IL_001e:  stloc.1
+  IL_001f:  ldloc.1
+  IL_0020:  brfalse.s  IL_002b
   IL_0022:  nop
-  IL_0023:  ret
+  IL_0023:  ldloc.0
+  IL_0024:  call       ""void System.Console.WriteLine(int)""
+  IL_0029:  nop
+  IL_002a:  nop
+  IL_002b:  ret
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): code quality"), WorkItem(19122, "https://github.com/dotnet/roslyn/issues/19122")]
+        [Fact, WorkItem(19122, "https://github.com/dotnet/roslyn/issues/19122")]
         public void PatternCrash_01()
         {
             var source = @"using System;
@@ -240,11 +248,12 @@ class IdentityAccessor<T>
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("X<T>.Y<U>",
 @"{
-  // Code size       61 (0x3d)
+  // Code size       71 (0x47)
   .maxstack  3
   .locals init (U V_0, //u
                 bool V_1,
-                T V_2)
+                T V_2,
+                U V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  call       ""System.Collections.Generic.IEnumerable<T> X<T>.GetT()""
@@ -252,24 +261,29 @@ class IdentityAccessor<T>
   IL_0008:  ldftn      ""bool X<T>.<Y>b__1_0<U>(T)""
   IL_000e:  newobj     ""System.Func<T, bool>..ctor(object, System.IntPtr)""
   IL_0013:  call       ""T System.Linq.Enumerable.FirstOrDefault<T>(System.Collections.Generic.IEnumerable<T>, System.Func<T, bool>)""
-  IL_0018:  dup
-  IL_0019:  stloc.2
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
   IL_001a:  box        ""T""
-  IL_001f:  isinst     ""U""
-  IL_0024:  brfalse.s  IL_0035
-  IL_0026:  ldloc.2
-  IL_0027:  box        ""T""
-  IL_002c:  unbox.any  ""U""
-  IL_0031:  stloc.0
-  IL_0032:  ldc.i4.1
-  IL_0033:  br.s       IL_0036
-  IL_0035:  ldc.i4.0
-  IL_0036:  stloc.1
-  IL_0037:  ldloc.1
-  IL_0038:  brfalse.s  IL_003c
-  IL_003a:  nop
-  IL_003b:  nop
-  IL_003c:  ret
+  IL_001f:  brfalse.s  IL_003f
+  IL_0021:  ldloc.2
+  IL_0022:  box        ""T""
+  IL_0027:  isinst     ""U""
+  IL_002c:  brfalse.s  IL_003f
+  IL_002e:  ldloc.2
+  IL_002f:  box        ""T""
+  IL_0034:  unbox.any  ""U""
+  IL_0039:  stloc.3
+  IL_003a:  ldloc.3
+  IL_003b:  stloc.0
+  IL_003c:  ldc.i4.1
+  IL_003d:  br.s       IL_0040
+  IL_003f:  ldc.i4.0
+  IL_0040:  stloc.1
+  IL_0041:  ldloc.1
+  IL_0042:  brfalse.s  IL_0046
+  IL_0044:  nop
+  IL_0045:  nop
+  IL_0046:  ret
 }");
         }
 
@@ -458,7 +472,7 @@ class Program
 }");
             compVerifier.VerifyIL("Program.P5",
 @"{
-  // Code size      129 (0x81)
+  // Code size      125 (0x7d)
   .maxstack  2
   .locals init (object V_0,
                 double V_1,
@@ -471,60 +485,58 @@ class Program
   IL_0003:  ldloc.3
   IL_0004:  stloc.0
   IL_0005:  ldloc.0
-  IL_0006:  brfalse.s  IL_0079
+  IL_0006:  brfalse.s  IL_0075
   IL_0008:  ldloc.0
   IL_0009:  isinst     ""double""
-  IL_000e:  brfalse.s  IL_0037
+  IL_000e:  brfalse.s  IL_0035
   IL_0010:  ldloc.0
   IL_0011:  unbox.any  ""double""
   IL_0016:  stloc.1
   IL_0017:  ldloc.1
   IL_0018:  call       ""bool double.IsNaN(double)""
-  IL_001d:  brfalse.s  IL_0021
-  IL_001f:  br.s       IL_0065
-  IL_0021:  ldloc.0
-  IL_0022:  isinst     ""double""
-  IL_0027:  brfalse.s  IL_0079
-  IL_0029:  ldc.r8     3.14
-  IL_0032:  ldloc.1
-  IL_0033:  bne.un.s   IL_0079
-  IL_0035:  br.s       IL_006f
-  IL_0037:  ldloc.0
-  IL_0038:  brfalse.s  IL_0079
-  IL_003a:  ldloc.0
-  IL_003b:  isinst     ""float""
-  IL_0040:  brfalse.s  IL_0079
-  IL_0042:  ldloc.0
-  IL_0043:  unbox.any  ""float""
-  IL_0048:  stloc.2
-  IL_0049:  ldloc.2
-  IL_004a:  call       ""bool float.IsNaN(float)""
-  IL_004f:  brfalse.s  IL_0053
-  IL_0051:  br.s       IL_006a
-  IL_0053:  ldloc.0
-  IL_0054:  isinst     ""float""
-  IL_0059:  brfalse.s  IL_0079
-  IL_005b:  ldc.r4     3.14
-  IL_0060:  ldloc.2
-  IL_0061:  bne.un.s   IL_0079
-  IL_0063:  br.s       IL_0074
-  IL_0065:  ldc.i4.1
-  IL_0066:  stloc.s    V_4
-  IL_0068:  br.s       IL_007e
-  IL_006a:  ldc.i4.1
-  IL_006b:  stloc.s    V_4
-  IL_006d:  br.s       IL_007e
-  IL_006f:  ldc.i4.1
-  IL_0070:  stloc.s    V_4
-  IL_0072:  br.s       IL_007e
-  IL_0074:  ldc.i4.1
-  IL_0075:  stloc.s    V_4
-  IL_0077:  br.s       IL_007e
-  IL_0079:  ldc.i4.0
-  IL_007a:  stloc.s    V_4
-  IL_007c:  br.s       IL_007e
-  IL_007e:  ldloc.s    V_4
-  IL_0080:  ret
+  IL_001d:  brtrue.s   IL_0061
+  IL_001f:  ldloc.0
+  IL_0020:  isinst     ""double""
+  IL_0025:  brfalse.s  IL_0075
+  IL_0027:  ldc.r8     3.14
+  IL_0030:  ldloc.1
+  IL_0031:  beq.s      IL_006b
+  IL_0033:  br.s       IL_0075
+  IL_0035:  ldloc.0
+  IL_0036:  brfalse.s  IL_0075
+  IL_0038:  ldloc.0
+  IL_0039:  isinst     ""float""
+  IL_003e:  brfalse.s  IL_0075
+  IL_0040:  ldloc.0
+  IL_0041:  unbox.any  ""float""
+  IL_0046:  stloc.2
+  IL_0047:  ldloc.2
+  IL_0048:  call       ""bool float.IsNaN(float)""
+  IL_004d:  brtrue.s   IL_0066
+  IL_004f:  ldloc.0
+  IL_0050:  isinst     ""float""
+  IL_0055:  brfalse.s  IL_0075
+  IL_0057:  ldc.r4     3.14
+  IL_005c:  ldloc.2
+  IL_005d:  beq.s      IL_0070
+  IL_005f:  br.s       IL_0075
+  IL_0061:  ldc.i4.1
+  IL_0062:  stloc.s    V_4
+  IL_0064:  br.s       IL_007a
+  IL_0066:  ldc.i4.1
+  IL_0067:  stloc.s    V_4
+  IL_0069:  br.s       IL_007a
+  IL_006b:  ldc.i4.1
+  IL_006c:  stloc.s    V_4
+  IL_006e:  br.s       IL_007a
+  IL_0070:  ldc.i4.1
+  IL_0071:  stloc.s    V_4
+  IL_0073:  br.s       IL_007a
+  IL_0075:  ldc.i4.0
+  IL_0076:  stloc.s    V_4
+  IL_0078:  br.s       IL_007a
+  IL_007a:  ldloc.s    V_4
+  IL_007c:  ret
 }");
         }
     }

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // But when the input is constant, we use that to reshape the decision dag that is returned
                 // so that flow analysis will see that some of the cases may be unreachable.
-                decisionDag = SimplifyDecisionDagForConstantInput(decisionDag, boundSwitchGoverningExpression);
+                decisionDag = SimplifyDecisionDagForConstantInput(decisionDag, boundSwitchGoverningExpression, diagnostics);
             }
 
             return new BoundPatternSwitchStatement(
@@ -157,7 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDecisionDag SimplifyDecisionDagForConstantInput(
             BoundDecisionDag decisionDag,
-            BoundExpression input)
+            BoundExpression input,
+            DiagnosticBag diagnostics)
         {
             ConstantValue inputConstant = input.ConstantValue;
             Debug.Assert(inputConstant != null);
@@ -254,9 +255,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundNonNullValueDecision d:
                         return d.Value == inputConstant;
                     case BoundTypeDecision d:
-                        // PROTOTYPE(patterns2): Is it correct to discard these use-site diagnostics?
-                        HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
-                        return ExpressionOfTypeMatchesPatternType(Conversions, input.Type, d.Type, ref discardedUseSiteDiagnostics, out Conversion conversion, inputConstant, inputConstant.IsNull);
+                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                        bool? known = ExpressionOfTypeMatchesPatternType(Conversions, input.Type, d.Type, ref useSiteDiagnostics, out Conversion conversion, inputConstant, inputConstant.IsNull);
+                        diagnostics.Add(d.Syntax, useSiteDiagnostics);
+                        return known;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(choice);
                 }

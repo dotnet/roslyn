@@ -1987,7 +1987,7 @@ static class LiveList
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): when do we detect this lowering error?")]
+        [Fact]
         public void System_Nullable_T_GetValueOrDefault_10()
         {
             var source =
@@ -2020,7 +2020,10 @@ public class X
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "x is bool is bool").WithArguments("bool").WithLocation(16, 38),
                 // (12,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //         {if (x is int y) Console.WriteLine("4. {0}", y);}
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(12, 19)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(12, 19),
+                // (15,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         {if (x is int y) Console.WriteLine("6. {0}", y);}
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(15, 19)
                 );
         }
 

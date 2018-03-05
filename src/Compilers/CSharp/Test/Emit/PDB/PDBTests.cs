@@ -3292,7 +3292,7 @@ class Program
 
             verifier.VerifyIL(qualifiedMethodName: "Program.M1", sequencePoints: "Program.M1", source: source,
 expectedIL: @"{
-  // Code size       17 (0x11)
+  // Code size       15 (0xf)
   .maxstack  1
   .locals init (int V_0,
                 int V_1)
@@ -3303,19 +3303,18 @@ expectedIL: @"{
   IL_0002:  stloc.1
   IL_0003:  ldc.i4.1
   IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0007
   // sequence point: Console.Write(1);
-  IL_0007:  ldc.i4.1
-  IL_0008:  call       ""void System.Console.Write(int)""
-  IL_000d:  nop
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""void System.Console.Write(int)""
+  IL_000b:  nop
   // sequence point: break;
-  IL_000e:  br.s       IL_0010
+  IL_000c:  br.s       IL_000e
   // sequence point: }
-  IL_0010:  ret
+  IL_000e:  ret
 }");
             verifier.VerifyIL(qualifiedMethodName: "Program.M2", sequencePoints: "Program.M2", source: source,
 expectedIL: @"{
-  // Code size       29 (0x1d)
+  // Code size       27 (0x1b)
   .maxstack  1
   .locals init (string V_0,
                 string V_1)
@@ -3326,15 +3325,14 @@ expectedIL: @"{
   IL_0006:  stloc.1
   IL_0007:  ldstr      ""M2""
   IL_000c:  stloc.0
-  IL_000d:  br.s       IL_000f
   // sequence point: Console.Write(nameof(M2));
-  IL_000f:  ldstr      ""M2""
-  IL_0014:  call       ""void System.Console.Write(string)""
-  IL_0019:  nop
+  IL_000d:  ldstr      ""M2""
+  IL_0012:  call       ""void System.Console.Write(string)""
+  IL_0017:  nop
   // sequence point: break;
-  IL_001a:  br.s       IL_001c
+  IL_0018:  br.s       IL_001a
   // sequence point: }
-  IL_001c:  ret
+  IL_001a:  ret
 }");
 
             // Check the release code generation too.
@@ -3643,7 +3641,7 @@ class Program
 
             verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
 expectedIL: @"{
-  // Code size       17 (0x11)
+  // Code size       15 (0xf)
   .maxstack  1
   .locals init (string V_0,
                 string V_1)
@@ -3654,15 +3652,14 @@ expectedIL: @"{
   IL_0002:  stloc.1
   IL_0003:  ldnull
   IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0007
   // sequence point: Console.Write(6);
-  IL_0007:  ldc.i4.6
-  IL_0008:  call       ""void System.Console.Write(int)""
-  IL_000d:  nop
+  IL_0005:  ldc.i4.6
+  IL_0006:  call       ""void System.Console.Write(int)""
+  IL_000b:  nop
   // sequence point: break;
-  IL_000e:  br.s       IL_0010
+  IL_000c:  br.s       IL_000e
   // sequence point: }
-  IL_0010:  ret
+  IL_000e:  ret
 }");
 
             // Check the release code generation too.

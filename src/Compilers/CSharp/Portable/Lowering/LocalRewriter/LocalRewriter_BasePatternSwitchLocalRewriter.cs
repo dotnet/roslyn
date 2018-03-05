@@ -38,14 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly ArrayBuilder<BoundDecisionDag> _backwardLabels = ArrayBuilder<BoundDecisionDag>.GetInstance();
 
             /// <summary>
-            /// Not all labels are needed in the generated state machine. If there is only one branch to a label
-            /// and it is generated immediately where the branch would appear, we can eliminate both the branch
-            /// and the label. This set is prepopulated with the set of decision dag nodes that have more than one
-            /// predecessor.
-            /// </summary>
-            private readonly HashSet<BoundDecisionDag> _labelRequired = new HashSet<BoundDecisionDag>();
-
-            /// <summary>
             /// The lowered decision dag. This includes all of the code to decide which pattern
             /// is matched, but not the code to assign to pattern variables and evaluate when clauses.
             /// </summary>
@@ -69,43 +61,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _switchArms.Add(arm, new ArrayBuilder<BoundStatement>());
                 }
 
-                ComputeLabelSet(decisionDag);
+                ImmutableArray<BoundDecisionDag> sortedNodes = 
+                    TopologicalSort.IterativeSort<BoundDecisionDag>(SpecializedCollections.SingletonEnumerable<BoundDecisionDag>(decisionDag), d => d.Successors());
 
-                this.LowerDecisionDag(decisionDag);
+                ComputeLabelSet(sortedNodes);
+
+                LowerDecisionDag(sortedNodes);
             }
 
-            private void ComputeLabelSet(BoundDecisionDag decisionDag)
+            private void ComputeLabelSet(ImmutableArray<BoundDecisionDag> sortedNodes)
             {
-                // compute and populate _backwardLabels and _labelRequired
-                var visited = new HashSet<BoundDecisionDag>();
-
-                void visit(BoundDecisionDag dag)
+                foreach (var node in sortedNodes)
                 {
-                    if (dag == null)
+                    switch (node)
                     {
-                        return;
-                    }
-                    else if (visited.Contains(dag))
-                    {
-                        _labelRequired.Add(dag);
-                        return;
-                    }
-
-                    visited.Add(dag);
-                    if (dag is BoundWhenClause w && w.WhenFalse != null)
-                    {
-                        _backwardLabels.Add(w.WhenFalse);
-                        _labelRequired.Add(w.WhenFalse);
-                    }
-
-                    if (dag is BoundDecisionPoint d)
-                    {
-                        visit(d.WhenTrue);
-                        visit(d.WhenFalse);
+                        case BoundWhenClause w:
+                            if (w.WhenFalse != null)
+                            {
+                                GetDagNodeLabel(node);
+                                _backwardLabels.Add(w.WhenFalse);
+                            }
+                            break;
+                        case BoundDecision d:
+                            // Final decisions can branch directly to the target
+                            _dagNodeLabels.Add(node, d.Label);
+                            break;
                     }
                 }
-
-                visit(decisionDag);
             }
 
             protected new void Free()
@@ -136,54 +118,91 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Lower the given decisionDag into _loweredDecisionDag.
+            /// Lower the given nodes into _loweredDecisionDag.
             /// </summary>
-            private void LowerDecisionDag(BoundDecisionDag decisionDag)
+            private void LowerDecisionDag(ImmutableArray<BoundDecisionDag> sortedNodes)
             {
-                // PROTOTYPE(patterns2): This is a recursive translation of the decision dag. For a large switch
-                // statement, that will overflow the stack at compile-time. This needs to be rewritten to perform
-                // the translation using an iterative strategy.
-                LabelSymbol label = GetDagNodeLabel(decisionDag);
-                if (_generated.Contains(decisionDag))
+                // Call LowerDecisionDagNode with each node and its following node in the generation order.
+                BoundDecisionDag previous = null;
+                foreach (BoundDecisionDag node in sortedNodes)
                 {
-                    // we want to generate each node only once (since it is a dag), so we branch if we lowered it before.
-                    _loweredDecisionDag.Add(_factory.Goto(label));
-                    return;
+                    // BoundDecision nodes do not get any code generated for them.
+                    if (node is BoundDecision)
+                    {
+                        continue;
+                    }
+
+                    if (previous != null)
+                    {
+                        LowerDecisionDagNode(previous, node);
+                    }
+
+                    previous = node;
                 }
 
-                _loweredDecisionDag.Add(_factory.Label(label));
-                _generated.Add(decisionDag);
-
-                switch (decisionDag)
+                // Lower the final node
+                if (previous != null)
                 {
-                    case BoundEvaluationPoint evaluation:
+                    LowerDecisionDagNode(previous, null);
+                }
+            }
+
+            /// <summary>
+            /// Translate the decision tree for node, given that it will be followed by the translation for nextNode.
+            /// </summary>
+            private void LowerDecisionDagNode(BoundDecisionDag node, BoundDecisionDag nextNode)
+            {
+                if (_dagNodeLabels.TryGetValue(node, out LabelSymbol nodeLabel))
+                {
+                    _loweredDecisionDag.Add(_factory.Label(nodeLabel));
+                }
+
+                switch (node)
+                {
+                    case BoundEvaluationPoint evaluationPoint:
                         {
-                            base.LowerDecision(evaluation.Evaluation, out BoundExpression sideEffect, out BoundExpression test);
-                            Debug.Assert(test == null);
+                            BoundExpression sideEffect = LowerEvaluation(evaluationPoint.Evaluation);
                             Debug.Assert(sideEffect != null);
                             _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
-                            LowerDecisionDag(evaluation.Next);
-                            return;
+                            if (nextNode != evaluationPoint.Next)
+                            {
+                                // We only need a goto if we would not otherwise fall through to the desired state
+                                _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(evaluationPoint.Next)));
+                            }
                         }
 
-                    case BoundDecisionPoint decision:
+                        break;
+
+                    case BoundDecisionPoint decisionPoint:
                         {
                             // PROTOTYPE(patterns2): should translate a chain of constant value tests into a switch instruction as before
-                            base.LowerDecision(decision.Decision, out BoundExpression sideEffect, out BoundExpression test);
-                            Debug.Assert(sideEffect == null);
+                            BoundExpression test = base.LowerDecision(decisionPoint.Decision);
+
+                            // Because we have already "optimized" away tests for a constant switch expression, the decision should be nontrivial.
                             Debug.Assert(test != null);
-                            _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(decision.WhenFalse), jumpIfTrue: false));
-                            LowerDecisionDag(decision.WhenTrue);
-                            if (!_generated.Contains(decision.WhenFalse))
+
+                            if (nextNode == decisionPoint.WhenFalse)
                             {
-                                LowerDecisionDag(decision.WhenFalse);
+                                _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(decisionPoint.WhenTrue), jumpIfTrue: true));
+                                // fall through to false decision
                             }
-                            return;
+                            else if (nextNode == decisionPoint.WhenTrue)
+                            {
+                                _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(decisionPoint.WhenFalse), jumpIfTrue: false));
+                                // fall through to true decision
+                            }
+                            else
+                            {
+                                _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(decisionPoint.WhenTrue), jumpIfTrue: true));
+                                _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(decisionPoint.WhenFalse)));
+                            }
                         }
+
+                        break;
 
                     case BoundWhenClause whenClause:
                         {
-                            // This node is used even when there is no when clause, to record the bindings. In the case that there
+                            // This node is used even when there is no when clause, to record bindings. In the case that there
                             // is no when clause, whenClause.WhenExpression and whenClause.WhenFalse are null, and the syntax for this
                             // node is the case clause.
 
@@ -194,8 +213,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var labelToSectionScope = _factory.GenerateLabel("where");
                             _loweredDecisionDag.Add(_factory.Goto(labelToSectionScope));
 
-                            // The direct parent of the where clause (if present) is the case clause. The parent of the case clause is the switch section.
-                            SyntaxNode sectionSyntax = whenClause.Syntax is WhenClauseSyntax s ? whenClause.Syntax.Parent.Parent : whenClause.Syntax.Parent;
+                            // We need the section syntax to get the section builder from the map. Unfortunately this is a bit awkward
+                            SyntaxNode sectionSyntax;
+                            switch (whenClause.Syntax)
+                            {
+                                case WhenClauseSyntax w:
+                                    sectionSyntax = w.Parent.Parent;
+                                    break;
+                                case SwitchLabelSyntax l:
+                                    sectionSyntax = l.Parent;
+                                    break;
+                                case SwitchExpressionArmSyntax a:
+                                    sectionSyntax = a;
+                                    break;
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(whenClause.Syntax.Kind());
+                            }
 
                             bool foundSectionBuilder = _switchArms.TryGetValue(sectionSyntax, out ArrayBuilder<BoundStatement> sectionBuilder);
                             Debug.Assert(foundSectionBuilder);
@@ -206,34 +239,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             var whenFalse = whenClause.WhenFalse;
-                            if (whenClause.WhenExpression != null)
+                            if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValue != ConstantValue.True)
                             {
-                                // PROTOTYPE(patterns2): there should be a sequence point (for e.g. a breakpoint) on the when clase
+                                // PROTOTYPE(patterns2): there should perhaps be a sequence point (for e.g. a breakpoint) on the when clase.
+                                // However, it is not clear that is wanted for the switch expression as that would be a breakpoing where the stack is nonempty.
                                 sectionBuilder.Add(_factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), whenTrue.Label, jumpIfTrue: true));
                                 Debug.Assert(whenFalse != null);
+                                Debug.Assert(_backwardLabels.Contains(whenFalse));
                                 sectionBuilder.Add(_factory.Goto(GetDagNodeLabel(whenFalse)));
-                                if (!_generated.Contains(whenFalse))
-                                {
-                                    LowerDecisionDag(whenFalse);
-                                }
                             }
                             else
                             {
                                 Debug.Assert(whenFalse == null);
                                 sectionBuilder.Add(_factory.Goto(whenTrue.Label));
                             }
-
-                            return;
                         }
 
-                    case BoundDecision decision:
-                        {
-                            _loweredDecisionDag.Add(_factory.Goto(decision.Label));
-                            return;
-                        }
+                        break;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(decisionDag.Kind);
+                        throw ExceptionUtilities.UnexpectedValue(node.Kind);
                 }
             }
         }
