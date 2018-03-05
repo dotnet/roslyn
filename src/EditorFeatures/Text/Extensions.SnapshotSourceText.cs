@@ -252,8 +252,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
 #if DEBUG
-                // forward and reversed map is 1:1 map. as long as snapshot is not null, it can't be
-                // different
+                // forward and reversed map is 1:1 map. snapshot can't be different
                 var snapshot = weakReference.GetTarget();
                 Contract.ThrowIfFalse(snapshot == editorSnapshot);
 #endif
