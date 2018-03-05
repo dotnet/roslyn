@@ -487,6 +487,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundLiteral(node, ConstantValue.Create(kind == BinaryOperatorKind.Equal), GetSpecialType(SpecialType.System_Boolean, diagnostics, node));
             }
 
+            if (GetTupleCardinality(left) > 1 &&
+                GetTupleCardinality(right) > 1 &&
+                (kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual))
+            {
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureTupleEquality, diagnostics);
+                return BindTupleBinaryOperator(node, kind, left, right, diagnostics);
+            }
+
             // SPEC: For an operation of one of the forms x == null, null == x, x != null, null != x,
             // SPEC: where x is an expression of nullable type, if operator overload resolution
             // SPEC: fails to find an applicable operator, the result is instead computed from
@@ -501,14 +509,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The comparison "x == null" should produce an ambiguity error rather
             // that being bound as !x.HasValue. 
             //
-
-            if (GetTupleCardinality(left) > 1 &&
-                GetTupleCardinality(right) > 1 &&
-                (kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual))
-            {
-                CheckFeatureAvailability(node, MessageID.IDS_FeatureTupleEquality, diagnostics);
-                return BindTupleBinaryOperator(node, kind, left, right, diagnostics);
-            }
 
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - nested expressions that aren't tuple literals, like `GetTuple()` in `(..., GetTuple()) == (..., (..., ...))`
         /// On the other hand, `Item1` and `Item2` of `GetTuple()` are not saved as part of the initialization phase of `GetTuple() == (..., ...)`
         ///
-        /// Element-wise conversions occur late, together with the element-wise comparisons. They may not be evaluated.
+        /// Element-wise conversions occur late, together with the element-wise comparisons. They might not be evaluated.
         /// </summary>
         public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
         {
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE(tuple-equality) checked
             // We leave the null literal in nullable-null conversions unconverted because MakeBinaryOperator has special rules for it
-            bool isNullableNullConversion = operatorKind.OperandTypes() != BinaryOperatorKind.NullableNull;
+            bool isNullableNullConversion = operatorKind.OperandTypes() == BinaryOperatorKind.NullableNull;
             BoundExpression convertedLeft = (isNullableNullConversion && left.IsLiteralNull())
                 ? left
                 : MakeConversionNode(left.Syntax, left, single.LeftConversion, single.LeftConvertedType, @checked: false);

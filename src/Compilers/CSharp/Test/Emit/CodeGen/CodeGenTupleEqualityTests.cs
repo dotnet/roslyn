@@ -556,6 +556,37 @@ struct S
         }
 
         [Fact]
+        public void TestThisStruct()
+        {
+            var source = @"
+public struct S
+{
+    public int I;
+    public static void Main()
+    {
+        S s = new S() { I = 1 };
+        s.M();
+    }
+    void M()
+    {
+        System.Console.Write((this, 2) == (1, this.Mutate()));
+    }
+
+    S Mutate()
+    {
+        I++;
+        return this;
+    }
+    public static implicit operator S(int value) { return new S() { I = value }; }
+    public static bool operator==(S s1, S s2) { System.Console.Write($""{s1.I} == {s2.I}, ""); return s1.I == s2.I; }
+    public static bool operator!=(S s1, S s2) { throw null; }
+}";
+            // PROTOTYPE(tuple-equality) We need to create a temp for `this`, otherwise it gets mutated
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "2 == 1, False");
+            //comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void TestSimpleEqualOnTypelessTupleLiteral()
         {
             var source = @"
