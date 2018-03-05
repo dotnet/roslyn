@@ -1473,6 +1473,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeNotFound" xml:space="preserve">
+    <!-- We need a specific error code for ValueTuple as an IDE codefix depends on it (AddNuget) -->
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeAmbiguous3" xml:space="preserve">
