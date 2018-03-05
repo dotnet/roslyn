@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -289,5 +291,35 @@ namespace Analyzer.Utilities.Extensions
             => !iCollectionTypes.IsEmpty &&
                method.Name.StartsWith("Add", StringComparison.Ordinal) &&
                method.ContainingType.AllInterfaces.Any(i => iCollectionTypes.Contains(i.OriginalDefinition));
+
+        /// <summary>
+        /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
+        /// </summary>
+        public static IBlockOperation GetTopmostOperationBlock(this IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            foreach (var decl in method.DeclaringSyntaxReferences)
+            {
+                var syntax = decl.GetSyntax(cancellationToken);
+
+                // VB Workaround: declaration.GetSyntax returns StatementSyntax nodes instead of BlockSyntax nodes
+                //                GetOperation returns null for StatementSyntax, and the method's operation block for BlockSyntax.
+                if (compilation.Language == LanguageNames.VisualBasic)
+                {
+                    syntax = syntax.Parent;
+                }
+
+                var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
+                foreach (var descendant in syntax.DescendantNodesAndSelf())
+                {
+                    var operation = semanticModel.GetOperation(descendant, cancellationToken);
+                    if (operation is IBlockOperation blockOperation)
+                    {
+                        return blockOperation;
+                    }
+                }
+            }
+
+            return null;
+        }
     }
 }

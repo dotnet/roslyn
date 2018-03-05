@@ -301,5 +301,123 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsInsideCatchClause(this IOperation operation)
             => operation.GetAncestor<ICatchClauseOperation>(OperationKind.CatchClause) != null;
+
+        public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, Func<IOperation, bool> predicate)
+        {
+            foreach (var operationBlock in operationBlocks)
+            {
+                if (operationBlock.HasAnyOperationDescendant(predicate))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate)
+        {
+            Debug.Assert(operationBlock != null);
+            Debug.Assert(predicate != null);
+            foreach (var descendant in operationBlock.DescendantsAndSelf())
+            {
+                if (predicate(descendant))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasAnyOperationDescendant<TOperation>(this ImmutableArray<IOperation> operationBlocks)
+            where TOperation : IOperation
+        {
+            return operationBlocks.HasAnyOperationDescendant(predicate: operation => operation is TOperation);
+        }
+
+        public static bool HasAnyConditionalOperatorDescendant(this IOperation operation)
+        {
+            return operation.HasAnyOperationDescendant(predicate: o => o is IBinaryOperation b && b.IsConditionalOpertator());
+        }
+
+        /// <summary>
+        /// Indicates if the given <paramref name="binaryOperation"/> is a predicate operation used in a condition.
+        /// A predicate operation is either an <see cref="IsConditionalOpertator(IBinaryOperation)"/> or an <see cref="IsComparisonOperator(IBinaryOperation)"/>.
+        /// </summary>
+        public static bool IsPredicate(this IBinaryOperation binaryOperation) => binaryOperation.IsConditionalOpertator() || binaryOperation.IsComparisonOperator();
+
+        /// <summary>
+        /// Indicates if the given <paramref name="binaryOperation"/> is a ConditionalAnd/ConditionalOr operator ('&&' or '||').
+        /// </summary>
+        /// <param name="binaryOperation"></param>
+        /// <returns></returns>
+        public static bool IsConditionalOpertator(this IBinaryOperation binaryOperation) => binaryOperation.IsConditionalAndOpertator() || binaryOperation.IsConditionalOrOpertator();
+
+        /// <summary>
+        /// Indicates if the given <paramref name="binaryOperation"/> is a ConditionalAnd operator ('&&').
+        /// </summary>
+        /// <param name="binaryOperation"></param>
+        /// <returns></returns>
+        public static bool IsConditionalAndOpertator(this IBinaryOperation binaryOperation)
+        {
+            switch (binaryOperation.OperatorKind)
+            {
+                case BinaryOperatorKind.ConditionalAnd:
+                    return true;
+
+                case BinaryOperatorKind.And:
+                    // Workaround for https://github.com/dotnet/roslyn/issues/23956
+                    return binaryOperation.Type.SpecialType == SpecialType.System_Boolean;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Indicates if the given <paramref name="binaryOperation"/> is a ConditionalOr operator ('||').
+        /// </summary>
+        /// <param name="binaryOperation"></param>
+        /// <returns></returns>
+        public static bool IsConditionalOrOpertator(this IBinaryOperation binaryOperation)
+        {
+            switch (binaryOperation.OperatorKind)
+            {
+                case BinaryOperatorKind.ConditionalOr:
+                    return true;
+
+                case BinaryOperatorKind.Or:
+                    // Workaround for https://github.com/dotnet/roslyn/issues/23956
+                    return binaryOperation.Type.SpecialType == SpecialType.System_Boolean;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Indicates if the given <paramref name="binaryOperation"/> is a predicate operation used in a condition.
+        /// </summary>
+        /// <param name="binaryOperation"></param>
+        /// <returns></returns>
+        public static bool IsComparisonOperator(this IBinaryOperation binaryOperation)
+        {
+            switch (binaryOperation.OperatorKind)
+            {
+                case BinaryOperatorKind.Equals:
+                case BinaryOperatorKind.NotEquals:
+                case BinaryOperatorKind.ObjectValueEquals:
+                case BinaryOperatorKind.ObjectValueNotEquals:
+                case BinaryOperatorKind.LessThan:
+                case BinaryOperatorKind.LessThanOrEqual:
+                case BinaryOperatorKind.GreaterThan:
+                case BinaryOperatorKind.GreaterThanOrEqual:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
     }
 }

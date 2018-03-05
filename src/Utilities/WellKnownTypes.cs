@@ -471,6 +471,11 @@ namespace Analyzer.Utilities
         {
             return compilation.GetTypeByMetadataName("NUnit.Framework.TheoryAttribute");
         }
+
+        public static INamedTypeSymbol SystemDiagnosticContractsContract(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Diagnostics.Contracts.Contract");
+        }
         #endregion
     }
 }
