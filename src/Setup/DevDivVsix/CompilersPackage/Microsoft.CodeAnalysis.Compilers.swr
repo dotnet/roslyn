@@ -21,13 +21,13 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn
     file source=$(OutputPath)\Exes\csi\net46\csi.rsp
     file source=$(OutputPath)\Exes\vbc\net46\vbc.rsp
 
-    file source=$(OutputPath)\Dlls\MSBuildTask\Microsoft.VisualBasic.Core.targets
-    file source=$(OutputPath)\Dlls\MSBuildTask\Microsoft.CSharp.Core.targets
+    file source=$(OutputPath)\Dlls\MSBuildTask\net46\Microsoft.VisualBasic.Core.targets
+    file source=$(OutputPath)\Dlls\MSBuildTask\net46\Microsoft.CSharp.Core.targets
 
     file source=$(OutputPath)\Dlls\Scripting\Microsoft.CodeAnalysis.Scripting.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Dlls\CSharpCodeAnalysis\Microsoft.CodeAnalysis.CSharp.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Dlls\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.dll vs.file.ngenArchitecture=all
+    file source=$(OutputPath)\Dlls\MSBuildTask\net46\Microsoft.Build.Tasks.CodeAnalysis.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Dlls\BasicCodeAnalysis\Microsoft.CodeAnalysis.VisualBasic.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Dlls\CodeAnalysis\Microsoft.CodeAnalysis.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Collections.Immutable.dll vs.file.ngenArchitecture=all
@@ -37,11 +37,9 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn
     file source=$(OutputPath)\Vsix\CompilerExtension\System.AppContext.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Console.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.FileVersionInfo.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.Process.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.StackTrace.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Compression.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.DriveInfo.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.Primitives.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Pipes.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Pipes.AccessControl.dll vs.file.ngenArchitecture=all
@@ -53,13 +51,10 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.X509Certificates.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Principal.Windows.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Text.Encoding.CodePages.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Threading.Thread.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.ReaderWriter.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XmlDocument.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XPath.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XPath.XDocument.dll vs.file.ngenArchitecture=all
-    
-    file source=$(OutputPath)\Vsix\CompilerExtension\Microsoft.Win32.Primitives.dll vs.file.ngenArchitecture=all
 
 folder InstallDir:\Common7\Tools\vsdevcmd\ext
     file source=$(RepoRoot)\src\Setup\MSBuildScripts\roslyn.bat

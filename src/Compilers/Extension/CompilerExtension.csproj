@@ -48,13 +48,11 @@
     <NuGetPackageToIncludeInVsix Include="System.Console" />
     <NugetPackageToIncludeInVsix Include="System.Diagnostics.Contracts" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.FileVersionInfo" />
-    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Process" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.StackTrace" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Tools" />
     <NuGetPackageToIncludeInVsix Include="System.IO" />
     <NuGetPackageToIncludeInVsix Include="System.IO.Compression" />
     <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.DriveInfo" />
     <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.Primitives" />
     <NuGetPackageToIncludeInVsix Include="System.IO.Pipes" />
     <NuGetPackageToIncludeInVsix Include="System.IO.Pipes.AccessControl" />
@@ -75,7 +73,6 @@
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.Extensions" />
     <NuGetPackageToIncludeInVsix Include="System.Text.RegularExpressions" />
     <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Parallel" />
-    <NuGetPackageToIncludeInVsix Include="System.Threading.Thread" />
     <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
     <NuGetPackageToIncludeInVsix Include="System.Xml.ReaderWriter" />
     <NuGetPackageToIncludeInVsix Include="System.Xml.XDocument" />
@@ -100,6 +97,7 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <AdditionalProperties>TargetFramework=net46</AdditionalProperties>
     </ProjectReference>
     <ProjectReference Include="..\Core\Portable\CodeAnalysis.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
