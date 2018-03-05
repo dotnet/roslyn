@@ -429,7 +429,6 @@
       This target is used to copy referenced projects to a sub-directory vs. the direct output 
       directory of the build. Useful when the referenced project is an EXE and the referencing 
       project uses an incompatible targetframework
-
   -->  
   <Target Name="CopyReferencedProjectsToDependenciesDirectory" Condition="'@(RoslynReferenceToDependencyDirectory)' != ''"  AfterTargets="ResolveProjectReferences">
     <PropertyGroup>
@@ -440,7 +439,6 @@
       <Content Include="@(_RoslynReferenceContent)" Link="dependency\%(_RoslynReferenceContent.Filename)%(_RoslynReferenceContent.Extension)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
-  
 
   <!-- Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
        https://github.com/dotnet/project-system/issues/2160 where AdditionalFileItemNames

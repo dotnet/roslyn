@@ -20,7 +20,6 @@
     <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
       <Aliases>csc</Aliases>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
     <ProjectReference Include="..\..\VisualBasic\vbc\vbc.csproj">
       <Aliases>vbc</Aliases>
     </ProjectReference>
