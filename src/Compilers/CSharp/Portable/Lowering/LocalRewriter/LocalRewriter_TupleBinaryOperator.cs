@@ -24,19 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
         {
             var boolType = node.Type; // we can re-use the bool type
-            var leftInit = ArrayBuilder<BoundExpression>.GetInstance();
-            var rightInit = ArrayBuilder<BoundExpression>.GetInstance();
+            var initEffects = ArrayBuilder<BoundExpression>.GetInstance();
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
 
-            BoundExpression newLeft = ReplaceTerminalElementsWithTemps(node.Left, node.Operators, leftInit, temps);
-            BoundExpression newRight = ReplaceTerminalElementsWithTemps(node.Right, node.Operators, rightInit, temps);
+            BoundExpression newLeft = ReplaceTerminalElementsWithTemps(node.Left, node.Operators, initEffects, temps);
+            BoundExpression newRight = ReplaceTerminalElementsWithTemps(node.Right, node.Operators, initEffects, temps);
 
             var returnValue = RewriteTupleNestedOperators(node.Operators, newLeft, newRight, boolType, temps, node.OperatorKind);
-
-            leftInit.AddRange(rightInit);
-            rightInit.Free();
-
-            BoundExpression result = MakeSequenceOrResultValue(temps.ToImmutableAndFree(), leftInit.ToImmutableAndFree(), returnValue);
+            BoundExpression result = MakeSequenceOrResultValue(temps.ToImmutableAndFree(), initEffects.ToImmutableAndFree(), returnValue);
             return result;
         }
 
@@ -250,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Example:
             // (1, 2) == (1, 2);
-            if (IsTupleExpression(tuple.Kind))
+            if (tuple.Kind == BoundKind.TupleLiteral)
             {
                 return ((BoundTupleLiteral)tuple).Arguments[i];
             }
@@ -300,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE(tuple-equality) checked
             // We leave the null literal in nullable-null conversions unconverted because MakeBinaryOperator has special rules for it
-            bool isNullableNullConversion = ((operatorKind & BinaryOperatorKind.NullableNull) == 0);
+            bool isNullableNullConversion = operatorKind.OperandTypes() != BinaryOperatorKind.NullableNull;
             BoundExpression convertedLeft = (isNullableNullConversion && left.IsLiteralNull())
                 ? left
                 : MakeConversionNode(left.Syntax, left, single.LeftConversion, single.LeftConvertedType, @checked: false);
