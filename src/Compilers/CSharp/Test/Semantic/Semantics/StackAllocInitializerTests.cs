@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class StackAllocInitializerTests : CompilingTestBase
     {
         [Fact]
-        public void NoBestType()
+        public void NoBestType_Pointer()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
 unsafe class Test
@@ -21,16 +21,20 @@ unsafe class Test
     struct A {}
     struct B {}
 
-    public void Method()
+    void Method(dynamic d, RefStruct r)
     {
-        var p1 = stackalloc[] { new A(), new B() };
-        var p2 = stackalloc[] { };
-        var p3 = stackalloc[] { Method() };
-        var p4 = stackalloc[] { null };
-        var p5 = stackalloc[] { (1, null) };
-        var p6 = stackalloc[] { () => { } };
-        var p7 = stackalloc[] { new {} , new { i = 0 } };
+        var p0 = stackalloc[] { new A(), new B() };
+        var p1 = stackalloc[] { };
+        var p2 = stackalloc[] { VoidMethod() };
+        var p3 = stackalloc[] { null };
+        var p4 = stackalloc[] { (1, null) };
+        var p5 = stackalloc[] { () => { } };
+        var p6 = stackalloc[] { new {} , new { i = 0 } };
+        var p7 = stackalloc[] { d };
+        var p8 = stackalloc[] { _ };
     }
+
+    public void VoidMethod() {}
 }
 namespace System {
     public struct ValueTuple<T1, T2> {
@@ -40,32 +44,214 @@ namespace System {
 ", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
+                //     void Method(dynamic d, RefStruct r)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RefStruct").WithArguments("RefStruct").WithLocation(7, 28),
                 // (9,18): error CS0826: No best type found for implicitly-typed array
-                //         var p1 = stackalloc[] { new A(), new B() };
+                //         var p0 = stackalloc[] { new A(), new B() };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { new A(), new B() }").WithLocation(9, 18),
                 // (10,18): error CS0826: No best type found for implicitly-typed array
-                //         var p2 = stackalloc[] { };
+                //         var p1 = stackalloc[] { };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { }").WithLocation(10, 18),
                 // (11,18): error CS0826: No best type found for implicitly-typed array
-                //         var p3 = stackalloc[] { Method() };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { Method() }").WithLocation(11, 18),
+                //         var p2 = stackalloc[] { VoidMethod() };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { VoidMethod() }").WithLocation(11, 18),
                 // (12,18): error CS0826: No best type found for implicitly-typed array
-                //         var p4 = stackalloc[] { null };
+                //         var p3 = stackalloc[] { null };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { null }").WithLocation(12, 18),
                 // (13,18): error CS0826: No best type found for implicitly-typed array
-                //         var p5 = stackalloc[] { (1, null) };
+                //         var p4 = stackalloc[] { (1, null) };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { (1, null) }").WithLocation(13, 18),
                 // (14,18): error CS0826: No best type found for implicitly-typed array
-                //         var p6 = stackalloc[] { () => { } };
+                //         var p5 = stackalloc[] { () => { } };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { () => { } }").WithLocation(14, 18),
                 // (15,18): error CS0826: No best type found for implicitly-typed array
-                //         var p7 = stackalloc[] { new {} , new { i = 0 } };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { new {} , new { i = 0 } }").WithLocation(15, 18)
+                //         var p6 = stackalloc[] { new {} , new { i = 0 } };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { new {} , new { i = 0 } }").WithLocation(15, 18),
+                // (16,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                //         var p7 = stackalloc[] { d };
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { d }").WithArguments("dynamic").WithLocation(16, 18),
+                // (17,33): error CS0103: The name '_' does not exist in the current context
+                //         var p8 = stackalloc[] { _ };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(17, 33)
                 );
         }
 
         [Fact]
-        public void BestTypeNumeric()
+        public void NoBestType_Span()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+unsafe class Test
+{
+    struct A {}
+    struct B {}
+
+    void Method(dynamic d, bool c)
+    {
+        var p0 = c ? default : stackalloc[] { new A(), new B() };
+        var p1 = c ? default : stackalloc[] { };
+        var p2 = c ? default : stackalloc[] { VoidMethod() };
+        var p3 = c ? default : stackalloc[] { null };
+        var p4 = c ? default : stackalloc[] { (1, null) };
+        var p5 = c ? default : stackalloc[] { () => { } };
+        var p6 = c ? default : stackalloc[] { new {} , new { i = 0 } };
+        var p7 = c ? default : stackalloc[] { d };
+        var p8 = c ? default : stackalloc[] { _ };
+    }
+
+    public void VoidMethod() {}
+}
+namespace System {
+    public struct ValueTuple<T1, T2> {
+        public ValueTuple(T1 a, T2 b) { }
+    }
+}
+", TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (9,32): error CS0826: No best type found for implicitly-typed array
+                //         var p0 = c ? default : stackalloc[] { new A(), new B() };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { new A(), new B() }").WithLocation(9, 32),
+                // (10,32): error CS0826: No best type found for implicitly-typed array
+                //         var p1 = c ? default : stackalloc[] { };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { }").WithLocation(10, 32),
+                // (11,32): error CS0826: No best type found for implicitly-typed array
+                //         var p2 = c ? default : stackalloc[] { VoidMethod() };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { VoidMethod() }").WithLocation(11, 32),
+                // (12,32): error CS0826: No best type found for implicitly-typed array
+                //         var p3 = c ? default : stackalloc[] { null };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { null }").WithLocation(12, 32),
+                // (13,32): error CS0826: No best type found for implicitly-typed array
+                //         var p4 = c ? default : stackalloc[] { (1, null) };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { (1, null) }").WithLocation(13, 32),
+                // (14,32): error CS0826: No best type found for implicitly-typed array
+                //         var p5 = c ? default : stackalloc[] { () => { } };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { () => { } }").WithLocation(14, 32),
+                // (15,32): error CS0826: No best type found for implicitly-typed array
+                //         var p6 = c ? default : stackalloc[] { new {} , new { i = 0 } };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { new {} , new { i = 0 } }").WithLocation(15, 32),
+                // (16,32): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                //         var p7 = c ? default : stackalloc[] { d };
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { d }").WithArguments("dynamic").WithLocation(16, 32),
+                // (17,47): error CS0103: The name '_' does not exist in the current context
+                //         var p8 = c ? default : stackalloc[] { _ };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(17, 47)
+                );
+        }
+
+        [Fact]
+        public void InitializeWithSelf_Pointer()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+unsafe class Test
+{
+    void Method1()
+    {
+        var obj1 = stackalloc int[1] { obj1 };
+        var obj2 = stackalloc int[ ] { obj2 };
+        var obj3 = stackalloc    [ ] { obj3 };
+    }
+
+    void Method2()
+    {
+        var obj1 = stackalloc int[2] { obj1[0] , obj1[1] };
+        var obj2 = stackalloc int[ ] { obj2[0] , obj2[1] };
+        var obj3 = stackalloc    [ ] { obj3[0] , obj3[1] };
+    }
+}
+", TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (6,40): error CS0841: Cannot use local variable 'obj1' before it is declared
+                //         var obj1 = stackalloc int[1] { obj1 };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj1").WithArguments("obj1").WithLocation(6, 40),
+                // (7,40): error CS0841: Cannot use local variable 'obj2' before it is declared
+                //         var obj2 = stackalloc int[ ] { obj2 };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj2").WithArguments("obj2").WithLocation(7, 40),
+                // (8,40): error CS0841: Cannot use local variable 'obj3' before it is declared
+                //         var obj3 = stackalloc    [ ] { obj3 };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj3").WithArguments("obj3").WithLocation(8, 40),
+                // (8,40): error CS0165: Use of unassigned local variable 'obj3'
+                //         var obj3 = stackalloc    [ ] { obj3 };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "obj3").WithArguments("obj3").WithLocation(8, 40),
+                // (13,40): error CS0841: Cannot use local variable 'obj1' before it is declared
+                //         var obj1 = stackalloc int[2] { obj1[0] , obj1[1] };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj1").WithArguments("obj1").WithLocation(13, 40),
+                // (13,50): error CS0841: Cannot use local variable 'obj1' before it is declared
+                //         var obj1 = stackalloc int[2] { obj1[0] , obj1[1] };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj1").WithArguments("obj1").WithLocation(13, 50),
+                // (14,40): error CS0841: Cannot use local variable 'obj2' before it is declared
+                //         var obj2 = stackalloc int[ ] { obj2[0] , obj2[1] };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj2").WithArguments("obj2").WithLocation(14, 40),
+                // (14,50): error CS0841: Cannot use local variable 'obj2' before it is declared
+                //         var obj2 = stackalloc int[ ] { obj2[0] , obj2[1] };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj2").WithArguments("obj2").WithLocation(14, 50),
+                // (15,40): error CS0841: Cannot use local variable 'obj3' before it is declared
+                //         var obj3 = stackalloc    [ ] { obj3[0] , obj3[1] };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj3").WithArguments("obj3").WithLocation(15, 40),
+                // (15,50): error CS0841: Cannot use local variable 'obj3' before it is declared
+                //         var obj3 = stackalloc    [ ] { obj3[0] , obj3[1] };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj3").WithArguments("obj3").WithLocation(15, 50)
+                );
+        }
+
+        [Fact]
+        public void InitializeWithSelf_Span()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+unsafe class Test
+{
+    void Method1(bool c)
+    {
+        var obj1 = c ? default : stackalloc int[1] { obj1 };
+        var obj2 = c ? default : stackalloc int[ ] { obj2 };
+        var obj3 = c ? default : stackalloc    [ ] { obj3 };
+    }
+
+    void Method2(bool c)
+    {
+        var obj1 = c ? default : stackalloc int[2] { obj1[0] , obj1[1] };
+        var obj2 = c ? default : stackalloc int[ ] { obj2[0] , obj2[1] };
+        var obj3 = c ? default : stackalloc    [ ] { obj3[0] , obj3[1] };
+    }
+}
+", TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (6,54): error CS0841: Cannot use local variable 'obj1' before it is declared
+                //         var obj1 = c ? default : stackalloc int[1] { obj1 };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj1").WithArguments("obj1").WithLocation(6, 54),
+                // (7,54): error CS0841: Cannot use local variable 'obj2' before it is declared
+                //         var obj2 = c ? default : stackalloc int[ ] { obj2 };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj2").WithArguments("obj2").WithLocation(7, 54),
+                // (8,54): error CS0841: Cannot use local variable 'obj3' before it is declared
+                //         var obj3 = c ? default : stackalloc    [ ] { obj3 };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj3").WithArguments("obj3").WithLocation(8, 54),
+                // (8,54): error CS0165: Use of unassigned local variable 'obj3'
+                //         var obj3 = c ? default : stackalloc    [ ] { obj3 };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "obj3").WithArguments("obj3").WithLocation(8, 54),
+                // (13,54): error CS0841: Cannot use local variable 'obj1' before it is declared
+                //         var obj1 = c ? default : stackalloc int[2] { obj1[0] , obj1[1] };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj1").WithArguments("obj1").WithLocation(13, 54),
+                // (13,64): error CS0841: Cannot use local variable 'obj1' before it is declared
+                //         var obj1 = c ? default : stackalloc int[2] { obj1[0] , obj1[1] };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj1").WithArguments("obj1").WithLocation(13, 64),
+                // (14,54): error CS0841: Cannot use local variable 'obj2' before it is declared
+                //         var obj2 = c ? default : stackalloc int[ ] { obj2[0] , obj2[1] };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj2").WithArguments("obj2").WithLocation(14, 54),
+                // (14,64): error CS0841: Cannot use local variable 'obj2' before it is declared
+                //         var obj2 = c ? default : stackalloc int[ ] { obj2[0] , obj2[1] };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj2").WithArguments("obj2").WithLocation(14, 64),
+                // (15,54): error CS0841: Cannot use local variable 'obj3' before it is declared
+                //         var obj3 = c ? default : stackalloc    [ ] { obj3[0] , obj3[1] };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj3").WithArguments("obj3").WithLocation(15, 54),
+                // (15,64): error CS0841: Cannot use local variable 'obj3' before it is declared
+                //         var obj3 = c ? default : stackalloc    [ ] { obj3[0] , obj3[1] };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj3").WithArguments("obj3").WithLocation(15, 64)
+                );
+        }
+
+        [Fact]
+        public void BestTypeNumeric_Pointer()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
 unsafe class Test
@@ -97,25 +283,231 @@ unsafe class Test
         }
 
         [Fact]
-        public void BadBestType()
+        public void BestTypeNumeric_Span()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
 unsafe class Test
 {
-    public void Method1()
+    public void Method1(bool c)
     {
-        var obj1 = stackalloc[] { """" };
-        var obj2 = stackalloc[] { new {} };
+        var obj1 = c ? default : stackalloc[] { 1, 1.2 };
     }
 }", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (6,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var variables = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
+            Assert.Equal(1, variables.Count());
+
+            var obj1 = variables.ElementAt(0);
+            Assert.Equal("obj1", obj1.Identifier.Text);
+
+            var obj1Value = model.GetSemanticInfoSummary(obj1.Initializer.Value);
+            Assert.Equal(SpecialType.System_Double, ((NamedTypeSymbol)obj1Value.Type).TypeArgumentsNoUseSiteDiagnostics[0].SpecialType);
+            Assert.Equal(SpecialType.System_Double, ((NamedTypeSymbol)obj1Value.ConvertedType).TypeArgumentsNoUseSiteDiagnostics[0].SpecialType);
+            Assert.Equal(ConversionKind.Identity, obj1Value.ImplicitConversion.Kind);
+            var declared = model.GetDeclaredSymbol(obj1.Initializer.Value);
+            Assert.Null(declared);
+        }
+
+        [Fact]
+        public void BadBestType_Pointer()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+unsafe class Test
+{
+    ref struct S {}
+    void Method1(S s)
+    {
+        var obj1 = stackalloc[] { """" };
+        var obj2 = stackalloc[] { new {} };
+        var obj3 = stackalloc[] { s }; // OK
+    }
+}", TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (7,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
                 //         var obj1 = stackalloc[] { "" };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, @"stackalloc[] { """" }").WithArguments("string").WithLocation(6, 20),
-                // (7,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('<empty anonymous type>')
+                Diagnostic(ErrorCode.ERR_ManagedAddr, @"stackalloc[] { """" }").WithArguments("string").WithLocation(7, 20),
+                // (8,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('<empty anonymous type>')
                 //         var obj2 = stackalloc[] { new {} };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new {} }").WithArguments("<empty anonymous type>").WithLocation(7, 20)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new {} }").WithArguments("<empty anonymous type>").WithLocation(8, 20)
+                );
+        }
+
+        [Fact]
+        public void BadBestType_Span()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+unsafe class Test
+{
+    ref struct S {}
+    void Method1(S s, bool c)
+    {
+        var obj1 = c ? default : stackalloc[] { """" };
+        var obj2 = c ? default : stackalloc[] { new {} };
+        var obj3 = c ? default : stackalloc[] { s }; // Should be an error, see https://github.com/dotnet/roslyn/issues/25086
+    }
+}", TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (7,34): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
+                //         var obj1 = c ? default : stackalloc[] { "" };
+                Diagnostic(ErrorCode.ERR_ManagedAddr, @"stackalloc[] { """" }").WithArguments("string").WithLocation(7, 34),
+                // (8,34): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('<empty anonymous type>')
+                //         var obj2 = c ? default : stackalloc[] { new {} };
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new {} }").WithArguments("<empty anonymous type>").WithLocation(8, 34)
+                );
+        }
+
+        [Fact]
+        public void TestFor_Pointer()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+unsafe class Test
+{
+    static void Method1()
+    {
+        int i = 0;
+        for (var p = stackalloc int[3] { 1, 2, 3 }; i < 3; i++)
+            Console.Write(p[i]);
+    }
+
+    static void Method2()
+    {
+        int i = 0;
+        for (var p = stackalloc int[ ] { 1, 2, 3 }; i < 3; i++)
+            Console.Write(p[i]);
+    }
+
+    static void Method3()
+    {
+        int i = 0;
+        for (var p = stackalloc    [ ] { 1, 2, 3 }; i < 3; i++)
+            Console.Write(p[i]);
+    }
+    
+    public static void Main()
+    {
+        Method1();
+        Method2();
+        Method3();
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "123123123", verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void TestFor_Span()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    static void Method1()
+    {
+        int i = 0;
+        for (Span<int> p = stackalloc int[3] { 1, 2, 3 }; i < 3; i++)
+            Console.Write(p[i]);
+    }
+
+    static void Method2()
+    {
+        int i = 0;
+        for (Span<int> p = stackalloc int[ ] { 1, 2, 3 }; i < 3; i++)
+            Console.Write(p[i]);
+    }
+
+    static void Method3()
+    {
+        int i = 0;
+        for (Span<int> p = stackalloc    [ ] { 1, 2, 3 }; i < 3; i++)
+            Console.Write(p[i]);
+    }
+    
+    public static void Main()
+    {
+        Method1();
+        Method2();
+        Method3();
+    }
+}", TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestAwait_Pointer()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System.Threading.Tasks;
+unsafe class Test
+{
+    async void M()
+    {
+        var p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
+    }
+}", TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (7,32): error CS4004: Cannot await in an unsafe context
+                //         var p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.FromResult(1)").WithLocation(7, 32),
+                // (7,60): error CS4004: Cannot await in an unsafe context
+                //         var p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.FromResult(2)").WithLocation(7, 60)
+                );
+        }
+
+        [Fact]
+        public void TestAwait_Span()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+using System.Threading.Tasks;
+class Test
+{
+    async void M()
+    {
+        Span<int> p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
+    }
+}", TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (8,38): error CS0150: A constant value is expected
+                //         Span<int> p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "await Task.FromResult(1)").WithLocation(8, 38),
+                // (8,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
+                //         Span<int> p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void TestSelfInSize()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+unsafe class Test
+{
+    void M()
+    {
+        var x = stackalloc int[x] { };
+    }
+}", TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (6,32): error CS0841: Cannot use local variable 'x' before it is declared
+                //         var x = stackalloc int[x] { };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(6, 32),
+                // (6,32): error CS0165: Use of unassigned local variable 'x'
+                //         var x = stackalloc int[x] { };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(6, 32)
                 );
         }
 
