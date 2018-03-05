@@ -8710,6 +8710,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="new">extensible fixed statement</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
+        <source>indexing movable fixed buffers</source>
+        <target state="new">indexing movable fixed buffers</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
