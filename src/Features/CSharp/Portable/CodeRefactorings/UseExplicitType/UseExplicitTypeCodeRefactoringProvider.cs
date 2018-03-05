@@ -46,13 +46,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
             var declaration = GetDeclaration(root, textSpan);
             Debug.Assert(declaration.IsKind(SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression));
 
-            TypeSyntax declaredType = s_useExplicitTypeHelper.CanOfferFix(declaration, semanticModel, cancellationToken);
+            var declaredType = s_useExplicitTypeHelper.FindAnalyzableType(declaration, semanticModel, cancellationToken);
             if (declaredType == null)
             {
                 return;
             }
 
-            State state = State.Generate(declaration, semanticModel, optionSet,
+            if (declaredType.OverlapsHiddenPosition(cancellationToken))
+            {
+                return;
+            }
+
+            if (!declaredType.Span.IntersectsWith(textSpan.Start))
+            {
+                return;
+            }
+
+            var state = State.Generate(declaration, semanticModel, optionSet,
                 isVariableDeclarationContext: declaration.IsKind(SyntaxKind.VariableDeclaration), cancellationToken: cancellationToken);
 
             // UseExplicitType analyzer/fixer already gives an action in this case
@@ -67,7 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
                 return;
             }
 
-            MakeRefactoring(context, document, declaredType, textSpan, cancellationToken);
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    CSharpFeaturesResources.Use_explicit_type,
+                    c => UpdateDocumentAsync(document, declaredType, c)));
         }
 
         private static SyntaxNode GetDeclaration(SyntaxNode root, TextSpan textSpan)
@@ -102,28 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
             }
 
             return null;
-        }
-
-        private static void MakeRefactoring(CodeRefactoringContext context, Document document, TypeSyntax typeName, TextSpan textSpan, CancellationToken cancellationToken)
-        {
-            if (!typeName.IsParentKind(SyntaxKind.DeclarationExpression))
-            {
-            }
-
-            if (typeName.OverlapsHiddenPosition(cancellationToken))
-            {
-                return;
-            }
-
-            if (!typeName.Span.IntersectsWith(textSpan.Start))
-            {
-                return;
-            }
-
-            context.RegisterRefactoring(
-                new MyCodeAction(
-                    CSharpFeaturesResources.Use_explicit_type,
-                    c => UpdateDocumentAsync(document, typeName, c)));
         }
 
         private static async Task<Document> UpdateDocumentAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)

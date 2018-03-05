@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -21,44 +20,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         internal abstract bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
         protected abstract bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
 
-        internal TypeSyntax CanOfferFix(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
+        internal TypeSyntax FindAnalyzableType(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            Debug.Assert(declarationStatement.IsKind(SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression));
+            Debug.Assert(node.IsKind(SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression));
 
-            if (declarationStatement.IsKind(SyntaxKind.VariableDeclaration))
+            switch (node)
             {
-                var declaration = (VariableDeclarationSyntax)declarationStatement;
+                case VariableDeclarationSyntax variableDeclaration:
+                    if (ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken))
+                    {
+                        return variableDeclaration.Type;
+                    }
+                    break;
 
-                if (!ShouldAnalyzeVariableDeclaration(declaration, semanticModel, cancellationToken))
-                {
-                    return null;
-                }
+                case ForEachStatementSyntax forEachStatement:
+                    if (ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken))
+                    {
+                        return forEachStatement.Type;
+                    }
+                    break;
 
-                return declaration.Type;
+                case DeclarationExpressionSyntax declarationExpression:
+                    if (ShouldAnalyzeDeclarationExpression(declarationExpression, semanticModel, cancellationToken))
+                    {
+                        return declarationExpression.Type;
+                    }
+                    break;
             }
-            else if (declarationStatement.IsKind(SyntaxKind.ForEachStatement))
-            {
-                var declaration = (ForEachStatementSyntax)declarationStatement;
-
-                if (!ShouldAnalyzeForEachStatement(declaration, semanticModel, cancellationToken))
-                {
-                    return null;
-                }
-
-                return declaration.Type;
-            }
-            else if (declarationStatement.IsKind(SyntaxKind.DeclarationExpression))
-            {
-                var declaration = (DeclarationExpressionSyntax)declarationStatement;
-
-                if (!ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken))
-                {
-                    return null;
-                }
-
-                return declaration.Type;
-            }
-
             return null;
         }
 
@@ -68,13 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             // such declarations cannot have multiple declarators and
             // must have an initializer.
             var isSupportedParentKind = variableDeclaration.IsParentKind(
-                    SyntaxKind.LocalDeclarationStatement,
-                    SyntaxKind.ForStatement,
-                    SyntaxKind.UsingStatement);
+                SyntaxKind.LocalDeclarationStatement,
+                SyntaxKind.ForStatement,
+                SyntaxKind.UsingStatement);
 
             return isSupportedParentKind &&
-                   variableDeclaration.Variables.Count == 1 &&
-                   variableDeclaration.Variables.Single().Initializer.IsKind(SyntaxKind.EqualsValueClause);
+                variableDeclaration.Variables.Count == 1 &&
+                variableDeclaration.Variables.Single().Initializer.IsKind(SyntaxKind.EqualsValueClause);
         }
 
         protected virtual bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -125,13 +113,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             }
 
             var semanticModel = context.SemanticModel;
-            TypeSyntax declaredType = Helper.CanOfferFix(declarationStatement, semanticModel, cancellationToken);
+            var declaredType = Helper.FindAnalyzableType(declarationStatement, semanticModel, cancellationToken);
             if (declaredType == null)
             {
                 return;
             }
 
-            State state = State.Generate(declarationStatement, semanticModel, optionSet,
+            var state = State.Generate(declarationStatement, semanticModel, optionSet,
                 isVariableDeclarationContext: declarationStatement.IsKind(SyntaxKind.VariableDeclaration), cancellationToken: cancellationToken);
 
             if (!Helper.IsStylePreferred(semanticModel, optionSet, state, cancellationToken))
