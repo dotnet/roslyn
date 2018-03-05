@@ -1343,9 +1343,9 @@ namespace System
                 }
             }
 
-            public static implicit operator ReadOnlySpan<T>(T[] array) => array == null? default: new ReadOnlySpan<T>(array);
+            public static implicit operator ReadOnlySpan<T>(T[] array) => array == null ? default : new ReadOnlySpan<T>(array);
 
-            public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue)? default: new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
+            public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
         }
 
         public readonly ref struct SpanLike<T>

@@ -48,18 +48,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSpecialUserDefinedConversion(BoundConversion conversion, bool used, BoundExpression operand)
         {
-            var typeTo = conversion.Type;
+            var typeTo = (NamedTypeSymbol)conversion.Type;
 
             Debug.Assert((operand.Type.IsArray()) &&
                          this._module.Compilation.IsReadOnlySpanType(typeTo),
-                         "only special kinds of conversions involvling ReadOnlySpan may be handled in emit");
+                         "only special kinds of conversions involving ReadOnlySpan may be handled in emit");
 
-            if (!TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)typeTo, operand, used, inPlace: false))
+            if (!TryEmitReadonlySpanAsBlobWrapper(typeTo, operand, used, inPlace: false))
             {
+                // there are several reasons that could prevent us from emitting a wrapper
+                // in such case we just emit the operand and then invoke the conversion method 
                 EmitExpression(operand, used);
                 if (used)
                 {
-                    _builder.EmitOpCode(ILOpCode.Call, 0);
+                    // consumes 1 argument (array) and produces one result (span)
+                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
                     EmitSymbolToken(conversion.SymbolOpt, conversion.Syntax, optArgList: null);
                 }
             }
