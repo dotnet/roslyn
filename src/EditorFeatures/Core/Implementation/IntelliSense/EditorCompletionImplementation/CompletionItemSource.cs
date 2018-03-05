@@ -59,11 +59,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             var filterCache = new Dictionary<string, CompletionFilter>();
-            var service = GetCompletionService(applicableSpan.Snapshot.TextBuffer.CurrentSnapshot) as CompletionServiceWithProviders;
 
             var items = completionList.Items.SelectAsArray(roslynItem =>
             {
-                var needsCustomCommit = service.GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider;
+                var needsCustomCommit = ((CompletionServiceWithProviders)completionService).GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider;
 
                 var item = Convert(document, roslynItem, completionService, filterCache, needsCustomCommit);
                 item.Properties.AddProperty(TriggerBuffer, triggerLocation.Snapshot.TextBuffer);
@@ -202,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 Workspace.TryGetWorkspace(buffer.AsTextContainer(), out var workspace);
                 var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentIdInCurrentContext(buffer.AsTextContainer()));
 
-                // TODO: We actually want the document from the initial snapshot, not the CurrentSnapshot.
+                // TODO: Do we actually want the document from the initial snapshot?
                 edit.Delete(applicableSpan.GetSpan(buffer.CurrentSnapshot));
 
                 var change = ((IFeaturesCustomCommitCompletionProvider)provider).GetChangeAsync(
@@ -229,6 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         public bool ShouldCommitCompletion(char typedChar, SnapshotPoint location)
         {
+            // TODO: It's more complex than this.
             return CommitChars.Contains(typedChar);
         }
 
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 return null;
             }
 
-            // TODO: Edit of 0 means Invoke or InvokeAndCommitIfUnique
+            // TODO: Edit of 0 means Invoke or InvokeAndCommitIfUnique. An API update will make this better.
             if (edit != 0 && !service.ShouldTriggerCompletion(text, location.Position, RoslynTrigger.CreateInsertionTrigger(edit)))
             {
                 return null;
@@ -250,16 +250,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             return new SnapshotSpan(location.Snapshot, service.GetDefaultCompletionListSpan(text, location.Position).ToSpan());
         }
 
-        private CompletionService GetCompletionService(ITextSnapshot snapshot)
+        private CompletionServiceWithProviders GetCompletionService(ITextSnapshot snapshot)
         {
-            Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return null;
             }
 
             var workspace = document.Project.Solution.Workspace;
-            return workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<CompletionService>();
+            return (CompletionServiceWithProviders)workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<CompletionService>();
         }
 
         public Task HandleViewClosedAsync(ITextView view) => Task.CompletedTask;
