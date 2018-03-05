@@ -8525,11 +8525,6 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <target state="translated">La conversion d'une expression stackalloc de type '{0}' en type '{1}' n'est pas possible.</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_StackAllocExpression">
-        <source>stackalloc {0}[{1}]</source>
-        <target state="translated">stackalloc {0}[{1}]</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne">
         <source>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</source>
         <target state="translated">Le premier paramètre d'une méthode d'extension 'ref' '{0}' doit être un type valeur ou un type générique limité à struct.</target>

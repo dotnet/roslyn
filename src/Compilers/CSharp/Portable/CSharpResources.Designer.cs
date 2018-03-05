@@ -11088,15 +11088,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to stackalloc {0}[{1}].
-        /// </summary>
-        internal static string IDS_StackAllocExpression {
-            get {
-                return ResourceManager.GetString("IDS_StackAllocExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;text&gt;.
         /// </summary>
         internal static string IDS_Text {

@@ -8525,11 +8525,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <target state="translated">Die Umwandlung eines stackalloc-Ausdrucks vom Typ "{0}" in den Typ "{1}" ist nicht möglich.</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_StackAllocExpression">
-        <source>stackalloc {0}[{1}]</source>
-        <target state="translated">stackalloc {0}[{1}]</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne">
         <source>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</source>
         <target state="translated">Der erste Parameter einer ref-Erweiterungsmethode "{0}" muss ein Werttyp oder ein generischer Typ sein, der auf die Struktur eingeschränkt ist.</target>
