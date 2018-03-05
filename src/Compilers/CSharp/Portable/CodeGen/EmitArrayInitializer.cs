@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var initializers = initializer.Initializers;
             if (initializers.Any(init => init.ConstantValue == null))
             {
-                return default;
+                return -1;
             }
 
             var elementCount = initializers.Length;
