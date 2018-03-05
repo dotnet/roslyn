@@ -26,11 +26,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return dialogAutomationElement;
         }
 
-        public static AutomationElement FindDialogByAutomationId(int visualStudioHWnd, string dialogAutomationId, bool isOpen)
+        public static AutomationElement FindDialogByAutomationId(int visualStudioHWnd, string dialogAutomationId, bool isOpen, bool wait = true)
         {
             return Retry(
                 () => FindDialogWorker(visualStudioHWnd, dialogAutomationId),
-                stoppingCondition: automationElement => isOpen ? automationElement != null : automationElement == null,
+                stoppingCondition: automationElement => !wait || (isOpen ? automationElement != null : automationElement == null),
                 delay: TimeSpan.FromMilliseconds(250));
         }
 
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 new PropertyCondition(nameProperty, propertyValue),
                 new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
 
-            return vsAutomationElement.FindFirst(TreeScope.Descendants, elementCondition);
+            return vsAutomationElement.FindFirst(TreeScope.Children, elementCondition);
         }
 
         private static T Retry<T>(Func<T> action, Func<T, bool> stoppingCondition, TimeSpan delay)

@@ -55,8 +55,7 @@ class C
 }", actualText);
         }
 
-        [Fact (Skip = "https://github.com/dotnet/roslyn/issues/17640"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyReorderParameters()
         {
             SetUpEditor(@"
