@@ -190,9 +190,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return false;
             }
 
-            var method = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol as IMethodSymbol;
-            return method?.MethodKind == MethodKind.BuiltinOperator &&
-                   method.ContainingType.SpecialType == SpecialType.System_String &&
+            return semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol is IMethodSymbol method &&
+                   method.MethodKind == MethodKind.BuiltinOperator &&
+                   method.ContainingType?.SpecialType == SpecialType.System_String &&
                    (method.MetadataName == WellKnownMemberNames.AdditionOperatorName ||
                     method.MetadataName == WellKnownMemberNames.ConcatenateOperatorName);
         }
