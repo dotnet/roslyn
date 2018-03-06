@@ -71,6 +71,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add parentheses.
+        /// </summary>
+        internal static string Add_parentheses_around_conditional_expression_in_interpolated_string {
+            get {
+                return ResourceManager.GetString("Add_parentheses_around_conditional_expression_in_interpolated_string", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add &apos;this.&apos;.
         /// </summary>
         internal static string Add_this {
