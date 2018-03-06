@@ -2063,7 +2063,7 @@ class C
   IL_0021:  call       ""bool int?.HasValue.get""
   IL_0026:  brfalse.s  IL_0041
   IL_0028:  ldarga.s   V_0
-  IL_002a:  call       ""int int?.Value.get""
+  IL_002a:  call       ""int int?.GetValueOrDefault()""
   IL_002f:  stloc.s    V_6
   IL_0031:  ldstr      ""i""
   IL_0036:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
