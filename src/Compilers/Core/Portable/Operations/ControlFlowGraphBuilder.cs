@@ -1764,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             ImmutableArray<IArgumentOperation> arguments = operation.Arguments;
             PushArray(arguments, arg => arg.Value);
-            ImmutableArray<IArgumentOperation> visitedArguments = PopArray(arguments, _argumentRewriter.Value);
+            ImmutableArray<IArgumentOperation> visitedArguments = PopArray(arguments, _argumentRewriter);
             IOperation visitedInstance = operation.Instance == null ? null : _evalStack.Pop();
 
             return new InvocationExpression(operation.TargetMethod, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -1774,7 +1774,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             ImmutableArray<IArgumentOperation> arguments = operation.Arguments;
             PushArray(arguments, arg => arg.Value);
-            ImmutableArray<IArgumentOperation> visitedArgs = PopArray(arguments, _argumentRewriter.Value);
+            ImmutableArray<IArgumentOperation> visitedArgs = PopArray(arguments, _argumentRewriter);
 
             // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
             var objectCreation = new ObjectCreationExpression(operation.Constructor, initializer: null, visitedArgs, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -1784,7 +1784,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return objectCreation;
         }
 
-        private readonly Lazy<Func<IOperation, int, ImmutableArray<IArgumentOperation>, IArgumentOperation>> _argumentRewriter = new Lazy<Func<IOperation, int, ImmutableArray<IArgumentOperation>, IArgumentOperation>>(() => RewriteArgumentFromArray);
+        private readonly Func<IOperation, int, ImmutableArray<IArgumentOperation>, IArgumentOperation> _argumentRewriter = RewriteArgumentFromArray;
 
         private static IArgumentOperation RewriteArgumentFromArray(IOperation visitedArgument, int index, ImmutableArray<IArgumentOperation> arguments)
         {
