@@ -468,6 +468,7 @@ class C
 }");
         }
 
+        [WorkItem(25260, "https://github.com/dotnet/roslyn/issues/25260")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestNotWithDefaultLiteralInitializer()
         {
@@ -605,6 +606,60 @@ class C
         foreach ((string name, int age) in new Person[] { }.Cast<(string, int)>())
             Console.WriteLine(name + "" "" + age);
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        public async Task TestWithImplicitTupleConversion()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        (object name, double age) [|person|] = GetPerson();
+        Console.WriteLine(person.name + "" "" + person.age);
+    }
+
+    (string name, int age) GetPerson() => default;
+}",
+@"class C
+{
+    void M()
+    {
+        (object name, double age) = GetPerson();
+        Console.WriteLine(name + "" "" + age);
+    }
+
+    (string name, int age) GetPerson() => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        public async Task TestWithImplicitTupleConversionInForEach()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        foreach ((object name, double age) [|person|] in GetPeople())
+            Console.WriteLine(person.name + "" "" + person.age);
+    }
+
+    IEnumerable<(string name, int age)> GetPeople() => default;
+}",
+@"using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        foreach ((object name, double age) in GetPeople())
+            Console.WriteLine(name + "" "" + age);
+    }
+
+    IEnumerable<(string name, int age)> GetPeople() => default;
 }");
         }
     }
