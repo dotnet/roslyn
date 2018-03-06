@@ -1320,10 +1320,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // this part of the code is only called if the targetType has an unfixed type argument in the output 
             // type, which is not the case for invalid delegate invoke methods.
-            Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
+            var delegateInvokeMethod = delegateType.DelegateInvokeMethod;
+            Debug.Assert((object)delegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types");
 
-            TypeSymbol delegateReturnType = delegateType.DelegateInvokeMethod.ReturnType;
+            TypeSymbol delegateReturnType = delegateInvokeMethod.ReturnType;
             if ((object)delegateReturnType == null || delegateReturnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
@@ -1337,7 +1338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var returnType = MethodGroupReturnType(binder, (BoundMethodGroup)source, fixedDelegateParameters, ref useSiteDiagnostics);
+            var returnType = MethodGroupReturnType(binder, (BoundMethodGroup)source, fixedDelegateParameters, delegateInvokeMethod.RefKind, ref useSiteDiagnostics);
             if ((object)returnType == null || returnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
@@ -1348,12 +1349,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static TypeSymbol MethodGroupReturnType(Binder binder, BoundMethodGroup source, ImmutableArray<ParameterSymbol> delegateParameters, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static TypeSymbol MethodGroupReturnType(
+            Binder binder, BoundMethodGroup source,
+            ImmutableArray<ParameterSymbol> delegateParameters,
+            RefKind delegateRefKind,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
             Conversions.GetDelegateArguments(source.Syntax, analyzedArguments, delegateParameters, binder.Compilation);
 
-            var resolution = binder.ResolveMethodGroup(source, analyzedArguments, isMethodGroupConversion: true, useSiteDiagnostics: ref useSiteDiagnostics);
+            var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
+                isMethodGroupConversion: true, returnRefKind: delegateRefKind,
+                // Since we are trying to infer the return type, it is not an input to resolving the method group
+                returnType: null);
 
             TypeSymbol type = null;
 

@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
 
         internal void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
     }
@@ -307,7 +307,7 @@ class C
     }
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var newTree = SyntaxFactory.ParseSyntaxTree(text + " ");
@@ -353,7 +353,7 @@ class C
     }
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var a = tree.GetRoot().DescendantNodes()
                 .OfType<IdentifierNameSyntax>().ElementAt(2);
@@ -401,7 +401,7 @@ class C
     }
 }";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             Assert.Empty(comp.GetDeclarationDiagnostics());
             comp.VerifyDiagnostics(
                 // (8,23): error CS0227: Unsafe code may only appear if compiling with /unsafe
@@ -409,7 +409,7 @@ class C
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "local").WithLocation(8, 23)
                 );
 
-            var compWithUnsafe = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var compWithUnsafe = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             compWithUnsafe.VerifyDiagnostics();
         }
 
@@ -446,7 +446,7 @@ unsafe struct C
     }
 }";
             // no need to declare local function `local` or method `B` as unsafe
-            var compWithUnsafe = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var compWithUnsafe = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             compWithUnsafe.VerifyDiagnostics();
         }
 
@@ -475,14 +475,14 @@ struct C
     }
 }";
             // no need to declare local function `local` as unsafe
-            var compWithUnsafe = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var compWithUnsafe = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             compWithUnsafe.VerifyDiagnostics();
         }
 
         [Fact]
         public void ConstraintBinding()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -501,7 +501,7 @@ class C
         [Fact]
         public void ConstraintBinding2()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -527,7 +527,7 @@ class C
         [WorkItem(17014, "https://github.com/dotnet/roslyn/pull/17014")]
         public void RecursiveLocalFuncsAsParameterTypes()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -555,7 +555,7 @@ class C
         [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
         public void BadGenericConstraint()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public void M<T>(T value) where T : object { }
@@ -570,7 +570,7 @@ class C
         [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
         public void RecursiveDefaultParameter()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public static void Main()
@@ -590,7 +590,7 @@ class C
         [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
         public void RecursiveDefaultParameter2()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -611,7 +611,7 @@ class C
         [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
         public void MutuallyRecursiveDefaultParameters()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -648,7 +648,7 @@ class C
         Local<int>();
     }
 }");
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
             comp.VerifyDiagnostics(
                 // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
@@ -698,7 +698,7 @@ class C
         [Fact]
         public void TypeParameterAttributesInSemanticModel()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -779,7 +779,7 @@ class C
         [Fact]
         public void ParameterAttributesInSemanticModel()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -870,7 +870,7 @@ class C
         Local<int>();
     }
 }");
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
             comp.VerifyDiagnostics(
                 // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
@@ -930,7 +930,7 @@ class C
         Local(0);
     }
 }");
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
             comp.VerifyDiagnostics(
                 // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
@@ -1053,7 +1053,7 @@ class C
     public void V<V>() { }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (9,23): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             int Local<T>() => 0; // Should conflict with above
@@ -1087,7 +1087,7 @@ class C
         [Fact]
         public void LocalFuncAndTypeParameterOnType()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C2<T>
 {
     public void M()
@@ -1245,7 +1245,7 @@ class C
             })();
     }
 }";
-            CreateStandardCompilation(src, options: TestOptions.UnsafeDebugDll)
+            CreateCompilation(src, options: TestOptions.UnsafeDebugDll)
                 .VerifyDiagnostics(
                 // (8,37): error CS1637: Iterators cannot have unsafe parameters or yield types
                 //         IEnumerable<int> Local(int* a) { yield break; }
@@ -1280,7 +1280,7 @@ class C
         [WorkItem(13193, "https://github.com/dotnet/roslyn/issues/13193")]
         public void LocalFunctionConflictingName()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public void M<TLocal>()
@@ -1380,7 +1380,7 @@ class C
         [Fact]
         public void VarLocalFunction2()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     private class var
@@ -2660,7 +2660,7 @@ class Program
 }
 ";
             var option = TestOptions.ReleaseExe;
-            CreateStandardCompilation(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+            CreateCompilation(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
                 // (6,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         void Local() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "Local").WithArguments("local functions", "7.0").WithLocation(6, 14)
@@ -3696,7 +3696,7 @@ class C<T>
     }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 

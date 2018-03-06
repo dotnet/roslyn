@@ -9076,6 +9076,11 @@
         <target state="translated">{0} 不是有效的 Visual Basic 复合赋值运算</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

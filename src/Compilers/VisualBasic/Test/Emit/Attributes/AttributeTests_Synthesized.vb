@@ -30,7 +30,7 @@ End Class
 </file>
 </compilation>
 
-            Dim reference = CreateCompilationWithMscorlibAndVBRuntime(source).EmitToImageReference()
+            Dim reference = CreateCompilationWithMscorlib40AndVBRuntime(source).EmitToImageReference()
             Dim comp = VisualBasicCompilation.Create("Name", references:={reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
             Dim pid = DirectCast(comp.GlobalNamespace.GetMembers().Single(Function(s) s.Name.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal)), NamedTypeSymbol)
@@ -56,7 +56,7 @@ End Class
 </compilation>
 
             For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib(source, options:=options)
+                Dim comp = CreateCompilationWithMscorlib40(source, options:=options)
 
                 Dim c = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
                 Dim p = c.GetMember(Of PropertySymbol)("P")
@@ -108,7 +108,7 @@ End Class
     </file>
 </compilation>
             For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib(source, options:=options)
+                Dim comp = CreateCompilationWithMscorlib40(source, options:=options)
 
                 Dim c = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
                 Dim p = c.GetMember(Of PropertySymbol)("P")
@@ -171,7 +171,7 @@ End Class
     </file>
 </compilation>
             For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib(source, options:=options.WithMetadataImportOptions(MetadataImportOptions.Internal))
+                Dim comp = CreateCompilationWithMscorlib40(source, options:=options.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
                 CompileAndVerify(comp, symbolValidator:=
                     Sub(m)
@@ -210,7 +210,7 @@ End Class
 </compilation>
 
             For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib(source, options:=options)
+                Dim comp = CreateCompilationWithMscorlib40(source, options:=options)
 
                 CompileAndVerify(comp, symbolValidator:=
                     Sub(m)
@@ -260,7 +260,7 @@ End Class
 </compilation>
 
             For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib(source, options:=options.WithMetadataImportOptions(MetadataImportOptions.Internal))
+                Dim comp = CreateCompilationWithMscorlib40(source, options:=options.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
                 CompileAndVerify(comp, symbolValidator:=
                     Sub(m)
@@ -313,7 +313,7 @@ End Class
 </compilation>
 
             For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlibAndReferences(source, references:={SystemCoreRef}, options:=options)
+                Dim comp = CreateCompilationWithMscorlib40AndReferences(source, references:={SystemCoreRef}, options:=options)
 
                 ' Dev11 emits DebuggerStepThrough, we emit DebuggerHidden and only in /debug:full mode
                 Dim expected = If(options.OptimizationLevel = OptimizationLevel.Debug,
@@ -342,7 +342,7 @@ End Class
 </compilation>
 
             For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={SystemCoreRef}, options:=options)
+                Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={SystemCoreRef}, options:=options)
 
                 ' Dev11 emits DebuggerStepThrough, we emit DebuggerHidden and only in /debug:full mode
                 Dim expected = If(options.OptimizationLevel = OptimizationLevel.Debug,
@@ -367,7 +367,7 @@ End Class
 </compilation>
             For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
 
-                Dim comp = CreateCompilationWithMscorlib(source, options:=options)
+                Dim comp = CreateCompilationWithMscorlib40(source, options:=options)
 
                 CompileAndVerify(comp, symbolValidator:=
                     Sub(m)
@@ -435,7 +435,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             CompileAndVerify(comp, symbolValidator:=
                 Sub(m)
                     Dim assembly = m.ContainingAssembly
@@ -539,7 +539,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
 BC40051: System.Diagnostics.DebuggerHiddenAttribute does not affect 'Get' or 'Set' when applied to the Property definition.  Apply the attribute directly to the 'Get' and 'Set' procedures as appropriate.
     <DebuggerHidden> ' P1
      ~~~~~~~~~~~~~~
@@ -621,7 +621,7 @@ End Class
                          </compilation>
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
+                Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
                 CompilationUtils.AssertNoErrors(compilation)
                 compilation.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(compilation)
 
@@ -661,7 +661,7 @@ End Class
                          </compilation>
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
+                Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
                 CompilationUtils.AssertNoErrors(compilation)
                 compilation.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(compilation)
 
@@ -705,7 +705,7 @@ End Class
                          </compilation>
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
+                Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
                 CompilationUtils.AssertNoErrors(compilation)
                 compilation.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(compilation)
 
@@ -750,7 +750,7 @@ End Class
                          </compilation>
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
+                Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
                 CompilationUtils.AssertNoErrors(compilation)
                 compilation.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(compilation)
 
@@ -797,7 +797,7 @@ End Class
                          </compilation>
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
+                Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
 
                 Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
 
@@ -856,7 +856,7 @@ End Class
                          </compilation>
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(kind))
+                Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(kind))
 
                 If kind <> OutputKind.NetModule Then
                     CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -1703,11 +1703,11 @@ End Namespace
 "
 #End Region
             ' Build an mscorlib including String
-            Dim mslibComp = CreateCompilation({Parse(mslib)}).VerifyDiagnostics()
+            Dim mslibComp = CreateEmptyCompilation({Parse(mslib)}).VerifyDiagnostics()
             Dim mslibRef = mslibComp.EmitToImageReference()
 
             ' Build an mscorlib without String
-            Dim mslibNoStringComp = CreateCompilation({Parse(mslibNoString)}).VerifyDiagnostics()
+            Dim mslibNoStringComp = CreateEmptyCompilation({Parse(mslibNoString)}).VerifyDiagnostics()
             Dim mslibNoStringRef = mslibNoStringComp.EmitToImageReference()
 
             Dim diagLibSource = "
@@ -1728,11 +1728,11 @@ Namespace System.Runtime.CompilerServices
 End Namespace
 "
             ' Build Diagnostics referencing mscorlib with String
-            Dim diagLibComp = CreateCompilation({Parse(diagLibSource)}, references:={mslibRef}).VerifyDiagnostics()
+            Dim diagLibComp = CreateEmptyCompilation({Parse(diagLibSource)}, references:={mslibRef}).VerifyDiagnostics()
             Dim diagLibRef = diagLibComp.EmitToImageReference()
 
             ' Create compilation using Diagnostics but referencing mscorlib without String
-            Dim comp = CreateCompilation({Parse("")}, references:={diagLibRef, mslibNoStringRef})
+            Dim comp = CreateEmptyCompilation({Parse("")}, references:={diagLibRef, mslibNoStringRef})
 
             ' Attribute cannot be synthesized because ctor has a use-site error (String type missing)
             Dim attribute = comp.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor)

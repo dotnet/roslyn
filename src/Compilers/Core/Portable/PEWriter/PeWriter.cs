@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -109,7 +110,7 @@ namespace Microsoft.Cci
                 return false;
             }
 
-            BlobContentId pdbContentId = nativePdbWriterOpt?.GetContentId() ?? default(BlobContentId);
+            BlobContentId pdbContentId = nativePdbWriterOpt?.GetContentId() ?? default;
 
             // the writer shall not be used after this point for writing:
             nativePdbWriterOpt = null;
@@ -138,17 +139,28 @@ namespace Microsoft.Cci
                 sizeOfHeapReserve: properties.SizeOfHeapReserve,
                 sizeOfHeapCommit: properties.SizeOfHeapCommit);
 
-            var deterministicIdProvider = isDeterministic ?
-                new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeSha1(content))) :
+            // TODO: replace SAH1 with non-crypto alg: https://github.com/dotnet/roslyn/issues/24737
+            var peIdProvider = isDeterministic ?
+                new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeHash(HashAlgorithmName.SHA1, content))) :
                 null;
-
+                
+            // We need to calculate the PDB checksum, so we may as well use the calculated hash for PDB ID regardless of whether deterministic build is requested.
+            var portablePdbContentHash = default(ImmutableArray<byte>);
+            
             BlobBuilder portablePdbToEmbed = null;
-            if (mdWriter.EmitStandaloneDebugMetadata)
+            if (mdWriter.EmitPortableDebugMetadata)
             {
                 mdWriter.AddRemainingEmbeddedDocuments(mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments);
 
+                // The algorithm must be specified for deterministic builds (checked earlier).
+                Debug.Assert(!isDeterministic || context.Module.PdbChecksumAlgorithm.Name != null);
+
+                var portablePdbIdProvider = (context.Module.PdbChecksumAlgorithm.Name != null) ?
+                    new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(portablePdbContentHash = CryptographicHashProvider.ComputeHash(context.Module.PdbChecksumAlgorithm, content))) :
+                    null;
+
                 var portablePdbBlob = new BlobBuilder();
-                var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes.RowCounts, debugEntryPointHandle, deterministicIdProvider);
+                var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes.RowCounts, debugEntryPointHandle, portablePdbIdProvider);
                 pdbContentId = portablePdbBuilder.Serialize(portablePdbBlob);
                 portablePdbVersion = portablePdbBuilder.FormatVersion;
 
@@ -183,6 +195,14 @@ namespace Microsoft.Cci
                 {
                     string paddedPath = isDeterministic ? pdbPathOpt : PadPdbPath(pdbPathOpt);
                     debugDirectoryBuilder.AddCodeViewEntry(paddedPath, pdbContentId, portablePdbVersion);
+
+                    if (!portablePdbContentHash.IsDefault)
+                    {
+                        // Emit PDB Checksum entry for Portable and Embedded PDBs. The checksum is not as useful when the PDB is embedded, 
+                        // however it allows the client to efficiently validate a standalone Portable PDB that 
+                        // has been extracted from Embedded PDB and placed next to the PE file.
+                        debugDirectoryBuilder.AddPdbChecksumEntry(context.Module.PdbChecksumAlgorithm.Name, portablePdbContentHash);
+                    }
                 }
 
                 if (isDeterministic)
@@ -220,7 +240,7 @@ namespace Microsoft.Cci
                 CalculateStrongNameSignatureSize(context.Module, privateKeyOpt),
                 entryPointHandle,
                 corFlags,
-                deterministicIdProvider,
+                peIdProvider,
                 metadataOnly && !context.IncludePrivateMembers);
 
             var peBlob = new BlobBuilder();

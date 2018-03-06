@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         End If
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -89,7 +89,7 @@ End Class"
         Dim y As Object
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -156,7 +156,7 @@ End Class"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -183,7 +183,7 @@ End Class"
     Sub M(o As Object)
     End Sub
 End Module"
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "M.M")
@@ -263,7 +263,7 @@ End Module"
     Sub M()
     End Sub
 End Module"
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "M.M")
@@ -304,7 +304,7 @@ End Module"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -347,7 +347,7 @@ End Class"
     Shared Sub M(Of T)(x As T)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -390,7 +390,7 @@ End Class"
     Sub M()
     End Sub
 End Module"
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "M.M")
@@ -611,7 +611,7 @@ End Module"
     Sub M()
     End Sub
 End Module"
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "M.M")
@@ -667,7 +667,7 @@ End Module"
     Sub M()
     End Sub
 End Module"
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "M.M")
@@ -741,7 +741,7 @@ End Module"
     Sub M()
     End Sub
 End Module"
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "M.M")
@@ -787,7 +787,7 @@ End Module"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -821,7 +821,7 @@ End Class"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")

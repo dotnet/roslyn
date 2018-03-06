@@ -3353,7 +3353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
                 Return ResourceManager.GetString("Using_statement", resourceCulture)
             End Get
         End Property
-        
+
         '''<summary>
         '''  Looks up a localized string similar to When a run-time error occurs, execution transfers to the statement following the statement or procedure call that resulted in the error..
         '''</summary>

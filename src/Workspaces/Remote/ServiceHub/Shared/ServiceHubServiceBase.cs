@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
@@ -254,11 +255,47 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 LogError("Exception: " + ex.ToString());
 
+                LogExtraInformation(ex);
+
                 var callStack = new StackTrace().ToString();
                 LogError("From: " + callStack);
             }
 
             return false;
+        }
+
+        private void LogExtraInformation(Exception ex)
+        {
+            if (ex == null)
+            {
+                return;
+            }
+
+            if (ex is ReflectionTypeLoadException reflection)
+            {
+                foreach (var loaderException in reflection.LoaderExceptions)
+                {
+                    LogError("LoaderException: " + loaderException.ToString());
+                    LogExtraInformation(loaderException);
+                }
+            }
+
+            if (ex is FileNotFoundException file)
+            {
+                LogError("FusionLog: " + file.FusionLog);
+            }
+
+            if (ex is AggregateException agg)
+            {
+                foreach (var innerException in agg.InnerExceptions)
+                {
+                    LogExtraInformation(innerException);
+                }
+            }
+            else
+            {
+                LogExtraInformation(ex.InnerException);
+            }
         }
     }
 }

@@ -96,7 +96,7 @@ End Module
     </compilation>
             Dim text As String = compilationDef.Value.Replace(vbLf, vbCrLf)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(compilationDef, {SystemRef, SystemCoreRef, MsvbRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(compilationDef, {SystemRef, SystemCoreRef, MsvbRef})
             CompilationUtils.AssertNoDiagnostics(compilation)
 
             Dim tree As SyntaxTree = compilation.SyntaxTrees(0)
@@ -218,7 +218,7 @@ End Module
     </compilation>
             Dim text As String = compilationDef.Value.Replace(vbLf, vbCrLf)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(compilationDef, {SystemRef, SystemCoreRef, MsvbRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(compilationDef, {SystemRef, SystemCoreRef, MsvbRef})
             CompilationUtils.AssertNoDiagnostics(compilation)
 
             Dim tree As SyntaxTree = compilation.SyntaxTrees(0)
@@ -291,7 +291,7 @@ End Module
     </compilation>
             Dim text As String = compilationDef.Value.Replace(vbLf, vbCrLf)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(compilationDef, {SystemRef, SystemCoreRef, MsvbRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(compilationDef, {SystemRef, SystemCoreRef, MsvbRef})
             CompilationUtils.AssertNoDiagnostics(compilation)
 
             Dim tree As SyntaxTree = compilation.SyntaxTrees(0)
@@ -360,7 +360,7 @@ End Module
     </compilation>
             Dim text As String = compilationDef.Value.Replace(vbLf, vbCrLf)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(compilationDef, {SystemRef, SystemCoreRef, MsvbRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(compilationDef, {SystemRef, SystemCoreRef, MsvbRef})
             CompilationUtils.AssertNoDiagnostics(compilation)
 
             Dim tree As SyntaxTree = compilation.SyntaxTrees(0)
@@ -1691,7 +1691,7 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
             Dim anonProps = tree.GetRoot().DescendantNodes().OfType(Of FieldInitializerSyntax)()
@@ -1718,7 +1718,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
             Dim anonProps = tree.GetRoot().DescendantNodes().OfType(Of FieldInitializerSyntax)()
@@ -1769,7 +1769,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
             Dim anonProps = tree.GetRoot().DescendantNodes().OfType(Of FieldInitializerSyntax)()
@@ -1813,7 +1813,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
             Dim anonProps = tree.GetRoot().DescendantNodes().OfType(Of FieldInitializerSyntax)()
@@ -1843,7 +1843,7 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
 
@@ -1893,7 +1893,7 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
 
@@ -1966,7 +1966,7 @@ End Module
             Dim spans As New List(Of TextSpan)
             ExtractTextIntervals(text, spans)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(text, {SystemRef, SystemCoreRef, MsvbRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(text, {SystemRef, SystemCoreRef, MsvbRef})
             If errors Is Nothing Then
                 CompilationUtils.AssertNoErrors(compilation)
             Else
@@ -2039,7 +2039,7 @@ End Module
         <Fact>
         <WorkItem(2928, "https://github.com/dotnet/roslyn/issues/2928")>
         Public Sub ContainingSymbol()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module Test

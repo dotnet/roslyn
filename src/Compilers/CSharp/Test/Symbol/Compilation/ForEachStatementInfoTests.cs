@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Fact]
         public void Equality()
         {
-            var c = CreateStandardCompilation(@"
+            var c = CreateCompilation(@"
 class E1
 {
     public E GetEnumerator() { return null; }

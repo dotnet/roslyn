@@ -460,8 +460,8 @@ public class C
     public event System.Action E;
 }
 ";
-            var reference = CreateStandardCompilation(source).EmitToImageReference();
-            var comp = CreateStandardCompilation("", new[] { reference }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var reference = CreateCompilation(source).EmitToImageReference();
+            var comp = CreateCompilation("", new[] { reference }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var @event = type.GetMember<PEEventSymbol>("E");
@@ -514,7 +514,7 @@ public class C
 } // end of class C
 ";
             var ilRef = CompileIL(ilSource);
-            var comp = CreateStandardCompilation("", new[] { ilRef }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateCompilation("", new[] { ilRef }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -574,7 +574,7 @@ public class C
 } // end of class C
 ";
             var ilRef = CompileIL(ilSource);
-            var comp = CreateStandardCompilation("", new[] { ilRef }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateCompilation("", new[] { ilRef }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");

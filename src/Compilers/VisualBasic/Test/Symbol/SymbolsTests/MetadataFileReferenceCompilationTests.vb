@@ -15,7 +15,7 @@ Public Class MetadataFileReferenceCompilationTests
     <Fact>
     Public Sub BC31011ERR_BadRefLib1()
         Dim ref = MetadataReference.CreateFromImage({}, filePath:="Goo.dll")
-        Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+        Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BadRefLib1">
     <file name="a.vb">
 Class C1
@@ -33,7 +33,7 @@ BC31519: 'Goo.dll' cannot be referenced because it is not a valid assembly.
     <Fact>
     Public Sub BC31007ERR_BadModuleFile1()
         Dim ref = ModuleMetadata.CreateFromImage({}).GetReference(filePath:="Goo.dll")
-        Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+        Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BadRefLib1">
     <file name="a.vb">
 Class C1
@@ -80,7 +80,7 @@ BC31007: Unable to load module file 'Goo.dll': PE image doesn't contain managed 
         Dim metadata1 = AssemblyMetadata.CreateFromImage(TestResources.General.C1)
         Dim metadata2 = AssemblyMetadata.CreateFromImage(TestResources.General.C2)
 
-        Dim b = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+        Dim b = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="b">
     <file name="b.vb">
 Public Class B
@@ -95,7 +95,7 @@ End Class
 
         Dim metadata3 = AssemblyMetadata.CreateFromImage(b.EmitToArray())
 
-        Dim a = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+        Dim a = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="a">
     <file name="a.vb">
 Class A
