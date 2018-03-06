@@ -11,20 +11,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
         Inherits AbstractUseIsNullCheckCodeFixProvider
 
         Protected Overrides Function GetIsNullTitle() As String
-            Return VBFeaturesResources.use_Is_Nothing_check
+            Return VBFeaturesResources.Use_Is_Nothing_check
         End Function
 
         Protected Overrides Function GetIsNotNullTitle() As String
-            Return VBFeaturesResources.use_IsNot_Nothing_check
+            Return VBFeaturesResources.Use_IsNot_Nothing_check
         End Function
 
-        Protected Overrides Function CreateIsNullCheck(argument As SyntaxNode) As SyntaxNode
+        Protected Overrides Function CreateNullCheck(argument As SyntaxNode, isUnconstrainedGeneric As Boolean) As SyntaxNode
             Return SyntaxFactory.IsExpression(
                 DirectCast(argument, ExpressionSyntax).Parenthesize(),
                 SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))).Parenthesize()
         End Function
 
-        Protected Overrides Function CreateIsNotNullCheck(notExpression As SyntaxNode, argument As SyntaxNode) As SyntaxNode
+        Protected Overrides Function CreateNotNullCheck(notExpression As SyntaxNode, argument As SyntaxNode, isUnconstrainedGeneric As Boolean) As SyntaxNode
             Return SyntaxFactory.IsNotExpression(
                 DirectCast(argument, ExpressionSyntax).Parenthesize(),
                 SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))).Parenthesize()

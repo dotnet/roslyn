@@ -51,6 +51,60 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         }
 
         [DebuggerStepThrough]
+        protected Tuple<string, string> Field(string value)
+        {
+            return ClassificationBuilder.Field(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> EnumField(string value)
+        {
+            return ClassificationBuilder.EnumField(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> Constant(string value)
+        {
+            return ClassificationBuilder.Constant(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> Local(string value)
+        {
+            return ClassificationBuilder.Local(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> Parameter(string value)
+        {
+            return ClassificationBuilder.Parameter(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> Method(string value)
+        {
+            return ClassificationBuilder.Method(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> ExtensionMethod(string value)
+        {
+            return ClassificationBuilder.ExtensionMethod(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> Property(string value)
+        {
+            return ClassificationBuilder.Property(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> Event(string value)
+        {
+            return ClassificationBuilder.Event(value);
+        }
+
+        [DebuggerStepThrough]
         protected Tuple<string, string> String(string value)
         {
             return ClassificationBuilder.String(value);

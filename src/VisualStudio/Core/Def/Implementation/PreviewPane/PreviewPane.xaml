@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:pp="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane"
              x:ClassModifier="internal" mc:Ignorable="d"
              Focusable="True" IsTabStop="False" TextOptions.TextFormattingMode="Display"
              Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.PanelTextBrushKey}}"
@@ -61,6 +62,36 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="PreviewPaneRunStyle" TargetType="Run">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Path=ParentElement.IsKeyboardFocusWithin, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type pp:PreviewPane}}}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextSelectedBrushKey}}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="PreviewPaneHyperlinkStyle" TargetType="Hyperlink">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlLinkTextBrushKey}}" />
+            <Setter Property="TextDecorations" Value="{x:Null}" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlLinkTextHoverBrushKey}}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.PanelHyperlinkDisabledBrushKey}}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="True">
+                    <Setter Property="Cursor" Value="Hand" />
+                </Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True">
+                    <Setter Property="TextDecorations" Value="Underline" />
+                </Trigger>
+                <DataTrigger Binding="{Binding Path=ParentElement.IsKeyboardFocusWithin, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type pp:PreviewPane}}}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextSelectedBrushKey}}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
     <DockPanel MinWidth="400">
         <StackPanel Name="HeaderStackPanel" DockPanel.Dock="Top" Visibility="Collapsed"
@@ -77,9 +108,12 @@
                                           Checked="ExpanderToggleButton_CheckedChanged" Unchecked="ExpanderToggleButton_CheckedChanged"/>
                             <Border Name="SeverityIconBorder" Height="16" Width="16" Margin="-3,0,0,-2"/>
                             <TextBlock Name="IdTextBlock" Margin="2,0">
-                                <Hyperlink Name="IdHyperlink" IsEnabled="False" RequestNavigate="LearnMoreHyperlink_RequestNavigate"/>
+                                <Hyperlink Name="IdHyperlink"
+                                           IsEnabled="False"
+                                           RequestNavigate="LearnMoreHyperlink_RequestNavigate"
+                                           Style="{StaticResource PreviewPaneHyperlinkStyle}"/>
                             </TextBlock>
-                            <Run Name="TitleRun"/>
+                            <Run Name="TitleRun" Style="{StaticResource PreviewPaneRunStyle}"/>
                         </TextBlock>
                     </Paragraph>
                 </FlowDocument>
@@ -97,7 +131,10 @@
                 <TextBlock Name="LearnMoreTextBlock" DockPanel.Dock="Bottom" TextAlignment="Right" Margin="3,0,3,3" Visibility="Collapsed"
                            FontFamily="{DynamicResource {x:Static vs:VsFonts.EnvironmentFontFamilyKey}}"
                            FontSize="{DynamicResource {x:Static vs:VsFonts.EnvironmentFontSizeKey}}">
-                    <Hyperlink Name="LearnMoreHyperlink" IsEnabled="False" RequestNavigate="LearnMoreHyperlink_RequestNavigate"/>
+                    <Hyperlink Name="LearnMoreHyperlink" 
+                               IsEnabled="False" 
+                               RequestNavigate="LearnMoreHyperlink_RequestNavigate"
+                               Style="{StaticResource PreviewPaneHyperlinkStyle}"/>
                 </TextBlock>
             </DockPanel>
             <Separator Name="HeaderSeparator" Margin="0" Visibility="Collapsed"/>

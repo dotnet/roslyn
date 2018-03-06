@@ -49,6 +49,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return True
             End If
 
+            '   ((Goo, Bar))
+            If expression.IsKind(SyntaxKind.TupleExpression) Then
+                Return True
+            End If
+
             ' Cases:
             '   ("x"c)
             '   (#1/1/2001#)

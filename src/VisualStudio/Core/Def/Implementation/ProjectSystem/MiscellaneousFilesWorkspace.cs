@@ -204,7 +204,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // OnAfterAttributeChangeEx and will retrigger this if it wasn't already done.
             if (_runningDocumentTable.IsDocumentInitialized(docCookie) && !_docCookieToWorkspaceRegistration.ContainsKey(docCookie))
             {
-                var vsTextBuffer = (IVsTextBuffer)_runningDocumentTable.GetDocumentData(docCookie);
+                // GetDocumentData returns dynamic, and casting directly to IVsTextBuffer means we trigger a cast through the dyanmic
+                // binder. Since it's already a managed object, we can double cast to avoid loading the dynamic binder.
+                var vsTextBuffer = (IVsTextBuffer)(object)_runningDocumentTable.GetDocumentData(docCookie);
                 var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(vsTextBuffer);
 
                 // As long as the buffer is initialized, then we should see if we should attach

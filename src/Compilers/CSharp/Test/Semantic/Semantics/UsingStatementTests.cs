@@ -46,7 +46,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
@@ -86,7 +86,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,16): error CS1674: 'method group': type used in a using statement must be implicitly convertible to 'System.IDisposable'
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "Main").WithArguments("method group"));
         }
@@ -106,7 +106,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,16): error CS1674: 'lambda expression': type used in a using statement must be implicitly convertible to 'System.IDisposable'
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "x => x").WithArguments("lambda expression"));
         }
@@ -126,7 +126,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -144,7 +144,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -162,7 +162,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,53): warning CS0642: Possible mistaken empty statement
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"));
         }
@@ -190,7 +190,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
     // (10,13): error CS1656: Cannot assign to 'i' because it is a 'using variable'
     //             i = null;
@@ -221,7 +221,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
@@ -254,7 +254,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (8,16): error CS0819: Implicitly-typed variables cannot have multiple declarators
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, @"var a = new StreamWriter(""""), b = new StreamReader("""")"));
@@ -297,7 +297,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (18,14): error CS0631: ref and out are not valid in this context
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "out"),
                 // (11,13): warning CS0728: Possibly incorrect assignment to local 'i' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
@@ -331,7 +331,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (17,14): error CS0631: ref and out are not valid in this context
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "out"),
                 // (10,13): warning CS0728: Possibly incorrect assignment to local 'i' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
@@ -360,7 +360,7 @@ class Program
 }
 " + _managedClass;
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             VerifyDeclaredSymbolForUsingStatements(compilation);
         }
 
@@ -380,7 +380,7 @@ class Program
     }
 }
 " + _managedStruct;
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             VerifyDeclaredSymbolForUsingStatements(compilation);
         }
 
@@ -402,7 +402,7 @@ class Program
 }
 " + _managedStruct;
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj1", "mnObj2");
             foreach (var x in symbols)
             {
@@ -430,7 +430,7 @@ class Program
 }
 " + _managedClass;
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 2, "mnObj3", "mnObj4");
             foreach (var x in symbols)
@@ -459,7 +459,7 @@ class MyManagedTypeDerived : MyManagedType
 { }
 " + _managedClass;
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj");
             foreach (var x in symbols)
@@ -487,7 +487,7 @@ class Program
 }
 " + _managedClass;
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj");
             foreach (var x in symbols)
@@ -516,7 +516,7 @@ class Program
 }
 " + _managedStruct;
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj");
             foreach (var x in symbols)
@@ -544,7 +544,7 @@ class Test<T>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "u");
             foreach (var x in symbols)
@@ -580,7 +580,7 @@ class C
         using (t4) { }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (16,16): error CS1674: 'T0': type used in a using statement must be implicitly convertible to 'System.IDisposable'
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "t0").WithArguments("T0").WithLocation(16, 16));
         }
@@ -599,7 +599,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,20): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = new object();"));
         }
@@ -634,7 +634,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545331")]
@@ -650,7 +650,7 @@ class C
     }
 }";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateEmptyCompilation(source).VerifyDiagnostics(
                 // Related to the using statement:
 
                 // (6,30): warning CS0642: Possible mistaken empty statement
@@ -690,7 +690,7 @@ class C
         using (var v = v) { }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,24): error CS0841: Cannot use local variable 'v' before it is declared
                 //         using (var v = v) { }
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "v").WithArguments("v").WithLocation(6, 24)

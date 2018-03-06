@@ -201,9 +201,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name));
 
-            if (symbol.IsConst &&
+            if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
+                symbol.IsConst &&
                 symbol.HasConstantValue &&
-                format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
                 CanAddConstant(symbol.Type, symbol.ConstantValue))
             {
                 AddSpace();
