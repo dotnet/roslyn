@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string TypeParameterName = "type parameter name";
 
         public const string FieldName = "field name";
-        public const string EnumFieldName = "enum field name";
+        public const string EnumMemberName = "enum member name";
         public const string ConstantName = "constant name";
         public const string LocalName = "local name";
         public const string ParameterName = "parameter name";

@@ -2,35 +2,26 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     {
-        internal override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
+        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: options))
             {
-                var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
-                var tree = await document.GetSyntaxTreeAsync();
 
-                var service = document.GetLanguageService<ISyntaxClassificationService>();
-                var result = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                service.AddSyntacticClassifications(tree, textSpan, result, CancellationToken.None);
-
-                return result.ToImmutableAndFree();
+                return GetSyntacticClassificationsAsync(document, span);
             }
         }
 
@@ -192,7 +183,7 @@ class yield
                 Keyword("fixed"),
                 Punctuation.OpenParen,
                 Keyword("int"),
-                Operators.Star,
+                Operators.Asterisk,
                 Local("i"),
                 Operators.Equals,
                 Number("0"),
@@ -1092,6 +1083,7 @@ class Bar {
         {
             var code = @"#!/usr/bin/env scriptcs
 System.Console.WriteLine();";
+
             var expected = new[]
             {
                 Comment("#!/usr/bin/env scriptcs"),
@@ -1104,7 +1096,8 @@ System.Console.WriteLine();";
                 Punctuation.CloseParen,
                 Punctuation.Semicolon
             };
-            await TestAsync(code, code, expected, Options.Script);
+
+            await TestAsync(code, code, parseOptions: Options.Script, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1112,6 +1105,7 @@ System.Console.WriteLine();";
         {
             var code = @"#!/usr/bin/env scriptcs
 System.Console.WriteLine();";
+
             var expected = new[]
             {
                 PPKeyword("#"),
@@ -1125,7 +1119,8 @@ System.Console.WriteLine();";
                 Punctuation.CloseParen,
                 Punctuation.Semicolon
             };
-            await TestAsync(code, code, expected, Options.Regular);
+
+            await TestAsync(code, code, parseOptions: Options.Regular, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1133,6 +1128,7 @@ System.Console.WriteLine();";
         {
             var code = @" #!/usr/bin/env scriptcs
 System.Console.WriteLine();";
+
             var expected = new[]
             {
                 PPKeyword("#"),
@@ -1146,7 +1142,8 @@ System.Console.WriteLine();";
                 Punctuation.CloseParen,
                 Punctuation.Semicolon
             };
-            await TestAsync(code, code, expected, Options.Script);
+
+            await TestAsync(code, code, parseOptions: Options.Script, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1725,7 +1722,7 @@ public class Program
                 Keyword("enum"),
                 Enum("E"),
                 Punctuation.OpenCurly,
-                EnumField("Min"),
+                EnumMember("Min"),
                 Operators.Equals,
                 Identifier("System"),
                 Operators.Dot,
@@ -2095,7 +2092,7 @@ void M()
                 Punctuation.Colon,
                 Identifier("A"),
                 Punctuation.CloseBracket,
-                Operators.Text("~"),
+                Operators.Tilde,
                 Identifier("C"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
@@ -2126,7 +2123,7 @@ static T operator +(T a, T b)
                 Keyword("static"),
                 Identifier("T"),
                 Keyword("operator"),
-                Operators.Text("+"),
+                Operators.Plus,
                 Punctuation.OpenParen,
                 Identifier("T"),
                 Parameter("a"),
@@ -2572,11 +2569,11 @@ namespace MyNamespace
                 Keyword("enum"),
                 Enum("MyEnum"),
                 Punctuation.OpenCurly,
-                EnumField("one"),
+                EnumMember("one"),
                 Punctuation.Comma,
-                EnumField("two"),
+                EnumMember("two"),
                 Punctuation.Comma,
-                EnumField("three"),
+                EnumMember("three"),
                 Punctuation.CloseCurly,
                 Punctuation.Semicolon,
                 Keyword("event"),
@@ -2693,7 +2690,7 @@ namespace MyNamespace
                 Number("10000"),
                 Punctuation.Semicolon,
                 Identifier("i2"),
-                Operators.Text("++"),
+                Operators.PlusPlus,
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Keyword("do"),
@@ -2718,16 +2715,16 @@ namespace MyNamespace
                 Keyword("fixed"),
                 Punctuation.OpenParen,
                 Keyword("int"),
-                Operators.Star,
+                Operators.Asterisk,
                 Local("p"),
                 Operators.Equals,
-                Operators.Text("&"),
+                Operators.Ampersand,
                 Identifier("x"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Keyword("char"),
-                Operators.Star,
+                Operators.Asterisk,
                 Local("buffer"),
                 Operators.Equals,
                 Keyword("stackalloc"),
@@ -2749,7 +2746,7 @@ namespace MyNamespace
                 Number("10"),
                 Punctuation.Semicolon,
                 Identifier("i1"),
-                Operators.Text("++"),
+                Operators.PlusPlus,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
@@ -2865,7 +2862,7 @@ namespace MyNamespace
                 Keyword("if"),
                 Punctuation.OpenParen,
                 Identifier("o"),
-                Operators.DoubleEquals,
+                Operators.EqualsEquals,
                 Keyword("null"),
                 Punctuation.CloseParen,
                 Keyword("goto"),
@@ -2968,7 +2965,7 @@ namespace MyNamespace
                 Number("1"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("++"),
+                Operators.PlusPlus,
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
@@ -3129,32 +3126,32 @@ public class Goo<T>
                 Identifier("i"),
                 Operators.Equals,
                 Identifier("i"),
-                Operators.Text("+"),
+                Operators.Plus,
                 Identifier("i"),
-                Operators.Text("-"),
+                Operators.Minus,
                 Identifier("i"),
-                Operators.Star,
+                Operators.Asterisk,
                 Identifier("i"),
-                Operators.Text("/"),
+                Operators.Slash,
                 Identifier("i"),
-                Operators.Text("%"),
+                Operators.Percent,
                 Identifier("i"),
-                Operators.Text("&"),
+                Operators.Ampersand,
                 Identifier("i"),
-                Operators.Text("|"),
+                Operators.Bar,
                 Identifier("i"),
-                Operators.Text("^"),
+                Operators.Caret,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Keyword("bool"),
                 Local("b"),
                 Operators.Equals,
                 Keyword("true"),
-                Operators.Text("&"),
+                Operators.Ampersand,
                 Keyword("false"),
-                Operators.Text("|"),
+                Operators.Bar,
                 Keyword("true"),
-                Operators.Text("^"),
+                Operators.Caret,
                 Keyword("false"),
                 Punctuation.Semicolon,
                 Identifier("b"),
@@ -3164,7 +3161,7 @@ public class Goo<T>
                 Punctuation.Semicolon,
                 Identifier("i"),
                 Operators.Equals,
-                Operators.Text("~"),
+                Operators.Tilde,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("b"),
@@ -3172,7 +3169,7 @@ public class Goo<T>
                 Identifier("i"),
                 Operators.LessThan,
                 Identifier("i"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("i"),
                 Operators.GreaterThan,
                 Identifier("i"),
@@ -3193,92 +3190,92 @@ public class Goo<T>
                 Number("0"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("++"),
+                Operators.PlusPlus,
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("--"),
+                Operators.MinusMinus,
                 Punctuation.Semicolon,
                 Identifier("b"),
                 Operators.Equals,
                 Keyword("true"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Keyword("false"),
-                Operators.DoublePipe,
+                Operators.BarBar,
                 Keyword("true"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("<<"),
+                Operators.LessThanLessThan,
                 Number("5"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text(">>"),
+                Operators.GreaterThanGreaterThan,
                 Number("5"),
                 Punctuation.Semicolon,
                 Identifier("b"),
                 Operators.Equals,
                 Identifier("i"),
-                Operators.DoubleEquals,
+                Operators.EqualsEquals,
                 Identifier("i"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("i"),
                 Operators.ExclamationEquals,
                 Identifier("i"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("i"),
-                Operators.Text("<="),
+                Operators.LessThanEquals,
                 Identifier("i"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("i"),
-                Operators.Text(">="),
+                Operators.GreaterThanEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("+="),
+                Operators.PlusEquals,
                 Number("5.0"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("-="),
+                Operators.MinusEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("*="),
+                Operators.AsteriskEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("/="),
+                Operators.SlashEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("%="),
+                Operators.PercentEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("&="),
+                Operators.AmpersandEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("|="),
+                Operators.BarEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("^="),
+                Operators.CaretEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("<<="),
+                Operators.LessThanLessThanEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text(">>="),
+                Operators.GreaterThanGreaterThanEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Keyword("object"),
                 Local("s"),
                 Operators.Equals,
                 Parameter("x"),
-                Operators.Text("=>"),
+                Operators.EqualsGreaterThan,
                 Identifier("x"),
-                Operators.Text("+"),
+                Operators.Plus,
                 Number("1"),
                 Punctuation.Semicolon,
                 Identifier("Point"),
@@ -3287,21 +3284,21 @@ public class Goo<T>
                 Keyword("unsafe"),
                 Punctuation.OpenCurly,
                 Identifier("Point"),
-                Operators.Star,
+                Operators.Asterisk,
                 Local("p"),
                 Operators.Equals,
-                Operators.Text("&"),
+                Operators.Ampersand,
                 Identifier("point"),
                 Punctuation.Semicolon,
                 Identifier("p"),
-                Operators.Text("->"),
+                Operators.MinusGreaterThan,
                 Identifier("x"),
                 Operators.Equals,
                 Number("10"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Identifier("IO"),
-                Operators.Text("::"),
+                Operators.ColonColon,
                 Identifier("BinaryReader"),
                 Local("br"),
                 Operators.Equals,
@@ -3917,8 +3914,7 @@ void M()
         public async Task TupleDeclaration()
         {
             await TestInMethodAsync("(int, string) x",
-                TestOptions.Regular,
-                Options.Script,
+                ParseOptions(TestOptions.Regular, Options.Script),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Punctuation.Comma,
@@ -3931,8 +3927,7 @@ void M()
         public async Task TupleDeclarationWithNames()
         {
             await TestInMethodAsync("(int a, string b) x",
-                TestOptions.Regular,
-                Options.Script,
+                ParseOptions(TestOptions.Regular, Options.Script),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Identifier("a"),
@@ -3947,8 +3942,7 @@ void M()
         public async Task TupleLiteral()
         {
             await TestInMethodAsync("var values = (1, 2)",
-                TestOptions.Regular,
-                Options.Script,
+                ParseOptions(TestOptions.Regular, Options.Script),
                 Keyword("var"),
                 Local("values"),
                 Operators.Equals,
@@ -3963,8 +3957,7 @@ void M()
         public async Task TupleLiteralWithNames()
         {
             await TestInMethodAsync("var values = (a: 1, b: 2)",
-                TestOptions.Regular,
-                Options.Script,
+                ParseOptions(TestOptions.Regular, Options.Script),
                 Keyword("var"),
                 Local("values"),
                 Operators.Equals,
@@ -3980,7 +3973,7 @@ void M()
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task  TestConflictMarkers1()
+        public async Task TestConflictMarkers1()
         {
             await TestAsync(
 @"class C
@@ -4011,6 +4004,5 @@ void M()
                 Comment(">>>>>>> End"),
                 Punctuation.CloseCurly);
         }
-
     }
 }
