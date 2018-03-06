@@ -8710,7 +8710,7 @@ public class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
             var metadata = ModuleMetadata.CreateFromStream(comp.EmitToStream());
             var peReader = metadata.Module.GetMetadataReader();
 
