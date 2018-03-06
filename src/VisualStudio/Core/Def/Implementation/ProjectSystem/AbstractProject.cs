@@ -1220,8 +1220,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     if (_projectsReferencingMe.Count > 0)
                     {
-                        FatalError.ReportWithoutCrash(new Exception("We still have projects referencing us. That's not expected."));
-
                         // Clear just so we don't cause a leak
                         _projectsReferencingMe.Clear();
                     }
