@@ -6402,5 +6402,247 @@ End Class
 
             Assert.True(exceptionThrown, $"{NameOf(GetSpecialType)} did not throw when it should have.")
         End Sub
+
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        <Fact()>
+        Public Sub DefaultPropertyTransformation_01()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<System.Reflection.DefaultMember("Item")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return ""
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Property ViewData As C1
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        ViewData("Title") = "About"
+    End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+</expected>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of IdentifierNameSyntax)().ElementAt(5)
+            Assert.Equal("ViewData", node.ToString())
+
+            Assert.Equal("Property C2.ViewData As C1", model.GetSymbolInfo(node).Symbol.ToTestDisplayString())
+
+            compilation.VerifyOperationTree(node.Parent, expectedOperationTree:=
+            <![CDATA[
+IPropertyReferenceOperation: Property C1.Item(x As System.String) As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'ViewData("Title")')
+  Instance Receiver: 
+    IPropertyReferenceOperation: Property C2.ViewData As C1 (OperationKind.PropertyReference, Type: C1) (Syntax: 'ViewData')
+      Instance Receiver: 
+        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C3, IsImplicit) (Syntax: 'ViewData')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '"Title"')
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Title") (Syntax: '"Title"')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value)
+        End Sub
+
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        <Fact()>
+        Public Sub DefaultPropertyTransformation_02()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<System.Reflection.DefaultMember("Item")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return ""
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Shared Property ViewData As C1
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        ViewData("Title") = "About"
+    End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+</expected>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of IdentifierNameSyntax)().ElementAt(5)
+            Assert.Equal("ViewData", node.ToString())
+
+            Assert.Equal("Property C2.ViewData As C1", model.GetSymbolInfo(node).Symbol.ToTestDisplayString())
+
+            compilation.VerifyOperationTree(node.Parent, expectedOperationTree:=
+            <![CDATA[
+IPropertyReferenceOperation: Property C1.Item(x As System.String) As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'ViewData("Title")')
+  Instance Receiver: 
+    IPropertyReferenceOperation: Property C2.ViewData As C1 (Static) (OperationKind.PropertyReference, Type: C1) (Syntax: 'ViewData')
+      Instance Receiver: 
+        null
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '"Title"')
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Title") (Syntax: '"Title"')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value)
+        End Sub
+
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        <Fact()>
+        Public Sub DefaultPropertyTransformation_03()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<System.Reflection.DefaultMember("Item")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return ""
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Function ViewData() As C1
+        Return Nothing
+    End Function
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        ViewData("Title") = "About"
+    End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+</expected>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of IdentifierNameSyntax)().ElementAt(5)
+            Assert.Equal("ViewData", node.ToString())
+
+            Assert.Equal("Function C2.ViewData() As C1", model.GetSymbolInfo(node).Symbol.ToTestDisplayString())
+
+            compilation.VerifyOperationTree(node.Parent, expectedOperationTree:=
+            <![CDATA[
+IPropertyReferenceOperation: Property C1.Item(x As System.String) As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'ViewData("Title")')
+  Instance Receiver: 
+    IInvocationOperation ( Function C2.ViewData() As C1) (OperationKind.Invocation, Type: C1) (Syntax: 'ViewData')
+      Instance Receiver: 
+        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C3, IsImplicit) (Syntax: 'ViewData')
+      Arguments(0)
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '"Title"')
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Title") (Syntax: '"Title"')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value)
+        End Sub
+
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        <Fact()>
+        Public Sub DefaultPropertyTransformation_04()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<System.Reflection.DefaultMember("Item")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return ""
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Shared Function ViewData() As C1
+        Return Nothing
+    End Function
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        ViewData("Title") = "About"
+    End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+</expected>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of IdentifierNameSyntax)().ElementAt(5)
+            Assert.Equal("ViewData", node.ToString())
+
+            Assert.Equal("Function C2.ViewData() As C1", model.GetSymbolInfo(node).Symbol.ToTestDisplayString())
+
+            compilation.VerifyOperationTree(node.Parent, expectedOperationTree:=
+            <![CDATA[
+IPropertyReferenceOperation: Property C1.Item(x As System.String) As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'ViewData("Title")')
+  Instance Receiver: 
+    IInvocationOperation (Function C2.ViewData() As C1) (OperationKind.Invocation, Type: C1) (Syntax: 'ViewData')
+      Instance Receiver: 
+        null
+      Arguments(0)
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '"Title"')
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Title") (Syntax: '"Title"')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value)
+        End Sub
     End Class
 End Namespace

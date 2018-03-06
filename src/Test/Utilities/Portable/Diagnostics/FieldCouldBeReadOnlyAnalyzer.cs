@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -47,11 +47,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                  operationBlockContext.RegisterOperationAction(
                                     (operationContext) =>
                                     {
-                                        if (operationContext.Operation is IAssignmentExpression assignment)
+                                        if (operationContext.Operation is IAssignmentOperation assignment)
                                         {
                                             AssignTo(assignment.Target, inConstructor, staticConstructorType, assignedToFields, mightBecomeReadOnlyFields);
                                         }
-                                        else if (operationContext.Operation is IIncrementOrDecrementExpression increment)
+                                        else if (operationContext.Operation is IIncrementOrDecrementOperation increment)
                                         {
                                             AssignTo(increment.Target, inConstructor, staticConstructorType, assignedToFields, mightBecomeReadOnlyFields);
                                         }
@@ -60,16 +60,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                             throw TestExceptionUtilities.UnexpectedValue(operationContext.Operation);
                                         }
                                     },
-                                    OperationKind.SimpleAssignmentExpression,
-                                    OperationKind.CompoundAssignmentExpression,
-                                    OperationKind.IncrementExpression,
-                                    OperationKind.DecrementExpression);
+                                    OperationKind.SimpleAssignment,
+                                    OperationKind.CompoundAssignment,
+                                    OperationKind.Increment,
+                                    OperationKind.Decrement);
 
                                  operationBlockContext.RegisterOperationAction(
                                      (operationContext) =>
                                      {
-                                         IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
-                                         foreach (IArgument argument in invocation.Arguments)
+                                         IInvocationOperation invocation = (IInvocationOperation)operationContext.Operation;
+                                         foreach (IArgumentOperation argument in invocation.Arguments)
                                          {
                                              if (argument.Parameter.RefKind == RefKind.Out || argument.Parameter.RefKind == RefKind.Ref)
                                              {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                              }
                                          }
                                      },
-                                     OperationKind.InvocationExpression);
+                                     OperationKind.Invocation);
                              }
                          });
 
@@ -106,14 +106,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void AssignTo(IOperation target, bool inConstructor, ITypeSymbol staticConstructorType, HashSet<IFieldSymbol> assignedToFields, HashSet<IFieldSymbol> mightBecomeReadOnlyFields)
         {
-            if (target.Kind == OperationKind.FieldReferenceExpression)
+            if (target.Kind == OperationKind.FieldReference)
             {
-                IFieldReferenceExpression fieldReference = (IFieldReferenceExpression)target;
+                IFieldReferenceOperation fieldReference = (IFieldReferenceOperation)target;
                 if (inConstructor && fieldReference.Instance != null)
                 {
                     switch (fieldReference.Instance.Kind)
                     {
-                        case OperationKind.InstanceReferenceExpression:
+                        case OperationKind.InstanceReference:
                             return;
                     }
                 }

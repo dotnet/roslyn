@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportInferenceFailure(inferenceDiagnostics);
                     }
 
-                    type = fieldSymbol.SetType(TypeSymbolWithAnnotations.Create(type), inferenceDiagnostics);
+                    type = fieldSymbol.SetType(TypeSymbolWithAnnotations.Create(this.VariableSymbol.ContainingModule, type), inferenceDiagnostics);
                     inferenceDiagnostics.Free();
 
                     return new BoundFieldAccess(this.Syntax,

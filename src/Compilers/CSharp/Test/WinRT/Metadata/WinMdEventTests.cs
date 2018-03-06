@@ -2357,7 +2357,7 @@ public partial class A : I
                     SystemCoreRef_v4_0_30319_17929,
                     _eventLibRef,
                 },
-                verify: OSVersion.IsWin8);
+                verify: OSVersion.IsWin8 ? Verification.Passes : Verification.Fails);
 
             verifier.VerifyDiagnostics(
                 // (7,42): warning CS0067: The event 'A.d2' is never used
@@ -3257,7 +3257,7 @@ class C
             var fieldType = (NamedTypeSymbol)field.Type.TypeSymbol;
             Assert.Equal(TypeKind.Error, fieldType.TypeKind);
             Assert.Equal("EventRegistrationTokenTable", fieldType.Name);
-            Assert.Equal(@event.Type.TypeSymbol, fieldType.TypeArguments.Single().TypeSymbol);
+            Assert.Equal(@event.Type.TypeSymbol, fieldType.TypeArguments().Single());
         }
 
         [Fact]

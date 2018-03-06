@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var underlyingType = _underlyingType;
                 do
                 {
-                    underlyingType = ((TupleTypeSymbol)underlyingType.TypeArguments[TupleTypeSymbol.RestIndex].TypeSymbol).UnderlyingNamedType;
+                    underlyingType = ((TupleTypeSymbol)underlyingType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestIndex].TypeSymbol).UnderlyingNamedType;
                 } while (underlyingType.Arity >= TupleTypeSymbol.RestPosition);
                 firstTupleType = underlyingType.OriginalDefinition;
             }
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var regularElements = Math.Min(currentType.Arity, TupleTypeSymbol.RestPosition - 1);
-                tupleElementTypes.AddRange(currentType.TypeArguments, regularElements);
+                tupleElementTypes.AddRange(currentType.TypeArgumentsNoUseSiteDiagnostics, regularElements);
 
                 if (currentType.Arity == TupleTypeSymbol.RestPosition)
                 {
@@ -1434,6 +1434,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
+        }
+
+        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
+        {
+            var underlyingType = (NamedTypeSymbol)_underlyingType.SetUnknownNullabilityForReferenceTypes();
+            if ((object)underlyingType == _underlyingType)
+            {
+                return this;
+            }
+            return this.WithUnderlyingType(underlyingType);
         }
 
         #region Use-Site Diagnostics

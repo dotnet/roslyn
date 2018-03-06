@@ -512,7 +512,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // update the lazyType only if it contains value last seen by the current thread:
-            if ((object)Interlocked.CompareExchange(ref _lazyType, type.WithModifiers(this.RequiredCustomModifiers), null) == null)
+            if ((object)Interlocked.CompareExchange(
+                ref _lazyType,
+                type.WithModifiers(this.RequiredCustomModifiers).SetUnknownNullabilityForReferenceTypesIfNecessary(ContainingModule),
+                null) == null)
             {
                 TypeChecks(type.TypeSymbol, diagnostics);
 

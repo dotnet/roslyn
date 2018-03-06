@@ -85,7 +85,7 @@ class C
     static ref int M1(ref int arg) => ref arg;
 
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "44", verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: "44", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -121,7 +121,7 @@ class C
     static int val1 = 33;
     static int val2 = 44;
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "44", verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: "44", verify: Verification.Passes);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -157,7 +157,7 @@ class C
     static int val1 = 33;
     static int val2 = 44;
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "55", verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: "55", verify: Verification.Passes);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -195,7 +195,7 @@ class C
     static int val1 = 33;
     static int val2 = 44;
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "5555", verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: "5555", verify: Verification.Passes);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -242,7 +242,7 @@ class C
     static ref int M1(ref int arg) => ref arg;
 
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "67", verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: "67", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -296,7 +296,7 @@ class C
     static int val1 = 33;
     static int val2 = 44;
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "446767", verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: "446767", verify: Verification.Passes);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -637,6 +637,37 @@ class C
         }
 
         [Fact]
+        [WorkItem(24306, "https://github.com/dotnet/roslyn/issues/24306")]
+        public void TestRefConditional_71()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+
+    }
+
+    void Test()
+    {
+        int local1 = 1;
+        int local2 = 2;
+        bool b = true;
+
+        ref int r = ref b? ref local1: ref local2;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions:TestOptions.Regular7_1);
+
+            comp.VerifyEmitDiagnostics(
+                // (15,25): error CS8302: Feature 'ref conditional expression' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         ref int r = ref b? ref local1: ref local2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "b? ref local1: ref local2").WithArguments("ref conditional expression", "7.2").WithLocation(15, 25)
+               );
+        }
+
+        [Fact]
         public void TestRefConditionalUnsafeToReturn1()
         {
             var source = @"
@@ -798,7 +829,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "1", verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Test", @"
@@ -842,7 +873,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "1", verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Test", @"
@@ -873,7 +904,7 @@ class C
     static int val2;
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "1", verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main()", @"
@@ -1025,7 +1056,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef, SystemCoreRef }, expectedOutput: "00", verify: false);
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef, SystemCoreRef }, expectedOutput: "00", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Main", @"
@@ -1113,7 +1144,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: "00", verify: false);
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: "00", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Test", @"

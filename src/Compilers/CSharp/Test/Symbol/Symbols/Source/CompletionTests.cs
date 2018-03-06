@@ -25,7 +25,7 @@ class A {
     public int F(int x, int y) {}
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, skipUsesIsNullable: true);
             var global = comp.GlobalNamespace;
 
             var a = global.GetMember<NamedTypeSymbol>("A");
@@ -65,7 +65,7 @@ class A {
     object P { get; set; }
     object this[object o] { get { return null; } set { } }
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateStandardCompilation(text, skipUsesIsNullable: true);
             var global = comp.GlobalNamespace;
 
             var a = global.GetMember<NamedTypeSymbol>("A");

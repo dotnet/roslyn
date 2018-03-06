@@ -99,11 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, handle, moduleSymbol);
 
                 var type = TypeSymbolWithAnnotations.Create(typeSymbol);
-
-                if (moduleSymbol.UtilizesNullableReferenceTypes)
-                {
-                    type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol);
-                }
+                type = NullableTypeDecoder.TransformOrEraseNullability(type, handle, moduleSymbol);
 
                 _eventType = type;
             }
@@ -165,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     NamedTypeSymbol eventRegistrationTokenTable_T = ((PEModuleSymbol)(this.ContainingModule)).EventRegistrationTokenTable_T;
                     if (eventRegistrationTokenTable_T == candidateAssociatedFieldType.OriginalDefinition &&
-                        _eventType.TypeSymbol == ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArguments[0].TypeSymbol)
+                        _eventType.TypeSymbol == ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol)
                     {
                         return candidateAssociatedField;
                     }

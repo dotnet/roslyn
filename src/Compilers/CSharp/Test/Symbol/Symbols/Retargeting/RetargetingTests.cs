@@ -338,18 +338,18 @@ public enum E
 
             var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(0, sourceType.Interfaces.Length); // Always returns an empty list for enums.
-            Assert.Equal(TypeKind.Error, sourceType.BaseType.TypeKind);
-            Assert.Equal(SpecialType.System_Enum, sourceType.BaseType.SpecialType);
+            Assert.Equal(0, sourceType.Interfaces().Length); // Always returns an empty list for enums.
+            Assert.Equal(TypeKind.Error, sourceType.BaseType().TypeKind);
+            Assert.Equal(SpecialType.System_Enum, sourceType.BaseType().SpecialType);
             Assert.Equal(TypeKind.Error, sourceType.EnumUnderlyingType.TypeKind);
             Assert.Equal(SpecialType.System_Int32, sourceType.EnumUnderlyingType.SpecialType);
 
             var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
             retargetingAssembly.SetCorLibrary(MissingCorLibrarySymbol.Instance); // Need to do this explicitly since our retargeting assembly wasn't constructed using the real mechanism.
             var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(0, retargetingType.Interfaces.Length);
-            Assert.Equal(TypeKind.Error, retargetingType.BaseType.TypeKind);
-            Assert.Equal(SpecialType.System_Enum, retargetingType.BaseType.SpecialType);
+            Assert.Equal(0, retargetingType.Interfaces().Length);
+            Assert.Equal(TypeKind.Error, retargetingType.BaseType().TypeKind);
+            Assert.Equal(SpecialType.System_Enum, retargetingType.BaseType().SpecialType);
             Assert.Equal(TypeKind.Error, retargetingType.EnumUnderlyingType.TypeKind);
             Assert.Equal(SpecialType.System_Int32, retargetingType.EnumUnderlyingType.SpecialType);
         }
@@ -375,18 +375,18 @@ public enum E : short
 
             var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(0, sourceType.Interfaces.Length); // Always returns an empty list for enums.
-            Assert.Equal(TypeKind.Error, sourceType.BaseType.TypeKind);
-            Assert.Equal(SpecialType.System_Enum, sourceType.BaseType.SpecialType);
+            Assert.Equal(0, sourceType.Interfaces().Length); // Always returns an empty list for enums.
+            Assert.Equal(TypeKind.Error, sourceType.BaseType().TypeKind);
+            Assert.Equal(SpecialType.System_Enum, sourceType.BaseType().SpecialType);
             Assert.Equal(TypeKind.Error, sourceType.EnumUnderlyingType.TypeKind);
             Assert.Equal(SpecialType.System_Int16, sourceType.EnumUnderlyingType.SpecialType);
 
             var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
             retargetingAssembly.SetCorLibrary(MissingCorLibrarySymbol.Instance); // Need to do this explicitly since our retargeting assembly wasn't constructed using the real mechanism.
             var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(0, retargetingType.Interfaces.Length);
-            Assert.Equal(TypeKind.Error, retargetingType.BaseType.TypeKind);
-            Assert.Equal(SpecialType.System_Enum, retargetingType.BaseType.SpecialType);
+            Assert.Equal(0, retargetingType.Interfaces().Length);
+            Assert.Equal(TypeKind.Error, retargetingType.BaseType().TypeKind);
+            Assert.Equal(SpecialType.System_Enum, retargetingType.BaseType().SpecialType);
             Assert.Equal(TypeKind.Error, retargetingType.EnumUnderlyingType.TypeKind);
             Assert.Equal(SpecialType.System_Int16, retargetingType.EnumUnderlyingType.SpecialType);
         }
@@ -407,13 +407,13 @@ public class Test : short { }
 
             var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            Assert.Equal(0, sourceType.Interfaces.Length);
-            Assert.Equal(SpecialType.System_Object, sourceType.BaseType.SpecialType);
+            Assert.Equal(0, sourceType.Interfaces().Length);
+            Assert.Equal(SpecialType.System_Object, sourceType.BaseType().SpecialType);
 
             var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
             var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            Assert.Equal(0, retargetingType.Interfaces.Length);
-            Assert.Equal(SpecialType.System_Object, retargetingType.BaseType.SpecialType);
+            Assert.Equal(0, retargetingType.Interfaces().Length);
+            Assert.Equal(SpecialType.System_Object, retargetingType.BaseType().SpecialType);
         }
 
         [Fact]
@@ -435,15 +435,15 @@ public class Test : short { }
 
             var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            Assert.Equal(0, sourceType.Interfaces.Length);
-            Assert.Equal(TypeKind.Error, sourceType.BaseType.TypeKind);
-            Assert.Equal(SpecialType.System_Int16, sourceType.BaseType.SpecialType);
+            Assert.Equal(0, sourceType.Interfaces().Length);
+            Assert.Equal(TypeKind.Error, sourceType.BaseType().TypeKind);
+            Assert.Equal(SpecialType.System_Int16, sourceType.BaseType().SpecialType);
 
             var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
             var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            Assert.Equal(0, retargetingType.Interfaces.Length);
-            Assert.Equal(TypeKind.Error, retargetingType.BaseType.TypeKind);
-            Assert.Equal(SpecialType.System_Int16, retargetingType.BaseType.SpecialType);
+            Assert.Equal(0, retargetingType.Interfaces().Length);
+            Assert.Equal(TypeKind.Error, retargetingType.BaseType().TypeKind);
+            Assert.Equal(SpecialType.System_Int16, retargetingType.BaseType().SpecialType);
         }
 
         [Fact]
@@ -462,13 +462,13 @@ public struct Test : short { }
 
             var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            Assert.Equal(0, sourceType.Interfaces.Length);
-            Assert.Equal(SpecialType.System_ValueType, sourceType.BaseType.SpecialType);
+            Assert.Equal(0, sourceType.Interfaces().Length);
+            Assert.Equal(SpecialType.System_ValueType, sourceType.BaseType().SpecialType);
 
             var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
             var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            Assert.Equal(0, retargetingType.Interfaces.Length);
-            Assert.Equal(SpecialType.System_ValueType, retargetingType.BaseType.SpecialType);
+            Assert.Equal(0, retargetingType.Interfaces().Length);
+            Assert.Equal(SpecialType.System_ValueType, retargetingType.BaseType().SpecialType);
         }
 
         [Fact]
@@ -494,17 +494,17 @@ public struct Test : short { }
 
             var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            Assert.Equal(TypeKind.Error, sourceType.Interfaces.Single().TypeKind);
-            Assert.Equal(SpecialType.System_Int16, sourceType.Interfaces.Single().SpecialType);
-            Assert.Equal(TypeKind.Error, sourceType.BaseType.TypeKind);
-            Assert.Equal(SpecialType.System_ValueType, sourceType.BaseType.SpecialType);
+            Assert.Equal(TypeKind.Error, sourceType.Interfaces().Single().TypeKind);
+            Assert.Equal(SpecialType.System_Int16, sourceType.Interfaces().Single().SpecialType);
+            Assert.Equal(TypeKind.Error, sourceType.BaseType().TypeKind);
+            Assert.Equal(SpecialType.System_ValueType, sourceType.BaseType().SpecialType);
 
             var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
             var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            Assert.Equal(TypeKind.Error, retargetingType.Interfaces.Single().TypeKind);
-            Assert.Equal(SpecialType.System_Int16, retargetingType.Interfaces.Single().SpecialType);
-            Assert.Equal(TypeKind.Error, retargetingType.BaseType.TypeKind);
-            Assert.Equal(SpecialType.System_ValueType, retargetingType.BaseType.SpecialType);
+            Assert.Equal(TypeKind.Error, retargetingType.Interfaces().Single().TypeKind);
+            Assert.Equal(SpecialType.System_Int16, retargetingType.Interfaces().Single().SpecialType);
+            Assert.Equal(TypeKind.Error, retargetingType.BaseType().TypeKind);
+            Assert.Equal(SpecialType.System_ValueType, retargetingType.BaseType().SpecialType);
         }
 
         [Fact]
@@ -523,13 +523,13 @@ public interface Test : short { }
 
             var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            Assert.Equal(0, sourceType.Interfaces.Length);
-            Assert.Null(sourceType.BaseType);
+            Assert.Equal(0, sourceType.Interfaces().Length);
+            Assert.Null(sourceType.BaseType());
 
             var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
             var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            Assert.Equal(0, retargetingType.Interfaces.Length);
-            Assert.Null(retargetingType.BaseType);
+            Assert.Equal(0, retargetingType.Interfaces().Length);
+            Assert.Null(retargetingType.BaseType());
         }
 
         [Fact]
@@ -552,15 +552,15 @@ public interface Test : short { }
 
             var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            Assert.Equal(TypeKind.Error, sourceType.Interfaces.Single().TypeKind);
-            Assert.Equal(SpecialType.System_Int16, sourceType.Interfaces.Single().SpecialType);
-            Assert.Null(sourceType.BaseType);
+            Assert.Equal(TypeKind.Error, sourceType.Interfaces().Single().TypeKind);
+            Assert.Equal(SpecialType.System_Int16, sourceType.Interfaces().Single().SpecialType);
+            Assert.Null(sourceType.BaseType());
 
             var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
             var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            Assert.Equal(TypeKind.Error, retargetingType.Interfaces.Single().TypeKind);
-            Assert.Equal(SpecialType.System_Int16, retargetingType.Interfaces.Single().SpecialType);
-            Assert.Null(retargetingType.BaseType);
+            Assert.Equal(TypeKind.Error, retargetingType.Interfaces().Single().TypeKind);
+            Assert.Equal(SpecialType.System_Int16, retargetingType.Interfaces().Single().SpecialType);
+            Assert.Null(retargetingType.BaseType());
         }
 
         [Fact]
@@ -583,12 +583,12 @@ public class C<T> where T : int
             var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var sourceTypeParameter = sourceType.TypeParameters.Single();
-            Assert.Equal(0, sourceTypeParameter.ConstraintTypes.Length);
+            Assert.Equal(0, sourceTypeParameter.ConstraintTypes().Length);
 
             var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
             var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var retargetingTypeParameter = retargetingType.TypeParameters.Single();
-            Assert.Equal(0, retargetingTypeParameter.ConstraintTypes.Length);
+            Assert.Equal(0, retargetingTypeParameter.ConstraintTypes().Length);
         }
 
         [Fact]
@@ -620,14 +620,14 @@ public class C<T> where T : int
             var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var sourceTypeParameter = sourceType.TypeParameters.Single();
-            var sourceTypeParameterConstraint = sourceTypeParameter.ConstraintTypes.Single();
+            var sourceTypeParameterConstraint = sourceTypeParameter.ConstraintTypes().Single();
             Assert.Equal(TypeKind.Error, sourceTypeParameterConstraint.TypeKind);
             Assert.Equal(SpecialType.System_Int32, sourceTypeParameterConstraint.SpecialType);
 
             var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
             var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var retargetingTypeParameter = retargetingType.TypeParameters.Single();
-            var retargetingTypeParameterConstraint = retargetingTypeParameter.ConstraintTypes.Single();
+            var retargetingTypeParameterConstraint = retargetingTypeParameter.ConstraintTypes().Single();
             Assert.Equal(TypeKind.Error, retargetingTypeParameterConstraint.TypeKind);
             Assert.Equal(SpecialType.System_Int32, retargetingTypeParameterConstraint.SpecialType);
         }
@@ -822,8 +822,8 @@ class C1<T>
         public void CheckTypes(TypeSymbol a, TypeSymbol b)
         {
             Assert.Equal(a.Name, b.Name);
-            CheckSymbols(a.BaseType, b.BaseType, false);
-            CheckSymbols(a.Interfaces, b.Interfaces, false);
+            CheckSymbols(a.BaseType(), b.BaseType(), false);
+            CheckSymbols(a.Interfaces(), b.Interfaces(), false);
             CheckSymbols(a.GetMembers(), b.GetMembers(), true);
         }
 
@@ -833,7 +833,7 @@ class C1<T>
             Assert.Equal(a.HasConstructorConstraint, b.HasConstructorConstraint);
             Assert.Equal(a.HasReferenceTypeConstraint, b.HasReferenceTypeConstraint);
             Assert.Equal(a.HasValueTypeConstraint, b.HasValueTypeConstraint);
-            CheckSymbols(a.ConstraintTypes.SelectAsArray(c => c.TypeSymbol), b.ConstraintTypes.SelectAsArray(c => c.TypeSymbol), false);
+            CheckSymbols(a.ConstraintTypes(), b.ConstraintTypes(), false);
         }
     }
 

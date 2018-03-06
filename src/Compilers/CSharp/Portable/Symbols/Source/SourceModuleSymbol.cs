@@ -149,10 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyContainsExplicitDefinitionOfNoPiaLocalTypes == ThreeState.Unknown)
                 {
-                    // TODO: This will recursively visit all top level types and bind attributes on them.
-                    //       This might be very expensive to do, but explicitly declared local types are 
-                    //       very uncommon. We should consider optimizing this by analyzing syntax first, 
-                    //       for example, the way VB handles ExtensionAttribute, etc.
                     _lazyContainsExplicitDefinitionOfNoPiaLocalTypes = NamespaceContainsExplicitDefinitionOfNoPiaLocalTypes(GlobalNamespace).ToThreeState();
                 }
 
@@ -611,6 +607,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Security_UnverifiableCodeAttribute__ctor));
                 }
+            }
+
+            if (UtilizesNullableReferenceTypes)
+            {
+                // PROTOTYPE(NullableReferenceTypes): Ensure Compilation.NeedsGeneratedNullableAttribute is set.
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor, ImmutableArray<TypedConstant>.Empty));
             }
         }
 

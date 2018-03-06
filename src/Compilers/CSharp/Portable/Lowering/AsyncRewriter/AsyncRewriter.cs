@@ -205,11 +205,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType))));
 
             // local.$builder.Start(ref local) -- binding to the method AsyncTaskMethodBuilder<typeArgs>.Start()
+            var startMethod = methodScopeAsyncMethodBuilderMemberCollection.Start.Construct(frameType);
+            if (methodScopeAsyncMethodBuilderMemberCollection.CheckGenericMethodConstraints)
+            {
+                startMethod.CheckConstraints(F.Compilation.Conversions, F.Syntax, F.Compilation, diagnostics);
+            }
             bodyBuilder.Add(
                 F.ExpressionStatement(
                     F.Call(
                         F.Local(builderVariable),
-                        methodScopeAsyncMethodBuilderMemberCollection.Start.Construct(frameType),
+                        startMethod,
                         ImmutableArray.Create<BoundExpression>(F.Local(stateMachineVariable)))));
 
             bodyBuilder.Add(method.IsVoidReturningAsync()

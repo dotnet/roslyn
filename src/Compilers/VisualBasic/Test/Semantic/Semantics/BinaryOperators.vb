@@ -802,6 +802,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(531531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531531")>
+        <CompilerTrait(CompilerFeature.IOperation)>
         Public Sub Bug18257()
             Dim source =
 <compilation name="ErrorHandling">
@@ -841,9 +842,31 @@ End Module
 Expected: .
 Expected: 0.
 ]]>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of LocalDeclarationStatementSyntax)().First()
+
+            Assert.Equal("Dim s = ""Expected: "" & line & "".""", node.ToString())
+
+            compilation.VerifyOperationTree(node.Declarators.Last.Initializer.Value, expectedOperationTree:=
+            <![CDATA[
+IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"Expected:  ...  line & "."')
+  Left: 
+    IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"Expected: " & line')
+      Left: 
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Expected: ") (Syntax: '"Expected: "')
+      Right: 
+        ICoalesceOperation (OperationKind.Coalesce, Type: System.String, IsImplicit) (Syntax: 'line')
+          Expression: 
+            IParameterReferenceOperation: line (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'line')
+          WhenNull: 
+            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'line')
+  Right: 
+    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ".") (Syntax: '"."')
+]]>.Value)
         End Sub
 
-        <Fact()>
+        <NoIOperationValidationFact>
         Public Sub IntrinsicSymbols()
             Dim operators() As BinaryOperatorKind =
             {

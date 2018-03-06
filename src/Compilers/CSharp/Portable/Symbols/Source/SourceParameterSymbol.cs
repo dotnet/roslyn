@@ -249,5 +249,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (object)owningMethod != null && owningMethod.IsAccessor();
             }
         }
+
+        internal override bool IsMetadataIn => RefKind == RefKind.In;
+
+        internal override bool IsMetadataOut => RefKind == RefKind.Out;
     }
 }

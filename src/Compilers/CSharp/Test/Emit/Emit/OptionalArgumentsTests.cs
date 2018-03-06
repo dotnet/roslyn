@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Linq;
 using Xunit;
-using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -210,7 +210,7 @@ partial class C
 
         private static void VerifyDefaultValueAttribute(ParameterSymbol parameter, string expectedAttributeName, object expectedDefault, bool hasDefault)
         {
-            var attributes = parameter.GetCustomAttributesToEmit(GetDefaultPEBuilder(parameter.DeclaringCompilation)).ToArray();
+            var attributes = parameter.GetAttributes();
             if (expectedAttributeName == null)
             {
                 Assert.Equal(attributes.Length, 0);
@@ -364,7 +364,7 @@ interface I
 
         [WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")]
         [Fact]
-        public void TestExplicitConstantAttributesOnFields()
+        public void TestExplicitConstantAttributesOnFields_Errors()
         {
             var source =
 @"
@@ -398,8 +398,6 @@ class C
     [DateTimeConstant(0)] public const decimal F12 = 0;
 
     [DecimalConstant(0, 0, 0, 0, 0)] public const decimal F14 = 1;
-
-    [DecimalConstantAttribute(0, 128, 0, 0, 7)] public const decimal F15 = -7;
 }";
             var comp = CreateStandardCompilation(source, references: new[] { SystemRef });
 
@@ -438,9 +436,30 @@ Diagnostic(ErrorCode.ERR_FieldHasMultipleDistinctConstantValues, "DateTimeConsta
 //     [DecimalConstant(0, 0, 0, 0, 0)] public const decimal F14 = 1;
 Diagnostic(ErrorCode.ERR_FieldHasMultipleDistinctConstantValues, "DecimalConstant(0, 0, 0, 0, 0)")
                 );
+        }
 
-            var c = comp.GetTypeByMetadataName("C");
-            Assert.Equal(1, c.GetMember("F15").GetCustomAttributesToEmit(GetDefaultPEBuilder(comp)).Count());
+        [WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")]
+        [Fact]
+        public void TestExplicitConstantAttributesOnFields_Valid()
+        {
+            var source =
+@"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [DecimalConstantAttribute(0, 128, 0, 0, 7)] public const decimal F15 = -7;
+}";
+            var comp = CreateStandardCompilation(source, references: new[] { SystemRef });
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var field = (PEFieldSymbol)module.GlobalNamespace.GetTypeMember("C").GetField("F15");
+                var attribute = ((PEModuleSymbol)module).GetCustomAttributesForToken(field.Handle).Single();
+
+                Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute", attribute.AttributeClass.ToTestDisplayString());
+            });
         }
     }
 }

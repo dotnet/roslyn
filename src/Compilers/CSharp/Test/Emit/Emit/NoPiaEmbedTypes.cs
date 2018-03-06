@@ -1164,8 +1164,8 @@ class UsePia4
 
                     var itest1 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("ITest1").Single();
                     Assert.Equal(TypeKind.Interface, itest1.TypeKind);
-                    Assert.Null(itest1.BaseType);
-                    Assert.Equal(0, itest1.Interfaces.Length);
+                    Assert.Null(itest1.BaseType());
+                    Assert.Equal(0, itest1.Interfaces().Length);
                     Assert.True(itest1.IsComImport);
                     Assert.False(itest1.IsSerializable);
                     Assert.False(itest1.IsSealed);
@@ -1186,8 +1186,8 @@ class UsePia4
 
                     var test2 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("Test2").Single();
                     Assert.Equal(TypeKind.Struct, test2.TypeKind);
-                    Assert.Equal(SpecialType.System_ValueType, test2.BaseType.SpecialType);
-                    Assert.Same(itest1, test2.Interfaces.Single());
+                    Assert.Equal(SpecialType.System_ValueType, test2.BaseType().SpecialType);
+                    Assert.Same(itest1, test2.Interfaces().Single());
                     Assert.False(test2.IsComImport);
                     Assert.False(test2.IsSerializable);
                     Assert.True(test2.IsSealed);
@@ -1207,7 +1207,7 @@ class UsePia4
 
                     var itest3 = module.GlobalNamespace.GetTypeMembers("ITest3").Single();
                     Assert.Equal(TypeKind.Interface, itest3.TypeKind);
-                    Assert.Same(itest1, itest3.Interfaces.Single());
+                    Assert.Same(itest1, itest3.Interfaces().Single());
                     Assert.True(itest3.IsComImport);
                     Assert.False(itest3.IsSerializable);
                     Assert.False(itest3.IsSealed);
@@ -1244,7 +1244,7 @@ class UsePia4
 
                     var itest8 = module.GlobalNamespace.GetTypeMembers("ITest8").Single();
                     Assert.Equal(TypeKind.Interface, itest8.TypeKind);
-                    Assert.Same(itest8, module.GlobalNamespace.GetTypeMembers("UsePia1").Single().Interfaces.Single());
+                    Assert.Same(itest8, module.GlobalNamespace.GetTypeMembers("UsePia1").Single().Interfaces().Single());
 
                     var test9 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("Test9").Single();
                     Assert.Equal(TypeKind.Enum, test9.TypeKind);
@@ -1327,7 +1327,7 @@ class UsePia4
 
                     var test11 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("Test11").Single();
                     Assert.Equal(TypeKind.Delegate, test11.TypeKind);
-                    Assert.Equal(SpecialType.System_MulticastDelegate, test11.BaseType.SpecialType);
+                    Assert.Equal(SpecialType.System_MulticastDelegate, test11.BaseType().SpecialType);
 
                     // TypDefName: Test11  (02000012)
                     // Flags     : [Public] [AutoLayout] [Class] [Sealed] [AnsiClass]  (00000101)
@@ -1730,42 +1730,42 @@ interface UsePia5 : ITest29
                     Assert.False(t1.HasConstructorConstraint);
                     Assert.False(t1.HasValueTypeConstraint);
                     Assert.False(t1.HasReferenceTypeConstraint);
-                    Assert.Equal(0, t1.ConstraintTypes.Length);
+                    Assert.Equal(0, t1.ConstraintTypes().Length);
                     Assert.Equal(VarianceKind.None, t1.Variance);
 
                     var t2 = m21.TypeParameters[1];
                     Assert.False(t2.HasConstructorConstraint);
                     Assert.False(t2.HasValueTypeConstraint);
                     Assert.False(t2.HasReferenceTypeConstraint);
-                    Assert.Equal(1, t2.ConstraintTypes.Length);
-                    Assert.Same(itest28, t2.ConstraintTypes[0].TypeSymbol);
+                    Assert.Equal(1, t2.ConstraintTypes().Length);
+                    Assert.Same(itest28, t2.ConstraintTypes()[0]);
                     Assert.Equal(VarianceKind.None, t2.Variance);
 
                     var t5 = m21.TypeParameters[2];
                     Assert.True(t5.HasConstructorConstraint);
                     Assert.False(t5.HasValueTypeConstraint);
                     Assert.False(t5.HasReferenceTypeConstraint);
-                    Assert.Equal(0, t5.ConstraintTypes.Length);
+                    Assert.Equal(0, t5.ConstraintTypes().Length);
                     Assert.Equal(VarianceKind.None, t5.Variance);
 
                     var t6 = m21.TypeParameters[3];
                     Assert.False(t6.HasConstructorConstraint);
                     Assert.True(t6.HasValueTypeConstraint);
                     Assert.False(t6.HasReferenceTypeConstraint);
-                    Assert.Equal(0, t6.ConstraintTypes.Length);
+                    Assert.Equal(0, t6.ConstraintTypes().Length);
                     Assert.Equal(VarianceKind.None, t6.Variance);
 
                     var t7 = m21.TypeParameters[4];
                     Assert.False(t7.HasConstructorConstraint);
                     Assert.False(t7.HasValueTypeConstraint);
                     Assert.True(t7.HasReferenceTypeConstraint);
-                    Assert.Equal(0, t7.ConstraintTypes.Length);
+                    Assert.Equal(0, t7.ConstraintTypes().Length);
                     Assert.Equal(VarianceKind.None, t7.Variance);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: false);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.Fails);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: false);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.Fails);
         }
 
         [Fact]
@@ -4692,11 +4692,11 @@ class UsePia5
 
             var compilation3 = CreateStandardCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: false);
+            CompileAndVerify(compilation3, verify: Verification.Fails);
 
             var compilation4 = CreateStandardCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: false);
+            CompileAndVerify(compilation4, verify: Verification.Fails);
         }
 
         [Fact]
@@ -5169,11 +5169,11 @@ class UsePia5
 
             var compilation3 = CreateStandardCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: false);
+            CompileAndVerify(compilation3, verify: Verification.Fails);
 
             var compilation4 = CreateStandardCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: false);
+            CompileAndVerify(compilation4, verify: Verification.Fails);
         }
 
         [Fact, WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]

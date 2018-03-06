@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.ConditionalOperator:
-                    return ((BoundConditionalOperator)receiver).IsByRef;
+                    return ((BoundConditionalOperator)receiver).IsRef;
 
                 case BoundKind.Call:
                     return ((BoundCall)receiver).Method.RefKind == RefKind.Ref;

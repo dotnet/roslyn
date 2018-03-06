@@ -109,7 +109,7 @@ public class B
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
-                verify: false);
+                verify: Verification.Fails);
         }
 
         [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
@@ -141,7 +141,7 @@ public class B
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
-                verify: false);
+                verify: Verification.Fails);
         }
 
         [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
@@ -178,7 +178,7 @@ public class B
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
-                verify: false);
+                verify: Verification.Fails);
             compilation2.VerifyIL("B.Main()", @"
 {
   // Code size       25 (0x19)
@@ -268,7 +268,7 @@ public class B
                 Diagnostic(ErrorCode.ERR_NetModuleNameMismatch).WithArguments("ModuleNameMismatch.netmodule", "ModuleNameMismatch.mod"));
         }
 
-        [Fact]
+        [NoIOperationValidationFact]
         public void CS0204_ERR_TooManyLocals()
         {
             var builder = new System.Text.StringBuilder();
@@ -331,6 +331,6 @@ public class A
                 );
         }
 
-        #endregion
+#endregion
     }
 }

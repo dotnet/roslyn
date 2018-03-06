@@ -36,6 +36,80 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        M(() [||]=> { });
+    }
+}",
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        Action {|Rename:action1|} = () => { };
+        M(action1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void M(int a, int b)
+    {
+        var x = a [||]+ b + 3;
+    }
+}",
+@"using System;
+class C
+{
+    void M(int a, int b)
+    {
+        int {|Rename:v|} = a + b;
+        var x = v + 3;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan3()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    void M(int a)
+    {
+        var x = [||]a;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan4()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        M(() => { var x [||]= y; });
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFix1()
         {
             await TestInRegularAndScriptAsync(
@@ -135,6 +209,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 }";
 
             await TestInRegularAndScriptAsync(code, expected, index: 3);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestThrowExpression()
+        {
+            var code =
+@"class C
+{
+    void M(bool b)
+    {
+        var x = b ? 1 : [|throw null|];
+    }
+}";
+            await TestActionCountAsync(code, count: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestThrowExpression2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool b)
+    {
+        var x = [|b ? 1 : throw null|];
+    }
+}",
+@"class C
+{
+    void M(bool b)
+    {
+        int {|Rename:v|} = b ? 1 : throw null;
+        var x = v;
+    }
+}",
+                index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestThrowStatement()
+        {
+            var code =
+@"class C
+{
+    void M()
+    {
+        [|throw null|];
+    }
+}";
+            await TestActionCountAsync(code, count: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -4356,6 +4480,137 @@ struct TextSpan
     public TextSpan(int start, int length)
     {
 
+    }
+}");
+        }
+
+        [WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnValueTupleFieldName1()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public C(string a, string b)
+    {
+        var tuple = (id: 1, date: [|DateTime.Now.ToString()|]);
+    }
+}",
+@"using System;
+
+class C
+{
+    public C(string a, string b)
+    {
+        string {|Rename:date|} = DateTime.Now.ToString();
+        var tuple = (id: 1, date: date);
+    }
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+        }
+
+        [WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnValueTupleFieldName2()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public C()
+    {
+        var tuple = (key: 1, value: [|1 + 1|]);
+    }
+}",
+@"using System;
+
+class C
+{
+    private const int {|Rename:Value|} = 1 + 1;
+
+    public C()
+    {
+        var tuple = (key: 1, value: Value);
+    }
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), index: 0);
+        }
+
+        [WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnValueTupleFieldName3()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public C()
+    {
+        var tuple = (key: 1, value: [|1 + 1|]);
+    }
+}",
+@"using System;
+
+class C
+{
+    public C()
+    {
+        const int {|Rename:Value|} = 1 + 1;
+        var tuple = (key: 1, value: Value);
+    }
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), index: 2);
+        }
+
+        [WorkItem(21373, "https://github.com/dotnet/roslyn/issues/21373")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestInAttribute()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    public string Foo { get; set; }
+
+    [Example([|2+2|])]
+    public string Bar { get; set; }
+}",
+@"public class C
+{
+    private const int {|Rename:V|} = 2 + 2;
+
+    public string Foo { get; set; }
+
+    [Example(V)]
+    public string Bar { get; set; }
+}");
+        }
+
+        [WorkItem(21687, "https://github.com/dotnet/roslyn/issues/21687")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIfClassHasSameNameAsNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace C
+{
+    class C
+    {
+        void M()
+        {
+            var t = new { foo = [|1 + 1|] };
+        }
+    }
+}",
+@"namespace C
+{
+    class C
+    {
+        private const int {|Rename:V|} = 1 + 1;
+
+        void M()
+        {
+            var t = new { foo = V };
+        }
     }
 }");
         }

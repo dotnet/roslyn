@@ -199,9 +199,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 refKind = isByRef ? RefKind.Ref : RefKind.None;
 
                 TupleTypeSymbol tuple;
-                _type = TupleTypeSymbol.TryTransformToTuple(type.TypeSymbol, out tuple) ?
+                type = TupleTypeSymbol.TryTransformToTuple(type.TypeSymbol, out tuple) ?
                     TypeSymbolWithAnnotations.Create(tuple) :
                     type;
+                type = type.SetUnknownNullabilityForReferenceTypesIfNecessary(moduleSymbol);
 
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
                 _lazyHiddenAttributes = ImmutableArray<CSharpAttributeData>.Empty;
@@ -241,12 +242,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var typeSymbol = DynamicTypeDecoder.TransformType(type.TypeSymbol, countOfCustomModifiers, handle, moduleSymbol, refKind);
                 typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, handle, moduleSymbol);
                 type = type.Update(typeSymbol, type.CustomModifiers);
-                if (moduleSymbol.UtilizesNullableReferenceTypes)
-                {
-                    type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol);
-                }
-                _type = type;
+                type = NullableTypeDecoder.TransformOrEraseNullability(type, _handle, moduleSymbol);
             }
+
+            _type = type;
 
             bool hasNameInMetadata = !string.IsNullOrEmpty(_name);
             if (!hasNameInMetadata)

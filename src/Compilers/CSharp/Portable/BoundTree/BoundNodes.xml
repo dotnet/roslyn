@@ -361,7 +361,7 @@
   <Node Name="BoundAssignmentOperator" Base="BoundExpression">
     <Field Name="Left" Type="BoundExpression"/>
     <Field Name="Right" Type="BoundExpression" Null="NotApplicable"/>
-    <!--  This is almost always RefKind.None.
+    <!--  This is almost always false.
     In C# most assignments to a variable are simply writes to the
     logical variable. For example, when you say 
     
@@ -384,7 +384,7 @@
     through addr. We therefore need to disambiguate what kind of assignment
     we are doing based on something other than the refness of the left hand side. 
     -->
-    <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
+    <Field Name="IsRef" Type="bool" Null="NotApplicable"/>
   </Node>
 
   <Node Name="BoundDeconstructionAssignmentOperator" Base="BoundExpression">
@@ -405,7 +405,7 @@
   <Node Name="BoundConditionalOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="IsByRef" Type="bool"/>
+    <Field Name="IsRef" Type="bool"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Consequence" Type="BoundExpression"/>
     <Field Name="Alternative" Type="BoundExpression"/>

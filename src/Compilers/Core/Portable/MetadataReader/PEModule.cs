@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis
             GetTypeNamespaceNamesOrThrow(namespaces);
             GetForwardedTypeNamespaceNamesOrThrow(namespaces);
 
-            var result = new ArrayBuilder<IGrouping<string, TypeDefinitionHandle>>();
+            var result = new ArrayBuilder<IGrouping<string, TypeDefinitionHandle>>(namespaces.Count);
 
             foreach (var pair in namespaces)
             {
@@ -2393,7 +2393,6 @@ namespace Microsoft.CodeAnalysis
             return _lazyContainsNoPiaLocalTypes == ThreeState.True;
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Remove if not needed.
         internal bool UtilizesNullableReferenceTypes()
         {
             if (_lazyUtilizesNullableReferenceTypes == ThreeState.Unknown)

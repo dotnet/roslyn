@@ -2474,6 +2474,113 @@ class Test1<T>
                 );
         }
 
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
+        public void LambdaSquigglesArea()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        System.Func<bool, System.Action<bool>> x = x1 => x2 =>
+        {
+            error();
+        };
+    }
+}
+";
+            var comp = CreateStandardCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'error' does not exist in the current context
+                //             error();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "error").WithArguments("error").WithLocation(8, 13),
+                // (6,58): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         System.Func<bool, System.Action<bool>> x = x1 => x2 =>
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "x2 =>").WithArguments("lambda expression").WithLocation(6, 58)
+                );
+        }
+
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
+        public void LambdaSquigglesAreaInAsync()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        System.Func<bool, System.Threading.Tasks.Task<System.Action<bool>>> x = async x1 => x2 =>
+        {
+            error();
+        };
+    }
+}
+";
+            var comp = CreateStandardCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'error' does not exist in the current context
+                //             error();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "error").WithArguments("error").WithLocation(8, 13),
+                // (6,93): error CS4010: Cannot convert async lambda expression to delegate type 'Task<Action<bool>>'. An async lambda expression may return void, Task or Task<T>, none of which are convertible to 'Task<Action<bool>>'.
+                //         System.Func<bool, System.Threading.Tasks.Task<System.Action<bool>>> x = async x1 => x2 =>
+                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "x2 =>").WithArguments("lambda expression", "System.Threading.Tasks.Task<System.Action<bool>>").WithLocation(6, 93),
+                // (6,90): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         System.Func<bool, System.Threading.Tasks.Task<System.Action<bool>>> x = async x1 => x2 =>
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 90)
+                );
+        }
+
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
+        public void DelegateSquigglesArea()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        System.Func<bool, System.Action<bool>> x = x1 => delegate(bool x2)
+        {
+            error();
+        };
+    }
+}
+";
+            var comp = CreateStandardCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'error' does not exist in the current context
+                //             error();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "error").WithArguments("error").WithLocation(8, 13),
+                // (6,58): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         System.Func<bool, System.Action<bool>> x = x1 => delegate(bool x2)
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "delegate(bool x2)").WithArguments("lambda expression").WithLocation(6, 58)
+                );
+        }
+
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
+        public void DelegateWithoutArgumentsSquigglesArea()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        System.Func<bool, System.Action> x = x1 => delegate
+        {
+            error();
+        };
+    }
+}
+";
+            var comp = CreateStandardCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'error' does not exist in the current context
+                //             error();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "error").WithArguments("error").WithLocation(8, 13),
+                // (6,52): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         System.Func<bool, System.Action> x = x1 => delegate
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "delegate").WithArguments("lambda expression").WithLocation(6, 52)
+                );
+        }
+
         [Fact]
         public void ThrowExpression_Lambda()
         {
@@ -2522,6 +2629,85 @@ class C
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "1234");
+        }
+
+        [Fact, WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
+        public void InMalformedEmbeddedStatement_01()
+        {
+            var source = @"
+class Program
+{
+    void method1()
+    {
+        if (method2())
+            .Any(b => b.ContentType, out var chars)
+        {
+        }
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var comp = CreateStandardCompilation(tree);
+
+            ExpressionSyntax contentType = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "ContentType").Single();
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("ContentType", contentType.ToString());
+            Assert.Null(model.GetSymbolInfo(contentType).Symbol);
+            Assert.Equal(TypeKind.Error, model.GetTypeInfo(contentType).Type.TypeKind);
+
+            ExpressionSyntax b = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b").Single();
+
+            model = comp.GetSemanticModel(tree);
+            Assert.Equal("b", b.ToString());
+            ISymbol symbol = model.GetSymbolInfo(b).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+            Assert.Equal("? b", symbol.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, model.GetTypeInfo(b).Type.TypeKind);
+
+            ParameterSyntax parameterSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+
+            model = comp.GetSemanticModel(tree);
+            symbol = model.GetDeclaredSymbol(parameterSyntax);
+            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+            Assert.Equal("? b", symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
+        public void InMalformedEmbeddedStatement_02()
+        {
+            var source = @"
+class Program
+{
+    void method1()
+    {
+        if (method2())
+            .Any(b => b.ContentType, out var chars)
+        {
+        }
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var comp = CreateStandardCompilation(tree);
+
+            ExpressionSyntax contentType = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "ContentType").Single();
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("ContentType", contentType.ToString());
+            var lambda = (MethodSymbol)model.GetEnclosingSymbol(contentType.SpanStart);
+            Assert.Equal(MethodKind.AnonymousFunction, lambda.MethodKind);
+
+            ExpressionSyntax b = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b").Single();
+
+            model = comp.GetSemanticModel(tree);
+            Assert.Equal("b", b.ToString());
+            lambda = (MethodSymbol)model.GetEnclosingSymbol(b.SpanStart);
+            Assert.Equal(MethodKind.AnonymousFunction, lambda.MethodKind);
+
+            model = comp.GetSemanticModel(tree);
+            ParameterSyntax parameterSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+            Assert.Equal("void Program.method1()", model.GetEnclosingSymbol(parameterSyntax.SpanStart).ToTestDisplayString());
         }
     }
 }

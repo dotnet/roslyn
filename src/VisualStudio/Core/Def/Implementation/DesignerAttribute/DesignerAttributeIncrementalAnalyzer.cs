@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             }
 
             var result = await ScanDesignerAttributesOnRemoteHostIfPossibleAsync(document, cancellationToken).ConfigureAwait(false);
-            if (result.NotApplicable)
+            if (!result.Applicable)
             {
                 _state.Remove(document.Id);
                 return;
@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var service = document.GetLanguageService<IDesignerAttributeService>();
             if (service == null)
             {
-                return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: true, notApplicable: true);
+                return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: true, applicable: false);
             }
 
             return await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);

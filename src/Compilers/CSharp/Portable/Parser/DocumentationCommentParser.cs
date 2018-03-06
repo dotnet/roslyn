@@ -1118,14 +1118,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var list = _pool.AllocateSeparated<CrefParameterSyntax>();
             try
             {
-                while (CurrentToken.Kind == SyntaxKind.CommaToken || IsPossibleCrefParameter)
+                while (CurrentToken.Kind == SyntaxKind.CommaToken || IsPossibleCrefParameter())
                 {
                     list.Add(ParseCrefParameter());
 
                     if (CurrentToken.Kind != closeKind)
                     {
                         SyntaxToken comma = EatToken(SyntaxKind.CommaToken);
-                        if (!comma.IsMissing || IsPossibleCrefParameter)
+                        if (!comma.IsMissing || IsPossibleCrefParameter())
                         {
                             // Only do this if it won't be last in the list.
                             list.AddSeparator(comma);
@@ -1156,20 +1156,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// True if the current token could be the beginning of a cref parameter.
         /// </summary>
-        private bool IsPossibleCrefParameter
+        private bool IsPossibleCrefParameter()
         {
-            get
+            SyntaxKind kind = this.CurrentToken.Kind;
+            switch (kind)
             {
-                SyntaxKind kind = this.CurrentToken.Kind;
-                switch (kind)
-                {
-                    case SyntaxKind.RefKeyword:
-                    case SyntaxKind.OutKeyword:
-                    case SyntaxKind.IdentifierToken:
-                        return true;
-                    default:
-                        return SyntaxFacts.IsPredefinedType(kind);
-                }
+                case SyntaxKind.RefKeyword:
+                case SyntaxKind.OutKeyword:
+                case SyntaxKind.InKeyword:
+                case SyntaxKind.IdentifierToken:
+                    return true;
+                default:
+                    return SyntaxFacts.IsPredefinedType(kind);
             }
         }
 
@@ -1181,17 +1179,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </remarks>
         private CrefParameterSyntax ParseCrefParameter()
         {
-            SyntaxToken refOrOutOpt = null;
+            SyntaxToken refKindOpt = null;
             switch (CurrentToken.Kind)
             {
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
-                    refOrOutOpt = EatToken();
+                case SyntaxKind.InKeyword:
+                    refKindOpt = EatToken();
                     break;
             }
 
             TypeSyntax type = ParseCrefType(typeArgumentsMustBeIdentifiers: false);
-            return SyntaxFactory.CrefParameter(refOrOutOpt, type);
+            return SyntaxFactory.CrefParameter(refKindOpt, type);
         }
 
         /// <summary>

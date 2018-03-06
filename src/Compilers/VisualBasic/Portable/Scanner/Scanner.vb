@@ -730,7 +730,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim startCh = Peek()
 
             ' First create a trivia from the start of this merge conflict marker to the
-            ' end of line/file (whicever comes first).
+            ' end of line/file (whichever comes first).
             ScanConflictMarkerHeader(tList)
 
             ' Now add the newlines as the next trivia.
@@ -2677,11 +2677,6 @@ baddate:
         End Function
 
         Private Shared Function CheckFeatureAvailability(parseOptions As VisualBasicParseOptions, feature As Feature) As Boolean
-            Dim featureFlag = feature.GetFeatureFlag()
-            If featureFlag IsNot Nothing Then
-                Return parseOptions.Features.ContainsKey(featureFlag)
-            End If
-
             Dim required = feature.GetLanguageVersion()
             Dim actual = parseOptions.LanguageVersion
             Return CInt(required) <= CInt(actual)

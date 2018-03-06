@@ -76,13 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 GetDelegateArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
-                var resolution = binder.ResolveMethodGroup(source, analyzedArguments, isMethodGroupConversion: true, inferWithDynamic: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                var resolution = binder.ResolveMethodGroup(source, analyzedArguments, isMethodGroupConversion: true, ref useSiteDiagnostics, inferWithDynamic: true);
                 analyzedArguments.Free();
                 return resolution;
             }
             else
             {
-                return binder.ResolveMethodGroup(source, null, isMethodGroupConversion: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                return binder.ResolveMethodGroup(source, analyzedArguments: null, isMethodGroupConversion: true, ref useSiteDiagnostics);
             }
         }
 
@@ -261,8 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            //cannot capture span-like types.
-            if (!method.IsStatic && methodGroup.Receiver.Type.IsByRefLikeType)
+            //cannot capture stack-only types.
+            if (!method.IsStatic && methodGroup.Receiver?.Type?.IsRestrictedType() == true)
             {
                 return Conversion.NoConversion;
             }

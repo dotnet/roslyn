@@ -26,31 +26,26 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         ICommandHandler<TypeCharCommandArgs>,
         ICommandHandler<InvokeSignatureHelpCommandArgs>
     {
-        private readonly IInlineRenameService _inlineRenameService;
         private readonly IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> _signatureHelpPresenter;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
         private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders;
 
         [ImportingConstructor]
         public SignatureHelpCommandHandler(
-            IInlineRenameService inlineRenameService,
             [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters)
-            : this(inlineRenameService,
-                   ExtensionOrderer.Order(signatureHelpPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
+            : this(ExtensionOrderer.Order(signatureHelpPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
                    signatureHelpProviders, asyncListeners)
         {
         }
 
         // For testing purposes.
         public SignatureHelpCommandHandler(
-            IInlineRenameService inlineRenameService,
             IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> signatureHelpPresenter,
             [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
-            _inlineRenameService = inlineRenameService;
             _signatureHelpProviders = ExtensionOrderer.Order(signatureHelpProviders);
             _asyncListeners = asyncListeners;
             _signatureHelpPresenter = signatureHelpPresenter;

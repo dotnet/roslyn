@@ -52,14 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If nothing has been substituted for a give type parameters,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
-        public ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
-        {
-            get
-            {
-                return TypeArgumentsNoUseSiteDiagnostics;
-            }
-        }
-
         internal abstract ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics { get; }
 
         internal ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -765,15 +757,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if ((object)ConstructedFrom != this)
+            if ((object)ConstructedFrom != this &&
+                this.TypeArgumentsNoUseSiteDiagnostics.Any(arg => arg.ContainsNullableReferenceTypes()))
             {
-                foreach (TypeSymbolWithAnnotations arg in this.TypeArguments)
-                {
-                    if (arg.ContainsNullableReferenceTypes())
-                    {
-                        return true;
-                    }
-                }
+                return true;
             }
 
             return false;
@@ -783,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             ContainingType?.AddNullableTransforms(transforms);
 
-            foreach (TypeSymbolWithAnnotations arg in this.TypeArguments)
+            foreach (TypeSymbolWithAnnotations arg in this.TypeArgumentsNoUseSiteDiagnostics)
             {
                 arg.AddNullableTransforms(transforms);
             }
@@ -926,7 +913,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsErrorType = type => (object)type != null && type.IsErrorType();
 
-        internal NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> typeArguments, bool unbound)
+        private NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> typeArguments, bool unbound)
         {
             ImmutableArray<TypeSymbolWithAnnotations> modifiedArguments;
 
@@ -1081,6 +1068,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return count;
         }
 
+        internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments()
+        {
+            // PROTOTYPE(NullableReferenceTypes): Set IsNullable=null always, even in C#8,
+            // and set TypeSymbolWithAnnotations.WithCustomModifiers.Is() => false.
+            return this.TypeParameters.SelectAsArray((typeParameter, module) => TypeSymbolWithAnnotations.Create(module, typeParameter), ContainingModule);
+        }
+
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in
@@ -1229,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
         /// <summary>
-        /// True if the type itself is excluded from code covarage instrumentation.
+        /// True if the type itself is excluded from code coverage instrumentation.
         /// True for source types marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         /// </summary>
         internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }

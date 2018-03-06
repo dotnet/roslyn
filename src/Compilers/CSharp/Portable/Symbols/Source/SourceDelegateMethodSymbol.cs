@@ -42,15 +42,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DelegateDeclarationSyntax syntax,
             DiagnosticBag diagnostics)
         {
+            var compilation = delegateType.DeclaringCompilation;
             Binder binder = delegateType.GetBinder(syntax.ParameterList);
             RefKind refKind;
             TypeSyntax returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
             var returnType = binder.BindType(returnTypeSyntax, diagnostics);
 
             // reuse types to avoid reporting duplicate errors if missing:
-            var voidType = binder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
-            var objectType = binder.GetSpecialType(SpecialType.System_Object, diagnostics, syntax);
-            var intPtrType = binder.GetSpecialType(SpecialType.System_IntPtr, diagnostics, syntax);
+            var voidType = TypeSymbolWithAnnotations.Create(compilation, binder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
+            // PROTOTYPE(NullableReferenceTypes): Should the 'object' parameter be considered nullable?
+            var objectType = TypeSymbolWithAnnotations.Create(compilation, binder.GetSpecialType(SpecialType.System_Object, diagnostics, syntax));
+            var intPtrType = TypeSymbolWithAnnotations.Create(compilation, binder.GetSpecialType(SpecialType.System_IntPtr, diagnostics, syntax));
 
             if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
@@ -72,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // WinRT delegates don't have Begin/EndInvoke methods
                 !delegateType.IsCompilationOutputWinMdObj())
             {
-                var iAsyncResultType = binder.GetSpecialType(SpecialType.System_IAsyncResult, diagnostics, syntax);
-                var asyncCallbackType = binder.GetSpecialType(SpecialType.System_AsyncCallback, diagnostics, syntax);
+                var iAsyncResultType = TypeSymbolWithAnnotations.Create(compilation, binder.GetSpecialType(SpecialType.System_IAsyncResult, diagnostics, syntax));
+                var asyncCallbackType = TypeSymbolWithAnnotations.Create(compilation, binder.GetSpecialType(SpecialType.System_AsyncCallback, diagnostics, syntax));
 
                 // (3) BeginInvoke
                 symbols.Add(new BeginInvokeMethod(invoke, iAsyncResultType, objectType, asyncCallbackType, syntax));
@@ -194,15 +196,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             internal Constructor(
                 SourceMemberContainerTypeSymbol delegateType,
-                TypeSymbol voidType,
-                TypeSymbol objectType,
-                TypeSymbol intPtrType,
+                TypeSymbolWithAnnotations voidType,
+                TypeSymbolWithAnnotations objectType,
+                TypeSymbolWithAnnotations intPtrType,
                 DelegateDeclarationSyntax syntax)
-                : base(delegateType, TypeSymbolWithAnnotations.Create(voidType), syntax, MethodKind.Constructor, DeclarationModifiers.Public)
+                : base(delegateType, voidType, syntax, MethodKind.Constructor, DeclarationModifiers.Public)
             {
                 InitializeParameters(ImmutableArray.Create<ParameterSymbol>(
-                    SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(objectType), 0, RefKind.None, "object"),
-                    SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(intPtrType), 1, RefKind.None, "method")));
+                    SynthesizedParameterSymbol.Create(this, objectType, 0, RefKind.None, "object"),
+                    SynthesizedParameterSymbol.Create(this, intPtrType, 1, RefKind.None, "method")));
             }
 
             public override string Name
@@ -333,11 +335,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             internal BeginInvokeMethod(
                 InvokeMethod invoke,
-                TypeSymbol iAsyncResultType,
-                TypeSymbol objectType,
-                TypeSymbol asyncCallbackType,
+                TypeSymbolWithAnnotations iAsyncResultType,
+                TypeSymbolWithAnnotations objectType,
+                TypeSymbolWithAnnotations asyncCallbackType,
                 DelegateDeclarationSyntax syntax)
-                : base((SourceNamedTypeSymbol)invoke.ContainingType, TypeSymbolWithAnnotations.Create(iAsyncResultType), syntax, MethodKind.Ordinary, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
+                : base((SourceNamedTypeSymbol)invoke.ContainingType, iAsyncResultType, syntax, MethodKind.Ordinary, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
                 var parameters = ArrayBuilder<ParameterSymbol>.GetInstance();
                 foreach (SourceParameterSymbol p in invoke.Parameters)
@@ -347,8 +349,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 int paramCount = invoke.ParameterCount;
-                parameters.Add(SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(asyncCallbackType), paramCount, RefKind.None, GetUniqueParameterName(parameters, "callback")));
-                parameters.Add(SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(objectType), paramCount + 1, RefKind.None, GetUniqueParameterName(parameters, "object")));
+                parameters.Add(SynthesizedParameterSymbol.Create(this, asyncCallbackType, paramCount, RefKind.None, GetUniqueParameterName(parameters, "callback")));
+                parameters.Add(SynthesizedParameterSymbol.Create(this, objectType, paramCount + 1, RefKind.None, GetUniqueParameterName(parameters, "object")));
 
                 InitializeParameters(parameters.ToImmutableAndFree());
             }
@@ -378,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal EndInvokeMethod(
                 InvokeMethod invoke,
-                TypeSymbol iAsyncResultType,
+                TypeSymbolWithAnnotations iAsyncResultType,
                 DelegateDeclarationSyntax syntax)
                 : base((SourceNamedTypeSymbol)invoke.ContainingType, invoke.ReturnType, syntax, MethodKind.Ordinary, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
@@ -396,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                parameters.Add(SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(iAsyncResultType), ordinal++, RefKind.None, GetUniqueParameterName(parameters, "result")));
+                parameters.Add(SynthesizedParameterSymbol.Create(this, iAsyncResultType, ordinal++, RefKind.None, GetUniqueParameterName(parameters, "result")));
                 InitializeParameters(parameters.ToImmutableAndFree());
             }
 

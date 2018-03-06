@@ -215,11 +215,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, _handle, moduleSymbol);
 
                 TypeSymbolWithAnnotations type = TypeSymbolWithAnnotations.Create(typeSymbol, customModifiersArray);
-
-                if (moduleSymbol.UtilizesNullableReferenceTypes)
-                {
-                    type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol);
-                }
+                // PROTOTYPE(NullableReferenceTypes): Avoid setting IsNullable in TypeSymbolWithAnnotations.Create
+                // only to undo that in TransformOrEraseNullability. Same comment applies to other uses of TransformOrEraseNullability.
+                type = NullableTypeDecoder.TransformOrEraseNullability(type, _handle, moduleSymbol);
 
                 _lazyIsVolatile = isVolatile;
 

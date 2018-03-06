@@ -49,5 +49,10 @@ namespace Microsoft.CodeAnalysis
         ///   b) not setting this option will produce "int[][,]".
         /// </summary>
         ReverseArrayRankSpecifiers = 1 << 5,
+
+        /// <summary>
+        /// Append '!' to non-nullable reference types.
+        /// </summary>
+        IncludeNonNullableTypeModifier = 1 << 6,
     }
 }

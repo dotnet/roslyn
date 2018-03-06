@@ -751,9 +751,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return "";
         }
 
+        private static readonly SymbolDisplayFormat s_debuggerDisplayFormat =
+            SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+
         internal string GetDebuggerDisplay()
         {
-            return $"{this.Kind} {this.ToDisplayString(SymbolDisplayFormat.TestFormat)}";
+            return $"{this.Kind} {this.ToDisplayString(s_debuggerDisplayFormat)}";
         }
 
         internal virtual void AddDeclarationDiagnostics(DiagnosticBag diagnostics)

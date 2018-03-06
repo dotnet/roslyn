@@ -82,14 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get
             {
                 // This is always the instance type, so the type arguments are the same as the type parameters.
-                if (Arity > 0)
-                {
-                    return this.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
-                }
-                else
-                {
-                    return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
-                }
+                return GetTypeParametersAsTypeArguments();
             }
         }
 

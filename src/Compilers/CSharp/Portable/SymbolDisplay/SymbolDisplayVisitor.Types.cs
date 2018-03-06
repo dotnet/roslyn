@@ -4,45 +4,49 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.SymbolDisplay;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class SymbolDisplayVisitor
     {
-        private void VisitTypeSymbolWithAnnotations(TypeSymbolWithAnnotations type)
+        private void VisitTypeSymbolWithAnnotations(TypeSymbolWithAnnotations type, AbstractSymbolDisplayVisitor visitorOpt = null)
         {
-            Debug.Assert(this.NotFirstVisitor is SymbolDisplayVisitor);
-
-            if (type.IsNullable == true)
+            var visitor = (SymbolDisplayVisitor)(visitorOpt ?? this.NotFirstVisitor);
+            var typeSymbol = type.TypeSymbol;
+            bool? isNullable = type.IsNullable;
+            if (typeSymbol.TypeKind == TypeKind.Array && isNullable.HasValue)
             {
-                var typeSymbol = type.TypeSymbol;
-
-                if (typeSymbol.TypeKind == TypeKind.Array)
-                {
-                    ((SymbolDisplayVisitor)this.NotFirstVisitor).VisitArrayType((IArrayTypeSymbol)typeSymbol, isNullable: true);
-                }
-                else 
-                {
-                    typeSymbol.Accept(this.NotFirstVisitor);
-                    if (!typeSymbol.IsNullableType())
-                    {
-                        AddPunctuation(SyntaxKind.QuestionToken);
-                    }
-                }
+                visitor.VisitArrayType((IArrayTypeSymbol)typeSymbol, isNullable: isNullable);
             }
             else
             {
-                type.TypeSymbol.Accept(this.NotFirstVisitor);
+                typeSymbol.Accept(visitor);
+                switch (isNullable)
+                {
+                    case true:
+                        if (!typeSymbol.IsNullableType())
+                        {
+                            AddPunctuation(SyntaxKind.QuestionToken);
+                        }
+                        break;
+                    case false:
+                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
+                        {
+                            AddPunctuation(SyntaxKind.ExclamationToken);
+                        }
+                        break;
+                }
             }
         }
 
         public override void VisitArrayType(IArrayTypeSymbol symbol)
         {
-            VisitArrayType(symbol, isNullable: false);
+            VisitArrayType(symbol, isNullable: null);
         }
 
-        private void VisitArrayType(IArrayTypeSymbol symbol, bool isNullable)
+        private void VisitArrayType(IArrayTypeSymbol symbol, bool? isNullable)
         {
             if (TryAddAlias(symbol, builder))
             {
@@ -94,12 +98,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AddArrayRank(arrayType);
 
-                if (isNullable)
+                switch (isNullable)
                 {
-                    AddPunctuation(SyntaxKind.QuestionToken);
+                    case true:
+                        AddPunctuation(SyntaxKind.QuestionToken);
+                        break;
+                    case false:
+                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
+                        {
+                            AddPunctuation(SyntaxKind.ExclamationToken);
+                        }
+                        break;
                 }
 
-                isNullable = (arrayType as ArrayTypeSymbol)?.ElementType.IsNullable == true;
+                isNullable = (arrayType as ArrayTypeSymbol)?.ElementType.IsNullable;
                 arrayType = arrayType.ElementType as IArrayTypeSymbol;
             }
         }
@@ -615,33 +627,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var kindKeyword = GetKindKeyword(symbol.TypeKind);
-                    if (kindKeyword != SyntaxKind.None)
+                    switch (symbol.TypeKind)
                     {
-                        AddKeyword(kindKeyword);
-                        AddSpace();
+                        case TypeKind.Module:
+                        case TypeKind.Class:
+                            AddKeyword(SyntaxKind.ClassKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Enum:
+                            AddKeyword(SyntaxKind.EnumKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Delegate:
+                            AddKeyword(SyntaxKind.DelegateKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Interface:
+                            AddKeyword(SyntaxKind.InterfaceKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Struct:
+                            if (symbol is NamedTypeSymbol csharpType)
+                            {
+                                if (csharpType.IsReadOnly)
+                                {
+                                    AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                                    AddSpace();
+                                }
+
+                                if (csharpType.IsByRefLikeType)
+                                {
+                                    AddKeyword(SyntaxKind.RefKeyword);
+                                    AddSpace();
+                                }
+                            }
+
+                            AddKeyword(SyntaxKind.StructKeyword);
+                            AddSpace();
+                            break;
                     }
                 }
-            }
-        }
-
-        private static SyntaxKind GetKindKeyword(TypeKind typeKind)
-        {
-            switch (typeKind)
-            {
-                case TypeKind.Module:
-                case TypeKind.Class:
-                    return SyntaxKind.ClassKeyword;
-                case TypeKind.Enum:
-                    return SyntaxKind.EnumKeyword;
-                case TypeKind.Delegate:
-                    return SyntaxKind.DelegateKeyword;
-                case TypeKind.Interface:
-                    return SyntaxKind.InterfaceKeyword;
-                case TypeKind.Struct:
-                    return SyntaxKind.StructKeyword;
-                default:
-                    return SyntaxKind.None;
             }
         }
 
@@ -677,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 typeArguments = ((INamedTypeSymbol)owner).TypeArguments;
-                typeArgumentsWithAnnotations = (owner as NamedTypeSymbol)?.TypeArguments;
+                typeArgumentsWithAnnotations = (owner as NamedTypeSymbol)?.TypeArgumentsNoUseSiteDiagnostics;
             }
 
             if (typeArguments.Length > 0 && format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
@@ -696,20 +725,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     first = false;
 
+                    AbstractSymbolDisplayVisitor visitor;
+
                     if (typeArg.Kind == SymbolKind.TypeParameter)
                     {
                         var typeParam = (ITypeParameterSymbol)typeArg;
 
                         AddTypeParameterVarianceIfRequired(typeParam);
-                    }
 
-                    if (typeArgumentsWithAnnotations == null)
-                    {
-                        typeArg.Accept(this.NotFirstVisitor);
+                        visitor = this.NotFirstVisitor;
                     }
                     else
                     {
-                        VisitTypeSymbolWithAnnotations(typeArgumentsWithAnnotations.GetValueOrDefault()[i]);
+                        visitor = this.NotFirstVisitorNamespaceOrType;
+                    }
+
+                    if ((object)typeArgumentsWithAnnotations == null)
+                    {
+                        typeArg.Accept(visitor);
+                    }
+                    else
+                    {
+                        VisitTypeSymbolWithAnnotations(typeArgumentsWithAnnotations.GetValueOrDefault()[i], visitor);
                     }
 
                     if (!modifiers.IsDefault)

@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis
         /// For the purposes of the intersection, any bits beyond the current length will be treated as zeroes.
         /// Return true if any changes were made to the bits of this bit vector.
         /// </summary>
-        public bool IntersectWith(BitVector other)
+        public bool IntersectWith(in BitVector other)
         {
             bool anyChanged = false;
             int otherLength = other._bits.Length;
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>
         /// True if any bits were set as a result of the union.
         /// </returns>
-        public bool UnionWith(BitVector other)
+        public bool UnionWith(in BitVector other)
         {
             bool anyChanged = false;
 

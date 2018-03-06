@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
         private bool _needsGeneratedIsReadOnlyAttribute_Value;
-        private bool _needsGeneratedNullableAttribute_Value;
 
         private bool _needsGeneratedAttributes_IsFrozen;
 
@@ -76,7 +75,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get
             {
                 _needsGeneratedAttributes_IsFrozen = true;
-                return Compilation.NeedsGeneratedNullableAttribute || _needsGeneratedNullableAttribute_Value;
+                if (Compilation.NeedsGeneratedNullableAttribute)
+                {
+                    return true;
+                }
+                // PROTOTYPE(NullableReferenceTypes): The call to `SourceModule.UtilizesNullableReferenceTypes`
+                // seems incorrect. `Compilation.NeedsGeneratedNullableAttribute` should be sufficient.
+                if (SourceModule.UtilizesNullableReferenceTypes)
+                {
+                    // Don't report any errors. They should be reported during binding.
+                    return Compilation.CheckIfNullableAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null);
+                }
+                return false;
             }
         }
 
@@ -1508,10 +1518,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return SynthesizeNullableAttribute(constructor, arguments);
         }
 
-        protected virtual SynthesizedAttributeData SynthesizeNullableAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
+        internal virtual SynthesizedAttributeData SynthesizeNullableAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
-            return Compilation.TrySynthesizeAttribute(member, arguments);
+            // PROTOTYPE(NullableReferenceTypes): Should not be optional.
+            return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
         }
 
         protected virtual SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
@@ -1545,17 +1556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal void EnsureNullableAttributeExists()
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
-
-            if (_needsGeneratedNullableAttribute_Value || Compilation.NeedsGeneratedNullableAttribute)
-            {
-                return;
-            }
-
-            // Don't report any errors. They should be reported during binding.
-            if (Compilation.CheckIfNullableAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
-            {
-                _needsGeneratedNullableAttribute_Value = true;
-            }
+            // PROTOTYPE(NullableReferenceTypes): Remove method if not needed.
         }
     }
 }

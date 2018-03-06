@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class SemanticAnlyzerTests : CompilingTestBase
+    public partial class SemanticAnalyzerTests : CompilingTestBase
     {
         [Fact]
         public void TestMethodGroupConversionError()

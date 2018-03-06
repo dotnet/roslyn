@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
             {
-                get { return this.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations); }
+                get { return GetTypeParametersAsTypeArguments(); }
             }
 
             public override ImmutableArray<Symbol> GetMembers(string name)

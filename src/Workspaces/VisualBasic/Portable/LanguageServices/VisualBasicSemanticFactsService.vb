@@ -118,6 +118,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TryCast(node, ExpressionSyntax).IsInRefContext(semanticModel, cancellationToken)
         End Function
 
+        Public Function IsInInContext(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInInContext
+            Return TryCast(node, ExpressionSyntax).IsInInContext(semanticModel, cancellationToken)
+        End Function
+
         Public Function CanReplaceWithRValue(semanticModel As SemanticModel, expression As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.CanReplaceWithRValue
             Return TryCast(expression, ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken)
         End Function
@@ -247,6 +251,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return Nothing
+        End Function
+
+        Public Function GetDeconstructionAssignmentMethods(model As SemanticModel, deconstruction As SyntaxNode) As ImmutableArray(Of IMethodSymbol) Implements ISemanticFactsService.GetDeconstructionAssignmentMethods
+            Return ImmutableArray(Of IMethodSymbol).Empty
+        End Function
+
+        Public Function GetDeconstructionForEachMethods(model As SemanticModel, deconstruction As SyntaxNode) As ImmutableArray(Of IMethodSymbol) Implements ISemanticFactsService.GetDeconstructionForEachMethods
+            Return ImmutableArray(Of IMethodSymbol).Empty
         End Function
 
         Public Function IsAssignableTo(fromSymbol As ITypeSymbol, toSymbol As ITypeSymbol, compilation As Compilation) As Boolean Implements ISemanticFactsService.IsAssignableTo

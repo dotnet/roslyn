@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -57,7 +59,7 @@ public class Test
             foreach (var x in new int*[] { y }) { }
         }
     }
-}", options: TestOptions.UnsafeReleaseDll).VerifyIL("Test.Main", @"
+}", options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  4
@@ -300,6 +302,512 @@ public class Test
   IL_002d:  ret
 }";
             CompileAndVerify(text).VerifyIL("Test.Main", expectedIL);
+        }
+
+        [Fact]
+        public void TestSpan()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+class Test
+{
+    public static void Main()
+    {       
+        var sp = new Span<int>(new[] {1, 2, 3});
+        foreach(var i in sp)
+        {
+            Console.Write(i);
+        }
+    }
+}
+
+", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "123").VerifyIL("Test.Main", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (System.Span<int> V_0,
+                int V_1)
+  IL_0000:  ldc.i4.3
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  newobj     ""System.Span<int>..ctor(int[])""
+  IL_0016:  stloc.0
+  IL_0017:  ldc.i4.0
+  IL_0018:  stloc.1
+  IL_0019:  br.s       IL_002d
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  ldloc.1
+  IL_001e:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0023:  ldind.i4
+  IL_0024:  call       ""void System.Console.Write(int)""
+  IL_0029:  ldloc.1
+  IL_002a:  ldc.i4.1
+  IL_002b:  add
+  IL_002c:  stloc.1
+  IL_002d:  ldloc.1
+  IL_002e:  ldloca.s   V_0
+  IL_0030:  call       ""int System.Span<int>.Length.get""
+  IL_0035:  blt.s      IL_001b
+  IL_0037:  ret
+}");
+        }
+
+        [Fact]
+        public void TestSpanSideeffectingLoopBody()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+class Test
+{
+    public static void Main()
+    {       
+        var sp = new Span<int>(new[] {1, 2, 3});
+        foreach(var i in sp)
+        {
+            Console.Write(i);
+            sp = default;
+        }
+
+        Console.Write(sp.Length);
+    }
+}
+
+", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "1230").VerifyIL("Test.Main", @"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (System.Span<int> V_0, //sp
+                System.Span<int> V_1,
+                int V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.3
+  IL_0003:  newarr     ""int""
+  IL_0008:  dup
+  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0013:  call       ""System.Span<int>..ctor(int[])""
+  IL_0018:  ldloc.0
+  IL_0019:  stloc.1
+  IL_001a:  ldc.i4.0
+  IL_001b:  stloc.2
+  IL_001c:  br.s       IL_0038
+  IL_001e:  ldloca.s   V_1
+  IL_0020:  ldloc.2
+  IL_0021:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0026:  ldind.i4
+  IL_0027:  call       ""void System.Console.Write(int)""
+  IL_002c:  ldloca.s   V_0
+  IL_002e:  initobj    ""System.Span<int>""
+  IL_0034:  ldloc.2
+  IL_0035:  ldc.i4.1
+  IL_0036:  add
+  IL_0037:  stloc.2
+  IL_0038:  ldloc.2
+  IL_0039:  ldloca.s   V_1
+  IL_003b:  call       ""int System.Span<int>.Length.get""
+  IL_0040:  blt.s      IL_001e
+  IL_0042:  ldloca.s   V_0
+  IL_0044:  call       ""int System.Span<int>.Length.get""
+  IL_0049:  call       ""void System.Console.Write(int)""
+  IL_004e:  ret
+}");
+        }
+
+        [Fact]
+        public void TestReadOnlySpan()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+class Test
+{
+    public static void Main()
+    {       
+        var sp = new ReadOnlySpan<int>(new[] {1, 2, 3});
+        foreach(var i in sp)
+        {
+            Console.Write(i);
+        }
+    }
+}
+
+", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "123").VerifyIL("Test.Main", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (System.ReadOnlySpan<int> V_0,
+                int V_1)
+  IL_0000:  ldc.i4.3
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  newobj     ""System.ReadOnlySpan<int>..ctor(int[])""
+  IL_0016:  stloc.0
+  IL_0017:  ldc.i4.0
+  IL_0018:  stloc.1
+  IL_0019:  br.s       IL_002d
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  ldloc.1
+  IL_001e:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
+  IL_0023:  ldind.i4
+  IL_0024:  call       ""void System.Console.Write(int)""
+  IL_0029:  ldloc.1
+  IL_002a:  ldc.i4.1
+  IL_002b:  add
+  IL_002c:  stloc.1
+  IL_002d:  ldloc.1
+  IL_002e:  ldloca.s   V_0
+  IL_0030:  call       ""int System.ReadOnlySpan<int>.Length.get""
+  IL_0035:  blt.s      IL_001b
+  IL_0037:  ret
+}");
+        }
+
+        [Fact]
+        public void TestSpanNoIndexer()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+class Test
+{
+    public static void Main()
+    {       
+        var sp = new Span<int>(new[] {1, 2, 3});
+        foreach(var i in sp)
+        {
+            Console.Write(i);
+        }
+    }
+}
+", TestOptions.ReleaseExe);
+
+            comp.MakeMemberMissing(WellKnownMember.System_Span_T__get_Item);
+
+            CompileAndVerify(comp, expectedOutput: "123").VerifyIL("Test.Main", @"
+{
+  // Code size       57 (0x39)
+  .maxstack  4
+  .locals init (System.Span<int> V_0, //sp
+                System.Span<int>.Enumerator V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.3
+  IL_0003:  newarr     ""int""
+  IL_0008:  dup
+  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0013:  call       ""System.Span<int>..ctor(int[])""
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  call       ""System.Span<int>.Enumerator System.Span<int>.GetEnumerator()""
+  IL_001f:  stloc.1
+  IL_0020:  br.s       IL_002f
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  call       ""ref int System.Span<int>.Enumerator.Current.get""
+  IL_0029:  ldind.i4
+  IL_002a:  call       ""void System.Console.Write(int)""
+  IL_002f:  ldloca.s   V_1
+  IL_0031:  call       ""bool System.Span<int>.Enumerator.MoveNext()""
+  IL_0036:  brtrue.s   IL_0022
+  IL_0038:  ret
+}");
+        }
+
+        [Fact]
+        public void TestSpanValIndexer()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+class Test
+{
+    public static void Main()
+    {       
+        var sp = new ReadOnlySpan<int>(new[] {1, 2, 3});
+        foreach(var i in sp)
+        {
+            Console.Write(i);
+        }
+    }
+}
+
+
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] arr;
+
+        public T this[int i] => arr[i];
+        public int Length { get; }
+
+        public ReadOnlySpan(T[] arr)
+        {
+            this.arr = arr;
+            this.Length = arr.Length;
+        }
+
+        public Enumerator GetEnumerator() => new Enumerator(this);
+
+        public ref struct Enumerator
+        {
+            private readonly ReadOnlySpan<T> _span;
+            private int _index;
+
+            internal Enumerator(ReadOnlySpan<T> span)
+            {
+                _span = span;
+                _index = -1;
+            }
+
+            public bool MoveNext()
+            {
+                int index = _index + 1;
+                if (index < _span.Length)
+                {
+                    _index = index;
+                    return true;
+                }
+
+                return false;
+            }
+
+            public T Current
+            {
+                get => _span[_index];
+            }
+        }
+    }
+}
+
+", references: new[] { MscorlibRef_v4_0_30316_17626 }, TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Fails).VerifyIL("Test.Main", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  4
+  .locals init (System.ReadOnlySpan<int> V_0, //sp
+                System.ReadOnlySpan<int>.Enumerator V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.3
+  IL_0003:  newarr     ""int""
+  IL_0008:  dup
+  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0013:  call       ""System.ReadOnlySpan<int>..ctor(int[])""
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  call       ""System.ReadOnlySpan<int>.Enumerator System.ReadOnlySpan<int>.GetEnumerator()""
+  IL_001f:  stloc.1
+  IL_0020:  br.s       IL_002e
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  call       ""int System.ReadOnlySpan<int>.Enumerator.Current.get""
+  IL_0029:  call       ""void System.Console.Write(int)""
+  IL_002e:  ldloca.s   V_1
+  IL_0030:  call       ""bool System.ReadOnlySpan<int>.Enumerator.MoveNext()""
+  IL_0035:  brtrue.s   IL_0022
+  IL_0037:  ret
+}");
+        }
+
+        [Fact]
+        public void TestSpanConvert()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+class Test
+{
+    public static void Main()
+    {       
+        var sp = new Span<int>(new[] {1, 2, 3});
+        foreach(byte i in sp)
+        {
+            Console.Write(i);
+        }
+    }
+}
+
+", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "123").VerifyIL("Test.Main", @"
+{
+  // Code size       57 (0x39)
+  .maxstack  3
+  .locals init (System.Span<int> V_0,
+                int V_1)
+  IL_0000:  ldc.i4.3
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  newobj     ""System.Span<int>..ctor(int[])""
+  IL_0016:  stloc.0
+  IL_0017:  ldc.i4.0
+  IL_0018:  stloc.1
+  IL_0019:  br.s       IL_002e
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  ldloc.1
+  IL_001e:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0023:  ldind.i4
+  IL_0024:  conv.u1
+  IL_0025:  call       ""void System.Console.Write(int)""
+  IL_002a:  ldloc.1
+  IL_002b:  ldc.i4.1
+  IL_002c:  add
+  IL_002d:  stloc.1
+  IL_002e:  ldloc.1
+  IL_002f:  ldloca.s   V_0
+  IL_0031:  call       ""int System.Span<int>.Length.get""
+  IL_0036:  blt.s      IL_001b
+  IL_0038:  ret
+}");
+        }
+
+        [Fact]
+        public void TestSpanDeconstruct()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+class Test
+{
+        static void Main(string[] args)
+        {
+            var sp = new Span<(int, int)>(new[] {(1, 2), (3, 4)});
+            foreach(var (i, j) in sp)
+            {
+                Console.Write(i);
+                Console.Write(j);
+            }
+        }
+}
+
+", TestOptions.ReleaseExe);
+
+            comp = comp.WithReferences(comp.References.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef }));
+
+            CompileAndVerify(comp, expectedOutput: "1234").VerifyIL("Test.Main", @"
+{
+  // Code size       95 (0x5f)
+  .maxstack  5
+  .locals init (System.Span<(int, int)> V_0,
+                int V_1,
+                int V_2) //i
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""System.ValueTuple<int, int>""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  ldc.i4.2
+  IL_000a:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_000f:  stelem     ""System.ValueTuple<int, int>""
+  IL_0014:  dup
+  IL_0015:  ldc.i4.1
+  IL_0016:  ldc.i4.3
+  IL_0017:  ldc.i4.4
+  IL_0018:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_001d:  stelem     ""System.ValueTuple<int, int>""
+  IL_0022:  newobj     ""System.Span<(int, int)>..ctor((int, int)[])""
+  IL_0027:  stloc.0
+  IL_0028:  ldc.i4.0
+  IL_0029:  stloc.1
+  IL_002a:  br.s       IL_0054
+  IL_002c:  ldloca.s   V_0
+  IL_002e:  ldloc.1
+  IL_002f:  call       ""ref (int, int) System.Span<(int, int)>.this[int].get""
+  IL_0034:  ldobj      ""System.ValueTuple<int, int>""
+  IL_0039:  dup
+  IL_003a:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_003f:  stloc.2
+  IL_0040:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0045:  ldloc.2
+  IL_0046:  call       ""void System.Console.Write(int)""
+  IL_004b:  call       ""void System.Console.Write(int)""
+  IL_0050:  ldloc.1
+  IL_0051:  ldc.i4.1
+  IL_0052:  add
+  IL_0053:  stloc.1
+  IL_0054:  ldloc.1
+  IL_0055:  ldloca.s   V_0
+  IL_0057:  call       ""int System.Span<(int, int)>.Length.get""
+  IL_005c:  blt.s      IL_002c
+  IL_005e:  ret
+}");
+        }
+
+        [Fact]
+        public void TestSpanConvertDebug()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+class Test
+{
+    public static void Main()
+    {       
+        var sp = new Span<int>(new[] {1, 2, 3});
+        foreach(byte i in sp)
+        {
+            Console.Write(i);
+        }
+    }
+}
+
+", TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: "123").VerifyIL("Test.Main", @"
+{
+  // Code size       67 (0x43)
+  .maxstack  4
+  .locals init (System.Span<int> V_0, //sp
+                System.Span<int> V_1,
+                int V_2,
+                byte V_3) //i
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.3
+  IL_0004:  newarr     ""int""
+  IL_0009:  dup
+  IL_000a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_000f:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0014:  call       ""System.Span<int>..ctor(int[])""
+  IL_0019:  nop
+  IL_001a:  ldloc.0
+  IL_001b:  stloc.1
+  IL_001c:  ldc.i4.0
+  IL_001d:  stloc.2
+  IL_001e:  br.s       IL_0038
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  ldloc.2
+  IL_0023:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0028:  ldind.i4
+  IL_0029:  conv.u1
+  IL_002a:  stloc.3
+  IL_002b:  nop
+  IL_002c:  ldloc.3
+  IL_002d:  call       ""void System.Console.Write(int)""
+  IL_0032:  nop
+  IL_0033:  nop
+  IL_0034:  ldloc.2
+  IL_0035:  ldc.i4.1
+  IL_0036:  add
+  IL_0037:  stloc.2
+  IL_0038:  ldloc.2
+  IL_0039:  ldloca.s   V_1
+  IL_003b:  call       ""int System.Span<int>.Length.get""
+  IL_0040:  blt.s      IL_0020
+  IL_0042:  ret
+}");
         }
 
         // Traveled Multi-dimensional jagged arrays 
