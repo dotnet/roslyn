@@ -5,10 +5,8 @@
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <PackageId>Microsoft.CodeAnalysis.Debugging</PackageId>
     <RoslynProjectType>SourcePackage</RoslynProjectType>
-    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Collections" Version="$(SystemCollectionsVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />

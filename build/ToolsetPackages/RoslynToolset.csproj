@@ -5,7 +5,6 @@
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <NonShipping>true</NonShipping>
     <OutputType>Library</OutputType>
-    <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Net.Sdk" Version="$(MicrosoftNetSdkVersion)" ExcludeAssets="all" />
