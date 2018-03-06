@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
     public class PerformanceTrackerServiceTests
     {
         [Fact]
-        public void TestTooSmallSamples()
+        public void TestTooFewSamples()
         {
             // minimum sample is 100
             var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 80);
@@ -68,7 +68,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         private void VerifyBadAnalyzer(ExpensiveAnalyzerInfo analyzer, string analyzerId, double lof, double mean, double stddev)
         {
             Assert.True(analyzer.PIISafeAnalyzerId.IndexOf(analyzerId, StringComparison.OrdinalIgnoreCase) >= 0);
-            Assert.Equal(analyzer.LOF, lof, precision: 4);
+            Assert.Equal(analyzer.LocalOutlierFactor, lof, precision: 4);
             Assert.Equal(analyzer.Average, mean, precision: 4);
             Assert.Equal(analyzer.AdjustedStandardDeviation, stddev, precision: 4);
         }
@@ -108,9 +108,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             }
         }
 
-        private (Dictionary<string, double[]>, int) CreateMatrix(string testFile)
+        private (Dictionary<string, double[]> matrix, int dataCount) CreateMatrix(string testFile)
         {
-            var map = new Dictionary<string, double[]>();
+            var matrix = new Dictionary<string, double[]>();
 
             var lines = testFile.Split('\n');
             var expectedDataCount = GetExpectedDataCount(lines[0]);
@@ -140,10 +140,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     timeSpans[j] = result;
                 }
 
-                map[analyzerId] = timeSpans;
+                matrix[analyzerId] = timeSpans;
             }
 
-            return (map, expectedDataCount);
+            return (matrix, expectedDataCount);
         }
 
         private string GetAnalyzerId(string line)

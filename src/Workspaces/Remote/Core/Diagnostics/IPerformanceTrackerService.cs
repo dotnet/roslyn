@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         public readonly bool BuiltIn;
         public readonly string AnalyzerId;
         public readonly string AnalyzerIdHash;
-        public readonly double LOF;
+        public readonly double LocalOutlierFactor;
         public readonly double Average;
         public readonly double AdjustedStandardDeviation;
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             BuiltIn = builtIn;
             AnalyzerId = analyzerId;
             AnalyzerIdHash = analyzerId.GetHashCode().ToString();
-            LOF = lof_value;
+            LocalOutlierFactor = lof_value;
             Average = average;
             AdjustedStandardDeviation = stddev;
         }

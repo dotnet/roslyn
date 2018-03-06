@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             {
                                 // since it is telemetry, we hash analyzer name if it is not builtin analyzer
                                 m[nameof(badAnalyzerInfo.AnalyzerId)] = internalUser ? badAnalyzerInfo.AnalyzerId : badAnalyzerInfo.PIISafeAnalyzerId;
-                                m[nameof(badAnalyzerInfo.LOF)] = badAnalyzerInfo.LOF;
+                                m[nameof(badAnalyzerInfo.LocalOutlierFactor)] = badAnalyzerInfo.LocalOutlierFactor;
                                 m[nameof(badAnalyzerInfo.Average)] = badAnalyzerInfo.Average;
                                 m[nameof(badAnalyzerInfo.AdjustedStandardDeviation)] = badAnalyzerInfo.AdjustedStandardDeviation;
                             }));
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         // when we want to find out VS performance issue that could be caused by analyzer
                         if (newAnalyzer)
                         {
-                            _logger.TraceEvent(TraceEventType.Error, 0, $"[{badAnalyzerInfo.AnalyzerId} ({badAnalyzerInfo.AnalyzerIdHash})] LOF: {badAnalyzerInfo.LOF}, Avg: {badAnalyzerInfo.Average}, Stddev: {badAnalyzerInfo.AdjustedStandardDeviation}");
+                            _logger.TraceEvent(TraceEventType.Error, 0, $"[{badAnalyzerInfo.AnalyzerId} ({badAnalyzerInfo.AnalyzerIdHash})] LOF: {badAnalyzerInfo.LocalOutlierFactor}, Avg: {badAnalyzerInfo.Average}, Stddev: {badAnalyzerInfo.AdjustedStandardDeviation}");
                         }
                     }
                 }

@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     /// This queue hold onto raw performance data. this type itself is not thread safe. the one who uses this type
     /// should take care of that.
     /// </summary>
+    /// <threadsafety static="false" instance="false"/>
     internal class PerformanceQueue
     {
         // we need at least 100 samples for result to be stable
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         public int Count => _snapshots.Count;
 
-        public void Add(IEnumerable<(string, TimeSpan)> rawData, int unitCount)
+        public void Add(IEnumerable<(string analyzerId, TimeSpan timeSpan)> rawData, int unitCount)
         {
             if (_snapshots.Count < _maxSampleSize)
             {
@@ -121,19 +122,19 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             /// </summary>
             private readonly Dictionary<int, double> _performanceMap;
 
-            public Snapshot(IEnumerable<(string, TimeSpan)> snapshot, int unitCount) :
+            public Snapshot(IEnumerable<(string analyzerId, TimeSpan timeSpan)> snapshot, int unitCount) :
                 this(Convert(snapshot), unitCount)
             {
             }
 
-            public Snapshot(IEnumerable<(int, TimeSpan)> rawData, int unitCount)
+            public Snapshot(IEnumerable<(int assignedAnalyzerNumber, TimeSpan timeSpan)> rawData, int unitCount)
             {
                 _performanceMap = new Dictionary<int, double>();
 
                 Reset(_performanceMap, rawData, unitCount);
             }
 
-            public void Update(IEnumerable<(string, TimeSpan)> rawData, int unitCount)
+            public void Update(IEnumerable<(string analyzerId, TimeSpan timeSpan)> rawData, int unitCount)
             {
                 Reset(_performanceMap, Convert(rawData), unitCount);
             }
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
-            private static IEnumerable<(int, TimeSpan)> Convert(IEnumerable<(string analyzerId, TimeSpan timeSpan)> rawData)
+            private static IEnumerable<(int assignedAnalyzerNumber, TimeSpan timeSpan)> Convert(IEnumerable<(string analyzerId, TimeSpan timeSpan)> rawData)
             {
                 return rawData.Select(kv => (AnalyzerNumberAssigner.Instance.GetUniqueNumber(kv.analyzerId), kv.timeSpan));
             }

@@ -169,8 +169,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             public void Report(Dictionary<string, (double average, double stddev)> rawPerformanceData)
             {
-                // this is implementation of  https://en.wikipedia.org/wiki/Local_outlier_factor
-                // see the wiki for more information
+                // this is implementation of local outlier factor (LOF)
+                // see the wiki (https://en.wikipedia.org/wiki/Local_outlier_factor) for more information 
 
                 // convert string (analyzerId) to index
                 var analyzerIdIndex = GetAnalyzerIdIndex(rawPerformanceData.Keys);
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     lrdb += reachability.Value;
                 }
 
-                return lrdb / rowKNeighborsIndices.Count / lrda;
+                return (lrdb / rowKNeighborsIndices.Count) / lrda;
             }
 
             private double GetReachabilityDistance(
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     return null;
                 }
 
-                var distanceSum = 0D;
+                var distanceSum = 0.0;
                 foreach (var neighborIndex in rowKNeighborsIndices)
                 {
                     distanceSum += GetReachabilityDistance(allDistances, kDistances, analyzerIndex, neighborIndex);
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return kNeighborIndices;
             }
 
-            private List<double> GetKDistances(List<List<double>> allDistances, int k_value)
+            private List<double> GetKDistances(List<List<double>> allDistances, int kValue)
             {
                 var analyzerCount = allDistances.Count;
                 var kDistances = GetPooledListAndSetCapacity<double>(analyzerCount);
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
                     sortedRowDistance.Sort();
 
-                    kDistances[index] = sortedRowDistance[k_value];
+                    kDistances[index] = sortedRowDistance[kValue];
                 }
 
                 return kDistances;
@@ -360,10 +360,12 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             private List<(double normaliedAverage, double normalizedStddev)> GetNormalizedPerformanceMap(
                 List<string> analyzerIdIndex, Dictionary<string, (double average, double stddev)> rawPerformanceData)
             {
-                var (averageMin, averageMax) = (rawPerformanceData.Values.Select(kv => kv.average).Min(), rawPerformanceData.Values.Select(kv => kv.average).Max());
+                var averageMin = rawPerformanceData.Values.Select(kv => kv.average).Min();
+                var averageMax = rawPerformanceData.Values.Select(kv => kv.average).Max();
                 var averageDelta = averageMax - averageMin;
 
-                var (stddevMin, stddevMax) = (rawPerformanceData.Values.Select(kv => kv.stddev).Min(), rawPerformanceData.Values.Select(kv => kv.stddev).Max());
+                var stddevMin = rawPerformanceData.Values.Select(kv => kv.stddev).Min();
+                var stddevMax = rawPerformanceData.Values.Select(kv => kv.stddev).Max();
                 var stddevDelta = stddevMax - stddevMin;
 
                 // make sure delta is not 0
@@ -427,13 +429,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             public int Compare(ExpensiveAnalyzerInfo x, ExpensiveAnalyzerInfo y)
             {
-                if (x.LOF == y.LOF)
+                if (x.LocalOutlierFactor == y.LocalOutlierFactor)
                 {
                     return 0;
                 }
 
                 // want reversed order
-                if (x.LOF - y.LOF > 0)
+                if (x.LocalOutlierFactor - y.LocalOutlierFactor > 0)
                 {
                     return -1;
                 }
