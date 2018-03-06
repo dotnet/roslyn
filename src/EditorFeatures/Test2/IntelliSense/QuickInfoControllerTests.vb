@@ -10,10 +10,12 @@ Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Adornments
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Utilities
 Imports Moq
 Imports Roslyn.Utilities
+Imports Microsoft.VisualStudio.Imaging
 Imports QuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -75,23 +77,33 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.IsType(Of Adornments.ContainerElement)(intellisenseQuickInfo.Item)
             Dim container = CType(intellisenseQuickInfo.Item, Adornments.ContainerElement)
             Assert.Equal(3, container.Elements.Count())
+            Assert.Equal(ContainerElementStyle.Stacked, container.Style)
 
 
-            Assert.IsType(Of Adornments.ClassifiedTextElement)(container.Elements.ElementAt(0))
-            Dim element0 = CType(container.Elements.ElementAt(0), Adornments.ClassifiedTextElement)
-            Assert.Equal(18, element0.Runs.Count())
+            Assert.IsType(Of Adornments.ContainerElement)(container.Elements.ElementAt(0))
+            Dim firstRowContainer = CType(container.Elements.ElementAt(0), Adornments.ContainerElement)
+            Assert.Equal(2, firstRowContainer.Elements.Count())
+            Assert.Equal(ContainerElementStyle.Wrapped, firstRowContainer.Style)
 
-            Assert.IsType(Of Adornments.ClassifiedTextElement)(container.Elements.ElementAt(1))
-            Dim element1 = CType(container.Elements.ElementAt(1), Adornments.ClassifiedTextElement)
+            Assert.IsType(Of ImageElement)(firstRowContainer.Elements.ElementAt(0))
+            Dim element00 = CType(firstRowContainer.Elements.ElementAt(0), ImageElement)
+            Assert.Equal(KnownImageIds.ImageCatalogGuid, element00.ImageId.Guid)
+            Assert.Equal(KnownImageIds.MethodPublic, element00.ImageId.Id)
+
+            Assert.IsType(Of ClassifiedTextElement)(firstRowContainer.Elements.ElementAt(1))
+            Dim element01 = CType(firstRowContainer.Elements.ElementAt(1), ClassifiedTextElement)
+            Assert.Equal(18, element01.Runs.Count())
+
+            Assert.IsType(Of ClassifiedTextElement)(container.Elements.ElementAt(1))
+            Dim element1 = CType(container.Elements.ElementAt(1), ClassifiedTextElement)
             Assert.Equal(1, element1.Runs.Count())
 
-            Assert.IsType(Of Adornments.ClassifiedTextElement)(container.Elements.ElementAt(2))
-            Dim element2 = CType(container.Elements.ElementAt(2), Adornments.ClassifiedTextElement)
+            Assert.IsType(Of ClassifiedTextElement)(container.Elements.ElementAt(2))
+            Dim element2 = CType(container.Elements.ElementAt(2), ClassifiedTextElement)
             Assert.Equal(8, element2.Runs.Count())
 
         End Sub
 
-        ' Create an empty document to use as a non-null parameter when needed
         Private Shared ReadOnly s_document As Document =
             (Function()
                  Dim workspace = TestWorkspace.CreateWorkspace(
