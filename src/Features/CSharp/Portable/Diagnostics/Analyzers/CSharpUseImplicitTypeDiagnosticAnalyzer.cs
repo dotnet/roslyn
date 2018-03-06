@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         protected override bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (forEachStatement.Type.IsVar)
+            var type = forEachStatement.Type;
+            if (type.IsVar || (type.Kind() == SyntaxKind.RefType && ((RefTypeSyntax)type).Type.IsVar))
             {
                 // If the type is already 'var', this analyze has no work to do
                 return false;

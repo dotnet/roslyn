@@ -4614,5 +4614,32 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceLocalRefExpression()
+        {
+            // This test indicates that ref-expressions are l-values and
+            // introduce local still introduces a local, not a ref-local.
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    void M(int x)
+    {
+        ref int y = ref x;
+        M2([|(y = ref x)|]);
+    }
+    void M2(ref int y) { }
+}", @"
+class C
+{
+    void M(int x)
+    {
+        ref int y = ref x;
+        int {|Rename:v|} = (y = ref x);
+        M2(v);
+    }
+    void M2(ref int y) { }
+}");
+        }
     }
 }
