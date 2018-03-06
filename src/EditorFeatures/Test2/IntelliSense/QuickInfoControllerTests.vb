@@ -7,15 +7,13 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.QuickInfo
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Adornments
 Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Utilities
 Imports Moq
 Imports Roslyn.Utilities
-Imports Microsoft.VisualStudio.Imaging
 Imports QuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -84,6 +82,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim firstRowContainer = CType(container.Elements.ElementAt(0), Adornments.ContainerElement)
             Assert.Equal(2, firstRowContainer.Elements.Count())
             Assert.Equal(ContainerElementStyle.Wrapped, firstRowContainer.Style)
+
+
 
             Assert.IsType(Of ImageElement)(firstRowContainer.Elements.ElementAt(0))
             Dim element00 = CType(firstRowContainer.Elements.ElementAt(0), ImageElement)
