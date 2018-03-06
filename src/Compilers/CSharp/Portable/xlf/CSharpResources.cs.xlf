@@ -8525,11 +8525,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">Převod výrazu stackalloc typu {0} na typ {1} není možný.</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_StackAllocExpression">
-        <source>stackalloc {0}[{1}]</source>
-        <target state="translated">stackalloc {0}[{1}]</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne">
         <source>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</source>
         <target state="translated">První parametr rozšiřující metody ref {0} musí být typem hodnoty nebo obecným typem omezeným na strukturu.</target>

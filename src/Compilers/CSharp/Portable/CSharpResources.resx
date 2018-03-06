@@ -5217,9 +5217,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_StackAllocConversionNotPossible" xml:space="preserve">
     <value>Conversion of a stackalloc expression of type '{0}' to type '{1}' is not possible.</value>
   </data>
-  <data name="IDS_StackAllocExpression" xml:space="preserve">
-    <value>stackalloc {0}[{1}]</value>
-  </data>
   <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
     <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
   </data>

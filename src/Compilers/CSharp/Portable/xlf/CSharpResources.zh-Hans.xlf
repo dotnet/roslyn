@@ -8525,11 +8525,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">不能将 stackalloc 表达式的类型从“{0}”转换为“{1}”。</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_StackAllocExpression">
-        <source>stackalloc {0}[{1}]</source>
-        <target state="translated">stackalloc {0}[{1}]</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne">
         <source>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</source>
         <target state="translated">"ref" 扩展方法“{0}”的第一个参数必须是值类型或受结构约束的泛型类型。</target>

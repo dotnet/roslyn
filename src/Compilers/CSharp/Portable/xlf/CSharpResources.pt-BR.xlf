@@ -8525,11 +8525,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="translated">A conversão de uma expressão stackalloc do tipo '{0}' para o tipo '{1}' não é possível.</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_StackAllocExpression">
-        <source>stackalloc {0}[{1}]</source>
-        <target state="translated">stackalloc {0}[{1}]</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne">
         <source>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</source>
         <target state="translated">O primeiro parâmetro de um método de extensão "ref" "{0}" deve ser um tipo de valor ou um tipo genérico restrito a struct.</target>
