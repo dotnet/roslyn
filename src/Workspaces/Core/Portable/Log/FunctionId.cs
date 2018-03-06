@@ -407,6 +407,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Diagnostics_BadAnalyzer,
         CodeAnalysisService_ReportAnalyzerPerformance,
         PerformanceTrackerService_AddSnapshot,
+        AbstractProject_SetIntelliSenseBuild,
+        AbstractProject_Created,
+        AbstractProject_PushedToWorkspace,
         ExternalErrorDiagnosticUpdateSource_AddError,
         DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync,
     }

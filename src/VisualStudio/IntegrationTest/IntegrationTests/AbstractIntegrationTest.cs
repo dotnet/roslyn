@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using System;
 using System.Threading;
+using System.Windows.Automation;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
@@ -21,6 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected AbstractIntegrationTest(
             VisualStudioInstanceFactory instanceFactory)
         {
+            Automation.TransactionTimeout = 20000;
             _visualStudioContext = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
             VisualStudio = _visualStudioContext.Instance;
         }

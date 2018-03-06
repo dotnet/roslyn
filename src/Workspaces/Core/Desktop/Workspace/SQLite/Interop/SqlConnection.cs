@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
     /// to open the DB if it exists, or create it if it does not.
     /// 
     /// Connections are considered relatively heavyweight and are pooled until the <see cref="SQLitePersistentStorage"/>
-    /// is <see cref="SQLitePersistentStorage.Close"/>d.  Connections can be used by different threads,
+    /// is <see cref="SQLitePersistentStorage.Dispose"/>d.  Connections can be used by different threads,
     /// but only as long as they are used by one thread at a time.  They are not safe for concurrent
     /// use by several threads.
     /// 

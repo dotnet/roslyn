@@ -48,7 +48,7 @@ class C
                 .DebugExe
                 .WithStrongNameProvider(provider)
                 .WithCryptoKeyFile(SigningTestHelpers.KeyPairFile);
-            var comp = CreateStandardCompilation(src, options: options);
+            var comp = CreateCompilation(src, options: options);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -65,7 +65,7 @@ class C
                 .DebugExe
                 .WithStrongNameProvider(provider)
                 .WithCryptoKeyFile(SigningTestHelpers.KeyPairFile);
-            var comp = CreateStandardCompilation(src, options: options);
+            var comp = CreateCompilation(src, options: options);
             comp.VerifyEmitDiagnostics();
         }
     }

@@ -903,11 +903,11 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             compilation0.AssertTheseDiagnostics()
 
             ' No errors for /r:_.dll
-            Dim compilation1 = CreateCompilationWithReferences(
+            Dim compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
                 references:={MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
 

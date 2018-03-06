@@ -13,41 +13,32 @@ namespace Microsoft.CodeAnalysis.Storage
     internal class PersistenceStorageServiceFactory : IWorkspaceServiceFactory
     {
         private readonly object _gate = new object();
-        private readonly SolutionSizeTracker _solutionSizeTracker;
-
-        private IPersistentStorageService _singleton;
+        private readonly ISolutionSizeTracker _solutionSizeTracker;
 
         [ImportingConstructor]
-        public PersistenceStorageServiceFactory(SolutionSizeTracker solutionSizeTracker)
+        public PersistenceStorageServiceFactory(ISolutionSizeTracker solutionSizeTracker)
         {
             _solutionSizeTracker = solutionSizeTracker;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            lock (_gate)
-            {
-                if (_singleton == null)
-                {
-                    _singleton = GetPersistentStorageService(workspaceServices);
-                }
-
-                return _singleton;
-            }
-        }
-
-        private IPersistentStorageService GetPersistentStorageService(HostWorkspaceServices workspaceServices)
-        {
-            var optionService = workspaceServices.GetService<IOptionService>();
+            var optionService = workspaceServices.GetRequiredService<IOptionService>();
             var database = optionService.GetOption(StorageOptions.Database);
             switch (database)
             {
                 case StorageDatabase.SQLite:
-                    return new SQLitePersistentStorageService(optionService, _solutionSizeTracker);
-                case StorageDatabase.None:
-                default:
-                    return NoOpPersistentStorageService.Instance;
+                    var locationService = workspaceServices.GetService<IPersistentStorageLocationService>();
+
+                    if (locationService != null)
+                    {
+                        return new SQLitePersistentStorageService(optionService, locationService, _solutionSizeTracker);
+                    }
+
+                    break;
             }
+
+            return NoOpPersistentStorageService.Instance;
         }
     }
 }
