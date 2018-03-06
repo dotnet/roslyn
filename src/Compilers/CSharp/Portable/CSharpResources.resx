@@ -216,6 +216,9 @@
   <data name="IDS_FeaturePrivateProtected" xml:space="preserve">
     <value>private protected</value>
   </data>
+  <data name="IDS_FeatureTupleEquality" xml:space="preserve">
+    <value>tuple equality</value>
+  </data>
   <data name="IDS_FeatureNullable" xml:space="preserve">
     <value>nullable types</value>
   </data>
@@ -5255,5 +5258,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InDynamicMethodArg" xml:space="preserve">
     <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</value>
+  </data>
+  <data name="ERR_TupleSizesMismatchForBinOps" xml:space="preserve">
+    <value>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</value>
   </data>
 </root>

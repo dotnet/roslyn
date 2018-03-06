@@ -5588,7 +5588,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement interface member &apos;{1}&apos; in type &apos;{2}&apos; because it has an __arglist parameter..
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement interface member &apos;{1}&apos; in type &apos;{2}&apos; because it has an __arglist parameter.
         /// </summary>
         internal static string ERR_InterfaceImplementedImplicitlyByVariadic {
             get {
@@ -9440,6 +9440,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right..
+        /// </summary>
+        internal static string ERR_TupleSizesMismatchForBinOps {
+            get {
+                return ResourceManager.GetString("ERR_TupleSizesMismatchForBinOps", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tuple must contain at least two elements..
         /// </summary>
         internal static string ERR_TupleTooFewElements {
@@ -10778,6 +10787,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureThrowExpression {
             get {
                 return ResourceManager.GetString("IDS_FeatureThrowExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to tuple equality.
+        /// </summary>
+        internal static string IDS_FeatureTupleEquality {
+            get {
+                return ResourceManager.GetString("IDS_FeatureTupleEquality", resourceCulture);
             }
         }
         

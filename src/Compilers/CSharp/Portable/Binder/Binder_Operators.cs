@@ -487,6 +487,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundLiteral(node, ConstantValue.Create(kind == BinaryOperatorKind.Equal), GetSpecialType(SpecialType.System_Boolean, diagnostics, node));
             }
 
+            if (GetTupleCardinality(left) > 1 &&
+                GetTupleCardinality(right) > 1 &&
+                (kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual))
+            {
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureTupleEquality, diagnostics);
+                return BindTupleBinaryOperator(node, kind, left, right, diagnostics);
+            }
+
             // SPEC: For an operation of one of the forms x == null, null == x, x != null, null != x,
             // SPEC: where x is an expression of nullable type, if operator overload resolution
             // SPEC: fails to find an applicable operator, the result is instead computed from
@@ -504,64 +512,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
-            var best = this.BinaryOperatorOverloadResolution(kind, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            BinaryOperatorSignature signature;
+            BinaryOperatorAnalysisResult best;
+            bool foundOperator = BindSimpleBinaryOperatorParts(node, diagnostics, left, right, kind,
+                out resultKind, out originalUserDefinedOperators, out signature, out best);
 
-            // However, as an implementation detail, we never "fail to find an applicable 
-            // operator" during overload resolution if we have x == null, etc. We always
-            // find at least the reference conversion object == object; the overload resolution
-            // code does not reject that.  Therefore what we should do is only bind 
-            // "x == null" as a nullable-to-null comparison if overload resolution chooses
-            // the reference conversion.
-
-            BoundExpression resultLeft = left;
-            BoundExpression resultRight = right;
-            MethodSymbol resultMethod = null;
-            ConstantValue resultConstant = null;
-            BinaryOperatorKind resultOperatorKind;
-            TypeSymbol resultType;
-            bool hasErrors;
-
-            if (!best.HasValue)
-            {
-                resultOperatorKind = kind;
-                resultType = CreateErrorType();
-                hasErrors = true;
-            }
-            else
-            {
-                var signature = best.Signature;
-
-                bool isObjectEquality = signature.Kind == BinaryOperatorKind.ObjectEqual || signature.Kind == BinaryOperatorKind.ObjectNotEqual;
-
-                bool isNullableEquality = (object)signature.Method == null &&
-                    (signature.Kind.Operator() == BinaryOperatorKind.Equal || signature.Kind.Operator() == BinaryOperatorKind.NotEqual) &&
-                    (leftNull && (object)rightType != null && rightType.IsNullableType() ||
-                    rightNull && (object)leftType != null && leftType.IsNullableType());
-
-                if (isNullableEquality)
-                {
-                    resultOperatorKind = kind | BinaryOperatorKind.NullableNull;
-                    resultType = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
-                    hasErrors = false;
-                }
-                else
-                {
-                    resultOperatorKind = signature.Kind;
-                    resultType = signature.ReturnType;
-                    resultMethod = signature.Method;
-                    resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, diagnostics);
-                    resultRight = CreateConversion(right, best.RightConversion, signature.RightType, diagnostics);
-                    resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType.SpecialType, diagnostics, ref compoundStringLength);
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    hasErrors = isObjectEquality && !BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull, rightType, rightNull, ref useSiteDiagnostics);
-                    diagnostics.Add(node, useSiteDiagnostics);
-                }
-            }
-
-            if (hasErrors)
+            BinaryOperatorKind resultOperatorKind = signature.Kind;
+            bool hasErrors = false;
+            if (!foundOperator)
             {
                 ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, resultKind);
                 resultOperatorKind &= ~BinaryOperatorKind.TypeMask;
+                hasErrors = true;
             }
 
             switch (node.Kind())
@@ -583,6 +545,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
+            TypeSymbol resultType = signature.ReturnType;
+            BoundExpression resultLeft = left;
+            BoundExpression resultRight = right;
+            ConstantValue resultConstant = null;
+
+            if (foundOperator && (resultOperatorKind.OperandTypes() != BinaryOperatorKind.NullableNull))
+            {
+                Debug.Assert((object)signature.LeftType != null);
+                Debug.Assert((object)signature.RightType != null);
+
+                resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, diagnostics);
+                resultRight = CreateConversion(right, best.RightConversion, signature.RightType, diagnostics);
+                resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType.SpecialType, diagnostics, ref compoundStringLength);
+            }
+
             hasErrors = hasErrors || resultConstant != null && resultConstant.IsBad;
 
             return new BoundBinaryOperator(
@@ -591,11 +568,65 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultLeft,
                 resultRight,
                 resultConstant,
-                resultMethod,
+                signature.Method,
                 resultKind,
                 originalUserDefinedOperators,
                 resultType,
                 hasErrors);
+        }
+
+        private bool BindSimpleBinaryOperatorParts(BinaryExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression left, BoundExpression right, BinaryOperatorKind kind,
+            out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators,
+            out BinaryOperatorSignature resultSignature, out BinaryOperatorAnalysisResult best)
+        {
+            bool foundOperator;
+            best = this.BinaryOperatorOverloadResolution(kind, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+
+            // However, as an implementation detail, we never "fail to find an applicable 
+            // operator" during overload resolution if we have x == null, etc. We always
+            // find at least the reference conversion object == object; the overload resolution
+            // code does not reject that.  Therefore what we should do is only bind 
+            // "x == null" as a nullable-to-null comparison if overload resolution chooses
+            // the reference conversion.
+
+            if (!best.HasValue)
+            {
+                resultSignature = new BinaryOperatorSignature(kind, leftType: null, rightType: null, CreateErrorType());
+                foundOperator = false;
+            }
+            else
+            {
+                var signature = best.Signature;
+
+                bool isObjectEquality = signature.Kind == BinaryOperatorKind.ObjectEqual || signature.Kind == BinaryOperatorKind.ObjectNotEqual;
+
+                bool leftNull = left.IsLiteralNull();
+                bool rightNull = right.IsLiteralNull();
+
+                TypeSymbol leftType = left.Type;
+                TypeSymbol rightType = right.Type;
+
+                bool isNullableEquality = (object)signature.Method == null &&
+                    (signature.Kind.Operator() == BinaryOperatorKind.Equal || signature.Kind.Operator() == BinaryOperatorKind.NotEqual) &&
+                    (leftNull && (object)rightType != null && rightType.IsNullableType() ||
+                        rightNull && (object)leftType != null && leftType.IsNullableType());
+
+                if (isNullableEquality)
+                {
+                    resultSignature = new BinaryOperatorSignature(kind | BinaryOperatorKind.NullableNull, leftType: null, rightType: null,
+                        GetSpecialType(SpecialType.System_Boolean, diagnostics, node));
+
+                    foundOperator = true;
+                }
+                else
+                {
+                    resultSignature = signature;
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    foundOperator = !isObjectEquality || BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull, rightType, rightNull, ref useSiteDiagnostics);
+                    diagnostics.Add(node, useSiteDiagnostics);
+                }
+            }
+            return foundOperator;
         }
 
         private static void ReportUnaryOperatorError(CSharpSyntaxNode node, DiagnosticBag diagnostics, string operatorName, BoundExpression operand, LookupResultKind resultKind)

@@ -394,6 +394,66 @@ setY
         }
 
         [Fact]
+        public void VerifyExecutionOrder_TupleLiteralAndDeconstruction()
+        {
+            string source = @"
+using System;
+class C
+{
+    int w { set { Console.WriteLine($""setW""); } }
+    int x { set { Console.WriteLine($""setX""); } }
+    int y { set { Console.WriteLine($""setY""); } }
+    int z { set { Console.WriteLine($""setZ""); } }
+
+    C getHolderForW() { Console.WriteLine(""getHolderforW""); return this; }
+    C getHolderForX() { Console.WriteLine(""getHolderforX""); return this; }
+    C getHolderForY() { Console.WriteLine(""getHolderforY""); return this; }
+    C getHolderForZ() { Console.WriteLine(""getHolderforZ""); return this; }
+
+    static void Main()
+    {
+        C c = new C();
+        (c.getHolderForW().x, (c.getHolderForY().y, c.getHolderForZ().z), c.getHolderForX().x) = (new D1(), new D2(), new D3());
+    }
+}
+class D1
+{
+    public D1() { Console.WriteLine(""Constructor1""); }
+    public static implicit operator int(D1 d) { Console.WriteLine(""Conversion1""); return 1; }
+}
+class D2
+{
+    public D2() { Console.WriteLine(""Constructor2""); }
+    public void Deconstruct(out int x, out int y) { x = 2; y = 3; Console.WriteLine(""deconstruct""); }
+}
+class D3
+{
+    public D3() { Console.WriteLine(""Constructor3""); }
+    public static implicit operator int(D3 d) { Console.WriteLine(""Conversion3""); return 3; }
+}
+";
+
+            string expected =
+@"getHolderforW
+getHolderforY
+getHolderforZ
+getHolderforX
+Constructor1
+Conversion1
+Constructor2
+Constructor3
+Conversion3
+deconstruct
+setX
+setY
+setZ
+setX
+";
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void DifferentVariableKinds()
         {
             string source = @"
