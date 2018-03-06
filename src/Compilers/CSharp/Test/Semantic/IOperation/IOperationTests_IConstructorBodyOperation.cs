@@ -19,7 +19,7 @@ class C
     public C()
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // file.cs(4,15): error CS1002: ; expected
@@ -46,7 +46,7 @@ class C
     public C() : base()
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,24): error CS1002: ; expected
@@ -88,7 +88,7 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -124,7 +124,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -162,7 +162,7 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -193,7 +193,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -227,7 +227,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -267,7 +267,7 @@ class C
     public C();
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // file.cs(4,12): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial

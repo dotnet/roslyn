@@ -1425,7 +1425,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics()
 
             ' VB methods/constructors don't have an IMethodBodyOperation or an IConstructorBodyOperation.

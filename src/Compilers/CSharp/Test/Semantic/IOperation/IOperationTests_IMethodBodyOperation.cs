@@ -19,7 +19,7 @@ abstract class C
     public abstract void M();
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -40,7 +40,7 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -69,7 +69,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -101,7 +101,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -139,7 +139,7 @@ abstract class C
     public static C operator ! (C x);
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,30): error CS0501: 'C.operator !(C)' must declare a body because it is not marked abstract, extern, or partial
@@ -164,7 +164,7 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -193,7 +193,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -228,7 +228,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -269,7 +269,7 @@ abstract class C
     public static implicit operator int(C x);
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,37): error CS0501: 'C.implicit operator int(C)' must declare a body because it is not marked abstract, extern, or partial
@@ -294,7 +294,7 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -323,7 +323,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -358,7 +358,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -399,7 +399,7 @@ abstract class C
     ~C();
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,6): error CS0501: 'C.~C()' must declare a body because it is not marked abstract, extern, or partial
@@ -424,7 +424,7 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -453,7 +453,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -485,7 +485,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -523,7 +523,7 @@ abstract class C
     abstract protected int P { get; }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -547,7 +547,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -579,7 +579,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -615,7 +615,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (6,9): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -653,7 +653,7 @@ abstract class C
     int P { get; } => throw null;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.

@@ -17587,7 +17587,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (25,26): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         : this(Test1(out var x1), x1)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "var x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(25, 26)
@@ -17649,7 +17649,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (29,26): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         : base(Test1(out var x1), x1)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "var x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(29, 26)
@@ -17822,7 +17822,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
@@ -17864,7 +17864,7 @@ public class Cls
         => System.Console.WriteLine(x1);
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
@@ -17909,7 +17909,7 @@ public class Cls
         => System.Console.WriteLine(x1);
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (23,9): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -17931,7 +17931,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             var analyzer = new ConstructorInitializers_08_SyntaxAnalyzer();
-            CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular)
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular)
                 .GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
 
             Assert.True(analyzer.ActionFired);
@@ -33056,7 +33056,7 @@ public class C
 
 
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -33196,7 +33196,7 @@ public class C
 
 
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -33304,7 +33304,7 @@ public class C
 
 
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);

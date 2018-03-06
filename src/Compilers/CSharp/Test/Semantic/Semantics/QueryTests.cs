@@ -3896,7 +3896,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(22, 54)
                 );
 
-            CreateCompilationWithMscorlibAndSystemCore(csSource).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(csSource).VerifyDiagnostics();
         }
 
         [WorkItem(15910, "https://github.com/dotnet/roslyn/issues/15910")]
@@ -3967,7 +3967,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(22, 55)
                 );
 
-            CreateCompilationWithMscorlibAndSystemCore(csSource).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(csSource).VerifyDiagnostics();
         }
 
         [WorkItem(15910, "https://github.com/dotnet/roslyn/issues/15910")]
@@ -4055,7 +4055,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(22, 51)
                 );
 
-            CreateCompilationWithMscorlibAndSystemCore(csSource)
+            CreateCompilationWithMscorlib40AndSystemCore(csSource)
                 .GetDiagnostics()
                 .Where(d => d.Code != (int)ErrorCode.ERR_DeclarationExpressionNotPermitted)
                 .Verify();
