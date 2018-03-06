@@ -175,6 +175,7 @@
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.WRN_DefaultInSwitch:
+                case ErrorCode.WRN_UnreferencedLocalFunction:
                 case ErrorCode.WRN_NullAsNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
                 case ErrorCode.WRN_NullReferenceReceiver:
@@ -195,9 +196,6 @@
                 case ErrorCode.WRN_NullabilityMismatchInArgument:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
-                case ErrorCode.WRN_NoBestNullabilityArrayElements:
-                case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
-                case ErrorCode.WRN_UnreferencedLocalFunction:
                     return true;
                 default:
                     return false;

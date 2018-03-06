@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.StateWhenFalse[slot] = true;
             }
 
-            _result = TypeSymbolWithAnnotations.Create(node.Type);
+            SetResult(node);
             return result;
         }
 
@@ -1060,6 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE(NullableReferenceTypes): Conversions: Lifted operator
                     return TypeSymbolWithAnnotations.Create(resultType, isNullableIfReferenceType: null);
                 }
+                // PROTOTYPE(NullableReferenceTypes): Update method based on operand types.
                 if ((object)methodOpt != null && methodOpt.ParameterCount == 2)
                 {
                     return methodOpt.ReturnType;
@@ -1915,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE(NullableReferenceTypes): Should an explicit cast cast away
                     // outermost nullability? For instance, is `s` a `string!` or `string?`?
                     // object? obj = ...; var s = (string)obj;
-                    isNullableIfReferenceType = (operandType is null) ? operand.IsLiteralNull() || operand.IsLiteralDefault() : operandType.IsNullable;
+                    isNullableIfReferenceType = (operandType is null) ? (operand.IsLiteralNull() || operand.IsLiteralDefault()) : operandType.IsNullable;
                     break;
 
                 case ConversionKind.Deconstruction:

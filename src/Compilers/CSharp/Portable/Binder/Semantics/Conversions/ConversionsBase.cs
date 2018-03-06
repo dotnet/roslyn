@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const int MaximumRecursionDepth = 50;
 
         protected readonly AssemblySymbol corLibrary;
-        protected readonly int _currentRecursionDepth;
+        protected readonly int currentRecursionDepth;
 
         internal readonly bool IncludeNullability;
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)corLibrary != null);
 
             this.corLibrary = corLibrary;
-            _currentRecursionDepth = currentRecursionDepth;
+            this.currentRecursionDepth = currentRecursionDepth;
             IncludeNullability = includeNullability;
         }
 
@@ -2480,7 +2480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // CONSIDER: A more rigorous solution would mimic the CLI approach, which uses
             // a combination of requiring finite instantiation closures (see section 9.2 of
             // the CLI spec) and records previous conversion steps to check for cycles.
-            if (_currentRecursionDepth >= MaximumRecursionDepth)
+            if (currentRecursionDepth >= MaximumRecursionDepth)
             {
                 // NOTE: The spec doesn't really address what happens if there's an overflow
                 // in our conversion check.  It's sort of implied that the conversion "proof"
@@ -2496,7 +2496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return quickResult.Value();
             }
 
-            return this.CreateInstance(_currentRecursionDepth + 1).
+            return this.CreateInstance(currentRecursionDepth + 1).
                 HasVariantConversionNoCycleCheck(source, destination, ref useSiteDiagnostics);
         }
 

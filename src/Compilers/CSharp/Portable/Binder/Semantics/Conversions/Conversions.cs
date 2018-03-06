@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal Conversions WithNullability(bool includeNullability)
         {
-            return (IncludeNullability == includeNullability) ? this : new Conversions(_binder, _currentRecursionDepth, includeNullability);
+            return (IncludeNullability == includeNullability) ? this : new Conversions(_binder, currentRecursionDepth, includeNullability);
         }
 
         public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

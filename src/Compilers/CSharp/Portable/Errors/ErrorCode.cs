@@ -1567,10 +1567,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInParameterTypeOfTargetDelegate = 8622,
         ERR_ExplicitNullableAttribute = 8623,
         ERR_NotNullableOperatorNotReferenceType = 8624,
-        // PROTOTYPE(NullableReferenceType): Report the following warning for
-        // array initializers rather than one warning for each element mismatch.
-        // Or remove this warning and corresponding resource.
-        WRN_NoBestNullabilityArrayElements = 8625,
-        WRN_NoBestNullabilityConditionalExpression = 8626,
     }
 }

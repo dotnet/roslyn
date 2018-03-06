@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool? GetIsNullable(ImmutableArray<TypeSymbolWithAnnotations> types)
         {
-            bool isNullable = false;
+            bool? isNullable = false;
             foreach (var type in types)
             {
                 if (type is null)
@@ -34,7 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (type.IsNullable)
                 {
                     case null:
-                        return null;
+                        if (isNullable == false)
+                        {
+                            isNullable = null;
+                        }
+                        break;
                     case true:
                         isNullable = true;
                         break;
