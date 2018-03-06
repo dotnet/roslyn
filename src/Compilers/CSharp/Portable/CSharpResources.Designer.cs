@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /platform; must be anycpu, x86, Itanium or x64.
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64.
         /// </summary>
         internal static string ERR_BadPlatformType {
             get {
