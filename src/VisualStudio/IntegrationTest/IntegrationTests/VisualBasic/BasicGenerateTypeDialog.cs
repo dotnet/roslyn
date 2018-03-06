@@ -21,7 +21,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21154"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void BasicToCSharp()
         {
             var csProj = new ProjectUtils.Project("CSProj");
@@ -68,7 +68,7 @@ End Class
 }", actualText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21154"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void SameProject()
         {
             SetUpEditor(@"
@@ -107,8 +107,7 @@ End Class
 ", actualText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"),
-         Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void CheckFoldersPopulateComboBox()
         {
             var project = new ProjectUtils.Project(ProjectName);

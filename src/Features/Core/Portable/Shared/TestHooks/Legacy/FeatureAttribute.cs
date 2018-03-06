@@ -11,11 +11,13 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     {
         private readonly string _featureName;
 
+        [Obsolete("use IAsynchronousOperationListenerProvider")]
         public FeatureAttribute(string featureName)
         {
             _featureName = featureName;
         }
 
+        [Obsolete("use IAsynchronousOperationListenerProvider")]
         public string FeatureName => _featureName;
     }
 }

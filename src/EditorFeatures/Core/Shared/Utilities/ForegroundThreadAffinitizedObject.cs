@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             var kind = ForegroundThreadDataInfo.CreateDefault(defaultKind);
 
-            return new ForegroundThreadData(Thread.CurrentThread, new SynchronizationContextTaskScheduler(SynchronizationContext.Current), kind);
+            return new ForegroundThreadData(Thread.CurrentThread, SynchronizationContext.Current == null ? TaskScheduler.Default : new SynchronizationContextTaskScheduler(SynchronizationContext.Current), kind);
         }
     }
 
