@@ -413,6 +413,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         {
             while (true)
             {
+                if (node == null)
+                {
+                    return null;
+                }
+
                 switch (node.Kind())
                 {
                     case SyntaxKind.WhileStatement:
@@ -423,23 +428,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         continue;
                     case SyntaxKind.ReturnStatement:
                         node = ((ReturnStatementSyntax)node).Expression;
-                        if (node == null)
-                        {
-                            return null;
-                        }
-
                         continue;
                     case SyntaxKind.LocalDeclarationStatement:
                         var declarators = ((LocalDeclarationStatementSyntax)node).Declaration.Variables;
                         // We require this to be the only declarator in the declaration statement
                         // to simplify definitive assignment check and the code fix for now
-                        var value = declarators.Count == 1 ? declarators[0].Initializer?.Value : null;
-                        if (value == null)
-                        {
-                            return null;
-                        }
-
-                        node = value;
+                        node = declarators.Count == 1 ? declarators[0].Initializer?.Value : null;
                         continue;
                     case SyntaxKind.ParenthesizedExpression:
                         node = ((ParenthesizedExpressionSyntax)node).Expression;
