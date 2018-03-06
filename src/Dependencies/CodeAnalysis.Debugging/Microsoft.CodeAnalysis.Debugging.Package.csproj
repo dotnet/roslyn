@@ -5,6 +5,7 @@
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <PackageId>Microsoft.CodeAnalysis.Debugging</PackageId>
     <RoslynProjectType>SourcePackage</RoslynProjectType>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections" Version="$(SystemCollectionsVersion)" />

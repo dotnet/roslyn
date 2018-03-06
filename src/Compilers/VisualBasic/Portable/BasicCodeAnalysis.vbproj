@@ -17,6 +17,7 @@
          reference is a higher version than the NuGet reference. -->
     <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
     <RootNamespace></RootNamespace>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
