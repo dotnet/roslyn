@@ -2795,7 +2795,7 @@ Block[B0] - Entry
     Locals: [a As System.Int32] [b As System.Int32] [c As System.Int32] [d As System.Int32] [e As System.Int32] [f As System.Int32]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (7)
+        Statements (6)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a As Integer = 1')
               Left: 
                 ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'a')
@@ -2838,10 +2838,6 @@ Block[B0] - Entry
                   Initializer: 
                     null
 
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-              Statement: 
-                null
-
         Next (Regular) Block[B2]
             Leaving: {R1}
 }
@@ -2879,7 +2875,7 @@ Block[B0] - Entry
     Locals: [a As System.Int32]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (2)
+        Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = 1')
               Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a = 1')
@@ -2887,10 +2883,6 @@ Block[B0] - Entry
                     ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-              Statement: 
-                null
 
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -2951,16 +2943,12 @@ Block[B0] - Entry
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
-        Statements (2)
+        Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'd As Intege ... If(a, b, c)')
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'd')
               Right: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b, c)')
-
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-              Statement: 
-                null
 
         Next (Regular) Block[B5]
             Leaving: {R1}
@@ -3002,17 +2990,13 @@ Block[B0] - Entry
     Locals: [d As System.Int32]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (2)
+        Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'd As Integer =')
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'd')
               Right: 
                 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                   Children(0)
-
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-              Statement: 
-                null
 
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -3054,17 +3038,13 @@ Block[B0] - Entry
     Locals: [d As ?]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (2)
+        Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'd As New')
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: ?, IsImplicit) (Syntax: 'd')
               Right: 
                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'New')
                   Children(0)
-
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-              Statement: 
-                null
 
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -3105,7 +3085,7 @@ Block[B0] - Entry
     Locals: [a As System.Int32] [b As System.Int32]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (3)
+        Statements (2)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a As Integer = 1')
               Left: 
                 ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'a')
@@ -3117,10 +3097,6 @@ Block[B0] - Entry
                 ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-              Statement: 
-                null
 
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -3158,7 +3134,7 @@ Block[B0] - Entry
     Locals: [a As System.Int32()]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (2)
+        Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32(), IsImplicit) (Syntax: 'a(10)')
               Left: 
                 ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32(), IsImplicit) (Syntax: 'a(10)')
@@ -3172,10 +3148,6 @@ Block[B0] - Entry
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '10')
                   Initializer: 
                     null
-
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-              Statement: 
-                null
 
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -3220,7 +3192,7 @@ Block[B0] - Entry
     Locals: [a As System.Int32()]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (2)
+        Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'a(10) As Integer = 1')
               Left: 
                 ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'a(10)')
@@ -3241,10 +3213,6 @@ Block[B0] - Entry
                           (DelegateRelaxationLevelNone)
                         Operand: 
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-              Statement: 
-                null
 
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -3286,7 +3254,7 @@ Block[B0] - Entry
     Locals: [a As System.Int32()]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (2)
+        Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'a(10) As New Integer()')
               Left: 
                 ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32(), IsImplicit) (Syntax: 'a(10)')
@@ -3308,10 +3276,6 @@ Block[B0] - Entry
                               Arguments(0)
                               Initializer: 
                                 null
-
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-              Statement: 
-                null
 
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -3358,16 +3322,12 @@ Block[B0] - Entry
     Locals: [ As System.Int32] [[As] As System.Object]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (2)
+        Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= 1')
               Left: 
                 ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-              Statement: 
-                null
 
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -3434,16 +3394,12 @@ Block[B0] - Entry
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
-        Statements (2)
+        Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'e As Intege ... If(a, b, c)')
               Left: 
                 ILocalReferenceOperation: e (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'e')
               Right: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b, c)')
-
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-              Statement: 
-                null
 
         Next (Regular) Block[B5]
             Leaving: {R1}
@@ -3487,7 +3443,7 @@ Block[B0] - Entry
     Locals: [a As System.Object]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (2)
+        Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'a = 1')
               Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'a = 1')
@@ -3499,10 +3455,6 @@ Block[B0] - Entry
                         (DelegateRelaxationLevelNone)
                       Operand: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-              Statement: 
-                null
 
         Next (Regular) Block[B2]
             Leaving: {R1}

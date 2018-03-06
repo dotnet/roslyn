@@ -156,7 +156,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (2)
+    Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M2(o1, o2,  ... b, o3, o4))')
           Expression: 
             IInvocationOperation ( Sub C.M2(o1 As System.Object, o2 As System.Object, o3 As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(o1, o2,  ... b, o3, o4))')
@@ -175,10 +175,6 @@ Block[B4] - Block
                     IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(b, o3, o4)')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
 
     Next (Regular) Block[B5]
 Block[B5] - Exit
@@ -240,7 +236,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (2)
+    Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M2(o1, o2,  ... b, o3, o4))')
           Expression: 
             IInvocationOperation (Sub C.M2(o1 As System.Object, o2 As System.Object, o3 As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(o1, o2,  ... b, o3, o4))')
@@ -259,10 +255,6 @@ Block[B4] - Block
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(b, o3, o4)')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
 
     Next (Regular) Block[B5]
 Block[B5] - Exit
@@ -319,7 +311,7 @@ Block[B0] - Entry
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
-        Statements (2)
+        Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'x = If(b, o ... .ToString()')
               Left: 
                 ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, IsImplicit) (Syntax: 'x')
@@ -328,10 +320,6 @@ Block[B0] - Entry
                   Instance Receiver: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(b, o1, o2)')
                   Arguments(0)
-
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-              Statement: 
-                null
 
         Next (Regular) Block[B5]
             Leaving: {R1}
@@ -388,7 +376,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (2)
+    Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M2(o3:=o3,  ... b, o1, o4))')
           Expression: 
             IInvocationOperation (Sub C.M2(o1 As System.Object, o2 As System.Object, o3 As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(o3:=o3,  ... b, o1, o4))')
@@ -407,10 +395,6 @@ Block[B4] - Block
                     IParameterReferenceOperation: o3 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o3')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
 
     Next (Regular) Block[B5]
 Block[B5] - Exit
@@ -472,7 +456,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (2)
+    Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M2(o3:=If(b ... o2, o1:=o1)')
           Expression: 
             IInvocationOperation (Sub C.M2(o1 As System.Object, o2 As System.Object, o3 As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(o3:=If(b ... o2, o1:=o1)')
@@ -491,10 +475,6 @@ Block[B4] - Block
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(b, o3, o4)')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
 
     Next (Regular) Block[B5]
 Block[B5] - Exit
@@ -552,7 +532,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (2)
+    Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M2(o2:=If(b ... 3), o1:=o1)')
           Expression: 
             IInvocationOperation (Sub C.M2(o1 As System.Object, o2 As System.Object, [o3 As System.Object = Nothing])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(o2:=If(b ... 3), o1:=o1)')
@@ -575,10 +555,6 @@ Block[B4] - Block
                         ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsImplicit) (Syntax: 'M2')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
 
     Next (Regular) Block[B5]
 Block[B5] - Exit
@@ -640,7 +616,7 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (2)
+    Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'C.M2(o2:=If ... 3), o1:=o1)')
           Expression: 
             IInvocationOperation (Sub C.M2(o1 As System.Object, o2 As System.Object, [o3 As System.Object = Nothing])) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'C.M2(o2:=If ... 3), o1:=o1)')
@@ -663,10 +639,6 @@ Block[B4] - Block
                         ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid, IsImplicit) (Syntax: 'C.M2')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
 
     Next (Regular) Block[B5]
 Block[B5] - Exit

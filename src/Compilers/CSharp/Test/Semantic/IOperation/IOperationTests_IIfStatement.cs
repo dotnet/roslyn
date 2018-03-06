@@ -1272,18 +1272,12 @@ Block[B0] - Entry
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-        Jump if False (Regular) to Block[B3]
+        Jump if False (Regular) to Block[B2]
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
-        Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
-        Statements (1)
-            IEmptyOperation (OperationKind.Empty, Type: null) (Syntax: ';')
-
-        Next (Regular) Block[B4]
+        Next (Regular) Block[B3]
             Leaving: {R1}
-    Block[B3] - Block
+    Block[B2] - Block
         Predecessors: [B1]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = true;')
@@ -1294,12 +1288,12 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
-        Next (Regular) Block[B4]
+        Next (Regular) Block[B3]
             Leaving: {R1}
 }
 
-Block[B4] - Exit
-    Predecessors: [B2] [B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
     Statements (0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

@@ -1573,16 +1573,8 @@ Block[B2] - Block
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
     Next (Regular) Block[B1]
-Block[B3] - Block
+Block[B3] - Exit
     Predecessors: [B1]
-    Statements (1)
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
-
-    Next (Regular) Block[B4]
-Block[B4] - Exit
-    Predecessors: [B3]
     Statements (0)
 ]]>.Value
 
@@ -1619,16 +1611,8 @@ Block[B1] - Block
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
     Next (Regular) Block[B1]
-Block[B2] - Block
+Block[B2] - Exit
     Predecessors: [B1]
-    Statements (1)
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
-
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B2]
     Statements (0)
 ]]>.Value
 
@@ -1664,16 +1648,8 @@ Block[B1] - Block
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
     Next (Regular) Block[B1]
-Block[B2] - Block
+Block[B2] - Exit
     Predecessors: [B1]
-    Statements (1)
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
-
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B2]
     Statements (0)
 ]]>.Value
 
@@ -1718,16 +1694,8 @@ Block[B2] - Block
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
     Next (Regular) Block[B1]
-Block[B3] - Block
+Block[B3] - Exit
     Predecessors: [B1]
-    Statements (1)
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
-
-    Next (Regular) Block[B4]
-Block[B4] - Exit
-    Predecessors: [B3]
     Statements (0)
 ]]>.Value
 
@@ -1763,16 +1731,8 @@ Block[B1] - Block
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
     Next (Regular) Block[B1]
-Block[B2] - Block
+Block[B2] - Exit
     Predecessors: [B1]
-    Statements (1)
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
-
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B2]
     Statements (0)
 ]]>.Value
 
@@ -1808,16 +1768,8 @@ Block[B1] - Block
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
     Next (Regular) Block[B1]
-Block[B2] - Block
+Block[B2] - Exit
     Predecessors: [B1]
-    Statements (1)
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
-
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B2]
     Statements (0)
 ]]>.Value
 
@@ -1858,16 +1810,8 @@ Block[B1] - Block
         IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
 
     Next (Regular) Block[B2]
-Block[B2] - Block
+Block[B2] - Exit
     Predecessors: [B1]
-    Statements (1)
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
-
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B2]
     Statements (0)
 ]]>.Value
 
@@ -1908,16 +1852,8 @@ Block[B1] - Block
         IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
 
     Next (Regular) Block[B2]
-Block[B2] - Block
+Block[B2] - Exit
     Predecessors: [B1]
-    Statements (1)
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
-
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B2]
     Statements (0)
 ]]>.Value
 
