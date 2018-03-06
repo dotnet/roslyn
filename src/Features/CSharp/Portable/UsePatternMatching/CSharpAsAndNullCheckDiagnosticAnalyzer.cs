@@ -423,6 +423,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         continue;
                     case SyntaxKind.ReturnStatement:
                         node = ((ReturnStatementSyntax)node).Expression;
+                        if (node == null)
+                        {
+                            return null;
+                        }
+
                         continue;
                     case SyntaxKind.LocalDeclarationStatement:
                         var declarators = ((LocalDeclarationStatementSyntax)node).Declaration.Variables;
