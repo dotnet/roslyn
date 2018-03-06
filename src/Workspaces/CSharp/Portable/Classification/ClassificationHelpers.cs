@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private const string FromKeyword = "from";
         private const string ValueKeyword = "value";
         private const string VarKeyword = "var";
+        private const string UnmanagedKeyword = "unmanaged";
+        private const string DynamicKeyword = "dynamic";
         private const string AwaitKeyword = "await";
 
         /// <summary>
@@ -284,6 +286,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                             token.Parent.Parent is VariableDeclarationSyntax &&
                             !(token.Parent.Parent.Parent is FieldDeclarationSyntax) &&
                             !(token.Parent.Parent.Parent is EventFieldDeclarationSyntax);
+
+                    case UnmanagedKeyword:
+                        return token.Parent is IdentifierNameSyntax
+                            && token.Parent.Parent is TypeConstraintSyntax
+                            && token.Parent.Parent.Parent is TypeParameterConstraintClauseSyntax;
                 }
             }
 
@@ -325,15 +332,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 var token = SyntaxFactory.ParseToken(text);
                 if (token.Span.Length == span.Length)
                 {
-                    // var and dynamic are not contextual keywords.  They are always identifiers
+                    // var, dynamic, and unmanaged are not contextual keywords.  They are always identifiers
                     // (that we classify as keywords).  Because we are just parsing a token we don't
                     // know if we're in the right context for them to be identifiers or keywords.
                     // So, we base on decision on what they were before.  i.e. if we had a keyword
-                    // before, then assume it stays a keyword if we see 'var' or 'dynamic.
+                    // before, then assume it stays a keyword if we see 'var', 'dynamic', or 'unmanaged'.
+                    var tokenString = token.ToString();
                     var isKeyword = SyntaxFacts.IsKeywordKind(token.Kind())
                         || (wasKeyword && SyntaxFacts.GetContextualKeywordKind(text) != SyntaxKind.None)
-                        || (wasKeyword && token.ToString() == "var")
-                        || (wasKeyword && token.ToString() == "dynamic");
+                        || (wasKeyword && (tokenString == VarKeyword || tokenString == DynamicKeyword || tokenString == UnmanagedKeyword));
 
                     var isIdentifier = token.Kind() == SyntaxKind.IdentifierToken;
 

@@ -690,6 +690,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AddKeyword(SyntaxKind.ClassKeyword);
                                 needComma = true;
                             }
+                            else if (typeParam.HasUnmanagedTypeConstraint)
+                            {
+                                builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "unmanaged"));
+                                needComma = true;
+                            }
                             else if (typeParam.HasValueTypeConstraint)
                             {
                                 AddKeyword(SyntaxKind.StructKeyword);

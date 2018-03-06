@@ -42,6 +42,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 }
             }
 
+            public Tuple<string, string> DoublePlus
+            {
+                [DebuggerStepThrough]
+                get
+                {
+                    return New("++");
+                }
+            }
+
             public Tuple<string, string> DoublePipe
             {
                 [DebuggerStepThrough]

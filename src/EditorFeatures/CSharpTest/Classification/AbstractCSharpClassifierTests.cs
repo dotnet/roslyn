@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                         switch (_text)
                         {
                             case "(":
-                                return "Punctation.OpenParen";
+                                return "Punctuation.OpenParen";
                             case ")":
-                                return "Punctation.CloseParen";
+                                return "Punctuation.CloseParen";
                             case ";":
-                                return "Punctation.Semicolon";
+                                return "Punctuation.Semicolon";
                             case ":":
                                 return "Punctuation.Colon";
                             case ",":
@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                         {
                             case "=":
                                 return "Operators.Equals";
+                            case "++":
+                                return "Operators.DoublePlus";
                         }
                         goto default;
 

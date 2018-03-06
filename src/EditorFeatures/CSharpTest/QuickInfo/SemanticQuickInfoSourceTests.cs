@@ -5188,5 +5188,36 @@ class X<T> where T : System.MulticastDelegate
 }",
                 MainDescription($"T {FeaturesResources.in_} X<T> where T : MulticastDelegate"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task UnmanagedConstraint_Type()
+        {
+            await TestAsync(
+@"
+class $$X<T> where T : unmanaged
+{
+}",
+                MainDescription("class X<T> where T : unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task UnmanagedConstraint_Method()
+        {
+            await TestAsync(
+@"
+class X
+{
+    void $$M<T>() where T : unmanaged { }
+}",
+                MainDescription("void X.M<T>() where T : unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task UnmanagedConstraint_Delegate()
+        {
+            await TestAsync(
+                "delegate void $$D<T>() where T : unmanaged;",
+                MainDescription("delegate void D<T>() where T : unmanaged"));
+        }
     }
 }

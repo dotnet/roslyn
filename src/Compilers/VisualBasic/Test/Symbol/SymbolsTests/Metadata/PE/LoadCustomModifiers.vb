@@ -134,6 +134,9 @@ BC32105: Type argument 'String' does not satisfy the 'Structure' constraint for 
         Dim x = New TestRef(Of String)()
                                ~~~~~~
                                                 </expected>)
+
+            Dim badTypeParameter = compilation.GetTypeByMetadataName("TestRef`1").TypeParameters.Single()
+            Assert.True(badTypeParameter.HasValueTypeConstraint)
         End Sub
 
         <Fact>
@@ -165,6 +168,9 @@ BC30649: '' is an unsupported type.
         x.M(Of String)()
         ~~~~~~~~~~~~~~~~
                                                 </expected>)
+
+            Dim badTypeParameter = compilation.GetTypeByMetadataName("TestRef").GetMethod("M").TypeParameters.Single()
+            Assert.True(badTypeParameter.HasValueTypeConstraint)
         End Sub
 
         <Fact>
@@ -196,6 +202,9 @@ BC32105: Type argument 'String' does not satisfy the 'Structure' constraint for 
     Shared Sub Main(del As D(Of String)) 
                     ~~~
                                                 </expected>)
+
+            Dim badTypeParameter = compilation.GetTypeByMetadataName("D`1").TypeParameters.Single()
+            Assert.True(badTypeParameter.HasValueTypeConstraint)
         End Sub
 
     End Class
