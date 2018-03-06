@@ -282,6 +282,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 base.Free();
             }
 
+            private void AddConjunct(BoundExpression test)
+            {
+                if (_sideEffectBuilder.Count != 0)
+                {
+                    test = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, _sideEffectBuilder.ToImmutable(), test);
+                    _sideEffectBuilder.Clear();
+                }
+
+                _conjunctBuilder.Add(test);
+            }
+
             /// <summary>
             /// Translate the single decision into _sideEffectBuilder and _conjunctBuilder.
             /// </summary>
@@ -301,13 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var test = LowerDecision(d);
                             if (test != null) // PROTOTYPE(patterns2): could handle constant expressions more efficiently.
                             {
-                                if (_sideEffectBuilder.Count != 0)
-                                {
-                                    test = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, _sideEffectBuilder.ToImmutable(), test);
-                                    _sideEffectBuilder.Clear();
-                                }
-
-                                _conjunctBuilder.Add(test);
+                                AddConjunct(test);
                             }
 
                             return;
@@ -317,14 +322,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public BoundExpression LowerIsPattern(BoundPattern pattern, CSharpCompilation compilation, DiagnosticBag diagnostics)
             {
-                BoundDagTemp inputTemp = DecisionDagBuilder.TranslatePattern(
-                    compilation,
-                    _loweredInput,
-                    pattern,
-                    diagnostics,
-                    out ImmutableArray<BoundDagDecision> decisions,
-                    out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings);
-                Debug.Assert(inputTemp == _inputTemp);
+                LabelSymbol failureLabel = new GeneratedLabelSymbol("failure");
+                BoundDecisionDag dag = DecisionDagBuilder.CreateDecisionDag(compilation, pattern.Syntax, this._loweredInput, pattern, failureLabel, diagnostics, out LabelSymbol successLabel);
+                if (_loweredInput.ConstantValue != null)
+                {
+                    dag = dag.SimplifyDecisionDagForConstantInput(_loweredInput, _localRewriter._compilation.Conversions, diagnostics);
+                }
 
                 // first, copy the input expression into the input temp
                 if (pattern.Kind != BoundKind.RecursivePattern &&
@@ -333,50 +336,86 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Since non-recursive patterns cannot have side-effects on locals, we reuse an existing local
                     // if present. A recursive pattern, on the other hand, may mutate a local through a captured lambda
                     // when a `Deconstruct` method is invoked.
-                    _tempAllocator.AssignTemp(inputTemp, _loweredInput);
+                    _tempAllocator.AssignTemp(_inputTemp, _loweredInput);
                 }
                 else
                 {
                     // Even if subsequently unused (e.g. `GetValue() is _`), we assign to a temp to evaluate the side-effect
-                    _sideEffectBuilder.Add(_factory.AssignmentExpression(_tempAllocator.GetTemp(inputTemp), _loweredInput));
+                    _sideEffectBuilder.Add(_factory.AssignmentExpression(_tempAllocator.GetTemp(_inputTemp), _loweredInput));
                 }
 
-                // then process all of the individual decisions
-                foreach (BoundDagDecision decision in decisions)
+                // We follow the "good" path in the decision dag. We depend on it being nicely linear in structure.
+                while (dag.Kind != BoundKind.Decision && dag.Kind != BoundKind.WhenClause)
                 {
-                    LowerOneDecision(decision);
+                    switch (dag)
+                    {
+                        case BoundEvaluationPoint e:
+                            LowerOneDecision(e.Evaluation);
+                            dag = e.Next;
+                            break;
+                        case BoundDecisionPoint d:
+                            LowerOneDecision(d.Decision);
+                            Debug.Assert(d.WhenFalse is BoundDecision x && x.Label == failureLabel);
+                            dag = d.WhenTrue;
+                            break;
+                    }
                 }
 
-                if (_sideEffectBuilder.Count != 0)
+                // When we get to "the end", we see if it is a success node.
+                switch (dag)
                 {
-                    _conjunctBuilder.Add(_factory.Sequence(ImmutableArray<LocalSymbol>.Empty, _sideEffectBuilder.ToImmutable(), _factory.Literal(true)));
-                    _sideEffectBuilder.Clear();
+                    case BoundDecision d:
+                        {
+                            if (d.Label == failureLabel)
+                            {
+                                // It is not clear that this can occur given the dag "optimizations" we performed earlier.
+                                AddConjunct(_factory.Literal(false));
+                            }
+                            else
+                            {
+                                Debug.Assert(d.Label == successLabel);
+                            }
+                        }
+
+                        break;
+
+                    case BoundWhenClause w:
+                        {
+                            Debug.Assert(w.WhenExpression == null);
+                            Debug.Assert(w.WhenTrue is BoundDecision d && d.Label == successLabel);
+                            foreach ((BoundExpression left, BoundDagTemp right) in w.Bindings)
+                            {
+                                _sideEffectBuilder.Add(_factory.AssignmentExpression(left, _tempAllocator.GetTemp(right)));
+                            }
+                        }
+
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(dag.Kind);
                 }
 
+                if (_sideEffectBuilder.Count > 0 || _conjunctBuilder.Count == 0)
+                {
+                    AddConjunct(_factory.Literal(true));
+                }
+
+                Debug.Assert(_sideEffectBuilder.Count == 0);
                 BoundExpression result = null;
                 foreach (BoundExpression conjunct in _conjunctBuilder)
                 {
                     result = (result == null) ? conjunct : _factory.LogicalAnd(result, conjunct);
                 }
 
-                var bindingsBuilder = ArrayBuilder<BoundExpression>.GetInstance(bindings.Length);
-                foreach ((BoundExpression left, BoundDagTemp right) in bindings)
+                _conjunctBuilder.Clear();
+                Debug.Assert(result != null);
+                var allTemps = _tempAllocator.AllTemps();
+                if (allTemps.Length > 0)
                 {
-                    bindingsBuilder.Add(_factory.AssignmentExpression(left, _tempAllocator.GetTemp(right)));
+                    result = _factory.Sequence(allTemps, ImmutableArray<BoundExpression>.Empty, result);
                 }
 
-                var bindingAssignments = bindingsBuilder.ToImmutableAndFree();
-                if (bindingAssignments.Length > 0)
-                {
-                    BoundSequence c = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, bindingAssignments, _factory.Literal(true));
-                    result = (result == null) ? c : (BoundExpression)_factory.LogicalAnd(result, c);
-                }
-                else if (result == null)
-                {
-                    result = _factory.Literal(true);
-                }
-
-                return _factory.Sequence(_tempAllocator.AllTemps(), ImmutableArray<BoundExpression>.Empty, result);
+                return result;
             }
         }
 

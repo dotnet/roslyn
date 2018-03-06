@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class SwitchExpressionBinder : Binder
     {
-        protected readonly SwitchExpressionSyntax SwitchExpressionSyntax;
+        private readonly SwitchExpressionSyntax SwitchExpressionSyntax;
 
         private BoundExpression _inputExpression;
         private DiagnosticBag _inputExpressionDiagnostics;
@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override BoundExpression BindSwitchExpressionCore(SwitchExpressionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
+            Debug.Assert(node == SwitchExpressionSyntax);
+
             // Bind switch expression and set the switch governing type.
             var boundInputExpression = InputExpression;
             diagnostics.AddRange(InputExpressionDiagnostics);
@@ -35,11 +37,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol resultType = InferResultType(switchArms, diagnostics);
             switchArms = AddConversionsToArms(switchArms, resultType, diagnostics);
             bool hasErrors = CheckSwitchExpressionExhaustive(node, boundInputExpression, switchArms, out BoundDecisionDag decisionDag, out LabelSymbol defaultLabel, diagnostics);
+            if (boundInputExpression.ConstantValue != null)
+            {
+                // When the input is constant, we use that to reshape the decision dag that is returned
+                // so that flow analysis will see that some of the cases may be unreachable.
+                decisionDag = decisionDag.SimplifyDecisionDagForConstantInput(boundInputExpression, Conversions, diagnostics);
+            }
+
             return new BoundSwitchExpression(node, boundInputExpression, switchArms, decisionDag, defaultLabel, resultType, hasErrors);
         }
 
         /// <summary>
-        /// Build the decision dag, warning if the switch expression is not exhaustive. Returns true if there were errors.
+        /// Build the decision dag, giving an error if some cases are subsumed and an error if the switch expression is not exhaustive.
+        /// Returns true if there were errors.
         /// </summary>
         /// <param name="node"></param>
         /// <param name="boundInputExpression"></param>
@@ -58,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             defaultLabel = new GeneratedLabelSymbol("default");
             decisionDag = DecisionDagBuilder.CreateDecisionDag(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
             HashSet<LabelSymbol> reachableLabels = decisionDag.ReachableLabels;
+            bool hasErrors = false;
             foreach (BoundSwitchExpressionArm arm in switchArms)
             {
                 if (!reachableLabels.Contains(arm.Label))
@@ -70,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // warning: switch expression is not exhaustive
                 diagnostics.Add(ErrorCode.WRN_SwitchExpressionNotExhaustive, node.SwitchKeyword.GetLocation());
+                hasErrors = true;
             }
             else
             {
@@ -77,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultLabel = null;
             }
 
-            return decisionDag.HasErrors;
+            return decisionDag.HasErrors | hasErrors;
         }
 
         /// <summary>

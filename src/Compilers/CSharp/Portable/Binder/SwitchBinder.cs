@@ -31,17 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static SwitchBinder Create(Binder next, SwitchStatementSyntax switchSyntax)
         {
             var parseOptions = switchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
-            return
-                // In C# 6 and earlier, we use the old binder. In C# 7 and later, we use the new binder which
-                // is capable of binding both the old and new syntax. However, the new binder does not yet
-                // lead to a translation that fully supports edit-and-continue, so it delegates to the C# 6
-                // binder when it can. The "testVSwitchBinder" feature flag forces the use of the C# 7 switch binder
-                // for all operations; we use it to enhance test coverage.
-                (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false ||
-                 parseOptions?.Features.ContainsKey("testV8SwitchBinder") != false ||
-                 switchSyntax.HasErrors && HasPatternSwitchSyntax(switchSyntax))
-                        ? new PatternSwitchBinder(next, switchSyntax)
-                : new SwitchBinder(next, switchSyntax);
+            return new PatternSwitchBinder(next, switchSyntax);
         }
 
         internal static bool HasPatternSwitchSyntax(SwitchStatementSyntax switchSyntax)

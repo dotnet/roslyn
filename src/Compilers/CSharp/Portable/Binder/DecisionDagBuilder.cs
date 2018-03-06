@@ -62,19 +62,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Used to translate the pattern of an is-pattern expression. Returns the BoundDagTemp used to represent the root (input).
+        /// Used to translate the pattern of an is-pattern expression.
         /// </summary>
-        public static BoundDagTemp TranslatePattern(
+        public static BoundDecisionDag CreateDecisionDag(
             CSharpCompilation compilation,
-            BoundExpression loweredInput,
+            SyntaxNode syntax,
+            BoundExpression inputExpression,
             BoundPattern pattern,
+            LabelSymbol defaultLabel,
             DiagnosticBag diagnostics,
-            out ImmutableArray<BoundDagDecision> decisions,
-            out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings)
+            out LabelSymbol successLabel)
         {
-            DecisionDagBuilder builder = new DecisionDagBuilder(compilation, defaultLabel: null, diagnostics);
-            var result = builder.TranslatePattern(loweredInput, pattern, out decisions, out bindings);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
+            BoundDecisionDag result = builder.CreateDecisionDag(syntax, inputExpression, pattern, out successLabel);
             return result;
+        }
+
+        private BoundDecisionDag CreateDecisionDag(
+            SyntaxNode syntax,
+            BoundExpression inputExpression,
+            BoundPattern pattern,
+            out LabelSymbol successLabel)
+        {
+            successLabel = new GeneratedLabelSymbol("success");
+            ImmutableArray<PartialCaseDecision> cases = MakeCases(inputExpression, pattern, successLabel);
+            BoundDecisionDag dag = MakeDecisionDag(syntax, cases);
+            return dag;
         }
 
         private BoundDagTemp TranslatePattern(
@@ -115,6 +128,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return builder.ToImmutableAndFree();
+        }
+
+        private ImmutableArray<PartialCaseDecision> MakeCases(BoundExpression switchGoverningExpression, BoundPattern pattern, LabelSymbol successLabel)
+        {
+            var builder = ArrayBuilder<PartialCaseDecision>.GetInstance(1);
+            var rootIdentifier = new BoundDagTemp(switchGoverningExpression.Syntax, switchGoverningExpression.Type, null, 0);
+            builder.Add(MakePartialCaseDecision(1, rootIdentifier, pattern, successLabel));
+            return builder.ToImmutableAndFree();
+        }
+
+        private PartialCaseDecision MakePartialCaseDecision(int index, BoundDagTemp input, BoundPattern pattern, LabelSymbol successLabel)
+        {
+            MakeAndSimplifyDecisionsAndBindings(input, pattern, out ImmutableArray<BoundDagDecision> decisions, out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings);
+            return new PartialCaseDecision(index, pattern.Syntax, decisions, bindings, null, successLabel);
         }
 
         private PartialCaseDecision MakePartialCaseDecision(int index, BoundDagTemp input, BoundPatternSwitchLabel label)
@@ -164,7 +191,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var decisionsBuilder = ArrayBuilder<BoundDagDecision>.GetInstance();
             var bindingsBuilder = ArrayBuilder<(BoundExpression, BoundDagTemp)>.GetInstance();
             MakeDecisionsAndBindings(input, pattern, decisionsBuilder, bindingsBuilder);
+            SimplifyDecisionsAndBindings(decisionsBuilder, bindingsBuilder);
+            decisions = decisionsBuilder.ToImmutableAndFree();
+            bindings = bindingsBuilder.ToImmutableAndFree();
+        }
 
+        private void SimplifyDecisionsAndBindings(
+            ArrayBuilder<BoundDagDecision> decisionsBuilder,
+            ArrayBuilder<(BoundExpression, BoundDagTemp)> bindingsBuilder)
+        {
             // Now simplify the decisions and bindings. We don't need anything in decisions that does not
             // contribute to the result. This will, for example, permit us to match `(2, 3) is (2, _)` without
             // fetching `Item2` from the input.
@@ -208,7 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We also do not need to compute any result more than once. This will permit us to fetch
             // a property once even if it is used more than once, e.g. `o is { X: P1, X: P2 }`
             usedValues.Clear();
-            usedValues.Add(input.Source);
             for (int i = 0; i < decisionsBuilder.Count; i++)
             {
                 switch (decisionsBuilder[i])
@@ -228,8 +262,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             usedValues.Free();
-            decisions = decisionsBuilder.ToImmutableAndFree();
-            bindings = bindingsBuilder.ToImmutableAndFree();
         }
 
         private void MakeDecisionsAndBindings(
