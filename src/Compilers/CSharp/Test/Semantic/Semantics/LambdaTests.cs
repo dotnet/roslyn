@@ -27,7 +27,7 @@ class C
 {
     Expression<Action<dynamic>> e = x => new object[](x);
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(src);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(src);
             comp.VerifyDiagnostics(
                 // (7,52): error CS1586: Array creation must have array size or array initializer
                 //     Expression<Action<dynamic>> e = x => new object[](x);
@@ -37,7 +37,7 @@ class C
         [Fact]
         public void TestLambdaErrors01()
         {
-            var comp = CreateCompilationWithMscorlibAndSystemCore(@"
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(@"
 using System;
 using System.Linq.Expressions;
 
@@ -218,7 +218,7 @@ class C
         System.Func<int, int> del = x => x + 1;
     }
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             compilation.VerifyDiagnostics(); // no errors expected
         }
 
@@ -241,7 +241,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Goo(Func<IComparable<I>>)' and 'C.Goo(Func<I>)'
                 //         Goo(() => null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("C.Goo(System.Func<System.IComparable<I>>)", "C.Goo(System.Func<I>)").WithLocation(12, 9));
@@ -264,7 +264,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(Parse(text));
+            var comp = CreateCompilation(Parse(text));
             comp.VerifyDiagnostics();
         }
 
@@ -296,8 +296,8 @@ public class C
     }
 }";
 
-            var comp1 = CreateStandardCompilation(
-                Parse(text1),
+            var comp1 = CreateCompilationWithMscorlib40(
+                new[] { Parse(text1) },
                 new[] { TestReferences.NetFx.v4_0_30319.System });
 
             var text2 = @"
@@ -310,8 +310,8 @@ class Program
 }
 ";
 
-            var comp2 = CreateStandardCompilation(
-                Parse(text2),
+            var comp2 = CreateCompilationWithMscorlib40(
+                new[] { Parse(text2) },
                 new[] { new CSharpCompilationReference(comp1) });
 
             Assert.Equal(0, comp2.GetDiagnostics().Count());
@@ -342,7 +342,7 @@ public delegate void X(List<IDispatch> addin);
 public delegate void Y(List<string> addin);
 ";
 
-            var comp1 = CreateStandardCompilation(
+            var comp1 = CreateCompilation(
                 Parse(text1),
                 new[] { TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(true) },
                 options: TestOptions.ReleaseDll);
@@ -357,7 +357,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateStandardCompilation(
+            var comp2 = CreateCompilation(
                 Parse(text2),
                 new MetadataReference[]
                     {
@@ -368,7 +368,7 @@ public class Program
 
             CompileAndVerify(comp2, expectedOutput: "Y").Diagnostics.Verify();
 
-            var comp3 = CreateStandardCompilation(
+            var comp3 = CreateCompilation(
                 Parse(text2),
                 new MetadataReference[]
                     {
@@ -398,7 +398,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(Parse(text1));
+            var comp = CreateCompilation(Parse(text1));
             var errs = comp.GetDiagnostics();
             Assert.True(0 < errs.Count(), "Diagnostics not empty");
             Assert.True(0 < errs.Where(e => e.Code == 1525).Select(e => e).Count(), "Diagnostics contains CS1525");
@@ -452,7 +452,7 @@ class Program
             var emitResult = vbProject.Emit(metadataStream, options: new EmitOptions(metadataOnly: true));
             Assert.True(emitResult.Success);
 
-            var csProject = CreateStandardCompilation(
+            var csProject = CreateCompilation(
                 Parse(csSource),
                 new[] { MetadataReference.CreateFromImage(metadataStream.ToImmutable()) });
 
@@ -499,7 +499,7 @@ class Program
 }
 ";
             var vbMetadata = vbProject.EmitToArray(options: new EmitOptions(metadataOnly: true));
-            var csProject = CreateStandardCompilation(Parse(csSource), new[] { MetadataReference.CreateFromImage(vbMetadata) });
+            var csProject = CreateCompilation(Parse(csSource), new[] { MetadataReference.CreateFromImage(vbMetadata) });
 
             var diagnostics = csProject.GetDiagnostics().Select(DumpDiagnostic);
             Assert.Equal(1, diagnostics.Count());
@@ -523,7 +523,7 @@ class Program
 }
 ";
 
-            var csProject = CreateStandardCompilation(csSource);
+            var csProject = CreateCompilation(csSource);
 
             var emitResult = csProject.Emit(Stream.Null);
             Assert.False(emitResult.Success);
@@ -548,7 +548,7 @@ class Program
 }
 ";
 
-            CreateStandardCompilation(csSource).VerifyDiagnostics(
+            CreateCompilation(csSource).VerifyDiagnostics(
     // (7,39): error CS0029: Cannot implicitly convert type 'string' to 'int'
     //         ((Func<int>)delegate { return ""; })();
     Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "int").WithLocation(7, 39),
@@ -585,7 +585,7 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(csSource).VerifyDiagnostics(
+            CreateCompilation(csSource).VerifyDiagnostics(
             // (5,37): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, @"() => x").WithArguments("lambda expression", "string"),
             // (8,55): error CS0103: The name 'nulF' does not exist in the current context
@@ -611,7 +611,7 @@ class Program
             // for its side effects, a delegate-creation-expression is not allowed as a
             // statement expression.
 
-            CreateStandardCompilation(csSource).VerifyDiagnostics(
+            CreateCompilation(csSource).VerifyDiagnostics(
                 // (7,21): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         D d = () => new D(() => { });
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new D(() => { })"),
@@ -635,7 +635,7 @@ class Program
         };
     }
 }";
-            CreateStandardCompilation(csSource).VerifyDiagnostics(
+            CreateCompilation(csSource).VerifyDiagnostics(
                 // (8,24): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
                 //             object o = this;
                 Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this")
@@ -654,7 +654,7 @@ class C
         System.Func<int> f = new System.Func<int>(r => 0);
     }
 }";
-            CreateStandardCompilation(csSource).VerifyDiagnostics(
+            CreateCompilation(csSource).VerifyDiagnostics(
                 // (6,51): error CS1593: Delegate 'System.Func<int>' does not take 1 arguments
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "r => 0").WithArguments("System.Func<int>", "1"));
         }
@@ -671,7 +671,7 @@ public class Program
         bool exists = System.Array.Exists(b, o => o != ""BB"");
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (7,46): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
     //         bool exists = System.Array.Exists(b, o => o != "BB");
     Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, @"o => o != ""BB""")
@@ -696,7 +696,7 @@ class Program
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             ExpressionSyntax expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().
@@ -743,7 +743,7 @@ public class TestClass
     }
 }
 ";
-            CreateStandardCompilation(csSource).VerifyDiagnostics(
+            CreateCompilation(csSource).VerifyDiagnostics(
                 // (4,29): error CS0133: The expression being assigned to 'TestClass.Test.aa' must be constant
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "((System.Func<int>)(() => 1))()").WithArguments("TestClass.Test.aa"),
                 // (5,10): warning CS0414: The field 'TestClass.MyTest' is assigned but its value is never used
@@ -795,7 +795,7 @@ class Program
     static void Goo(Func<Func<IFormattable>> x) { }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -875,7 +875,7 @@ namespace IntellisenseBug
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             // We don't actually require any particular diagnostics, but these are what we get.
             compilation.VerifyDiagnostics(
                 // (10,36): error CS1001: Identifier expected
@@ -929,7 +929,7 @@ public class IntelliSenseError
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             // We don't actually require any particular diagnostics, but these are what we get.
             compilation.VerifyDiagnostics(
                 // (21,37): error CS1001: Identifier expected
@@ -975,7 +975,7 @@ class TestDataPointBase
 }
 
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1028,7 +1028,7 @@ class C
 
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single().Body;
@@ -1056,7 +1056,7 @@ class C
 
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
@@ -1088,7 +1088,7 @@ class C
 
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single().Body;
@@ -1282,7 +1282,7 @@ class C
         [Fact]
         public void Bug1112875_1()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
  
 class Program
@@ -1305,7 +1305,7 @@ class Program
         [Fact]
         public void Bug1112875_2()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class Program
 {
     void M()
@@ -1324,7 +1324,7 @@ class Program
         [Fact]
         public void FuncOfVoid()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 class Program
 {
@@ -1356,7 +1356,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(src);
+            var compilation = CreateCompilation(src);
             compilation.VerifyDiagnostics(
     // (8,23): error CS1001: Identifier expected
     //         return a => a.
@@ -1391,7 +1391,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(src);
+            var compilation = CreateCompilation(src);
             compilation.VerifyDiagnostics(
     // (8,42): error CS1001: Identifier expected
     //         Func<Program, string> l = a => a.
@@ -1428,7 +1428,7 @@ class Program
     static void M1(Func<Program, string> l){}
 }
 ";
-            var compilation = CreateStandardCompilation(src);
+            var compilation = CreateCompilation(src);
             compilation.VerifyDiagnostics(
     // (8,20): error CS1001: Identifier expected
     //          M1(a => a.);
@@ -1460,7 +1460,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(src);
+            var compilation = CreateCompilation(src);
             compilation.VerifyDiagnostics(
     // (8,49): error CS1001: Identifier expected
     //         var l = (Func<Program, string>) (a => a.);
@@ -1493,7 +1493,7 @@ class Program
         Expression<Func<int, int>> x = y => y = y;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (9,45): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         Expression<Func<int, int>> x = y => y = y;
@@ -1537,7 +1537,7 @@ public static class Program
 
 public interface IColumn { }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
@@ -1575,7 +1575,7 @@ public static class Program
 
 public interface IColumn { }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
@@ -1594,7 +1594,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,47): error CS1002: ; expected
                 //         Action a = () => { new X().ToString() };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(7, 47),
@@ -1652,7 +1652,7 @@ namespace RoslynAsyncDelegate
             var source =
 @"using System.Linq;
 class C { C() { string.Empty.Select(() => { new Unbound1 }); } }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
     // (2,58): error CS1526: A new expression requires (), [], or {} after type
     // class C { C() { string.Empty.Select(() => { new Unbound1 }); } }
     Diagnostic(ErrorCode.ERR_BadNewExpr, "}").WithLocation(2, 58),
@@ -1672,7 +1672,7 @@ class C { C() { string.Empty.Select(() => { new Unbound1 }); } }";
             var source =
 @"using System.Linq;
 class C { C() { string.Empty.Select(() => { new Unbound1 ( ) }); } }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
     // (2,62): error CS1002: ; expected
     // class C { C() { string.Empty.Select(() => { new Unbound1 ( ) }); } }
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 62),
@@ -1689,7 +1689,7 @@ class C { C() { string.Empty.Select(() => { new Unbound1 ( ) }); } }";
             var source =
 @"using System.Linq;
 class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
     // (2,61): error CS1003: Syntax error, ',' expected
     // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
     Diagnostic(ErrorCode.ERR_SyntaxError, "Unbound2").WithArguments(",", "").WithLocation(2, 61),
@@ -1712,7 +1712,7 @@ class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }";
             var source =
 @"using System.Linq;
 class C { C() { string.Empty.Select(x => Unbound1, Unbound2); } }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
     // (2,52): error CS0103: The name 'Unbound2' does not exist in the current context
     // class C { C() { string.Empty.Select(x => Unbound1, Unbound2); } }
     Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound2").WithArguments("Unbound2").WithLocation(2, 52),
@@ -1729,7 +1729,7 @@ class C { C() { string.Empty.Select(x => Unbound1, Unbound2); } }";
             var source =
 @"using System.Linq;
 class C { C() { Unbound2.Select(x => Unbound1); } }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
     // (2,17): error CS0103: The name 'Unbound2' does not exist in the current context
     // class C { C() { Unbound2.Select(x => Unbound1); } }
     Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound2").WithArguments("Unbound2").WithLocation(2, 17),
@@ -1762,7 +1762,7 @@ public class MyArgumentType
 {
     public int SomePublicMember;
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source)
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source)
                 .VerifyDiagnostics(
                 //         var handler = new MyDelegateType((s, e) => { e. });
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "}").WithLocation(6, 57),
@@ -1811,7 +1811,7 @@ public static class Enumerable
         return default(TSource);
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (9,55): error CS1001: Identifier expected
                 //         var result = parameter.FirstOrDefault(x => x. );
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(9, 55)
@@ -1857,7 +1857,7 @@ public static class Enumerable
         return default(TSource);
 }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (9,55): error CS1001: Identifier expected
                 //         var result = parameter.FirstOrDefault(x => x. );
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(9, 55)
@@ -1903,7 +1903,7 @@ public class MyList<TSource>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (8,55): error CS1001: Identifier expected
                 //         var result = parameter.FirstOrDefault(x => x. );
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(8, 55)
@@ -1949,7 +1949,7 @@ public class MyList<TSource>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (8,55): error CS1001: Identifier expected
                 //         var result = parameter.FirstOrDefault(x => x. );
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(8, 55)
@@ -1983,7 +1983,7 @@ public static class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees[0];
             var sm = compilation.GetSemanticModel(tree);
             var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
@@ -2010,7 +2010,7 @@ class Program
         var goo = 
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees[0];
             var sm = compilation.GetSemanticModel(tree);
             var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
@@ -2064,7 +2064,7 @@ public static class XThing
     public static void X2(this object self) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees[0];
             var sm = compilation.GetSemanticModel(tree);
             foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
@@ -2110,7 +2110,7 @@ public static class XThing
     public static Thing<T> X2<T>(this Thing<T> self, Func<T, T> func, int i) => null;
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees[0];
             var sm = compilation.GetSemanticModel(tree);
             foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
@@ -2156,7 +2156,7 @@ public static class XThing
     public static Thing<T> X2<T>(this Thing<T> self, Func<T, T> func, int i) => null;
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees[0];
             var sm = compilation.GetSemanticModel(tree);
             foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
@@ -2189,7 +2189,7 @@ class Program
     static void Mb() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees[0];
             var sm = compilation.GetSemanticModel(tree);
             foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
@@ -2222,7 +2222,7 @@ class Program
     static void Mb() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees[0];
             var sm = compilation.GetSemanticModel(tree);
             foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
@@ -2259,7 +2259,7 @@ class Program
     static void Mc() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees[0];
             var sm = compilation.GetSemanticModel(tree);
             foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
@@ -2311,7 +2311,7 @@ class C
             builder.AppendLine("}");
 
             var source = builder.ToString();
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees[0];
             var sm = compilation.GetSemanticModel(tree);
             var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToArray();
@@ -2363,7 +2363,7 @@ public static class C
 
     public static void Dispatch(Action func) { }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             CompileAndVerify(comp);
         }
 
@@ -2440,7 +2440,7 @@ class B
 {
     public int id = 2;
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "1");
         }
 
@@ -2465,7 +2465,7 @@ class Test1<T>
         }
     }
 ";
-            var comp = CreateStandardCompilation(src, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll);
 
             comp.VerifyDiagnostics(
                 // (10,32): error CS1001: Identifier expected
@@ -2489,7 +2489,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0103: The name 'error' does not exist in the current context
                 //             error();
@@ -2515,7 +2515,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0103: The name 'error' does not exist in the current context
                 //             error();
@@ -2544,7 +2544,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0103: The name 'error' does not exist in the current context
                 //             error();
@@ -2570,7 +2570,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0103: The name 'error' does not exist in the current context
                 //             error();
@@ -2627,7 +2627,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "1234");
         }
 
@@ -2647,7 +2647,7 @@ class Program
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             ExpressionSyntax contentType = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "ContentType").Single();
 
@@ -2689,7 +2689,7 @@ class Program
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             ExpressionSyntax contentType = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "ContentType").Single();
 

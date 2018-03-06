@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact, WorkItem(6040, "https://github.com/dotnet/roslyn/issues/6040")>
         Public Sub ImplicitClassSymbol()
-            Dim c = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file>
 Namespace N
@@ -51,7 +51,7 @@ End Namespace
 
         <Fact>
         Public Sub ScriptClassSymbol()
-            Dim c = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file>
 Sub Goo

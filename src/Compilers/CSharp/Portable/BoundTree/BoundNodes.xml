@@ -92,6 +92,11 @@
     <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
   </Node>
 
+  <!-- Wrapper node used to prevent passing the underlying expression by direct reference -->
+  <Node Name="BoundPassByCopy" Base="BoundExpression">
+    <Field Name="Expression" Type="BoundExpression"/>
+  </Node>
+  
   <!-- 
   An expression is classified as one of the following:
   A value. Every value has an associated type.

@@ -4141,8 +4141,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</source>
-        <target state="translated">foreach ステートメントは、'{0}' が '{1}' のパブリック定義を含んでいないため、型 '{0}' の変数に対して使用できません。</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
+        <target state="needs-review-translation">foreach ステートメントは、'{0}' が '{1}' のパブリック定義を含んでいないため、型 '{0}' の変数に対して使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
@@ -8285,6 +8285,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">左辺値としての構文 'var (...)' は予約されています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
+        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
+        <target state="translated">out 変数およびパターン変数の宣言は、コンストラクター初期化子、フィールド初期化子、プロパティ初期化子内では許可されていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionVariableInQueryClause">
+        <source>Out variable and pattern variable declarations are not allowed within a query clause.</source>
+        <target state="translated">Out 変数とパターン変数の宣言は、クエリ句内では許可されていません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">{ or ; or =&gt; 必要</target>
@@ -8605,9 +8615,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
-        <source>declaration of expression variables in member initializers and queries</source>
-        <target state="new">declaration of expression variables in member initializers and queries</target>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
     </body>

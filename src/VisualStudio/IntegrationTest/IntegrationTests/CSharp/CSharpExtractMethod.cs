@@ -113,7 +113,7 @@ public class Program
             AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
         }
 
-        [Fact(Skip= "https://github.com/dotnet/roslyn/issues/20382"), Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractViaCodeActionWithMoveLocal()
         {
             VisualStudio.Editor.SetText(TestSource);
@@ -131,7 +131,7 @@ public class Program
     public int Method()
     {
         Console.WriteLine(""Hello World"");
-        var result = [|NewMethod|]();
+        int result = [|NewMethod|]();
         return result;
     }
 

@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Security.Cryptography;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -89,6 +90,12 @@ namespace Microsoft.CodeAnalysis.Emit
         public string PdbFilePath { get; private set; }
 
         /// <summary>
+        /// A crypto hash algorithm used to calculate PDB Checksum stored in the PE/COFF File.
+        /// If not specified (the value is <code>default(HashAlgorithmName)</code>) the checksum is not calculated.
+        /// </summary>
+        public HashAlgorithmName PdbChecksumAlgorithm { get; private set; }
+
+        /// <summary>
         /// Runtime metadata version. 
         /// </summary>
         public string RuntimeMetadataVersion { get; private set; }
@@ -122,6 +129,37 @@ namespace Microsoft.CodeAnalysis.Emit
         {
         }
 
+        // 2.7 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public EmitOptions(
+            bool metadataOnly,
+            DebugInformationFormat debugInformationFormat,
+            string pdbFilePath,
+            string outputNameOverride,
+            int fileAlignment,
+            ulong baseAddress,
+            bool highEntropyVirtualAddressSpace,
+            SubsystemVersion subsystemVersion,
+            string runtimeMetadataVersion,
+            bool tolerateErrors,
+            bool includePrivateMembers,
+            ImmutableArray<InstrumentationKind> instrumentationKinds)
+            : this(
+                  metadataOnly,
+                  debugInformationFormat,
+                  pdbFilePath,
+                  outputNameOverride,
+                  fileAlignment,
+                  baseAddress,
+                  highEntropyVirtualAddressSpace,
+                  subsystemVersion,
+                  runtimeMetadataVersion,
+                  tolerateErrors,
+                  includePrivateMembers,
+                  instrumentationKinds,
+                  pdbChecksumAlgorithm: default)
+        {
+        }
+
         public EmitOptions(
             bool metadataOnly = false,
             DebugInformationFormat debugInformationFormat = 0,
@@ -130,24 +168,26 @@ namespace Microsoft.CodeAnalysis.Emit
             int fileAlignment = 0,
             ulong baseAddress = 0,
             bool highEntropyVirtualAddressSpace = false,
-            SubsystemVersion subsystemVersion = default(SubsystemVersion),
+            SubsystemVersion subsystemVersion = default,
             string runtimeMetadataVersion = null,
             bool tolerateErrors = false,
             bool includePrivateMembers = true,
-            ImmutableArray<InstrumentationKind> instrumentationKinds = default(ImmutableArray<InstrumentationKind>))
+            ImmutableArray<InstrumentationKind> instrumentationKinds = default,
+            HashAlgorithmName? pdbChecksumAlgorithm = null)
         {
-            this.EmitMetadataOnly = metadataOnly;
-            this.DebugInformationFormat = (debugInformationFormat == 0) ? DebugInformationFormat.Pdb : debugInformationFormat;
-            this.PdbFilePath = pdbFilePath;
-            this.OutputNameOverride = outputNameOverride;
-            this.FileAlignment = fileAlignment;
-            this.BaseAddress = baseAddress;
-            this.HighEntropyVirtualAddressSpace = highEntropyVirtualAddressSpace;
-            this.SubsystemVersion = subsystemVersion;
-            this.RuntimeMetadataVersion = runtimeMetadataVersion;
-            this.TolerateErrors = tolerateErrors;
-            this.IncludePrivateMembers = includePrivateMembers;
-            this.InstrumentationKinds = instrumentationKinds.NullToEmpty();
+            EmitMetadataOnly = metadataOnly;
+            DebugInformationFormat = (debugInformationFormat == 0) ? DebugInformationFormat.Pdb : debugInformationFormat;
+            PdbFilePath = pdbFilePath;
+            OutputNameOverride = outputNameOverride;
+            FileAlignment = fileAlignment;
+            BaseAddress = baseAddress;
+            HighEntropyVirtualAddressSpace = highEntropyVirtualAddressSpace;
+            SubsystemVersion = subsystemVersion;
+            RuntimeMetadataVersion = runtimeMetadataVersion;
+            TolerateErrors = tolerateErrors;
+            IncludePrivateMembers = includePrivateMembers;
+            InstrumentationKinds = instrumentationKinds.NullToEmpty();
+            PdbChecksumAlgorithm = pdbChecksumAlgorithm ?? HashAlgorithmName.SHA256;
         }
 
         private EmitOptions(EmitOptions other) : this(
@@ -162,7 +202,8 @@ namespace Microsoft.CodeAnalysis.Emit
             other.RuntimeMetadataVersion,
             other.TolerateErrors,
             other.IncludePrivateMembers,
-            other.InstrumentationKinds)
+            other.InstrumentationKinds,
+            other.PdbChecksumAlgorithm)
         {
         }
 
@@ -173,40 +214,42 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public bool Equals(EmitOptions other)
         {
-            if (object.ReferenceEquals(other, null))
+            if (ReferenceEquals(other, null))
             {
                 return false;
             }
 
             return
-                this.EmitMetadataOnly == other.EmitMetadataOnly &&
-                this.BaseAddress == other.BaseAddress &&
-                this.FileAlignment == other.FileAlignment &&
-                this.HighEntropyVirtualAddressSpace == other.HighEntropyVirtualAddressSpace &&
-                this.SubsystemVersion.Equals(other.SubsystemVersion) &&
-                this.DebugInformationFormat == other.DebugInformationFormat &&
-                this.PdbFilePath == other.PdbFilePath &&
-                this.OutputNameOverride == other.OutputNameOverride &&
-                this.RuntimeMetadataVersion == other.RuntimeMetadataVersion &&
-                this.TolerateErrors == other.TolerateErrors &&
-                this.IncludePrivateMembers == other.IncludePrivateMembers &&
-                this.InstrumentationKinds.SequenceEqual(other.InstrumentationKinds, (a, b) => a == b);
+                EmitMetadataOnly == other.EmitMetadataOnly &&
+                BaseAddress == other.BaseAddress &&
+                FileAlignment == other.FileAlignment &&
+                HighEntropyVirtualAddressSpace == other.HighEntropyVirtualAddressSpace &&
+                SubsystemVersion.Equals(other.SubsystemVersion) &&
+                DebugInformationFormat == other.DebugInformationFormat &&
+                PdbFilePath == other.PdbFilePath &&
+                PdbChecksumAlgorithm == other.PdbChecksumAlgorithm &&
+                OutputNameOverride == other.OutputNameOverride &&
+                RuntimeMetadataVersion == other.RuntimeMetadataVersion &&
+                TolerateErrors == other.TolerateErrors &&
+                IncludePrivateMembers == other.IncludePrivateMembers &&
+                InstrumentationKinds.NullToEmpty().SequenceEqual(other.InstrumentationKinds.NullToEmpty(), (a, b) => a == b);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.EmitMetadataOnly,
-                   Hash.Combine(this.BaseAddress.GetHashCode(),
-                   Hash.Combine(this.FileAlignment,
-                   Hash.Combine(this.HighEntropyVirtualAddressSpace,
-                   Hash.Combine(this.SubsystemVersion.GetHashCode(),
-                   Hash.Combine((int)this.DebugInformationFormat,
-                   Hash.Combine(this.PdbFilePath,
-                   Hash.Combine(this.OutputNameOverride,
-                   Hash.Combine(this.RuntimeMetadataVersion,
-                   Hash.Combine(this.TolerateErrors,
-                   Hash.Combine(this.IncludePrivateMembers,
-                   Hash.Combine(Hash.CombineValues(this.InstrumentationKinds), 0))))))))))));
+            return Hash.Combine(EmitMetadataOnly,
+                   Hash.Combine(BaseAddress.GetHashCode(),
+                   Hash.Combine(FileAlignment,
+                   Hash.Combine(HighEntropyVirtualAddressSpace,
+                   Hash.Combine(SubsystemVersion.GetHashCode(),
+                   Hash.Combine((int)DebugInformationFormat,
+                   Hash.Combine(PdbFilePath,
+                   Hash.Combine(PdbChecksumAlgorithm.GetHashCode(),
+                   Hash.Combine(OutputNameOverride,
+                   Hash.Combine(RuntimeMetadataVersion,
+                   Hash.Combine(TolerateErrors,
+                   Hash.Combine(IncludePrivateMembers,
+                   Hash.Combine(Hash.CombineValues(InstrumentationKinds), 0)))))))))))));
         }
 
         public static bool operator ==(EmitOptions left, EmitOptions right)
@@ -219,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return !object.Equals(left, right);
         }
 
-        internal void ValidateOptions(DiagnosticBag diagnostics, CommonMessageProvider messageProvider)
+        internal void ValidateOptions(DiagnosticBag diagnostics, CommonMessageProvider messageProvider, bool isDeterministic)
         {
             if (!DebugInformationFormat.IsValid())
             {
@@ -248,6 +291,22 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidSubsystemVersion, Location.None, SubsystemVersion.ToString()));
             }
+
+            if (PdbChecksumAlgorithm.Name != null)
+            {                
+                try
+                {
+                    IncrementalHash.CreateHash(PdbChecksumAlgorithm).Dispose();
+                }
+                catch
+                {
+                    diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidHashAlgorithmName, Location.None, PdbChecksumAlgorithm.ToString()));
+                }
+            }
+            else if (isDeterministic)
+            {
+                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidHashAlgorithmName, Location.None, ""));
+            }
         }
 
         internal bool EmitTestCoverageData => InstrumentationKinds.Contains(InstrumentationKind.TestCoverage);
@@ -270,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public EmitOptions WithEmitMetadataOnly(bool value)
         {
-            if (this.EmitMetadataOnly == value)
+            if (EmitMetadataOnly == value)
             {
                 return this;
             }
@@ -280,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public EmitOptions WithPdbFilePath(string path)
         {
-            if (this.PdbFilePath == path)
+            if (PdbFilePath == path)
             {
                 return this;
             }
@@ -288,9 +347,19 @@ namespace Microsoft.CodeAnalysis.Emit
             return new EmitOptions(this) { PdbFilePath = path };
         }
 
+        public EmitOptions WithPdbChecksumAlgorithm(HashAlgorithmName name)
+        {
+            if (PdbChecksumAlgorithm == name)
+            {
+                return this;
+            }
+
+            return new EmitOptions(this) { PdbChecksumAlgorithm = name };
+        }
+
         public EmitOptions WithOutputNameOverride(string outputName)
         {
-            if (this.OutputNameOverride == outputName)
+            if (OutputNameOverride == outputName)
             {
                 return this;
             }
@@ -300,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public EmitOptions WithDebugInformationFormat(DebugInformationFormat format)
         {
-            if (this.DebugInformationFormat == format)
+            if (DebugInformationFormat == format)
             {
                 return this;
             }
@@ -314,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <param name="value">Can be one of the following values: 0, 512, 1024, 2048, 4096, 8192</param>
         public EmitOptions WithFileAlignment(int value)
         {
-            if (this.FileAlignment == value)
+            if (FileAlignment == value)
             {
                 return this;
             }
@@ -324,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public EmitOptions WithBaseAddress(ulong value)
         {
-            if (this.BaseAddress == value)
+            if (BaseAddress == value)
             {
                 return this;
             }
@@ -334,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public EmitOptions WithHighEntropyVirtualAddressSpace(bool value)
         {
-            if (this.HighEntropyVirtualAddressSpace == value)
+            if (HighEntropyVirtualAddressSpace == value)
             {
                 return this;
             }
@@ -344,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public EmitOptions WithSubsystemVersion(SubsystemVersion subsystemVersion)
         {
-            if (subsystemVersion.Equals(this.SubsystemVersion))
+            if (subsystemVersion.Equals(SubsystemVersion))
             {
                 return this;
             }

@@ -31,7 +31,7 @@ static class S2
 {
     internal static void E<T, U>(this T t, U u) { }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var sourceModule = compilation.SourceModule;
             var sourceAssembly = (SourceAssemblySymbol)sourceModule.ContainingAssembly;
@@ -102,7 +102,7 @@ class C
         set { }
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var sourceModule = compilation.SourceModule;
             var sourceAssembly = (SourceAssemblySymbol)sourceModule.ContainingAssembly;
@@ -135,7 +135,7 @@ class C
     [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_DISPATCH, SafeArrayUserDefinedSubType = typeof(D))]
     internal int F2;
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var sourceModule = compilation.SourceModule;
             var sourceAssembly = (SourceAssemblySymbol)sourceModule.ContainingAssembly;
@@ -169,7 +169,7 @@ class C
         return 1;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var sourceModule = compilation.SourceModule;
             var sourceAssembly = (SourceAssemblySymbol)sourceModule.ContainingAssembly;
@@ -205,7 +205,7 @@ struct S<T> where T : struct
 }
 delegate T D<T>() where T : I<T>;";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var sourceModule = compilation.SourceModule;
             var sourceAssembly = (SourceAssemblySymbol)sourceModule.ContainingAssembly;
@@ -236,8 +236,8 @@ delegate T D<T>() where T : I<T>;";
 public class A
 {
 }";
-            var compilation1_v1 = CreateStandardCompilation(source1, assemblyName: "assembly1");
-            var compilation1_v2 = CreateStandardCompilation(source1, assemblyName: "assembly1");
+            var compilation1_v1 = CreateCompilation(source1, assemblyName: "assembly1");
+            var compilation1_v2 = CreateCompilation(source1, assemblyName: "assembly1");
 
             var source2 =
 @"class B : I<A>
@@ -254,11 +254,11 @@ class C<CT> : I<CT>
     I<CT> I<CT>.P { get { return null; } }
 }
 ";
-            var compilation2 = CreateStandardCompilation(source2, new[] { new CSharpCompilationReference(compilation1_v1) }, assemblyName: "assembly2");
+            var compilation2 = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1_v1) }, assemblyName: "assembly2");
 
             var compilation2Ref = new CSharpCompilationReference(compilation2);
 
-            var compilation3 = CreateStandardCompilation("", new[] { compilation2Ref, new CSharpCompilationReference(compilation1_v2) }, assemblyName: "assembly3");
+            var compilation3 = CreateCompilation("", new[] { compilation2Ref, new CSharpCompilationReference(compilation1_v2) }, assemblyName: "assembly3");
 
             var assembly2 = compilation3.GetReferencedAssemblySymbol(compilation2Ref);
             MethodSymbol implemented_m;
@@ -327,7 +327,7 @@ public enum E
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateEmptyCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,13): error CS0518: Predefined type 'System.Enum' is not defined or imported
                 // public enum E
@@ -364,7 +364,7 @@ public enum E : short
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateEmptyCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,13): error CS0518: Predefined type 'System.Enum' is not defined or imported
                 // public enum E : short
@@ -399,7 +399,7 @@ public enum E : short
 public class Test : short { }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,14): error CS0509: 'Test': cannot derive from sealed type 'short'
                 // public class Test : short { }
@@ -424,7 +424,7 @@ public class Test : short { }
 public class Test : short { }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateEmptyCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,21): error CS0518: Predefined type 'System.Int16' is not defined or imported
                 // public class Test : short { }
@@ -456,7 +456,7 @@ public class Test { }
 public class TestS { }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var retargetingAssembly = new RetargetingAssemblySymbol((SourceAssemblySymbol)comp.Assembly, isLinked: false);
@@ -477,7 +477,7 @@ public class TestS { }
 public struct Test : short { }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,22): error CS0527: Type 'short' in interface list is not an interface
                 // public struct Test : short { }
@@ -503,7 +503,7 @@ public struct Test : short { }
 public struct Test : short { }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateEmptyCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,22): error CS0518: Predefined type 'System.Int16' is not defined or imported
                 // public struct Test : short { }
@@ -538,7 +538,7 @@ public struct Test : short { }
 public interface Test : short { }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,25): error CS0527: Type 'short' in interface list is not an interface
                 // public interface Test : short { }
@@ -564,7 +564,7 @@ public interface Test : short { }
 public interface Test : short { }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateEmptyCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,25): error CS0518: Predefined type 'System.Int16' is not defined or imported
                 // public interface Test : short { }
@@ -597,7 +597,7 @@ public class C<T> where T : int
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,29): error CS0701: 'int' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 // public class C<T> where T : int
@@ -625,7 +625,7 @@ public class C<T> where T : int
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateEmptyCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,14): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // public class C<T> where T : int
@@ -715,12 +715,12 @@ public class C<T> where T : int
 class C1<T>
 {
 }";
-            var comp1 = CreateCompilation(source, new[] { MscorlibRef_v20 }, TestOptions.ReleaseDll);
+            var comp1 = CreateEmptyCompilation(source, new[] { MscorlibRef_v20 }, TestOptions.ReleaseDll);
             comp1.VerifyDiagnostics();
 
             NamedTypeSymbol c1 = comp1.Assembly.GlobalNamespace.GetTypeMembers("C1").Single();
 
-            var comp2 = CreateCompilation("", new[] { MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(comp1) }, TestOptions.ReleaseDll);
+            var comp2 = CreateEmptyCompilation("", new[] { MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(comp1) }, TestOptions.ReleaseDll);
 
             NamedTypeSymbol c1r = comp2.GlobalNamespace.GetTypeMembers("C1").Single();
 

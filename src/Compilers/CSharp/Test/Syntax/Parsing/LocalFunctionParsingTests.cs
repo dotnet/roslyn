@@ -348,7 +348,7 @@ class C
 }";
             file = ParseFile(errorText);
 
-            CreateStandardCompilation(errorText).VerifyDiagnostics(
+            CreateCompilation(errorText).VerifyDiagnostics(
                 // (11,19): error CS1003: Syntax error, '(' expected
                 //             goo<T>) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(11, 19),

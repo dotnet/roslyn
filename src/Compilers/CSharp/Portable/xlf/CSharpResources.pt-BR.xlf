@@ -4141,8 +4141,8 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</source>
-        <target state="translated">Instrução foreach não pode operar em variáveis do tipo "{0}" porque "{0}" não contém uma definição pública para "{1}"</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
+        <target state="needs-review-translation">Instrução foreach não pode operar em variáveis do tipo "{0}" porque "{0}" não contém uma definição pública para "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
@@ -8285,6 +8285,16 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="translated">A sintaxe 'var (...)' como um lvalue está reservada.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
+        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
+        <target state="translated">As declarações de variável out ou padrão não são permitidas em inicializadores de construtor, inicializadores de campo ou inicializadores de propriedade.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionVariableInQueryClause">
+        <source>Out variable and pattern variable declarations are not allowed within a query clause.</source>
+        <target state="translated">As declarações da variável de saída e da variável padrão não são permitidas em uma cláusula de consulta.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">{ ou ; ou =&gt; esperado</target>
@@ -8605,9 +8615,9 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
-        <source>declaration of expression variables in member initializers and queries</source>
-        <target state="new">declaration of expression variables in member initializers and queries</target>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
     </body>

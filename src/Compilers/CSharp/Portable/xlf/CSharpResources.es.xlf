@@ -4141,8 +4141,8 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</source>
-        <target state="translated">La instrucción foreach no puede funcionar en variables de tipo '{0}' porque '{0}' no contiene ninguna definición pública para '{1}'</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
+        <target state="needs-review-translation">La instrucción foreach no puede funcionar en variables de tipo '{0}' porque '{0}' no contiene ninguna definición pública para '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
@@ -8285,6 +8285,16 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <target state="translated">La sintaxis 'var (...)' como valor L está reservada.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
+        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
+        <target state="translated">La variable out y las declaraciones de variable de patrón no se permiten en los inicializadores de constructor, de campo o de propiedades.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionVariableInQueryClause">
+        <source>Out variable and pattern variable declarations are not allowed within a query clause.</source>
+        <target state="translated">No se permiten declaraciones de variable out y variable pattern dentro de una cláusula de consulta.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">Se esperaba { o ; o =&gt;.</target>
@@ -8605,9 +8615,9 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
-        <source>declaration of expression variables in member initializers and queries</source>
-        <target state="new">declaration of expression variables in member initializers and queries</target>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
     </body>

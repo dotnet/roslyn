@@ -329,10 +329,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // create result map
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    var builder = new DiagnosticAnalysisResultBuilder(project, version);
 
                     foreach (var analyzer in ideAnalyzers)
                     {
+                        var builder = new DiagnosticAnalysisResultBuilder(project, version);
+
                         if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
                         {
                             foreach (var document in project.Documents)

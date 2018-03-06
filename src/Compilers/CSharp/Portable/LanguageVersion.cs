@@ -341,5 +341,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return self >= MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion();
         }
+
+        internal static bool AllowImprovedOverloadCandidates(this LanguageVersion self)
+        {
+            return self >= MessageID.IDS_FeatureImprovedOverloadCandidates.RequiredVersion();
+        }
     }
 }
