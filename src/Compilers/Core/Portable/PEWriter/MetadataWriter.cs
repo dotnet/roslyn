@@ -91,6 +91,8 @@ namespace Microsoft.Cci
             bool emitTestCoverageData,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(metadata != debugMetadataOpt);
+
             this.module = context.Module;
             _deterministic = deterministic;
             this.MetadataOnly = metadataOnly;
@@ -430,12 +432,10 @@ namespace Microsoft.Cci
 
         protected readonly MetadataBuilder metadata;
 
-        // A builder distinct from type-system metadata builder if we are emitting debug information into a separate Portable PDB stream.
-        // Shared builder (reference equals heaps) if we are embedding Portable PDB into the metadata stream.
-        // Null otherwise.
+        // A builder for Portable or Embedded PDB metadata, or null if we are not emitting Portable/Embedded PDB.
         protected readonly MetadataBuilder _debugMetadataOpt;
 
-        internal bool EmitStandaloneDebugMetadata => _debugMetadataOpt != null && metadata != _debugMetadataOpt;
+        internal bool EmitPortableDebugMetadata => _debugMetadataOpt != null;
 
         private readonly DynamicAnalysisDataWriter _dynamicAnalysisDataWriterOpt;
 

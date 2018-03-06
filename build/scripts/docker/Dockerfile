@@ -30,6 +30,14 @@ RUN apt-get install -y  libunwind8 \
             libcurl4-openssl-dev && \
     apt-get clean
 
+# Install Mono
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF && \
+    (echo "deb http://download.mono-project.com/repo/ubuntu stable-xenial/snapshots/5.8.0.108 main" | \
+    tee /etc/apt/sources.list.d/mono-official.list) && \
+    apt-get update && \
+    apt-get install -y mono-devel=5.8.0.108-0xamarin1+ubuntu1604b1 && \
+    apt-get clean
+
 # Setup User to match Host User, and give superuser permissions
 ARG USER_ID=0
 RUN useradd -m code_executor -u ${USER_ID} -g sudo

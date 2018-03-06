@@ -206,6 +206,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsEqualOrDerivedFromWellKnownClass(type, WellKnownType.System_Exception, ref useSiteDiagnostics);
         }
 
+        internal bool IsReadOnlySpanType(TypeSymbol type)
+        {
+            return type.OriginalDefinition == GetWellKnownType(WellKnownType.System_ReadOnlySpan_T);
+        }
+
         internal bool IsEqualOrDerivedFromWellKnownClass(TypeSymbol type, WellKnownType wellKnownType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(wellKnownType == WellKnownType.System_Attribute ||

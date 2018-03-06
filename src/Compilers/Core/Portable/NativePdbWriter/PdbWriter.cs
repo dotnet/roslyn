@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
@@ -38,6 +39,7 @@ namespace Microsoft.Cci
 
         private static Type s_lazyCorSymWriterSxSType;
 
+        private readonly HashAlgorithmName _hashAlgorithmNameOpt;
         private readonly string _fileName;
         private readonly Func<object> _symWriterFactory;
         private ComMemoryStream _pdbStream;
@@ -57,14 +59,14 @@ namespace Microsoft.Cci
         private uint[] _sequencePointEndColumns;
 
         // in support of determinism
-        private readonly bool _deterministic;
+        private bool IsDeterministic { get => _hashAlgorithmNameOpt.Name != null; }
 
-        public PdbWriter(string fileName, Func<object> symWriterFactory, bool deterministic)
+        public PdbWriter(string fileName, Func<object> symWriterFactory, HashAlgorithmName hashAlgorithmNameOpt)
         {
             _fileName = fileName;
             _symWriterFactory = symWriterFactory;
             CreateSequencePointBuffers(capacity: 64);
-            _deterministic = deterministic;
+            _hashAlgorithmNameOpt = hashAlgorithmNameOpt;
         }
 
         public void WriteTo(Stream stream)
@@ -703,7 +705,7 @@ namespace Microsoft.Cci
                 // and the resulting PDB has Age = existing_age + 1.
                 _pdbStream = new ComMemoryStream();
 
-                if (!_deterministic)
+                if (!IsDeterministic)
                 {
                     symWriter.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _pdbStream, fullBuild: true);
                 }
@@ -730,14 +732,14 @@ namespace Microsoft.Cci
         {
             BlobContentId contentId;
 
-            if (_deterministic)
+            if (IsDeterministic)
             {
                 // Flush any remaining data to the underlying stream.
                 _symWriter.Commit();
 
                 // Calculate hash of the stream content.
                 // Note: all bits of the signature currently stored in the PDB stream were initialized to 1 by InitializeDeterministic.
-                contentId = BlobContentId.FromHash(CryptographicHashProvider.ComputeSha1(_pdbStream.GetChunks()));
+                contentId = BlobContentId.FromHash(CryptographicHashProvider.ComputeHash(_hashAlgorithmNameOpt, _pdbStream.GetChunks()));
 
                 ((ISymUnmanagedWriter8)_symWriter).UpdateSignature(contentId.Guid, contentId.Stamp, age: 1);
             }

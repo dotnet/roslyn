@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #region Tool Members
 
-        private static readonly string[] s_separators = { "\r\n" };
+        private static readonly string[] s_separators = { Environment.NewLine };
 
         internal override void LogMessages(string output, MessageImportance messageImportance)
         {

@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -242,6 +244,94 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // we should reach here without crashing
         }
 
+        [Fact]
+        public void TestHostAnalyzerOrdering()
+        {
+            var workspace = new AdhocWorkspace(MefV1HostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic.AsExportProvider()));
+
+            var project = workspace.AddProject(
+                          ProjectInfo.Create(
+                              ProjectId.CreateNewId(),
+                              VersionStamp.Create(),
+                              "Dummy",
+                              "Dummy",
+                              LanguageNames.CSharp));
+
+            // create listener/service/analyzer
+            var listener = new AsynchronousOperationListener();
+            var service = new MyDiagnosticAnalyzerService(new DiagnosticAnalyzer[] {
+                new Priority20Analyzer(),
+                new Priority15Analyzer(),
+                new Priority10Analyzer(),
+                new Priority1Analyzer(),
+                new Priority0Analyzer(),
+                new CSharpCompilerDiagnosticAnalyzer(),
+                new Analyzer(),
+            }, listener, project.Language);
+
+            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
+            var analyzers = incrementalAnalyzer.GetAnalyzersTestOnly(project).ToArray();
+
+            Assert.Equal(analyzers[0].GetType(), typeof(CSharpCompilerDiagnosticAnalyzer));
+            Assert.Equal(analyzers[1].GetType(), typeof(Analyzer));
+            Assert.Equal(analyzers[2].GetType(), typeof(Priority0Analyzer));
+            Assert.Equal(analyzers[3].GetType(), typeof(Priority1Analyzer));
+            Assert.Equal(analyzers[4].GetType(), typeof(Priority10Analyzer));
+            Assert.Equal(analyzers[5].GetType(), typeof(Priority15Analyzer));
+            Assert.Equal(analyzers[6].GetType(), typeof(Priority20Analyzer));
+        }
+
+        [Fact]
+        public async Task TestHostAnalyzerErrorNotLeaking()
+        {
+            var workspace = new AdhocWorkspace();
+
+            var projectId = ProjectId.CreateNewId();
+            var project = workspace.AddProject(
+                          ProjectInfo.Create(
+                              projectId,
+                              VersionStamp.Create(),
+                              "Dummy",
+                              "Dummy",
+                              LanguageNames.CSharp,
+                              documents: new[] {
+                                  DocumentInfo.Create(
+                                      DocumentId.CreateNewId(projectId),
+                                      "test.cs",
+                                      loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class A {}"), VersionStamp.Create(), filePath: "test.cs")),
+                                      filePath: "test.cs")}));
+
+            workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, project.Language, true);
+
+            // create listener/service/analyzer
+            var listener = new AsynchronousOperationListener();
+            var service = new MyDiagnosticAnalyzerService(new DiagnosticAnalyzer[] {
+                new LeakDocumentAnalyzer(),
+                new LeakProjectAnalyzer()
+            }, listener, project.Language);
+
+            var called = false;
+            service.DiagnosticsUpdated += (s, e) =>
+            {
+                if (e.Diagnostics.Length == 0)
+                {
+                    return;
+                }
+
+                var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
+                Assert.IsNotType<ProjectDiagnosticAnalyzer>(liveId.Analyzer);
+
+                called = true;
+            };
+
+            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
+            await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+
+            await listener.CreateWaitTask();
+
+            Assert.True(called);
+        }
+
         private static Document GetDocumentFromIncompleteProject(AdhocWorkspace workspace)
         {
             var project = workspace.AddProject(
@@ -291,10 +381,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService
         {
             internal MyDiagnosticAnalyzerService(DiagnosticAnalyzer analyzer, IAsynchronousOperationListener listener, string language = LanguageNames.CSharp)
+                : this(SpecializedCollections.SingletonEnumerable(analyzer), listener, language)
+            {
+            }
+
+            internal MyDiagnosticAnalyzerService(IEnumerable<DiagnosticAnalyzer> analyzers, IAsynchronousOperationListener listener, string language = LanguageNames.CSharp)
                 : base(new HostAnalyzerManager(
                             ImmutableArray.Create<AnalyzerReference>(
                                 new TestAnalyzerReferenceByLanguage(
-                                    ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(language, ImmutableArray.Create(analyzer)))),
+                                    ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(language, ImmutableArray.CreateRange(analyzers)))),
                             hostDiagnosticUpdateSource: null),
                       hostDiagnosticUpdateSource: null,
                       registrationService: new MockDiagnosticUpdateSourceRegistrationService(),
@@ -357,6 +452,84 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 return SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
             }
+        }
+
+        private class Priority20Analyzer : PriorityTestDocumentDiagnosticAnalyzer
+        {
+            public Priority20Analyzer() : base(priority: 20) { }
+        }
+
+        private class Priority15Analyzer : PriorityTestProjectDiagnosticAnalyzer
+        {
+            public Priority15Analyzer() : base(priority: 15) { }
+        }
+
+        private class Priority10Analyzer : PriorityTestDocumentDiagnosticAnalyzer
+        {
+            public Priority10Analyzer() : base(priority: 10) { }
+        }
+
+        private class Priority1Analyzer : PriorityTestProjectDiagnosticAnalyzer
+        {
+            public Priority1Analyzer() : base(priority: 1) { }
+        }
+
+        private class Priority0Analyzer : PriorityTestDocumentDiagnosticAnalyzer
+        {
+            public Priority0Analyzer() : base(priority: -1) { }
+        }
+
+        private class PriorityTestDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
+        {
+            protected PriorityTestDocumentDiagnosticAnalyzer(int priority)
+            {
+                Priority = priority;
+            }
+
+            public override int Priority { get; }
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+            public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+                => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+            public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+                => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+        }
+
+        private class PriorityTestProjectDiagnosticAnalyzer : ProjectDiagnosticAnalyzer
+        {
+            protected PriorityTestProjectDiagnosticAnalyzer(int priority)
+            {
+                Priority = priority;
+            }
+
+            public override int Priority { get; }
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+            public override Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
+                => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+        }
+
+        private class LeakDocumentAnalyzer : DocumentDiagnosticAnalyzer
+        {
+            internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("leak", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_syntaxRule);
+
+            public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+            {
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                return ImmutableArray.Create(Diagnostic.Create(s_syntaxRule, root.GetLocation()));
+            }
+
+            public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+            {
+                return SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
+            }
+        }
+
+        private class LeakProjectAnalyzer : ProjectDiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor("project", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_rule);
+            public override Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken) => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
         }
     }
 }
