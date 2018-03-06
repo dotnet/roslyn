@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 ref BasicBlock.Branch next = ref block.InternalNext.Branch;
 
                 Debug.Assert((block.InternalNext.ReturnValue == null) == ((next.Flags & BasicBlock.BranchFlags.Return) == 0));
-                Debug.Assert(next.Destination != null || 
+                Debug.Assert(next.Destination != null ||
                              (next.Flags &
                               (BasicBlock.BranchFlags.Error | BasicBlock.BranchFlags.ProgramTermination |
                               BasicBlock.BranchFlags.Throw | BasicBlock.BranchFlags.ReThrow |
@@ -536,10 +536,10 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     BasicBlock predecessor = predecessors.Single();
 
-                    if (predecessor.Kind != BasicBlockKind.Entry && 
-                        predecessor.InternalNext.Branch.Destination == block && 
+                    if (predecessor.Kind != BasicBlockKind.Entry &&
+                        predecessor.InternalNext.Branch.Destination == block &&
                         predecessor.InternalConditional.Condition == null &&
-                        regionMap[predecessor] == currentRegion) 
+                        regionMap[predecessor] == currentRegion)
                     {
                         Debug.Assert(predecessor != block);
                         Debug.Assert(predecessor.InternalNext.ReturnValue == null);
@@ -1000,6 +1000,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+        // PROTOTYPE(dataflow): Revisit and determine if this is too much abstraction, or if it's fine as it is.
         private void PushArray<T>(ImmutableArray<T> array, Func<T, IOperation> unwrapper = null) where T : IOperation
         {
             Debug.Assert(unwrapper != null || typeof(T) == typeof(IOperation));
@@ -1024,17 +1025,30 @@ namespace Microsoft.CodeAnalysis.Operations
                 for (int i = numElements - 1; i >= 0; i--)
                 {
                     IOperation visitedElement = _evalStack.Pop();
-                    if (wrapper != null)
-                    {
-                        builder.Add(wrapper(visitedElement, i, originalArray));
-                    }
-                    else
-                    {
-                        builder.Add((T)visitedElement);
-                    }
+                    builder.Add(wrapper != null ? wrapper(visitedElement, i, originalArray) : (T)visitedElement);
                 }
                 builder.ReverseContents();
                 return builder.ToImmutableAndFree();
+            }
+        }
+
+        private ImmutableArray<IArgumentOperation> VisitArguments(ImmutableArray<IArgumentOperation> arguments)
+        {
+            PushArray(arguments, UnwrapArgument);
+            return PopArray(arguments, RewriteArgumentFromArray);
+
+            IOperation UnwrapArgument(IArgumentOperation argument)
+            {
+                return argument.Value;
+            }
+
+            IArgumentOperation RewriteArgumentFromArray(IOperation visitedArgument, int index, ImmutableArray<IArgumentOperation> args)
+            {
+                Debug.Assert(index >= 0 && index < args.Length);
+                var originalArgument = (BaseArgument)args[index];
+                return new ArgumentOperation(visitedArgument, originalArgument.ArgumentKind, originalArgument.Parameter,
+                                             originalArgument.InConversionConvertibleOpt, originalArgument.OutConversionConvertibleOpt,
+                                             semanticModel: null, originalArgument.Syntax, originalArgument.ConstantValue, originalArgument.IsImplicit);
             }
         }
 
@@ -1978,9 +1992,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 _evalStack.Push(Visit(operation.Instance));
             }
 
-            ImmutableArray<IArgumentOperation> arguments = operation.Arguments;
-            PushArray(arguments, arg => arg.Value);
-            ImmutableArray<IArgumentOperation> visitedArguments = PopArray(arguments, _argumentRewriter);
+            ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(operation.Arguments);
             IOperation visitedInstance = operation.Instance == null ? null : _evalStack.Pop();
 
             return new InvocationExpression(operation.TargetMethod, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -1988,9 +2000,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitObjectCreation(IObjectCreationOperation operation, int? captureIdForResult)
         {
-            ImmutableArray<IArgumentOperation> arguments = operation.Arguments;
-            PushArray(arguments, arg => arg.Value);
-            ImmutableArray<IArgumentOperation> visitedArgs = PopArray(arguments, _argumentRewriter);
+            ImmutableArray<IArgumentOperation> visitedArgs = VisitArguments(operation.Arguments);
 
             // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
             var objectCreation = new ObjectCreationExpression(operation.Constructor, initializer: null, visitedArgs, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -2000,16 +2010,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return objectCreation;
         }
 
-        private readonly Func<IOperation, int, ImmutableArray<IArgumentOperation>, IArgumentOperation> _argumentRewriter = RewriteArgumentFromArray;
-
-        private static IArgumentOperation RewriteArgumentFromArray(IOperation visitedArgument, int index, ImmutableArray<IArgumentOperation> arguments)
-        {
-            Debug.Assert(index >= 0 && index < arguments.Length);
-            var originalArgument = (BaseArgument)arguments[index];
-            return new ArgumentOperation(visitedArgument, originalArgument.ArgumentKind, originalArgument.Parameter,
-                                         originalArgument.InConversionConvertibleOpt, originalArgument.OutConversionConvertibleOpt,
-                                         semanticModel: null, originalArgument.Syntax, originalArgument.ConstantValue, originalArgument.IsImplicit);
-        }
 
         internal override IOperation VisitNoneOperation(IOperation operation, int? captureIdForResult)
         {
