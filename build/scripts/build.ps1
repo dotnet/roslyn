@@ -50,6 +50,7 @@ param (
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 function Print-Usage() {
     Write-Host "Usage: build.ps1"
