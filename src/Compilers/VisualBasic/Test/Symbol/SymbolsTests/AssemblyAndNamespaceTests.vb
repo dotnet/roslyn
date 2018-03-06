@@ -27,7 +27,7 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
         <Fact>
         Public Sub SimpleAssembly()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Banana">
     <file name="b.vb">
         Namespace NS
@@ -56,7 +56,7 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
         <Fact>
         Public Sub SourceModule()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Banana">
     <file name="m.vb">
         Namespace NS
@@ -84,7 +84,7 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
         <Fact>
         Public Sub StandardModule()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Banana">
     <file name="m.vb">
     Namespace NS
@@ -147,7 +147,7 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
         ' Check that parse errors are reported 
         <Fact>
         Public Sub NamespaceParseErrors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Banana">
     <file name="a.vb">
         Imports System.7
@@ -176,7 +176,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
         ' Check namespace symbols
         <Fact>
         Public Sub NSSym()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Namespace A
@@ -251,7 +251,7 @@ Namespace A.b.D
         ' Check namespace symbols in the presence of a root namespace
         <Fact>
         Public Sub NSSymWithRootNamespace()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Namespace A
@@ -314,7 +314,7 @@ End Namespace
         ' Check namespace symbol containers in the presence of a root namespace
         <Fact>
         Public Sub NSContainersWithRootNamespace()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Class Type1
@@ -338,7 +338,7 @@ End Class
         ' Check namespace symbol containers in the presence of a root namespace
         <Fact>
         Public Sub NSContainersWithoutRootNamespace()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Class Type1
@@ -354,7 +354,7 @@ End Class
 
         <Fact>
         Public Sub ImportsAlias01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Test">
     <file name="a.vb">
 Imports ALS = N1.N2
@@ -410,7 +410,7 @@ End Namespace
     End Namespace
     ]]>.Value
 
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Test1">
     <file name="a.vb">
     Namespace N1
@@ -420,7 +420,7 @@ End Namespace
     </file>
 </compilation>)
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Test2">
     <file name="b.vb">
     Namespace N1
@@ -517,7 +517,7 @@ End Class
 
             Dim aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Goo"))
 
-            Dim comp = CreateCompilationWithReferences(source, {aliasedCorlib})
+            Dim comp = CreateEmptyCompilationWithReferences(source, {aliasedCorlib})
 
             ' NOTE: this doesn't compile in dev11 - it reports that it cannot find System.Object.
             ' However, we've already changed how special type lookup works, so this is not a major issue.
@@ -556,10 +556,10 @@ End Class
                     </file>
                 </compilation>
 
-            Dim libComp = CreateCompilationWithReferences([lib], {MscorlibRef_v4_0_30316_17626})
+            Dim libComp = CreateEmptyCompilationWithReferences([lib], {MscorlibRef_v4_0_30316_17626})
             Dim libRef = libComp.EmitToImageReference(aliases:=ImmutableArray.Create("myTask"))
 
-            Dim comp = CreateCompilationWithReferences(source, {libRef, MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929})
+            Dim comp = CreateEmptyCompilationWithReferences(source, {libRef, MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929})
 
             ' NOTE: Unlike in C#, aliases on metadata references are ignored, so the
             ' reference to System.Threading.Tasks is ambiguous.

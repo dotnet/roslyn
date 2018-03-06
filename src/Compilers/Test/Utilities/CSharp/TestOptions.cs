@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular7 = Regular.WithLanguageVersion(LanguageVersion.CSharp7);
         public static readonly CSharpParseOptions Regular7_1 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_1);
         public static readonly CSharpParseOptions Regular7_2 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_2);
+        public static readonly CSharpParseOptions Regular7_3 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_3);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
         public static readonly CSharpParseOptions WithoutImprovedOverloadCandidates = Regular.WithLanguageVersion(MessageID.IDS_FeatureImprovedOverloadCandidates.RequiredVersion() - 1);
 

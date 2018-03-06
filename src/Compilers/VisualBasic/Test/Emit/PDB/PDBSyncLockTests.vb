@@ -35,7 +35,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             Dim v = CompileAndVerify(compilation)
 
             v.VerifyIL("C1.Main", "

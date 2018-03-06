@@ -39,7 +39,7 @@ End Class
 
         <Fact>
         Public Sub GlobalName()
-            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({s_simpleSource}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -63,7 +63,7 @@ End Class
 
         <Fact>
         Public Sub Qualified()
-            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({s_simpleSource}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -87,7 +87,7 @@ End Class
 
         <Fact>
         Public Sub Exception()
-            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({s_simpleSource}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -128,7 +128,7 @@ End Class
 
         <Fact>
         Public Sub ReturnValue()
-            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({s_simpleSource}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -251,7 +251,7 @@ End Class"
 
         <Fact>
         Public Sub PlaceholderMethodNameNormalization()
-            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({s_simpleSource}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -293,7 +293,7 @@ End Class"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -330,7 +330,7 @@ End Class"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -493,7 +493,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -531,7 +531,7 @@ End Class
 
         <Fact>
         Public Sub AssignToException()
-            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({s_simpleSource}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -565,7 +565,7 @@ Class C
     End Function    
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.F")
@@ -766,20 +766,20 @@ End Class"
 
             Dim publicKeyA = ImmutableArray.CreateRange(Of Byte)({&H0, &H24, &H0, &H0, &H4, &H80, &H0, &H0, &H94, &H0, &H0, &H0, &H6, &H2, &H0, &H0, &H0, &H24, &H0, &H0, &H52, &H53, &H41, &H31, &H0, &H4, &H0, &H0, &H1, &H0, &H1, &H0, &HED, &HD3, &H22, &HCB, &H6B, &HF8, &HD4, &HA2, &HFC, &HCC, &H87, &H37, &H4, &H6, &H4, &HCE, &HE7, &HB2, &HA6, &HF8, &H4A, &HEE, &HF3, &H19, &HDF, &H5B, &H95, &HE3, &H7A, &H6A, &H28, &H24, &HA4, &HA, &H83, &H83, &HBD, &HBA, &HF2, &HF2, &H52, &H20, &HE9, &HAA, &H3B, &HD1, &HDD, &HE4, &H9A, &H9A, &H9C, &HC0, &H30, &H8F, &H1, &H40, &H6, &HE0, &H2B, &H95, &H62, &H89, &H2A, &H34, &H75, &H22, &H68, &H64, &H6E, &H7C, &H2E, &H83, &H50, &H5A, &HCE, &H7B, &HB, &HE8, &HF8, &H71, &HE6, &HF7, &H73, &H8E, &HEB, &H84, &HD2, &H73, &H5D, &H9D, &HBE, &H5E, &HF5, &H90, &HF9, &HAB, &HA, &H10, &H7E, &H23, &H48, &HF4, &HAD, &H70, &H2E, &HF7, &HD4, &H51, &HD5, &H8B, &H3A, &HF7, &HCA, &H90, &H4C, &HDC, &H80, &H19, &H26, &H65, &HC9, &H37, &HBD, &H52, &H81, &HF1, &H8B, &HCD})
 
-            Dim compilationA1 = CreateCompilation(
+            Dim compilationA1 = CreateEmptyCompilation(
                 New AssemblyIdentity(assemblyNameA, New Version(1, 1, 1, 1), cultureName:="", publicKeyOrToken:=publicKeyA, hasPublicKey:=True),
                 {sourceA},
                 references:={MscorlibRef_v20},
                 options:=TestOptions.DebugDll.WithDelaySign(True))
 
-            Dim compilationB1 = CreateCompilation(
+            Dim compilationB1 = CreateEmptyCompilation(
                 New AssemblyIdentity(assemblyNameB, New Version(1, 2, 2, 2)),
                 {sourceB},
                 references:={MscorlibRef_v20, compilationA1.EmitToImageReference()},
                 options:=TestOptions.DebugDll)
 
             ' Use mscorlib v4.0.0.0 and A v2.1.2.1 at runtime.
-            Dim compilationA2 = CreateCompilation(
+            Dim compilationA2 = CreateEmptyCompilation(
                 New AssemblyIdentity(assemblyNameA, New Version(2, 1, 2, 1), cultureName:="", publicKeyOrToken:=publicKeyA, hasPublicKey:=True),
                 {sourceA},
                 references:={MscorlibRef_v20},
@@ -856,11 +856,11 @@ Class B
     End Sub
 End Class"
             Dim assemblyNameA = "0B93FF0B-31A2-47C8-B24D-16A2D77AB5C5"
-            Dim compilationA = CreateCompilationWithMscorlibAndVBRuntime(MakeSources(sourceA, assemblyName:=assemblyNameA), options:=TestOptions.DebugDll)
+            Dim compilationA = CreateCompilationWithMscorlib40AndVBRuntime(MakeSources(sourceA, assemblyName:=assemblyNameA), options:=TestOptions.DebugDll)
             Dim moduleA = compilationA.ToModuleInstance()
 
             Dim assemblyNameB = "9BBC6622-86EB-4EC5-94A1-9A1E6D0C24B9"
-            Dim compilationB = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(MakeSources(sourceB, assemblyName:=assemblyNameB), options:=TestOptions.DebugDll, additionalRefs:={moduleA.GetReference()})
+            Dim compilationB = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(MakeSources(sourceB, assemblyName:=assemblyNameB), options:=TestOptions.DebugDll, references:={moduleA.GetReference()})
             Dim moduleB = compilationB.ToModuleInstance()
 
             Dim runtime = CreateRuntimeInstance(
@@ -935,7 +935,7 @@ End Class"
             aliases As ImmutableArray(Of [Alias]),
             ByRef errorMessage As String) As CompilationTestData
 
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
                 {Parse(source)},
                 {MscorlibRef_v4_0_30316_17626, SystemRef, MsvbRef},
                 options:=TestOptions.DebugDll)
