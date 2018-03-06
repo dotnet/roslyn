@@ -593,7 +593,7 @@ Block[B0] - Entry
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
-        Statements (3)
+        Statements (2)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c = New C(1 ... f(b, 1, 2))')
               Left: 
                 ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c')
@@ -613,10 +613,6 @@ Block[B0] - Entry
 
             ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
               Statement: 
-                null
-
-            IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-              ReturnedValue: 
                 null
 
         Next (Regular) Block[B5]
@@ -680,7 +676,7 @@ Block[B0] - Entry
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
-        Statements (3)
+        Statements (2)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c = New C(i ... f(b, 2, 3))')
               Left: 
                 ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c')
@@ -700,10 +696,6 @@ Block[B0] - Entry
 
             ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
               Statement: 
-                null
-
-            IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-              ReturnedValue: 
                 null
 
         Next (Regular) Block[B5]
@@ -771,7 +763,7 @@ Block[B0] - Entry
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
-        Statements (3)
+        Statements (2)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c = New C(i ...  3), i1:=1)')
               Left: 
                 ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c')
@@ -791,10 +783,6 @@ Block[B0] - Entry
 
             ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
               Statement: 
-                null
-
-            IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-              ReturnedValue: 
                 null
 
         Next (Regular) Block[B5]
@@ -862,7 +850,7 @@ Block[B0] - Entry
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
-        Statements (3)
+        Statements (2)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c = New C(1 ... f(b, 2, 3))')
               Left: 
                 ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c')
@@ -886,10 +874,6 @@ Block[B0] - Entry
 
             ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
               Statement: 
-                null
-
-            IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
-              ReturnedValue: 
                 null
 
         Next (Regular) Block[B5]
