@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         private const int MaxMRUSize = 10;
         private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
-        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
 
         public EditorAsyncCompletionService(IAsyncCompletionBroker broker)
         {
@@ -61,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             // TODO: Unhook the session's events when the session is available in the args
         }
 
+        // TODO: Need to know if we're in UseSuggestionMode
         public Task<FilteredCompletionModel> UpdateCompletionListAsync(
             ImmutableArray<EditorCompletion.CompletionItem> sortedList, 
             CompletionTriggerReason triggerReason, 
@@ -136,7 +136,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 return HandleDeletionTrigger(sortedList, triggerReason, filters, filterReason, filterText, initialListOfItemsToBeIncluded, patternMatcherMap);
             }
 
-            return HandleNormalFiltering(sortedList, snapshot, filterText, filters, initialListOfItemsToBeIncluded, patternMatcherMap);
+            var caretPoint = view.GetCaretPoint(snapshot.TextBuffer);
+            var caretPosition = caretPoint.HasValue ? caretPoint.Value.Position : (int?)null;
+
+            return HandleNormalFiltering(
+                sortedList,
+                snapshot,
+                caretPosition,
+                filterText, 
+                filters, 
+                filterReason,
+                initialListOfItemsToBeIncluded,
+                triggerReason,
+                patternMatcherMap);
         }
 
         private IEnumerable<CompletionItemWithHighlight> GetHighlightedList(
@@ -300,10 +312,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         private Task<FilteredCompletionModel> HandleNormalFiltering(
             ImmutableArray<EditorCompletion.CompletionItem> sortedList,
-            ITextSnapshot snapshot, 
+            ITextSnapshot snapshot,
+            int? caretPosition,
             string filterText,
             ImmutableArray<CompletionFilterWithState> filters,
+            EditorCompletion.CompletionFilterReason filterReason,
             List<FilterResult> itemsInList, 
+            CompletionTriggerReason triggerReason,
             Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> patternMatcherMap)
         {
             var service = GetCompletionService(snapshot);
@@ -324,9 +339,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var highlightedList = GetHighlightedList(itemsInList, filterText, patternMatcherMap).ToImmutableArray();
             var updatedFilters = GetUpdatedFilters(sortedList, itemsInList, filters, filterText, patternMatcherMap);
 
+            var isHardSelection = IsHardSelection(bestItem, snapshot, caretPosition, filterReason, filterText, triggerReason);
+
             if (bestItem == null)
             {
-                return Task.FromResult(new FilteredCompletionModel(highlightedList, 0, updatedFilters));
+                return Task.FromResult(new FilteredCompletionModel(highlightedList, 0, updatedFilters, isHardSelection ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, uniqueItem: null));
             }
 
             // TODO: Better conversion between Roslyn/Editor completion items
@@ -338,7 +355,91 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 uniqueItem = highlightedList[selectedItemIndex].CompletionItem;
             }
 
-            return Task.FromResult(new FilteredCompletionModel(highlightedList, selectedItemIndex, updatedFilters, CompletionItemSelection.NoChange, uniqueItem));
+            return Task.FromResult(new FilteredCompletionModel(highlightedList, selectedItemIndex, updatedFilters, isHardSelection ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, uniqueItem));
+        }
+
+        private bool IsHardSelection(RoslynCompletionItem bestItem, ITextSnapshot snapshot, int? caretPosition, EditorCompletion.CompletionFilterReason filterReason, string filterText, CompletionTriggerReason triggerReason)
+        {
+            if (bestItem == null) // || model.UseSuggestionMode (there is a builder);
+            {
+                return false;
+            }
+
+            // We don't have a builder and we have a best match.  Normally this will be hard
+            // selected, except for a few cases.  Specifically, if no filter text has been
+            // provided, and this is not a preselect match then we will soft select it.  This
+            // happens when the completion list comes up implicitly and there is something in
+            // the MRU list.  In this case we do want to select it, but not with a hard
+            // selection.  Otherwise you can end up with the following problem:
+            //
+            //  dim i as integer =<space>
+            //
+            // Completion will comes up after = with 'integer' selected (Because of MRU).  We do
+            // not want 'space' to commit this.
+
+            if (ShouldSoftSelectItem(bestItem, filterText, triggerReason))
+            {
+                return false;
+            }
+
+            // If the user moved the caret left after they started typing, the 'best' match may not match at all
+            // against the full text span that this item would be replacing.
+            if (!MatchesFilterText(bestItem, filterText, triggerReason, filterReason))
+            {
+                return false;
+            }
+
+            // TODO
+
+            // There was either filter text, or this was a preselect match. In either case, we can
+            // hard select this.
+            return true;
+        }
+
+        private bool ShouldSoftSelectItem(RoslynCompletionItem item, string filterText, CompletionTriggerReason triggerReason)
+        {
+            // If all that has been typed is puntuation, then don't hard select anything.
+            // It's possible the user is just typing language punctuation and selecting
+            // anything in the list will interfere.  We only allow this if the filter text
+            // exactly matches something in the list already. 
+            if (filterText.Length > 0 && IsAllPunctuation(filterText) && filterText != item.DisplayText)
+            {
+                return true;
+            }
+
+            // If the user hasn't actually typed anything, then don't hard select any item.
+            // The only exception to this is if the completion provider has requested the
+            // item be preselected.
+            if (filterText.Length == 0)
+            {
+                // Item didn't want to be hard selected with no filter text.
+                // So definitely soft select it.
+                if (item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
+                {
+                    return true;
+                }
+
+                // Item did not ask to be preselected.  So definitely soft select it.
+                if (item.Rules.MatchPriority == MatchPriority.Default)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsAllPunctuation(string filterText)
+        {
+            foreach (var ch in filterText)
+            {
+                if (!char.IsPunctuation(ch))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
@@ -462,12 +563,46 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             return workspace.Services.GetLanguageServices(snapshot.TextBuffer).GetService<CompletionService>();
         }
 
+
         private bool MatchesFilterText(
-            EditorCompletion.CompletionItem item, 
+            RoslynCompletionItem item, 
             string filterText, 
+            CompletionTriggerReason triggerReason, 
+            EditorCompletion.CompletionFilterReason filterReason)
+        {
+            return MatchesFilterText(
+                item.FilterText,
+                item.DisplayText,
+                item.Rules.MatchPriority,
+                filterText,
+                triggerReason,
+                filterReason);
+        }
+
+
+        private bool MatchesFilterText(
+            EditorCompletion.CompletionItem item,
+            string filterText,
             EditorCompletion.CompletionTriggerReason triggerReason,
             EditorCompletion.CompletionFilterReason filterReason,
             Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> patternMatcherMap)
+        {
+            return MatchesFilterText(
+                item.FilterText,
+                item.DisplayText,
+                item.Properties.GetProperty<int>("MatchPriority"),
+                filterText,
+                triggerReason,
+                filterReason);
+        }
+
+        private bool MatchesFilterText(
+            string itemFilterText,
+            string itemDisplayText,
+            int matchPriority,
+            string filterText,
+            EditorCompletion.CompletionTriggerReason triggerReason,
+            EditorCompletion.CompletionFilterReason filterReason)
         {
             // For the deletion we bake in the core logic for how matching should work.
             // This way deletion feels the same across all languages that opt into deletion 
@@ -479,7 +614,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             if (triggerReason == CompletionTriggerReason.Deletion && filterReason == EditorCompletion.CompletionFilterReason.Deletion)
             {
-                return item.FilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
+                return itemFilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
             }
 
             // If the user hasn't typed anything, and this item was preselected, or was in the
@@ -487,18 +622,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             if (filterText.Length == 0)
             {
                 // TODO: Need ItemRules.MatchPriority.
-                if (item.Properties.GetProperty<int>("MatchPriority") > MatchPriority.Default)
+                if (matchPriority > MatchPriority.Default)
                 {
                     return true;
                 }
 
-                if (!_recentItems.IsDefault && GetRecentItemIndex(_recentItems, item.DisplayText) <= 0)
+                if (!_recentItems.IsDefault && GetRecentItemIndex(_recentItems, itemDisplayText) <= 0)
                 {
                     return true;
                 }
             }
 
-            return _completionHelper.MatchesPattern(item.FilterText, filterText, CultureInfo.CurrentCulture);
+            return _completionHelper.MatchesPattern(itemFilterText, filterText, CultureInfo.CurrentCulture);
         }
 
         private bool ShouldBeFilteredOutOfCompletionList(EditorCompletion.CompletionItem item, ImmutableArray<CompletionFilter> activeFilters)
