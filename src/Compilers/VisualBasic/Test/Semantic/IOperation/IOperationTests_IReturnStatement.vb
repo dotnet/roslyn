@@ -140,17 +140,9 @@ End Class]]>.Value
             Dim expectedFlowGraph = <![CDATA[
 Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[B2]
-Block[B1] - Block
-    Predecessors (0)
-    Statements (1)
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
-          Statement: 
-            null
-
-    Next (Regular) Block[B2]
-Block[B2] - Exit
-    Predecessors: [B0] [B1]
+    Next (Regular) Block[B1]
+Block[B1] - Exit
+    Predecessors: [B0]
     Statements (0)
 ]]>.Value
 
@@ -182,23 +174,13 @@ Block[B0] - Entry
     Block[B1] - Block
         Predecessors: [B0]
         Statements (0)
-        Next (Return) Block[B3]
+        Next (Return) Block[B2]
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-            Leaving: {R1}
-    Block[B2] - Block
-        Predecessors (0)
-        Statements (1)
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
-              Statement: 
-                null
-
-        Next (Return) Block[B3]
-            ILocalReferenceOperation: M (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
             Leaving: {R1}
 }
 
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -213,7 +195,7 @@ Block[B3] - Exit
             Dim source = <![CDATA[
 Imports System
 Public Class C
-    Function M(condition As Boolean) As Integer 'BIND:"Function M"
+    Function M() As Integer 'BIND:"Function M"
         M = 1
     End Function
 End Class]]>.Value
@@ -231,7 +213,7 @@ Block[B0] - Entry
     Locals: [M As System.Int32]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (2)
+        Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M = 1')
               Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'M = 1')
@@ -240,12 +222,87 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
-              Statement: 
-                null
-
         Next (Return) Block[B2]
             ILocalReferenceOperation: M (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ReturnFlow_18()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Function M() As Integer 'BIND:"Function M"
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC42353: Function 'M' doesn't return a value on all code paths. Are you missing a 'Return' statement?
+    End Function
+    ~~~~~~~~~~~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [M As System.Int32]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Return) Block[B2]
+            ILocalReferenceOperation: M (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ReturnFlow_19()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Function M() As Integer 'BIND:"Function M"
+        Return M
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [M As System.Int32]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Return) Block[B2]
+            ILocalReferenceOperation: M (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'M')
             Leaving: {R1}
 }
 
