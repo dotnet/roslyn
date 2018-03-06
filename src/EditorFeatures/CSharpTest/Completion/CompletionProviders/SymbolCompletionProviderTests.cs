@@ -1924,6 +1924,56 @@ class C
             await VerifyItemExistsAsync(markup, "String");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
+        public async Task AfterInInLambda()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M()
+    {
+        Func<int, int> f = (in $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
+        public async Task AfterInInMethodDeclaration()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(in $$)
+    {
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
+        public async Task VariableAfterInInInvocation()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(in String parameter)
+    {
+        M(in $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "parameter");
+        }
+
         [WorkItem(539217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType1()
@@ -7436,7 +7486,7 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = $"(field) int C.x";
+            var expectedDescription = $"({ FeaturesResources.field }) int C.x";
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
 

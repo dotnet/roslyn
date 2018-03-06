@@ -39,7 +39,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             compilation.VerifyDiagnostics(
                 // (6,29): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Test2(Test1(out int x1), x1);
@@ -72,7 +72,7 @@ public class Cls
         var x = new Cls(out int x2);
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             compilation.VerifyDiagnostics(
                 // (6,22): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Test(out int x1);
@@ -101,7 +101,7 @@ public class Cls
             //VerifyModelForOutVar(model, x2Decl); Probably fails due to https://github.com/dotnet/roslyn/issues/16348
             VerifyModelForOutVarWithoutDataFlow(model, x2Decl);
 
-            compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (6,9): error CS0103: The name 'Test' does not exist in the current context
                 //         Test(out int x1);
@@ -146,7 +146,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -193,7 +193,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib40(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,20): error CS8185: A declaration is not allowed in this context.
@@ -243,7 +243,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib40(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,20): error CS8185: A declaration is not allowed in this context.
@@ -300,7 +300,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib40(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,20): error CS8185: A declaration is not allowed in this context.
@@ -378,8 +378,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                            options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (11,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -417,7 +416,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (8,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -455,7 +454,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -493,7 +492,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -531,7 +530,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -569,7 +568,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -600,7 +599,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
             compilation.VerifyDiagnostics(
                 // (6,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -654,7 +653,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 );
@@ -691,7 +690,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -730,7 +729,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics();
 
@@ -771,8 +770,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                            options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 );
@@ -811,8 +809,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                            options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (11,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -906,7 +903,7 @@ public class Cls
         y = 0;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
@@ -1401,7 +1398,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
@@ -1459,7 +1456,7 @@ namespace System
     }
 }
 " + TestResources.NetFX.ValueTuple.tupleattributes_cs;
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"{123, 124}").VerifyDiagnostics();
 
@@ -1493,7 +1490,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"System.Collections.Generic.List`1[System.Int32]").VerifyDiagnostics();
 
@@ -1528,7 +1525,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"124").VerifyDiagnostics();
 
@@ -1562,7 +1559,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
@@ -1596,7 +1593,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
@@ -1636,7 +1633,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
@@ -1674,7 +1671,7 @@ public class Cls
         y = 0;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"").VerifyDiagnostics();
 
@@ -1708,7 +1705,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             references: new MetadataReference[] { CSharpRef, SystemCoreRef },
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
@@ -1745,7 +1742,7 @@ public class Cls
         System.Console.WriteLine(y[0]);
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -1784,7 +1781,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (7,23): error CS0128: A local variable named 'x1' is already defined in this scope
@@ -1821,7 +1818,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,15): error CS0841: Cannot use local variable 'x1' before it is declared
@@ -1853,7 +1850,7 @@ public class Cls
         y = 1;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,19): error CS0841: Cannot use local variable 'x1' before it is declared
@@ -1880,7 +1877,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "1").VerifyDiagnostics();
 
@@ -1917,7 +1914,7 @@ public class Cls
         y = 1;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,19): error CS0841: Cannot use local variable 'x1' before it is declared
@@ -4785,7 +4782,7 @@ public class Cls
         return x;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "11").VerifyDiagnostics();
 
@@ -5690,7 +5687,7 @@ public unsafe class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
-            CompileAndVerify(compilation, expectedOutput:
+            CompileAndVerify(compilation, verify: Verification.Fails, expectedOutput:
 @"fixed
 fixed");
         }
@@ -5724,7 +5721,7 @@ public unsafe class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
-            CompileAndVerify(compilation, expectedOutput:
+            CompileAndVerify(compilation, verify: Verification.Fails, expectedOutput:
 @"fixed
 fixed");
         }
@@ -16799,7 +16796,7 @@ a: b: c:Test2(Test1(out int x1), x1);
         return x;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "11").VerifyDiagnostics(
                 // (11,1): warning CS0164: This label has not been referenced
@@ -16858,7 +16855,7 @@ a:          Test2(Test1(out int x1), x1);
         return x;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "1").VerifyDiagnostics(
                 // (15,1): warning CS0164: This label has not been referenced
@@ -16893,7 +16890,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (7,22): error CS0165: Use of unassigned local variable 'x1'
@@ -16926,7 +16923,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (7,22): error CS0165: Use of unassigned local variable 'x1'
@@ -16959,7 +16956,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (7,13): warning CS0219: The variable 'x2' is assigned but its value is never used
@@ -16998,7 +16995,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,18): error CS1503: Argument 1: cannot convert from 'out int' to 'out short'
@@ -17030,7 +17027,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,14): error CS1525: Invalid expression term 'int'
@@ -17075,7 +17072,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,24): error CS1003: Syntax error, ',' expected
@@ -17106,7 +17103,7 @@ public class Cls
         x = null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,18): error CS0118: 'IEnumerable<int>' is a type but is used like a variable
@@ -17139,7 +17136,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"").VerifyDiagnostics();
 
@@ -17172,7 +17169,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"").VerifyDiagnostics();
 
@@ -17212,7 +17209,7 @@ public class Cls
         public int val;
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17242,7 +17239,7 @@ public class Cls
         public int val;
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17286,7 +17283,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17317,7 +17314,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17356,7 +17353,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17397,7 +17394,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17440,7 +17437,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17483,7 +17480,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17522,7 +17519,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17567,7 +17564,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17598,7 +17595,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17650,7 +17647,7 @@ public class Cls
         {}
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17707,7 +17704,7 @@ public class Cls
         {}
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17751,7 +17748,7 @@ public class Cls
         {}
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17794,7 +17791,7 @@ public class Cls
         {}
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17847,7 +17844,7 @@ public class Cls
         {}
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17883,7 +17880,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             references: new MetadataReference[] { CSharpRef, SystemCoreRef },
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
@@ -17925,7 +17922,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17959,7 +17956,7 @@ public class Cls
         return true;
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18018,7 +18015,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18061,7 +18058,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18099,7 +18096,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18138,7 +18135,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18179,7 +18176,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18227,7 +18224,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18273,7 +18270,7 @@ public class Cls
 
     static void Test2(object x) { }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18316,7 +18313,7 @@ public class Cls
 
     static void Test2(object x) { }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe.WithAllowUnsafe(true),
                                                             parseOptions: TestOptions.Regular);
 
@@ -18355,7 +18352,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
@@ -18396,7 +18393,7 @@ public class Cls
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source,
+            var compilation = CreateCompilation(source,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
@@ -18425,7 +18422,7 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18458,7 +18455,7 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18491,7 +18488,7 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18526,7 +18523,7 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18561,7 +18558,7 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18592,7 +18589,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular7_1);
 
@@ -18630,7 +18627,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18666,7 +18663,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
+            CompileAndVerify(text, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
 @"{
   // Code size       87 (0x57)
   .maxstack  7
@@ -18720,7 +18717,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
+            CompileAndVerify(text, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
 @"
 {
   // Code size       87 (0x57)
@@ -18776,7 +18773,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            var comp = CreateStandardCompilation(text, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateCompilation(text, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics(
                 // (7,23): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         var x = d[out var _];
@@ -18796,7 +18793,7 @@ public class Cls
         var x = d[out _];
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (7,23): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         var x = d[out _];
@@ -18816,7 +18813,7 @@ public class Cls
         var x = d[out var x1] + x1;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var x1Decl = GetOutVarDeclaration(tree, "x1");
@@ -18844,7 +18841,7 @@ public class Cls
         var x = d[out int x1] + x1;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var x1Decl = GetOutVarDeclaration(tree, "x1");
@@ -18952,7 +18949,7 @@ class B
             foreach (var fillIn in fillIns)
             {
                 var source2 = string.Format(source2Template, fillIn);
-                var compilation = CreateStandardCompilation(source2, references: new[] { reference1 });
+                var compilation = CreateCompilation(source2, references: new[] { reference1 });
                 var tree = compilation.SyntaxTrees[0];
                 var model = compilation.GetSemanticModel(tree);
 
@@ -18980,7 +18977,7 @@ class B
                 VerifyModelForOutVar(model, x4Decl, x4Ref);
                 Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(x4Ref[0]).Type.ToTestDisplayString());
 
-                CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+                CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
     @"2 1
 3
 5 4
@@ -19131,7 +19128,7 @@ class B
             foreach (var fillIn in fillIns)
             {
                 var source2 = string.Format(source2Template, fillIn);
-                var compilation = CreateStandardCompilation(source2, references: new[] { reference1 }, options: TestOptions.DebugExe);
+                var compilation = CreateCompilation(source2, references: new[] { reference1 }, options: TestOptions.DebugExe);
 
                 CompileAndVerify(compilation, expectedOutput:
 @"11
@@ -19202,7 +19199,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
@@ -19250,7 +19247,7 @@ public class Cls
         x4 = 0;
     }
 }";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             Assert.Equal(1, compilation.SyntaxTrees[0].GetRoot().DescendantNodesAndSelf().OfType<DeclarationExpressionSyntax>().Count());
@@ -19362,7 +19359,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
@@ -19415,7 +19412,7 @@ unsafe struct S
     //fixed int F2[3 is int x3 ? 3 : 3, x3];
 }
 ";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
                                                             parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
@@ -21621,7 +21618,7 @@ public class Cls
 
     static class StaticType {}
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS0721: 'Cls.StaticType': static types cannot be used as parameters
@@ -30209,7 +30206,7 @@ class H
             var node1 = node0.ReplaceNode(one, decl);
             var tree = node1.SyntaxTree;
             Assert.NotNull(tree);
-            var compilation = CreateStandardCompilation(new[] { tree });
+            var compilation = CreateCompilation(new[] { tree });
             compilation.VerifyDiagnostics(
                 // (4,24): error CS8185: A declaration is not allowed in this context.
                 //     object M1() => M(M(varx1), x1);
@@ -30650,7 +30647,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -30762,7 +30759,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "CCCC");
 
@@ -30822,7 +30819,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (7,19): error CS1503: Argument 1: cannot convert from 'out long' to 'out int'
                 //         new C(out long x1);
@@ -30876,7 +30873,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "CC");
 
@@ -30934,7 +30931,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (10,19): error CS1503: Argument 1: cannot convert from 'out alias1' to 'out int'
                 //         new C(out alias1 _);
@@ -31011,7 +31008,7 @@ public class Derived4 : C
     public Derived4() : this(out _) { System.Console.Write(""Derived4""); }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C Derived2 C Derived3 C Derived4");
         }
@@ -31034,7 +31031,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0103: The name '_' does not exist in the current context
                 //         _.ToString();
@@ -31078,7 +31075,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "System.Int32");
         }
@@ -31101,7 +31098,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (10,9): error CS0411: The type arguments for method 'C.M<T>(out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(out var _);
@@ -31128,7 +31125,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "object returning M. int returning M.");
         }
@@ -31150,7 +31147,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(out object)' and 'C.M(out int)'
                 //         M(out var _);
@@ -31182,7 +31179,7 @@ public static class S
 {
     public static void M2(this A self, out B x) { x = null; }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (7,18): error CS1503: Argument 2: cannot convert from 'out A' to 'out B'
                 //         a.M2(out A x);
@@ -31208,7 +31205,7 @@ public class C
         // Note that the embedded statement is parsed as a missing identifier, followed by && with many spaces attached as leading trivia
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -32346,7 +32343,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32385,7 +32382,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32429,7 +32426,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32460,7 +32457,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32499,7 +32496,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32531,7 +32528,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32567,7 +32564,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32606,7 +32603,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32636,7 +32633,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32673,7 +32670,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32708,7 +32705,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,16): error CS1003: Syntax error, '(' expected
                 //         foreach 
@@ -32756,7 +32753,7 @@ class C
     static void G(Func<int, bool> f, object o) { }
     static void G(C c, object o) { }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS1501: No overload for method 'G' takes 1 arguments
                 //         G(x => x > 0 && F(out var y) && y > 0);
@@ -32784,7 +32781,7 @@ class C
     static void G(Expression<Func<int, bool>> f, object o) { }
     static void G(C c, object o) { }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (7,9): error CS1501: No overload for method 'G' takes 1 arguments
                 //         G(x => x > 0 && F(out var y) && y > 0);
@@ -32811,7 +32808,7 @@ class C
         return true;
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (7,38): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //             group x > 1 && F(out var y) && y == null
@@ -32834,7 +32831,7 @@ class C
         o = null;
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var identifierBefore = GetReferences(tree, "G").Single();
@@ -32867,7 +32864,7 @@ public class C
         throw null;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -32908,7 +32905,7 @@ public class C
         }
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 );
@@ -32935,7 +32932,7 @@ public class C
         x = 0;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (7,32): error CS8197: Cannot infer the type of implicitly-typed out variable 'z'.
@@ -32965,7 +32962,7 @@ public class C
         System.Console.WriteLine(z);
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,9): error CS0226: An __arglist expression may only appear inside of a call or new expression
@@ -33000,7 +32997,7 @@ public class C
         System.Console.WriteLine(z);
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,17): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type
@@ -33046,7 +33043,7 @@ public class C
 
 
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,17): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type

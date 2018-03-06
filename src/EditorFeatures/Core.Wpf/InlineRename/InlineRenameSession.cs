@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -153,6 +154,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public string OriginalSymbolName => _renameInfo.DisplayName;
 
+        // Used to aid the investigation of https://github.com/dotnet/roslyn/issues/7364
+        private class NullTextBufferException : Exception
+        {
+            private readonly Document _document;
+            private readonly SourceText _text;
+
+            public NullTextBufferException(Document document, SourceText text)
+                : base("Cannot retrieve textbuffer from document.")
+            {
+                _document = document;
+                _text = text;
+            }
+        }
+
         private void InitializeOpenBuffers(SnapshotSpan triggerSpan)
         {
             using (Logger.LogBlock(FunctionId.Rename_CreateOpenTextBufferManagerForAllOpenDocs, CancellationToken.None))
@@ -165,7 +180,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     Contract.ThrowIfNull(text);
 
                     var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
-                    Contract.ThrowIfNull(textSnapshot);
+                    if (textSnapshot == null)
+                    {
+                        FatalError.ReportWithoutCrash(new NullTextBufferException(document, text));
+                        continue;
+                    }
                     Contract.ThrowIfNull(textSnapshot.TextBuffer);
 
                     openBuffers.Add(textSnapshot.TextBuffer);

@@ -453,7 +453,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool forceSpill = false,
             bool sideEffectsOnly = false)
         {
+            Debug.Assert(!sideEffectsOnly || refKinds.IsDefault);
             Debug.Assert(refKinds.IsDefault || refKinds.Length == args.Length);
+
+            if (args.Length == 0)
+            {
+                return args;
+            }
 
             var newList = VisitList(args);
             Debug.Assert(newList.Length == args.Length);
@@ -461,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int lastSpill;
             if (forceSpill)
             {
-                lastSpill = newList.Length - 1;
+                lastSpill = newList.Length;
             }
             else
             {
@@ -486,22 +492,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder = new BoundSpillSequenceBuilder();
             }
 
-            var result = ArrayBuilder<BoundExpression>.GetInstance();
-            for (int i = 0; i <= lastSpill; i++)
+            var result = ArrayBuilder<BoundExpression>.GetInstance(newList.Length);
+
+            // everything up until the last spill must be spilled entirely
+            for (int i = 0; i < lastSpill; i++)
             {
                 var refKind = refKinds.IsDefault ? RefKind.None : refKinds[i];
                 var replacement = Spill(builder, newList[i], refKind, sideEffectsOnly);
 
                 Debug.Assert(sideEffectsOnly || replacement != null);
+
                 if (!sideEffectsOnly)
                 {
                     result.Add(replacement);
                 }
             }
 
-            for (int i = lastSpill + 1; i < newList.Length; i++)
+            // the value of the last spill and everything that follows is not spilled
+            if (lastSpill < newList.Length)
             {
-                result.Add(newList[i]);
+                var lastSpillNode = (BoundSpillSequenceBuilder)newList[lastSpill];
+                builder.Include(lastSpillNode);
+                result.Add(lastSpillNode.Value);
+
+                for (int i = lastSpill + 1; i < newList.Length; i++)
+                {
+                    result.Add(newList[i]);
+                }
             }
 
             return result.ToImmutableAndFree();
@@ -806,9 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var receiverBuilder = new BoundSpillSequenceBuilder();
 
                 receiver = node.ReceiverOpt;
-                var refKind = node.Method.ContainingType.IsReadOnly?
-                                                    RefKind.In:
-                                                    ReceiverSpillRefKind(receiver);
+                RefKind refKind = ReceiverSpillRefKind(receiver);
 
                 receiver = Spill(receiverBuilder, VisitExpression(ref receiverBuilder, receiver), refKind: refKind);
                 receiverBuilder.Include(builder);
@@ -820,9 +835,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static RefKind ReceiverSpillRefKind(BoundExpression receiver)
         {
-            return LocalRewriter.WouldBeAssignableIfUsedAsMethodReceiver(receiver) ?
-                RefKind.Ref :
-                RefKind.None;
+            var result = RefKind.None;
+            if (!receiver.Type.IsReferenceType && LocalRewriter.CanBePassedByReference(receiver))
+            {
+                result = receiver.Type.IsReadOnly ? RefKind.In : RefKind.Ref;
+            }
+
+            return result;
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
@@ -882,6 +901,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: node.Checked,
                     explicitCastInCode: node.ExplicitCastInCode,
                     constantValueOpt: node.ConstantValueOpt,
+                    type: node.Type));
+        }
+
+        public override BoundNode VisitPassByCopy(BoundPassByCopy node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            var expression = VisitExpression(ref builder, node.Expression);
+            return UpdateExpression(
+                builder,
+                node.Update(
+                    expression,
                     type: node.Type));
         }
 

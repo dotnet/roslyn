@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub ConstraintWithContainingType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface I(Of T)
@@ -30,7 +30,7 @@ End Class
 
         <Fact()>
         Public Sub ConstraintWithSameType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface I(Of T As I(Of T))
@@ -46,7 +46,7 @@ End Class
         ' the type/method is the OriginalDefinition.
         <Fact()>
         Public Sub OriginalDefinition()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class A(Of T As Structure)
@@ -66,7 +66,7 @@ End Class
 
         <Fact()>
         Public Sub BaseWithSameType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface IA(Of T)
@@ -91,7 +91,7 @@ End Class
         ' to verify method parameters and return types as well.)
         <Fact()>
         Public Sub BasesAndInterfaces()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface I(Of T As Structure)
@@ -203,7 +203,7 @@ BC32105: Type argument 'U' does not satisfy the 'Structure' constraint for type 
         ' Ensure the constraints are checked.
         <Fact()>
         Public Sub MethodSignatureConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -242,7 +242,7 @@ BC32106: Type argument 'Byte' does not satisfy the 'Class' constraint for type p
 
         <Fact()>
         Public Sub DefaultArguments()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A(Of T As Structure)
@@ -269,7 +269,7 @@ BC32105: Type argument 'String' does not satisfy the 'Structure' constraint for 
 
         <Fact()>
         Public Sub AttributeReferencingAttributedType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -294,7 +294,7 @@ BC32044: Type argument 'Object' does not inherit from or implement the constrain
         ' more than one, or separate partial declarations.
         <Fact()>
         Public Sub PartialClasses()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface I(Of T As Structure)
@@ -347,7 +347,7 @@ Partial Class C3 ' Part 1
 
         <Fact()>
         Public Sub InaccessibleConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Friend Class A
@@ -375,7 +375,7 @@ Public Class B(Of T As A, U As C)
         ' constructor. Otherwise report BC32083ERR_NoSuitableNewForNewConstraint2.
         <Fact()>
         Public Sub NewConstraintAndMustInherit()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 MustInherit Class A
@@ -425,7 +425,7 @@ BC32083: Type argument 'C' must have a public parameterless instance constructor
 
         <Fact()>
         Public Sub Aliases()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports A1 = N1.A
@@ -455,7 +455,7 @@ BC30182: Type expected.
 
         <Fact()>
         Public Sub EffectiveBaseType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Structure S
@@ -656,7 +656,7 @@ S]]>)
         ' even though no arguments are expected.
         <Fact()>
         Public Sub NewTWithBadArguments()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Structure S(Of T As New, U)
@@ -929,7 +929,7 @@ End Module
 
         <Fact()>
         Public Sub DefaultProperty()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface I
@@ -985,7 +985,7 @@ BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Pr
 
         <Fact()>
         Public Sub DefaultPropertyInheritedConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface IR
@@ -1141,7 +1141,7 @@ BC30547: 'U' cannot be indexed because it has no default property.
 
         <Fact()>
         Public Sub DefaultPropertyAmbiguous()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Interface IA
@@ -1210,7 +1210,7 @@ BC30686: Default property access is ambiguous between the inherited interface me
 
         <Fact()>
         Public Sub MembersInheritedConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface I
@@ -1369,7 +1369,7 @@ End Module
         ' System.Object or System.ValueType after lookup on interfaces.
         <Fact()>
         Public Sub MemberLookupOrder()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface I
@@ -1462,7 +1462,7 @@ BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Property P
         ' avoid reporting ambiguities if the same interface is repeated.
         <Fact()>
         Public Sub MemberLookupOnInterfaces()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface IA
@@ -1493,7 +1493,7 @@ BC30521: Overload resolution failed because no accessible 'M1' is most specific 
 
         <Fact()>
         Public Sub MemberLookupOverloadsWithMultipleTypeConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class A
@@ -1534,7 +1534,7 @@ End Class
 
         <Fact()>
         Public Sub MemberLookupWithMultipleTypeConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class A
@@ -1631,7 +1631,7 @@ End Class
 
         <Fact()>
         Public Sub MemberLookupClassAndInterfaceConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Interface IA
@@ -1759,7 +1759,7 @@ BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Pr
         ' Various other cases with class and interface constraints.
         <Fact()>
         Public Sub MemberLookupClassAndInterfaceConstraints_2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Interface I
@@ -1813,7 +1813,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
         ' that are ambiguous across interfaces.
         <Fact()>
         Public Sub MemberLookupClassAndDuplicateInterfaceConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Interface IA
@@ -1908,7 +1908,7 @@ BC30686: Default property access is ambiguous between the inherited interface me
 
         <Fact()>
         Public Sub ExtensionMethodLookupWithMultipleTypeConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -2029,7 +2029,7 @@ End Module
         <WorkItem(542978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542978")>
         <Fact()>
         Public Sub ExtensionMethodWithConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -2228,7 +2228,7 @@ BC30456: 'M6' is not a member of 'T7'.
         ' type parameters removed.
         <Fact()>
         Public Sub ExtensionMethodWithNoTypeParametersRemoved()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -2255,7 +2255,7 @@ End Module
         ' parameter removed.
         <Fact()>
         Public Sub ExtensionMethodWithSecondTypeParameterRemoved()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -2286,7 +2286,7 @@ BC30456: 'M2' is not a member of 'T'.
         ' type parameters removed.
         <Fact()>
         Public Sub ExtensionMethodWithMultipleTypeParametersRemoved()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -2319,7 +2319,7 @@ BC30456: 'M' is not a member of 'I(Of B, A)'.
 
         <Fact()>
         Public Sub ConversionsWithMultipleTypeConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -2350,7 +2350,7 @@ End Class
         ' correctly to support lookup for query expressions.
         <Fact()>
         Public Sub QueryExpressionLookup()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -2425,7 +2425,7 @@ BC36593: Expression of type 'T4' is not queryable. Make sure you are not missing
 
         <Fact()>
         Public Sub OverloadResolutionError()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -2449,7 +2449,7 @@ BC36642: Option Strict On requires each lambda expression parameter to be declar
 
         <Fact()>
         Public Sub DelegateConstraintErrors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -2502,7 +2502,7 @@ BC32106: Type argument 'T' does not satisfy the 'Class' constraint for type para
 
         <Fact()>
         Public Sub ConstraintCombinations()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface IA
@@ -2594,7 +2594,7 @@ Class D4(Of T As B, U As {A, T})
         ' and private interface implementations.
         <Fact()>
         Public Sub SkipDirectConstraintConflictsForImplementsAndOverrides()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb">
 Class A
@@ -3046,7 +3046,7 @@ End Class
         ' explicitly. This is different from C# (see corresponding C# test).
         <Fact()>
         Public Sub InterfaceConstraintsAbsorbed()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -3174,7 +3174,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation1 = CreateCompilationWithMscorlib(vbSource1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(vbSource1)
             compilation1.AssertTheseDiagnostics(<errors/>)
             Dim vbSource2 =
                 <compilation>
@@ -3216,7 +3216,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(vbSource2, {MetadataReference.CreateFromImage(compilation1.EmitToArray())})
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(vbSource2, {MetadataReference.CreateFromImage(compilation1.EmitToArray())})
             compilation2.AssertTheseDiagnostics(<errors/>)
             Dim vbSource3 =
                 <compilation>
@@ -3254,7 +3254,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(vbSource3, {MetadataReference.CreateFromImage(compilation2.EmitToArray())})
+            Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(vbSource3, {MetadataReference.CreateFromImage(compilation2.EmitToArray())})
             compilation3.AssertTheseDiagnostics(<errors/>)
         End Sub
 
@@ -3341,7 +3341,7 @@ End Interface
 ]]>
                     </file>
                 </compilation>
-            Dim compilation1 = CreateCompilationWithMscorlib(vbSource1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(vbSource1)
             compilation1.AssertNoErrors()
             Dim vbSource2 =
                 <compilation>
@@ -3357,7 +3357,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(vbSource2, {New VisualBasicCompilationReference(compilation1)})
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(vbSource2, {New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(
 <expected>
 BC32113: Type parameter 'T' cannot be constrained to itself: 
@@ -3384,7 +3384,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(vbSource3, {New VisualBasicCompilationReference(compilation2)})
+            Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(vbSource3, {New VisualBasicCompilationReference(compilation2)})
             compilation3.AssertTheseDiagnostics(
 <expected>
 BC30652: Reference required to assembly '2a9bcbd6-baa6-4ed3-ab61-f9f404735875, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'B1'. Add one to your project.
@@ -3461,7 +3461,7 @@ BC32044: Type argument 'B' does not inherit from or implement the constraint typ
         ' for type arguments that do not satisfy the constraints.
         <Fact()>
         Public Sub NotSatisfyingRedundantConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb">
 Interface I
@@ -3653,7 +3653,7 @@ End Class
         <WorkItem(543335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543335")>
         <Fact()>
         Public Sub NullableOfTStructureConstraint()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3997,7 +3997,7 @@ End Class
         <WorkItem(543449, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543449")>
         <Fact()>
         Public Sub ExplicitImplementationTypeParameterInSignature()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface IA
@@ -4022,7 +4022,7 @@ End Class
         ' in TypeParameterSymbol.ConstraintTypes.
         <Fact()>
         Public Sub InvalidConstraintTypes()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 NotInheritable Class A
@@ -4223,7 +4223,7 @@ End Module]]>,
         <WorkItem(543688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543688")>
         <Fact()>
         Public Sub ConflictingInheritedConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Structure S
@@ -4312,7 +4312,7 @@ BC32119: Constraint 'Class B' conflicts with the constraint 'Class A' already sp
         <WorkItem(543707, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543707")>
         <Fact()>
         Public Sub ConstraintsWithNestedType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class A(Of T)
@@ -4390,7 +4390,7 @@ End Class
         <WorkItem(99630, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=99630")>
         <Fact>
         Public Sub ConstraintErrorLocation()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface I(Of T As Structure)
@@ -4473,7 +4473,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation1 = CreateCompilationWithMscorlib(vbSource1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(vbSource1)
             compilation1.AssertNoErrors()
             Dim vbSource2 =
                 <compilation>
@@ -4484,7 +4484,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(vbSource2, {New VisualBasicCompilationReference(compilation1)})
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(vbSource2, {New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertNoErrors()
             Dim vbSource3 =
                 <compilation>
@@ -4495,7 +4495,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(vbSource3, {New VisualBasicCompilationReference(compilation2)})
+            Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(vbSource3, {New VisualBasicCompilationReference(compilation2)})
             compilation3.AssertTheseDiagnostics(
 <expected>
 BC30652: Reference required to assembly '6E12649E-ACDD-4A6D-84F4-D1E00B6CA3BB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A'. Add one to your project.
@@ -4506,7 +4506,7 @@ BC30652: Reference required to assembly '6E12649E-ACDD-4A6D-84F4-D1E00B6CA3BB, V
 
         <Fact()>
         Public Sub InheritedConstraints()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb">
 Class A
@@ -4553,7 +4553,7 @@ BC32111: Indirect constraint 'Class A' obtained from the type parameter constrai
         ' No conflict errors should be reported for undefined constraint types.
         <Fact()>
         Public Sub UndefinedInheritedConstraints()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb">
 Class A2
@@ -4606,7 +4606,7 @@ BC30002: Type 'B4' is not defined.
         <WorkItem(545255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545255")>
         <Fact()>
         Public Sub Bug13573()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class A(Of T)
@@ -4629,7 +4629,7 @@ BC30002: Type 'X' is not defined.
         <WorkItem(545415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545415")>
         <Fact()>
         Public Sub Bug13812()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -4658,7 +4658,7 @@ BC32044: Type argument 'String' does not inherit from or implement the constrain
         <WorkItem(545806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545806")>
         <Fact()>
         Public Sub ClassOrBasesSatisfyConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 MustInherit Class A
@@ -4694,7 +4694,7 @@ BC30311: Value of type 'B' cannot be converted to 'T'.
         <WorkItem(529820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529820")>
         <Fact()>
         Public Sub ExtensionMethodOnArrayInterface()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -4777,7 +4777,7 @@ End Module
         <WorkItem(530022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530022")>
         <Fact()>
         Public Sub MembersOfBaseTypeConstraintViolationOnDerived()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -4844,7 +4844,7 @@ BC32105: Type argument 'C6' does not satisfy the 'Structure' constraint for type
         <WorkItem(545327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545327")>
         <Fact()>
         Public Sub MissingObjectType()
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="525144ec-61b9-49ff-b073-37982adba3e3">
     <file name="a.vb"><![CDATA[
 Class A
@@ -4874,7 +4874,7 @@ Class B(Of T As A)
 
         <Fact()>
         Public Sub MissingValueType()
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="525144ec-61b9-49ff-b073-37982adba3e4">
     <file name="a.vb"><![CDATA[
 Structure S
@@ -4926,7 +4926,7 @@ BC31091: Import of type 'Object' from assembly or module '525144ec-61b9-49ff-b07
         <WorkItem(546394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")>
         <Fact()>
         Public Sub HasPublicParameterlessConstructorCycle01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -4948,7 +4948,7 @@ End Class
         <WorkItem(546394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")>
         <Fact()>
         Public Sub HasPublicParameterlessConstructorCycle02()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -5004,7 +5004,7 @@ BC32083: Type argument 'C' must have a public parameterless instance constructor
         <WorkItem(546394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")>
         <Fact()>
         Public Sub HasPublicParameterlessConstructorCycle03()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -5027,7 +5027,7 @@ End Class
         <WorkItem(546394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")>
         <Fact()>
         Public Sub HasPublicParameterlessConstructorCycle04()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface IA(Of T As New)
@@ -5091,7 +5091,7 @@ BC32083: Type argument 'B' must have a public parameterless instance constructor
         <WorkItem(101074, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=101074")>
         <Fact>
         Public Sub PropertySignatureDuplicateErrors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface I(Of T As New)
@@ -5179,7 +5179,7 @@ BC32083: Type argument 'C' must have a public parameterless instance constructor
         <WorkItem(546780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546780")>
         <Fact()>
         Public Sub Bug16806()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A(Of T)
@@ -5203,7 +5203,7 @@ BC30182: Type expected.
         <WorkItem(531227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531227")>
         <Fact()>
         Public Sub ConstraintOverrideBaseTypeCycle()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Public Class Base(Of T As New)
@@ -5224,7 +5224,7 @@ End Class
         <WorkItem(531227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531227")>
         <Fact()>
         Public Sub ConstraintExplicitImplementationInterfaceCycle()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Public Interface I(Of T As New)
@@ -5254,7 +5254,7 @@ End Interface
 ]]>
                     </file>
                 </compilation>
-            Dim compilation1 = CreateCompilationWithMscorlib(source1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(source1)
             compilation1.AssertNoErrors()
             Dim source2 =
                 <compilation>
@@ -5274,7 +5274,7 @@ End Interface
 ]]>
                     </file>
                 </compilation>
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(source2, {New VisualBasicCompilationReference(compilation1)})
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(source2, {New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertNoErrors()
             Dim source3 =
                 <compilation>
@@ -5286,7 +5286,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(source3, {New VisualBasicCompilationReference(compilation2)})
+            Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(source3, {New VisualBasicCompilationReference(compilation2)})
             compilation3.AssertTheseDiagnostics(
 <expected>
 BC30652: Reference required to assembly 'e521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A'. Add one to your project.
@@ -5318,7 +5318,7 @@ BC30652: Reference required to assembly 'e521fe98-c881-45cf-8870-249e00ae400d, V
         <WorkItem(578752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578752")>
         <Fact()>
         Public Sub Bug578752()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -5346,14 +5346,14 @@ Module M
     End Function
 End Module
    ]]></file>
-</compilation>, additionalRefs:={SystemCoreRef})
+</compilation>, references:={SystemCoreRef})
             compilation.AssertNoErrors()
         End Sub
 
         <WorkItem(578762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578762")>
         <Fact()>
         Public Sub Bug578762()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -5367,9 +5367,9 @@ Module M
     End Sub
 End Module
    ]]></file>
-</compilation>, additionalRefs:={SystemCoreRef})
+</compilation>, references:={SystemCoreRef})
             compilation.AssertNoErrors()
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -5381,14 +5381,14 @@ Module M
     End Sub
 End Module
    ]]></file>
-</compilation>, additionalRefs:={SystemCoreRef})
+</compilation>, references:={SystemCoreRef})
             compilation.AssertNoErrors()
         End Sub
 
         <WorkItem(578762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578762")>
         <Fact()>
         Public Sub Bug578762_2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -5420,9 +5420,9 @@ Class C
     End Sub
 End Class
    ]]></file>
-</compilation>, additionalRefs:={SystemCoreRef})
+</compilation>, references:={SystemCoreRef})
             compilation.AssertNoErrors()
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -5458,9 +5458,9 @@ Class E
     End Sub
 End Class
    ]]></file>
-</compilation>, additionalRefs:={SystemCoreRef})
+</compilation>, references:={SystemCoreRef})
             compilation.AssertNoErrors()
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -5500,7 +5500,7 @@ Class D2
     End Sub
 End Class
    ]]></file>
-</compilation>, additionalRefs:={SystemCoreRef})
+</compilation>, references:={SystemCoreRef})
             compilation.AssertTheseDiagnostics(
 <expected>
 BC30456: 'E1' is not a member of 'X'.
@@ -5511,7 +5511,7 @@ BC30456: 'E1' is not a member of 'X'.
 
         <Fact()>
         Public Sub DelegateMembers()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -5543,7 +5543,7 @@ End Class
         <WorkItem(578123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578123")>
         <Fact()>
         Public Sub Bug578123()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C(Of T As System.Console)
@@ -5576,7 +5576,7 @@ BC30299: 'C1' cannot inherit from class 'Console' because 'Console' is declared 
 
         <Fact()>
         Public Sub AccessProtectedMemberOnInstance_1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -5612,7 +5612,7 @@ BC30389: 'A.P' is not accessible in this context because it is 'Protected'.
 
         <Fact()>
         Public Sub AccessProtectedMemberOnInstance_2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A

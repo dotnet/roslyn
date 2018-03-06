@@ -45,6 +45,22 @@ class C
         }
 
         [Fact]
+        [WorkItem(24480, "https://github.com/dotnet/roslyn/issues/24480")]
+        public async Task TestInferredTupleName_WithAmbiguity()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M()
+    {
+        int alice = 1;
+        (int, int, string) t = ([||]alice: alice, alice, null);
+    }
+}", parameters: new TestParameters(parseOptions: s_parseOptions));
+        }
+
+        [Fact]
         public async Task TestInferredTupleNameAfterCommaWithCSharp6()
         {
             await TestActionCountAsync(
@@ -122,6 +138,22 @@ class C
         var t = new { a, 2 };
     }
 }", parseOptions: s_parseOptions);
+        }
+
+        [Fact]
+        [WorkItem(24480, "https://github.com/dotnet/roslyn/issues/24480")]
+        public async Task TestInferredAnonymousTypeMemberName_WithAmbiguity()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M()
+    {
+        int alice = 1;
+        var t = new { [||]alice=alice, alice };
+    }
+}", parameters: new TestParameters(parseOptions: s_parseOptions));
         }
 
         [Fact]

@@ -9076,6 +9076,16 @@
         <target state="translated">{0} non è un'operazione valida di assegnazione composta Visual Basic</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InterpolatedStrings">
+        <source>interpolated strings</source>
+        <target state="new">interpolated strings</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -777,6 +777,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckPresenceOfTypeIdentifierAttribute()
         {
+            // Have we already decoded well-known attributes?
+            if (_lazyCustomAttributesBag?.IsDecodedWellKnownAttributeDataComputed == true)
+            {
+                return;
+            }
+
             // We want this function to be as cheap as possible, it is called for every top level type
             // and we don't want to bind attributes attached to the declaration unless there is a chance
             // that one of them is TypeIdentifier attribute.
@@ -934,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsSerializable
+        public sealed override bool IsSerializable
         {
             get
             {

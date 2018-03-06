@@ -2129,19 +2129,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            CSDiagnosticInfo error = GetFeatureAvailabilityDiagnosticInfo(syntax.SyntaxTree, feature);
-
-            if (error is null)
-            {
-                return true;
-            }
-
-            HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, error);
-            return false;
-        }
-
         private static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfo(SyntaxTree tree, MessageID feature)
         {
             CSharpParseOptions options = (CSharpParseOptions)tree.Options;

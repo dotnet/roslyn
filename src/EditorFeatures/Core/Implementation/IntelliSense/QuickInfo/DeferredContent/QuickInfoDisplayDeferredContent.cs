@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         public IDeferredQuickInfoContent AnonymousTypes { get; }
         public IDeferredQuickInfoContent UsageText { get; }
         public IDeferredQuickInfoContent ExceptionText { get; }
+        public IDeferredQuickInfoContent CapturesText { get; }
         public IDeferredQuickInfoContent WarningGlyph { get; }
 
         public QuickInfoDisplayDeferredContent(
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             IDeferredQuickInfoContent typeParameterMap,
             IDeferredQuickInfoContent anonymousTypes,
             IDeferredQuickInfoContent usageText,
-            IDeferredQuickInfoContent exceptionText)
+            IDeferredQuickInfoContent exceptionText,
+            IDeferredQuickInfoContent capturesText)
         {
             SymbolGlyph = symbolGlyph;
             WarningGlyph = warningGlyph;
@@ -34,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             AnonymousTypes = anonymousTypes;
             UsageText = usageText;
             ExceptionText = exceptionText;
+            CapturesText = capturesText;
         }
     }
 }
