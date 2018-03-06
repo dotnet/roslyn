@@ -7418,7 +7418,7 @@ class C
             c.VerifyDiagnostics(
                 // (9,13): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.G(out int)'
                 //     int F = G(out var v1);    
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "G(out var v1)").WithArguments("C.G(out int)").WithLocation(9, 13),
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "G").WithArguments("C.G(out int)").WithLocation(9, 13),
                 // (13,7): error CS1729: 'object' does not contain a constructor that takes 1 arguments
                 //     : base(out var v3)
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("object", "1").WithLocation(13, 7));
