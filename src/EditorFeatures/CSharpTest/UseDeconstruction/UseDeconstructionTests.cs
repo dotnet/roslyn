@@ -467,5 +467,145 @@ class C
     (string name, int age) GetPerson() => default;
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        public async Task TestNotWithDefaultLiteralInitializer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        (string name, int age) [|person|] = default;
+        Console.WriteLine(person.name + "" "" + person.age);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        public async Task TestWithDefaultExpressionInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        (string name, int age) [|person|] = default((string, int));
+        Console.WriteLine(person.name + "" "" + person.age);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        (string name, int age) = default((string, int));
+        Console.WriteLine(name + "" "" + age);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        public async Task TestNotWithImplicitConversionFromNonTuple()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    class Person
+    {
+        public static implicit operator (string, int)(Person person) => default;
+    }
+
+    void M()
+    {
+        (string name, int age) [|person|] = new Person();
+        Console.WriteLine(person.name + "" "" + person.age);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        public async Task TestWithExplicitImplicitConversionFromNonTuple()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    class Person
+    {
+        public static implicit operator (string, int)(Person person) => default;
+    }
+
+    void M()
+    {
+        (string name, int age) [|person|] = ((string, int))new Person();
+        Console.WriteLine(person.name + "" "" + person.age);
+    }
+}",
+@"class C
+{
+    class Person
+    {
+        public static implicit operator (string, int)(Person person) => default;
+    }
+
+    void M()
+    {
+        (string name, int age) = ((string, int))new Person();
+        Console.WriteLine(name + "" "" + age);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        public async Task TestNotWithImplicitConversionFromNonTupleInForEach()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    class Person
+    {
+        public static implicit operator (string, int)(Person person) => default;
+    }
+
+    void M()
+    {
+        foreach ((string name, int age) [|person|] in new Person[] { })
+            Console.WriteLine(person.name + "" "" + person.age);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        public async Task TestWithExplicitImplicitConversionFromNonTupleInForEach()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Linq;
+class C
+{
+    class Person
+    {
+        public static implicit operator (string, int)(Person person) => default;
+    }
+
+    void M()
+    {
+        foreach ((string name, int age) [|person|] in new Person[] { }.Cast<(string, int)>())
+            Console.WriteLine(person.name + "" "" + person.age);
+    }
+}",
+@"using System.Linq;
+class C
+{
+    class Person
+    {
+        public static implicit operator (string, int)(Person person) => default;
+    }
+
+    void M()
+    {
+        foreach ((string name, int age) in new Person[] { }.Cast<(string, int)>())
+            Console.WriteLine(name + "" "" + age);
+    }
+}");
+        }
     }
 }
